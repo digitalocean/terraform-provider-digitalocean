@@ -1,3 +1,5 @@
 ## 0.1.0 (Unreleased)
 
-BACKWARDS INCOMPATIBILITIES / NOTES:
+FEATURES:
+
+* **New Resource:** `digitalocean_firewall` [GH-1]
