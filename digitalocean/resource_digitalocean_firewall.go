@@ -73,7 +73,7 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 				Optional: true,
 			},
 
-			"inbound_rules": {
+			"inbound_rule": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -110,7 +110,7 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 				},
 			},
 
-			"outbound_rules": {
+			"outbound_rule": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -195,8 +195,14 @@ func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("name", firewall.Name)
 	d.Set("droplet_ids", firewall.DropletIDs)
 	d.Set("tags", firewall.Tags)
-	d.Set("inbound_rules", matchFirewallInboundRules(d, firewall))
-	d.Set("outbound_rules", matchFirewallOutboundRules(d, firewall))
+
+	if err := d.Set("inbound_rule", flattenFirewallInboundRules(d, firewall.InboundRules)); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting Firewall inbound_rule error: %#v", err)
+	}
+
+	if err := d.Set("outbound_rule", flattenFirewallOutboundRules(d, firewall.OutboundRules)); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting Firewall outbound_rule error: %#v", err)
+	}
 
 	return nil
 }
@@ -287,44 +293,41 @@ func firewallRequest(d *schema.ResourceData, client *godo.Client) (*godo.Firewal
 	}
 
 	// Get inbound_rules
-	opts.InboundRules = firewallInboundRules(d)
+	opts.InboundRules = expandFirewallInboundRules(d)
 
 	// Get outbound_rules
-	opts.OutboundRules = firewallOutboundRules(d)
+	opts.OutboundRules = expandFirewallOutboundRules(d)
 
 	return opts, nil
 }
 
-func firewallInboundRules(d *schema.ResourceData) []godo.InboundRule {
-	rules := make([]godo.InboundRule, 0, len(d.Get("inbound_rules").([]interface{})))
-	for i, rawRule := range d.Get("inbound_rules").([]interface{}) {
+func expandFirewallInboundRules(d *schema.ResourceData) []godo.InboundRule {
+	rules := make([]godo.InboundRule, 0, len(d.Get("inbound_rule").([]interface{})))
+	for _, rawRule := range d.Get("inbound_rule").([]interface{}) {
 		var src godo.Sources
 
 		rule := rawRule.(map[string]interface{})
-		key := fmt.Sprintf("inbound_rules.%d.source_addresses", i)
-		if vv, ok := d.GetOk(key); ok {
-			for _, v := range vv.([]interface{}) {
-				src.Addresses = append(src.Addresses, v.(string))
-			}
+
+		sourceAddresses := rule["source_addresses"].([]interface{})
+		for _, address := range sourceAddresses {
+			src.Addresses = append(src.Addresses, address.(string))
 		}
-		key = fmt.Sprintf("inbound_rules.%d.source_tags", i)
-		if vv, ok := d.GetOk(key); ok {
-			for _, v := range vv.([]interface{}) {
-				src.Tags = append(src.Tags, v.(string))
-			}
+
+		sourceTags := rule["source_tags"].([]interface{})
+		for _, tag := range sourceTags {
+			src.Tags = append(src.Tags, tag.(string))
 		}
-		key = fmt.Sprintf("inbound_rules.%d.source_droplet_ids", i)
-		if vv, ok := d.GetOk(key); ok {
-			for _, v := range vv.([]interface{}) {
-				src.DropletIDs = append(src.DropletIDs, v.(int))
-			}
+
+		dropletIds := rule["source_droplet_ids"].([]interface{})
+		for _, dropletId := range dropletIds {
+			src.DropletIDs = append(src.DropletIDs, dropletId.(int))
 		}
-		key = fmt.Sprintf("inbound_rules.%d.source_load_balancer_uids", i)
-		if vv, ok := d.GetOk(key); ok {
-			for _, v := range vv.([]interface{}) {
-				src.LoadBalancerUIDs = append(src.LoadBalancerUIDs, v.(string))
-			}
+
+		lbIds := rule["source_load_balancer_uids"].([]interface{})
+		for _, lbId := range lbIds {
+			src.LoadBalancerUIDs = append(src.LoadBalancerUIDs, lbId.(string))
 		}
+
 		r := godo.InboundRule{
 			Protocol:  rule["protocol"].(string),
 			PortRange: rule["port_range"].(string),
@@ -335,36 +338,33 @@ func firewallInboundRules(d *schema.ResourceData) []godo.InboundRule {
 	return rules
 }
 
-func firewallOutboundRules(d *schema.ResourceData) []godo.OutboundRule {
-	rules := make([]godo.OutboundRule, 0, len(d.Get("outbound_rules").([]interface{})))
-	for i, rawRule := range d.Get("outbound_rules").([]interface{}) {
+func expandFirewallOutboundRules(d *schema.ResourceData) []godo.OutboundRule {
+	rules := make([]godo.OutboundRule, 0, len(d.Get("outbound_rule").([]interface{})))
+	for _, rawRule := range d.Get("outbound_rule").([]interface{}) {
 		var dest godo.Destinations
 
 		rule := rawRule.(map[string]interface{})
-		key := fmt.Sprintf("outbound_rules.%d.destination_addresses", i)
-		if vv, ok := d.GetOk(key); ok {
-			for _, v := range vv.([]interface{}) {
-				dest.Addresses = append(dest.Addresses, v.(string))
-			}
+
+		destinationAddresses := rule["destination_addresses"].([]interface{})
+		for _, address := range destinationAddresses {
+			dest.Addresses = append(dest.Addresses, address.(string))
 		}
-		key = fmt.Sprintf("outbound_rules.%d.destination_tags", i)
-		if vv, ok := d.GetOk(key); ok {
-			for _, v := range vv.([]interface{}) {
-				dest.Tags = append(dest.Tags, v.(string))
-			}
+
+		destinationTags := rule["destination_tags"].([]interface{})
+		for _, tag := range destinationTags {
+			dest.Addresses = append(dest.Tags, tag.(string))
 		}
-		key = fmt.Sprintf("outbound_rules.%d.destination_droplet_ids", i)
-		if vv, ok := d.GetOk(key); ok {
-			for _, v := range vv.([]interface{}) {
-				dest.DropletIDs = append(dest.DropletIDs, v.(int))
-			}
+
+		dropletIds := rule["destination_droplet_ids"].([]interface{})
+		for _, dropletId := range dropletIds {
+			dest.DropletIDs = append(dest.DropletIDs, dropletId.(int))
 		}
-		key = fmt.Sprintf("outbound_rules.%d.destination_load_balancer_uids", i)
-		if vv, ok := d.GetOk(key); ok {
-			for _, v := range vv.([]interface{}) {
-				dest.LoadBalancerUIDs = append(dest.LoadBalancerUIDs, v.(string))
-			}
+
+		lbIds := rule["destination_load_balancer_uids"].([]interface{})
+		for _, lbId := range lbIds {
+			dest.LoadBalancerUIDs = append(dest.LoadBalancerUIDs, lbId.(string))
 		}
+
 		r := godo.OutboundRule{
 			Protocol:     rule["protocol"].(string),
 			PortRange:    rule["port_range"].(string),
@@ -388,12 +388,16 @@ func firewallPendingChanges(d *schema.ResourceData, firewall *godo.Firewall) []i
 	return remote
 }
 
-func matchFirewallInboundRules(d *schema.ResourceData, firewall *godo.Firewall) []interface{} {
+func flattenFirewallInboundRules(d *schema.ResourceData, rules []godo.InboundRule) []interface{} {
+	if rules == nil {
+		return nil
+	}
+
 	// Prepare the data.
-	local := d.Get("inbound_rules").([]interface{})
-	remote := make([]interface{}, 0, len(firewall.InboundRules))
+	local := d.Get("inbound_rule").([]interface{})
+	remote := make([]interface{}, 0, len(rules))
 	remoteMap := make(map[int]map[string]interface{})
-	for _, rule := range firewall.InboundRules {
+	for _, rule := range rules {
 		rawRule := map[string]interface{}{
 			"protocol":                  rule.Protocol,
 			"port_range":                rule.PortRange,
@@ -414,7 +418,7 @@ func matchFirewallInboundRules(d *schema.ResourceData, firewall *godo.Firewall) 
 
 	// Update the local rules to only contains rules match
 	// to the remote rules.
-	match := make([]interface{}, 0, len(firewall.InboundRules))
+	match := make([]interface{}, 0, len(rules))
 	for _, rawRule := range local {
 		local := rawRule.(map[string]interface{})
 		protocol := local["protocol"].(string)
@@ -450,12 +454,12 @@ func matchFirewallInboundRules(d *schema.ResourceData, firewall *godo.Firewall) 
 	return match
 }
 
-func matchFirewallOutboundRules(d *schema.ResourceData, firewall *godo.Firewall) []interface{} {
+func flattenFirewallOutboundRules(d *schema.ResourceData, rules []godo.OutboundRule) []interface{} {
 	// Prepare the data.
-	local := d.Get("outbound_rules").([]interface{})
-	remote := make([]interface{}, 0, len(firewall.OutboundRules))
+	local := d.Get("outbound_rule").([]interface{})
+	remote := make([]interface{}, 0, len(rules))
 	remoteMap := make(map[int]map[string]interface{})
-	for _, rule := range firewall.OutboundRules {
+	for _, rule := range rules {
 		rawRule := map[string]interface{}{
 			"protocol":                       rule.Protocol,
 			"port_range":                     rule.PortRange,
@@ -476,7 +480,7 @@ func matchFirewallOutboundRules(d *schema.ResourceData, firewall *godo.Firewall)
 
 	// Update the local rules to only contains rules match
 	// to the remote rules.
-	match := make([]interface{}, 0, len(firewall.OutboundRules))
+	match := make([]interface{}, 0, len(rules))
 	for _, rawRule := range local {
 		local := rawRule.(map[string]interface{})
 		protocol := local["protocol"].(string)
