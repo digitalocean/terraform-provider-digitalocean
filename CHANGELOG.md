@@ -9,4 +9,4 @@ Bumping the provider version to get around provider caching issues - still same 
 
 FEATURES:
 
-* **New Resource:** `digitalocean_firewall` ([#1](https://github.com/terraform-providers/terraform-provider-digitalocean/1))
+* **New Resource:** `digitalocean_firewall` ([#1](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/1))
