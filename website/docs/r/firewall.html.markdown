@@ -26,7 +26,7 @@ resource "digitalocean_firewall" "web" {
 
   droplet_ids = ["${digitalocean_droplet.web.id}"]
 
-  inbound_rules = [
+  inbound_rule = [
     {
       protocol           = "tcp"
       port_range         = "22"
@@ -44,13 +44,11 @@ resource "digitalocean_firewall" "web" {
     },
   ]
 
-  outbound_rules = [
-    {
-      protocol                = "udp"
-      port_range              = "53"
-      destination_addresses   = ["0.0.0.0/0", "::/0"]
-    },
-  ]
+  outbound_rule {
+    protocol                = "udp"
+    port_range              = "53"
+    destination_addresses   = ["0.0.0.0/0", "::/0"]
+  }
 }
 ```
 
@@ -62,10 +60,10 @@ The following arguments are supported:
 * `droplet_ids` (Optional) - The list of the IDs of the Droplets assigned
   to the Firewall.
 * `tags` (Optional) - The names of the Tags assigned to the Firewall.
-* `inbound_rules` - (Optional) The inbound access rule block for the Firewall.
-  The `inbound_rules` block is documented below.
-* `outbound_rules` - (Optional) The outbound access rule block for the Firewall.
-  The `outbound_rules` block is documented below.
+* `inbound_rule` - (Optional) The inbound access rule block for the Firewall.
+  The `inbound_rule` block is documented below.
+* `outbound_rule` - (Optional) The outbound access rule block for the Firewall.
+  The `outbound_rule` block is documented below.
 
 `inbound_rule` supports the following:
 
