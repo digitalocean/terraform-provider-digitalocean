@@ -41,6 +41,7 @@ The following arguments are supported:
 * `name` - (Required) A name for the block storage volume. Must be lowercase and be composed only of numbers, letters and "-", up to a limit of 64 characters.
 * `size` - (Required) The size of the block storage volume in GiB. If updated, can only be expanded.
 * `description` - (Optional) A free-form text field up to a limit of 1024 bytes to describe a block storage volume.
+* `snapshot_id` - (Optional) The ID of an existing volume snapshot from which the new volume will be created.
 * `initial_filesystem_type` - (Optional) Initial filesystem type (`xfs` or `ext4`) for the block storage volume.
 * `initial_filesystem_label` - (Optional) Initial filesystem label for the block storage volume.
 

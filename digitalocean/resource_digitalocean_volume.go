@@ -86,6 +86,12 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"snapshot_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
@@ -110,6 +116,7 @@ func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) 
 		Name:          d.Get("name").(string),
 		Description:   d.Get("description").(string),
 		SizeGigaBytes: int64(d.Get("size").(int)),
+		SnapshotID:    d.Get("snapshot_id").(string),
 	}
 
 	if v, ok := d.GetOk("initial_filesystem_type"); ok {
