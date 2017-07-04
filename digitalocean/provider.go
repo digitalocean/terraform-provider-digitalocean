@@ -25,6 +25,7 @@ func Provider() terraform.ResourceProvider {
 			"digitalocean_image":        dataSourceDigitalOceanImage(),
 			"digitalocean_loadbalancer": dataSourceDigitalOceanLoadbalancer(),
 			"digitalocean_record":       dataSourceDigitalOceanRecord(),
+			"digitalocean_snapshot":     dataSourceDigitalOceanSnapshot(),
 			"digitalocean_ssh_key":      dataSourceDigitalOceanSSHKey(),
 			"digitalocean_tag":          dataSourceDigitalOceanTag(),
 			"digitalocean_volume":       dataSourceDigitalOceanVolume(),
