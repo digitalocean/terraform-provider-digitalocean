@@ -225,7 +225,7 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 
 	log.Printf("[INFO] Droplet ID: %s", d.Id())
 
-	_, err = WaitForDropletAttribute(d, "active", []string{"new"}, "status", meta)
+	_, err = waitForDropletAttribute(d, "active", []string{"new"}, "status", meta)
 	if err != nil {
 		return fmt.Errorf(
 			"Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
@@ -338,8 +338,8 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("invalid droplet id: %v", err)
 	}
 
-	resize_disk := d.Get("resize_disk").(bool)
-	if d.HasChange("size") || d.HasChange("resize_disk") && resize_disk {
+	resizeDisk := d.Get("resize_disk").(bool)
+	if d.HasChange("size") || d.HasChange("resize_disk") && resizeDisk {
 		newSize := d.Get("size")
 
 		_, _, err = client.DropletActions.PowerOff(context.Background(), id)
@@ -349,14 +349,15 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		// Wait for power off
-		_, err = WaitForDropletAttribute(d, "off", []string{"active"}, "status", client)
+		_, err = waitForDropletAttribute(d, "off", []string{"active"}, "status", client)
 		if err != nil {
 			return fmt.Errorf(
 				"Error waiting for droplet (%s) to become powered off: %s", d.Id(), err)
 		}
 
 		// Resize the droplet
-		action, _, err := client.DropletActions.Resize(context.Background(), id, newSize.(string), resize_disk)
+		var action *godo.Action
+		action, _, err = client.DropletActions.Resize(context.Background(), id, newSize.(string), resizeDisk)
 		if err != nil {
 			newErr := powerOnAndWait(d, meta)
 			if newErr != nil {
@@ -368,7 +369,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		// Wait for the resize action to complete.
-		if err := waitForAction(client, action); err != nil {
+		if err = waitForAction(client, action); err != nil {
 			newErr := powerOnAndWait(d, meta)
 			if newErr != nil {
 				return fmt.Errorf(
@@ -386,7 +387,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		// Wait for power off
-		_, err = WaitForDropletAttribute(d, "active", []string{"off"}, "status", meta)
+		_, err = waitForDropletAttribute(d, "active", []string{"off"}, "status", meta)
 		if err != nil {
 			return err
 		}
@@ -404,7 +405,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		// Wait for the name to change
-		_, err = WaitForDropletAttribute(
+		_, err = waitForDropletAttribute(
 			d, newName.(string), []string{"", oldName.(string)}, "name", meta)
 
 		if err != nil {
@@ -424,7 +425,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		// Wait for the private_networking to turn on
-		_, err = WaitForDropletAttribute(
+		_, err = waitForDropletAttribute(
 			d, "true", []string{"", "false"}, "private_networking", meta)
 
 		return fmt.Errorf(
@@ -441,7 +442,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		// Wait for ipv6 to turn on
-		_, err = WaitForDropletAttribute(
+		_, err = waitForDropletAttribute(
 			d, "true", []string{"", "false"}, "ipv6", meta)
 
 		if err != nil {
@@ -489,14 +490,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 			}
 		}
 		for volumeID := range leftDiff(oldIDSet, newIDSet) {
-			action, _, err := client.StorageActions.DetachByDropletID(context.Background(), volumeID, id)
-			if err != nil {
-				return fmt.Errorf("Error detaching volume %q from droplet (%s): %s", volumeID, d.Id(), err)
-			}
-			// can't fire >1 action at a time, so waiting for each is OK
-			if err := waitForAction(client, action); err != nil {
-				return fmt.Errorf("Error waiting for volume %q to detach from droplet (%s): %s", volumeID, d.Id(), err)
-			}
+			detachVolumeIDOnDroplet(d, volumeID, meta)
 		}
 	}
 
@@ -511,12 +505,19 @@ func resourceDigitalOceanDropletDelete(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("invalid droplet id: %v", err)
 	}
 
-	_, err = WaitForDropletAttribute(
+	_, err = waitForDropletAttribute(
 		d, "false", []string{"", "true"}, "locked", meta)
 
 	if err != nil {
 		return fmt.Errorf(
 			"Error waiting for droplet to be unlocked for destroy (%s): %s", d.Id(), err)
+	}
+
+	log.Printf("[INFO] Trying to Detach Storage Volumes (if any) from droplet: %s", d.Id())
+	err = detachVolumesFromDroplet(d, meta)
+	if err != nil {
+		return fmt.Errorf(
+			"Error detaching the volumes from the droplet (%s): %s", d.Id(), err)
 	}
 
 	log.Printf("[INFO] Deleting droplet: %s", d.Id())
@@ -536,7 +537,7 @@ func resourceDigitalOceanDropletDelete(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func WaitForDropletAttribute(
+func waitForDropletAttribute(
 	d *schema.ResourceData, target string, pending []string, attribute string, meta interface{}) (interface{}, error) {
 	// Wait for the droplet so we can get the networking attributes
 	// that show up after a while
@@ -614,9 +615,44 @@ func powerOnAndWait(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Wait for power on
-	_, err = WaitForDropletAttribute(d, "active", []string{"off"}, "status", client)
+	_, err = waitForDropletAttribute(d, "active", []string{"off"}, "status", client)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// Detach volumes from droplet
+func detachVolumesFromDroplet(d *schema.ResourceData, meta interface{}) error {
+	var errors []error
+	if attr, ok := d.GetOk("volume_ids"); ok {
+		errors = make([]error, 0, len(attr.([]interface{})))
+		for _, volumeID := range attr.([]interface{}) {
+			detachVolumeIDOnDroplet(d, volumeID.(string), meta)
+		}
+	}
+
+	if len(errors) > 0 {
+		return fmt.Errorf("Error detaching one or more volumes: %v", errors)
+	}
+
+	return nil
+}
+
+func detachVolumeIDOnDroplet(d *schema.ResourceData, volumeID string, meta interface{}) error {
+	id, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return fmt.Errorf("invalid droplet id: %v", err)
+	}
+	client := meta.(*godo.Client)
+	action, _, err := client.StorageActions.DetachByDropletID(context.Background(), volumeID, id)
+	if err != nil {
+		return fmt.Errorf("Error detaching volume %q from droplet (%s): %s", volumeID, d.Id(), err)
+	}
+	// can't fire >1 action at a time, so waiting for each is OK
+	if err := waitForAction(client, action); err != nil {
+		return fmt.Errorf("Error waiting for volume %q to detach from droplet (%s): %s", volumeID, d.Id(), err)
 	}
 
 	return nil
