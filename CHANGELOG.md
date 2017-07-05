@@ -1,4 +1,9 @@
 ## 0.1.2 (Unreleased)
+
+BUGS:
+
+* detaching the disks before deleting a droplet [GH-22]
+
 ## 0.1.1 (June 21, 2017)
 
 NOTES:
