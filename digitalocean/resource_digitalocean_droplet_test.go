@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"testing"
@@ -12,6 +13,40 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("digitalocean_droplet", &resource.Sweeper{
+		Name: "digitalocean_droplet",
+		F:    testSweepDroplets,
+	})
+
+}
+
+func testSweepDroplets(region string) error {
+	meta, err := sharedConfigForRegion(region)
+	if err != nil {
+		return err
+	}
+
+	client := meta.(*godo.Client)
+
+	droplets, _, err := client.Droplets.List(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+
+	for _, d := range droplets {
+		if strings.HasPrefix(d.Name, "foo-") || strings.HasPrefix(d.Name, "bar-") {
+			log.Printf("Destroying Droplet %s", d.Name)
+
+			if _, err := client.Droplets.Delete(context.Background(), d.ID); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
 
 func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 	var droplet godo.Droplet

@@ -6,11 +6,47 @@ import (
 	"strings"
 	"testing"
 
+	"log"
+
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("digitalocean_loadbalancer", &resource.Sweeper{
+		Name: "digitalocean_loadbalancer",
+		F:    testSweepLoadbalancer,
+	})
+
+}
+
+func testSweepLoadbalancer(region string) error {
+	meta, err := sharedConfigForRegion(region)
+	if err != nil {
+		return err
+	}
+
+	client := meta.(*godo.Client)
+
+	lbs, _, err := client.LoadBalancers.List(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+
+	for _, l := range lbs {
+		if strings.HasPrefix(l.Name, "loadbalancer-") {
+			log.Printf("Destroying loadbalancer %s", l.Name)
+
+			if _, err := client.LoadBalancers.Delete(context.Background(), l.ID); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
 
 func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 	var loadbalancer godo.LoadBalancer

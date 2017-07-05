@@ -11,6 +11,36 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
+func init() {
+	resource.AddTestSweepers("digitalocean_floating_ip", &resource.Sweeper{
+		Name: "digitalocean_floating_ip",
+		F:    testSweepFloatingIps,
+	})
+
+}
+
+func testSweepFloatingIps(region string) error {
+	meta, err := sharedConfigForRegion(region)
+	if err != nil {
+		return err
+	}
+
+	client := meta.(*godo.Client)
+
+	ips, _, err := client.FloatingIPs.List(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+
+	for _, ip := range ips {
+		if _, err := client.FloatingIPs.Delete(context.Background(), ip.IP); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func TestAccDigitalOceanFloatingIP_Region(t *testing.T) {
 	var floatingIP godo.FloatingIP
 

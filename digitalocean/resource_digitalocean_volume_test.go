@@ -3,13 +3,50 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"log"
 	"testing"
+
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("digitalocean_volume", &resource.Sweeper{
+		Name: "digitalocean_volume",
+		F:    testSweepVolumes,
+	})
+
+}
+
+func testSweepVolumes(region string) error {
+	meta, err := sharedConfigForRegion(region)
+	if err != nil {
+		return err
+	}
+
+	client := meta.(*godo.Client)
+
+	volumes, _, err := client.Storage.ListVolumes(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+
+	for _, v := range volumes {
+		if strings.HasPrefix(v.Name, "volume-") {
+			log.Printf("Destroying Volume %s", v.Name)
+
+			if _, err := client.Storage.DeleteVolume(context.Background(), v.ID); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
 
 func TestAccDigitalOceanVolume_Basic(t *testing.T) {
 	name := fmt.Sprintf("volume-%s", acctest.RandString(10))
