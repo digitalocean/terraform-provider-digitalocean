@@ -103,9 +103,9 @@ func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 	})
 }
 
-func testAccDigitalOceanDroplet_getID() string {
+/*func testAccDigitalOceanDroplet_getID() string {
 	// TODO (Jake): Finish this.
-}
+}*/
 
 func TestAccDigitalOceanDroplet_withSSH(t *testing.T) {
 	var droplet godo.Droplet
