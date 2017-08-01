@@ -1,4 +1,9 @@
 ## 0.1.3 (Unreleased)
+
+BUGS:
+
+* Make sure we've got a proper IP address from DO [GH-29]
+
 ## 0.1.2 (July 31, 2017)
 
 BUGS:
