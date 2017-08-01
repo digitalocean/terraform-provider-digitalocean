@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -315,7 +316,9 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 func findIPv6AddrByType(d *godo.Droplet, addrType string) string {
 	for _, addr := range d.Networks.V6 {
 		if addr.Type == addrType {
-			return addr.IPAddress
+			if ip := net.ParseIP(addr.IPAddress); ip != nil {
+				return addr.IPAddress
+			}
 		}
 	}
 	return ""
@@ -324,7 +327,9 @@ func findIPv6AddrByType(d *godo.Droplet, addrType string) string {
 func findIPv4AddrByType(d *godo.Droplet, addrType string) string {
 	for _, addr := range d.Networks.V4 {
 		if addr.Type == addrType {
-			return addr.IPAddress
+			if ip := net.ParseIP(addr.IPAddress); ip != nil {
+				return addr.IPAddress
+			}
 		}
 	}
 	return ""
