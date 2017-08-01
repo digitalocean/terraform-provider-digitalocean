@@ -122,7 +122,7 @@ func deleteVolumeSnapshots(snapshotsId *[]string) resource.TestCheckFunc {
 		client := testAccProvider.Meta().(*godo.Client)
 		snapshots := *snapshotsId
 		for _, value := range snapshots {
-			log.Printf("XXX Deleting %d", value)
+			log.Printf("XXX Deleting %v", value)
 			_, err := client.Snapshots.Delete(context.Background(), value)
 			if err != nil {
 				return err
