@@ -16,8 +16,9 @@ import (
 
 func init() {
 	resource.AddTestSweepers("digitalocean_volume", &resource.Sweeper{
-		Name: "digitalocean_volume",
-		F:    testSweepVolumes,
+		Name:         "digitalocean_volume",
+		F:            testSweepVolumes,
+		Dependencies: []string{"digitalocean_droplet"},
 	})
 
 }
