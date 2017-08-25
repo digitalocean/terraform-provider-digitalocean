@@ -123,6 +123,7 @@ func TestAccDigitalOceanFirewall_AllowMultipleOutbound(t *testing.T) {
 
 func TestAccDigitalOceanFirewall_MultipleInboundAndOutbound(t *testing.T) {
 	rName := acctest.RandString(10)
+	tagName := "tag-" + rName
 	var firewall godo.Firewall
 
 	resource.Test(t, resource.TestCase{
@@ -131,7 +132,7 @@ func TestAccDigitalOceanFirewall_MultipleInboundAndOutbound(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(rName),
+				Config: testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(tagName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanFirewallExists("digitalocean_firewall.foobar", &firewall),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.#", "2"),
@@ -140,6 +141,8 @@ func TestAccDigitalOceanFirewall_MultipleInboundAndOutbound(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_addresses.#", "2"),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_addresses.0", "192.168.1.0/24"),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_addresses.1", "2002:1001:1:2::/64"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_tags.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_tags.0", tagName),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.port_range", "22"),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.protocol", "tcp"),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.#", "2"),
@@ -151,6 +154,8 @@ func TestAccDigitalOceanFirewall_MultipleInboundAndOutbound(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.#", "2"),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.0", "192.168.1.0/24"),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.1", "2002:1001:1:2::/64"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_tags.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_tags.0", tagName),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.port_range", "53"),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.protocol", "udp"),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.destination_addresses.#", "2"),
@@ -165,13 +170,14 @@ func TestAccDigitalOceanFirewall_MultipleInboundAndOutbound(t *testing.T) {
 func TestAccDigitalOceanFirewall_ImportMultipleRules(t *testing.T) {
 	resourceName := "digitalocean_firewall.foobar"
 	rName := acctest.RandString(10)
+	tagName := "tag-" + rName
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(rName),
+				Config: testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(tagName, rName),
 			},
 
 			{
@@ -249,8 +255,12 @@ func testAccDigitalOceanFirewallConfig_OnlyMultipleOutbound(rName string) string
 	`, rName)
 }
 
-func testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(rName string) string {
+func testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(tagName string, rName string) string {
 	return fmt.Sprintf(`
+	resource "digitalocean_tag" "foobar" {
+		name = "%s"
+	}
+
 	resource "digitalocean_firewall" "foobar" {
 				name          = "%s"
 				inbound_rule {
@@ -262,11 +272,13 @@ func testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(rName string) 
 					protocol         = "tcp"
 					port_range       = "443"
 					source_addresses = ["192.168.1.0/24", "2002:1001:1:2::/64"]
+					source_tags      = ["%s"]
 				}
 				outbound_rule {
 					protocol              = "tcp"
 					port_range            = "443"
 					destination_addresses = ["192.168.1.0/24", "2002:1001:1:2::/64"]
+					destination_tags      = ["%s"]
 				}
 				outbound_rule {
 					protocol              = "udp"
@@ -275,7 +287,7 @@ func testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(rName string) 
 				}
 
 			}
-	`, rName)
+	`, tagName, rName, tagName, tagName)
 }
 
 func testAccCheckDigitalOceanFirewallDestroy(s *terraform.State) error {
