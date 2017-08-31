@@ -17,6 +17,9 @@ func resourceDigitalOceanRecord() *schema.Resource {
 		Read:   resourceDigitalOceanRecordRead,
 		Update: resourceDigitalOceanRecordUpdate,
 		Delete: resourceDigitalOceanRecordDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"type": {
