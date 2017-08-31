@@ -354,6 +354,27 @@ func TestAccDigitalOceanDroplet_PrivateNetworkingIpv6(t *testing.T) {
 	})
 }
 
+func testAccDigitalOceanDroplet_Monitoring(t *testing.T) {
+	var droplet godo.Droplet
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_Monitoring(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "monitoring", "true"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDropletDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*godo.Client)
 
@@ -661,6 +682,18 @@ resource "digitalocean_droplet" "foobar" {
   private_networking = true
 }
 `, rInt)
+}
+
+func testAccCheckDigitalOceanDropletConfig_Monitoring(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name       = "foo-%d"
+  size       = "1gb"
+  image      = "centos-7-x64"
+  region     = "nyc3"
+  monitoring = true
+ }
+ `, rInt)
 }
 
 var testAccValidPublicKey = `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCKVmnMOlHKcZK8tpt3MP1lqOLAcqcJzhsvJcjscgVERRN7/9484SOBJ3HSKxxNG5JN8owAjy5f9yYwcUg+JaUVuytn5Pv3aeYROHGGg+5G346xaq3DAwX6Y5ykr2fvjObgncQBnuU5KHWCECO/4h8uWuwh/kfniXPVjFToc+gnkqA+3RKpAecZhFXwfalQ9mMuYGFxn+fwn8cYEApsJbsEmb0iJwPiZ5hjFC8wREuiTlhPHDgkBLOiycd20op2nXzDbHfCHInquEe/gYxEitALONxm0swBOwJZwlTDOB7C6y2dzlrtxr1L59m7pCkWI4EtTRLvleehBoj3u7jB4usR`
