@@ -154,6 +154,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			"monitoring": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				ForceNew: true,
 			},
 		},
 	}
