@@ -96,3 +96,11 @@ The following attributes are exported:
 
 * `id` - The ID of the Load Balancer
 * `ip`- The ip of the Load Balancer
+
+## Import
+
+Load Balancers can be imported using the `name`, e.g.
+
+```
+terraform import digitalocean_tag.loadbalancer loadbalancername
+```
