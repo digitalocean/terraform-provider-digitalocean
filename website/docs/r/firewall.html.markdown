@@ -71,7 +71,7 @@ The following arguments are supported:
   This may be one of "tcp", "udp", or "icmp".
 * `port_range` - (Optional) The ports on which traffic will be allowed
   specified as a string containing a single port, a range (e.g. "8000-9000"),
-  or "all" to open all ports for a protocol.
+  or "1-65535" to open all ports for a protocol.
 * `source_addresses` - (Optional) An array of strings containing the IPv4
   addresses, IPv6 addresses, IPv4 CIDRs, and/or IPv6 CIDRs from which the
   inbound traffic will be accepted.
@@ -89,7 +89,7 @@ The following arguments are supported:
   This may be one of "tcp", "udp", or "icmp".
 * `port_range` - (Optional) The ports on which traffic will be allowed
   specified as a string containing a single port, a range (e.g. "8000-9000"),
-  or "all" to open all ports for a protocol.
+  or "1-65535" to open all ports for a protocol.
 * `destination_addresses` - (Optional) An array of strings containing the IPv4
   addresses, IPv6 addresses, IPv4 CIDRs, and/or IPv6 CIDRs to which the
   outbound traffic will be allowed.
