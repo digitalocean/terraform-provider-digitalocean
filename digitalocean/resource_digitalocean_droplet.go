@@ -152,6 +152,11 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 			},
+			"monitoring": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -191,6 +196,10 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 				ID: id.(string),
 			})
 		}
+	}
+
+	if attr, ok := d.GetOk("monitoring"); ok {
+		opts.Monitoring = attr.(bool)
 	}
 
 	// Get configured ssh_keys
