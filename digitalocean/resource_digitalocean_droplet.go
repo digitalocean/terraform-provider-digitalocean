@@ -192,8 +192,16 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 
 	if attr, ok := d.GetOk("volume_ids"); ok {
 		for _, id := range attr.([]interface{}) {
+			if id == nil {
+				continue
+			}
+			volumeId := id.(string)
+			if volumeId == "" {
+				continue
+			}
+
 			opts.Volumes = append(opts.Volumes, godo.DropletCreateVolume{
-				ID: id.(string),
+				ID: volumeId,
 			})
 		}
 	}
