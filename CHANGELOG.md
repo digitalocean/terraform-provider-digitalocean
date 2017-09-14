@@ -1,12 +1,16 @@
 ## 0.1.3 (Unreleased)
 
-BUGS:
+IMPROVEMENTS:
 
-* Make sure we've got a proper IP address from DO [GH-29]
+* resource/digitalocean_droplet: Add `monitoring` field [GH-38]
+
+BUG FIXES:
+
+* resource/digitalocean_droplet: Make sure we've got a proper IP address from DO [GH-29]
 
 ## 0.1.2 (July 31, 2017)
 
-BUGS:
+BUG FIXES:
 
 * detaching the disks before deleting a droplet ([#22](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/22))
 
