@@ -354,7 +354,7 @@ func TestAccDigitalOceanDroplet_PrivateNetworkingIpv6(t *testing.T) {
 	})
 }
 
-func testAccDigitalOceanDroplet_Monitoring(t *testing.T) {
+func TestAccDigitalOceanDroplet_Monitoring(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
 
