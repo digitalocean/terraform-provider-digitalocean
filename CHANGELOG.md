@@ -12,7 +12,7 @@ BUG FIXES:
 
 BUG FIXES:
 
-* detaching the disks before deleting a droplet ([#22](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/22))
+* resource/digitalocean_droplet: Detaching the disks before deleting a droplet ([#22](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/22))
 
 ## 0.1.1 (June 21, 2017)
 
