@@ -352,7 +352,7 @@ func expandFirewallOutboundRules(d *schema.ResourceData) []godo.OutboundRule {
 
 		destinationTags := rule["destination_tags"].([]interface{})
 		for _, tag := range destinationTags {
-			dest.Addresses = append(dest.Tags, tag.(string))
+			dest.Tags = append(dest.Tags, tag.(string))
 		}
 
 		dropletIds := rule["destination_droplet_ids"].([]interface{})
