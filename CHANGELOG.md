@@ -8,6 +8,7 @@ BUG FIXES:
 
 * resource/digitalocean_droplet: Make sure we've got a proper IP address from DO [GH-29]
 * resource/digitalocean_firewall: Correctly handle `destination_tags` [GH-36]
+* resource/digitalocean_firewall: Suppress diff for 'all' port range [GH-41]
 
 ## 0.1.2 (July 31, 2017)
 
