@@ -85,6 +85,12 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 						"port_range": {
 							Type:     schema.TypeString,
 							Optional: true,
+							DiffSuppressFunc: func(k, oldV, newV string, d *schema.ResourceData) bool {
+								if oldV == "0" && newV == "all" {
+									return true
+								}
+								return (oldV == newV)
+							},
 						},
 						"source_addresses": {
 							Type:     schema.TypeList,
@@ -122,6 +128,12 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 						"port_range": {
 							Type:     schema.TypeString,
 							Optional: true,
+							DiffSuppressFunc: func(k, oldV, newV string, d *schema.ResourceData) bool {
+								if oldV == "0" && newV == "all" {
+									return true
+								}
+								return (oldV == newV)
+							},
 						},
 						"destination_addresses": {
 							Type:     schema.TypeList,

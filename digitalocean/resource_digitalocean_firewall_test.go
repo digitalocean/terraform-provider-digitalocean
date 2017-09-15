@@ -167,6 +167,35 @@ func TestAccDigitalOceanFirewall_MultipleInboundAndOutbound(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanFirewall_fullPortRange(t *testing.T) {
+	rName := acctest.RandString(10)
+	var firewall godo.Firewall
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanFirewallConfig_fullPortRange(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanFirewallExists("digitalocean_firewall.foobar", &firewall),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.port_range", "0"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.protocol", "tcp"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.0", "192.168.1.1/32"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.port_range", "0"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.protocol", "tcp"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.0", "192.168.1.2/32"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanFirewall_ImportMultipleRules(t *testing.T) {
 	resourceName := "digitalocean_firewall.foobar"
 	rName := acctest.RandString(10)
@@ -288,6 +317,24 @@ func testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(tagName string
 
 			}
 	`, tagName, rName, tagName, tagName)
+}
+
+func testAccDigitalOceanFirewallConfig_fullPortRange(rName string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_firewall" "foobar" {
+	name          = "%s"
+	inbound_rule {
+		protocol         = "tcp"
+		port_range       = "all"
+		source_addresses = ["192.168.1.1/32"]
+	}
+	outbound_rule {
+		protocol              = "tcp"
+		port_range            = "all"
+		destination_addresses = ["192.168.1.2/32"]
+	}
+}
+`, rName)
 }
 
 func testAccCheckDigitalOceanFirewallDestroy(s *terraform.State) error {
