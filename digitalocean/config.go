@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -10,6 +11,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/logging"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
 	"golang.org/x/oauth2"
 )
 
@@ -23,7 +25,12 @@ func (c *Config) Client() (*godo.Client, error) {
 		AccessToken: c.Token,
 	})
 
-	client := godo.NewClient(oauth2.NewClient(oauth2.NoContext, tokenSrc))
+	userAgent := fmt.Sprintf("Terraform/%s", terraform.VersionString())
+
+	client, err := godo.New(oauth2.NewClient(oauth2.NoContext, tokenSrc), godo.SetUserAgent(userAgent))
+	if err != nil {
+		return nil, err
+	}
 
 	if logging.IsDebugOrHigher() {
 		client.OnRequestCompleted(logRequestAndResponse)
