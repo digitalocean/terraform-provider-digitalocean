@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+* provider: Report Terraform version via User-Agent [GH-43]
 * resource/digitalocean_droplet: Add `monitoring` field [GH-38]
 
 BUG FIXES:
