@@ -32,7 +32,8 @@ $ make build
 
 Using the provider
 ----------------------
-## Fill in for each provider
+
+See the [DigitalOcean Provider documentation](https://www.terraform.io/docs/providers/do/index.html) to get started using the DigitalOcean provider.
 
 Developing the Provider
 ---------------------------
