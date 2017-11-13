@@ -99,7 +99,7 @@ func resourceDigitalOceanFloatingIpUpdate(d *schema.ResourceData, meta interface
 			action, _, err := client.FloatingIPActions.Unassign(context.Background(), d.Id())
 			if err != nil {
 				return fmt.Errorf(
-					"Error Unassigning FloatingIP (%s): %s", d.Id(), err)
+					"Error unassigning FloatingIP (%s): %s", d.Id(), err)
 			}
 
 			_, unassignedErr := waitForFloatingIPReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
@@ -141,16 +141,20 @@ func resourceDigitalOceanFloatingIpDelete(d *schema.ResourceData, meta interface
 
 	if _, ok := d.GetOk("droplet_id"); ok {
 		log.Printf("[INFO] Unassigning the Floating IP from the Droplet")
-		action, _, err := client.FloatingIPActions.Unassign(context.Background(), d.Id())
-		if err != nil {
-			return fmt.Errorf(
-				"Error Unassigning FloatingIP (%s) from the droplet: %s", d.Id(), err)
-		}
+		action, resp, err := client.FloatingIPActions.Unassign(context.Background(), d.Id())
+		if resp.StatusCode != 422 {
+			if err != nil {
+				return fmt.Errorf(
+					"Error unassigning FloatingIP (%s) from the droplet: %s", d.Id(), err)
+			}
 
-		_, unassignedErr := waitForFloatingIPReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
-		if unassignedErr != nil {
-			return fmt.Errorf(
-				"Error waiting for FloatingIP (%s) to be unassigned: %s", d.Id(), unassignedErr)
+			_, unassignedErr := waitForFloatingIPReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+			if unassignedErr != nil {
+				return fmt.Errorf(
+					"Error waiting for FloatingIP (%s) to be unassigned: %s", d.Id(), unassignedErr)
+			}
+		} else {
+			log.Printf("[DEBUG] Couldn't unassign FloatingIP (%s) from droplet, possibly out of sync: %s", d.Id(), err)
 		}
 	}
 
