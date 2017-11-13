@@ -117,21 +117,25 @@ func resourceDigitalOceanFloatingIpRead(d *schema.ResourceData, meta interface{}
 	client := meta.(*godo.Client)
 
 	log.Printf("[INFO] Reading the details of the FloatingIP %s", d.Id())
-	floatingIp, _, err := client.FloatingIPs.Get(context.Background(), d.Id())
-	if err != nil {
-		return fmt.Errorf("Error retrieving FloatingIP: %s", err)
-	}
+	floatingIp, resp, err := client.FloatingIPs.Get(context.Background(), d.Id())
+	if resp.StatusCode != 404 {
+		if err != nil {
+			return fmt.Errorf("Error retrieving FloatingIP: %s", err)
+		}
 
-	if floatingIp.Droplet != nil {
-		log.Printf("[INFO] A droplet was detected on the FloatingIP so setting the Region based on the Droplet")
-		log.Printf("[INFO] The region of the Droplet is %s", floatingIp.Droplet.Region.Slug)
-		d.Set("region", floatingIp.Droplet.Region.Slug)
-		d.Set("droplet_id", floatingIp.Droplet.ID)
+		if floatingIp.Droplet != nil {
+			log.Printf("[INFO] A droplet was detected on the FloatingIP so setting the Region based on the Droplet")
+			log.Printf("[INFO] The region of the Droplet is %s", floatingIp.Droplet.Region.Slug)
+			d.Set("region", floatingIp.Droplet.Region.Slug)
+			d.Set("droplet_id", floatingIp.Droplet.ID)
+		} else {
+			d.Set("region", floatingIp.Region.Slug)
+		}
+
+		d.Set("ip_address", floatingIp.IP)
 	} else {
-		d.Set("region", floatingIp.Region.Slug)
+		d.SetId("")
 	}
-
-	d.Set("ip_address", floatingIp.IP)
 
 	return nil
 }
