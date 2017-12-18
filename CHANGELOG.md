@@ -1,16 +1,16 @@
-## 0.1.3 (Unreleased)
+## 0.1.3 (December 18, 2017)
 
 IMPROVEMENTS:
 
-* provider: Report Terraform version via User-Agent [GH-43]
-* resource/digitalocean_droplet: Add `monitoring` field [GH-38]
+* provider: Report Terraform version via User-Agent ([#43](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/43))
+* resource/digitalocean_droplet: Add `monitoring` field ([#38](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/38))
 
 BUG FIXES:
 
-* resource/digitalocean_droplet: Avoid crash on conditional volumes [GH-40]
-* resource/digitalocean_droplet: Make sure we've got a proper IP address from DO [GH-29]
-* resource/digitalocean_firewall: Correctly handle `destination_tags` [GH-36]
-* resource/digitalocean_firewall: Suppress diff for 'all' port range [GH-41]
+* resource/digitalocean_droplet: Avoid crash on conditional volumes ([#40](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/40))
+* resource/digitalocean_droplet: Make sure we've got a proper IP address from DO ([#29](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/29))
+* resource/digitalocean_firewall: Correctly handle `destination_tags` ([#36](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/36))
+* resource/digitalocean_firewall: Suppress diff for 'all' port range ([#41](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/41))
 
 ## 0.1.2 (July 31, 2017)
 
