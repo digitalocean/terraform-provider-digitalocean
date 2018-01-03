@@ -8,7 +8,7 @@ description: |-
 
 # digitalocean\_ssh_key
 
-Provides a DigitalOcean SSH key resource to allow you manage SSH
+Provides a DigitalOcean SSH key resource to allow you to manage SSH
 keys for Droplet access. Keys created with this resource
 can be referenced in your droplet configuration via their ID or
 fingerprint.
