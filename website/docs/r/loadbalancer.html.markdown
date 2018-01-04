@@ -99,8 +99,8 @@ The following attributes are exported:
 
 ## Import
 
-Load Balancers can be imported using the `name`, e.g.
+Load Balancers can be imported using the `id`, e.g.
 
 ```
-terraform import digitalocean_tag.loadbalancer loadbalancername
+terraform import digitalocean_loadbalancer.myloadbalancer 4de7ac8b-495b-4884-9a69-1050c6793cd6
 ```
