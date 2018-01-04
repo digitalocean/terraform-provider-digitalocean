@@ -51,8 +51,8 @@ The following attributes are exported:
 
 ## Import
 
-Records can be imported using the `name`, e.g.
+Records can be imported using the `id`, e.g.
 
 ```
-terraform import digitalocean_record.myrecord recordname
+terraform import digitalocean_record.myrecord 3352896
 ```
