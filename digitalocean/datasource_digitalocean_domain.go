@@ -16,18 +16,18 @@ func dataSourceDigitalOceanDomain() *schema.Resource {
 			"name": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "name of the image",
+				Description: "name of the domain",
 			},
 			// computed attributes
 			"ttl": &schema.Schema{
 				Type:        schema.TypeInt,
 				Computed:    true,
-				Description: "slug or id of the image",
+				Description: "ttl of the domain",
 			},
 			"zone_file": &schema.Schema{
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "minimum disk size required by the image",
+				Description: "zone file of the domain",
 			},
 		},
 	}
