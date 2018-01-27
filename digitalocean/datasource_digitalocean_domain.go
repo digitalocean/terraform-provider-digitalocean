@@ -1,0 +1,74 @@
+package digitalocean
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform/helper/schema"
+)
+
+func dataSourceDigitalOceanDomain() *schema.Resource {
+	return &schema.Resource{
+		Read: dataSourceDigitalOceanDomainRead,
+		Schema: map[string]*schema.Schema{
+
+			"name": &schema.Schema{
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "name of the image",
+			},
+			// computed attributes
+			"ttl": &schema.Schema{
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "slug or id of the image",
+			},
+			"zone_file": &schema.Schema{
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "minimum disk size required by the image",
+			},
+		},
+	}
+}
+
+func dataSourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*godo.Client)
+
+	opts := &godo.ListOptions{}
+
+	domains, _, err := client.Domains.List(context.Background(), opts)
+	if err != nil {
+		d.SetId("")
+		return err
+	}
+	domain, err := findDomainByName(domains, d.Get("name").(string))
+
+	if err != nil {
+		return err
+	}
+
+	d.SetId(domain.Name)
+	d.Set("name", domain.Name)
+	d.Set("ttl", domain.TTL)
+	d.Set("zone_file", domain.ZoneFile)
+
+	return nil
+}
+
+func findDomainByName(domains []godo.Domain, name string) (*godo.Domain, error) {
+	results := make([]godo.Domain, 0)
+	for _, v := range domains {
+		if v.Name == name {
+			results = append(results, v)
+		}
+	}
+	if len(results) == 1 {
+		return &results[0], nil
+	}
+	if len(results) == 0 {
+		return nil, fmt.Errorf("no domains found with name %s", name)
+	}
+	return nil, fmt.Errorf("too many domains found (found %d, expected 1)", len(results))
+}
