@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
@@ -64,12 +65,12 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 
 	err = client.MakeBucket(d.Get("name").(string), d.Get("region").(string))
 	if err != nil {
-		log.Fatalln(err)
+		return fmt.Errorf("Error creating bucket: %s", err)
 	}
 	log.Println("Bucket created")
 
 	d.SetId(d.Get("name").(string))
-	return nil
+	return resourceDigitalOceanBucketRead(d, meta)
 }
 
 func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) error {
@@ -85,15 +86,16 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 
 	found, err := client.BucketExists(d.Get("name").(string))
 	if err != nil {
-		log.Fatalln(err)
+		return fmt.Errorf("Error finding bucket: %s", err)
 	}
 
 	if found {
 		log.Println("Bucket found.")
-		d.Set("name", d.Get("name").(string))
 	} else {
 		log.Println("Bucket not found.")
 	}
+
+	d.Set("name", d.Get("name").(string))
 
 	return nil
 }
@@ -111,7 +113,7 @@ func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) 
 
 	err = client.RemoveBucket(d.Get("name").(string))
 	if err != nil {
-		log.Fatalln(err)
+		return fmt.Errorf("Error deleting bucket: %s", err)
 	}
 	log.Println("Bucket destroyed")
 
