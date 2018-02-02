@@ -87,6 +87,6 @@ func testAccCheckDigitalOceanBucketExists(n string) resource.TestCheckFunc {
 
 var testAccCheckDigitalOceanBucketConfig_basic = fmt.Sprintf(`
 resource "digitalocean_bucket" "foobar" {
-    name 			= "foobar"
-		endpoint 	= "nyc3.digitaloceanspaces.com"
+  name 			= "foobar"
+  endpoint 	= "nyc3"
 }`)
