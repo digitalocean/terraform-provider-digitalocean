@@ -24,12 +24,6 @@ func resourceDigitalOceanBucket() *schema.Resource {
 				ForceNew:    true,
 				Description: "Bucket name",
 			},
-			"endpoint": {
-				Type:        schema.TypeString,
-				Required:    true,
-				ForceNew:    true,
-				Description: "Bucket endpoint",
-			},
 			"region": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -54,7 +48,7 @@ func resourceDigitalOceanBucket() *schema.Resource {
 
 func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) error {
 	client, err := minio.New(
-		d.Get("endpoint").(string),
+		fmt.Sprintf("%v.digitaloceanspaces.com", d.Get("region").(string)),
 		d.Get("access_key").(string),
 		d.Get("secret_key").(string),
 		true,
@@ -63,7 +57,7 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 		log.Fatal(err)
 	}
 
-	err = client.MakeBucket(d.Get("name").(string), d.Get("region").(string))
+	err = client.MakeBucket(d.Get("name").(string), "us-east-1")
 	if err != nil {
 		return fmt.Errorf("Error creating bucket: %s", err)
 	}
@@ -75,7 +69,7 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) error {
 	client, err := minio.New(
-		d.Get("endpoint").(string),
+		fmt.Sprintf("%v.digitaloceanspaces.com", d.Get("region").(string)),
 		d.Get("access_key").(string),
 		d.Get("secret_key").(string),
 		true,
@@ -102,7 +96,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) error {
 	client, err := minio.New(
-		d.Get("endpoint").(string),
+		fmt.Sprintf("%v.digitaloceanspaces.com", d.Get("region").(string)),
 		d.Get("access_key").(string),
 		d.Get("secret_key").(string),
 		true,
