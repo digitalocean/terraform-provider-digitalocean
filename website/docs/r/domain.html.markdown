@@ -15,7 +15,7 @@ Provides a DigitalOcean domain resource.
 ```hcl
 # Create a new domain
 resource "digitalocean_domain" "default" {
-  name       = "www.example.com"
+  name       = "example.com"
   ip_address = "${digitalocean_droplet.foo.ipv4_address}"
 }
 ```
