@@ -48,3 +48,11 @@ The following attributes are exported:
 
 * `id` - The record ID
 * `fqdn` - The FQDN of the record
+
+## Import
+
+Records can be imported using the record `id` and the domain when joined with a comma.  See the following example:
+
+```
+terraform import digitalocean_record.example_record 12345678,example.com
+```

@@ -17,6 +17,9 @@ func resourceDigitalOceanRecord() *schema.Resource {
 		Read:   resourceDigitalOceanRecordRead,
 		Update: resourceDigitalOceanRecordUpdate,
 		Delete: resourceDigitalOceanRecordDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"type": {
@@ -130,7 +133,18 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 	domain := d.Get("domain").(string)
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return fmt.Errorf("invalid record ID: %v", err)
+		// Catches an import and sets the id/domain for Record call
+		if strings.Contains(d.Id(), ",") {
+			s := strings.Split(d.Id(), ",")
+			id, err = strconv.Atoi(s[0])
+			domain = s[1]
+
+			if err != nil {
+				return fmt.Errorf("invalid record ID: %v", err)
+			}
+		} else {
+			return fmt.Errorf("invalid record ID: %v", err)
+		}
 	}
 
 	rec, resp, err := client.Domains.Record(context.Background(), domain, id)
@@ -150,6 +164,12 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 			rec.Data = domain
 		}
 		rec.Data += "."
+	}
+
+	// Sets Id and domain to appropriate values during an import
+	if strings.Contains(d.Id(), ",") {
+		d.SetId(strconv.Itoa(rec.ID))
+		d.Set("domain", domain)
 	}
 
 	d.Set("name", rec.Name)
