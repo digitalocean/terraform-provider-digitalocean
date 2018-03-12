@@ -15,7 +15,7 @@ Provides a DigitalOcean Floating IP to represent a publicly-accessible static IP
 ```hcl
 resource "digitalocean_droplet" "foobar" {
   name               = "baz"
-  size               = "1gb"
+  size               = "s-1vcpu-1gb"
   image              = "centos-5-8-x32"
   region             = "sgp1"
   ipv6               = true
