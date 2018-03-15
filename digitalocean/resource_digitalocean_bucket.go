@@ -44,11 +44,11 @@ func resourceDigitalOceanBucket() *schema.Resource {
 				Description: "Spaces Access Profile",
 			},
 			"acl": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-        Description: "Canned ACL applied on bucket creation (Change requires replacement)",
-				Default:  "private",
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Canned ACL applied on bucket creation (Change requires replacement)",
+				Default:     "private",
 			},
 		},
 	}
