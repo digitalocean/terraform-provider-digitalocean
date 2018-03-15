@@ -36,7 +36,7 @@ func resourceDigitalOceanBucket() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 				Description: "Bucket region",
-        Default:     "nyc3",
+				Default:     "nyc3",
 			},
 			"profile": {
 				Type:        schema.TypeString,
@@ -45,11 +45,11 @@ func resourceDigitalOceanBucket() *schema.Resource {
 				Description: "Spaces Access Profile",
 			},
 			"acl": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-        Description: "Canned ACL applied on bucket creation (Change requires replacement)",
-				Default:  "private",
+				Type:        schema.TypeString,
+				Optional:    true,
+				ForceNew:    true,
+				Description: "Canned ACL applied on bucket creation (Change requires replacement)",
+				Default:     "private",
 			},
 		},
 	}
