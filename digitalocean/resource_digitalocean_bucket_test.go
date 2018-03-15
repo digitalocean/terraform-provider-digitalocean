@@ -127,7 +127,7 @@ func testAccCheckDigitalOceanBucketDestroyWithProvider(s *terraform.State, provi
 		Credentials: credentials.NewSharedCredentials("", "digitalocean-spaces")},
 	)
 	svc := s3.New(sesh, &aws.Config{
-		Endpoint: aws.String(fmt.Sprintf("https://%r.digitaloceanspaces.com", "nyc3"))},
+		Endpoint: aws.String("https://nyc3.digitaloceanspaces.com")},
 	)
 
 	if err != nil {
@@ -171,7 +171,7 @@ func testAccCheckDigitalOceanBucketExistsWithProvider(n string, providerF func()
 			Credentials: credentials.NewSharedCredentials("", "digitalocean-spaces")},
 		)
 		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String(fmt.Sprintf("https://%r.digitaloceanspaces.com", "nyc3"))},
+			Endpoint: aws.String("https://nyc3.digitaloceanspaces.com")},
 		)
 
 		if err != nil {
@@ -209,7 +209,7 @@ func testAccCheckDigitalOceanDestroyBucket(n string) resource.TestCheckFunc {
 			Credentials: credentials.NewSharedCredentials("", "digitalocean-spaces")},
 		)
 		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String(fmt.Sprintf("https://%r.digitaloceanspaces.com", "nyc3"))},
+			Endpoint: aws.String("https://nyc3.digitaloceanspaces.com")},
 		)
 
 		if err != nil {

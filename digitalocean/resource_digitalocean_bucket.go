@@ -36,7 +36,6 @@ func resourceDigitalOceanBucket() *schema.Resource {
 				Required:    true,
 				ForceNew:    true,
 				Description: "Bucket region",
-				Default:     "nyc3",
 			},
 			"profile": {
 				Type:        schema.TypeString,
@@ -45,11 +44,11 @@ func resourceDigitalOceanBucket() *schema.Resource {
 				Description: "Spaces Access Profile",
 			},
 			"acl": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "Canned ACL applied on bucket creation (Change requires replacement)",
-				Default:     "private",
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+        Description: "Canned ACL applied on bucket creation (Change requires replacement)",
+				Default:  "private",
 			},
 		},
 	}
@@ -69,19 +68,19 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 	}
 
 	input := &s3.CreateBucketInput{
-		Bucket: aws.String(d.Get("bucket").(string)),
+		Bucket: aws.String(d.Get("name").(string)),
 		ACL:    aws.String(d.Get("acl").(string)),
 	}
 
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		log.Printf("[DEBUG] Trying to create new Spaces bucket: %q", d.Get("bucket").(string))
+		log.Printf("[DEBUG] Trying to create new Spaces bucket: %q", d.Get("name").(string))
 		_, err := svc.CreateBucket(input)
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == "OperationAborted" {
-				log.Printf("[WARN] Got an error while trying to create Spaces bucket %s: %s", d.Get("bucket").(string), err)
+				log.Printf("[WARN] Got an error while trying to create Spaces bucket %s: %s", d.Get("name").(string), err)
 				return resource.RetryableError(
 					fmt.Errorf("[WARN] Error creating Spaces bucket %s, retrying: %s",
-						d.Get("bucket").(string), err))
+						d.Get("name").(string), err))
 			}
 		}
 		if err != nil {
@@ -96,7 +95,7 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 	}
 	log.Println("Bucket created")
 
-	d.SetId(d.Get("bucket").(string))
+	d.SetId(d.Get("name").(string))
 	return resourceDigitalOceanBucketRead(d, meta)
 }
 
@@ -153,11 +152,11 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	// In the import case, we won't have this
-	if _, ok := d.GetOk("bucket"); !ok {
-		d.Set("bucket", d.Id())
+	if _, ok := d.GetOk("name"); !ok {
+		d.Set("name", d.Id())
 	}
 
-	d.Set("bucket_domain_name", bucketDomainName(d.Get("bucket").(string), d.Get("region").(string)))
+	d.Set("bucket_domain_name", bucketDomainName(d.Get("name").(string), d.Get("region").(string)))
 
 	// Add the region as an attribute
 
@@ -181,7 +180,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
-	d.Set("bucket", d.Get("bucket").(string))
+	d.Set("name", d.Get("name").(string))
 
 	return nil
 }
@@ -210,7 +209,7 @@ func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) 
 				// bucket may have things delete them
 				log.Printf("[DEBUG] Spaces Bucket attempting to forceDestroy %+v", err)
 
-				bucket := d.Get("bucket").(string)
+				bucket := d.Get("name").(string)
 				resp, err := svc.ListObjectVersions(
 					&s3.ListObjectVersionsInput{
 						Bucket: aws.String(bucket),
@@ -259,7 +258,7 @@ func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) 
 				return resourceDigitalOceanBucketDelete(d, meta)
 			}
 		}
-		return fmt.Errorf("Error deleting Spaces Bucket: %s %q", err, d.Get("bucket").(string))
+		return fmt.Errorf("Error deleting Spaces Bucket: %s %q", err, d.Get("name").(string))
 	}
 	log.Println("Bucket destroyed")
 
@@ -269,7 +268,7 @@ func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) 
 
 func resourceDigitalOceanBucketAclUpdate(svc *s3.S3, d *schema.ResourceData) error {
 	acl := d.Get("acl").(string)
-	bucket := d.Get("bucket").(string)
+	bucket := d.Get("name").(string)
 
 	i := &s3.PutBucketAclInput{
 		Bucket: aws.String(bucket),
