@@ -61,16 +61,12 @@ func dataSourceDigitalOceanImageRead(source string, d *schema.ResourceData, meta
 
 	var listFn func(ctx context.Context, opt *godo.ListOptions) ([]godo.Image, *godo.Response, error)
 	switch source {
-	case "all":
-		listFn = client.Images.List
 	case "user":
 		listFn = client.Images.ListUser
 	case "application":
 		listFn = client.Images.ListApplication
 	case "distribution":
 		listFn = client.Images.ListDistribution
-	default:
-		return fmt.Errorf("invalid value for image_type")
 	}
 
 	var image *godo.Image
