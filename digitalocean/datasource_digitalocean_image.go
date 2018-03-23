@@ -55,15 +55,42 @@ func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) e
 
 	opts := &godo.ListOptions{}
 
-	images, _, err := client.Images.ListUser(context.Background(), opts)
-	if err != nil {
-		d.SetId("")
-		return err
-	}
-	image, err := findImageByName(images, d.Get("name").(string))
+	name := d.Get("name").(string)
 
-	if err != nil {
-		return err
+	var image *godo.Image
+
+outer:
+	for {
+		// This method should be configurable
+		images, res, err := client.Images.ListUser(context.Background(), opts)
+		if err != nil {
+			d.SetId("")
+			return err
+		}
+
+		for _, v := range images {
+			if v.Name == name {
+				image = &v
+				break outer
+			}
+		}
+
+		// if we are at the last page, break out the for loop
+		if res.Links == nil || res.Links.IsLastPage() {
+			break
+		}
+
+		page, err := res.Links.CurrentPage()
+		if err != nil {
+			return fmt.Errorf("cannot retrieve current page: %v", err)
+		}
+
+		// set the page we want for the next request
+		opts.Page = page + 1
+	}
+
+	if image == nil {
+		return fmt.Errorf("no user image found with name %s", name)
 	}
 
 	d.SetId(image.Name)
@@ -75,20 +102,4 @@ func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("type", image.Type)
 
 	return nil
-}
-
-func findImageByName(images []godo.Image, name string) (*godo.Image, error) {
-	results := make([]godo.Image, 0)
-	for _, v := range images {
-		if v.Name == name {
-			results = append(results, v)
-		}
-	}
-	if len(results) == 1 {
-		return &results[0], nil
-	}
-	if len(results) == 0 {
-		return nil, fmt.Errorf("no user image found with name %s", name)
-	}
-	return nil, fmt.Errorf("too many user images found with name %s (found %d, expected 1)", name, len(results))
 }
