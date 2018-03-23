@@ -1,17 +1,19 @@
 package digitalocean
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 
 	"github.com/digitalocean/godo"
+	"github.com/digitalocean/godo/context"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func dataSourceDigitalOceanImage() *schema.Resource {
+func dataSourceDigitalOceanImage(source string) *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanImageRead,
+		Read: func(d *schema.ResourceData, meta interface{}) error {
+			return dataSourceDigitalOceanImageRead(source, d, meta)
+		},
 		Schema: map[string]*schema.Schema{
 
 			"name": &schema.Schema{
@@ -50,19 +52,33 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanImageRead(source string, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
 	opts := &godo.ListOptions{}
 
 	name := d.Get("name").(string)
 
+	var listFn func(ctx context.Context, opt *godo.ListOptions) ([]godo.Image, *godo.Response, error)
+	switch source {
+	case "all":
+		listFn = client.Images.List
+	case "user":
+		listFn = client.Images.ListUser
+	case "application":
+		listFn = client.Images.ListApplication
+	case "distribution":
+		listFn = client.Images.ListDistribution
+	default:
+		return fmt.Errorf("invalid value for image_type")
+	}
+
 	var image *godo.Image
 
 outer:
 	for {
 		// This method should be configurable
-		images, res, err := client.Images.ListUser(context.Background(), opts)
+		images, res, err := listFn(context.Background(), opts)
 		if err != nil {
 			d.SetId("")
 			return err
@@ -90,7 +106,7 @@ outer:
 	}
 
 	if image == nil {
-		return fmt.Errorf("no user image found with name %s", name)
+		return fmt.Errorf("no %s image found with name %s", source, name)
 	}
 
 	d.SetId(image.Name)
