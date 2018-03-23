@@ -57,7 +57,7 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
-	opts := &godo.ListOptions{}
+	opts := &godo.ListOptions{PerPage: 200}
 
 	name := d.Get("name").(string)
 
