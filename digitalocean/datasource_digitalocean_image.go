@@ -75,9 +75,8 @@ func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("source must be one of user, application, or distribution")
 	}
 
-	var image *godo.Image
+	var images []*godo.Image
 
-outer:
 	for {
 		images, res, err := listFn(context.Background(), opts)
 		if err != nil {
@@ -85,10 +84,9 @@ outer:
 			return err
 		}
 
-		for _, v := range images {
-			if v.Name == name {
-				image = &v
-				break outer
+		for _, image := range images {
+			if image.Name == name {
+				images = append(images, image)
 			}
 		}
 
@@ -106,17 +104,20 @@ outer:
 		opts.Page = page + 1
 	}
 
-	if image == nil {
+	if len(images) == 0 {
 		return fmt.Errorf("no %s image found with name %s", source, name)
 	}
+	if len(images) > 1 {
+		return fmt.Errorf("too many %s images found with name %s (found %d, expected 1)", source, name, len(images))
+	}
 
-	d.SetId(image.Name)
-	d.Set("name", image.Name)
-	d.Set("image", strconv.Itoa(image.ID))
-	d.Set("min_disk_size", image.MinDiskSize)
-	d.Set("private", !image.Public)
-	d.Set("regions", image.Regions)
-	d.Set("type", image.Type)
+	d.SetId(images[0].Name)
+	d.Set("name", images[0].Name)
+	d.Set("image", strconv.Itoa(images[0].ID))
+	d.Set("min_disk_size", images[0].MinDiskSize)
+	d.Set("private", !images[0].Public)
+	d.Set("regions", images[0].Regions)
+	d.Set("type", images[0].Type)
 
 	return nil
 }
