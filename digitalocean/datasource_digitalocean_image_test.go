@@ -53,6 +53,28 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 				ExpectError: regexp.MustCompile(`.*no user image found with name snap-.*-nonexisting`),
 			},
 			{
+				Config: testAccCheckDigitalOceanImageConfig_regexp(rInt, 1),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "name", fmt.Sprintf("snap-%d-1", rInt)),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "min_disk_size", "20"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "private", "true"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "type", "snapshot"),
+				),
+			},
+			{
+				Config:      testAccCheckDigitalOceanImageConfig_regexp(rInt, 0),
+				ExpectError: regexp.MustCompile(`.*too many user images found with name snap-.*\ .found 2, expected 1.`),
+			},
+			{
+				Config:      testAccCheckDigitalOceanImageConfig_nonexisting_regexp(rInt),
+				Destroy:     false,
+				ExpectError: regexp.MustCompile(`.*no user image found with name snap-.*-nonexisting`),
+			},
+			{
 				Config: " ",
 				Check: resource.ComposeTestCheckFunc(
 					deleteSnapshots(&snapshotsId),
@@ -115,11 +137,29 @@ data "digitalocean_image" "foobar" {
 `, rInt, sInt)
 }
 
+func testAccCheckDigitalOceanImageConfig_regexp(rInt, sInt int) string {
+	return fmt.Sprintf(`
+data "digitalocean_image" "foobar" {
+  source             = "user"
+  name_regex         = "%d-%d$"
+}
+`, rInt, sInt)
+}
+
 func testAccCheckDigitalOceanImageConfig_nonexisting(rInt int) string {
 	return fmt.Sprintf(`
 data "digitalocean_image" "foobar" {
   source             = "user"
   name               = "snap-%d-nonexisting"
+}
+`, rInt)
+}
+
+func testAccCheckDigitalOceanImageConfig_nonexisting_regexp(rInt int) string {
+	return fmt.Sprintf(`
+data "digitalocean_image" "foobar" {
+  source             = "user"
+  name_regex         = "%d-nonexisting"
 }
 `, rInt)
 }

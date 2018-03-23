@@ -44,7 +44,10 @@ resource "digitalocean_droplet" "example1" {
 The following arguments are supported:
 
 * `source` - (Required) Images source to search. Must be one of `user`, `application`, or `distribution`.
-* `name` - (Required) The name of the image.
+* `name` - (Optional) The name of the image.
+* `name_regex` - (Optional) A regular expression to match the image name.
+
+~> **NOTE:** One of `name` or `name_regex` must be assigned. If both are assigned, `name_regex` will take precedence.
 
 ## Attributes Reference
 

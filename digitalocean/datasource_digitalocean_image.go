@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 
 	"github.com/digitalocean/godo"
@@ -20,7 +21,12 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 			},
 			"name": &schema.Schema{
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
+				Description: "name of the image",
+			},
+			"name_regex": &schema.Schema{
+				Type:        schema.TypeString,
+				Optional:    true,
 				Description: "name of the image",
 			},
 			// computed attributes
@@ -59,7 +65,22 @@ func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) e
 
 	opts := &godo.ListOptions{PerPage: 200}
 
-	name := d.Get("name").(string)
+	name, nameOk := d.GetOk("name")
+	nameRegex, nameRegexOk := d.GetOk("name_regex")
+
+	if !nameOk && !nameRegexOk {
+		return fmt.Errorf("One of name or name_regex must be assigned")
+	}
+
+	var match func(string) bool
+
+	if nameRegexOk {
+		match = regexp.MustCompile(nameRegex.(string)).MatchString
+	} else {
+		match = func(s string) bool {
+			return s == name.(string)
+		}
+	}
 
 	source := d.Get("source").(string)
 
@@ -85,7 +106,7 @@ func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) e
 		}
 
 		for _, image := range images {
-			if image.Name == name {
+			if match(image.Name) {
 				images = append(images, image)
 			}
 		}
