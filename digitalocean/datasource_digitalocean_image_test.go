@@ -109,6 +109,7 @@ func deleteSnapshots(snapshotsId *[]int) resource.TestCheckFunc {
 func testAccCheckDigitalOceanImageConfig_basic(rInt, sInt int) string {
 	return fmt.Sprintf(`
 data "digitalocean_image" "foobar" {
+  source             = "user"
   name               = "snap-%d-%d"
 }
 `, rInt, sInt)
@@ -117,6 +118,7 @@ data "digitalocean_image" "foobar" {
 func testAccCheckDigitalOceanImageConfig_nonexisting(rInt int) string {
 	return fmt.Sprintf(`
 data "digitalocean_image" "foobar" {
+  source             = "user"
   name               = "snap-%d-nonexisting"
 }
 `, rInt)

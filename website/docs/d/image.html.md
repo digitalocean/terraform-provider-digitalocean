@@ -19,7 +19,8 @@ Get the data about a snapshot:
 
 ```hcl
 data "digitalocean_image" "example1" {
-  name = "example-1.0.0"
+  source = "user"
+  name   = "example-1.0.0"
 }
 ```
 
@@ -27,7 +28,8 @@ Reuse the data about a snapshot to create a droplet:
 
 ```hcl
 data "digitalocean_image" "example1" {
-  name = "example-1.0.0"
+  source = "user"
+  name   = "example-1.0.0"
 }
 resource "digitalocean_droplet" "example1" {
   image  = "${data.digitalocean_image.example1.image}"
@@ -41,7 +43,8 @@ resource "digitalocean_droplet" "example1" {
 
 The following arguments are supported:
 
-* `name` - The name of the image.
+* `source` - (Required) Images source to search. Must be one of `user`, `application`, or `distribution`.
+* `name` - (Required) The name of the image.
 
 ## Attributes Reference
 

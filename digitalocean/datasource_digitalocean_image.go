@@ -9,13 +9,15 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
-func dataSourceDigitalOceanImage(source string) *schema.Resource {
+func dataSourceDigitalOceanImage() *schema.Resource {
 	return &schema.Resource{
-		Read: func(d *schema.ResourceData, meta interface{}) error {
-			return dataSourceDigitalOceanImageRead(source, d, meta)
-		},
+		Read: dataSourceDigitalOceanImageRead,
 		Schema: map[string]*schema.Schema{
-
+			"source": &schema.Schema{
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "images source (user, application or distribution)",
+			},
 			"name": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
@@ -52,12 +54,14 @@ func dataSourceDigitalOceanImage(source string) *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanImageRead(source string, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
 	opts := &godo.ListOptions{}
 
 	name := d.Get("name").(string)
+
+	source := d.Get("source").(string)
 
 	var listFn func(ctx context.Context, opt *godo.ListOptions) ([]godo.Image, *godo.Response, error)
 	switch source {
@@ -67,13 +71,14 @@ func dataSourceDigitalOceanImageRead(source string, d *schema.ResourceData, meta
 		listFn = client.Images.ListApplication
 	case "distribution":
 		listFn = client.Images.ListDistribution
+	default:
+		return fmt.Errorf("source must be one of user, application, or distribution")
 	}
 
 	var image *godo.Image
 
 outer:
 	for {
-		// This method should be configurable
 		images, res, err := listFn(context.Background(), opts)
 		if err != nil {
 			d.SetId("")
