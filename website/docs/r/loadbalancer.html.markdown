@@ -16,7 +16,7 @@ modify, and delete Load Balancers.
 ```hcl
 resource "digitalocean_droplet" "web" {
   name      = "web-1"
-  size      = "512mb"
+  size      = "s-1vcpu-1gb"
   image     = "centos-7-x64"
   region    = "nyc3"
 }

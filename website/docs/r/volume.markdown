@@ -22,7 +22,7 @@ resource "digitalocean_volume" "foobar" {
 
 resource "digitalocean_droplet" "foobar" {
   name       = "baz"
-  size       = "1gb"
+  size       = "s-1vcpu-1gb"
   image      = "coreos-stable"
   region     = "nyc1"
   volume_ids = ["${digitalocean_volume.foobar.id}"]

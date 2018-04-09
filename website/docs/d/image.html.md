@@ -33,7 +33,7 @@ resource "digitalocean_droplet" "example1" {
   image  = "${data.digitalocean_image.example1.image}"
   name   = "example-1"
   region = "nyc2"
-  size   = "512mb"
+  size   = "s-1vcpu-1gb"
 }
 ```
 
