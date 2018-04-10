@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"testing"
 
@@ -124,7 +125,7 @@ func testAccCheckDigitalOceanBucketDestroy(s *terraform.State) error {
 func testAccCheckDigitalOceanBucketDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
 	sesh, err := session.NewSession(&aws.Config{
 		Region:      aws.String("nyc3"),
-		Credentials: credentials.NewSharedCredentials("", "digitalocean-spaces")},
+		Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), "")},
 	)
 	svc := s3.New(sesh, &aws.Config{
 		Endpoint: aws.String("https://nyc3.digitaloceanspaces.com")},
@@ -168,7 +169,7 @@ func testAccCheckDigitalOceanBucketExistsWithProvider(n string, providerF func()
 
 		sesh, err := session.NewSession(&aws.Config{
 			Region:      aws.String("nyc3"),
-			Credentials: credentials.NewSharedCredentials("", "digitalocean-spaces")},
+			Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), "")},
 		)
 		svc := s3.New(sesh, &aws.Config{
 			Endpoint: aws.String("https://nyc3.digitaloceanspaces.com")},
@@ -206,7 +207,7 @@ func testAccCheckDigitalOceanDestroyBucket(n string) resource.TestCheckFunc {
 
 		sesh, err := session.NewSession(&aws.Config{
 			Region:      aws.String("nyc3"),
-			Credentials: credentials.NewSharedCredentials("", "digitalocean-spaces")},
+			Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), "")},
 		)
 		svc := s3.New(sesh, &aws.Config{
 			Endpoint: aws.String("https://nyc3.digitaloceanspaces.com")},
