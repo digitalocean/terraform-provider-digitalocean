@@ -29,19 +29,16 @@ func resourceDigitalOceanBucket() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				ForceNew:    true,
 				Description: "Bucket name",
 			},
 			"region": {
 				Type:        schema.TypeString,
 				Required:    true,
-				ForceNew:    true,
 				Description: "Bucket region",
 			},
 			"acl": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				ForceNew:    true,
 				Description: "Canned ACL applied on bucket creation (Change requires replacement)",
 				Default:     "private",
 			},
