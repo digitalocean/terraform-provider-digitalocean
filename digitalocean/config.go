@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"net/url"
 	"strings"
 	"time"
 
@@ -20,9 +21,10 @@ import (
 )
 
 type Config struct {
-	Token     string
-	AccessID  string
-	SecretKey string
+	Token       string
+	APIEndpoint string
+	AccessID    string
+	SecretKey   string
 }
 
 type CombinedConfig struct {
@@ -64,6 +66,12 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	apiURL, err := url.Parse(c.APIEndpoint)
+	if err != nil {
+		return nil, err
+	}
+	client.BaseURL = apiURL
 
 	if logging.IsDebugOrHigher() {
 		do.OnRequestCompleted(logRequestAndResponse)
