@@ -183,7 +183,7 @@ func TestAccDigitalOceanRecord_FlagsAndTag(t *testing.T) {
 					testAccCheckDigitalOceanRecordConfig_caa, domain),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanRecordExists("digitalocean_record.foobar", &record),
-					testAccCheckDigitalOceanRecordAttributesHostname("a.foobar-test-terraform.net", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("letsencrypt.org", &record),
 					resource.TestCheckResourceAttr(
 						"digitalocean_record.foobar", "name", "terraform"),
 					resource.TestCheckResourceAttr(
