@@ -1,4 +1,9 @@
 ## 0.1.4 (Unreleased)
+
+IMPROVEMENTS:
+
+* resource/digitalocean_record: Manage CAA domain records ([#48](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/48))
+
 ## 0.1.3 (December 18, 2017)
 
 IMPROVEMENTS:
