@@ -16,7 +16,8 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"source": &schema.Schema{
 				Type:        schema.TypeString,
-				Required:    true,
+				Default:     "user",
+				Optional:    true,
 				Description: "images source (user, application or distribution)",
 			},
 			"name": &schema.Schema{
