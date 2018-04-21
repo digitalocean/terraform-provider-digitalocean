@@ -99,15 +99,15 @@ func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) e
 	var images []*godo.Image
 
 	for {
-		images, res, err := listFn(context.Background(), opts)
+		results, res, err := listFn(context.Background(), opts)
 		if err != nil {
 			d.SetId("")
 			return err
 		}
 
-		for _, image := range images {
+		for _, image := range results {
 			if match(image.Name) {
-				images = append(images, image)
+				images = append(images, &image)
 			}
 		}
 
