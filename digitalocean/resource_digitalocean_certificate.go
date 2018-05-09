@@ -14,6 +14,9 @@ func resourceDigitalOceanCertificate() *schema.Resource {
 		Create: resourceDigitalOceanCertificateCreate,
 		Read:   resourceDigitalOceanCertificateRead,
 		Delete: resourceDigitalOceanCertificateDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"name": {
