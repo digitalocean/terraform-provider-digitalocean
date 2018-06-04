@@ -361,6 +361,41 @@ func TestAccDigitalOceanDroplet_PrivateNetworkingIpv6(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDroplet_UpdatePrivateNetworkingIpv6(t *testing.T) {
+	var afterCreate, afterUpdate godo.Droplet
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &afterCreate),
+					testAccCheckDigitalOceanDropletAttributes(&afterCreate),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+				),
+			},
+
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "private_networking", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "ipv6", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDroplet_Monitoring(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
@@ -518,11 +553,11 @@ func testAccCheckDigitalOceanDropletAttributes_PrivateNetworkingIpv6(droplet *go
 			return fmt.Errorf("Bad image_slug: %s", droplet.Image.Slug)
 		}
 
-		if droplet.Size.Slug != "1gb" {
+		if droplet.Size.Slug != "512mb" {
 			return fmt.Errorf("Bad size_slug: %s", droplet.Size.Slug)
 		}
 
-		if droplet.Region.Slug != "sgp1" {
+		if droplet.Region.Slug != "nyc3" {
 			return fmt.Errorf("Bad region_slug: %s", droplet.Region.Slug)
 		}
 
@@ -706,14 +741,13 @@ resource "digitalocean_droplet" "foobar" {
 `, rInt)
 }
 
-// IPV6 only in singapore
 func testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name               = "baz-%d"
-  size               = "1gb"
+  name               = "foo-%d"
+  size               = "512mb"
   image              = "centos-7-x64"
-  region             = "sgp1"
+  region             = "nyc3"
   ipv6               = true
   private_networking = true
 }
