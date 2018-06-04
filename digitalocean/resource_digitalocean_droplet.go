@@ -310,6 +310,9 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("ipv6", true)
 		d.Set("ipv6_address", strings.ToLower(publicIPv6))
 		d.Set("ipv6_address_private", findIPv6AddrByType(droplet, "private"))
+	} else {
+		d.Set("ipv6", false)
+		d.Set("ipv6_address", "")
 	}
 
 	d.Set("ipv4_address", findIPv4AddrByType(droplet, "public"))
@@ -317,6 +320,9 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	if privateIPv4 := findIPv4AddrByType(droplet, "private"); privateIPv4 != "" {
 		d.Set("private_networking", true)
 		d.Set("ipv4_address_private", privateIPv4)
+	} else {
+		d.Set("private_networking", false)
+		d.Set("ipv4_address_private", "")
 	}
 
 	// Initialize the connection info
