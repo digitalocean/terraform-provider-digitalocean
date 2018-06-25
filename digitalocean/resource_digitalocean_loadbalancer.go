@@ -255,8 +255,11 @@ func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface
 	d.Set("algorithm", loadbalancer.Algorithm)
 	d.Set("region", loadbalancer.Region.Slug)
 	d.Set("redirect_http_to_https", loadbalancer.RedirectHttpToHttps)
-	d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs))
 	d.Set("droplet_tag", loadbalancer.Tag)
+
+	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)
+	}
 
 	if err := d.Set("sticky_sessions", flattenStickySessions(loadbalancer.StickySessions)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Load Balancer sticky_sessions - error: %#v", err)
