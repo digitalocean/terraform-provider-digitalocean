@@ -50,11 +50,3 @@ The following attributes are exported:
 
 * `id` - The record ID
 * `fqdn` - The FQDN of the record
-
-## Import
-
-Records can be imported using the `id`, e.g.
-
-```
-terraform import digitalocean_record.myrecord 3352896
-```
