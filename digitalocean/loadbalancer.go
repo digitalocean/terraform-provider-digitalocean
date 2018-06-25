@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -82,11 +83,12 @@ func expandForwardingRules(config []interface{}) []godo.ForwardingRule {
 }
 
 func flattenDropletIds(list []int) []interface{} {
-	vs := make([]interface{}, 0, len(list))
+	flatList := make([]interface{}, 0, len(list))
 	for _, v := range list {
-		vs = append(vs, v)
+		vStr := strconv.Itoa(v)
+		flatList = append(flatList, vStr)
 	}
-	return vs
+	return flatList
 }
 
 func flattenHealthChecks(health *godo.HealthCheck) []map[string]interface{} {

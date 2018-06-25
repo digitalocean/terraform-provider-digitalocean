@@ -63,3 +63,13 @@ The following attributes are exported:
 * `name` - The name of the certificate
 * `not_after` - The expiration date of the certificate
 * `sha1_fingerprint` - The SHA-1 fingerprint of the certificate
+
+
+
+## Import
+
+Certificates can be imported using the certificate `id`, e.g.
+
+```
+terraform import digitalocean_certificate.mycertificate 892071a0-bb95-49bc-8021-3afd67a210bf
+```
