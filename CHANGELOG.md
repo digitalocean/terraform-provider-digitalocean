@@ -1,5 +1,9 @@
 ## 0.1.4 (Unreleased)
 
+FEATURES:
+
+* **New Datasource:** `digitalocean_domain` ([#36](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/63)) Thanks to @slapula!
+
 IMPROVEMENTS:
 
 * resource/digitalocean_record: Manage CAA domain records ([#48](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/48)). Thanks to @jaymecd!
