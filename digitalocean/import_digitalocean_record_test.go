@@ -26,8 +26,8 @@ func TestAccDigitalOceanRecord_importBasic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"value"}, //we ignore the Value as we do not set to state
+				// Requires passing both the ID and domain
+				ImportStateIdPrefix: fmt.Sprintf("%s,", domainName),
 			},
 		},
 	})
