@@ -36,14 +36,38 @@ func dataSourceDigitalOceanDomain() *schema.Resource {
 func dataSourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
-	opts := &godo.ListOptions{}
-
-	domains, _, err := client.Domains.List(context.Background(), opts)
-	if err != nil {
-		d.SetId("")
-		return err
+	opts := &godo.ListOptions{
+		Page:    1,
+		PerPage: 1,
 	}
-	domain, err := findDomainByName(domains, d.Get("name").(string))
+
+	domainList := []godo.Domain{}
+
+	for {
+		domains, resp, err := client.Domains.List(context.Background(), opts)
+		if err != nil {
+			d.SetId("")
+			return err
+		}
+
+		for _, domain := range domains {
+			domainList = append(domainList, domain)
+		}
+
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			d.SetId("")
+			return err
+		}
+
+		opts.Page = page + 1
+	}
+
+	domain, err := findDomainByName(domainList, d.Get("name").(string))
 
 	if err != nil {
 		return err
