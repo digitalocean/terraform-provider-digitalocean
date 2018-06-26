@@ -18,7 +18,8 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"digitalocean_image": dataSourceDigitalOceanImage(),
+			"digitalocean_image":    dataSourceDigitalOceanImage(),
+			"digitalocean_snapshot": dataSourceDigitalOceanSnapshot(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{

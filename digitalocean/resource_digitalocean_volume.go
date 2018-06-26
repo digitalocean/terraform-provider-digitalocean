@@ -53,6 +53,12 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				Optional: true,
 				ForceNew: true, // Update-ability Coming Soon ™
 			},
+
+			"snapshot_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -65,6 +71,7 @@ func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) 
 		Name:          d.Get("name").(string),
 		Description:   d.Get("description").(string),
 		SizeGigaBytes: int64(d.Get("size").(int)),
+		SnapshotID:    d.Get("snapshot_id").(string),
 	}
 
 	log.Printf("[DEBUG] Volume create configuration: %#v", opts)
