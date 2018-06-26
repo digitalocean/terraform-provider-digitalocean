@@ -51,8 +51,8 @@ The following attributes are exported:
 
 ## Import
 
-Records can be imported using the record `id` and the domain when joined with a comma.  See the following example:
+Records can be imported using the domain name and record `id` when joined with a comma.  See the following example:
 
 ```
-terraform import digitalocean_record.example_record 12345678,example.com
+terraform import digitalocean_record.example_record example.com,12345678
 ```
