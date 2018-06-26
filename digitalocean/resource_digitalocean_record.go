@@ -148,7 +148,7 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	rec, resp, err := client.Domains.Record(context.Background(), domain, id)
-	if err != nil {
+	if err != nil && resp != nil {
 		// If the record is somehow already destroyed, mark as
 		// successfully gone
 		if resp.StatusCode == 404 {
@@ -156,6 +156,8 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 			return nil
 		}
 
+		return err
+	} else if err != nil {
 		return err
 	}
 
