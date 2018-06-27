@@ -1,4 +1,16 @@
 ## 0.1.4 (Unreleased)
+
+FEATURES:
+
+* **New Datasource:** `digitalocean_domain` ([#36](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/63)) Thanks to @slapula!
+
+IMPROVEMENTS:
+
+* resource/digitalocean_record: Manage CAA domain records ([#48](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/48)). Thanks to @jaymecd!
+* resource/digitalocean_certificate: Existing resources are now importable ([#37](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/37)). Thanks to @jonnydford!
+* resource/digitalocean_loadbalancer: Existing resources are now importable ([#37](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/37)). Thanks to @jonnydford!
+* resource/digitalocean_record: Existing resources are now importable ([#71](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/71)). Thanks to @slapula!
+
 ## 0.1.3 (December 18, 2017)
 
 IMPROVEMENTS:

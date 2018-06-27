@@ -15,15 +15,7 @@ import (
 func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
 	var cert godo.Certificate
 	rInt := acctest.RandInt()
-	leafCertMaterial, privateKeyMaterial, err := acctest.RandTLSCert("Acme Co")
-	if err != nil {
-		t.Fatalf("Cannot generate test TLS certificate: %s", err)
-	}
-	rootCertMaterial, _, err := acctest.RandTLSCert("Acme Go")
-	if err != nil {
-		t.Fatalf("Cannot generate test TLS certificate: %s", err)
-	}
-	certChainMaterial := fmt.Sprintf("%s\n%s", strings.TrimSpace(rootCertMaterial), leafCertMaterial)
+	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -95,6 +87,20 @@ func testAccCheckDigitalOceanCertificateExists(n string, cert *godo.Certificate)
 
 		return nil
 	}
+}
+
+func generateTestCertMaterial(t *testing.T) (string, string, string) {
+	leafCertMaterial, privateKeyMaterial, err := acctest.RandTLSCert("Acme Co")
+	if err != nil {
+		t.Fatalf("Cannot generate test TLS certificate: %s", err)
+	}
+	rootCertMaterial, _, err := acctest.RandTLSCert("Acme Go")
+	if err != nil {
+		t.Fatalf("Cannot generate test TLS certificate: %s", err)
+	}
+	certChainMaterial := fmt.Sprintf("%s\n%s", strings.TrimSpace(rootCertMaterial), leafCertMaterial)
+
+	return privateKeyMaterial, leafCertMaterial, certChainMaterial
 }
 
 func testAccCheckDigitalOceanCertificateConfig_basic(rInt int, privateKeyMaterial, leafCert, certChain string) string {

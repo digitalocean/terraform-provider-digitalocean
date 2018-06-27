@@ -41,6 +41,8 @@ The following arguments are supported:
 * `priority` - (Optional) The priority of the record, for MX and SRV
    records.
 * `ttl` - (Optional) The time to live for the record, in seconds.
+* `flags` - (Optional) The flags of the record (integer between 0-255), for CAA records.
+* `tag` - (Optional) The tag of the record (one of `issue`, `wildissue`, or `iodef`), for CAA records.
 
 ## Attributes Reference
 
@@ -48,3 +50,11 @@ The following attributes are exported:
 
 * `id` - The record ID
 * `fqdn` - The FQDN of the record
+
+## Import
+
+Records can be imported using the domain name and record `id` when joined with a comma.  See the following example:
+
+```
+terraform import digitalocean_record.example_record example.com,12345678
+```

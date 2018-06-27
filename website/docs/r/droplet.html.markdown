@@ -20,7 +20,7 @@ resource "digitalocean_droplet" "web" {
   image  = "ubuntu-14-04-x64"
   name   = "web-1"
   region = "nyc2"
-  size   = "512mb"
+  size   = "s-1vcpu-1gb"
 }
 ```
 
@@ -31,7 +31,7 @@ The following arguments are supported:
 * `image` - (Required) The Droplet image ID or slug.
 * `name` - (Required) The Droplet name
 * `region` - (Required) The region to start in
-* `size` - (Required) The instance size to start
+* `size` - (Required) The unique slug that indentifies the type of Droplet. You can find a list of available slugs on [DigitalOcean API documentation](https://developers.digitalocean.com/documentation/v2/#list-all-sizes)
 * `backups` - (Optional) Boolean controlling if backups are made. Defaults to
    false.
 * `monitoring` - (Optional) Boolean controlling whether monitoring agent is installed.

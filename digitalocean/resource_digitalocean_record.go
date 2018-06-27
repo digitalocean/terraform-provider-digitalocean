@@ -17,6 +17,9 @@ func resourceDigitalOceanRecord() *schema.Resource {
 		Read:   resourceDigitalOceanRecordRead,
 		Update: resourceDigitalOceanRecordUpdate,
 		Delete: resourceDigitalOceanRecordDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceDigitalOceanRecordImport,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"type": {
@@ -74,6 +77,19 @@ func resourceDigitalOceanRecord() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"flags": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+
+			"tag": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -85,6 +101,7 @@ func resourceDigitalOceanRecordCreate(d *schema.ResourceData, meta interface{}) 
 		Type: d.Get("type").(string),
 		Name: d.Get("name").(string),
 		Data: d.Get("value").(string),
+		Tag:  d.Get("tag").(string),
 	}
 
 	var err error
@@ -112,6 +129,12 @@ func resourceDigitalOceanRecordCreate(d *schema.ResourceData, meta interface{}) 
 			return fmt.Errorf("Failed to parse weight as an integer: %v", err)
 		}
 	}
+	if flags := d.Get("flags").(string); flags != "" {
+		newRecord.Flags, err = strconv.Atoi(flags)
+		if err != nil {
+			return fmt.Errorf("Failed to parse flags as an integer: %v", err)
+		}
+	}
 
 	log.Printf("[DEBUG] record create configuration: %#v", newRecord)
 	rec, _, err := client.Domains.CreateRecord(context.Background(), d.Get("domain").(string), &newRecord)
@@ -134,7 +157,7 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	rec, resp, err := client.Domains.Record(context.Background(), domain, id)
-	if err != nil {
+	if err != nil && resp != nil {
 		// If the record is somehow already destroyed, mark as
 		// successfully gone
 		if resp.StatusCode == 404 {
@@ -143,9 +166,11 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 		}
 
 		return err
+	} else if err != nil {
+		return err
 	}
 
-	if t := rec.Type; t == "CNAME" || t == "MX" || t == "NS" || t == "SRV" {
+	if t := rec.Type; t == "CNAME" || t == "MX" || t == "NS" || t == "SRV" || t == "CAA" {
 		if rec.Data == "@" {
 			rec.Data = domain
 		}
@@ -159,12 +184,38 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("priority", strconv.Itoa(rec.Priority))
 	d.Set("port", strconv.Itoa(rec.Port))
 	d.Set("ttl", strconv.Itoa(rec.TTL))
+	d.Set("flags", strconv.Itoa(rec.Flags))
+	d.Set("tag", rec.Tag)
 
 	en := constructFqdn(rec.Name, d.Get("domain").(string))
 	log.Printf("[DEBUG] Constructed FQDN: %s", en)
 	d.Set("fqdn", en)
 
 	return nil
+}
+
+func resourceDigitalOceanRecordImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if strings.Contains(d.Id(), ",") {
+		s := strings.Split(d.Id(), ",")
+		// Validate that this is an ID by making sure it can be converted into an int
+		_, err := strconv.Atoi(s[1])
+		if err != nil {
+			return nil, fmt.Errorf("invalid record ID: %v", err)
+		}
+
+		d.SetId(s[1])
+		d.Set("domain", s[0])
+	}
+
+	err := resourceDigitalOceanRecordRead(d, meta)
+	if err != nil {
+		return nil, fmt.Errorf("unable to import record: %v", err)
+	}
+
+	results := make([]*schema.ResourceData, 0)
+	results = append(results, d)
+
+	return results, nil
 }
 
 func resourceDigitalOceanRecordUpdate(d *schema.ResourceData, meta interface{}) error {

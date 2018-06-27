@@ -169,6 +169,39 @@ func TestAccDigitalOceanRecord_ExternalHostnameValue(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanRecord_FlagsAndTag(t *testing.T) {
+	var record godo.DomainRecord
+	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_caa, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foobar", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("letsencrypt.org", &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "name", "terraform"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "value", "letsencrypt.org."),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "type", "CAA"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "flags", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "tag", "issue"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanRecord_MX(t *testing.T) {
 	var record godo.DomainRecord
 	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
@@ -404,4 +437,20 @@ resource "digitalocean_record" "foobar" {
   name  = "terraform"
   value = "a.foobar-test-terraform.net."
   type  = "CNAME"
+}`
+
+const testAccCheckDigitalOceanRecordConfig_caa = `
+resource "digitalocean_domain" "foobar" {
+  name       = "%s"
+  ip_address = "192.168.0.10"
+}
+
+resource "digitalocean_record" "foobar" {
+  domain = "${digitalocean_domain.foobar.name}"
+
+  name  = "terraform"
+  type  = "CAA"
+  value = "letsencrypt.org."
+  flags = 1
+  tag   = "issue"
 }`

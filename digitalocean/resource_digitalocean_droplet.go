@@ -361,7 +361,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	resizeDisk := d.Get("resize_disk").(bool)
-	if d.HasChange("size") || d.HasChange("resize_disk") && resizeDisk {
+	if resizeDisk && d.HasChange("size") {
 		newSize := d.Get("size")
 
 		_, _, err = client.DropletActions.PowerOff(context.Background(), id)
