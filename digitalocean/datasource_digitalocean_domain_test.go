@@ -22,10 +22,10 @@ func TestAccDataSourceDigitalOceanDomain_Basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanDomainConfig_basic, domainName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceDigitalOceanDomainExists("digitalocean_domain.foobar", &domain),
+					testAccCheckDataSourceDigitalOceanDomainExists("data.digitalocean_domain.foobar", &domain),
 					testAccCheckDataSourceDigitalOceanDomainAttributes(&domain, domainName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_domain.foobar", "name", domainName),
+						"data.digitalocean_domain.foobar", "name", domainName),
 				),
 			},
 		},
@@ -74,6 +74,11 @@ func testAccCheckDataSourceDigitalOceanDomainExists(n string, domain *godo.Domai
 }
 
 const testAccCheckDataSourceDigitalOceanDomainConfig_basic = `
-data "digitalocean_domain" "foobar" {
+resource "digitalocean_domain" "foo" {
 	name       = "%s"
+	ip_address = "192.168.0.10"
+}
+
+data "digitalocean_domain" "foobar" {
+	name       = "${digitalocean_domain.foo.name}"
 }`
