@@ -23,14 +23,14 @@ func TestAccDataSourceDigitalOceanRecord_Basic(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanRecordConfig_basic, recordName, recordDomain, recordType),
+				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanRecordConfig_basic, recordDomain, recordType, recordName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceDigitalOceanRecordExists("digitalocean_record.foobar", &record),
+					testAccCheckDataSourceDigitalOceanRecordExists("data.digitalocean_record.foobar", &record),
 					testAccCheckDataSourceDigitalOceanRecordAttributes(&record, recordName, recordType),
 					resource.TestCheckResourceAttr(
-						"digitalocean_record.foobar", "name", recordName),
+						"data.digitalocean_record.foobar", "name", recordName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_record.foobar", "type", recordType),
+						"data.digitalocean_record.foobar", "type", recordType),
 				),
 			},
 		},
@@ -68,14 +68,16 @@ func testAccCheckDataSourceDigitalOceanRecordExists(n string, record *godo.Domai
 
 		domain := rs.Primary.Attributes["domain"]
 		id, err := strconv.Atoi(rs.Primary.ID)
-
-		foundRecord, _, err := client.Domains.Record(context.Background(), domain, id)
-
 		if err != nil {
 			return err
 		}
 
-		if foundRecord.Name != rs.Primary.ID {
+		foundRecord, _, err := client.Domains.Record(context.Background(), domain, id)
+		if err != nil {
+			return err
+		}
+
+		if foundRecord.Name != rs.Primary.Attributes["name"] {
 			return fmt.Errorf("Record not found")
 		}
 
@@ -86,8 +88,19 @@ func testAccCheckDataSourceDigitalOceanRecordExists(n string, record *godo.Domai
 }
 
 const testAccCheckDataSourceDigitalOceanRecordConfig_basic = `
+resource "digitalocean_domain" "foo" {
+	name       = "%s"
+	ip_address = "192.168.0.10"
+}
+
+resource "digitalocean_record" "foo" {
+	domain = "${digitalocean_domain.foo.name}"
+	type   = "%s"
+	name   = "%s"
+	value  = "192.168.0.10"
+}
+
 data "digitalocean_record" "foobar" {
-	name      = "%s"
-	domain    = "%s"
-	type			= "%s"
+	name      = "${digitalocean_record.foo.name}"
+	domain    = "${digitalocean_domain.foo.name}"
 }`
