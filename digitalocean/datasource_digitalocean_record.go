@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -90,8 +91,7 @@ func dataSourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) 
 		return err
 	}
 
-	d.SetId(record.Name)
-	d.Set("id", record.ID)
+	d.SetId(strconv.Itoa(record.ID))
 	d.Set("type", record.Type)
 	d.Set("name", record.Name)
 	d.Set("data", record.Data)
@@ -99,6 +99,8 @@ func dataSourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("port", record.Port)
 	d.Set("ttl", record.TTL)
 	d.Set("weight", record.Weight)
+	d.Set("tag", record.Tag)
+	d.Set("flags", record.Flags)
 
 	return nil
 }
