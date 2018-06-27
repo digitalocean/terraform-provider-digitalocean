@@ -38,7 +38,7 @@ func dataSourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) 
 
 	opts := &godo.ListOptions{
 		Page:    1,
-		PerPage: 1,
+		PerPage: 200,
 	}
 
 	domainList := []godo.Domain{}
