@@ -78,6 +78,22 @@ func TestAccDigitalOceanFloatingIP_Droplet(t *testing.T) {
 						"digitalocean_floating_ip.foobar", "region", "nyc3"),
 				),
 			},
+			{
+				Config: testAccCheckDigitalOceanFloatingIPConfig_Reassign(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip.foobar", &floatingIP),
+					resource.TestCheckResourceAttr(
+						"digitalocean_floating_ip.foobar", "region", "nyc3"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanFloatingIPConfig_Unassign,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip.foobar", &floatingIP),
+					resource.TestCheckResourceAttr(
+						"digitalocean_floating_ip.foobar", "region", "nyc3"),
+				),
+			},
 		},
 	})
 }
@@ -140,7 +156,7 @@ resource "digitalocean_floating_ip" "foobar" {
 func testAccCheckDigitalOceanFloatingIPConfig_droplet(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name               = "baz-%d"
+  name               = "foobar-%d"
   size               = "1gb"
   image              = "centos-7-x64"
   region             = "nyc3"
@@ -153,3 +169,25 @@ resource "digitalocean_floating_ip" "foobar" {
   region     = "${digitalocean_droplet.foobar.region}"
 }`, rInt)
 }
+
+func testAccCheckDigitalOceanFloatingIPConfig_Reassign(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "baz" {
+  name               = "baz-%d"
+  size               = "1gb"
+  image              = "centos-7-x64"
+  region             = "nyc3"
+  ipv6               = true
+  private_networking = true
+}
+
+resource "digitalocean_floating_ip" "foobar" {
+  droplet_id = "${digitalocean_droplet.baz.id}"
+  region     = "${digitalocean_droplet.baz.region}"
+}`, rInt)
+}
+
+const testAccCheckDigitalOceanFloatingIPConfig_Unassign = `
+resource "digitalocean_floating_ip" "foobar" {
+  region     = "nyc3"
+}`
