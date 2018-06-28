@@ -30,7 +30,7 @@ func resourceDigitalOceanTag() *schema.Resource {
 	}
 }
 
-var tagNameRe = regexp.MustCompile("^[a-z0-9:-_]{1,255}$")
+var tagNameRe = regexp.MustCompile("^[a-z0-9:\\-_]{1,255}$")
 
 func validateTagName(value interface{}, key string) ([]string, []error) {
 	if !tagNameRe.MatchString(value.(string)) {
