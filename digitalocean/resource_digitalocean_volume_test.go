@@ -176,3 +176,44 @@ resource "digitalocean_droplet" "foobar" {
   volume_ids         = ["${digitalocean_volume.foobar.id}"]
 }`, vName, rInt)
 }
+
+func TestAccDigitalOceanVolume_FilesystemType(t *testing.T) {
+	name := fmt.Sprintf("volume-%s", acctest.RandString(10))
+
+	volume := godo.Volume{
+		Name: name,
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeConfig_filesystem_type, name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "name", name),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "size", "100"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "description", "peace makes plenty"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "filesystem_type", "xfs"),
+				),
+			},
+		},
+	})
+}
+
+const testAccCheckDigitalOceanVolumeConfig_filesystem_type = `
+resource "digitalocean_volume" "foobar" {
+	region      = "nyc1"
+	name        = "%s"
+	size        = 100
+	description = "peace makes plenty"
+	filesystem_type = "xfs"
+}`
