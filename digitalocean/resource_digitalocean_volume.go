@@ -57,7 +57,7 @@ func resourceDigitalOceanVolume() *schema.Resource {
 			"filesystem_type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true, // Update-ability Coming Soon ™
+				ForceNew: true,
 			},
 		},
 	}
