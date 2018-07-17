@@ -53,6 +53,12 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				Optional: true,
 				ForceNew: true, // Update-ability Coming Soon ™
 			},
+
+			"filesystem_type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+			},
 		},
 	}
 }
@@ -61,10 +67,11 @@ func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*godo.Client)
 
 	opts := &godo.VolumeCreateRequest{
-		Region:        d.Get("region").(string),
-		Name:          d.Get("name").(string),
-		Description:   d.Get("description").(string),
-		SizeGigaBytes: int64(d.Get("size").(int)),
+		Region:         d.Get("region").(string),
+		Name:           d.Get("name").(string),
+		Description:    d.Get("description").(string),
+		SizeGigaBytes:  int64(d.Get("size").(int)),
+		FilesystemType: d.Get("filesystem_type").(string),
 	}
 
 	log.Printf("[DEBUG] Volume create configuration: %#v", opts)
@@ -133,6 +140,7 @@ func resourceDigitalOceanVolumeImport(rs *schema.ResourceData, v interface{}) ([
 	rs.Set("region", volume.Region.Slug)
 	rs.Set("description", volume.Description)
 	rs.Set("size", int(volume.SizeGigaBytes))
+	rs.Set("filesystem_type", volume.FilesystemType)
 
 	dids := make([]interface{}, 0, len(volume.DropletIDs))
 	for _, did := range volume.DropletIDs {
