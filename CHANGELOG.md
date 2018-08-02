@@ -17,7 +17,10 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * resource/digitalocean_floating_ip: Gracefully handle missing Floating IPs. ([#55](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/55)). Thanks to @aknuds1!
-* resource/digitalocean_floating_ip: Gracefully handle unassigning Floating IPs when the Droplet has already been destroyed. ([#57](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/57)). Thanks to @aknuds1! 
+* resource/digitalocean_floating_ip: Gracefully handle unassigning Floating IPs when the Droplet has already been destroyed. ([#57](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/57)). Thanks to @aknuds1!
+* resource/digitalocean_droplet: When IPv6 and/or private networking are not enabled, default their addresses to "". [#97](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/97)
+* resource/digitalocean_droplet: Don't panic when enabling private_networking or ipv6 on an existing Droplet.  [#94](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/94)
+* resource/digitalocean_droplet: Set resize_disk to the default value on import. [#95](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/95)
 
 
 ## 0.1.3 (December 18, 2017)
