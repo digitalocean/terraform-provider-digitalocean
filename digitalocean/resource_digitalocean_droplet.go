@@ -456,8 +456,10 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		_, err = waitForDropletAttribute(
 			d, "true", []string{"", "false"}, "private_networking", meta)
 
-		return fmt.Errorf(
-			"Error waiting for private networking to be enabled on for droplet (%s): %s", d.Id(), err)
+		if err != nil {
+			return fmt.Errorf(
+				"Error waiting for private networking to be enabled on for droplet (%s): %s", d.Id(), err)
+		}
 	}
 
 	// As there is no way to disable IPv6, we only check if it needs to be enabled
@@ -622,7 +624,12 @@ func newDropletStateRefreshFunc(
 				return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
 			}
 
-			return &droplet, attr.(string), nil
+			switch attr.(type) {
+			case bool:
+				return &droplet, strconv.FormatBool(attr.(bool)), nil
+			default:
+				return &droplet, attr.(string), nil
+			}
 		}
 
 		return nil, "", nil
