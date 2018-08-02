@@ -21,7 +21,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 		Update: resourceDigitalOceanDropletUpdate,
 		Delete: resourceDigitalOceanDropletDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceDigitalOceanDropletImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -334,6 +334,21 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("tags", droplet.Tags)
 
 	return nil
+}
+
+func resourceDigitalOceanDropletImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	// This is a non API attribute. So set to the default setting in the schema.
+	d.Set("resize_disk", true)
+
+	err := resourceDigitalOceanDropletRead(d, meta)
+	if err != nil {
+		return nil, fmt.Errorf("invalid droplet id: %v", err)
+	}
+
+	results := make([]*schema.ResourceData, 1)
+	results[0] = d
+
+	return results, nil
 }
 
 func findIPv6AddrByType(d *godo.Droplet, addrType string) string {
