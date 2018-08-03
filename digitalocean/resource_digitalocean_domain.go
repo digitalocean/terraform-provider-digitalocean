@@ -27,7 +27,7 @@ func resourceDigitalOceanDomain() *schema.Resource {
 
 			"ip_address": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 		},

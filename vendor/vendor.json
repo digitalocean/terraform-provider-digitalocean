@@ -252,7 +252,6 @@
 		},
 		{
 			"checksumSHA1": "YkfXtYXa+nInWIOfBeHVCXWvXQs=",
-			"comment": "v0.9.0-20-gf75d769",
 			"path": "github.com/digitalocean/godo",
 			"revision": "ddc940d8ef8b736b5cdfc47f24cdf95b9a4b73f6",
 			"revisionTime": "2018-08-23T18:38:25Z",
