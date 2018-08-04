@@ -38,6 +38,11 @@ func resourceDigitalOceanFloatingIp() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
+
+			"ignore_droplet_id": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -58,7 +63,7 @@ func resourceDigitalOceanFloatingIpCreate(d *schema.ResourceData, meta interface
 
 	d.SetId(floatingIp.IP)
 
-	if v, ok := d.GetOk("droplet_id"); ok {
+	if v, ok := d.GetOk("droplet_id"); !d.Get("ignore_droplet_id").(bool) && ok {
 
 		log.Printf("[INFO] Assigning the Floating IP to the Droplet %d", v.(int))
 		action, _, err := client.FloatingIPActions.Assign(context.Background(), d.Id(), v.(int))
@@ -80,7 +85,7 @@ func resourceDigitalOceanFloatingIpCreate(d *schema.ResourceData, meta interface
 func resourceDigitalOceanFloatingIpUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
-	if d.HasChange("droplet_id") {
+	if !d.Get("ignore_droplet_id").(bool) && d.HasChange("droplet_id") {
 		if v, ok := d.GetOk("droplet_id"); ok {
 			log.Printf("[INFO] Assigning the Floating IP %s to the Droplet %d", d.Id(), v.(int))
 			action, _, err := client.FloatingIPActions.Assign(context.Background(), d.Id(), v.(int))
@@ -123,7 +128,7 @@ func resourceDigitalOceanFloatingIpRead(d *schema.ResourceData, meta interface{}
 			return fmt.Errorf("Error retrieving FloatingIP: %s", err)
 		}
 
-		if floatingIp.Droplet != nil {
+		if !d.Get("ignore_droplet_id").(bool) && floatingIp.Droplet != nil {
 			log.Printf("[INFO] A droplet was detected on the FloatingIP so setting the Region based on the Droplet")
 			log.Printf("[INFO] The region of the Droplet is %s", floatingIp.Droplet.Region.Slug)
 			d.Set("region", floatingIp.Droplet.Region.Slug)
@@ -143,7 +148,7 @@ func resourceDigitalOceanFloatingIpRead(d *schema.ResourceData, meta interface{}
 func resourceDigitalOceanFloatingIpDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
-	if _, ok := d.GetOk("droplet_id"); ok {
+	if _, ok := d.GetOk("droplet_id"); !d.Get("ignore_droplet_id").(bool) && ok {
 		log.Printf("[INFO] Unassigning the Floating IP from the Droplet")
 		action, resp, err := client.FloatingIPActions.Unassign(context.Background(), d.Id())
 		if resp.StatusCode != 422 {

@@ -34,6 +34,7 @@ The following arguments are supported:
 
 * `region` - (Required) The region that the Floating IP is reserved to.
 * `droplet_id` - (Optional) The ID of Droplet that the Floating IP will be assigned to.
+* `ignore_droplet_id` - (Optional) If set to true, the floating IP will ignore changes to the droplet id (useful when combined with a `digitalocean_floating_ip_assignment`).
 
 ~> **NOTE:** A Floating IP can be assigned to a region OR a droplet_id. If both region AND droplet_id are specified, then the Floating IP will be assigned to the droplet and use that region
 
