@@ -36,28 +36,25 @@ func resourceDigitalOceanRecord() *schema.Resource {
 
 			"name": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 			},
 
 			"port": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 
 			"priority": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 
 			"weight": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 
 			"ttl": {
@@ -68,9 +65,12 @@ func resourceDigitalOceanRecord() *schema.Resource {
 
 			"value": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Required: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					domain := d.Get("domain").(string) + "."
+
+					return (old == "@" && new == domain) || (old == new+domain)
+				},
 			},
 
 			"fqdn": {
@@ -82,13 +82,11 @@ func resourceDigitalOceanRecord() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 			},
 
 			"tag": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 		},
 	}
@@ -171,10 +169,9 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if t := rec.Type; t == "CNAME" || t == "MX" || t == "NS" || t == "SRV" || t == "CAA" {
-		if rec.Data == "@" {
-			rec.Data = domain
+		if rec.Data != "@" {
+			rec.Data += "."
 		}
-		rec.Data += "."
 	}
 
 	d.Set("name", rec.Name)
@@ -231,12 +228,46 @@ func resourceDigitalOceanRecordUpdate(d *schema.ResourceData, meta interface{}) 
 	if v, ok := d.GetOk("name"); ok {
 		editRecord.Name = v.(string)
 	}
+	if v, ok := d.GetOk("value"); ok {
+		editRecord.Data = v.(string)
+	}
+	if v, ok := d.GetOk("tag"); ok {
+		editRecord.Tag = v.(string)
+	}
 
+	if d.HasChange("priority") {
+		newPriority := d.Get("priority").(string)
+		editRecord.Priority, err = strconv.Atoi(newPriority)
+		if err != nil {
+			return fmt.Errorf("Failed to parse priority as an integer: %v", err)
+		}
+	}
+	if d.HasChange("port") {
+		newPort := d.Get("port").(string)
+		editRecord.Port, err = strconv.Atoi(newPort)
+		if err != nil {
+			return fmt.Errorf("Failed to parse port as an integer: %v", err)
+		}
+	}
 	if d.HasChange("ttl") {
 		newTTL := d.Get("ttl").(string)
 		editRecord.TTL, err = strconv.Atoi(newTTL)
 		if err != nil {
 			return fmt.Errorf("Failed to parse ttl as an integer: %v", err)
+		}
+	}
+	if d.HasChange("weight") {
+		newWeight := d.Get("weight").(string)
+		editRecord.Weight, err = strconv.Atoi(newWeight)
+		if err != nil {
+			return fmt.Errorf("Failed to parse weight as an integer: %v", err)
+		}
+	}
+	if d.HasChange("flags") {
+		newFlags := d.Get("flags").(string)
+		editRecord.Flags, err = strconv.Atoi(newFlags)
+		if err != nil {
+			return fmt.Errorf("Failed to parse flags as an integer: %v", err)
 		}
 	}
 
