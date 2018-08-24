@@ -233,21 +233,13 @@
 			"revisionTime": "2016-10-29T20:57:26Z"
 		},
 		{
-			"checksumSHA1": "DEfSJf/caYbwohLosaeJ7c6XFTc=",
+			"checksumSHA1": "YkfXtYXa+nInWIOfBeHVCXWvXQs=",
 			"comment": "v0.9.0-20-gf75d769",
 			"path": "github.com/digitalocean/godo",
-			"revision": "51f18c0e42941703dc13d15bc0ad69aef6a49830",
-			"revisionTime": "2018-05-24T16:43:01Z",
-			"version": "v1.3",
-			"versionExact": "v1.3.0"
-		},
-		{
-			"checksumSHA1": "YpWoCsk+u9H5ctWNKKSVPf4b2as=",
-			"path": "github.com/digitalocean/godo/context",
-			"revision": "7a32b5ce17203924a21366d5031032fd326d5051",
-			"revisionTime": "2018-03-07T23:05:53Z",
-			"version": "v1.1.3",
-			"versionExact": "v1.1.3"
+			"revision": "ddc940d8ef8b736b5cdfc47f24cdf95b9a4b73f6",
+			"revisionTime": "2018-08-23T18:38:25Z",
+			"version": "v1.4.1",
+			"versionExact": "v1.4.1"
 		},
 		{
 			"checksumSHA1": "BCv50o5pDkoSG3vYKOSai1Z8p3w=",
@@ -672,12 +664,6 @@
 		{
 			"checksumSHA1": "9jjO5GjLa0XF/nfWihF02RoH4qc=",
 			"path": "golang.org/x/net/context",
-			"revision": "f2499483f923065a842d38eb4c7f1927e6fc6e6d",
-			"revisionTime": "2017-01-14T04:22:49Z"
-		},
-		{
-			"checksumSHA1": "WHc3uByvGaMcnSoI21fhzYgbOgg=",
-			"path": "golang.org/x/net/context/ctxhttp",
 			"revision": "f2499483f923065a842d38eb4c7f1927e6fc6e6d",
 			"revisionTime": "2017-01-14T04:22:49Z"
 		},
