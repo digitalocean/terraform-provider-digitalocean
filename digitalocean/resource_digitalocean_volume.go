@@ -13,6 +13,7 @@ func resourceDigitalOceanVolume() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceDigitalOceanVolumeCreate,
 		Read:   resourceDigitalOceanVolumeRead,
+		Update: resourceDigitalOceanVolumeUpdate,
 		Delete: resourceDigitalOceanVolumeDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanVolumeImport,
@@ -40,7 +41,6 @@ func resourceDigitalOceanVolume() *schema.Resource {
 			"size": {
 				Type:     schema.TypeInt,
 				Required: true,
-				ForceNew: true, // Update-ability Coming Soon ™
 			},
 
 			"description": {
@@ -55,6 +55,16 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				ForceNew: true,
 			},
 		},
+
+		// CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+
+		// 	// if the new size of the volume is smaller than the old one force a new resource since
+		// 	// only expanding the volume is allowed
+		// 	oldSize, newSize := diff.GetChange("size")
+		// 	if newSize < oldSize {
+		// 		diff.ForceNew("size")
+		// 	}
+		// },
 	}
 }
 
@@ -81,6 +91,31 @@ func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	return resourceDigitalOceanVolumeRead(d, meta)
 }
 
+func resourceDigitalOceanVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*godo.Client)
+
+	id := d.Id()
+	region := d.Get("region").(string)
+
+	if d.HasChange("size") {
+		size := d.Get("size").(int)
+
+		log.Printf("[DEBUG] Volume resize configuration: %v", size)
+		action, _, err := client.StorageActions.Resize(context.Background(), id, size, region)
+		if err != nil {
+			return fmt.Errorf("Error resizing volume (%s): %s", id, err)
+		}
+
+		log.Printf("[DEBUG] Volume resize action id: %d", action.ID)
+		if err = waitForAction(client, action); err != nil {
+			return fmt.Errorf(
+				"Error waiting for resize volume (%s) to finish: %s", id, err)
+		}
+	}
+
+	return resourceDigitalOceanVolumeRead(d, meta)
+}
+
 func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
@@ -95,6 +130,8 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 
 		return fmt.Errorf("Error retrieving volume: %s", err)
 	}
+
+	d.Set("size", int(volume.SizeGigaBytes))
 
 	dids := make([]interface{}, 0, len(volume.DropletIDs))
 	for _, did := range volume.DropletIDs {
