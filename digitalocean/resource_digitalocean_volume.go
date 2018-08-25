@@ -25,11 +25,6 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -101,8 +96,6 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error retrieving volume: %s", err)
 	}
 
-	d.Set("id", volume.ID)
-
 	dids := make([]interface{}, 0, len(volume.DropletIDs))
 	for _, did := range volume.DropletIDs {
 		dids = append(dids, did)
@@ -135,7 +128,6 @@ func resourceDigitalOceanVolumeImport(rs *schema.ResourceData, v interface{}) ([
 		return nil, err
 	}
 
-	rs.Set("id", volume.ID)
 	rs.Set("name", volume.Name)
 	rs.Set("region", volume.Region.Slug)
 	rs.Set("description", volume.Description)
