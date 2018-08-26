@@ -56,15 +56,17 @@ func resourceDigitalOceanVolume() *schema.Resource {
 			},
 		},
 
-		// CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 
-		// 	// if the new size of the volume is smaller than the old one force a new resource since
-		// 	// only expanding the volume is allowed
-		// 	oldSize, newSize := diff.GetChange("size")
-		// 	if newSize < oldSize {
-		// 		diff.ForceNew("size")
-		// 	}
-		// },
+			// if the new size of the volume is smaller than the old one return an error since
+			// only expanding the volume is allowed
+			oldSize, newSize := diff.GetChange("size")
+			if newSize.(int) < oldSize.(int) {
+				return fmt.Errorf("volumes `size` can only be expanded and not shrinked")
+			}
+
+			return nil
+		},
 	}
 }
 
