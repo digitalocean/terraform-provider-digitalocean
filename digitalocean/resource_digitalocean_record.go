@@ -74,7 +74,7 @@ func resourceDigitalOceanRecord() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(0),
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"value": {
@@ -112,7 +112,7 @@ func resourceDigitalOceanRecord() *schema.Resource {
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 			recordType := diff.Get("type").(string)
 
-			_, hasPriority := diff.GetOk("priority")
+			_, hasPriority := diff.GetOkExists("priority")
 			if recordType == "MX" {
 				if !hasPriority {
 					return fmt.Errorf("`priority` is required for when type is `MX`")
@@ -120,7 +120,7 @@ func resourceDigitalOceanRecord() *schema.Resource {
 			}
 
 			_, hasPort := diff.GetOk("port")
-			_, hasWeight := diff.GetOk("weight")
+			_, hasWeight := diff.GetOkExists("weight")
 			if recordType == "SRV" {
 				if !hasPriority {
 					return fmt.Errorf("`priority` is required for when type is `SRV`")
@@ -133,7 +133,7 @@ func resourceDigitalOceanRecord() *schema.Resource {
 				}
 			}
 
-			_, hasFlags := diff.GetOk("flags")
+			_, hasFlags := diff.GetOkExists("flags")
 			_, hasTag := diff.GetOk("tag")
 			if recordType == "CAA" {
 				if !hasFlags {
@@ -297,16 +297,16 @@ func expandDigitalOceanRecordResource(d *schema.ResourceData) (*godo.DomainRecor
 	if v, ok := d.GetOk("port"); ok {
 		record.Port = v.(int)
 	}
-	if v, ok := d.GetOk("priority"); ok {
+	if v, ok := d.GetOkExists("priority"); ok {
 		record.Priority = v.(int)
 	}
 	if v, ok := d.GetOk("ttl"); ok {
 		record.TTL = v.(int)
 	}
-	if v, ok := d.GetOk("weight"); ok {
+	if v, ok := d.GetOkExists("weight"); ok {
 		record.Weight = v.(int)
 	}
-	if v, ok := d.GetOk("flags"); ok {
+	if v, ok := d.GetOkExists("flags"); ok {
 		record.Flags = v.(int)
 	}
 	if v, ok := d.GetOk("tag"); ok {
