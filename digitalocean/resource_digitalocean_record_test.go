@@ -251,7 +251,7 @@ func TestAccDigitalOceanRecord_MX_at(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_record.foo_record", "domain", domain),
 					resource.TestCheckResourceAttr(
-						"digitalocean_record.foo_record", "value", domain+"."),
+						"digitalocean_record.foo_record", "value", "@"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_record.foo_record", "type", "MX"),
 				),
