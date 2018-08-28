@@ -142,9 +142,11 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"volume_ids": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
+				Set:      schema.HashString,
 				Optional: true,
+				Computed: true,
 			},
 			"monitoring": {
 				Type:     schema.TypeBool,
@@ -188,7 +190,7 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if attr, ok := d.GetOk("volume_ids"); ok {
-		for _, id := range attr.([]interface{}) {
+		for _, id := range attr.(*schema.Set).List() {
 			if id == nil {
 				continue
 			}
@@ -290,9 +292,9 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("locked", strconv.FormatBool(droplet.Locked))
 
 	if len(droplet.VolumeIDs) > 0 {
-		vlms := make([]interface{}, 0, len(droplet.VolumeIDs))
+		vlms := schema.NewSet(schema.HashString, []interface{}{})
 		for _, vid := range droplet.VolumeIDs {
-			vlms = append(vlms, vid)
+			vlms.Add(vid)
 		}
 		d.Set("volume_ids", vlms)
 	}
@@ -515,8 +517,8 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 			}
 			return out
 		}
-		oldIDSet := newSet(oldIDs.([]interface{}))
-		newIDSet := newSet(newIDs.([]interface{}))
+		oldIDSet := newSet(oldIDs.(*schema.Set).List())
+		newIDSet := newSet(newIDs.(*schema.Set).List())
 		for volumeID := range leftDiff(newIDSet, oldIDSet) {
 			action, _, err := client.StorageActions.Attach(context.Background(), volumeID, id)
 			if err != nil {
@@ -670,8 +672,8 @@ func powerOnAndWait(d *schema.ResourceData, meta interface{}) error {
 func detachVolumesFromDroplet(d *schema.ResourceData, meta interface{}) error {
 	var errors []error
 	if attr, ok := d.GetOk("volume_ids"); ok {
-		errors = make([]error, 0, len(attr.([]interface{})))
-		for _, volumeID := range attr.([]interface{}) {
+		errors = make([]error, 0, attr.(*schema.Set).Len())
+		for _, volumeID := range attr.(*schema.Set).List() {
 			detachVolumeIDOnDroplet(d, volumeID.(string), meta)
 		}
 	}
