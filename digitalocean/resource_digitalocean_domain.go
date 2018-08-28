@@ -7,6 +7,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceDigitalOceanDomain() *schema.Resource {
@@ -20,15 +21,17 @@ func resourceDigitalOceanDomain() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"ip_address": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 		},
 	}
@@ -40,8 +43,11 @@ func resourceDigitalOceanDomainCreate(d *schema.ResourceData, meta interface{}) 
 	// Build up our creation options
 
 	opts := &godo.DomainCreateRequest{
-		Name:      d.Get("name").(string),
-		IPAddress: d.Get("ip_address").(string),
+		Name: d.Get("name").(string),
+	}
+
+	if v, ok := d.GetOk("ip_address"); ok {
+		opts.IPAddress = v.(string)
 	}
 
 	log.Printf("[DEBUG] Domain create configuration: %#v", opts)
