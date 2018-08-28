@@ -9,6 +9,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceDigitalOceanRecord() *schema.Resource {
@@ -26,51 +27,64 @@ func resourceDigitalOceanRecord() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"A",
+					"AAAA",
+					"CAA",
+					"CNAME",
+					"MX",
+					"NS",
+					"TXT",
+					"SRV",
+				}, false),
 			},
 
 			"domain": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"port": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 65535),
 			},
 
 			"priority": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 65535),
 			},
 
 			"weight": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 65535),
 			},
 
 			"ttl": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"value": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Required: true,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					domain := d.Get("domain").(string) + "."
+
+					return (old == "@" && new == domain) || (old == new+"."+domain)
+				},
 			},
 
 			"fqdn": {
@@ -79,17 +93,58 @@ func resourceDigitalOceanRecord() *schema.Resource {
 			},
 
 			"flags": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 255),
 			},
 
 			"tag": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"issue",
+					"issuewild",
+					"iodef",
+				}, false),
 			},
+		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			recordType := diff.Get("type").(string)
+
+			_, hasPriority := diff.GetOkExists("priority")
+			if recordType == "MX" {
+				if !hasPriority {
+					return fmt.Errorf("`priority` is required for when type is `MX`")
+				}
+			}
+
+			_, hasPort := diff.GetOk("port")
+			_, hasWeight := diff.GetOkExists("weight")
+			if recordType == "SRV" {
+				if !hasPriority {
+					return fmt.Errorf("`priority` is required for when type is `SRV`")
+				}
+				if !hasPort {
+					return fmt.Errorf("`port` is required for when type is `SRV`")
+				}
+				if !hasWeight {
+					return fmt.Errorf("`weight` is required for when type is `SRV`")
+				}
+			}
+
+			_, hasFlags := diff.GetOkExists("flags")
+			_, hasTag := diff.GetOk("tag")
+			if recordType == "CAA" {
+				if !hasFlags {
+					return fmt.Errorf("`flags` is required for when type is `CAA`")
+				}
+				if !hasTag {
+					return fmt.Errorf("`tag` is required for when type is `CAA`")
+				}
+			}
+
+			return nil
 		},
 	}
 }
@@ -97,47 +152,15 @@ func resourceDigitalOceanRecord() *schema.Resource {
 func resourceDigitalOceanRecordCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
-	newRecord := godo.DomainRecordEditRequest{
-		Type: d.Get("type").(string),
-		Name: d.Get("name").(string),
-		Data: d.Get("value").(string),
-		Tag:  d.Get("tag").(string),
+	newRecord, err := expandDigitalOceanRecordResource(d)
+	if err != nil {
+		return fmt.Errorf("Error in constructing record request: %s", err)
 	}
 
-	var err error
-	if priority := d.Get("priority").(string); priority != "" {
-		newRecord.Priority, err = strconv.Atoi(priority)
-		if err != nil {
-			return fmt.Errorf("Failed to parse priority as an integer: %v", err)
-		}
-	}
-	if port := d.Get("port").(string); port != "" {
-		newRecord.Port, err = strconv.Atoi(port)
-		if err != nil {
-			return fmt.Errorf("Failed to parse port as an integer: %v", err)
-		}
-	}
-	if ttl := d.Get("ttl").(string); ttl != "" {
-		newRecord.TTL, err = strconv.Atoi(ttl)
-		if err != nil {
-			return fmt.Errorf("Failed to parse ttl as an integer: %v", err)
-		}
-	}
-	if weight := d.Get("weight").(string); weight != "" {
-		newRecord.Weight, err = strconv.Atoi(weight)
-		if err != nil {
-			return fmt.Errorf("Failed to parse weight as an integer: %v", err)
-		}
-	}
-	if flags := d.Get("flags").(string); flags != "" {
-		newRecord.Flags, err = strconv.Atoi(flags)
-		if err != nil {
-			return fmt.Errorf("Failed to parse flags as an integer: %v", err)
-		}
-	}
+	newRecord.Type = d.Get("type").(string)
 
 	log.Printf("[DEBUG] record create configuration: %#v", newRecord)
-	rec, _, err := client.Domains.CreateRecord(context.Background(), d.Get("domain").(string), &newRecord)
+	rec, _, err := client.Domains.CreateRecord(context.Background(), d.Get("domain").(string), newRecord)
 	if err != nil {
 		return fmt.Errorf("Failed to create record: %s", err)
 	}
@@ -171,20 +194,19 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if t := rec.Type; t == "CNAME" || t == "MX" || t == "NS" || t == "SRV" || t == "CAA" {
-		if rec.Data == "@" {
-			rec.Data = domain
+		if rec.Data != "@" {
+			rec.Data += "."
 		}
-		rec.Data += "."
 	}
 
 	d.Set("name", rec.Name)
 	d.Set("type", rec.Type)
 	d.Set("value", rec.Data)
-	d.Set("weight", strconv.Itoa(rec.Weight))
-	d.Set("priority", strconv.Itoa(rec.Priority))
-	d.Set("port", strconv.Itoa(rec.Port))
-	d.Set("ttl", strconv.Itoa(rec.TTL))
-	d.Set("flags", strconv.Itoa(rec.Flags))
+	d.Set("port", rec.Port)
+	d.Set("priority", rec.Priority)
+	d.Set("ttl", rec.TTL)
+	d.Set("weight", rec.Weight)
+	d.Set("flags", rec.Flags)
 	d.Set("tag", rec.Tag)
 
 	en := constructFqdn(rec.Name, d.Get("domain").(string))
@@ -227,21 +249,13 @@ func resourceDigitalOceanRecordUpdate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("invalid record ID: %v", err)
 	}
 
-	var editRecord godo.DomainRecordEditRequest
-	if v, ok := d.GetOk("name"); ok {
-		editRecord.Name = v.(string)
-	}
-
-	if d.HasChange("ttl") {
-		newTTL := d.Get("ttl").(string)
-		editRecord.TTL, err = strconv.Atoi(newTTL)
-		if err != nil {
-			return fmt.Errorf("Failed to parse ttl as an integer: %v", err)
-		}
+	editRecord, err := expandDigitalOceanRecordResource(d)
+	if err != nil {
+		return fmt.Errorf("Error in constructing record request: %s", err)
 	}
 
 	log.Printf("[DEBUG] record update configuration: %#v", editRecord)
-	_, _, err = client.Domains.EditRecord(context.Background(), domain, id, &editRecord)
+	_, _, err = client.Domains.EditRecord(context.Background(), domain, id, editRecord)
 	if err != nil {
 		return fmt.Errorf("Failed to update record: %s", err)
 	}
@@ -272,6 +286,34 @@ func resourceDigitalOceanRecordDelete(d *schema.ResourceData, meta interface{}) 
 	}
 
 	return nil
+}
+
+func expandDigitalOceanRecordResource(d *schema.ResourceData) (*godo.DomainRecordEditRequest, error) {
+	record := &godo.DomainRecordEditRequest{
+		Name: d.Get("name").(string),
+		Data: d.Get("value").(string),
+	}
+
+	if v, ok := d.GetOk("port"); ok {
+		record.Port = v.(int)
+	}
+	if v, ok := d.GetOkExists("priority"); ok {
+		record.Priority = v.(int)
+	}
+	if v, ok := d.GetOk("ttl"); ok {
+		record.TTL = v.(int)
+	}
+	if v, ok := d.GetOkExists("weight"); ok {
+		record.Weight = v.(int)
+	}
+	if v, ok := d.GetOkExists("flags"); ok {
+		record.Flags = v.(int)
+	}
+	if v, ok := d.GetOk("tag"); ok {
+		record.Tag = v.(string)
+	}
+
+	return record, nil
 }
 
 func constructFqdn(name, domain string) string {
