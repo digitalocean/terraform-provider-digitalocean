@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -24,20 +23,10 @@ func resourceDigitalOceanTag() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validateTagName,
+				ValidateFunc: validateTag,
 			},
 		},
 	}
-}
-
-var tagNameRe = regexp.MustCompile("^[a-z0-9:\\-_]{1,255}$")
-
-func validateTagName(value interface{}, key string) ([]string, []error) {
-	if !tagNameRe.MatchString(value.(string)) {
-		return nil, []error{fmt.Errorf("tags may contain letters, numbers, colons, dashes, and underscores; there is a limit of 255 characters per tag")}
-	}
-
-	return nil, nil
 }
 
 func resourceDigitalOceanTagCreate(d *schema.ResourceData, meta interface{}) error {

@@ -135,12 +135,6 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
 
-			"tags": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-
 			"user_data": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -157,6 +151,8 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				Optional: true,
 				ForceNew: true,
 			},
+
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -172,6 +168,7 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 		Name:   d.Get("name").(string),
 		Region: d.Get("region").(string),
 		Size:   d.Get("size").(string),
+		Tags:   expandTags(d.Get("tags").(*schema.Set).List()),
 	}
 
 	if attr, ok := d.GetOk("backups"); ok {
@@ -247,12 +244,6 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf(
 			"Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
-	}
-
-	// droplet needs to be active in order to set tags
-	err = setTags(client, d)
-	if err != nil {
-		return fmt.Errorf("Error setting tags: %s", err)
 	}
 
 	return resourceDigitalOceanDropletRead(d, meta)
@@ -331,7 +322,9 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 		"host": findIPv4AddrByType(droplet, "public"),
 	})
 
-	d.Set("tags", droplet.Tags)
+	if err := d.Set("tags", flattenTags(droplet.Tags)); err != nil {
+		return fmt.Errorf("Error setting `tags`: %+v", err)
+	}
 
 	return nil
 }

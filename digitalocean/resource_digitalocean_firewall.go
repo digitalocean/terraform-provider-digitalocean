@@ -67,12 +67,6 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 				Optional: true,
 			},
 
-			"tags": {
-				Type:     schema.TypeList,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
-			},
-
 			"inbound_rule": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -158,6 +152,8 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 					},
 				},
 			},
+
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -206,7 +202,6 @@ func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("pending_changes", firewallPendingChanges(d, firewall))
 	d.Set("name", firewall.Name)
 	d.Set("droplet_ids", firewall.DropletIDs)
-	d.Set("tags", firewall.Tags)
 
 	if err := d.Set("inbound_rule", flattenFirewallInboundRules(d, firewall.InboundRules)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Firewall inbound_rule error: %#v", err)
@@ -214,6 +209,10 @@ func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) 
 
 	if err := d.Set("outbound_rule", flattenFirewallOutboundRules(d, firewall.OutboundRules)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Firewall outbound_rule error: %#v", err)
+	}
+
+	if err := d.Set("tags", flattenTags(firewall.Tags)); err != nil {
+		return fmt.Errorf("Error setting `tags`: %+v", err)
 	}
 
 	return nil
@@ -296,19 +295,14 @@ func firewallRequest(d *schema.ResourceData, client *godo.Client) (*godo.Firewal
 		opts.DropletIDs = droplets
 	}
 
-	if v, ok := d.GetOk("tags"); ok {
-		var tags []string
-		for _, tag := range v.([]interface{}) {
-			tags = append(tags, tag.(string))
-		}
-		opts.Tags = tags
-	}
-
 	// Get inbound_rules
 	opts.InboundRules = expandFirewallInboundRules(d)
 
 	// Get outbound_rules
 	opts.OutboundRules = expandFirewallOutboundRules(d)
+
+	// Get tags
+	opts.Tags = expandTags(d.Get("tags").(*schema.Set).List())
 
 	return opts, nil
 }

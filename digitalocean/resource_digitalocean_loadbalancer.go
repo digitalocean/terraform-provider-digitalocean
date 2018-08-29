@@ -145,11 +145,14 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 				Type:     schema.TypeList,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
+				Computed: true,
 			},
 
 			"droplet_tag": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:             schema.TypeString,
+				Optional:         true,
+				DiffSuppressFunc: CaseSensitive,
+				ValidateFunc:     validateTag,
 			},
 
 			"redirect_http_to_https": {
