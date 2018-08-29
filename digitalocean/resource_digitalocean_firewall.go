@@ -202,7 +202,6 @@ func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("pending_changes", firewallPendingChanges(d, firewall))
 	d.Set("name", firewall.Name)
 	d.Set("droplet_ids", firewall.DropletIDs)
-	d.Set("tags", flattenTags(firewall.Tags))
 
 	if err := d.Set("inbound_rule", flattenFirewallInboundRules(d, firewall.InboundRules)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Firewall inbound_rule error: %#v", err)
@@ -210,6 +209,10 @@ func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) 
 
 	if err := d.Set("outbound_rule", flattenFirewallOutboundRules(d, firewall.OutboundRules)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Firewall outbound_rule error: %#v", err)
+	}
+
+	if err := d.Set("tags", flattenTags(firewall.Tags)); err != nil {
+		return fmt.Errorf("Error setting `tags`: %+v", err)
 	}
 
 	return nil

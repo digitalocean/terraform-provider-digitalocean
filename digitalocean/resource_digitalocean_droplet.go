@@ -322,7 +322,9 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 		"host": findIPv4AddrByType(droplet, "public"),
 	})
 
-	d.Set("tags", flattenTags(droplet.Tags))
+	if err := d.Set("tags", flattenTags(droplet.Tags)); err != nil {
+		return fmt.Errorf("Error setting `tags`: %+v", err)
+	}
 
 	return nil
 }
