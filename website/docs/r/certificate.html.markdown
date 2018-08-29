@@ -11,7 +11,9 @@ description: |-
 Provides a DigitalOcean Certificate resource that allows you to manage
 certificates for configuring TLS termination in Load Balancers.
 Certificates created with this resource can be referenced in your
-Load Balancer configuration via their ID.
+Load Balancer configuration via their ID. The certificate can either
+be a custom one provided by you or automatically generated one with
+Let's Encrypt.
 
 ## Example Usage
 
@@ -19,6 +21,7 @@ Load Balancer configuration via their ID.
 # Create a new TLS certificate
 resource "digitalocean_certificate" "cert" {
   name              = "Terraform Example"
+  type              = "custom"
   private_key       = "${file("/Users/terraform/certs/privkey.pem")}"
   leaf_certificate  = "${file("/Users/terraform/certs/cert.pem")}"
   certificate_chain = "${file("/Users/terraform/certs/fullchain.pem")}"
@@ -47,13 +50,19 @@ resource "digitalocean_loadbalancer" "public" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the certificate for identification.
-* `private_key` - (Required) The contents of a PEM-formatted private-key
-corresponding to the SSL certificate.
-* `leaf_certificate` - (Required) The contents of a PEM-formatted public
-TLS certificate.
+* `type` - (Optional) The type of certificate to provision. Can be either
+`custom` or `lets_encrypt`. Defaults to `custom`.
+* `private_key` - (Optional) The contents of a PEM-formatted private-key
+corresponding to the SSL certificate. Only valid when type is `custom`.
+* `leaf_certificate` - (Optional) The contents of a PEM-formatted public
+TLS certificate. Only valid when type is `custom`.
 * `certificate_chain` - (Optional) The full PEM-formatted trust chain
 between the certificate authority's certificate and your domain's TLS
-certificate.
+certificate. Only valid when type is `custom`.
+* `domains` - (Optional) List of fully qualified domain names (FQDNs) for
+which the certificate will be issued. The domains must be managed using
+DigitalOcean's DNS. Only valid when type is `lets_encrypt`.
+
 
 ## Attributes Reference
 
@@ -63,7 +72,6 @@ The following attributes are exported:
 * `name` - The name of the certificate
 * `not_after` - The expiration date of the certificate
 * `sha1_fingerprint` - The SHA-1 fingerprint of the certificate
-
 
 
 ## Import
