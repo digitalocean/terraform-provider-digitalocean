@@ -65,7 +65,7 @@ func resourceDigitalOceanVolume() *schema.Resource {
 			// only expanding the volume is allowed
 			oldSize, newSize := diff.GetChange("size")
 			if newSize.(int) < oldSize.(int) {
-				return fmt.Errorf("volumes `size` can only be expanded and not shrinked")
+				return fmt.Errorf("volumes `size` can only be expanded and not shrunk")
 			}
 
 			return nil
