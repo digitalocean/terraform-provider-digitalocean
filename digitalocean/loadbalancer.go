@@ -3,10 +3,10 @@ package digitalocean
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func loadbalancerStateRefreshFunc(client *godo.Client, loadbalancerId string) resource.StateRefreshFunc {
@@ -82,13 +82,12 @@ func expandForwardingRules(config []interface{}) []godo.ForwardingRule {
 	return forwardingRules
 }
 
-func flattenDropletIds(list []int) []interface{} {
-	flatList := make([]interface{}, 0, len(list))
+func flattenDropletIds(list []int) *schema.Set {
+	flatSet := schema.NewSet(schema.HashInt, []interface{}{})
 	for _, v := range list {
-		vStr := strconv.Itoa(v)
-		flatList = append(flatList, vStr)
+		flatSet.Add(v)
 	}
-	return flatList
+	return flatSet
 }
 
 func flattenHealthChecks(health *godo.HealthCheck) []map[string]interface{} {

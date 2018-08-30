@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceDigitalOceanLoadbalancer() *schema.Resource {
@@ -23,21 +23,26 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-
 			"region": {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
 			},
 
+			"name": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
 			"algorithm": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "round_robin",
+				ValidateFunc: validation.StringInSlice([]string{
+					"round_robin",
+					"least_connections",
+				}, false),
 			},
 
 			"forwarding_rule": {
@@ -49,22 +54,37 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 						"entry_protocol": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"http",
+								"https",
+								"http2",
+								"tcp",
+							}, false),
 						},
 						"entry_port": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 65535),
 						},
 						"target_protocol": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"http",
+								"https",
+								"http2",
+								"tcp",
+							}, false),
 						},
 						"target_port": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 65535),
 						},
 						"certificate_id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"tls_passthrough": {
 							Type:     schema.TypeBool,
@@ -78,40 +98,51 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 			"healthcheck": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"protocol": {
 							Type:     schema.TypeString,
 							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"http",
+								"tcp",
+							}, false),
 						},
 						"port": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntBetween(1, 65535),
 						},
 						"path": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.NoZeroValues,
 						},
 						"check_interval_seconds": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  10,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      10,
+							ValidateFunc: validation.IntBetween(3, 300),
 						},
 						"response_timeout_seconds": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  5,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      5,
+							ValidateFunc: validation.IntBetween(3, 300),
 						},
 						"unhealthy_threshold": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  3,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      3,
+							ValidateFunc: validation.IntBetween(2, 10),
 						},
 						"healthy_threshold": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  5,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      5,
+							ValidateFunc: validation.IntBetween(2, 10),
 						},
 					},
 				},
@@ -128,24 +159,31 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "none",
+							ValidateFunc: validation.StringInSlice([]string{
+								"cookies",
+								"none",
+							}, false),
 						},
 						"cookie_name": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringLenBetween(2, 40),
 						},
 						"cookie_ttl_seconds": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(1),
 						},
 					},
 				},
 			},
 
 			"droplet_ids": {
-				Type:     schema.TypeList,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-				Optional: true,
-				Computed: true,
+				Type:          schema.TypeSet,
+				Elem:          &schema.Schema{Type: schema.TypeInt},
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"droplet_tag"},
 			},
 
 			"droplet_tag": {
@@ -166,6 +204,48 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+
+			if _, hasHealthCheck := diff.GetOk("healthcheck"); hasHealthCheck {
+
+				healthCheckProtocol := diff.Get("healthcheck.0.protocol").(string)
+				_, hasPath := diff.GetOk("healthcheck.0.path")
+				if healthCheckProtocol == "http" {
+					if !hasPath {
+						return fmt.Errorf("health check `path` is required for when protocol is `http`")
+					}
+				} else {
+					if hasPath {
+						return fmt.Errorf("health check `path` is not allowed for when protocol is `tcp`")
+					}
+				}
+			}
+
+			if _, hasStickySession := diff.GetOk("sticky_sessions.#"); hasStickySession {
+
+				sessionType := diff.Get("sticky_sessions.0.type").(string)
+				_, hasCookieName := diff.GetOk("sticky_sessions.0.cookie_name")
+				_, hasTtlSeconds := diff.GetOk("sticky_sessions.0.cookie_ttl_seconds")
+				if sessionType == "cookies" {
+					if !hasCookieName {
+						return fmt.Errorf("sticky sessions `cookie_name` is required for when type is `cookie`")
+					}
+					if !hasTtlSeconds {
+						return fmt.Errorf("sticky sessions `cookie_ttl_seconds` is required for when type is `cookie`")
+					}
+				} else {
+					if hasCookieName {
+						return fmt.Errorf("sticky sessions `cookie_name` is not allowed for when type is `none`")
+					}
+					if hasTtlSeconds {
+						return fmt.Errorf("sticky sessions `cookie_ttl_seconds` is not allowed for when type is `none`")
+					}
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -178,21 +258,15 @@ func buildLoadBalancerRequest(d *schema.ResourceData) (*godo.LoadBalancerRequest
 		ForwardingRules:     expandForwardingRules(d.Get("forwarding_rule").([]interface{})),
 	}
 
-	if v, ok := d.GetOk("droplet_ids"); ok {
+	if v, ok := d.GetOk("droplet_tag"); ok {
+		opts.Tag = v.(string)
+	} else if v, ok := d.GetOk("droplet_ids"); ok {
 		var droplets []int
-		for _, id := range v.([]interface{}) {
-			i, err := strconv.Atoi(id.(string))
-			if err != nil {
-				return nil, err
-			}
-			droplets = append(droplets, i)
+		for _, id := range v.(*schema.Set).List() {
+			droplets = append(droplets, id.(int))
 		}
 
 		opts.DropletIDs = droplets
-	}
-
-	if v, ok := d.GetOk("droplet_tag"); ok {
-		opts.Tag = v.(string)
 	}
 
 	if v, ok := d.GetOk("healthcheck"); ok {

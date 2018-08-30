@@ -42,6 +42,53 @@ resource "digitalocean_loadbalancer" "public" {
 }
 ```
 
+When managing certificates attached to the load balancer, make sure to add the `create_before_destroy`
+lifecycle property in order to ensure the certificate is correctly updated when changed. The order of
+operations will then be: `Create new certificate` -> `Update loadbalancer with new certificate` ->
+`Delete old certificate`. When doing so, you must also change the name of the certificate,
+as there cannot be multiple certificates with the same name in an account.
+
+```hcl
+resource "digitalocean_certificate" "cert" {
+  name             = "cert"
+  private_key      = "${file("key.pem")}"
+  leaf_certificate = "${file("cert.pem")}"
+
+  lifecycle {
+    create_before_destroy = true 
+  }
+}
+
+resource "digitalocean_droplet" "web" {
+  name      = "web-1"
+  size      = "s-1vcpu-1gb"
+  image     = "centos-7-x64"
+  region    = "nyc3"
+}
+
+resource "digitalocean_loadbalancer" "public" {
+  name = "loadbalancer-1"
+  region = "nyc3"
+
+  forwarding_rule {
+    entry_port = 443
+    entry_protocol = "https"
+
+    target_port = 80
+    target_protocol = "http"
+
+    certificate_id = "${digitalocean_certificate.cert.id}"
+  }
+
+  healthcheck {
+    port = 22
+    protocol = "tcp"
+  }
+
+  droplet_ids = ["${digitalocean_droplet.web.id}"]
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
