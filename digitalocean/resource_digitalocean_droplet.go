@@ -12,6 +12,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceDigitalOceanDroplet() *schema.Resource {
@@ -26,14 +27,16 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"image": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"region": {
@@ -44,6 +47,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 					// DO API V2 region slug is always lowercase
 					return strings.ToLower(val.(string))
 				},
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"size": {
@@ -53,6 +57,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 					// DO API V2 size slug is always lowercase
 					return strings.ToLower(val.(string))
 				},
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"disk": {
@@ -94,11 +99,13 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			"backups": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"ipv6": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"ipv6_address": {
@@ -117,6 +124,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			"private_networking": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"ipv4_address": {
@@ -130,15 +138,32 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"ssh_keys": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.NoZeroValues,
+				},
+				Set: schema.HashString,
 			},
 
 			"user_data": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
+				StateFunc: func(v interface{}) string {
+					switch v.(type) {
+					case string:
+						return HashString(v.(string))
+					default:
+						return ""
+					}
+				},
+				// In order to support older statefiles with fully saved user data
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return new != "" && old == d.Get("user_data")
+				},
 			},
 
 			"volume_ids": {
@@ -146,10 +171,12 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
 			},
+
 			"monitoring": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
+				Default:  false,
 			},
 
 			"tags": tagsSchema(),
@@ -160,15 +187,23 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
+	image := d.Get("image").(string)
+
 	// Build up our creation options
 	opts := &godo.DropletCreateRequest{
-		Image: godo.DropletCreateImage{
-			Slug: d.Get("image").(string),
-		},
+		Image:  godo.DropletCreateImage{},
 		Name:   d.Get("name").(string),
 		Region: d.Get("region").(string),
 		Size:   d.Get("size").(string),
 		Tags:   expandTags(d.Get("tags").(*schema.Set).List()),
+	}
+
+	imageId, err := strconv.Atoi(image)
+	if err == nil {
+		// The image field is provided as an ID (number).
+		opts.Image.ID = imageId
+	} else {
+		opts.Image.Slug = image
 	}
 
 	if attr, ok := d.GetOk("backups"); ok {
@@ -208,23 +243,12 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	// Get configured ssh_keys
-	sshKeys := d.Get("ssh_keys.#").(int)
-	if sshKeys > 0 {
-		opts.SSHKeys = make([]godo.DropletCreateSSHKey, 0, sshKeys)
-		for i := 0; i < sshKeys; i++ {
-			key := fmt.Sprintf("ssh_keys.%d", i)
-			sshKeyRef := d.Get(key).(string)
-
-			var sshKey godo.DropletCreateSSHKey
-			// sshKeyRef can be either an ID or a fingerprint
-			if id, err := strconv.Atoi(sshKeyRef); err == nil {
-				sshKey.ID = id
-			} else {
-				sshKey.Fingerprint = sshKeyRef
-			}
-
-			opts.SSHKeys = append(opts.SSHKeys, sshKey)
+	if v, ok := d.GetOk("ssh_keys"); ok {
+		expandedSshKeys, err := expandSshKeys(v.(*schema.Set).List())
+		if err != nil {
+			return err
 		}
+		opts.SSHKeys = expandedSshKeys
 	}
 
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
@@ -332,6 +356,10 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 func resourceDigitalOceanDropletImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	// This is a non API attribute. So set to the default setting in the schema.
 	d.Set("resize_disk", true)
+	d.Set("backups", false)
+	d.Set("ipv6", false)
+	d.Set("private_networking", false)
+	d.Set("monitoring", false)
 
 	err := resourceDigitalOceanDropletRead(d, meta)
 	if err != nil {
@@ -374,9 +402,9 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("invalid droplet id: %v", err)
 	}
 
-	resizeDisk := d.Get("resize_disk").(bool)
-	if resizeDisk && d.HasChange("size") {
+	if d.HasChange("size") {
 		newSize := d.Get("size")
+		resizeDisk := d.Get("resize_disk").(bool)
 
 		_, _, err = client.DropletActions.PowerOff(context.Background(), id)
 		if err != nil && !strings.Contains(err.Error(), "Droplet is already powered off") {
@@ -699,4 +727,22 @@ func detachVolumeIDOnDroplet(d *schema.ResourceData, volumeID string, meta inter
 	}
 
 	return nil
+}
+
+func expandSshKeys(sshKeys []interface{}) ([]godo.DropletCreateSSHKey, error) {
+	expandedSshKeys := make([]godo.DropletCreateSSHKey, len(sshKeys))
+	for i, s := range sshKeys {
+		sshKey := s.(string)
+
+		var expandedSshKey godo.DropletCreateSSHKey
+		if id, err := strconv.Atoi(sshKey); err == nil {
+			expandedSshKey.ID = id
+		} else {
+			expandedSshKey.Fingerprint = sshKey
+		}
+
+		expandedSshKeys[i] = expandedSshKey
+	}
+
+	return expandedSshKeys, nil
 }
