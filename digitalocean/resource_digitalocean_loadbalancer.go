@@ -362,8 +362,6 @@ func resourceDigitalOceanLoadbalancerUpdate(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	log.Printf("UIIIII: %v", lbOpts)
-
 	log.Printf("[DEBUG] Load Balancer Update: %#v", lbOpts)
 	_, _, err = client.LoadBalancers.Update(context.Background(), d.Id(), lbOpts)
 	if err != nil {
