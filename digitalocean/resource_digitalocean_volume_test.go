@@ -20,7 +20,6 @@ func init() {
 		F:            testSweepVolumes,
 		Dependencies: []string{"digitalocean_droplet"},
 	})
-
 }
 
 func testSweepVolumes(region string) error {
@@ -217,3 +216,59 @@ resource "digitalocean_volume" "foobar" {
 	description = "peace makes plenty"
 	filesystem_type = "xfs"
 }`
+
+func TestAccDigitalOceanVolume_Resize(t *testing.T) {
+	var (
+		volume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
+		droplet godo.Droplet
+	)
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanVolumeConfig_resize(rInt, volume.Name, 20),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					// the droplet should see an attached volume
+					resource.TestCheckResourceAttr("digitalocean_droplet.foobar", "volume_ids.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_volume.foobar", "size", "20"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanVolumeConfig_resize(rInt, volume.Name, 50),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					// the droplet should see an attached volume
+					resource.TestCheckResourceAttr("digitalocean_droplet.foobar", "volume_ids.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_volume.foobar", "size", "50"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckDigitalOceanVolumeConfig_resize(rInt int, vName string, vSize int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_volume" "foobar" {
+	region      = "nyc1"
+	name        = "%s"
+	size        = %d
+	description = "peace makes plenty"
+}
+
+resource "digitalocean_droplet" "foobar" {
+  name               = "baz-%d"
+  size               = "1gb"
+  image              = "centos-7-x64"
+  region             = "nyc1"
+  ipv6               = true
+  private_networking = true
+  volume_ids         = ["${digitalocean_volume.foobar.id}"]
+}`, vName, vSize, rInt)
+}
