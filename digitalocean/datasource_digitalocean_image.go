@@ -53,14 +53,38 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
-	opts := &godo.ListOptions{}
-
-	images, _, err := client.Images.ListUser(context.Background(), opts)
-	if err != nil {
-		d.SetId("")
-		return err
+	opts := &godo.ListOptions{
+		Page:    1,
+		PerPage: 200,
 	}
-	image, err := findImageByName(images, d.Get("name").(string))
+
+	imageList := []godo.Image{}
+
+	for {
+		images, resp, err := client.Images.ListUser(context.Background(), opts)
+		if err != nil {
+			d.SetId("")
+			return err
+		}
+
+		for _, image := range images {
+			imageList = append(imageList, image)
+		}
+
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			d.SetId("")
+			return err
+		}
+
+		opts.Page = page + 1
+	}
+
+	image, err := findImageByName(imageList, d.Get("name").(string))
 
 	if err != nil {
 		return err
