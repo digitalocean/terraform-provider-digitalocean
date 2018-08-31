@@ -24,6 +24,8 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDropletImport,
 		},
+		MigrateState:  resourceDigitalOceanDropletMigrateState,
+		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
 			"image": {
@@ -97,10 +99,9 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"backups": {
-				Type:             schema.TypeBool,
-				Optional:         true,
-				Default:          false,
-				DiffSuppressFunc: suppressDropletUnsetBool,
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
 			},
 
 			"ipv6": {
@@ -174,11 +175,10 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"monitoring": {
-				Type:             schema.TypeBool,
-				Optional:         true,
-				ForceNew:         true,
-				Default:          false,
-				DiffSuppressFunc: suppressDropletUnsetBool,
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+				Default:  false,
 			},
 
 			"tags": tagsSchema(),
@@ -727,10 +727,6 @@ func detachVolumeIDOnDroplet(d *schema.ResourceData, volumeID string, meta inter
 	}
 
 	return nil
-}
-
-func suppressDropletUnsetBool(k, old, new string, d *schema.ResourceData) bool {
-	return old == "" && new == "false"
 }
 
 func expandSshKeys(sshKeys []interface{}) ([]godo.DropletCreateSSHKey, error) {
