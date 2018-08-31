@@ -49,6 +49,7 @@ func resourceDigitalOceanVolumeAttachmentCreate(d *schema.ResourceData, meta int
 
 	if volume.DropletIDs == nil || len(volume.DropletIDs) == 0 || volume.DropletIDs[0] != dropletId {
 
+		// Only one volume can be attached at one time to a single droplet.
 		err := resource.Retry(5*time.Minute, func() *resource.RetryError {
 
 			log.Printf("[DEBUG] Attaching Volume (%s) to Droplet (%d)", volumeId, dropletId)
@@ -114,6 +115,7 @@ func resourceDigitalOceanVolumeAttachmentDelete(d *schema.ResourceData, meta int
 	dropletId := d.Get("droplet_id").(int)
 	volumeId := d.Get("volume_id").(string)
 
+	// Only one volume can be detached at one time to a single droplet.
 	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
 
 		log.Printf("[DEBUG] Detaching Volume (%s) from Droplet (%d)", volumeId, dropletId)
