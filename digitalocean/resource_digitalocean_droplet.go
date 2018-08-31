@@ -97,9 +97,10 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"backups": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:             schema.TypeBool,
+				Optional:         true,
+				Default:          false,
+				DiffSuppressFunc: suppressDropletUnsetBool,
 			},
 
 			"ipv6": {
@@ -173,10 +174,11 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"monitoring": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				ForceNew: true,
-				Default:  false,
+				Type:             schema.TypeBool,
+				Optional:         true,
+				ForceNew:         true,
+				Default:          false,
+				DiffSuppressFunc: suppressDropletUnsetBool,
 			},
 
 			"tags": tagsSchema(),
@@ -357,8 +359,6 @@ func resourceDigitalOceanDropletImport(d *schema.ResourceData, meta interface{})
 	// This is a non API attribute. So set to the default setting in the schema.
 	d.Set("resize_disk", true)
 	d.Set("backups", false)
-	d.Set("ipv6", false)
-	d.Set("private_networking", false)
 	d.Set("monitoring", false)
 
 	err := resourceDigitalOceanDropletRead(d, meta)
@@ -727,6 +727,10 @@ func detachVolumeIDOnDroplet(d *schema.ResourceData, volumeID string, meta inter
 	}
 
 	return nil
+}
+
+func suppressDropletUnsetBool(k, old, new string, d *schema.ResourceData) bool {
+	return old == "" && new == "false"
 }
 
 func expandSshKeys(sshKeys []interface{}) ([]godo.DropletCreateSSHKey, error) {
