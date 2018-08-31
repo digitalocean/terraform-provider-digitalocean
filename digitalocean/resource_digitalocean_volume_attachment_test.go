@@ -134,6 +134,45 @@ func TestAccDigitalOceanVolumeAttachment_UpdateToSecondVolume(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanVolumeAttachment_Multiple(t *testing.T) {
+	var (
+		firstVolume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
+		secondVolume = godo.Volume{Name: fmt.Sprintf("volume-s-%s", acctest.RandString(10))}
+		droplet      godo.Droplet
+	)
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanVolumeAttachmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_multiple(rInt, firstVolume.Name, secondVolume.Name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &firstVolume),
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.barfoo", &secondVolume),
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					testAccCheckDigitalOceanVolumeAttachmentExists("digitalocean_volume_attachment.foobar"),
+					testAccCheckDigitalOceanVolumeAttachmentExists("digitalocean_volume_attachment.barfoo"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_volume_attachment.foobar", "id"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_volume_attachment.foobar", "droplet_id"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_volume_attachment.foobar", "volume_id"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_volume_attachment.barfoo", "id"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_volume_attachment.barfoo", "droplet_id"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_volume_attachment.barfoo", "volume_id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanVolumeAttachmentExists(rn string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[rn]
@@ -185,16 +224,50 @@ resource "digitalocean_volume" "foobar" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name               = "baz-%d"
-  size               = "1gb"
-  image              = "centos-7-x64"
-  region             = "nyc1"
+	name               = "baz-%d"
+	size               = "1gb"
+	image              = "centos-7-x64"
+	region             = "nyc1"
 }
 
 resource "digitalocean_volume_attachment" "foobar" {
-  droplet_id = "${digitalocean_droplet.foobar.id}"
-  volume_id = "${digitalocean_volume.foobar.id}"
+	droplet_id = "${digitalocean_droplet.foobar.id}"
+	volume_id = "${digitalocean_volume.foobar.id}"
 }`, vName, rInt)
+}
+
+func testAccCheckDigitalOceanVolumeAttachmentConfig_multiple(rInt int, vName, vSecondName string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_volume" "foobar" {
+	region      = "nyc1"
+	name        = "%s"
+	size        = 5
+	description = "peace makes plenty"
+}
+
+resource "digitalocean_volume" "barfoo" {
+	region      = "nyc1"
+	name        = "%s"
+	size        = 5
+	description = "peace makes plenty"
+}
+
+resource "digitalocean_droplet" "foobar" {
+	name               = "baz-%d"
+	size               = "1gb"
+	image              = "centos-7-x64"
+	region             = "nyc1"
+}
+
+resource "digitalocean_volume_attachment" "foobar" {
+	droplet_id = "${digitalocean_droplet.foobar.id}"
+	volume_id = "${digitalocean_volume.foobar.id}"
+}
+
+resource "digitalocean_volume_attachment" "barfoo" {
+	droplet_id = "${digitalocean_droplet.foobar.id}"
+	volume_id = "${digitalocean_volume.barfoo.id}"
+}`, vName, vSecondName, rInt)
 }
 
 func testAccCheckDigitalOceanVolumeAttachmentConfig_multiple_volumes(rInt int, vName, vSecondName, activeVolume string) string {
@@ -214,14 +287,14 @@ resource "digitalocean_volume" "foobar_second" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name               = "baz-%d"
-  size               = "1gb"
-  image              = "centos-7-x64"
-  region             = "nyc1"
+	name               = "baz-%d"
+	size               = "1gb"
+	image              = "centos-7-x64"
+	region             = "nyc1"
 }
 
 resource "digitalocean_volume_attachment" "foobar" {
-  droplet_id = "${digitalocean_droplet.foobar.id}"
-  volume_id = "${digitalocean_volume.%s.id}"
+	droplet_id = "${digitalocean_droplet.foobar.id}"
+	volume_id = "${digitalocean_volume.%s.id}"
 }`, vName, vSecondName, rInt, activeVolume)
 }

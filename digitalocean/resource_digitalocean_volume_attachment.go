@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -48,16 +49,31 @@ func resourceDigitalOceanVolumeAttachmentCreate(d *schema.ResourceData, meta int
 
 	if volume.DropletIDs == nil || len(volume.DropletIDs) == 0 || volume.DropletIDs[0] != dropletId {
 
-		log.Printf("[DEBUG] Attaching Volume (%s) to Droplet (%d)", volumeId, dropletId)
-		action, _, err := client.StorageActions.Attach(context.Background(), volumeId, dropletId)
-		if err != nil {
-			return fmt.Errorf("[WARN] Error attaching volume (%s) to Droplet (%d): %s", volumeId, dropletId, err)
-		}
+		err := resource.Retry(5*time.Minute, func() *resource.RetryError {
 
-		log.Printf("[DEBUG] Volume attach action id: %d", action.ID)
-		if err = waitForAction(client, action); err != nil {
-			return fmt.Errorf(
-				"Error waiting for attach volume (%s) to Droplet (%d) to finish: %s", volumeId, dropletId, err)
+			log.Printf("[DEBUG] Attaching Volume (%s) to Droplet (%d)", volumeId, dropletId)
+			action, _, err := client.StorageActions.Attach(context.Background(), volumeId, dropletId)
+			if err != nil {
+				if isDigitalOceanError(err, 422, "Droplet already has a pending event.") {
+					log.Printf("[DEBUG] Received %s, retrying attaching volume to droplet", err)
+					return resource.RetryableError(err)
+				}
+
+				return resource.NonRetryableError(
+					fmt.Errorf("[WARN] Error attaching volume (%s) to Droplet (%d): %s", volumeId, dropletId, err))
+			}
+
+			log.Printf("[DEBUG] Volume attach action id: %d", action.ID)
+			if err = waitForAction(client, action); err != nil {
+				return resource.NonRetryableError(
+					fmt.Errorf("[DEBUG] Error waiting for attach volume (%s) to Droplet (%d) to finish: %s", volumeId, dropletId, err))
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			return fmt.Errorf("Error attaching volume to droplet after retry timeout: %s", err)
 		}
 	}
 
@@ -98,16 +114,31 @@ func resourceDigitalOceanVolumeAttachmentDelete(d *schema.ResourceData, meta int
 	dropletId := d.Get("droplet_id").(int)
 	volumeId := d.Get("volume_id").(string)
 
-	log.Printf("[DEBUG] Detaching Volume (%s) from Droplet (%d)", volumeId, dropletId)
-	action, _, err := client.StorageActions.DetachByDropletID(context.Background(), volumeId, dropletId)
-	if err != nil {
-		return fmt.Errorf("[WARN] Error detaching volume (%s) from Droplet (%d): %s", volumeId, dropletId, err)
-	}
+	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
 
-	log.Printf("[DEBUG] Volume detach action id: %d", action.ID)
-	if err = waitForAction(client, action); err != nil {
-		return fmt.Errorf(
-			"Error waiting for detach volume (%s) from Droplet (%d) to finish: %s", volumeId, dropletId, err)
+		log.Printf("[DEBUG] Detaching Volume (%s) from Droplet (%d)", volumeId, dropletId)
+		action, _, err := client.StorageActions.DetachByDropletID(context.Background(), volumeId, dropletId)
+		if err != nil {
+			if isDigitalOceanError(err, 422, "Droplet already has a pending event.") {
+				log.Printf("[DEBUG] Received %s, retrying detaching volume from droplet", err)
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(
+				fmt.Errorf("[WARN] Error detaching volume (%s) from Droplet (%d): %s", volumeId, dropletId, err))
+		}
+
+		log.Printf("[DEBUG] Volume detach action id: %d", action.ID)
+		if err = waitForAction(client, action); err != nil {
+			return resource.NonRetryableError(
+				fmt.Errorf("Error waiting for detach volume (%s) from Droplet (%d) to finish: %s", volumeId, dropletId, err))
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("Error detaching volume from droplet after retry timeout: %s", err)
 	}
 
 	return nil
