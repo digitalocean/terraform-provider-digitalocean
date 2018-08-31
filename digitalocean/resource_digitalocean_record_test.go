@@ -260,6 +260,39 @@ func TestAccDigitalOceanRecord_MX_at(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanRecord_SRV_zero_weight(t *testing.T) {
+	var record godo.DomainRecord
+	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_srv_zero_weight, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foo_record", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("foobar."+domain, &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "name", "_service._protocol"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "value", "foobar."+domain+"."),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "type", "SRV"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "port", "443"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "weight", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanRecord_UpdateBasic(t *testing.T) {
 	var record godo.DomainRecord
 	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
@@ -657,6 +690,23 @@ resource "digitalocean_record" "foobar" {
   value = "letsencrypt.org."
   flags = 1
   tag   = "issue"
+}`
+
+const testAccCheckDigitalOceanRecordConfig_srv_zero_weight = `
+resource "digitalocean_domain" "foobar" {
+  name       = "%s"
+  ip_address = "192.168.0.10"
+}
+
+resource "digitalocean_record" "foo_record" {
+  domain = "${digitalocean_domain.foobar.name}"
+
+  name     = "_service._protocol"
+  value    = "foobar.${digitalocean_domain.foobar.name}."
+  type     = "SRV"
+  priority = "10"
+  port     = "443"
+  weight   = "0"
 }`
 
 const testAccCheckDigitalOceanRecordConfig_updated_basic = `
