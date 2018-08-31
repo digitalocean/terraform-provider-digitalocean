@@ -25,7 +25,11 @@ resource "digitalocean_droplet" "foobar" {
   size       = "s-1vcpu-1gb"
   image      = "coreos-stable"
   region     = "nyc1"
-  volume_ids = ["${digitalocean_volume.foobar.id}"]
+}
+
+resource "digitalocean_volume_attachment" "foobar" {
+  droplet_id = "${digitalocean_droplet.foobar.id}"
+  volume_id = "${digitalocean_volume.foobar.id}"
 }
 ```
 
@@ -37,14 +41,17 @@ The following arguments are supported:
 * `name` - (Required) A name for the block storage volume. Must be lowercase and be composed only of numbers, letters and "-", up to a limit of 64 characters.
 * `size` - (Required) The size of the block storage volume in GiB. If updated, can only be expanded.
 * `description` - (Optional) A free-form text field up to a limit of 1024 bytes to describe a block storage volume.
-* `filesystem_type` - (Optional) Filesystem type (`xfs` or `ext4`) for the block storage volume.
-* `droplet_ids` - (Computed) A list of associated droplet ids
+* `initial_filesystem_type` - (Optional) Initial filesystem type (`xfs` or `ext4`) for the block storage volume.
+* `initial_filesystem_label` - (Optional) Initial filesystem label for the block storage volume.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id` - The unique identifier for the block storage volume.
+* `filesystem_type` - Filesystem type (`xfs` or `ext4`) for the block storage volume.
+* `filesystem_label` - Filesystem label for the block storage volume.
+* `droplet_ids` - A list of associated droplet ids
 
 
 ## Import

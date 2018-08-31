@@ -34,12 +34,6 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"droplet_ids": {
-				Type:     schema.TypeSet,
-				Elem:     &schema.Schema{Type: schema.TypeInt},
-				Computed: true,
-			},
-
 			"size": {
 				Type:         schema.TypeInt,
 				Required:     true,
@@ -53,10 +47,44 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"filesystem_type": {
+			"initial_filesystem_type": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"ext4",
+					"xfs",
+				}, false),
+			},
+
+			"initial_filesystem_label": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
+			"droplet_ids": {
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeInt},
+				Computed: true,
+			},
+
+			"filesystem_type": {
+				Type:     schema.TypeString,
+				Optional: true, // Backward compatibility for existing resources.
+				Computed: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"ext4",
+					"xfs",
+				}, false),
+				ConflictsWith: []string{"initial_filesystem_type"},
+				Deprecated:    "This fields functionality has been replaced by `initial_filesystem_type`. The property will still remain as a computed attribute representing the current volumes filesystem type.",
+			},
+
+			"filesystem_label": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 
@@ -78,11 +106,20 @@ func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*godo.Client)
 
 	opts := &godo.VolumeCreateRequest{
-		Region:         d.Get("region").(string),
-		Name:           d.Get("name").(string),
-		Description:    d.Get("description").(string),
-		SizeGigaBytes:  int64(d.Get("size").(int)),
-		FilesystemType: d.Get("filesystem_type").(string),
+		Region:        d.Get("region").(string),
+		Name:          d.Get("name").(string),
+		Description:   d.Get("description").(string),
+		SizeGigaBytes: int64(d.Get("size").(int)),
+	}
+
+	if v, ok := d.GetOk("initial_filesystem_type"); ok {
+		opts.FilesystemType = v.(string)
+	} else if v, ok := d.GetOk("filesystem_type"); ok {
+		// backward compatibility
+		opts.FilesystemType = v.(string)
+	}
+	if v, ok := d.GetOk("initial_filesystem_label"); ok {
+		opts.FilesystemLabel = v.(string)
 	}
 
 	log.Printf("[DEBUG] Volume create configuration: %#v", opts)
@@ -139,14 +176,16 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("size", int(volume.SizeGigaBytes))
 
-	dids := make([]interface{}, 0, len(volume.DropletIDs))
-	for _, did := range volume.DropletIDs {
-		dids = append(dids, did)
+	if v := volume.FilesystemType; v != "" {
+		d.Set("filesystem_type", v)
 	}
-	d.Set("droplet_ids", schema.NewSet(
-		func(dropletID interface{}) int { return dropletID.(int) },
-		dids,
-	))
+	if v := volume.FilesystemLabel; v != "" {
+		d.Set("filesystem_label", v)
+	}
+
+	if err = d.Set("droplet_ids", flattenDigitalOceanVolumeDropletIds(volume.DropletIDs)); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting droplet_ids: %#v", err)
+	}
 
 	return nil
 }
@@ -181,15 +220,22 @@ func resourceDigitalOceanVolumeImport(rs *schema.ResourceData, v interface{}) ([
 	if v := volume.FilesystemType; v != "" {
 		rs.Set("filesystem_type", v)
 	}
-
-	dids := make([]interface{}, 0, len(volume.DropletIDs))
-	for _, did := range volume.DropletIDs {
-		dids = append(dids, did)
+	if v := volume.FilesystemLabel; v != "" {
+		rs.Set("filesystem_label", v)
 	}
-	rs.Set("droplet_ids", schema.NewSet(
-		func(dropletID interface{}) int { return dropletID.(int) },
-		dids,
-	))
+
+	if err = rs.Set("droplet_ids", flattenDigitalOceanVolumeDropletIds(volume.DropletIDs)); err != nil {
+		return nil, fmt.Errorf("[DEBUG] Error setting droplet_ids: %#v", err)
+	}
 
 	return []*schema.ResourceData{rs}, nil
+}
+
+func flattenDigitalOceanVolumeDropletIds(droplets []int) *schema.Set {
+	flattenedDroplets := schema.NewSet(schema.HashInt, []interface{}{})
+	for _, v := range droplets {
+		flattenedDroplets.Add(v)
+	}
+
+	return flattenedDroplets
 }
