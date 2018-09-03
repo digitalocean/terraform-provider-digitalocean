@@ -6,6 +6,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func dataSourceDigitalOceanDomain() *schema.Resource {
@@ -14,9 +15,10 @@ func dataSourceDigitalOceanDomain() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 
 			"name": &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "name of the domain",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "name of the domain",
+				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
 			"ttl": &schema.Schema{
@@ -36,41 +38,14 @@ func dataSourceDigitalOceanDomain() *schema.Resource {
 func dataSourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
-	opts := &godo.ListOptions{
-		Page:    1,
-		PerPage: 200,
-	}
+	name := d.Get("name").(string)
 
-	domainList := []godo.Domain{}
-
-	for {
-		domains, resp, err := client.Domains.List(context.Background(), opts)
-		if err != nil {
-			d.SetId("")
-			return err
-		}
-
-		for _, domain := range domains {
-			domainList = append(domainList, domain)
-		}
-
-		if resp.Links == nil || resp.Links.IsLastPage() {
-			break
-		}
-
-		page, err := resp.Links.CurrentPage()
-		if err != nil {
-			d.SetId("")
-			return err
-		}
-
-		opts.Page = page + 1
-	}
-
-	domain, err := findDomainByName(domainList, d.Get("name").(string))
-
+	domain, resp, err := client.Domains.Get(context.Background(), name)
 	if err != nil {
-		return err
+		if resp.StatusCode == 404 {
+			return fmt.Errorf("domain not found: %s", err)
+		}
+		return fmt.Errorf("Error retrieving domain: %s", err)
 	}
 
 	d.SetId(domain.Name)
@@ -79,20 +54,4 @@ func dataSourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("zone_file", domain.ZoneFile)
 
 	return nil
-}
-
-func findDomainByName(domains []godo.Domain, name string) (*godo.Domain, error) {
-	results := make([]godo.Domain, 0)
-	for _, v := range domains {
-		if v.Name == name {
-			results = append(results, v)
-		}
-	}
-	if len(results) == 1 {
-		return &results[0], nil
-	}
-	if len(results) == 0 {
-		return nil, fmt.Errorf("no domains found with name %s", name)
-	}
-	return nil, fmt.Errorf("too many domains found (found %d, expected 1)", len(results))
 }
