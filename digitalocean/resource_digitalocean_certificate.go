@@ -153,7 +153,7 @@ func resourceDigitalOceanCertificateCreate(d *schema.ResourceData, meta interfac
 
 	d.SetId(cert.ID)
 
-	log.Printf("[INFO] Waiting for certificate (%s) to have state 'pending", cert.ID)
+	log.Printf("[INFO] Waiting for certificate (%s) to have state 'verified'", cert.ID)
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"pending"},
 		Target:     []string{"verified"},
