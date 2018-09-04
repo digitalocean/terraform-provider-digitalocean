@@ -25,11 +25,6 @@ func TestAccDigitalOceanFirewall_AllowOnlyInbound(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanFirewallExists("digitalocean_firewall.foobar", &firewall),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.port_range", "22"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.protocol", "tcp"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.0", "0.0.0.0/0"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.1", "::/0"),
 				),
 			},
 		},
@@ -50,16 +45,6 @@ func TestAccDigitalOceanFirewall_AllowMultipleInbound(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanFirewallExists("digitalocean_firewall.foobar", &firewall),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.port_range", "22"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.protocol", "tcp"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.0", "0.0.0.0/0"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.1", "::/0"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.port_range", "80"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.protocol", "tcp"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_addresses.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_addresses.0", "1.2.3.0/24"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_addresses.1", "2002::/16"),
 				),
 			},
 		},
@@ -80,11 +65,6 @@ func TestAccDigitalOceanFirewall_AllowOnlyOutbound(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanFirewallExists("digitalocean_firewall.foobar", &firewall),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.port_range", "22"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.protocol", "tcp"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.0", "0.0.0.0/0"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.1", "::/0"),
 				),
 			},
 		},
@@ -105,16 +85,6 @@ func TestAccDigitalOceanFirewall_AllowMultipleOutbound(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanFirewallExists("digitalocean_firewall.foobar", &firewall),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.port_range", "22"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.protocol", "tcp"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.0", "192.168.1.0/24"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.1", "2002:1001::/48"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.port_range", "53"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.protocol", "udp"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.destination_addresses.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.destination_addresses.0", "1.2.3.0/24"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.destination_addresses.1", "2002::/16"),
 				),
 			},
 		},
@@ -136,31 +106,7 @@ func TestAccDigitalOceanFirewall_MultipleInboundAndOutbound(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanFirewallExists("digitalocean_firewall.foobar", &firewall),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.port_range", "443"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.protocol", "tcp"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_addresses.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_addresses.0", "192.168.1.0/24"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_addresses.1", "2002:1001:1:2::/64"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_tags.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.1.source_tags.0", tagName),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.port_range", "22"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.protocol", "tcp"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.0", "0.0.0.0/0"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.1", "::/0"),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.port_range", "443"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.protocol", "tcp"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.0", "192.168.1.0/24"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.1", "2002:1001:1:2::/64"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_tags.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_tags.0", tagName),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.port_range", "53"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.protocol", "udp"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.destination_addresses.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.destination_addresses.0", "0.0.0.0/0"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.1.destination_addresses.1", "::/0"),
 				),
 			},
 		},
@@ -181,15 +127,28 @@ func TestAccDigitalOceanFirewall_fullPortRange(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanFirewallExists("digitalocean_firewall.foobar", &firewall),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.port_range", "0"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.protocol", "tcp"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.0", "192.168.1.1/32"),
 					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.port_range", "0"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.protocol", "tcp"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.0.destination_addresses.0", "192.168.1.2/32"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanFirewall_icmp(t *testing.T) {
+	rName := acctest.RandString(10)
+	var firewall godo.Firewall
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanFirewallConfig_icmp(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanFirewallExists("digitalocean_firewall.foobar", &firewall),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.#", "1"),
 				),
 			},
 		},
@@ -331,6 +290,23 @@ resource "digitalocean_firewall" "foobar" {
 	outbound_rule {
 		protocol              = "tcp"
 		port_range            = "all"
+		destination_addresses = ["192.168.1.2/32"]
+	}
+}
+`, rName)
+}
+
+func testAccDigitalOceanFirewallConfig_icmp(rName string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_firewall" "foobar" {
+	name          = "%s"
+	inbound_rule {
+		protocol         = "icmp"
+		source_addresses = ["192.168.1.1/32"]
+	}
+	outbound_rule {
+		protocol              = "icmp"
+		port_range            = "1-65535"
 		destination_addresses = ["192.168.1.2/32"]
 	}
 }
