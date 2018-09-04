@@ -24,6 +24,8 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDropletImport,
 		},
+		MigrateState:  resourceDigitalOceanDropletMigrateState,
+		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
 			"image": {
@@ -357,8 +359,6 @@ func resourceDigitalOceanDropletImport(d *schema.ResourceData, meta interface{})
 	// This is a non API attribute. So set to the default setting in the schema.
 	d.Set("resize_disk", true)
 	d.Set("backups", false)
-	d.Set("ipv6", false)
-	d.Set("private_networking", false)
 	d.Set("monitoring", false)
 
 	err := resourceDigitalOceanDropletRead(d, meta)
