@@ -89,18 +89,18 @@ func testAccCheckDataSourceDigitalOceanRecordExists(n string, record *godo.Domai
 
 const testAccCheckDataSourceDigitalOceanRecordConfig_basic = `
 resource "digitalocean_domain" "foo" {
-	name       = "%s"
-	ip_address = "192.168.0.10"
+  name       = "%s"
+  ip_address = "192.168.0.10"
 }
 
 resource "digitalocean_record" "foo" {
-	domain = "${digitalocean_domain.foo.name}"
-	type   = "%s"
-	name   = "%s"
-	value  = "192.168.0.10"
+  domain = "${digitalocean_domain.foo.name}"
+  type   = "%s"
+  name   = "%s"
+  value  = "192.168.0.10"
 }
 
 data "digitalocean_record" "foobar" {
-	name      = "${digitalocean_record.foo.name}"
-	domain    = "${digitalocean_domain.foo.name}"
+  name      = "${digitalocean_record.foo.name}"
+  domain    = "${digitalocean_domain.foo.name}"
 }`

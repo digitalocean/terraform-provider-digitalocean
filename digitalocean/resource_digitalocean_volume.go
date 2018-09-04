@@ -139,14 +139,9 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("size", int(volume.SizeGigaBytes))
 
-	dids := make([]interface{}, 0, len(volume.DropletIDs))
-	for _, did := range volume.DropletIDs {
-		dids = append(dids, did)
+	if err = d.Set("droplet_ids", flattenDigitalOceanVolumeDropletIds(volume.DropletIDs)); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting droplet_ids: %#v", err)
 	}
-	d.Set("droplet_ids", schema.NewSet(
-		func(dropletID interface{}) int { return dropletID.(int) },
-		dids,
-	))
 
 	return nil
 }
@@ -182,14 +177,18 @@ func resourceDigitalOceanVolumeImport(rs *schema.ResourceData, v interface{}) ([
 		rs.Set("filesystem_type", v)
 	}
 
-	dids := make([]interface{}, 0, len(volume.DropletIDs))
-	for _, did := range volume.DropletIDs {
-		dids = append(dids, did)
+	if err = rs.Set("droplet_ids", flattenDigitalOceanVolumeDropletIds(volume.DropletIDs)); err != nil {
+		return nil, fmt.Errorf("[DEBUG] Error setting droplet_ids: %#v", err)
 	}
-	rs.Set("droplet_ids", schema.NewSet(
-		func(dropletID interface{}) int { return dropletID.(int) },
-		dids,
-	))
 
 	return []*schema.ResourceData{rs}, nil
+}
+
+func flattenDigitalOceanVolumeDropletIds(droplets []int) *schema.Set {
+	flattenedDroplets := schema.NewSet(schema.HashInt, []interface{}{})
+	for _, v := range droplets {
+		flattenedDroplets.Add(v)
+	}
+
+	return flattenedDroplets
 }

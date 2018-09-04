@@ -54,12 +54,11 @@ jira.example.com. 3600 IN A 207.189.228.15
 
 The following arguments are supported:
 
-* `name` - The name of the domain.
+* `name` - (Required) The name of the domain.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `name`: See Argument Reference above.
 * `ttl`: The TTL of the domain.
 * `zone_file`: The zone file of the domain.

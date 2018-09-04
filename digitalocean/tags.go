@@ -24,6 +24,14 @@ func tagsSchema() *schema.Schema {
 	}
 }
 
+func tagsDataSourceSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Computed: true,
+		Elem:     &schema.Schema{Type: schema.TypeString},
+	}
+}
+
 func validateTag(value interface{}, key string) ([]string, []error) {
 	if !tagNameRe.MatchString(value.(string)) {
 		return nil, []error{fmt.Errorf("tags may contain lowercase letters, numbers, colons, dashes, and underscores; there is a limit of 255 characters per tag")}

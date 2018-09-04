@@ -72,6 +72,11 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				Computed: true,
 			},
 
+			"memory": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"price_hourly": {
 				Type:     schema.TypeFloat,
 				Computed: true,
@@ -94,7 +99,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"locked": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
@@ -171,7 +176,6 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			"volume_ids": {
 				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
-				Set:      schema.HashString,
 				Optional: true,
 				Computed: true,
 			},
@@ -314,15 +318,12 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("price_monthly", droplet.Size.PriceMonthly)
 	d.Set("disk", droplet.Disk)
 	d.Set("vcpus", droplet.Vcpus)
+	d.Set("memory", droplet.Memory)
 	d.Set("status", droplet.Status)
-	d.Set("locked", strconv.FormatBool(droplet.Locked))
+	d.Set("locked", droplet.Locked)
 
-	if len(droplet.VolumeIDs) > 0 {
-		vlms := schema.NewSet(schema.HashString, []interface{}{})
-		for _, vid := range droplet.VolumeIDs {
-			vlms.Add(vid)
-		}
-		d.Set("volume_ids", vlms)
+	if err := d.Set("volume_ids", flattenDigitalOceanDropletVolumeIds(droplet.VolumeIDs)); err != nil {
+		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
 	}
 
 	if publicIPv6 := findIPv6AddrByType(droplet, "public"); publicIPv6 != "" {
@@ -649,13 +650,13 @@ func newDropletStateRefreshFunc(
 		// If the droplet is locked, continue waiting. We can
 		// only perform actions on unlocked droplets, so it's
 		// pointless to look at that status
-		if d.Get("locked").(string) == "true" {
+		if d.Get("locked").(bool) {
 			log.Println("[DEBUG] Droplet is locked, skipping status check and retrying")
 			return nil, "", nil
 		}
 
 		// See if we can access our attribute
-		if attr, ok := d.GetOk(attribute); ok {
+		if attr, ok := d.GetOkExists(attribute); ok {
 			// Retrieve the droplet properties
 			droplet, _, err := client.Droplets.Get(context.Background(), id)
 			if err != nil {
@@ -731,6 +732,15 @@ func detachVolumeIDOnDroplet(d *schema.ResourceData, volumeID string, meta inter
 	return nil
 }
 
+func containsDigitalOceanDropletFeature(features []string, name string) bool {
+	for _, v := range features {
+		if v == name {
+			return true
+		}
+	}
+	return false
+}
+
 func expandSshKeys(sshKeys []interface{}) ([]godo.DropletCreateSSHKey, error) {
 	expandedSshKeys := make([]godo.DropletCreateSSHKey, len(sshKeys))
 	for i, s := range sshKeys {
@@ -747,4 +757,13 @@ func expandSshKeys(sshKeys []interface{}) ([]godo.DropletCreateSSHKey, error) {
 	}
 
 	return expandedSshKeys, nil
+}
+
+func flattenDigitalOceanDropletVolumeIds(volumeids []string) *schema.Set {
+	flattenedVolumes := schema.NewSet(schema.HashString, []interface{}{})
+	for _, v := range volumeids {
+		flattenedVolumes.Add(v)
+	}
+
+	return flattenedVolumes
 }

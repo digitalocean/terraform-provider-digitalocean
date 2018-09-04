@@ -339,10 +339,6 @@ func TestAccDigitalOceanDroplet_UpdateTags(t *testing.T) {
 						"digitalocean_droplet.foobar",
 						"tags.#",
 						"1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar",
-						"tags.0",
-						"barbaz"),
 				),
 			},
 		},
