@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -91,6 +92,14 @@ func waitForAction(client *godo.Client, action *godo.Action) error {
 		NotFoundChecks: 60,
 	}).WaitForState()
 	return err
+}
+
+func isDigitalOceanError(err error, code int, message string) bool {
+	if err, ok := err.(*godo.ErrorResponse); ok {
+		return err.Response.StatusCode == code &&
+			strings.Contains(strings.ToLower(err.Message), strings.ToLower(message))
+	}
+	return false
 }
 
 const logReqMsg = `DigitalOcean API Request Details:

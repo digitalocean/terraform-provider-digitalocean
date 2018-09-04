@@ -52,6 +52,8 @@ The following arguments are supported:
 * `user_data` (Optional) - A string of the desired User Data for the Droplet.
 * `volume_ids` (Optional) - A list of the IDs of each [block storage volume](/docs/providers/do/r/volume.html) to be attached to the Droplet.
 
+~> **NOTE:** If you use `volume_ids` on a droplet, Terraform will assume management over the full set volumes for the instance, and treat additional volumes as a drift. For this reason, `volume_ids` must not be mixed with external `digitalocean_volume_attachment` resources for a given instance.
+
 ## Attributes Reference
 
 The following attributes are exported:

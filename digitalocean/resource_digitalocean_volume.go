@@ -47,9 +47,10 @@ func resourceDigitalOceanVolume() *schema.Resource {
 			},
 
 			"description": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true, // Update-ability Coming Soon ™
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true, // Update-ability Coming Soon ™
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"filesystem_type": {
@@ -172,9 +173,14 @@ func resourceDigitalOceanVolumeImport(rs *schema.ResourceData, v interface{}) ([
 
 	rs.Set("name", volume.Name)
 	rs.Set("region", volume.Region.Slug)
-	rs.Set("description", volume.Description)
 	rs.Set("size", int(volume.SizeGigaBytes))
-	rs.Set("filesystem_type", volume.FilesystemType)
+
+	if v := volume.Description; v != "" {
+		rs.Set("description", v)
+	}
+	if v := volume.FilesystemType; v != "" {
+		rs.Set("filesystem_type", v)
+	}
 
 	dids := make([]interface{}, 0, len(volume.DropletIDs))
 	for _, did := range volume.DropletIDs {
