@@ -151,7 +151,6 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 					Type:         schema.TypeString,
 					ValidateFunc: validation.NoZeroValues,
 				},
-				Set: schema.HashString,
 			},
 
 			"user_data": {
