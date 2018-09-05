@@ -50,6 +50,11 @@ func resourceDigitalOceanRecord() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					domain := d.Get("domain").(string) + "."
+
+					return old+"."+domain == new
+				},
 			},
 
 			"port": {
@@ -317,9 +322,11 @@ func expandDigitalOceanRecordResource(d *schema.ResourceData) (*godo.DomainRecor
 }
 
 func constructFqdn(name, domain string) string {
-	rn := strings.ToLower(strings.TrimSuffix(name, "."))
-	domain = strings.TrimSuffix(domain, ".")
-	if !strings.HasSuffix(rn, domain) {
+	rn := strings.ToLower(name)
+	domainSuffix := domain + "."
+	if strings.HasSuffix(rn, domainSuffix) {
+		rn = strings.TrimSuffix(rn, ".")
+	} else {
 		rn = strings.Join([]string{name, domain}, ".")
 	}
 	return rn

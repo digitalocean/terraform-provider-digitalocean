@@ -21,8 +21,8 @@ func TestDigitalOceanRecordConstructFqdn(t *testing.T) {
 		{"www", "www.nonexample.com"},
 		{"dev.www", "dev.www.nonexample.com"},
 		{"*", "*.nonexample.com"},
-		{"nonexample.com", "nonexample.com"},
-		{"test.nonexample.com", "test.nonexample.com"},
+		{"nonexample.com", "nonexample.com.nonexample.com"},
+		{"test.nonexample.com", "test.nonexample.com.nonexample.com"},
 		{"test.nonexample.com.", "test.nonexample.com"},
 	}
 
@@ -46,6 +46,34 @@ func TestAccDigitalOceanRecord_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanRecordConfig_basic, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foobar", &record),
+					testAccCheckDigitalOceanRecordAttributes(&record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "name", "terraform"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "value", "192.168.0.10"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "fqdn", strings.Join([]string{"terraform", domain}, ".")),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanRecord_BasicFullName(t *testing.T) {
+	var record godo.DomainRecord
+	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanRecordConfig_basic_full_name, domain),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanRecordExists("digitalocean_record.foobar", &record),
 					testAccCheckDigitalOceanRecordAttributes(&record),
@@ -599,6 +627,20 @@ resource "digitalocean_record" "foobar" {
   domain = "${digitalocean_domain.foobar.name}"
 
   name  = "terraform"
+  value = "192.168.0.10"
+  type  = "A"
+}`
+
+const testAccCheckDigitalOceanRecordConfig_basic_full_name = `
+resource "digitalocean_domain" "foobar" {
+  name       = "%s"
+  ip_address = "192.168.0.10"
+}
+
+resource "digitalocean_record" "foobar" {
+  domain = "${digitalocean_domain.foobar.name}"
+
+  name  = "terraform.${digitalocean_domain.foobar.name}."
   value = "192.168.0.10"
   type  = "A"
 }`
