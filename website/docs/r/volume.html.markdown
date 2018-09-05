@@ -51,7 +51,7 @@ The following attributes are exported:
 * `id` - The unique identifier for the block storage volume.
 * `filesystem_type` - Filesystem type (`xfs` or `ext4`) for the block storage volume.
 * `filesystem_label` - Filesystem label for the block storage volume.
-* `droplet_ids` - A list of associated droplet ids
+* `droplet_ids` - A list of associated droplet ids.
 
 
 ## Import
@@ -59,5 +59,5 @@ The following attributes are exported:
 Volumes can be imported using the `volume id`, e.g.
 
 ```
-terraform import digitalocean_volume.volumea 506f78a4-e098-11e5-ad9f-000f53306ae1
+terraform import digitalocean_volume.volume 506f78a4-e098-11e5-ad9f-000f53306ae1
 ```
