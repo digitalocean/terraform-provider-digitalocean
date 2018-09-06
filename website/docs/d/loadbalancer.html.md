@@ -20,7 +20,7 @@ An error is triggered if the provided load balancer name does not exist.
 Get the load balancer:
 
 ```hcl
-data "digitalocean_droplet" "example" {
+data "digitalocean_loadbalancer" "example" {
   name = "app"
 }
 ```
