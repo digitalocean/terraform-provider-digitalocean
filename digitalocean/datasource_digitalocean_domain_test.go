@@ -75,10 +75,10 @@ func testAccCheckDataSourceDigitalOceanDomainExists(n string, domain *godo.Domai
 
 const testAccCheckDataSourceDigitalOceanDomainConfig_basic = `
 resource "digitalocean_domain" "foo" {
-	name       = "%s"
-	ip_address = "192.168.0.10"
+  name       = "%s"
+  ip_address = "192.168.0.10"
 }
 
 data "digitalocean_domain" "foobar" {
-	name       = "${digitalocean_domain.foo.name}"
+  name       = "${digitalocean_domain.foo.name}"
 }`

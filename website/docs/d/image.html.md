@@ -37,22 +37,32 @@ resource "digitalocean_droplet" "example1" {
 }
 ```
 
+Get the data about an official image:
+
+```hcl
+data "digitalocean_image" "example2" {
+  slug = "ubuntu-18-04-x64"
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - The name of the image.
+* `name` - (Optional) The name of the private image.
+* `slug` - (Optional) The slug of the official image.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `name` - See Argument Reference above.
+* `id`: The ID of the image.
 * `image` - The id of the image.
+* `distribution` - The name of the distribution of the OS of the image.
 * `min_disk_size`: The minimum 'disk' required for the image.
 * `private` - Is image a public image or not. Public images represents
   Linux distributions or Application, while non-public images represent
   snapshots and backups and are only available within your account.
 * `regions`: The regions that the image is available in.
-* `size_gigabytes`: The size of the image in gigabytes.
-* `type`: Type of the image. Can be "snapshot" or "backup".
+* `type`: Type of the image.
+

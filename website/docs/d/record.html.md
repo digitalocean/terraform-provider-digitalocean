@@ -50,20 +50,19 @@ record_type = A
 
 The following arguments are supported:
 
-* `name` - The name of the record.
-* `domain` - The domain name of the record.
+* `name` - (Required) The name of the record.
+* `domain` - (Required) The domain name of the record.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-* `name`: See Argument Reference above.
-* `type`:	The type of the DNS record. For example: A, CNAME, TXT, ...
-* `id`:	The host name, alias, or service being defined by the record.
+* `id`: The ID of the record.
+* `type`:	The type of the DNS record.
 * `data`:	Variable data depending on record type. For example, the "data" value for an A record would be the IPv4 address to which the domain will be mapped. For a CAA record, it would contain the domain name of the CA being granted permission to issue certificates.
 * `priority`:	The priority for SRV and MX records.
 * `port`:	The port for SRV records.
 * `ttl`: This value is the time to live for the record, in seconds. This defines the time frame that clients can cache queried information before a refresh should be requested.
 * `weight`:	The weight for SRV records.
 * `flags`: An unsigned integer between 0-255 used for CAA records.
-* `tag`: The parameter tag for CAA records. Valid values are "issue", "wildissue", or "iodef"
+* `tag`: The parameter tag for CAA records.

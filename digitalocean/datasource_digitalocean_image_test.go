@@ -62,6 +62,31 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanImage_PublicSlug(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanImageConfig_slug("ubuntu-18-04-x64"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "slug", "ubuntu-18-04-x64"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "min_disk_size", "20"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "private", "false"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "type", "snapshot"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "distribution", "Ubuntu"),
+				),
+			},
+		},
+	})
+}
+
 func takeSnapshotsOfDroplet(rInt int, droplet *godo.Droplet, snapshotsId *[]int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*godo.Client)
@@ -120,4 +145,12 @@ data "digitalocean_image" "foobar" {
   name               = "snap-%d-nonexisting"
 }
 `, rInt)
+}
+
+func testAccCheckDigitalOceanImageConfig_slug(slug string) string {
+	return fmt.Sprintf(`
+data "digitalocean_image" "foobar" {
+  slug               = "%s"
+}
+`, slug)
 }

@@ -203,6 +203,10 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
@@ -329,6 +333,7 @@ func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface
 
 	d.Set("name", loadbalancer.Name)
 	d.Set("ip", loadbalancer.IP)
+	d.Set("status", loadbalancer.Status)
 	d.Set("algorithm", loadbalancer.Algorithm)
 	d.Set("region", loadbalancer.Region.Slug)
 	d.Set("redirect_http_to_https", loadbalancer.RedirectHttpToHttps)

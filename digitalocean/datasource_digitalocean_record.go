@@ -7,6 +7,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func dataSourceDigitalOceanRecord() *schema.Resource {
@@ -15,25 +16,22 @@ func dataSourceDigitalOceanRecord() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 
 			"domain": &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "domain of the name record",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "domain of the name record",
+				ValidateFunc: validation.NoZeroValues,
 			},
 			"name": &schema.Schema{
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "name of the record",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "name of the record",
+				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
 			"type": &schema.Schema{
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "type of the name record",
-			},
-			"id": &schema.Schema{
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "id of the name record",
 			},
 			"data": &schema.Schema{
 				Type:        schema.TypeString,
@@ -77,16 +75,19 @@ func dataSourceDigitalOceanRecord() *schema.Resource {
 func dataSourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 	domain := d.Get("domain").(string)
+	name := d.Get("name").(string)
 
 	opts := &godo.ListOptions{}
 
-	records, _, err := client.Domains.Records(context.Background(), domain, opts)
+	records, resp, err := client.Domains.Records(context.Background(), domain, opts)
 	if err != nil {
-		d.SetId("")
-		return err
+		if resp.StatusCode == 404 {
+			return fmt.Errorf("domain not found: %s", err)
+		}
+		return fmt.Errorf("Error retrieving domain: %s", err)
 	}
-	record, err := findRecordByName(records, d.Get("name").(string))
 
+	record, err := findRecordByName(records, name)
 	if err != nil {
 		return err
 	}
