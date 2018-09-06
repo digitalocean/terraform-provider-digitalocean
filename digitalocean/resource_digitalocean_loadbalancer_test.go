@@ -199,6 +199,100 @@ func TestAccDigitalOceanLoadbalancer_dropletTag(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_minimal(rInt),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.0.entry_port", "80"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.0.entry_protocol", "http"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.0.target_port", "80"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.0.target_protocol", "http"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "healthcheck.0.port", "80"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "http"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "sticky_sessions.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "sticky_sessions.0.type", "none"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "droplet_ids.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_stickySessions(rInt),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.0.entry_port", "80"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.0.entry_protocol", "http"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.0.target_port", "80"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.0.target_protocol", "http"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "healthcheck.0.port", "80"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "http"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "sticky_sessions.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "sticky_sessions.0.type", "cookies"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "sticky_sessions.0.cookie_name", "sessioncookie"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "sticky_sessions.0.cookie_ttl_seconds", "1800"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "droplet_ids.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanLoadbalancerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*godo.Client)
 
@@ -349,5 +443,61 @@ resource "digitalocean_loadbalancer" "foobar" {
   droplet_tag = "${digitalocean_tag.barbaz.name}"
 
   depends_on = ["digitalocean_droplet.foobar"]
+}`, rInt, rInt)
+}
+
+func testAccCheckDigitalOceanLoadbalancerConfig_minimal(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name      = "foo-%d"
+  size      = "512mb"
+  image     = "centos-7-x64"
+  region    = "nyc3"
+}
+
+resource "digitalocean_loadbalancer" "foobar" {
+  name = "loadbalancer-%d"
+  region = "nyc3"
+
+  forwarding_rule {
+    entry_port = 80
+    entry_protocol = "http"
+
+    target_port = 80
+    target_protocol = "http"
+  }
+
+  droplet_ids = ["${digitalocean_droplet.foobar.id}"]
+}`, rInt, rInt)
+}
+
+func testAccCheckDigitalOceanLoadbalancerConfig_stickySessions(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name      = "foo-%d"
+  size      = "512mb"
+  image     = "centos-7-x64"
+  region    = "nyc3"
+}
+
+resource "digitalocean_loadbalancer" "foobar" {
+  name = "loadbalancer-%d"
+  region = "nyc3"
+
+  forwarding_rule {
+    entry_port = 80
+    entry_protocol = "http"
+
+    target_port = 80
+    target_protocol = "http"
+  }
+
+  sticky_sessions {
+	type = "cookies"
+	cookie_name = "sessioncookie"
+	cookie_ttl_seconds = 1800
+  }
+
+  droplet_ids = ["${digitalocean_droplet.foobar.id}"]
 }`, rInt, rInt)
 }
