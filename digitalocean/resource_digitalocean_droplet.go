@@ -321,21 +321,10 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("status", droplet.Status)
 	d.Set("locked", droplet.Locked)
 
-	if publicIPv4 := findIPv4AddrByType(droplet, "public"); publicIPv4 != "" {
-		d.Set("ipv4_address", publicIPv4)
-	}
-
-	if privateIPv4 := findIPv4AddrByType(droplet, "private"); privateIPv4 != "" {
-		d.Set("ipv4_address_private", privateIPv4)
-	}
-
-	if publicIPv6 := findIPv6AddrByType(droplet, "public"); publicIPv6 != "" {
-		d.Set("ipv6_address", strings.ToLower(publicIPv6))
-	}
-
-	if privateIPv6 := findIPv6AddrByType(droplet, "private"); privateIPv6 != "" {
-		d.Set("ipv6_address_private", strings.ToLower(privateIPv6))
-	}
+	d.Set("ipv4_address", findIPv4AddrByType(droplet, "public"))
+	d.Set("ipv4_address_private", findIPv4AddrByType(droplet, "private"))
+	d.Set("ipv6_address", findIPv6AddrByType(droplet, "public"))
+	d.Set("ipv6_address_private", findIPv6AddrByType(droplet, "private"))
 
 	if features := droplet.Features; features != nil {
 		d.Set("backups", containsDigitalOceanDropletFeature(features, "backups"))
@@ -380,7 +369,7 @@ func findIPv6AddrByType(d *godo.Droplet, addrType string) string {
 	for _, addr := range d.Networks.V6 {
 		if addr.Type == addrType {
 			if ip := net.ParseIP(addr.IPAddress); ip != nil {
-				return addr.IPAddress
+				return strings.ToLower(addr.IPAddress)
 			}
 		}
 	}
