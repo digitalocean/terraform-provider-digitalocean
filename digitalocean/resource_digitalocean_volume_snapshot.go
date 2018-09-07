@@ -10,11 +10,11 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
-func resourceDigitalOceanSnapshot() *schema.Resource {
+func resourceDigitalOceanVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanSnapshotCreate,
-		Read:   resourceDigitalOceanSnapshotRead,
-		Delete: resourceDigitalOceanSnapshotDelete,
+		Create: resourceDigitalOceanVolumeSnapshotCreate,
+		Read:   resourceDigitalOceanVolumeSnapshotRead,
+		Delete: resourceDigitalOceanVolumeSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -58,7 +58,7 @@ func resourceDigitalOceanSnapshot() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
 	opts := &godo.SnapshotCreateRequest{
@@ -66,19 +66,19 @@ func resourceDigitalOceanSnapshotCreate(d *schema.ResourceData, meta interface{}
 		VolumeID: d.Get("volume_id").(string),
 	}
 
-	log.Printf("[DEBUG] Snapshot create configuration: %#v", opts)
+	log.Printf("[DEBUG] Volume Snapshot create configuration: %#v", opts)
 	snapshot, _, err := client.Storage.CreateSnapshot(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error creating Snapshot: %s", err)
+		return fmt.Errorf("Error creating Volume Snapshot: %s", err)
 	}
 
 	d.SetId(snapshot.ID)
-	log.Printf("[INFO] Snapshot name: %s", snapshot.Name)
+	log.Printf("[INFO] Volume Snapshot name: %s", snapshot.Name)
 
-	return resourceDigitalOceanSnapshotRead(d, meta)
+	return resourceDigitalOceanVolumeSnapshotRead(d, meta)
 }
 
-func resourceDigitalOceanSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
 	snapshot, resp, err := client.Snapshots.Get(context.Background(), d.Id())
@@ -90,7 +90,7 @@ func resourceDigitalOceanSnapshotRead(d *schema.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving snapshot: %s", err)
+		return fmt.Errorf("Error retrieving volume snapshot: %s", err)
 	}
 
 	d.Set("name", snapshot.Name)
@@ -103,7 +103,7 @@ func resourceDigitalOceanSnapshotRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceDigitalOceanSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
 	log.Printf("[INFO] Deleting snaphot: %s", d.Id())

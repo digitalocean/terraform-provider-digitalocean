@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
-func dataSourceDigitalOceanSnapshot() *schema.Resource {
+func dataSourceDigitalOceanVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDoSnapshotRead,
+		Read: dataSourceDigitalOceanVolumeSnapshotRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -65,7 +65,7 @@ func dataSourceDigitalOceanSnapshot() *schema.Resource {
 }
 
 // dataSourceDoSnapshotRead performs the Snapshot lookup.
-func dataSourceDoSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
 	name, hasName := d.GetOk("name")
@@ -87,7 +87,7 @@ func dataSourceDoSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 		snapshots, resp, err := client.Snapshots.ListVolume(context.Background(), opts)
 
 		if err != nil {
-			return fmt.Errorf("Error retrieving snapshots: %s", err)
+			return fmt.Errorf("Error retrieving volume snapshots: %s", err)
 		}
 
 		for _, s := range snapshots {
@@ -100,7 +100,7 @@ func dataSourceDoSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return fmt.Errorf("Error retrieving snapshots: %s", err)
+			return fmt.Errorf("Error retrieving volume snapshots: %s", err)
 		}
 
 		opts.Page = page + 1
@@ -119,20 +119,20 @@ func dataSourceDoSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	// Get the queried snapshot or fail if it can't be determined
 	var snapshot *godo.Snapshot
 	if len(snapshotList) == 0 {
-		return fmt.Errorf("no snapshot found with name %s", name)
+		return fmt.Errorf("no volume snapshot found with name %s", name)
 	}
 	if len(snapshotList) > 1 {
 		recent := d.Get("most_recent").(bool)
 		if recent {
 			snapshot = findMostRecentSnapshot(snapshotList)
 		} else {
-			return fmt.Errorf("too many snapshots found with name %s (found %d, expected 1)", name, len(snapshotList))
+			return fmt.Errorf("too many volume snapshots found with name %s (found %d, expected 1)", name, len(snapshotList))
 		}
 	} else {
 		snapshot = &snapshotList[0]
 	}
 
-	log.Printf("[DEBUG] do_snapshot - Single Snapshot found: %s", snapshot.ID)
+	log.Printf("[DEBUG] do_snapshot - Single Volume Snapshot found: %s", snapshot.ID)
 
 	d.SetId(snapshot.ID)
 	d.Set("name", snapshot.Name)

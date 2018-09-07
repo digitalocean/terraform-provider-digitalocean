@@ -9,17 +9,17 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccDigitalOceanSnapshot_importBasic(t *testing.T) {
-	resourceName := "digitalocean_snapshot.foobar"
+func TestAccDigitalOceanVolumeSnapshot_importBasic(t *testing.T) {
+	resourceName := "digitalocean_volume_snapshot.foobar"
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSnapshotDestroy,
+		CheckDestroy: testAccCheckDigitalOceanVolumeSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanSnapshotConfig_basic, rInt, rInt),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeSnapshotConfig_basic, rInt, rInt),
 			},
 
 			{

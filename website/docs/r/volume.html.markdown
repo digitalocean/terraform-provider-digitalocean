@@ -36,15 +36,15 @@ resource "digitalocean_volume_attachment" "foobar" {
 You can also create a volume from an existing snapshot.
 
 ```hcl
-data "digitalocean_snapshot" "foobar" {
+data "digitalocean_volume_snapshot" "foobar" {
   name = "baz"
 }
 
 resource "digitalocean_volume" "foobar" {
   region      = "lon1"
   name        = "foo"
-  size        = "${data.digitalocean_snapshot.foobar.min_disk_size}"
-  snapshot_id = "${data.digitalocean_snapshot.foobar.id}"
+  size        = "${data.digitalocean_volume_snapshot.foobar.min_disk_size}"
+  snapshot_id = "${data.digitalocean_volume_snapshot.foobar.id}"
 }
 ```
 
