@@ -27,7 +27,7 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
-					takeSnapshotsOfDroplet(rInt, &droplet, false, &snapshotsId),
+					takeSnapshotsOfDroplet(rInt, &droplet, &snapshotsId),
 				),
 			},
 			{
@@ -87,21 +87,13 @@ func TestAccDigitalOceanImage_PublicSlug(t *testing.T) {
 	})
 }
 
-func takeSnapshotsOfDroplet(rInt int, droplet *godo.Droplet, increment bool, snapshotsId *[]int) resource.TestCheckFunc {
+func takeSnapshotsOfDroplet(rInt int, droplet *godo.Droplet, snapshotsId *[]int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*godo.Client)
 		for i := 0; i < 3; i++ {
-			switch increment {
-			case true:
-				err := takeSnapshotOfDroplet(rInt, i, droplet)
-				if err != nil {
-					return err
-				}
-			case false:
-				err := takeSnapshotOfDroplet(rInt, i%2, droplet)
-				if err != nil {
-					return err
-				}
+			err := takeSnapshotOfDroplet(rInt, i%2, droplet)
+			if err != nil {
+				return err
 			}
 		}
 		retrieveDroplet, _, err := client.Droplets.Get(context.Background(), (*droplet).ID)
@@ -125,11 +117,13 @@ func takeSnapshotOfDroplet(rInt, sInt int, droplet *godo.Droplet) error {
 
 func deleteDropletSnapshots(snapshotsId *[]int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		log.Printf("XXX Deleting Droplet snapshots")
+		log.Printf("Deleting Droplet snapshots")
+
 		client := testAccProvider.Meta().(*godo.Client)
+
 		snapshots := *snapshotsId
 		for _, value := range snapshots {
-			log.Printf("XXX Deleting %d", value)
+			log.Printf("Deleting %d", value)
 			_, err := client.Images.Delete(context.Background(), value)
 			if err != nil {
 				return err

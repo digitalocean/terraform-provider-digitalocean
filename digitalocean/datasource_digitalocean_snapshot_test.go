@@ -3,8 +3,6 @@ package digitalocean
 import (
 	"context"
 	"fmt"
-	"log"
-	"regexp"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -13,152 +11,166 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccDigitalOceanSnapshotDataSource_droplet(t *testing.T) {
-	var (
-		droplet             godo.Droplet
-		dropletSnapshotsIds []int
-	)
-
+func TestAccDataSourceDigitalOceanSnapshot_basic(t *testing.T) {
+	var snapshot godo.Snapshot
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanSnapshot_basic, rInt, rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
-					takeSnapshotsOfDroplet(rInt, &droplet, true, &dropletSnapshotsIds),
-				),
-			},
-			{
-				Config: testAccCheckDigitalOceanDropletSnapshotDataSourceConfig,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.digitalocean_snapshot.droplet_test_snap", "name", fmt.Sprintf("snap-%d-2", rInt)),
-					resource.TestCheckResourceAttr("data.digitalocean_snapshot.droplet_test_snap", "min_disk_size", "20"),
-					resource.TestCheckResourceAttr("data.digitalocean_snapshot.droplet_test_snap", "regions.0", "nyc3"),
-				),
-			},
-			{
-				Config:      testAccCheckDigitalOceanDropletSnapshotDataSourceConfig_fail,
-				ExpectError: regexp.MustCompile(`.*Your query returned more than one result.*`),
-			},
-			{
-				Config: " ",
-				Check: resource.ComposeTestCheckFunc(
-					deleteDropletSnapshots(&dropletSnapshotsIds),
+					testAccCheckDataSourceDigitalOceanSnapshotExists("data.digitalocean_snapshot.foobar", &snapshot),
+					resource.TestCheckResourceAttr("data.digitalocean_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
+					resource.TestCheckResourceAttr("data.digitalocean_snapshot.foobar", "size", "0"),
+					resource.TestCheckResourceAttr("data.digitalocean_snapshot.foobar", "min_disk_size", "100"),
+					resource.TestCheckResourceAttr("data.digitalocean_snapshot.foobar", "regions.#", "1"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_snapshot.foobar", "volume_id"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDigitalOceanSnapshotDataSource_volume(t *testing.T) {
-	var volumeSnapshotsIds []string
-
+func TestAccDataSourceDigitalOceanSnapshot_regex(t *testing.T) {
+	var snapshot godo.Snapshot
 	rInt := acctest.RandInt()
-	name := fmt.Sprintf("volume-%v", rInt)
-	volume := godo.Volume{
-		Name: name,
-	}
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanVolumeDestroy,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeConfig_basic, name),
+				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanSnapshot_regex, rInt, rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
-					takeSnapshotsOfVolume(rInt, &volume, &volumeSnapshotsIds),
-				),
-			},
-			{
-				Config: testAccCheckDigitalOceanVolumeSnapshotDataSourceConfig,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.digitalocean_snapshot.volume_test_snap", "name", fmt.Sprintf("vol-snap-%d-2", rInt)),
-					resource.TestCheckResourceAttr("data.digitalocean_snapshot.volume_test_snap", "min_disk_size", "100"),
-					resource.TestCheckResourceAttr("data.digitalocean_snapshot.volume_test_snap", "regions.0", "nyc1"),
-				),
-			},
-			{
-				Config:      testAccCheckDigitalOceanVolumeSnapshotDataSourceConfig_fail,
-				ExpectError: regexp.MustCompile(`.*Your query returned more than one result.*`),
-			},
-			{
-				Config: " ",
-				Check: resource.ComposeTestCheckFunc(
-					deleteVolumeSnapshots(&volumeSnapshotsIds),
+					testAccCheckDataSourceDigitalOceanSnapshotExists("data.digitalocean_snapshot.foobar", &snapshot),
+					resource.TestCheckResourceAttr("data.digitalocean_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
+					resource.TestCheckResourceAttr("data.digitalocean_snapshot.foobar", "size", "0"),
+					resource.TestCheckResourceAttr("data.digitalocean_snapshot.foobar", "min_disk_size", "100"),
+					resource.TestCheckResourceAttr("data.digitalocean_snapshot.foobar", "regions.#", "1"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_snapshot.foobar", "volume_id"),
 				),
 			},
 		},
 	})
 }
 
-func takeSnapshotsOfVolume(rInt int, volume *godo.Volume, snapshotsId *[]string) resource.TestCheckFunc {
+func TestAccDataSourceDigitalOceanSnapshot_region(t *testing.T) {
+	var snapshot godo.Snapshot
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanSnapshot_region, rInt, rInt, rInt, rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceDigitalOceanSnapshotExists("data.digitalocean_snapshot.foobar", &snapshot),
+					resource.TestCheckResourceAttr("data.digitalocean_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
+					resource.TestCheckResourceAttr("data.digitalocean_snapshot.foobar", "size", "0"),
+					resource.TestCheckResourceAttr("data.digitalocean_snapshot.foobar", "min_disk_size", "100"),
+					resource.TestCheckResourceAttr("data.digitalocean_snapshot.foobar", "regions.#", "1"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_snapshot.foobar", "volume_id"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckDataSourceDigitalOceanSnapshotExists(n string, snapshot *godo.Snapshot) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*godo.Client)
-		for i := 0; i < 3; i++ {
-			createRequest := &godo.SnapshotCreateRequest{
-				VolumeID: (*volume).ID,
-				Name:     fmt.Sprintf("vol-snap-%d-%d", rInt, i),
-			}
-			volume, _, err := client.Storage.CreateSnapshot(context.Background(), createRequest)
-			if err != nil {
-				return err
-			}
-			*snapshotsId = append(*snapshotsId, volume.ID)
+
+		rs, ok := s.RootModule().Resources[n]
+
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
 		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No snapshot ID is set")
+		}
+
+		foundSnapshot, _, err := client.Snapshots.Get(context.Background(), rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		if foundSnapshot.ID != rs.Primary.ID {
+			return fmt.Errorf("Snapshot not found")
+		}
+
+		*snapshot = *foundSnapshot
+
 		return nil
 	}
 }
 
-func deleteVolumeSnapshots(snapshotsId *[]string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		log.Printf("XXX Deleting volume snapshots")
-		client := testAccProvider.Meta().(*godo.Client)
-		snapshots := *snapshotsId
-		for _, value := range snapshots {
-			log.Printf("XXX Deleting %v", value)
-			_, err := client.Snapshots.Delete(context.Background(), value)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	}
+const testAccCheckDataSourceDigitalOceanSnapshot_basic = `
+resource "digitalocean_volume" "foo" {
+  region      = "nyc1"
+  name        = "volume-%d"
+  size        = 100
+  description = "peace makes plenty"
 }
 
-const testAccCheckDigitalOceanDropletSnapshotDataSourceConfig = `
-data "digitalocean_snapshot" "droplet_test_snap" {
+resource "digitalocean_snapshot" "foo" {
+  name = "snapshot-%d"
+  volume_id = "${digitalocean_volume.foo.id}"
+}
+
+data "digitalocean_snapshot" "foobar" {
   most_recent = true
-  resource_type = "droplet"
-  name_regex = "^snap"
-}
-`
+  name = "${digitalocean_snapshot.foo.name}"
+}`
 
-const testAccCheckDigitalOceanDropletSnapshotDataSourceConfig_fail = `
-data "digitalocean_snapshot" "droplet_test_snap" {
-  most_recent = false
-  resource_type = "droplet"
-  name_regex = "^snap"
+const testAccCheckDataSourceDigitalOceanSnapshot_regex = `
+resource "digitalocean_volume" "foo" {
+  region      = "nyc1"
+  name        = "volume-%d"
+  size        = 100
+  description = "peace makes plenty"
 }
-`
 
-const testAccCheckDigitalOceanVolumeSnapshotDataSourceConfig = `
-data "digitalocean_snapshot" "volume_test_snap" {
-    most_recent = true
-    resource_type = "volume"
-    name_regex = "^vol-snap"
+resource "digitalocean_snapshot" "foo" {
+  name = "snapshot-%d"
+  volume_id = "${digitalocean_volume.foo.id}"
 }
-`
-const testAccCheckDigitalOceanVolumeSnapshotDataSourceConfig_fail = `
-data "digitalocean_snapshot" "volume_test_snap" {
-    most_recent = false
-    resource_type = "volume"
-    name_regex = "^vol-snap"
+
+data "digitalocean_snapshot" "foobar" {
+  most_recent = true
+  name_regex = "^${digitalocean_snapshot.foo.name}"
+}`
+
+const testAccCheckDataSourceDigitalOceanSnapshot_region = `
+resource "digitalocean_volume" "foo" {
+  region      = "nyc1"
+  name        = "volume-nyc-%d"
+  size        = 100
+  description = "peace makes plenty"
 }
-`
+
+resource "digitalocean_volume" "bar" {
+  region      = "lon1"
+  name        = "volume-lon-%d"
+  size        = 100
+  description = "peace makes plenty"
+}
+
+resource "digitalocean_snapshot" "foo" {
+  name = "snapshot-%d"
+  volume_id = "${digitalocean_volume.foo.id}"
+}
+
+resource "digitalocean_snapshot" "bar" {
+  name = "snapshot-%d"
+  volume_id = "${digitalocean_volume.bar.id}"
+}
+
+data "digitalocean_snapshot" "foobar" {
+  name = "${digitalocean_snapshot.bar.name}"
+  region = "lon1"
+}`

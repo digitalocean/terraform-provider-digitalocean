@@ -10,35 +10,33 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func dataSourceDigitalOceanSnapshot() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceDoSnapshotRead,
-
 		Schema: map[string]*schema.Schema{
-			"name_regex": {
+			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
-				ValidateFunc: validateSnapshotNameRegex,
+				ValidateFunc: validation.NoZeroValues,
+			},
+			"name_regex": {
+				Type:          schema.TypeString,
+				Optional:      true,
+				ValidateFunc:  validation.ValidateRegexp,
+				ConflictsWith: []string{"name"},
+			},
+			"region": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 			"most_recent": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-				ForceNew: true,
-			},
-			"region_filter": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-			"resource_type": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validateResourceType,
 			},
 			// Computed values.
 			"created_at": {
@@ -49,20 +47,16 @@ func dataSourceDigitalOceanSnapshot() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
-			"name": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"regions": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"resource_id": {
+			"volume_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"size_gigabytes": {
+			"size": {
 				Type:     schema.TypeFloat,
 				Computed: true,
 			},
@@ -74,26 +68,26 @@ func dataSourceDigitalOceanSnapshot() *schema.Resource {
 func dataSourceDoSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
-	resourceType := d.Get("resource_type")
-	nameRegex, nameRegexOk := d.GetOk("name_regex")
-	regionFilter, regionFilterOk := d.GetOk("region_filter")
+	name, hasName := d.GetOk("name")
+	nameRegex, hasNameRegex := d.GetOk("name_regex")
+	region, hasRegion := d.GetOk("region")
 
-	pageOpt := &godo.ListOptions{
+	if !hasName && !hasNameRegex {
+		return fmt.Errorf("One of `name` or `name_regex` must be assigned")
+	}
+
+	opts := &godo.ListOptions{
 		Page:    1,
 		PerPage: 200,
 	}
 
 	var snapshotList []godo.Snapshot
-	for {
-		var snapshots []godo.Snapshot
-		var resp *godo.Response
-		var err error
 
-		switch resourceType {
-		case "droplet":
-			snapshots, resp, err = client.Snapshots.ListDroplet(context.Background(), pageOpt)
-		case "volume":
-			snapshots, resp, err = client.Snapshots.ListVolume(context.Background(), pageOpt)
+	for {
+		snapshots, resp, err := client.Snapshots.ListVolume(context.Background(), opts)
+
+		if err != nil {
+			return fmt.Errorf("Error retrieving snapshots: %s", err)
 		}
 
 		for _, s := range snapshots {
@@ -106,114 +100,92 @@ func dataSourceDoSnapshotRead(d *schema.ResourceData, meta interface{}) error {
 
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return err
+			return fmt.Errorf("Error retrieving snapshots: %s", err)
 		}
 
-		pageOpt.Page = page + 1
+		opts.Page = page + 1
 	}
 
-	var snapshotsFilteredByName []godo.Snapshot
-	if nameRegexOk {
-		r := regexp.MustCompile(nameRegex.(string))
-		for _, snapshot := range snapshotList {
-			if r.MatchString(snapshot.Name) {
-				snapshotsFilteredByName = append(snapshotsFilteredByName, snapshot)
-			}
-		}
+	// Go through all the possible filters
+	if hasName {
+		snapshotList = filterSnapshotsByName(snapshotList, name.(string))
 	} else {
-		snapshotsFilteredByName = snapshotList[:]
+		snapshotList = filterSnapshotsByNameRegex(snapshotList, nameRegex.(string))
+	}
+	if hasRegion {
+		snapshotList = filterSnapshotsByRegion(snapshotList, region.(string))
 	}
 
-	var snapshotsFilteredByRegion []godo.Snapshot
-	if regionFilterOk {
-		for _, snapshot := range snapshotsFilteredByName {
-			for _, region := range snapshot.Regions {
-				if region == regionFilter {
-					snapshotsFilteredByRegion = append(snapshotsFilteredByRegion, snapshot)
-				}
-			}
-		}
-	} else {
-		snapshotsFilteredByRegion = snapshotsFilteredByName[:]
+	// Get the queried snapshot or fail if it can't be determined
+	var snapshot *godo.Snapshot
+	if len(snapshotList) == 0 {
+		return fmt.Errorf("no snapshot found with name %s", name)
 	}
-
-	var snapshot godo.Snapshot
-	if len(snapshotsFilteredByRegion) < 1 {
-		return fmt.Errorf("Your query returned no results. Please change your search criteria and try again.")
-	}
-
-	recent := d.Get("most_recent").(bool)
-	if len(snapshotsFilteredByRegion) > 1 {
-		log.Printf("[DEBUG] do_snapshot - multiple results found and `most_recent` is set to: %t", recent)
+	if len(snapshotList) > 1 {
+		recent := d.Get("most_recent").(bool)
 		if recent {
-			snapshot = mostRecentSnapshot(snapshotsFilteredByRegion)
+			snapshot = findMostRecentSnapshot(snapshotList)
 		} else {
-			return fmt.Errorf("Your query returned more than one result. Please try a more " +
-				"specific search criteria, or set `most_recent` attribute to true.")
+			return fmt.Errorf("too many snapshots found with name %s (found %d, expected 1)", name, len(snapshotList))
 		}
 	} else {
-		// Query returned single result.
-		snapshot = snapshotsFilteredByRegion[0]
+		snapshot = &snapshotList[0]
 	}
 
 	log.Printf("[DEBUG] do_snapshot - Single Snapshot found: %s", snapshot.ID)
-	return snapshotDescriptionAttributes(d, snapshot)
-}
 
-type snapshotSort []godo.Snapshot
-
-func (a snapshotSort) Len() int      { return len(a) }
-func (a snapshotSort) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a snapshotSort) Less(i, j int) bool {
-	itime, _ := time.Parse(time.RFC3339, a[i].Created)
-	jtime, _ := time.Parse(time.RFC3339, a[j].Created)
-	return itime.Unix() < jtime.Unix()
-}
-
-// Returns the most recent Snapshot out of a slice of Snapshots.
-func mostRecentSnapshot(snapshots []godo.Snapshot) godo.Snapshot {
-	sortedSnapshots := snapshots
-	sort.Sort(snapshotSort(sortedSnapshots))
-	return sortedSnapshots[len(sortedSnapshots)-1]
-}
-
-// populate the numerous fields that the Snapshot description returns.
-func snapshotDescriptionAttributes(d *schema.ResourceData, snapshot godo.Snapshot) error {
 	d.SetId(snapshot.ID)
+	d.Set("name", snapshot.Name)
 	d.Set("created_at", snapshot.Created)
 	d.Set("min_disk_size", snapshot.MinDiskSize)
-	d.Set("name", snapshot.Name)
 	d.Set("regions", snapshot.Regions)
-	d.Set("resource_id", snapshot.ResourceID)
-	d.Set("size_gigabytes", snapshot.SizeGigaBytes)
+	d.Set("volume_id", snapshot.ResourceID)
+	d.Set("size", snapshot.SizeGigaBytes)
 
 	return nil
 }
 
-func validateSnapshotNameRegex(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-
-	if _, err := regexp.Compile(value); err != nil {
-		errors = append(errors, fmt.Errorf(
-			"%q contains an invalid regular expression: %s",
-			k, err))
+func filterSnapshotsByName(snapshots []godo.Snapshot, name string) []godo.Snapshot {
+	result := make([]godo.Snapshot, 0)
+	for _, s := range snapshots {
+		if s.Name == name {
+			result = append(result, s)
+		}
 	}
-	return
+	return result
 }
 
-func validateResourceType(v interface{}, k string) (ws []string, errors []error) {
-	value := v.(string)
-
-	switch value {
-	case
-		"droplet",
-		"volume":
-		return
+func filterSnapshotsByNameRegex(snapshots []godo.Snapshot, name string) []godo.Snapshot {
+	r := regexp.MustCompile(name)
+	result := make([]godo.Snapshot, 0)
+	for _, s := range snapshots {
+		if r.MatchString(s.Name) {
+			result = append(result, s)
+		}
 	}
+	return result
+}
 
-	errors = append(errors, fmt.Errorf(
-		"Invalid %q specified: %s",
-		k, value))
+func filterSnapshotsByRegion(snapshots []godo.Snapshot, region string) []godo.Snapshot {
+	result := make([]godo.Snapshot, 0)
+	for _, s := range snapshots {
+		for _, r := range s.Regions {
+			if r == region {
+				result = append(result, s)
+				break
+			}
+		}
+	}
+	return result
+}
 
-	return
+// Returns the most recent Snapshot out of a slice of Snapshots.
+func findMostRecentSnapshot(snapshots []godo.Snapshot) *godo.Snapshot {
+	sort.Slice(snapshots, func(i, j int) bool {
+		itime, _ := time.Parse(time.RFC3339, snapshots[i].Created)
+		jtime, _ := time.Parse(time.RFC3339, snapshots[j].Created)
+		return itime.Unix() > jtime.Unix()
+	})
+
+	return &snapshots[0]
 }

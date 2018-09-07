@@ -47,6 +47,13 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"snapshot_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
 			"initial_filesystem_type": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -86,12 +93,6 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"snapshot_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
@@ -99,6 +100,7 @@ func resourceDigitalOceanVolume() *schema.Resource {
 			// if the new size of the volume is smaller than the old one return an error since
 			// only expanding the volume is allowed
 			oldSize, newSize := diff.GetChange("size")
+			log.Printf("QQQQQ %v %v", oldSize, newSize)
 			if newSize.(int) < oldSize.(int) {
 				return fmt.Errorf("volumes `size` can only be expanded and not shrunk")
 			}
@@ -112,13 +114,19 @@ func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*godo.Client)
 
 	opts := &godo.VolumeCreateRequest{
-		Region:        d.Get("region").(string),
-		Name:          d.Get("name").(string),
-		Description:   d.Get("description").(string),
-		SizeGigaBytes: int64(d.Get("size").(int)),
-		SnapshotID:    d.Get("snapshot_id").(string),
+		Name:        d.Get("name").(string),
+		Description: d.Get("description").(string),
 	}
 
+	if v, ok := d.GetOk("region"); ok {
+		opts.Region = v.(string)
+	}
+	if v, ok := d.GetOk("size"); ok {
+		opts.SizeGigaBytes = int64(v.(int))
+	}
+	if v, ok := d.GetOk("snapshot_id"); ok {
+		opts.SnapshotID = v.(string)
+	}
 	if v, ok := d.GetOk("initial_filesystem_type"); ok {
 		opts.FilesystemType = v.(string)
 	} else if v, ok := d.GetOk("filesystem_type"); ok {
@@ -181,6 +189,7 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error retrieving volume: %s", err)
 	}
 
+	d.Set("region", volume.Region.Slug)
 	d.Set("size", int(volume.SizeGigaBytes))
 
 	if v := volume.FilesystemType; v != "" {
@@ -236,6 +245,23 @@ func resourceDigitalOceanVolumeImport(rs *schema.ResourceData, v interface{}) ([
 	}
 
 	return []*schema.ResourceData{rs}, nil
+}
+
+// Seperate validation function to support common cumputed
+func validateDigitalOceanVolumeSchema(d *schema.ResourceData) error {
+	_, hasRegion := d.GetOk("region")
+	_, hasSize := d.GetOk("size")
+	_, hasSnapshotId := d.GetOk("snapshot_id")
+	if !hasSnapshotId {
+		if !hasRegion {
+			return fmt.Errorf("`region` must be assigned when not specifying a `snapshot_id`")
+		}
+		if !hasSize {
+			return fmt.Errorf("`size` must be assigned when not specifying a `snapshot_id`")
+		}
+	}
+
+	return nil
 }
 
 func flattenDigitalOceanVolumeDropletIds(droplets []int) *schema.Set {
