@@ -47,6 +47,13 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"snapshot_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
 			"initial_filesystem_type": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -106,12 +113,19 @@ func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	client := meta.(*godo.Client)
 
 	opts := &godo.VolumeCreateRequest{
-		Region:        d.Get("region").(string),
-		Name:          d.Get("name").(string),
-		Description:   d.Get("description").(string),
-		SizeGigaBytes: int64(d.Get("size").(int)),
+		Name:        d.Get("name").(string),
+		Description: d.Get("description").(string),
 	}
 
+	if v, ok := d.GetOk("region"); ok {
+		opts.Region = v.(string)
+	}
+	if v, ok := d.GetOk("size"); ok {
+		opts.SizeGigaBytes = int64(v.(int))
+	}
+	if v, ok := d.GetOk("snapshot_id"); ok {
+		opts.SnapshotID = v.(string)
+	}
 	if v, ok := d.GetOk("initial_filesystem_type"); ok {
 		opts.FilesystemType = v.(string)
 	} else if v, ok := d.GetOk("filesystem_type"); ok {
@@ -174,6 +188,7 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error retrieving volume: %s", err)
 	}
 
+	d.Set("region", volume.Region.Slug)
 	d.Set("size", int(volume.SizeGigaBytes))
 
 	if v := volume.FilesystemType; v != "" {

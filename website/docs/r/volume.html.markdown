@@ -33,6 +33,21 @@ resource "digitalocean_volume_attachment" "foobar" {
 }
 ```
 
+You can also create a volume from an existing snapshot.
+
+```hcl
+data "digitalocean_volume_snapshot" "foobar" {
+  name = "baz"
+}
+
+resource "digitalocean_volume" "foobar" {
+  region      = "lon1"
+  name        = "foo"
+  size        = "${data.digitalocean_volume_snapshot.foobar.min_disk_size}"
+  snapshot_id = "${data.digitalocean_volume_snapshot.foobar.id}"
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -41,6 +56,7 @@ The following arguments are supported:
 * `name` - (Required) A name for the block storage volume. Must be lowercase and be composed only of numbers, letters and "-", up to a limit of 64 characters.
 * `size` - (Required) The size of the block storage volume in GiB. If updated, can only be expanded.
 * `description` - (Optional) A free-form text field up to a limit of 1024 bytes to describe a block storage volume.
+* `snapshot_id` - (Optional) The ID of an existing volume snapshot from which the new volume will be created. If supplied, the region and size will be limitied on creation to that of the referenced snapshot
 * `initial_filesystem_type` - (Optional) Initial filesystem type (`xfs` or `ext4`) for the block storage volume.
 * `initial_filesystem_label` - (Optional) Initial filesystem label for the block storage volume.
 

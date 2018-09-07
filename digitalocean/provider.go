@@ -18,16 +18,17 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
-			"digitalocean_certificate":  dataSourceDigitalOceanCertificate(),
-			"digitalocean_domain":       dataSourceDigitalOceanDomain(),
-			"digitalocean_droplet":      dataSourceDigitalOceanDroplet(),
-			"digitalocean_floating_ip":  dataSourceDigitalOceanFloatingIp(),
-			"digitalocean_image":        dataSourceDigitalOceanImage(),
-			"digitalocean_loadbalancer": dataSourceDigitalOceanLoadbalancer(),
-			"digitalocean_record":       dataSourceDigitalOceanRecord(),
-			"digitalocean_ssh_key":      dataSourceDigitalOceanSSHKey(),
-			"digitalocean_tag":          dataSourceDigitalOceanTag(),
-			"digitalocean_volume":       dataSourceDigitalOceanVolume(),
+			"digitalocean_certificate":     dataSourceDigitalOceanCertificate(),
+			"digitalocean_domain":          dataSourceDigitalOceanDomain(),
+			"digitalocean_droplet":         dataSourceDigitalOceanDroplet(),
+			"digitalocean_floating_ip":     dataSourceDigitalOceanFloatingIp(),
+			"digitalocean_image":           dataSourceDigitalOceanImage(),
+			"digitalocean_loadbalancer":    dataSourceDigitalOceanLoadbalancer(),
+			"digitalocean_record":          dataSourceDigitalOceanRecord(),
+			"digitalocean_ssh_key":         dataSourceDigitalOceanSSHKey(),
+			"digitalocean_tag":             dataSourceDigitalOceanTag(),
+			"digitalocean_volume_snapshot": dataSourceDigitalOceanVolumeSnapshot(),
+			"digitalocean_volume":          dataSourceDigitalOceanVolume(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -42,6 +43,7 @@ func Provider() terraform.ResourceProvider {
 			"digitalocean_tag":               resourceDigitalOceanTag(),
 			"digitalocean_volume":            resourceDigitalOceanVolume(),
 			"digitalocean_volume_attachment": resourceDigitalOceanVolumeAttachment(),
+			"digitalocean_volume_snapshot":   resourceDigitalOceanVolumeSnapshot(),
 		},
 
 		ConfigureFunc: providerConfigure,

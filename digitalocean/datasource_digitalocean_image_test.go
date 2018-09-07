@@ -55,7 +55,7 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 			{
 				Config: " ",
 				Check: resource.ComposeTestCheckFunc(
-					deleteSnapshots(&snapshotsId),
+					deleteDropletSnapshots(&snapshotsId),
 				),
 			},
 		},
@@ -115,13 +115,15 @@ func takeSnapshotOfDroplet(rInt, sInt int, droplet *godo.Droplet) error {
 	return nil
 }
 
-func deleteSnapshots(snapshotsId *[]int) resource.TestCheckFunc {
+func deleteDropletSnapshots(snapshotsId *[]int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		log.Printf("XXX Deleting snaps")
+		log.Printf("Deleting Droplet snapshots")
+
 		client := testAccProvider.Meta().(*godo.Client)
+
 		snapshots := *snapshotsId
 		for _, value := range snapshots {
-			log.Printf("XXX Deleting %d", value)
+			log.Printf("Deleting %d", value)
 			_, err := client.Images.Delete(context.Background(), value)
 			if err != nil {
 				return err
