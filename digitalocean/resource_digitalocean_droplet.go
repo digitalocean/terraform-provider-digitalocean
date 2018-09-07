@@ -321,27 +321,35 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("status", droplet.Status)
 	d.Set("locked", droplet.Locked)
 
+	if publicIPv4 := findIPv4AddrByType(droplet, "public"); publicIPv4 != "" {
+		d.Set("ipv4_address", publicIPv4)
+	}
+
+	if privateIPv4 := findIPv4AddrByType(droplet, "private"); privateIPv4 != "" {
+		d.Set("ipv4_address_private", privateIPv4)
+	}
+
+	if publicIPv6 := findIPv6AddrByType(droplet, "public"); publicIPv6 != "" {
+		d.Set("ipv6_address", strings.ToLower(publicIPv6))
+	}
+
+	if privateIPv6 := findIPv6AddrByType(droplet, "private"); privateIPv6 != "" {
+		d.Set("ipv6_address_private", strings.ToLower(privateIPv6))
+	}
+
+	if features := droplet.Features; features != nil {
+		d.Set("backups", containsDigitalOceanDropletFeature(features, "backups"))
+		d.Set("ipv6", containsDigitalOceanDropletFeature(features, "ipv6"))
+		d.Set("private_networking", containsDigitalOceanDropletFeature(features, "private_networking"))
+		d.Set("monitoring", containsDigitalOceanDropletFeature(features, "monitoring"))
+	}
+
 	if err := d.Set("volume_ids", flattenDigitalOceanDropletVolumeIds(droplet.VolumeIDs)); err != nil {
 		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
 	}
 
-	if publicIPv6 := findIPv6AddrByType(droplet, "public"); publicIPv6 != "" {
-		d.Set("ipv6", true)
-		d.Set("ipv6_address", strings.ToLower(publicIPv6))
-		d.Set("ipv6_address_private", findIPv6AddrByType(droplet, "private"))
-	} else {
-		d.Set("ipv6", false)
-		d.Set("ipv6_address", "")
-	}
-
-	d.Set("ipv4_address", findIPv4AddrByType(droplet, "public"))
-
-	if privateIPv4 := findIPv4AddrByType(droplet, "private"); privateIPv4 != "" {
-		d.Set("private_networking", true)
-		d.Set("ipv4_address_private", privateIPv4)
-	} else {
-		d.Set("private_networking", false)
-		d.Set("ipv4_address_private", "")
+	if err := d.Set("tags", flattenTags(droplet.Tags)); err != nil {
+		return fmt.Errorf("Error setting `tags`: %+v", err)
 	}
 
 	// Initialize the connection info
@@ -350,18 +358,12 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 		"host": findIPv4AddrByType(droplet, "public"),
 	})
 
-	if err := d.Set("tags", flattenTags(droplet.Tags)); err != nil {
-		return fmt.Errorf("Error setting `tags`: %+v", err)
-	}
-
 	return nil
 }
 
 func resourceDigitalOceanDropletImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	// This is a non API attribute. So set to the default setting in the schema.
 	d.Set("resize_disk", true)
-	d.Set("backups", false)
-	d.Set("monitoring", false)
 
 	err := resourceDigitalOceanDropletRead(d, meta)
 	if err != nil {
