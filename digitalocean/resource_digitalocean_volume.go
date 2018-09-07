@@ -100,7 +100,6 @@ func resourceDigitalOceanVolume() *schema.Resource {
 			// if the new size of the volume is smaller than the old one return an error since
 			// only expanding the volume is allowed
 			oldSize, newSize := diff.GetChange("size")
-			log.Printf("QQQQQ %v %v", oldSize, newSize)
 			if newSize.(int) < oldSize.(int) {
 				return fmt.Errorf("volumes `size` can only be expanded and not shrunk")
 			}
@@ -245,23 +244,6 @@ func resourceDigitalOceanVolumeImport(rs *schema.ResourceData, v interface{}) ([
 	}
 
 	return []*schema.ResourceData{rs}, nil
-}
-
-// Seperate validation function to support common cumputed
-func validateDigitalOceanVolumeSchema(d *schema.ResourceData) error {
-	_, hasRegion := d.GetOk("region")
-	_, hasSize := d.GetOk("size")
-	_, hasSnapshotId := d.GetOk("snapshot_id")
-	if !hasSnapshotId {
-		if !hasRegion {
-			return fmt.Errorf("`region` must be assigned when not specifying a `snapshot_id`")
-		}
-		if !hasSize {
-			return fmt.Errorf("`size` must be assigned when not specifying a `snapshot_id`")
-		}
-	}
-
-	return nil
 }
 
 func flattenDigitalOceanVolumeDropletIds(droplets []int) *schema.Set {
