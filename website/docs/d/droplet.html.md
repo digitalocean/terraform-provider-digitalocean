@@ -8,10 +8,10 @@ description: |-
 
 # digitalocean_droplet
 
-Get information on a Droplet for use in other resources. This data source provides all of
-the Droplets properties as configured on your DigitalOcean account.
-This is useful if the Droplet in question is not managed by Terraform or you need to utilize
-any of the Droplets data.
+Get information on a Droplet for use in other resources. This data source provides
+all of the Droplet's properties as configured on your DigitalOcean account. This
+is useful if the Droplet in question is not managed by Terraform or you need to
+utilize any of the Droplets data.
 
 An error is triggered if the provided Droplet name does not exist.
 
@@ -55,4 +55,4 @@ The following attributes are exported:
 * `private_networking` - Whether private networks are enabled.
 * `monitoring` - Whether monitoring agent is installed.
 * `volume_ids` - List of the IDs of each volumes attached to the Droplet.
-* `tags` - A list of the tags associated to the Droplet. 
+* `tags` - A list of the tags associated to the Droplet.
