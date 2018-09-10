@@ -23,7 +23,7 @@ resource "digitalocean_volume" "foobar" {
 resource "digitalocean_droplet" "foobar" {
   name       = "baz"
   size       = "s-1vcpu-1gb"
-  image      = "coreos-stable"
+  image      = "ubuntu-18-04-x64"
   region     = "nyc1"
 }
 

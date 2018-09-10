@@ -16,7 +16,7 @@ Provides a DigitalOcean Floating IP to represent a publicly-accessible static IP
 resource "digitalocean_droplet" "foobar" {
   name               = "baz"
   size               = "s-1vcpu-1gb"
-  image              = "centos-5-8-x32"
+  image              = "ubuntu-18-04-x64"
   region             = "sgp1"
   ipv6               = true
   private_networking = true

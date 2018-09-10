@@ -23,7 +23,7 @@ resource "digitalocean_tag" "foobar" {
 
 # Create a new droplet in nyc3 with the foobar tag
 resource "digitalocean_droplet" "web" {
-  image  = "ubuntu-16-04-x64"
+  image  = "ubuntu-18-04-x64"
   name   = "web-1"
   region = "nyc3"
   size   = "s-1vcpu-1gb"
