@@ -42,4 +42,4 @@ The following attributes are exported:
 * `description` - Text describing a block storage volume.
 * `filesystem_type` - Filesystem type currently in-use on the block storage volume.
 * `filesystem_label` - Filesystem label currently in-use on the block storage volume.
-* `droplet_ids` - A list of associated droplet ids.
+* `droplet_ids` - A list of associated Droplet ids.

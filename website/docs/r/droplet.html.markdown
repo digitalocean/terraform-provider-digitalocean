@@ -47,12 +47,12 @@ The following arguments are supported:
    size when resizing a Droplet. It defaults to `true`. When set to `false`,
    only the Droplet's RAM and CPU will be resized. **Increasing a Droplet's disk
    size is a permanent change**. Increasing only RAM and CPU is reversible.
-* `tags` - (Optional) A list of the tags to label this droplet. A tag resource
-   must exist before it can be associated with a droplet.
+* `tags` - (Optional) A list of the tags to label this Droplet. A tag resource
+   must exist before it can be associated with a Droplet.
 * `user_data` (Optional) - A string of the desired User Data for the Droplet.
 * `volume_ids` (Optional) - A list of the IDs of each [block storage volume](/docs/providers/do/r/volume.html) to be attached to the Droplet.
 
-~> **NOTE:** If you use `volume_ids` on a droplet, Terraform will assume management over the full set volumes for the instance, and treat additional volumes as a drift. For this reason, `volume_ids` must not be mixed with external `digitalocean_volume_attachment` resources for a given instance.
+~> **NOTE:** If you use `volume_ids` on a Droplet, Terraform will assume management over the full set volumes for the instance, and treat additional volumes as a drift. For this reason, `volume_ids` must not be mixed with external `digitalocean_volume_attachment` resources for a given instance.
 
 ## Attributes Reference
 
@@ -74,13 +74,13 @@ The following attributes are exported:
 * `size` - The instance size
 * `disk` - The size of the instance's disk in GB
 * `vcpus` - The number of the instance's virtual CPUs
-* `status` - The status of the droplet
-* `tags` - The tags associated with the droplet
+* `status` - The status of the Droplet
+* `tags` - The tags associated with the Droplet
 * `volume_ids` - A list of the attached block storage volumes
 
 ## Import
 
-Droplets can be imported using the droplet `id`, e.g.
+Droplets can be imported using the Droplet `id`, e.g.
 
 ```
 terraform import digitalocean_droplet.mydroplet 100823

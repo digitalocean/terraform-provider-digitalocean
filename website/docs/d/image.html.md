@@ -9,7 +9,7 @@ description: |-
 # digitalocean_image
 
 Get information on an snapshot images. The aim of this datasource is to enable
-you to build droplets based on snapshot names.
+you to build Droplets based on snapshot names.
 
 An error is triggered if zero or more than one result is returned by the query.
 
@@ -23,7 +23,7 @@ data "digitalocean_image" "example1" {
 }
 ```
 
-Reuse the data about a snapshot to create a droplet:
+Reuse the data about a snapshot to create a Droplet:
 
 ```hcl
 data "digitalocean_image" "example1" {
