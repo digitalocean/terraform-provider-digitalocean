@@ -9,7 +9,7 @@ description: |-
 # digitalocean_floating_ip
 
 Get information on a floating ip. This data source provides the region and droplet id
-as configured on your Digital Ocean account. This is useful if the floating ip 
+as configured on your DigitalOcean account. This is useful if the floating ip
 in question is not managed by Terraform or you need to find the droplet the ip is
 attached to.
 

@@ -9,7 +9,7 @@ description: |-
 # digitalocean_droplet
 
 Get information on a droplet for use in other resources. This data source provides all of
-the droplets properties as configured on your Digital Ocean account.
+the droplets properties as configured on your DigitalOcean account.
 This is useful if the droplet in question is not managed by Terraform or you need to utilize
 any of the droplets data.
 

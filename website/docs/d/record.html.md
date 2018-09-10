@@ -9,11 +9,11 @@ description: |-
 # digitalocean_record
 
 Get information on a DNS record. This data source provides the name, TTL, and zone
-file as configured on your Digital Ocean account. This is useful if the record
+file as configured on your DigitalOcean account. This is useful if the record
 in question is not managed by Terraform.
 
 An error is triggered if the provided domain name or record are not managed with
-your Digital Ocean account.
+your DigitalOcean account.
 
 ## Example Usage
 
