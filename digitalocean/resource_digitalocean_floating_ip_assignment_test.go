@@ -27,7 +27,17 @@ func TestAccDigitalOceanFloatingIPAssignment(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanFloatingIPAssignmentConfig_NoDropletId,
+				Config: testAccCheckDigitalOceanFloatingIPAssignmentReassign,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip_assignment.foobar", &floatingIP),
+					resource.TestMatchResourceAttr(
+						"digitalocean_floating_ip_assignment.foobar", "id", regexp.MustCompile("[0-9.]+")),
+					resource.TestMatchResourceAttr(
+						"digitalocean_floating_ip_assignment.foobar", "droplet_id", regexp.MustCompile("[0-9]+")),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanFloatingIPAssignmentDeleteAssignment,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip_assignment.foobar", &floatingIP),
 					resource.TestMatchResourceAttr(
@@ -43,11 +53,11 @@ func TestAccDigitalOceanFloatingIPAssignment(t *testing.T) {
 var testAccCheckDigitalOceanFloatingIPAssignmentConfig = `
 resource "digitalocean_floating_ip" "foobar" {
   region = "nyc3"
-  ignore_droplet_id = true
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name               = "foobar"
+  count              = 2
+  name               = "foobar-${count.index}"
   size               = "1gb"
   image              = "centos-7-x64"
   region             = "nyc3"
@@ -57,17 +67,43 @@ resource "digitalocean_droplet" "foobar" {
 
 resource "digitalocean_floating_ip_assignment" "foobar" {
   ip_address = "${digitalocean_floating_ip.foobar.ip_address}"
-  droplet_id = "${digitalocean_droplet.foobar.id}"
+  droplet_id = "${digitalocean_droplet.foobar.0.id}"
 }
 `
 
-var testAccCheckDigitalOceanFloatingIPAssignmentConfig_NoDropletId = `
+var testAccCheckDigitalOceanFloatingIPAssignmentReassign = `
 resource "digitalocean_floating_ip" "foobar" {
   region = "nyc3"
-  ignore_droplet_id = true
+}
+
+resource "digitalocean_droplet" "foobar" {
+  count              = 2
+  name               = "foobar-${count.index}"
+  size               = "1gb"
+  image              = "centos-7-x64"
+  region             = "nyc3"
+  ipv6               = true
+  private_networking = true
 }
 
 resource "digitalocean_floating_ip_assignment" "foobar" {
   ip_address = "${digitalocean_floating_ip.foobar.ip_address}"
+  droplet_id = "${digitalocean_droplet.foobar.1.id}"
+}
+`
+
+var testAccCheckDigitalOceanFloatingIPAssignmentDeleteAssignment = `
+resource "digitalocean_floating_ip" "foobar" {
+  region = "nyc3"
+}
+
+resource "digitalocean_droplet" "foobar" {
+  count              = 2
+  name               = "foobar-${count.index}"
+  size               = "1gb"
+  image              = "centos-7-x64"
+  region             = "nyc3"
+  ipv6               = true
+  private_networking = true
 }
 `
