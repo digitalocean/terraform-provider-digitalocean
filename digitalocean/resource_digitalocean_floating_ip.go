@@ -38,7 +38,6 @@ func resourceDigitalOceanFloatingIp() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
-
 		},
 	}
 }
