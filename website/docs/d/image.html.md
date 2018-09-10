@@ -8,8 +8,10 @@ description: |-
 
 # digitalocean_image
 
-Get information on an snapshot images. The aim of this datasource is to enable
-you to build Droplets based on snapshot names.
+Get information on an images for use in other resources (e.g. creating a Droplet
+based on snapshot). This data source provides all of the image properties as
+configured on your DigitalOcean account. This is useful if the image in question
+is not managed by Terraform or you need to utilize any of the image's data.
 
 An error is triggered if zero or more than one result is returned by the query.
 
@@ -29,6 +31,7 @@ Reuse the data about a snapshot to create a Droplet:
 data "digitalocean_image" "example1" {
   name = "example-1.0.0"
 }
+
 resource "digitalocean_droplet" "example1" {
   image  = "${data.digitalocean_image.example1.image}"
   name   = "example-1"
@@ -60,8 +63,8 @@ The following attributes are exported:
 * `image` - The id of the image.
 * `distribution` - The name of the distribution of the OS of the image.
 * `min_disk_size`: The minimum 'disk' required for the image.
-* `private` - Is image a public image or not. Public images represents
-  Linux distributions or Application, while non-public images represent
+* `private` - Is image a public image or not. Public images represent
+  Linux distributions or One-Click Applications, while non-public images represent
   snapshots and backups and are only available within your account.
 * `regions`: The regions that the image is available in.
 * `type`: Type of the image.
