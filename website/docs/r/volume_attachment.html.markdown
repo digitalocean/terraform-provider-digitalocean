@@ -17,10 +17,11 @@ Manages attaching a Volume to a Droplet.
 
 ```hcl
 resource "digitalocean_volume" "foobar" {
-  region      = "nyc1"
-  name        = "baz"
-  size        = 100
-  description = "an example volume"
+  region                  = "nyc1"
+  name                    = "baz"
+  size                    = 100
+  initial_filesystem_type = "ext4"
+  description             = "an example volume"
 }
 
 resource "digitalocean_droplet" "foobar" {
