@@ -4,7 +4,7 @@ page_title: "DigitalOcean: digitalocean_volume"
 sidebar_current: "docs-do-datasource-volume"
 description: |-
   Get information on a volume.
---- 
+---
 
 # digitalocean_volume
 
@@ -23,6 +23,27 @@ Get the volume:
 data "digitalocean_volume "example" {
   name   = "app-data"
   region = "nyc3"
+}
+```
+
+Reuse the data about a volume to attach it to a Droplet:
+
+```hcl
+data "digitalocean_volume "example" {
+  name   = "app-data"
+  region = "nyc3"
+}
+
+resource "digitalocean_droplet" "example" {
+  name       = "foo"
+  size       = "s-1vcpu-1gb"
+  image      = "ubuntu-18-04-x64"
+  region     = "nyc3"
+}
+
+resource "digitalocean_volume_attachment" "foobar" {
+  droplet_id = "${digitalocean_droplet.example.id}"
+  volume_id  = "${data.digitalocean_volume.example.id}"
 }
 ```
 
