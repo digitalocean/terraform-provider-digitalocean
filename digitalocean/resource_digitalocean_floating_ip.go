@@ -19,7 +19,7 @@ func resourceDigitalOceanFloatingIp() *schema.Resource {
 		Read:   resourceDigitalOceanFloatingIpRead,
 		Delete: resourceDigitalOceanFloatingIpDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceDigitalOceanFloatingIpImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -33,7 +33,7 @@ func resourceDigitalOceanFloatingIp() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validation.SingleIP(),
 			},
 
 			"droplet_id": {
@@ -140,6 +140,25 @@ func resourceDigitalOceanFloatingIpRead(d *schema.ResourceData, meta interface{}
 	}
 
 	return nil
+}
+
+func resourceDigitalOceanFloatingIpImport(rs *schema.ResourceData, v interface{}) ([]*schema.ResourceData, error) {
+	client := v.(*godo.Client)
+	floatingIp, resp, err := client.FloatingIPs.Get(context.Background(), rs.Id())
+	if resp.StatusCode != 404 {
+		if err != nil {
+			return nil, err
+		}
+
+		rs.Set("ip_address", floatingIp.IP)
+		rs.Set("region", floatingIp.Region.Slug)
+
+		if floatingIp.Droplet != nil {
+			rs.Set("droplet_id", floatingIp.Droplet.ID)
+		}
+	}
+
+	return []*schema.ResourceData{rs}, nil
 }
 
 func resourceDigitalOceanFloatingIpDelete(d *schema.ResourceData, meta interface{}) error {
