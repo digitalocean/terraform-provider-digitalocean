@@ -1,11 +1,15 @@
 package digitalocean
 
 import (
+	"context"
+	"fmt"
 	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccDigitalOceanFloatingIPAssignment(t *testing.T) {
@@ -19,7 +23,7 @@ func TestAccDigitalOceanFloatingIPAssignment(t *testing.T) {
 			{
 				Config: testAccCheckDigitalOceanFloatingIPAssignmentConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip_assignment.foobar", &floatingIP),
+					testAccCheckDigitalOceanFloatingIPAttachmentExists("digitalocean_floating_ip_assignment.foobar"),
 					resource.TestMatchResourceAttr(
 						"digitalocean_floating_ip_assignment.foobar", "id", regexp.MustCompile("[0-9.]+")),
 					resource.TestMatchResourceAttr(
@@ -29,7 +33,7 @@ func TestAccDigitalOceanFloatingIPAssignment(t *testing.T) {
 			{
 				Config: testAccCheckDigitalOceanFloatingIPAssignmentReassign,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip_assignment.foobar", &floatingIP),
+					testAccCheckDigitalOceanFloatingIPAttachmentExists("digitalocean_floating_ip_assignment.foobar"),
 					resource.TestMatchResourceAttr(
 						"digitalocean_floating_ip_assignment.foobar", "id", regexp.MustCompile("[0-9.]+")),
 					resource.TestMatchResourceAttr(
@@ -39,15 +43,45 @@ func TestAccDigitalOceanFloatingIPAssignment(t *testing.T) {
 			{
 				Config: testAccCheckDigitalOceanFloatingIPAssignmentDeleteAssignment,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip_assignment.foobar", &floatingIP),
+					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip.foobar", &floatingIP),
 					resource.TestMatchResourceAttr(
-						"digitalocean_floating_ip_assignment.foobar", "id", regexp.MustCompile("[0-9.]+")),
-					resource.TestCheckResourceAttr(
-						"digitalocean_floating_ip_assignment.foobar", "droplet_id", "0"),
+						"digitalocean_floating_ip.foobar", "ip_address", regexp.MustCompile("[0-9.]+")),
 				),
 			},
 		},
 	})
+}
+
+func testAccCheckDigitalOceanFloatingIPAttachmentExists(n string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.Attributes["ip_address"] == "" {
+			return fmt.Errorf("No Record ID is set")
+		}
+		fipID := rs.Primary.Attributes["ip_address"]
+		dropletId, err := strconv.Atoi(rs.Primary.Attributes["droplet_id"])
+		if err != nil {
+			return err
+		}
+
+		client := testAccProvider.Meta().(*godo.Client)
+
+		// Try to find the FloatingIP
+		foundFloatingIP, _, err := client.FloatingIPs.Get(context.Background(), fipID)
+		if err != nil {
+			return err
+		}
+
+		if foundFloatingIP.IP != fipID || foundFloatingIP.Droplet.ID != dropletId {
+			return fmt.Errorf("Wrong volume attachment found")
+		}
+
+		return nil
+	}
 }
 
 var testAccCheckDigitalOceanFloatingIPAssignmentConfig = `
