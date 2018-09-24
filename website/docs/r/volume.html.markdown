@@ -14,22 +14,23 @@ Provides a DigitalOcean Block Storage volume which can be attached to a Droplet 
 
 ```hcl
 resource "digitalocean_volume" "foobar" {
-  region      = "nyc1"
-  name        = "baz"
-  size        = 100
-  description = "an example volume"
+  region                  = "nyc1"
+  name                    = "baz"
+  size                    = 100
+  initial_filesystem_type = "ext4"
+  description             = "an example volume"
 }
 
 resource "digitalocean_droplet" "foobar" {
   name       = "baz"
   size       = "s-1vcpu-1gb"
-  image      = "coreos-stable"
+  image      = "ubuntu-18-04-x64"
   region     = "nyc1"
 }
 
 resource "digitalocean_volume_attachment" "foobar" {
   droplet_id = "${digitalocean_droplet.foobar.id}"
-  volume_id = "${digitalocean_volume.foobar.id}"
+  volume_id  = "${digitalocean_volume.foobar.id}"
 }
 ```
 

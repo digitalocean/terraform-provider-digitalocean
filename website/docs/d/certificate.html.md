@@ -9,7 +9,7 @@ description: |-
 # digitalocean_certificate
 
 Get information on a certificate. This data source provides the name, type, state,
-domains, expiry date, and the sha1 fingerprint as configured on your Digital Ocean account.
+domains, expiry date, and the sha1 fingerprint as configured on your DigitalOcean account.
 This is useful if the certificate in question is not managed by Terraform or you need to utilize
 any of the certificates data.
 

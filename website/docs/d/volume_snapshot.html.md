@@ -8,15 +8,36 @@ description: |-
 
 # digitalocean\_volume\_snapshot
 
-Volume snapshots are saved instances of a block storage volume. Use this data source to retrieve the ID of a DigitalOcean volume snapshot for use in other resources.
+Volume snapshots are saved instances of a block storage volume. Use this data
+source to retrieve the ID of a DigitalOcean volume snapshot for use in other
+resources.
 
 ## Example Usage
+
+Get the volume snapshot:
 
 ```
 data "digitalocean_volume_snapshot" "snapshot" {
   name_regex  = "^web"
-  region= "nyc2"
+  region      = "nyc3"
   most_recent = true
+}
+```
+
+Reuse the data about a volume snapshot to create a new volume based on it:
+
+```
+data "digitalocean_volume_snapshot" "snapshot" {
+  name_regex  = "^web"
+  region      = "nyc3"
+  most_recent = true
+}
+
+resource "digitalocean_volume" "foobar" {
+  region      = "nyc3"
+  name        = "baz"
+  size        = 100
+  snapshot_id = "${data.digitalocean_volume_snapshot.snapshot.id}"
 }
 ```
 
