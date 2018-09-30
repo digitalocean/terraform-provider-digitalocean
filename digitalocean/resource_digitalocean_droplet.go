@@ -304,8 +304,8 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	_, err = strconv.Atoi(d.Get("image").(string))
 	if err == nil || droplet.Image.Slug == "" {
 		// The image field is provided as an ID (number), or
-		// the image bash no slug. In both cases we store it as an ID.
-		d.Set("image", droplet.Image.ID)
+		// the image has no slug. In both cases we store it as an ID.
+		d.Set("image", godo.Stringify(droplet.Image.ID))
 	} else {
 		d.Set("image", droplet.Image.Slug)
 	}

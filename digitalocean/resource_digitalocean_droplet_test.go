@@ -90,6 +90,7 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
+	slug := "centos-7-x64"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -97,7 +98,7 @@ func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_withID(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_withID(rInt, slug),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 				),
@@ -651,10 +652,10 @@ resource "digitalocean_droplet" "foobar" {
 }`, rInt)
 }
 
-func testAccCheckDigitalOceanDropletConfig_withID(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_withID(rInt int, slug string) string {
 	return fmt.Sprintf(`
 data "digitalocean_image" "foobar" {
-  slug = "centos-7-x64"
+  slug = "%s"
 }
 
 resource "digitalocean_droplet" "foobar" {
@@ -663,7 +664,7 @@ resource "digitalocean_droplet" "foobar" {
   image     = "${data.digitalocean_image.foobar.id}"
   region    = "nyc3"
   user_data = "foobar"
-}`, rInt)
+}`, slug, rInt)
 }
 
 func testAccCheckDigitalOceanDropletConfig_withSSH(rInt int) string {
