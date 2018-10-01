@@ -1,4 +1,9 @@
-## 1.1.0 (Unreleased)
+## 1.0.1 (Unreleased)
+
+BUG FIXES:
+
+* resource/digitalocean_droplet: Ensure the image ID is set to state when importing a Droplet ([#144](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/144))
+
 ## 1.0.0 (September 27, 2018)
 
 FEATURES:
