@@ -60,6 +60,7 @@ func resourceDigitalOceanCertificate() *schema.Resource {
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"private_key", "leaf_certificate", "certificate_chain"},
+				// The domains attribute is computed for custom certs and should be ignored in diffs.
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return d.Get("type") == "custom"
 				},
