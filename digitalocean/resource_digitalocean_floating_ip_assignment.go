@@ -86,17 +86,28 @@ func resourceDigitalOceanFloatingIpAssignmentDelete(d *schema.ResourceData, meta
 	client := meta.(*godo.Client)
 
 	ip_address := d.Get("ip_address").(string)
+	droplet_id := d.Get("droplet_id").(int)
 
-	log.Printf("[INFO] Unassigning the Floating IP from the Droplet")
-	action, _, err := client.FloatingIPActions.Unassign(context.Background(), ip_address)
+	log.Printf("[INFO] Reading the details of the FloatingIP %s", ip_address)
+	floatingIp, _, err := client.FloatingIPs.Get(context.Background(), ip_address)
 	if err != nil {
-		return fmt.Errorf("Error unassigning FloatingIP (%s) from the droplet: %s", ip_address, err)
+		return fmt.Errorf("Error retrieving FloatingIP: %s", err)
 	}
 
-	_, unassignedErr := waitForFloatingIPAssignmentReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
-	if unassignedErr != nil {
-		return fmt.Errorf(
-			"Error waiting for FloatingIP (%s) to be unassigned: %s", ip_address, unassignedErr)
+	if floatingIp.Droplet.ID == droplet_id {
+		log.Printf("[INFO] Unassigning the Floating IP from the Droplet")
+		action, _, err := client.FloatingIPActions.Unassign(context.Background(), ip_address)
+		if err != nil {
+			return fmt.Errorf("Error unassigning FloatingIP (%s) from the droplet: %s", ip_address, err)
+		}
+
+		_, unassignedErr := waitForFloatingIPAssignmentReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+		if unassignedErr != nil {
+			return fmt.Errorf(
+				"Error waiting for FloatingIP (%s) to be unassigned: %s", ip_address, unassignedErr)
+		}
+	} else {
+		log.Printf("[INFO] Floating IP already unassigned, removing from state.")
 	}
 
 	d.SetId("")

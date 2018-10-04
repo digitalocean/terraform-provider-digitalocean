@@ -52,6 +52,36 @@ func TestAccDigitalOceanFloatingIPAssignment(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanFloatingIPAssignment_createBeforeDestroy(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanFloatingIPDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroy,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanFloatingIPAttachmentExists("digitalocean_floating_ip_assignment.foobar"),
+					resource.TestMatchResourceAttr(
+						"digitalocean_floating_ip_assignment.foobar", "id", regexp.MustCompile("[0-9.]+")),
+					resource.TestMatchResourceAttr(
+						"digitalocean_floating_ip_assignment.foobar", "droplet_id", regexp.MustCompile("[0-9]+")),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroyReassign,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanFloatingIPAttachmentExists("digitalocean_floating_ip_assignment.foobar"),
+					resource.TestMatchResourceAttr(
+						"digitalocean_floating_ip_assignment.foobar", "id", regexp.MustCompile("[0-9.]+")),
+					resource.TestMatchResourceAttr(
+						"digitalocean_floating_ip_assignment.foobar", "droplet_id", regexp.MustCompile("[0-9]+")),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanFloatingIPAttachmentExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -92,7 +122,7 @@ resource "digitalocean_floating_ip" "foobar" {
 resource "digitalocean_droplet" "foobar" {
   count              = 2
   name               = "foobar-${count.index}"
-  size               = "1gb"
+  size               = "s-1vcpu-1gb"
   image              = "centos-7-x64"
   region             = "nyc3"
   ipv6               = true
@@ -113,7 +143,7 @@ resource "digitalocean_floating_ip" "foobar" {
 resource "digitalocean_droplet" "foobar" {
   count              = 2
   name               = "foobar-${count.index}"
-  size               = "1gb"
+  size               = "s-1vcpu-1gb"
   image              = "centos-7-x64"
   region             = "nyc3"
   ipv6               = true
@@ -134,10 +164,64 @@ resource "digitalocean_floating_ip" "foobar" {
 resource "digitalocean_droplet" "foobar" {
   count              = 2
   name               = "foobar-${count.index}"
-  size               = "1gb"
+  size               = "s-1vcpu-1gb"
   image              = "centos-7-x64"
   region             = "nyc3"
   ipv6               = true
   private_networking = true
+}
+`
+
+var testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroy = `
+resource "digitalocean_droplet" "foobar" {
+  image = "centos-7-x64"
+  name = "foobar"
+  region = "nyc3"
+  size = "s-1vcpu-1gb"
+  private_networking = false
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "digitalocean_floating_ip" "foobar" {
+  region     = "nyc3"
+}
+
+resource "digitalocean_floating_ip_assignment" "foobar" {
+  ip_address = "${digitalocean_floating_ip.foobar.id}"
+  droplet_id = "${digitalocean_droplet.foobar.id}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+`
+
+var testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroyReassign = `
+resource "digitalocean_droplet" "foobar" {
+  image = "ubuntu-18-04-x64"
+  name = "foobar"
+  region = "nyc3"
+  size = "s-1vcpu-1gb"
+  private_networking = false
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "digitalocean_floating_ip" "foobar" {
+  region     = "nyc3"
+}
+
+resource "digitalocean_floating_ip_assignment" "foobar" {
+  ip_address = "${digitalocean_floating_ip.foobar.id}"
+  droplet_id = "${digitalocean_droplet.foobar.id}"
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 `
