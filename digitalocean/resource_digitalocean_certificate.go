@@ -60,6 +60,9 @@ func resourceDigitalOceanCertificate() *schema.Resource {
 				Optional:      true,
 				ForceNew:      true,
 				ConflictsWith: []string{"private_key", "leaf_certificate", "certificate_chain"},
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return d.Get("type") == "custom"
+				},
 			},
 
 			"type": {
