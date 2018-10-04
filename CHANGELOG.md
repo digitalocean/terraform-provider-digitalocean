@@ -1,4 +1,10 @@
-## 1.1.0 (Unreleased)
+## 1.0.2 (Unreleased)
+
+BUG FIXES:
+
+* resource/digitalocean_certificate: Suppress diff for DNS names on custom certificate resources ([#146](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/146)).
+* resource/digitalocean_floating_ip_assignment: Ensure resource works with the `create_before_destroy` lifecycle rule ([#147](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/147)).
+
 ## 1.0.1 (October 02, 2018)
 
 BUG FIXES:
