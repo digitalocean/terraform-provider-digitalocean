@@ -218,9 +218,9 @@ func dataSourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{})
 	return nil
 }
 
-func findDropletByName(certs []godo.Droplet, name string) (*godo.Droplet, error) {
+func findDropletByName(droplets []godo.Droplet, name string) (*godo.Droplet, error) {
 	results := make([]godo.Droplet, 0)
-	for _, v := range certs {
+	for _, v := range droplets {
 		if v.Name == name {
 			results = append(results, v)
 		}
