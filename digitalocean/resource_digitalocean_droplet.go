@@ -29,10 +29,9 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"image": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
 			},
 
 			"name": {
@@ -305,7 +304,7 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	if err == nil || droplet.Image.Slug == "" {
 		// The image field is provided as an ID (number), or
 		// the image has no slug. In both cases we store it as an ID.
-		d.Set("image", godo.Stringify(droplet.Image.ID))
+		d.Set("image", droplet.Image.ID)
 	} else {
 		d.Set("image", droplet.Image.Slug)
 	}

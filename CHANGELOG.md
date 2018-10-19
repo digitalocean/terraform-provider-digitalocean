@@ -1,4 +1,9 @@
-## 1.1.0 (Unreleased)
+## 1.0.3 (Unreleased)
+
+BUG FIXES:
+
+* resource/digitalocean_droplet: Revert to pre-1.0.0 handling of `image` attribute to prevent unintentional rebuilds on upgrade ([#152](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/152)).
+
 ## 1.0.2 (October 05, 2018)
 
 BUG FIXES:
