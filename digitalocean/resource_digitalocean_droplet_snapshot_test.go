@@ -49,7 +49,9 @@ func testSweepDropletSnapshots(region string) error {
 
 func TestAccDigitalOceanDropletSnapshot_Basic(t *testing.T) {
 	var snapshot godo.Snapshot
-	rInt := acctest.RandInt()
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
+	rInt3 := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -57,17 +59,13 @@ func TestAccDigitalOceanDropletSnapshot_Basic(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanDropletSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDropletSnapshotConfig_basic, rInt, rInt),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDropletSnapshotConfig_basic, rInt1, rInt2, rInt3),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanDropletSnapshotExists("digitalocean_droplet_snapshot.foobar", &snapshot),
+					testAccCheckDigitalOceanDropletSnapshotExists("digitalocean_droplet_snapshot.foobar_one", &snapshot),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
+						"digitalocean_droplet_snapshot.foobar_one", "name", fmt.Sprintf("snapshotone-%d", rInt2)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_snapshot.foobar", "regions.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_snapshot.foobar", "min_disk_size", "20"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_droplet_snapshot.foobar", "resource_id"),
+						"digitalocean_droplet_snapshot.foobar_two", "name", fmt.Sprintf("snapshottwo-%d", rInt3)),
 				),
 			},
 		},
@@ -123,10 +121,6 @@ func testAccCheckDigitalOceanDropletSnapshotDestroy(s *terraform.State) error {
 }
 
 const testAccCheckDigitalOceanDropletSnapshotConfig_basic = `
-resource "digitalocean_droplet_snapshot" "foobar" {
-  name = "snapshot-%d"
-  resource_id = "${digitalocean_droplet.foo.id}"
-}
 resource "digitalocean_droplet" "foo" {
 	name      = "foo-%d"
 	size      = "512mb"
@@ -134,4 +128,12 @@ resource "digitalocean_droplet" "foo" {
 	region    = "nyc3"
 	user_data = "foobar"
   }
-`
+  resource "digitalocean_droplet_snapshot" "foobar_one" {
+	name = "snapshotone-%d"
+	resource_id = "${digitalocean_droplet.foo.id}"
+  }
+  resource "digitalocean_droplet_snapshot" "foobar_two" {
+	name = "snapshottwo-%d"
+	resource_id = "${digitalocean_droplet.foo.id}"
+  }
+  `

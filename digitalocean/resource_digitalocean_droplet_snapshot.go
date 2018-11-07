@@ -64,27 +64,31 @@ func resourceDigitalOceanDropletSnapshotCreate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error creating Droplet Snapshot: %s", err)
 	}
 
-	for ok := true; ok; ok = checkActionProgress(action.ID, meta) {
+	for ok := true; ok; ok = checkActionProgress(action.Status) {
+		action, _, _ = client.Actions.Get(context.Background(), action.ID)
 		time.Sleep(10)
 	}
-	opt := godo.ListOptions{}
+	opt := godo.ListOptions{Page: 1, PerPage: 200}
 	snapshotList, _, _ := client.Droplets.Snapshots(context.Background(), action.ResourceID, &opt)
 
-	d.SetId(strconv.Itoa(snapshotList[len(snapshotList)-1].ID))
-	d.Set("name", snapshotList[len(snapshotList)-1].Name)
-	d.Set("resource_id", strconv.Itoa(snapshotList[len(snapshotList)-1].ID))
-	d.Set("regions", snapshotList[len(snapshotList)-1].Regions)
-	d.Set("created_at", snapshotList[len(snapshotList)-1].Created)
-	d.Set("min_disk_size", snapshotList[len(snapshotList)-1].MinDiskSize)
+	for _, v := range snapshotList {
+		createdTime, _ := time.Parse("2006-01-02T15:04:05Z", v.Created)
+		checkTime := godo.Timestamp{createdTime}
 
+		if checkTime == *action.StartedAt {
+			d.SetId(strconv.Itoa(v.ID))
+			d.Set("name", v.Name)
+			d.Set("resource_id", strconv.Itoa(v.ID))
+			d.Set("regions", v.Regions)
+			d.Set("created_at", v.Created)
+			d.Set("min_disk_size", v.MinDiskSize)
+		}
+	}
 	return resourceDigitalOceanDropletSnapshotRead(d, meta)
 }
 
-func checkActionProgress(actionId int, meta interface{}) bool {
-	client := meta.(*godo.Client)
-
-	action, _, _ := client.Actions.Get(context.Background(), actionId)
-	if action.Status == "in-progress" {
+func checkActionProgress(actionProgress string) bool {
+	if actionProgress == "in-progress" {
 		return true
 	}
 	return false
