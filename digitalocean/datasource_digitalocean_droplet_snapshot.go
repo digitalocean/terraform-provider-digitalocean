@@ -49,7 +49,7 @@ func dataSourceDigitalOceanDropletSnapshot() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
-			"resource_id": {
+			"droplet_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -136,7 +136,7 @@ func dataSourceDigitalOceanDropletSnapshotRead(d *schema.ResourceData, meta inte
 	d.Set("created_at", snapshot.Created)
 	d.Set("min_disk_size", snapshot.MinDiskSize)
 	d.Set("regions", snapshot.Regions)
-	d.Set("resource_id", snapshot.ResourceID)
+	d.Set("droplet_id", snapshot.ResourceID)
 	d.Set("size", snapshot.SizeGigaBytes)
 
 	return nil

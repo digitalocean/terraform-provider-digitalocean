@@ -28,7 +28,7 @@ func resourceDigitalOceanDropletSnapshot() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
-			"resource_id": {
+			"droplet_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -58,40 +58,37 @@ func resourceDigitalOceanDropletSnapshot() *schema.Resource {
 func resourceDigitalOceanDropletSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
-	resourceId, _ := strconv.Atoi(d.Get("resource_id").(string))
+	resourceId, _ := strconv.Atoi(d.Get("droplet_id").(string))
 	action, _, err := client.DropletActions.Snapshot(context.Background(), resourceId, d.Get("name").(string))
 	if err != nil {
 		return fmt.Errorf("Error creating Droplet Snapshot: %s", err)
 	}
 
-	for ok := true; ok; ok = checkActionProgress(action.Status) {
-		action, _, _ = client.Actions.Get(context.Background(), action.ID)
-		time.Sleep(10)
+	if err = waitForAction(client, action); err != nil {
+		return fmt.Errorf(
+			"Error waiting for Droplet snapshot (%v) to finish: %s", resourceId, err)
 	}
-	opt := godo.ListOptions{Page: 1, PerPage: 200}
-	snapshotList, _, _ := client.Droplets.Snapshots(context.Background(), action.ResourceID, &opt)
+
+	snapshotList, err := SnapshotList(context.Background(), client)
+
+	if err != nil {
+		return fmt.Errorf("Error retriving Droplet Snapshot: %s", err)
+	}
 
 	for _, v := range snapshotList {
 		createdTime, _ := time.Parse("2006-01-02T15:04:05Z", v.Created)
 		checkTime := godo.Timestamp{createdTime}
 
 		if checkTime == *action.StartedAt {
-			d.SetId(strconv.Itoa(v.ID))
+			d.SetId(v.ID)
 			d.Set("name", v.Name)
-			d.Set("resource_id", strconv.Itoa(v.ID))
+			d.Set("droplet_id", v.ID)
 			d.Set("regions", v.Regions)
 			d.Set("created_at", v.Created)
 			d.Set("min_disk_size", v.MinDiskSize)
 		}
 	}
 	return resourceDigitalOceanDropletSnapshotRead(d, meta)
-}
-
-func checkActionProgress(actionProgress string) bool {
-	if actionProgress == "in-progress" {
-		return true
-	}
-	return false
 }
 
 func resourceDigitalOceanDropletSnapshotRead(d *schema.ResourceData, meta interface{}) error {
@@ -109,7 +106,7 @@ func resourceDigitalOceanDropletSnapshotRead(d *schema.ResourceData, meta interf
 	}
 
 	d.Set("name", snapshot.Name)
-	d.Set("resource_id", snapshot.ResourceID)
+	d.Set("droplet_id", snapshot.ResourceID)
 	d.Set("regions", snapshot.Regions)
 	d.Set("size", snapshot.SizeGigaBytes)
 	d.Set("created_at", snapshot.Created)
@@ -129,4 +126,38 @@ func resourceDigitalOceanDropletSnapshotDelete(d *schema.ResourceData, meta inte
 
 	d.SetId("")
 	return nil
+}
+
+func SnapshotList(ctx context.Context, client *godo.Client) ([]godo.Snapshot, error) {
+	// create a list to hold our droplets
+	list := []godo.Snapshot{}
+
+	// create options. initially, these will be blank
+	opt := &godo.ListOptions{}
+	for {
+		snapshots, resp, err := client.Snapshots.List(ctx, opt)
+		if err != nil {
+			return nil, err
+		}
+
+		// append the current page's droplets to our list
+		for _, d := range snapshots {
+			list = append(list, d)
+		}
+
+		// if we are at the last page, break out the for loop
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return nil, err
+		}
+
+		// set the page we want for the next request
+		opt.Page = page + 1
+	}
+
+	return list, nil
 }

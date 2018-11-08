@@ -26,7 +26,7 @@ func TestAccDataSourceDigitalOceanDropletSnapshot_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "min_disk_size", "20"),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "regions.#", "1"),
-					resource.TestCheckResourceAttrSet("data.digitalocean_droplet_snapshot.foobar", "resource_id"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_droplet_snapshot.foobar", "droplet_id"),
 				),
 			},
 		},
@@ -48,7 +48,7 @@ func TestAccDataSourceDigitalOceanDropletSnapshot_regex(t *testing.T) {
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "min_disk_size", "20"),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "regions.#", "1"),
-					resource.TestCheckResourceAttrSet("data.digitalocean_droplet_snapshot.foobar", "resource_id"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_droplet_snapshot.foobar", "droplet_id"),
 				),
 			},
 		},
@@ -70,7 +70,7 @@ func TestAccDataSourceDigitalOceanDropletSnapshot_region(t *testing.T) {
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "min_disk_size", "20"),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "regions.#", "1"),
-					resource.TestCheckResourceAttrSet("data.digitalocean_droplet_snapshot.foobar", "resource_id"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_droplet_snapshot.foobar", "droplet_id"),
 				),
 			},
 		},
@@ -117,7 +117,7 @@ resource "digitalocean_droplet" "foo" {
 
 resource "digitalocean_droplet_snapshot" "foo" {
   name = "snapshot-%d"
-  resource_id = "${digitalocean_droplet.foo.id}"
+  droplet_id = "${digitalocean_droplet.foo.id}"
 }
 
 data "digitalocean_droplet_snapshot" "foobar" {
@@ -136,7 +136,7 @@ resource "digitalocean_droplet" "foo" {
 
 resource "digitalocean_droplet_snapshot" "foo" {
   name = "snapshot-%d"
-  resource_id = "${digitalocean_droplet.foo.id}"
+  droplet_id = "${digitalocean_droplet.foo.id}"
 }
 
 data "digitalocean_droplet_snapshot" "foobar" {
@@ -163,12 +163,12 @@ resource "digitalocean_droplet" "bar" {
 
 resource "digitalocean_droplet_snapshot" "foo" {
   name = "snapshot-%d"
-  resource_id = "${digitalocean_droplet.foo.id}"
+  droplet_id = "${digitalocean_droplet.foo.id}"
 }
 
 resource "digitalocean_droplet_snapshot" "bar" {
   name = "snapshot-%d"
-  resource_id = "${digitalocean_droplet.bar.id}"
+  droplet_id = "${digitalocean_droplet.bar.id}"
 }
 
 data "digitalocean_droplet_snapshot" "foobar" {
