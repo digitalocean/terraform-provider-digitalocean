@@ -10,7 +10,8 @@ import (
 
 func TestAccDigitalOceanDropletSnapshot_importBasic(t *testing.T) {
 	resourceName := "digitalocean_droplet_snapshot.foobar"
-	rInt := acctest.RandInt()
+	rInt1 := acctest.RandInt()
+	rInt2 := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -18,7 +19,7 @@ func TestAccDigitalOceanDropletSnapshot_importBasic(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanVolumeSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDropletSnapshotConfig_basic, rInt, rInt),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDropletSnapshotConfig_basic, rInt1, rInt2),
 			},
 
 			{

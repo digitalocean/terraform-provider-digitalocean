@@ -69,25 +69,19 @@ func resourceDigitalOceanDropletSnapshotCreate(d *schema.ResourceData, meta inte
 			"Error waiting for Droplet snapshot (%v) to finish: %s", resourceId, err)
 	}
 
-	snapshotList, err := SnapshotList(context.Background(), client)
+	v, err := findSnapshotInSnapshotList(context.Background(), client, *action.StartedAt)
 
 	if err != nil {
 		return fmt.Errorf("Error retriving Droplet Snapshot: %s", err)
 	}
 
-	for _, v := range snapshotList {
-		createdTime, _ := time.Parse("2006-01-02T15:04:05Z", v.Created)
-		checkTime := godo.Timestamp{createdTime}
+	d.SetId(v.ID)
+	d.Set("name", v.Name)
+	d.Set("droplet_id", v.ID)
+	d.Set("regions", v.Regions)
+	d.Set("created_at", v.Created)
+	d.Set("min_disk_size", v.MinDiskSize)
 
-		if checkTime == *action.StartedAt {
-			d.SetId(v.ID)
-			d.Set("name", v.Name)
-			d.Set("droplet_id", v.ID)
-			d.Set("regions", v.Regions)
-			d.Set("created_at", v.Created)
-			d.Set("min_disk_size", v.MinDiskSize)
-		}
-	}
 	return resourceDigitalOceanDropletSnapshotRead(d, meta)
 }
 
@@ -128,21 +122,21 @@ func resourceDigitalOceanDropletSnapshotDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func SnapshotList(ctx context.Context, client *godo.Client) ([]godo.Snapshot, error) {
-	// create a list to hold our droplets
-	list := []godo.Snapshot{}
-
-	// create options. initially, these will be blank
+func findSnapshotInSnapshotList(ctx context.Context, client *godo.Client, actionTime godo.Timestamp) (godo.Snapshot, error) {
 	opt := &godo.ListOptions{}
 	for {
 		snapshots, resp, err := client.Snapshots.List(ctx, opt)
 		if err != nil {
-			return nil, err
+			return godo.Snapshot{}, err
 		}
 
-		// append the current page's droplets to our list
+		// check the current pages droplets for our snapshot
 		for _, d := range snapshots {
-			list = append(list, d)
+			createdTime, _ := time.Parse("2006-01-02T15:04:05Z", d.Created)
+			checkTime := godo.Timestamp{Time: createdTime}
+			if checkTime == actionTime {
+				return d, nil
+			}
 		}
 
 		// if we are at the last page, break out the for loop
@@ -152,12 +146,11 @@ func SnapshotList(ctx context.Context, client *godo.Client) ([]godo.Snapshot, er
 
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return nil, err
+			return godo.Snapshot{}, err
 		}
 
 		// set the page we want for the next request
 		opt.Page = page + 1
 	}
-
-	return list, nil
+	return godo.Snapshot{}, fmt.Errorf("Error Could not locate the Droplet Snaphot")
 }
