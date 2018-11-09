@@ -41,7 +41,7 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"protocol": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"tcp",
 								"udp",
@@ -86,7 +86,7 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"protocol": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"tcp",
 								"udp",
