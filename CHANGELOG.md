@@ -1,4 +1,10 @@
 ## 1.1.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource** `digitalocean_droplet_snapshot` ([#161](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/161)). Thanks to @thefossedog!
+* **New Datasource:** `digitalocean_droplet_snapshot` ([#161](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/161)). Thanks to @thefossedog!
+
 ## 1.0.2 (October 05, 2018)
 
 BUG FIXES:
