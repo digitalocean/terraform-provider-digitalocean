@@ -69,18 +69,18 @@ func resourceDigitalOceanDropletSnapshotCreate(d *schema.ResourceData, meta inte
 			"Error waiting for Droplet snapshot (%v) to finish: %s", resourceId, err)
 	}
 
-	v, err := findSnapshotInSnapshotList(context.Background(), client, *action.StartedAt)
+	snapshot, err := findSnapshotInSnapshotList(context.Background(), client, *action)
 
 	if err != nil {
 		return fmt.Errorf("Error retriving Droplet Snapshot: %s", err)
 	}
 
-	d.SetId(v.ID)
-	d.Set("name", v.Name)
-	d.Set("droplet_id", v.ID)
-	d.Set("regions", v.Regions)
-	d.Set("created_at", v.Created)
-	d.Set("min_disk_size", v.MinDiskSize)
+	d.SetId(strconv.Itoa(snapshot.ID))
+	d.Set("name", snapshot.Name)
+	d.Set("droplet_id", snapshot.ID)
+	d.Set("regions", snapshot.Regions)
+	d.Set("created_at", snapshot.Created)
+	d.Set("min_disk_size", snapshot.MinDiskSize)
 
 	return resourceDigitalOceanDropletSnapshotRead(d, meta)
 }
@@ -122,20 +122,20 @@ func resourceDigitalOceanDropletSnapshotDelete(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func findSnapshotInSnapshotList(ctx context.Context, client *godo.Client, actionTime godo.Timestamp) (godo.Snapshot, error) {
-	opt := &godo.ListOptions{}
+func findSnapshotInSnapshotList(ctx context.Context, client *godo.Client, action godo.Action) (godo.Image, error) {
+	opt := &godo.ListOptions{PerPage: 200}
 	for {
-		snapshots, resp, err := client.Snapshots.List(ctx, opt)
+		snapshots, resp, err := client.Droplets.Snapshots(ctx, action.ResourceID, opt)
 		if err != nil {
-			return godo.Snapshot{}, err
+			return godo.Image{}, err
 		}
 
-		// check the current pages droplets for our snapshot
-		for _, d := range snapshots {
-			createdTime, _ := time.Parse("2006-01-02T15:04:05Z", d.Created)
-			checkTime := godo.Timestamp{Time: createdTime}
-			if checkTime == actionTime {
-				return d, nil
+		// check the current page for our snapshot
+		for _, s := range snapshots {
+			createdTime, _ := time.Parse("2006-01-02T15:04:05Z", s.Created)
+			checkTime := &godo.Timestamp{Time: createdTime}
+			if *checkTime == *action.StartedAt {
+				return s, nil
 			}
 		}
 
@@ -146,11 +146,11 @@ func findSnapshotInSnapshotList(ctx context.Context, client *godo.Client, action
 
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return godo.Snapshot{}, err
+			return godo.Image{}, err
 		}
 
 		// set the page we want for the next request
 		opt.Page = page + 1
 	}
-	return godo.Snapshot{}, fmt.Errorf("Error Could not locate the Droplet Snaphot")
+	return godo.Image{}, fmt.Errorf("Error Could not locate the Droplet Snapshot")
 }
