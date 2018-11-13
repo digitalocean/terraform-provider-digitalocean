@@ -41,7 +41,7 @@ The following arguments are supported:
    enabled. Defaults to false.
 * `ssh_keys` - (Optional) A list of SSH IDs or fingerprints to enable in
    the format `[12345, 123456]`. To retrieve this info, use a tool such
-   as `curl` with the [DigitalOcean API](https://developers.digitalocean.com/#keys),
+   as `curl` with the [DigitalOcean API](https://developers.digitalocean.com/documentation/v2/#ssh-keys),
    to retrieve them.
 * `resize_disk` - (Optional) Boolean controlling whether to increase the disk
    size when resizing a Droplet. It defaults to `true`. When set to `false`,
