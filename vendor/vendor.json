@@ -251,13 +251,13 @@
 			"revisionTime": "2016-10-29T20:57:26Z"
 		},
 		{
-			"checksumSHA1": "aiCBBVRj3GySoe6VRkpitpVQYdU=",
+			"checksumSHA1": "ubzrWZ6/OFn5UyaQkehkbikkwow=",
 			"comment": "v0.9.0-20-gf75d769",
 			"path": "github.com/digitalocean/godo",
-			"revision": "6a6ce62154ba780ecbb97bbbb13a4e9e0b157070",
-			"revisionTime": "2018-08-30T17:48:58Z",
-			"version": "v1.4.2",
-			"versionExact": "v1.4.2"
+			"revision": "8f0fd9c1e6fcfcf8796099846451f8510f3b4acc",
+			"revisionTime": "2018-11-13T17:45:38Z",
+			"version": "v1.7.0",
+			"versionExact": "v1.7.0"
 		},
 		{
 			"checksumSHA1": "HbOJxa+FsQ1TTsF+BkHAvzqqZv4=",
