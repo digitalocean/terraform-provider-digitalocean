@@ -1,14 +1,19 @@
 package digitalocean
 
 import (
+	"context"
+	"fmt"
 	"strings"
 
+	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceDigitalOceanKubernetes() *schema.Resource {
 	return &schema.Resource{
+		Create:        resourceDigitalOceanKubernetesCreate,
+		Read:          resourceDigitalOceanKubernetesRead,
 		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
@@ -185,4 +190,41 @@ func kubernetesConfig() *schema.Schema {
 			},
 		},
 	}
+}
+
+func resourceDigitalOceanKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*godo.Client)
+
+	opts := &godo.KubernetesClusterCreateRequest{
+		Name:       d.Get("name").(string),
+		RegionSlug: d.Get("region").(string),
+		Tags:       d.Get("tags").([]string),
+	}
+
+	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
+	if err != nil {
+		return fmt.Errorf("Error creating Kubernetes cluster: %s", err)
+	}
+
+	d.SetId(cluster.ID)
+
+	return resourceDigitalOceanKubernetesRead(d, meta)
+}
+
+func resourceDigitalOceanKubernetesRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*godo.Client)
+
+	cluster, resp, err := client.Kubernetes.Get(context.Background(), d.Id())
+	if err != nil {
+		if resp.StatusCode == 404 {
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Error retrieving Kubernetes cluster: %s", err)
+	}
+
+	d.Set("name", cluster.Name)
+
+	return nil
 }
