@@ -14,6 +14,8 @@ func resourceDigitalOceanKubernetes() *schema.Resource {
 	return &schema.Resource{
 		Create:        resourceDigitalOceanKubernetesCreate,
 		Read:          resourceDigitalOceanKubernetesRead,
+		Update:        resourceDigitalOceanKubernetesUpdate,
+		Delete:        resourceDigitalOceanKubernetesDelete,
 		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
@@ -62,7 +64,7 @@ func resourceDigitalOceanKubernetes() *schema.Resource {
 
 			"tags": tagsSchema(),
 
-			"node_pools": nodePoolSchema(),
+			"node_pool": nodePoolSchema(),
 
 			"status": {
 				Type:     schema.TypeString,
@@ -87,7 +89,7 @@ func resourceDigitalOceanKubernetes() *schema.Resource {
 func nodePoolSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
-		Optional: false,
+		Optional: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
@@ -104,8 +106,7 @@ func nodePoolSchema() *schema.Schema {
 
 				"count": {
 					Type:     schema.TypeInt,
-					Required: false,
-					Default:  1,
+					Required: true,
 				},
 
 				"tags": tagsSchema(),
@@ -119,13 +120,12 @@ func nodePoolSchema() *schema.Schema {
 func nodeSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
-		Optional: false,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
-					Type:         schema.TypeString,
-					Required:     true,
-					ValidateFunc: validation.NoZeroValues,
+					Type:     schema.TypeString,
+					Computed: true,
 				},
 
 				"status": {
@@ -150,7 +150,7 @@ func nodeSchema() *schema.Schema {
 func kubernetesConfig() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
-		Optional: false,
+		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"raw_config": {
@@ -196,9 +196,11 @@ func resourceDigitalOceanKubernetesCreate(d *schema.ResourceData, meta interface
 	client := meta.(*godo.Client)
 
 	opts := &godo.KubernetesClusterCreateRequest{
-		Name:       d.Get("name").(string),
-		RegionSlug: d.Get("region").(string),
-		Tags:       d.Get("tags").([]string),
+		Name:        d.Get("name").(string),
+		RegionSlug:  d.Get("region").(string),
+		VersionSlug: d.Get("version").(string),
+		Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
+		NodePools:   expandNodePools(d.Get("node_pool").(*schema.Set).List()),
 	}
 
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
@@ -209,6 +211,24 @@ func resourceDigitalOceanKubernetesCreate(d *schema.ResourceData, meta interface
 	d.SetId(cluster.ID)
 
 	return resourceDigitalOceanKubernetesRead(d, meta)
+}
+
+func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePoolCreateRequest {
+	expandedNodePools := make([]*godo.KubernetesNodePoolCreateRequest, 0, len(nodePools))
+	for _, rawPool := range nodePools {
+
+		pool := rawPool.(map[string]interface{})
+		cr := &godo.KubernetesNodePoolCreateRequest{
+			Name:  pool["name"].(string),
+			Size:  pool["size"].(string),
+			Count: pool["count"].(int),
+			Tags:  expandTags(pool["tags"].(*schema.Set).List()),
+		}
+
+		expandedNodePools = append(expandedNodePools, cr)
+	}
+
+	return expandedNodePools
 }
 
 func resourceDigitalOceanKubernetesRead(d *schema.ResourceData, meta interface{}) error {
@@ -225,6 +245,28 @@ func resourceDigitalOceanKubernetesRead(d *schema.ResourceData, meta interface{}
 	}
 
 	d.Set("name", cluster.Name)
+
+	return nil
+}
+
+func resourceDigitalOceanKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
+	return nil
+}
+
+func resourceDigitalOceanKubernetesDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*godo.Client)
+
+	resp, err := client.Kubernetes.Delete(context.Background(), d.Id())
+	if err != nil {
+		if resp.StatusCode == 404 {
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Unable to delete cluster: %s", err)
+	}
+
+	d.SetId("")
 
 	return nil
 }

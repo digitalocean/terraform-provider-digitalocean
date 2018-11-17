@@ -26,9 +26,30 @@ type KubernetesNodePool struct {
 
     Nodes []*KubernetesNode `json:"nodes,omitempty"`
 }
+
+type KubernetesNode struct {
+    ID     string                `json:"id,omitempty"`
+    Name   string                `json:"name,omitempty"`
+    Status *KubernetesNodeStatus `json:"status,omitempty"`
+
+    CreatedAt time.Time `json:"created_at,omitempty"`
+    UpdatedAt time.Time `json:"updated_at,omitempty"`
+}
+
+client_key - Base64 encoded private key used by clients to authenticate to the Kubernetes cluster.
+
+client_certificate - Base64 encoded public certificate used by clients to authenticate to the Kubernetes cluster.
+
+cluster_ca_certificate - Base64 encoded public CA certificate used as the root of trust for the Kubernetes cluster.
+
+host - The Kubernetes cluster server host.
+
+username - A username used to authenticate to the Kubernetes cluster.
+
+password - A password or token used to authenticate to the Kubernetes cluster.
 */
 
-resource "digitalocean_kubernetes" "k8s" {
+resource "digitalocean_kubernetes_cluster" "k8s" {
   name   = "example"
   region = "lon1"
 
