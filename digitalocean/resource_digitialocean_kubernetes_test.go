@@ -24,7 +24,33 @@ func TestAccDigitalOceanKubernetes_Basic(t *testing.T) {
 				Config: testAccDigitalOceanKubernetesConfigBasic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "version", "1.12.1-do.2"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "ipv4_address"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_subnet"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "service_subnet"), //This is currently not returned from the API and this will fail
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),       //This attribute is currently not returned from the API and this will fail
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.0", "foo"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.1", "bar"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.name", "default"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-1vcpu-2gb"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.count", "3"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.0", "one"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.1", "two"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.0.name"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.0.status"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.0.created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.0.updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.raw_config"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.client_certificate"),
 				),
 			},
 		},
@@ -34,16 +60,16 @@ func TestAccDigitalOceanKubernetes_Basic(t *testing.T) {
 func testAccDigitalOceanKubernetesConfigBasic(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_kubernetes_cluster" "foobar" {
-	name          = "%s"
-	region = "lon1"
+	name    = "%s"
+	region  = "lon1"
 	version = "1.12.1-do.2"
-	tags = ["foo","bar"]
+	tags    = ["foo","bar"]
 
 	node_pool {
-		name = "default"
-		size = "s-1vcpu-2gb"
+		name  = "default"
+		size  = "s-1vcpu-2gb"
 		count = 3
-		tags = ["one","two"]
+		tags  = ["one","two"]
 	}
 }
 `, rName)
@@ -57,7 +83,7 @@ func testAccCheckDigitalOceanKubernetesDestroy(s *terraform.State) error {
 			continue
 		}
 
-		// Try to find the firewall
+		// Try to find the cluster
 		_, _, err := client.Kubernetes.Get(context.Background(), rs.Primary.ID)
 
 		if err == nil {

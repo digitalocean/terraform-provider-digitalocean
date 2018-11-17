@@ -1228,6 +1228,12 @@
 			"path": "google.golang.org/grpc/tap",
 			"revision": "e00d24941bcee35dd163f4377d5371349f14baaf",
 			"revisionTime": "2018-08-22T16:00:39Z"
+		},
+		{
+			"checksumSHA1": "ZSWoOPUNRr5+3dhkLK3C4cZAQPk=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "5420a8b6744d3b0345ab293f6fcba19c978f1183",
+			"revisionTime": "2018-03-28T19:50:20Z"
 		}
 	],
 	"rootPath": "github.com/terraform-providers/terraform-provider-digitalocean"
