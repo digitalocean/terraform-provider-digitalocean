@@ -92,7 +92,8 @@ func resourceDigitalOceanKubernetes() *schema.Resource {
 func nodePoolSchema() *schema.Schema {
 	return &schema.Schema{
 		Type:     schema.TypeSet,
-		Optional: true,
+		Required: true,
+		MinItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"name": {
@@ -272,8 +273,6 @@ func resourceDigitalOceanKubernetesRead(d *schema.ResourceData, meta interface{}
 		return fmt.Errorf("Error retrieving Kubernetes cluster: %s", err)
 	}
 
-	pretty.Println(cluster)
-
 	d.Set("name", cluster.Name)
 	d.Set("region", cluster.RegionSlug)
 	d.Set("version", cluster.VersionSlug)
@@ -282,7 +281,7 @@ func resourceDigitalOceanKubernetesRead(d *schema.ResourceData, meta interface{}
 	d.Set("ipv4_address", cluster.IPv4)
 	d.Set("endpoint", cluster.Endpoint)
 	d.Set("tags", flattenTags(cluster.Tags))
-	d.Set("status", cluster.Status)
+	d.Set("status", cluster.Status.State)
 	d.Set("created_at", cluster.CreatedAt.UTC().String())
 	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
 	d.Set("node_pool", flattenNodePools(cluster.NodePools))
@@ -304,13 +303,15 @@ func flattenNodePools(pools []*godo.KubernetesNodePool) []interface{} {
 		return nil
 	}
 
-	flattenedPools := make([]interface{}, len(pools))
-	for i, pool := range pools {
+	flattenedPools := make([]interface{}, 0)
+	for _, pool := range pools {
 		rawPool := map[string]interface{}{
 			"name":  pool.Name,
 			"size":  pool.Size,
 			"count": pool.Count,
 		}
+
+		rawPool["name"] = pool.Name
 
 		if pool.Tags != nil {
 			rawPool["tags"] = flattenTags(pool.Tags)
@@ -320,8 +321,10 @@ func flattenNodePools(pools []*godo.KubernetesNodePool) []interface{} {
 			rawPool["nodes"] = flattenNodes(pool.Nodes)
 		}
 
-		flattenedPools[i] = rawPool
+		flattenedPools = append(flattenedPools, rawPool)
 	}
+
+	pretty.Println(flattenedPools)
 
 	return flattenedPools
 }
@@ -331,8 +334,8 @@ func flattenNodes(nodes []*godo.KubernetesNode) []interface{} {
 		return nil
 	}
 
-	flattenedNodes := make([]interface{}, len(nodes))
-	for i, node := range nodes {
+	flattenedNodes := make([]interface{}, 0)
+	for _, node := range nodes {
 		rawNode := map[string]interface{}{
 			"name":       node.Name,
 			"status":     node.Status.State,
@@ -340,7 +343,7 @@ func flattenNodes(nodes []*godo.KubernetesNode) []interface{} {
 			"updated_at": node.UpdatedAt.UTC().String(),
 		}
 
-		flattenedNodes[i] = rawNode
+		flattenedNodes = append(flattenedNodes, rawNode)
 	}
 
 	return flattenedNodes
