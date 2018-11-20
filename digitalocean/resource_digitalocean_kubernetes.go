@@ -3,14 +3,13 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/kr/pretty"
-	"gopkg.in/yaml.v2"
 )
 
 func resourceDigitalOceanKubernetes() *schema.Resource {
@@ -84,14 +83,14 @@ func resourceDigitalOceanKubernetes() *schema.Resource {
 				Computed: true,
 			},
 
-			"kube_config": kubernetesConfig(),
+			"kube_config": kubernetesConfigSchema(),
 		},
 	}
 }
 
 func nodePoolSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Required: true,
 		MinItems: 1,
 		Elem: &schema.Resource{
@@ -123,7 +122,7 @@ func nodePoolSchema() *schema.Schema {
 
 func nodeSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeSet,
+		Type:     schema.TypeList,
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
@@ -151,41 +150,6 @@ func nodeSchema() *schema.Schema {
 	}
 }
 
-func kubernetesConfig() *schema.Schema {
-	return &schema.Schema{
-		Type:     schema.TypeSet,
-		Computed: true,
-		Elem: &schema.Resource{
-			Schema: map[string]*schema.Schema{
-				"raw_config": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
-				"host": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
-				"cluster_ca_certificate": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
-				"client_key": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-
-				"client_certificate": {
-					Type:     schema.TypeString,
-					Computed: true,
-				},
-			},
-		},
-	}
-}
-
 func resourceDigitalOceanKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
@@ -194,7 +158,7 @@ func resourceDigitalOceanKubernetesCreate(d *schema.ResourceData, meta interface
 		RegionSlug:  d.Get("region").(string),
 		VersionSlug: d.Get("version").(string),
 		Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
-		NodePools:   expandNodePools(d.Get("node_pool").(*schema.Set).List()),
+		NodePools:   expandNodePools(d.Get("node_pool").([]interface{})),
 	}
 
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
@@ -214,22 +178,45 @@ func resourceDigitalOceanKubernetesCreate(d *schema.ResourceData, meta interface
 	return resourceDigitalOceanKubernetesRead(d, meta)
 }
 
-func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePoolCreateRequest {
-	expandedNodePools := make([]*godo.KubernetesNodePoolCreateRequest, 0, len(nodePools))
-	for _, rawPool := range nodePools {
+func resourceDigitalOceanKubernetesRead(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*godo.Client)
 
-		pool := rawPool.(map[string]interface{})
-		cr := &godo.KubernetesNodePoolCreateRequest{
-			Name:  pool["name"].(string),
-			Size:  pool["size"].(string),
-			Count: pool["count"].(int),
-			Tags:  expandTags(pool["tags"].(*schema.Set).List()),
+	cluster, resp, err := client.Kubernetes.Get(context.Background(), d.Id())
+	if err != nil {
+		if resp.StatusCode == 404 {
+			d.SetId("")
+			return nil
 		}
 
-		expandedNodePools = append(expandedNodePools, cr)
+		return fmt.Errorf("Error retrieving Kubernetes cluster: %s", err)
 	}
 
-	return expandedNodePools
+	d.Set("name", cluster.Name)
+	d.Set("region", cluster.RegionSlug)
+	d.Set("version", cluster.VersionSlug)
+	d.Set("cluster_subnet", cluster.ClusterSubnet)
+	d.Set("service_subnet", cluster.ServiceSubnet)
+	d.Set("ipv4_address", cluster.IPv4)
+	d.Set("endpoint", cluster.Endpoint)
+	d.Set("tags", flattenTags(cluster.Tags))
+	d.Set("status", cluster.Status.State)
+	d.Set("created_at", cluster.CreatedAt.UTC().String())
+	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
+
+	if err := d.Set("node_pool", flattenNodePools(cluster.NodePools)); err != nil {
+		log.Printf("[DEBUG] Error setting node pool attributes: %s %#v", err, cluster.NodePools)
+	}
+
+	// fetch the K8s config  and update the resource
+	config, resp, err := client.Kubernetes.GetKubeConfig(context.Background(), cluster.ID)
+	if err != nil {
+		if resp.StatusCode == 404 {
+			return fmt.Errorf("Unable to fetch Kubernetes config: %s", err)
+		}
+	}
+	d.Set("kube_config", flattenKubeConfig(config))
+
+	return nil
 }
 
 func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.KubernetesCluster, error) {
@@ -260,42 +247,22 @@ func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.Kuber
 	return nil, fmt.Errorf("Timeout waiting to create cluster")
 }
 
-func resourceDigitalOceanKubernetesRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePoolCreateRequest {
+	expandedNodePools := make([]*godo.KubernetesNodePoolCreateRequest, 0, len(nodePools))
+	for _, rawPool := range nodePools {
 
-	cluster, resp, err := client.Kubernetes.Get(context.Background(), d.Id())
-	if err != nil {
-		if resp.StatusCode == 404 {
-			d.SetId("")
-			return nil
+		pool := rawPool.(map[string]interface{})
+		cr := &godo.KubernetesNodePoolCreateRequest{
+			Name:  pool["name"].(string),
+			Size:  pool["size"].(string),
+			Count: pool["count"].(int),
+			Tags:  expandTags(pool["tags"].(*schema.Set).List()),
 		}
 
-		return fmt.Errorf("Error retrieving Kubernetes cluster: %s", err)
+		expandedNodePools = append(expandedNodePools, cr)
 	}
 
-	d.Set("name", cluster.Name)
-	d.Set("region", cluster.RegionSlug)
-	d.Set("version", cluster.VersionSlug)
-	d.Set("cluster_subnet", cluster.ClusterSubnet)
-	d.Set("service_subnet", cluster.ServiceSubnet)
-	d.Set("ipv4_address", cluster.IPv4)
-	d.Set("endpoint", cluster.Endpoint)
-	d.Set("tags", flattenTags(cluster.Tags))
-	d.Set("status", cluster.Status.State)
-	d.Set("created_at", cluster.CreatedAt.UTC().String())
-	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
-	d.Set("node_pool", flattenNodePools(cluster.NodePools))
-
-	// fetch the K8s config  and update the resource
-	config, resp, err := client.Kubernetes.GetKubeConfig(context.Background(), cluster.ID)
-	if err != nil {
-		if resp.StatusCode == 404 {
-			return fmt.Errorf("Unable to fetch Kubernetes config: %s", err)
-		}
-	}
-	d.Set("kube_config", flattenKubeConfig(config))
-
-	return nil
+	return expandedNodePools
 }
 
 func flattenNodePools(pools []*godo.KubernetesNodePool) []interface{} {
@@ -311,8 +278,6 @@ func flattenNodePools(pools []*godo.KubernetesNodePool) []interface{} {
 			"count": pool.Count,
 		}
 
-		rawPool["name"] = pool.Name
-
 		if pool.Tags != nil {
 			rawPool["tags"] = flattenTags(pool.Tags)
 		}
@@ -323,8 +288,6 @@ func flattenNodePools(pools []*godo.KubernetesNodePool) []interface{} {
 
 		flattenedPools = append(flattenedPools, rawPool)
 	}
-
-	pretty.Println(flattenedPools)
 
 	return flattenedPools
 }
@@ -347,34 +310,6 @@ func flattenNodes(nodes []*godo.KubernetesNode) []interface{} {
 	}
 
 	return flattenedNodes
-}
-
-func flattenKubeConfig(config *godo.KubernetesClusterConfig) []interface{} {
-	rawConfigs := make([]interface{}, 1)
-
-	rawConfig := map[string]interface{}{
-		"raw_config": string(config.KubeconfigYAML),
-	}
-
-	// parse the yaml into an object
-	var c map[string]interface{}
-	err := yaml.Unmarshal(config.KubeconfigYAML, &c)
-	if err != nil {
-		fmt.Println("error unmarshaling config", err)
-		return nil
-	}
-
-	cluster := c["clusters"].([]interface{})[0].(map[interface{}]interface{})["cluster"].(map[interface{}]interface{})
-	rawConfig["cluster_ca_certificate"] = cluster["certificate-authority-data"]
-	rawConfig["host"] = cluster["server"]
-
-	user := c["users"].([]interface{})[0].(map[interface{}]interface{})["user"].(map[interface{}]interface{})
-	rawConfig["client_key"] = user["client-key-data"]
-	rawConfig["client_certificate"] = user["client-certificate-data"]
-
-	rawConfigs[0] = rawConfig
-
-	return rawConfigs
 }
 
 func resourceDigitalOceanKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
