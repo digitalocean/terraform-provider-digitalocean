@@ -203,7 +203,7 @@ func resourceDigitalOceanKubernetesRead(d *schema.ResourceData, meta interface{}
 	d.Set("service_subnet", cluster.ServiceSubnet)
 	d.Set("ipv4_address", cluster.IPv4)
 	d.Set("endpoint", cluster.Endpoint)
-	d.Set("tags", flattenTags(cluster.Tags))
+	d.Set("tags", flattenTags(filterTags(cluster.Tags)))
 	d.Set("status", cluster.Status.State)
 	d.Set("created_at", cluster.CreatedAt.UTC().String())
 	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
@@ -261,6 +261,7 @@ func resourceDigitalOceanKubernetesDelete(d *schema.ResourceData, meta interface
 
 	return nil
 }
+
 func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.KubernetesCluster, error) {
 	ticker := time.NewTicker(10 * time.Second)
 	timeout := 120
@@ -321,7 +322,7 @@ func flattenNodePools(pools []*godo.KubernetesNodePool) []interface{} {
 		}
 
 		if pool.Tags != nil {
-			rawPool["tags"] = flattenTags(pool.Tags)
+			rawPool["tags"] = flattenTags(filterTags(pool.Tags))
 		}
 
 		if pool.Nodes != nil {
@@ -352,4 +353,16 @@ func flattenNodes(nodes []*godo.KubernetesNode) []interface{} {
 	}
 
 	return flattenedNodes
+}
+
+// we need to filter tags to remove automatically added to avoid state problems
+func filterTags(tags []string) []string {
+	filteredTags := make([]string, 0)
+	for _, t := range tags {
+		if !strings.HasPrefix(t, "k8s") {
+			filteredTags = append(filteredTags, t)
+		}
+	}
+
+	return filteredTags
 }
