@@ -5,7 +5,6 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/kr/pretty"
 	"gopkg.in/yaml.v2"
 )
 
@@ -80,8 +79,6 @@ func flattenKubeConfig(config *godo.KubernetesClusterConfig) []interface{} {
 		log.Printf("[DEBUG] error unmarshalling config: %s", err)
 		return nil
 	}
-
-	pretty.Println(c)
 
 	if len(c.Clusters) < 1 {
 		return []interface{}{rawConfig}

@@ -95,6 +95,11 @@ func nodePoolSchema() *schema.Schema {
 		MinItems: 1,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
+				"id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
 				"name": {
 					Type:         schema.TypeString,
 					Required:     true,
@@ -219,6 +224,43 @@ func resourceDigitalOceanKubernetesRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
+func resourceDigitalOceanKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*godo.Client)
+
+	// Figure out the changes and then call the appropriate API methods
+
+	opts := &godo.KubernetesClusterUpdateRequest{}
+
+	_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)
+	if err != nil {
+		if resp.StatusCode == 404 {
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Unable to update cluster: %s", err)
+	}
+
+	return resourceDigitalOceanKubernetesRead(d, meta)
+}
+
+func resourceDigitalOceanKubernetesDelete(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*godo.Client)
+
+	resp, err := client.Kubernetes.Delete(context.Background(), d.Id())
+	if err != nil {
+		if resp.StatusCode == 404 {
+			d.SetId("")
+			return nil
+		}
+
+		return fmt.Errorf("Unable to delete cluster: %s", err)
+	}
+
+	d.SetId("")
+
+	return nil
+}
 func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.KubernetesCluster, error) {
 	ticker := time.NewTicker(10 * time.Second)
 	timeout := 120
@@ -250,7 +292,6 @@ func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.Kuber
 func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePoolCreateRequest {
 	expandedNodePools := make([]*godo.KubernetesNodePoolCreateRequest, 0, len(nodePools))
 	for _, rawPool := range nodePools {
-
 		pool := rawPool.(map[string]interface{})
 		cr := &godo.KubernetesNodePoolCreateRequest{
 			Name:  pool["name"].(string),
@@ -273,6 +314,7 @@ func flattenNodePools(pools []*godo.KubernetesNodePool) []interface{} {
 	flattenedPools := make([]interface{}, 0)
 	for _, pool := range pools {
 		rawPool := map[string]interface{}{
+			"id":    pool.ID,
 			"name":  pool.Name,
 			"size":  pool.Size,
 			"count": pool.Count,
@@ -310,26 +352,4 @@ func flattenNodes(nodes []*godo.KubernetesNode) []interface{} {
 	}
 
 	return flattenedNodes
-}
-
-func resourceDigitalOceanKubernetesUpdate(d *schema.ResourceData, meta interface{}) error {
-	return nil
-}
-
-func resourceDigitalOceanKubernetesDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
-
-	resp, err := client.Kubernetes.Delete(context.Background(), d.Id())
-	if err != nil {
-		if resp.StatusCode == 404 {
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("Unable to delete cluster: %s", err)
-	}
-
-	d.SetId("")
-
-	return nil
 }
