@@ -10,7 +10,7 @@ description: |-
 
 Provides a DigitalOcean SSH key resource to allow you to manage SSH
 keys for Droplet access. Keys created with this resource
-can be referenced in your droplet configuration via their ID or
+can be referenced in your Droplet configuration via their ID or
 fingerprint.
 
 ## Example Usage
@@ -20,6 +20,15 @@ fingerprint.
 resource "digitalocean_ssh_key" "default" {
   name       = "Terraform Example"
   public_key = "${file("/Users/terraform/.ssh/id_rsa.pub")}"
+}
+
+# Create a new Droplet using the SSH key
+resource "digitalocean_droplet" "web" {
+  image    = "ubuntu-18-04-x64"
+  name     = "web-1"
+  region   = "nyc3"
+  size     = "s-1vcpu-1gb"
+  ssh_keys = ["${digitalocean_ssh_key.default.fingerprint}"]
 }
 ```
 

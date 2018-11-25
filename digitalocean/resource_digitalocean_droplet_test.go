@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -77,7 +76,11 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "user_data", "foobar"),
+						"digitalocean_droplet.foobar", "user_data", HashString("foobar")),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "ipv4_address_private", ""),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "ipv6_address", ""),
 				),
 			},
 		},
@@ -87,8 +90,7 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
-	// TODO: not hardcode this as it will change over time
-	centosID := 22995941
+	slug := "centos-7-x64"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -96,7 +98,7 @@ func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_withID(centosID, rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_withID(rInt, slug),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 				),
@@ -104,10 +106,6 @@ func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 		},
 	})
 }
-
-/*func testAccDigitalOceanDroplet_getID() string {
-	// TODO (Jake): Finish this.
-}*/
 
 func TestAccDigitalOceanDroplet_withSSH(t *testing.T) {
 	var droplet godo.Droplet
@@ -132,7 +130,7 @@ func TestAccDigitalOceanDroplet_withSSH(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "user_data", "foobar"),
+						"digitalocean_droplet.foobar", "user_data", HashString("foobar")),
 				),
 			},
 		},
@@ -211,7 +209,7 @@ func TestAccDigitalOceanDroplet_ResizeWithOutDisk(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanDroplet_ResizeOnlyDisk(t *testing.T) {
+func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
 
@@ -245,10 +243,24 @@ func TestAccDigitalOceanDroplet_ResizeOnlyDisk(t *testing.T) {
 			},
 
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_resize_only_disk(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
-					testAccCheckDigitalOceanDropletResizeOnlyDisk(&droplet),
+					testAccCheckDigitalOceanDropletAttributes(&droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "size", "512mb"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "disk", "20"),
+				),
+			},
+
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_resize(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					testAccCheckDigitalOceanDropletResizeSmaller(&droplet),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
@@ -289,7 +301,7 @@ func TestAccDigitalOceanDroplet_UpdateUserData(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar",
 						"user_data",
-						"foobar foobar"),
+						HashString("foobar foobar")),
 					testAccCheckDigitalOceanDropletRecreated(
 						t, &afterCreate, &afterUpdate),
 				),
@@ -327,10 +339,6 @@ func TestAccDigitalOceanDroplet_UpdateTags(t *testing.T) {
 						"digitalocean_droplet.foobar",
 						"tags.#",
 						"1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar",
-						"tags.0",
-						"barbaz"),
 				),
 			},
 		},
@@ -351,6 +359,41 @@ func TestAccDigitalOceanDroplet_PrivateNetworkingIpv6(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletAttributes_PrivateNetworkingIpv6(&droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "private_networking", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "ipv6", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDroplet_UpdatePrivateNetworkingIpv6(t *testing.T) {
+	var afterCreate, afterUpdate godo.Droplet
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &afterCreate),
+					testAccCheckDigitalOceanDropletAttributes(&afterCreate),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+				),
+			},
+
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &afterUpdate),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "private_networking", "true"),
 					resource.TestCheckResourceAttr(
@@ -386,7 +429,6 @@ func TestAccDigitalOceanDroplet_conditionalVolumes(t *testing.T) {
 	var firstDroplet godo.Droplet
 	var secondDroplet godo.Droplet
 	rInt := acctest.RandInt()
-	volumeIdRe := regexp.MustCompile("^[a-f0-9-]+$")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -399,12 +441,10 @@ func TestAccDigitalOceanDroplet_conditionalVolumes(t *testing.T) {
 					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar.0", &firstDroplet),
 					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar.1", &secondDroplet),
 					resource.TestCheckResourceAttr("digitalocean_droplet.foobar.0", "volume_ids.#", "1"),
-					resource.TestMatchResourceAttr("digitalocean_droplet.foobar.0", "volume_ids.0", volumeIdRe),
 
 					// This could be improved in core/HCL to make it less confusing
 					// but it's the only way to use conditionals in this context for now and "it works"
 					resource.TestCheckResourceAttr("digitalocean_droplet.foobar.1", "volume_ids.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_droplet.foobar.1", "volume_ids.0", ""),
 				),
 			},
 		},
@@ -496,7 +536,7 @@ func testAccCheckDigitalOceanDropletResizeWithOutDisk(droplet *godo.Droplet) res
 	}
 }
 
-func testAccCheckDigitalOceanDropletResizeOnlyDisk(droplet *godo.Droplet) resource.TestCheckFunc {
+func testAccCheckDigitalOceanDropletResizeSmaller(droplet *godo.Droplet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
 		if droplet.Size.Slug != "1gb" {
@@ -518,11 +558,11 @@ func testAccCheckDigitalOceanDropletAttributes_PrivateNetworkingIpv6(droplet *go
 			return fmt.Errorf("Bad image_slug: %s", droplet.Image.Slug)
 		}
 
-		if droplet.Size.Slug != "1gb" {
+		if droplet.Size.Slug != "512mb" {
 			return fmt.Errorf("Bad size_slug: %s", droplet.Size.Slug)
 		}
 
-		if droplet.Region.Slug != "sgp1" {
+		if droplet.Region.Slug != "nyc3" {
 			return fmt.Errorf("Bad region_slug: %s", droplet.Region.Slug)
 		}
 
@@ -612,15 +652,19 @@ resource "digitalocean_droplet" "foobar" {
 }`, rInt)
 }
 
-func testAccCheckDigitalOceanDropletConfig_withID(imageID, rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_withID(rInt int, slug string) string {
 	return fmt.Sprintf(`
+data "digitalocean_image" "foobar" {
+  slug = "%s"
+}
+
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "512mb"
-  image     = "%d"
+  image     = "${data.digitalocean_image.foobar.id}"
   region    = "nyc3"
   user_data = "foobar"
-}`, rInt, imageID)
+}`, slug, rInt)
 }
 
 func testAccCheckDigitalOceanDropletConfig_withSSH(rInt int) string {
@@ -693,7 +737,7 @@ resource "digitalocean_droplet" "foobar" {
 `, rInt)
 }
 
-func testAccCheckDigitalOceanDropletConfig_resize_only_disk(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_resize(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name     = "foo-%d"
@@ -706,14 +750,13 @@ resource "digitalocean_droplet" "foobar" {
 `, rInt)
 }
 
-// IPV6 only in singapore
 func testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name               = "baz-%d"
-  size               = "1gb"
+  name               = "foo-%d"
+  size               = "512mb"
   image              = "centos-7-x64"
-  region             = "sgp1"
+  region             = "nyc3"
   ipv6               = true
   private_networking = true
 }
@@ -736,7 +779,14 @@ func testAccCheckDigitalOceanDropletConfig_conditionalVolumes(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "myvol-01" {
     region      = "sfo2"
-    name        = "tf-acc-test-%d"
+    name        = "tf-acc-test-1-%d"
+    size        = 1
+    description = "an example volume"
+}
+
+resource "digitalocean_volume" "myvol-02" {
+    region      = "sfo2"
+    name        = "tf-acc-test-2-%d"
     size        = 1
     description = "an example volume"
 }
@@ -747,9 +797,9 @@ resource "digitalocean_droplet" "foobar" {
   region = "sfo2"
   image = "centos-7-x64"
   size = "512mb"
-  volume_ids = ["${count.index == 0 ? digitalocean_volume.myvol-01.id : ""}"]
+  volume_ids = ["${count.index == 0 ? digitalocean_volume.myvol-01.id : digitalocean_volume.myvol-02.id}"]
 }
-`, rInt, rInt)
+`, rInt, rInt, rInt)
 }
 
 var testAccValidPublicKey = `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCKVmnMOlHKcZK8tpt3MP1lqOLAcqcJzhsvJcjscgVERRN7/9484SOBJ3HSKxxNG5JN8owAjy5f9yYwcUg+JaUVuytn5Pv3aeYROHGGg+5G346xaq3DAwX6Y5ykr2fvjObgncQBnuU5KHWCECO/4h8uWuwh/kfniXPVjFToc+gnkqA+3RKpAecZhFXwfalQ9mMuYGFxn+fwn8cYEApsJbsEmb0iJwPiZ5hjFC8wREuiTlhPHDgkBLOiycd20op2nXzDbHfCHInquEe/gYxEitALONxm0swBOwJZwlTDOB7C6y2dzlrtxr1L59m7pCkWI4EtTRLvleehBoj3u7jB4usR`

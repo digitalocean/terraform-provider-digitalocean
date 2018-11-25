@@ -16,8 +16,8 @@ modify, and delete Firewalls.
 ```hcl
 resource "digitalocean_droplet" "web" {
   name      = "web-1"
-  size      = "512mb"
-  image     = "centos-7-x64"
+  size      = "s-1vcpu-1gb"
+  image     = "ubuntu-18-04-x64"
   region    = "nyc3"
 }
 
@@ -42,6 +42,10 @@ resource "digitalocean_firewall" "web" {
       port_range         = "443"
       source_addresses   = ["0.0.0.0/0", "::/0"]
     },
+    {
+      protocol           = "icmp"
+      source_addresses   = ["0.0.0.0/0", "::/0"]
+    },
   ]
 
   outbound_rule = [
@@ -53,6 +57,10 @@ resource "digitalocean_firewall" "web" {
     {
       protocol                = "udp"
       port_range              = "53"
+      destination_addresses   = ["0.0.0.0/0", "::/0"]
+    },
+    {
+      protocol                = "icmp"
       destination_addresses   = ["0.0.0.0/0", "::/0"]
     },
   ]
@@ -74,11 +82,12 @@ The following arguments are supported:
 
 `inbound_rule` supports the following:
 
-* `protocol` - (Optional) The type of traffic to be allowed.
+* `protocol` - (Required) The type of traffic to be allowed.
   This may be one of "tcp", "udp", or "icmp".
 * `port_range` - (Optional) The ports on which traffic will be allowed
   specified as a string containing a single port, a range (e.g. "8000-9000"),
-  or "1-65535" to open all ports for a protocol.
+  or "1-65535" to open all ports for a protocol. Required for when protocol is
+  `tcp` or `udp`.
 * `source_addresses` - (Optional) An array of strings containing the IPv4
   addresses, IPv6 addresses, IPv4 CIDRs, and/or IPv6 CIDRs from which the
   inbound traffic will be accepted.
@@ -92,11 +101,12 @@ The following arguments are supported:
 
 `outbound_rule` supports the following:
 
-* `protocol` - (Optional) The type of traffic to be allowed.
+* `protocol` - (Required) The type of traffic to be allowed.
   This may be one of "tcp", "udp", or "icmp".
 * `port_range` - (Optional) The ports on which traffic will be allowed
   specified as a string containing a single port, a range (e.g. "8000-9000"),
-  or "1-65535" to open all ports for a protocol.
+  or "1-65535" to open all ports for a protocol. Required for when protocol is
+  `tcp` or `udp`.
 * `destination_addresses` - (Optional) An array of strings containing the IPv4
   addresses, IPv6 addresses, IPv4 CIDRs, and/or IPv6 CIDRs to which the
   outbound traffic will be allowed.

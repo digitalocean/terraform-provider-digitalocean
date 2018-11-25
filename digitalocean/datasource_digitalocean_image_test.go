@@ -55,7 +55,32 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 			{
 				Config: " ",
 				Check: resource.ComposeTestCheckFunc(
-					deleteSnapshots(&snapshotsId),
+					deleteDropletSnapshots(&snapshotsId),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanImage_PublicSlug(t *testing.T) {
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanImageConfig_slug("ubuntu-18-04-x64"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "slug", "ubuntu-18-04-x64"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "min_disk_size", "20"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "private", "false"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "type", "snapshot"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_image.foobar", "distribution", "Ubuntu"),
 				),
 			},
 		},
@@ -90,13 +115,15 @@ func takeSnapshotOfDroplet(rInt, sInt int, droplet *godo.Droplet) error {
 	return nil
 }
 
-func deleteSnapshots(snapshotsId *[]int) resource.TestCheckFunc {
+func deleteDropletSnapshots(snapshotsId *[]int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		log.Printf("XXX Deleting snaps")
+		log.Printf("Deleting Droplet snapshots")
+
 		client := testAccProvider.Meta().(*godo.Client)
+
 		snapshots := *snapshotsId
 		for _, value := range snapshots {
-			log.Printf("XXX Deleting %d", value)
+			log.Printf("Deleting %d", value)
 			_, err := client.Images.Delete(context.Background(), value)
 			if err != nil {
 				return err
@@ -120,4 +147,12 @@ data "digitalocean_image" "foobar" {
   name               = "snap-%d-nonexisting"
 }
 `, rInt)
+}
+
+func testAccCheckDigitalOceanImageConfig_slug(slug string) string {
+	return fmt.Sprintf(`
+data "digitalocean_image" "foobar" {
+  slug               = "%s"
+}
+`, slug)
 }

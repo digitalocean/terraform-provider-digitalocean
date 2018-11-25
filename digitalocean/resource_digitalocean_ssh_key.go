@@ -9,6 +9,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceDigitalOceanSSHKey() *schema.Resource {
@@ -22,14 +23,10 @@ func resourceDigitalOceanSSHKey() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"public_key": {
@@ -37,6 +34,7 @@ func resourceDigitalOceanSSHKey() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				DiffSuppressFunc: resourceDigitalOceanSSHKeyPublicKeyDiffSuppress,
+				ValidateFunc:     validation.NoZeroValues,
 			},
 
 			"fingerprint": {

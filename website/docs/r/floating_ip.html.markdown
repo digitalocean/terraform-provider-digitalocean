@@ -10,13 +10,15 @@ description: |-
 
 Provides a DigitalOcean Floating IP to represent a publicly-accessible static IP addresses that can be mapped to one of your Droplets.
 
+~> **NOTE:** Floating IPs can be assigned to a Droplet either directly on the `digitalocean_floating_ip` resource by setting a `droplet_id` or using the `digitalocean_floating_ip_assignment` resource, but the two cannot be used together.
+
 ## Example Usage
 
 ```hcl
 resource "digitalocean_droplet" "foobar" {
   name               = "baz"
-  size               = "1gb"
-  image              = "centos-5-8-x32"
+  size               = "s-1vcpu-1gb"
+  image              = "ubuntu-18-04-x64"
   region             = "sgp1"
   ipv6               = true
   private_networking = true
@@ -34,8 +36,6 @@ The following arguments are supported:
 
 * `region` - (Required) The region that the Floating IP is reserved to.
 * `droplet_id` - (Optional) The ID of Droplet that the Floating IP will be assigned to.
-
-~> **NOTE:** A Floating IP can be assigned to a region OR a droplet_id. If both region AND droplet_id are specified, then the Floating IP will be assigned to the droplet and use that region
 
 ## Attributes Reference
 

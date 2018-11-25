@@ -12,6 +12,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceDigitalOceanDroplet() *schema.Resource {
@@ -21,19 +22,23 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 		Update: resourceDigitalOceanDropletUpdate,
 		Delete: resourceDigitalOceanDropletDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceDigitalOceanDropletImport,
 		},
+		MigrateState:  resourceDigitalOceanDropletMigrateState,
+		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
 			"image": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"region": {
@@ -44,6 +49,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 					// DO API V2 region slug is always lowercase
 					return strings.ToLower(val.(string))
 				},
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"size": {
@@ -53,6 +59,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 					// DO API V2 size slug is always lowercase
 					return strings.ToLower(val.(string))
 				},
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"disk": {
@@ -61,6 +68,11 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"vcpus": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"memory": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
@@ -87,18 +99,20 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"locked": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeBool,
 				Computed: true,
 			},
 
 			"backups": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"ipv6": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"ipv6_address": {
@@ -117,6 +131,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			"private_networking": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  false,
 			},
 
 			"ipv4_address": {
@@ -130,33 +145,48 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"ssh_keys": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
-			},
-
-			"tags": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.NoZeroValues,
+				},
 			},
 
 			"user_data": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
+				StateFunc: func(v interface{}) string {
+					switch v.(type) {
+					case string:
+						return HashString(v.(string))
+					default:
+						return ""
+					}
+				},
+				// In order to support older statefiles with fully saved user data
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return new != "" && old == d.Get("user_data")
+				},
 			},
 
 			"volume_ids": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
+				Computed: true,
 			},
+
 			"monitoring": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				ForceNew: true,
+				Default:  false,
 			},
+
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -164,14 +194,23 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
+	image := d.Get("image").(string)
+
 	// Build up our creation options
 	opts := &godo.DropletCreateRequest{
-		Image: godo.DropletCreateImage{
-			Slug: d.Get("image").(string),
-		},
+		Image:  godo.DropletCreateImage{},
 		Name:   d.Get("name").(string),
 		Region: d.Get("region").(string),
 		Size:   d.Get("size").(string),
+		Tags:   expandTags(d.Get("tags").(*schema.Set).List()),
+	}
+
+	imageId, err := strconv.Atoi(image)
+	if err == nil {
+		// The image field is provided as an ID (number).
+		opts.Image.ID = imageId
+	} else {
+		opts.Image.Slug = image
 	}
 
 	if attr, ok := d.GetOk("backups"); ok {
@@ -191,7 +230,7 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	if attr, ok := d.GetOk("volume_ids"); ok {
-		for _, id := range attr.([]interface{}) {
+		for _, id := range attr.(*schema.Set).List() {
 			if id == nil {
 				continue
 			}
@@ -211,23 +250,12 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 	}
 
 	// Get configured ssh_keys
-	sshKeys := d.Get("ssh_keys.#").(int)
-	if sshKeys > 0 {
-		opts.SSHKeys = make([]godo.DropletCreateSSHKey, 0, sshKeys)
-		for i := 0; i < sshKeys; i++ {
-			key := fmt.Sprintf("ssh_keys.%d", i)
-			sshKeyRef := d.Get(key).(string)
-
-			var sshKey godo.DropletCreateSSHKey
-			// sshKeyRef can be either an ID or a fingerprint
-			if id, err := strconv.Atoi(sshKeyRef); err == nil {
-				sshKey.ID = id
-			} else {
-				sshKey.Fingerprint = sshKeyRef
-			}
-
-			opts.SSHKeys = append(opts.SSHKeys, sshKey)
+	if v, ok := d.GetOk("ssh_keys"); ok {
+		expandedSshKeys, err := expandSshKeys(v.(*schema.Set).List())
+		if err != nil {
+			return err
 		}
+		opts.SSHKeys = expandedSshKeys
 	}
 
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
@@ -247,12 +275,6 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 	if err != nil {
 		return fmt.Errorf(
 			"Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
-	}
-
-	// droplet needs to be active in order to set tags
-	err = setTags(client, d)
-	if err != nil {
-		return fmt.Errorf("Error setting tags: %s", err)
 	}
 
 	return resourceDigitalOceanDropletRead(d, meta)
@@ -282,8 +304,8 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	_, err = strconv.Atoi(d.Get("image").(string))
 	if err == nil || droplet.Image.Slug == "" {
 		// The image field is provided as an ID (number), or
-		// the image bash no slug. In both cases we store it as an ID.
-		d.Set("image", droplet.Image.ID)
+		// the image has no slug. In both cases we store it as an ID.
+		d.Set("image", godo.Stringify(droplet.Image.ID))
 	} else {
 		d.Set("image", droplet.Image.Slug)
 	}
@@ -295,28 +317,28 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("price_monthly", droplet.Size.PriceMonthly)
 	d.Set("disk", droplet.Disk)
 	d.Set("vcpus", droplet.Vcpus)
+	d.Set("memory", droplet.Memory)
 	d.Set("status", droplet.Status)
-	d.Set("locked", strconv.FormatBool(droplet.Locked))
-
-	if len(droplet.VolumeIDs) > 0 {
-		vlms := make([]interface{}, 0, len(droplet.VolumeIDs))
-		for _, vid := range droplet.VolumeIDs {
-			vlms = append(vlms, vid)
-		}
-		d.Set("volume_ids", vlms)
-	}
-
-	if publicIPv6 := findIPv6AddrByType(droplet, "public"); publicIPv6 != "" {
-		d.Set("ipv6", true)
-		d.Set("ipv6_address", strings.ToLower(publicIPv6))
-		d.Set("ipv6_address_private", findIPv6AddrByType(droplet, "private"))
-	}
+	d.Set("locked", droplet.Locked)
 
 	d.Set("ipv4_address", findIPv4AddrByType(droplet, "public"))
+	d.Set("ipv4_address_private", findIPv4AddrByType(droplet, "private"))
+	d.Set("ipv6_address", findIPv6AddrByType(droplet, "public"))
+	d.Set("ipv6_address_private", findIPv6AddrByType(droplet, "private"))
 
-	if privateIPv4 := findIPv4AddrByType(droplet, "private"); privateIPv4 != "" {
-		d.Set("private_networking", true)
-		d.Set("ipv4_address_private", privateIPv4)
+	if features := droplet.Features; features != nil {
+		d.Set("backups", containsDigitalOceanDropletFeature(features, "backups"))
+		d.Set("ipv6", containsDigitalOceanDropletFeature(features, "ipv6"))
+		d.Set("private_networking", containsDigitalOceanDropletFeature(features, "private_networking"))
+		d.Set("monitoring", containsDigitalOceanDropletFeature(features, "monitoring"))
+	}
+
+	if err := d.Set("volume_ids", flattenDigitalOceanDropletVolumeIds(droplet.VolumeIDs)); err != nil {
+		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
+	}
+
+	if err := d.Set("tags", flattenTags(droplet.Tags)); err != nil {
+		return fmt.Errorf("Error setting `tags`: %+v", err)
 	}
 
 	// Initialize the connection info
@@ -325,16 +347,29 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 		"host": findIPv4AddrByType(droplet, "public"),
 	})
 
-	d.Set("tags", droplet.Tags)
-
 	return nil
+}
+
+func resourceDigitalOceanDropletImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	// This is a non API attribute. So set to the default setting in the schema.
+	d.Set("resize_disk", true)
+
+	err := resourceDigitalOceanDropletRead(d, meta)
+	if err != nil {
+		return nil, fmt.Errorf("invalid droplet id: %v", err)
+	}
+
+	results := make([]*schema.ResourceData, 1)
+	results[0] = d
+
+	return results, nil
 }
 
 func findIPv6AddrByType(d *godo.Droplet, addrType string) string {
 	for _, addr := range d.Networks.V6 {
 		if addr.Type == addrType {
 			if ip := net.ParseIP(addr.IPAddress); ip != nil {
-				return addr.IPAddress
+				return strings.ToLower(addr.IPAddress)
 			}
 		}
 	}
@@ -360,9 +395,9 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("invalid droplet id: %v", err)
 	}
 
-	resizeDisk := d.Get("resize_disk").(bool)
-	if d.HasChange("size") || d.HasChange("resize_disk") && resizeDisk {
+	if d.HasChange("size") {
 		newSize := d.Get("size")
+		resizeDisk := d.Get("resize_disk").(bool)
 
 		_, _, err = client.DropletActions.PowerOff(context.Background(), id)
 		if err != nil && !strings.Contains(err.Error(), "Droplet is already powered off") {
@@ -450,8 +485,10 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		_, err = waitForDropletAttribute(
 			d, "true", []string{"", "false"}, "private_networking", meta)
 
-		return fmt.Errorf(
-			"Error waiting for private networking to be enabled on for droplet (%s): %s", d.Id(), err)
+		if err != nil {
+			return fmt.Errorf(
+				"Error waiting for private networking to be enabled on for droplet (%s): %s", d.Id(), err)
+		}
 	}
 
 	// As there is no way to disable IPv6, we only check if it needs to be enabled
@@ -499,8 +536,8 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 			}
 			return out
 		}
-		oldIDSet := newSet(oldIDs.([]interface{}))
-		newIDSet := newSet(newIDs.([]interface{}))
+		oldIDSet := newSet(oldIDs.(*schema.Set).List())
+		newIDSet := newSet(newIDs.(*schema.Set).List())
 		for volumeID := range leftDiff(newIDSet, oldIDSet) {
 			action, _, err := client.StorageActions.Attach(context.Background(), volumeID, id)
 			if err != nil {
@@ -603,20 +640,25 @@ func newDropletStateRefreshFunc(
 		// If the droplet is locked, continue waiting. We can
 		// only perform actions on unlocked droplets, so it's
 		// pointless to look at that status
-		if d.Get("locked").(string) == "true" {
+		if d.Get("locked").(bool) {
 			log.Println("[DEBUG] Droplet is locked, skipping status check and retrying")
 			return nil, "", nil
 		}
 
 		// See if we can access our attribute
-		if attr, ok := d.GetOk(attribute); ok {
+		if attr, ok := d.GetOkExists(attribute); ok {
 			// Retrieve the droplet properties
 			droplet, _, err := client.Droplets.Get(context.Background(), id)
 			if err != nil {
 				return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
 			}
 
-			return &droplet, attr.(string), nil
+			switch attr.(type) {
+			case bool:
+				return &droplet, strconv.FormatBool(attr.(bool)), nil
+			default:
+				return &droplet, attr.(string), nil
+			}
 		}
 
 		return nil, "", nil
@@ -649,8 +691,8 @@ func powerOnAndWait(d *schema.ResourceData, meta interface{}) error {
 func detachVolumesFromDroplet(d *schema.ResourceData, meta interface{}) error {
 	var errors []error
 	if attr, ok := d.GetOk("volume_ids"); ok {
-		errors = make([]error, 0, len(attr.([]interface{})))
-		for _, volumeID := range attr.([]interface{}) {
+		errors = make([]error, 0, attr.(*schema.Set).Len())
+		for _, volumeID := range attr.(*schema.Set).List() {
 			detachVolumeIDOnDroplet(d, volumeID.(string), meta)
 		}
 	}
@@ -678,4 +720,40 @@ func detachVolumeIDOnDroplet(d *schema.ResourceData, volumeID string, meta inter
 	}
 
 	return nil
+}
+
+func containsDigitalOceanDropletFeature(features []string, name string) bool {
+	for _, v := range features {
+		if v == name {
+			return true
+		}
+	}
+	return false
+}
+
+func expandSshKeys(sshKeys []interface{}) ([]godo.DropletCreateSSHKey, error) {
+	expandedSshKeys := make([]godo.DropletCreateSSHKey, len(sshKeys))
+	for i, s := range sshKeys {
+		sshKey := s.(string)
+
+		var expandedSshKey godo.DropletCreateSSHKey
+		if id, err := strconv.Atoi(sshKey); err == nil {
+			expandedSshKey.ID = id
+		} else {
+			expandedSshKey.Fingerprint = sshKey
+		}
+
+		expandedSshKeys[i] = expandedSshKey
+	}
+
+	return expandedSshKeys, nil
+}
+
+func flattenDigitalOceanDropletVolumeIds(volumeids []string) *schema.Set {
+	flattenedVolumes := schema.NewSet(schema.HashString, []interface{}{})
+	for _, v := range volumeids {
+		flattenedVolumes.Add(v)
+	}
+
+	return flattenedVolumes
 }

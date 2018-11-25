@@ -11,22 +11,22 @@ Requirements
 ------------
 
 -	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
--	[Go](https://golang.org/doc/install) 1.8 (to build the provider plugin)
+-	[Go](https://golang.org/doc/install) 1.9 (to build the provider plugin)
 
 Building The Provider
 ---------------------
 
-Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-$PROVIDER_NAME`
+Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-digitalocean`
 
 ```sh
 $ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
-$ git clone git@github.com:terraform-providers/terraform-provider-$PROVIDER_NAME
+$ git clone git@github.com:terraform-providers/terraform-provider-digitalocean
 ```
 
 Enter the provider directory and build the provider
 
 ```sh
-$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-$PROVIDER_NAME
+$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-digitalocean
 $ make build
 ```
 
@@ -45,7 +45,7 @@ To compile the provider, run `make build`. This will build the provider and put 
 ```sh
 $ make build
 ...
-$ $GOPATH/bin/terraform-provider-$PROVIDER_NAME
+$ $GOPATH/bin/terraform-provider-digitalocean
 ...
 ```
 
@@ -55,10 +55,18 @@ In order to test the provider, you can simply run `make test`.
 $ make test
 ```
 
-In order to run the full suite of Acceptance tests, run `make testacc`.
+In order to run the full suite of acceptance tests, run `make testacc`.
 
 *Note:* Acceptance tests create real resources, and often cost money to run.
 
 ```sh
 $ make testacc
 ```
+
+In order to run a specific acceptance test, use the `TESTARGS` environment variable. For example, the following command will run `TestAccDigitalOceanDomain_Basic` acceptance test only:
+
+```sh
+$ make testacc TESTARGS='-run=TestAccDigitalOceanDomain_Basic'
+```
+
+For information about writting acceptance tests, see the main Terraform [contributing guide](https://github.com/hashicorp/terraform/blob/master/.github/CONTRIBUTING.md#writing-acceptance-tests).

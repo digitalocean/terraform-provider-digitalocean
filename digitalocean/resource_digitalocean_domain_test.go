@@ -35,6 +35,30 @@ func TestAccDigitalOceanDomain_Basic(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDomain_WithoutIp(t *testing.T) {
+	var domain godo.Domain
+	domainName := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDomainDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDomainConfig_withoutIp, domainName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDomainExists("digitalocean_domain.foobar", &domain),
+					testAccCheckDigitalOceanDomainAttributes(&domain, domainName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_domain.foobar", "name", domainName),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_domain.foobar", "ip_address"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDomainDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*godo.Client)
 
@@ -99,4 +123,9 @@ const testAccCheckDigitalOceanDomainConfig_basic = `
 resource "digitalocean_domain" "foobar" {
 	name       = "%s"
 	ip_address = "192.168.0.10"
+}`
+
+const testAccCheckDigitalOceanDomainConfig_withoutIp = `
+resource "digitalocean_domain" "foobar" {
+	name       = "%s"
 }`

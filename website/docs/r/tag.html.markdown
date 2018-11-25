@@ -9,8 +9,8 @@ description: |-
 # digitalocean\_tag
 
 Provides a DigitalOcean Tag resource. A Tag is a label that can be applied to a
-droplet resource in order to better organize or facilitate the lookups and
-actions on it. Tags created with this resource can be referenced in your droplet
+Droplet resource in order to better organize or facilitate the lookups and
+actions on it. Tags created with this resource can be referenced in your Droplet
 configuration via their ID or name.
 
 ## Example Usage
@@ -21,12 +21,12 @@ resource "digitalocean_tag" "foobar" {
   name = "foobar"
 }
 
-# Create a new droplet in nyc3 with the foobar tag
+# Create a new Droplet in nyc3 with the foobar tag
 resource "digitalocean_droplet" "web" {
-  image  = "ubuntu-16-04-x64"
+  image  = "ubuntu-18-04-x64"
   name   = "web-1"
   region = "nyc3"
-  size   = "512mb"
+  size   = "s-1vcpu-1gb"
   tags   = ["${digitalocean_tag.foobar.id}"]
 }
 ```

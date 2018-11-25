@@ -20,7 +20,6 @@ func init() {
 		F:            testSweepVolumes,
 		Dependencies: []string{"digitalocean_droplet"},
 	})
-
 }
 
 func testSweepVolumes(region string) error {
@@ -175,4 +174,196 @@ resource "digitalocean_droplet" "foobar" {
   private_networking = true
   volume_ids         = ["${digitalocean_volume.foobar.id}"]
 }`, vName, rInt)
+}
+
+func TestAccDigitalOceanVolume_LegacyFilesystemType(t *testing.T) {
+	name := fmt.Sprintf("volume-%s", acctest.RandString(10))
+
+	volume := godo.Volume{
+		Name: name,
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeConfig_legacy_filesystem_type, name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "name", name),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "size", "100"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "description", "peace makes plenty"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "filesystem_type", "xfs"),
+				),
+			},
+		},
+	})
+}
+
+const testAccCheckDigitalOceanVolumeConfig_legacy_filesystem_type = `
+resource "digitalocean_volume" "foobar" {
+	region      = "nyc1"
+	name        = "%s"
+	size        = 100
+	description = "peace makes plenty"
+	filesystem_type = "xfs"
+}`
+
+func TestAccDigitalOceanVolume_FilesystemType(t *testing.T) {
+	name := fmt.Sprintf("volume-%s", acctest.RandString(10))
+
+	volume := godo.Volume{
+		Name: name,
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeConfig_filesystem_type, name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "name", name),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "size", "100"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "description", "peace makes plenty"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "initial_filesystem_type", "xfs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "initial_filesystem_label", "label"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "filesystem_type", "xfs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "filesystem_label", "label"),
+				),
+			},
+		},
+	})
+}
+
+const testAccCheckDigitalOceanVolumeConfig_filesystem_type = `
+resource "digitalocean_volume" "foobar" {
+	region      = "nyc1"
+	name        = "%s"
+	size        = 100
+	description = "peace makes plenty"
+	initial_filesystem_type = "xfs"
+	initial_filesystem_label = "label"
+}`
+
+func TestAccDigitalOceanVolume_Resize(t *testing.T) {
+	var (
+		volume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
+		droplet godo.Droplet
+	)
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanVolumeConfig_resize(rInt, volume.Name, 20),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					// the droplet should see an attached volume
+					resource.TestCheckResourceAttr("digitalocean_droplet.foobar", "volume_ids.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_volume.foobar", "size", "20"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanVolumeConfig_resize(rInt, volume.Name, 50),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					// the droplet should see an attached volume
+					resource.TestCheckResourceAttr("digitalocean_droplet.foobar", "volume_ids.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_volume.foobar", "size", "50"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckDigitalOceanVolumeConfig_resize(rInt int, vName string, vSize int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_volume" "foobar" {
+	region      = "nyc1"
+	name        = "%s"
+	size        = %d
+	description = "peace makes plenty"
+}
+
+resource "digitalocean_droplet" "foobar" {
+  name               = "baz-%d"
+  size               = "1gb"
+  image              = "centos-7-x64"
+  region             = "nyc1"
+  ipv6               = true
+  private_networking = true
+  volume_ids         = ["${digitalocean_volume.foobar.id}"]
+}`, vName, vSize, rInt)
+}
+
+func TestAccDigitalOceanVolume_CreateFromSnapshot(t *testing.T) {
+	rInt := acctest.RandInt()
+
+	volume := godo.Volume{
+		Name: fmt.Sprintf("volume-snap-%d", rInt),
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanVolumeConfig_create_from_snapshot(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
+					// the droplet should see an attached volume
+					resource.TestCheckResourceAttr("digitalocean_volume.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttr("digitalocean_volume.foobar", "size", "100"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckDigitalOceanVolumeConfig_create_from_snapshot(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_volume" "foo" {
+  region      = "nyc1"
+  name        = "volume-%d"
+  size        = 100
+  description = "peace makes plenty"
+}
+
+resource "digitalocean_volume_snapshot" "foo" {
+  name = "snapshot-%d"
+  volume_id = "${digitalocean_volume.foo.id}"
+}
+
+resource "digitalocean_volume" "foobar" {
+  region      = "nyc1"
+  name        = "volume-snap-%d"
+  size        = "${digitalocean_volume_snapshot.foo.min_disk_size}"
+  snapshot_id = "${digitalocean_volume_snapshot.foo.id}"
+}`, rInt, rInt, rInt)
 }

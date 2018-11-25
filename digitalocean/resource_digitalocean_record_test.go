@@ -21,8 +21,8 @@ func TestDigitalOceanRecordConstructFqdn(t *testing.T) {
 		{"www", "www.nonexample.com"},
 		{"dev.www", "dev.www.nonexample.com"},
 		{"*", "*.nonexample.com"},
-		{"nonexample.com", "nonexample.com"},
-		{"test.nonexample.com", "test.nonexample.com"},
+		{"nonexample.com", "nonexample.com.nonexample.com"},
+		{"test.nonexample.com", "test.nonexample.com.nonexample.com"},
 		{"test.nonexample.com.", "test.nonexample.com"},
 	}
 
@@ -46,6 +46,34 @@ func TestAccDigitalOceanRecord_Basic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanRecordConfig_basic, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foobar", &record),
+					testAccCheckDigitalOceanRecordAttributes(&record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "name", "terraform"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "value", "192.168.0.10"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "fqdn", strings.Join([]string{"terraform", domain}, ".")),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanRecord_BasicFullName(t *testing.T) {
+	var record godo.DomainRecord
+	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanRecordConfig_basic_full_name, domain),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanRecordExists("digitalocean_record.foobar", &record),
 					testAccCheckDigitalOceanRecordAttributes(&record),
@@ -169,6 +197,39 @@ func TestAccDigitalOceanRecord_ExternalHostnameValue(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanRecord_FlagsAndTag(t *testing.T) {
+	var record godo.DomainRecord
+	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_caa, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foobar", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("letsencrypt.org", &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "name", "terraform"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "value", "letsencrypt.org."),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "type", "CAA"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "flags", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "tag", "issue"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanRecord_MX(t *testing.T) {
 	var record godo.DomainRecord
 	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
@@ -218,9 +279,246 @@ func TestAccDigitalOceanRecord_MX_at(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_record.foo_record", "domain", domain),
 					resource.TestCheckResourceAttr(
-						"digitalocean_record.foo_record", "value", domain+"."),
+						"digitalocean_record.foo_record", "value", "@"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_record.foo_record", "type", "MX"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanRecord_SRV_zero_weight(t *testing.T) {
+	var record godo.DomainRecord
+	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_srv_zero_weight, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foo_record", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("foobar."+domain, &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "name", "_service._protocol"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "value", "foobar."+domain+"."),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "type", "SRV"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "port", "443"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "weight", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanRecord_UpdateBasic(t *testing.T) {
+	var record godo.DomainRecord
+	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_updated_basic, domain, "terraform", "a.foobar-test-terraform.com.", "1800"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foobar", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("a.foobar-test-terraform.com", &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "name", "terraform"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "value", "a.foobar-test-terraform.com."),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "type", "CNAME"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "ttl", "1800"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_updated_basic, domain, "terraform-updated", "b.foobar-test-terraform.com.", "1000"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foobar", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("b.foobar-test-terraform.com", &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "name", "terraform-updated"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "value", "b.foobar-test-terraform.com."),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "type", "CNAME"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foobar", "ttl", "1000"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanRecord_MXUpdated(t *testing.T) {
+	var record godo.DomainRecord
+	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_mx_updated, domain, "10"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foo_record", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("foobar."+domain, &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "name", "terraform"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "value", "foobar."+domain+"."),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "type", "MX"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "priority", "10"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_mx_updated, domain, "20"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foo_record", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("foobar."+domain, &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "name", "terraform"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "value", "foobar."+domain+"."),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "type", "MX"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "priority", "20"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanRecord_SrvUpdated(t *testing.T) {
+	var record godo.DomainRecord
+	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_srv_updated, domain, "5050", "100"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foo_record", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("foobar."+domain, &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "name", "_service._protocol"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "value", "foobar."+domain+"."),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "type", "SRV"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "port", "5050"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "weight", "100"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_srv_updated, domain, "6060", "150"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foo_record", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("foobar."+domain, &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "name", "_service._protocol"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "value", "foobar."+domain+"."),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "type", "SRV"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "port", "6060"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "weight", "150"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanRecord_CaaUpdated(t *testing.T) {
+	var record godo.DomainRecord
+	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_caa_updated, domain, "20", "issue"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foo_record", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("letsencrypt.org", &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "name", "terraform"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "value", "letsencrypt.org."),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "type", "CAA"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "flags", "20"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "tag", "issue"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_caa_updated, domain, "50", "issuewild"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.foo_record", &record),
+					testAccCheckDigitalOceanRecordAttributesHostname("letsencrypt.org", &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "name", "terraform"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "value", "letsencrypt.org."),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "type", "CAA"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "flags", "50"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "tag", "issuewild"),
 				),
 			},
 		},
@@ -333,6 +631,20 @@ resource "digitalocean_record" "foobar" {
   type  = "A"
 }`
 
+const testAccCheckDigitalOceanRecordConfig_basic_full_name = `
+resource "digitalocean_domain" "foobar" {
+  name       = "%s"
+  ip_address = "192.168.0.10"
+}
+
+resource "digitalocean_record" "foobar" {
+  domain = "${digitalocean_domain.foobar.name}"
+
+  name  = "terraform.${digitalocean_domain.foobar.name}."
+  value = "192.168.0.10"
+  type  = "A"
+}`
+
 const testAccCheckDigitalOceanRecordConfig_new_value = `
 resource "digitalocean_domain" "foobar" {
   name       = "%s"
@@ -386,9 +698,9 @@ resource "digitalocean_domain" "foobar" {
 resource "digitalocean_record" "foo_record" {
   domain = "${digitalocean_domain.foobar.name}"
 
-  name  = "terraform"
-  value = "foobar.${digitalocean_domain.foobar.name}."
-  type  = "MX"
+  name     = "terraform"
+  value    = "foobar.${digitalocean_domain.foobar.name}."
+  type     = "MX"
   priority = "10"
 }`
 
@@ -404,4 +716,100 @@ resource "digitalocean_record" "foobar" {
   name  = "terraform"
   value = "a.foobar-test-terraform.net."
   type  = "CNAME"
+}`
+
+const testAccCheckDigitalOceanRecordConfig_caa = `
+resource "digitalocean_domain" "foobar" {
+  name       = "%s"
+  ip_address = "192.168.0.10"
+}
+
+resource "digitalocean_record" "foobar" {
+  domain = "${digitalocean_domain.foobar.name}"
+
+  name  = "terraform"
+  type  = "CAA"
+  value = "letsencrypt.org."
+  flags = 1
+  tag   = "issue"
+}`
+
+const testAccCheckDigitalOceanRecordConfig_srv_zero_weight = `
+resource "digitalocean_domain" "foobar" {
+  name       = "%s"
+  ip_address = "192.168.0.10"
+}
+
+resource "digitalocean_record" "foo_record" {
+  domain = "${digitalocean_domain.foobar.name}"
+
+  name     = "_service._protocol"
+  value    = "foobar.${digitalocean_domain.foobar.name}."
+  type     = "SRV"
+  priority = "10"
+  port     = "443"
+  weight   = "0"
+}`
+
+const testAccCheckDigitalOceanRecordConfig_updated_basic = `
+resource "digitalocean_domain" "foobar" {
+  name       = "%s"
+  ip_address = "192.168.0.10"
+}
+
+resource "digitalocean_record" "foobar" {
+  domain = "${digitalocean_domain.foobar.name}"
+
+  name  = "%s"
+  value = "%s"
+  type  = "CNAME"
+  ttl   = "%s"
+}`
+
+const testAccCheckDigitalOceanRecordConfig_mx_updated = `
+resource "digitalocean_domain" "foobar" {
+  name       = "%s"
+  ip_address = "192.168.0.10"
+}
+
+resource "digitalocean_record" "foo_record" {
+  domain = "${digitalocean_domain.foobar.name}"
+
+  name     = "terraform"
+  value    = "foobar.${digitalocean_domain.foobar.name}."
+  type     = "MX"
+  priority = "%s"
+}`
+
+const testAccCheckDigitalOceanRecordConfig_srv_updated = `
+resource "digitalocean_domain" "foobar" {
+  name       = "%s"
+  ip_address = "192.168.0.10"
+}
+
+resource "digitalocean_record" "foo_record" {
+  domain = "${digitalocean_domain.foobar.name}"
+
+  name     = "_service._protocol"
+  value    = "foobar.${digitalocean_domain.foobar.name}."
+  type     = "SRV"
+  priority = "10"
+  port     = "%s"
+  weight   = "%s"
+}`
+
+const testAccCheckDigitalOceanRecordConfig_caa_updated = `
+resource "digitalocean_domain" "foobar" {
+  name       = "%s"
+  ip_address = "192.168.0.10"
+}
+
+resource "digitalocean_record" "foo_record" {
+  domain = "${digitalocean_domain.foobar.name}"
+
+  name  = "terraform"
+  type  = "CAA"
+  value = "letsencrypt.org."
+  flags = "%s"
+  tag   = "%s"
 }`
