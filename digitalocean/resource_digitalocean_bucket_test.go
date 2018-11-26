@@ -38,9 +38,7 @@ func TestAccDigitalOceanBucket_basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_bucket.bucket", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_bucket.bucket", "bucket", testAccBucketName(rInt)),
-					resource.TestCheckResourceAttr(
-						"digitalocean_bucket.bucket", "bucket_domain_name", testAccBucketDomainName(rInt)),
+						"digitalocean_bucket.bucket", "name", testAccBucketName(rInt)),
 				),
 			},
 		},
@@ -59,7 +57,7 @@ func TestAccDigitalOceanBucket_region(t *testing.T) {
 				Config: testAccDigitalOceanBucketConfigWithRegion(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists("digitalocean_bucket.bucket"),
-					resource.TestCheckResourceAttr("digitalocean_bucket.bucket", "region", "nyc3"),
+					resource.TestCheckResourceAttr("digitalocean_bucket.bucket", "region", "ams3"),
 				),
 			},
 		},
@@ -241,14 +239,10 @@ func testAccBucketName(randInt int) string {
 	return fmt.Sprintf("tf-test-bucket-%d", randInt)
 }
 
-func testAccBucketDomainName(randInt int) string {
-	return fmt.Sprintf("tf-test-bucket-%d.nyc3.digitaloceanspaces.com", randInt)
-}
-
 func testAccDigitalOceanBucketConfig(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_bucket" "bucket" {
-	bucket = "tf-test-bucket-%d"
+	name = "tf-test-bucket-%d"
 	acl = "public-read"
 }
 `, randInt)
@@ -257,7 +251,7 @@ resource "digitalocean_bucket" "bucket" {
 func testAccDigitalOceanBucketDestroyedConfig(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_bucket" "bucket" {
-	bucket = "tf-test-bucket-%d"
+	name = "tf-test-bucket-%d"
 	acl = "public-read"
 }
 `, randInt)
@@ -266,22 +260,22 @@ resource "digitalocean_bucket" "bucket" {
 func testAccDigitalOceanBucketConfigWithRegion(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_bucket" "bucket" {
-	bucket = "tf-test-bucket-%d"
-	region = "nyc3"
+	name = "tf-test-bucket-%d"
+	region = "ams3"
 }
 `, randInt)
 }
 
 var testAccDigitalOceanBucketConfigWithAcl = `
 resource "digitalocean_bucket" "bucket" {
-	bucket = "tf-test-bucket-%d"
+	name = "tf-test-bucket-%d"
 	acl = "public-read"
 }
 `
 
 var testAccDigitalOceanBucketConfigWithAclUpdate = `
 resource "digitalocean_bucket" "bucket" {
-	bucket = "tf-test-bucket-%d"
+	name = "tf-test-bucket-%d"
 	acl = "private"
 }
 `

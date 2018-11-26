@@ -3,7 +3,6 @@ package digitalocean
 import (
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -26,6 +25,18 @@ func resourceDigitalOceanBucket() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"access_id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DO_ACCESS_KEY_ID", nil),
+				Description: "The access key ID for API operations.",
+			},
+			"secret_key": {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DO_SECRET_ACCESS_KEY", nil),
+				Description: "The secret access key for API operations.",
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -33,8 +44,9 @@ func resourceDigitalOceanBucket() *schema.Resource {
 			},
 			"region": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Bucket region",
+				Default:     "nyc3",
 			},
 			"acl": {
 				Type:        schema.TypeString,
@@ -50,7 +62,7 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", d.Get("region").(string))
 	sesh, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), ""),
+		Credentials: credentials.NewStaticCredentials(d.Get("access_id").(string), d.Get("secret_key").(string), ""),
 		Endpoint:    aws.String(endpoint)},
 	)
 	svc := s3.New(sesh)
@@ -95,7 +107,7 @@ func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) 
 	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", d.Get("region").(string))
 	sesh, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), ""),
+		Credentials: credentials.NewStaticCredentials(d.Get("access_id").(string), d.Get("secret_key").(string), ""),
 		Endpoint:    aws.String(endpoint)},
 	)
 	svc := s3.New(sesh)
@@ -117,7 +129,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", d.Get("region").(string))
 	sesh, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), ""),
+		Credentials: credentials.NewStaticCredentials(d.Get("access_id").(string), d.Get("secret_key").(string), ""),
 		Endpoint:    aws.String(endpoint)},
 	)
 	svc := s3.New(sesh)
@@ -181,7 +193,7 @@ func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) 
 	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", d.Get("region").(string))
 	sesh, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), ""),
+		Credentials: credentials.NewStaticCredentials(d.Get("access_id").(string), d.Get("secret_key").(string), ""),
 		Endpoint:    aws.String(endpoint)},
 	)
 	svc := s3.New(sesh)
