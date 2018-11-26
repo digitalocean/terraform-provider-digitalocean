@@ -29,13 +29,13 @@ func resourceDigitalOceanBucket() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DO_ACCESS_KEY_ID", nil),
-				Description: "The access key ID for API operations.",
+				Description: "The access key ID for Spaces API operations.",
 			},
 			"secret_key": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("DO_SECRET_ACCESS_KEY", nil),
-				Description: "The secret access key for API operations.",
+				Description: "The secret access key for Spaces API operations.",
 			},
 			"name": {
 				Type:        schema.TypeString,
