@@ -8,8 +8,10 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform/helper/hashcode"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/kr/pretty"
 )
 
 func resourceDigitalOceanKubernetes() *schema.Resource {
@@ -41,6 +43,7 @@ func resourceDigitalOceanKubernetes() *schema.Resource {
 			"version": {
 				Type:         schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
@@ -90,9 +93,10 @@ func resourceDigitalOceanKubernetes() *schema.Resource {
 
 func nodePoolSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
+		Type:     schema.TypeSet,
 		Required: true,
 		MinItems: 1,
+		Set:      hashNodePool,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"id": {
@@ -131,6 +135,11 @@ func nodeSchema() *schema.Schema {
 		Computed: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
+				"id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
 				"name": {
 					Type:     schema.TypeString,
 					Computed: true,
@@ -158,12 +167,23 @@ func nodeSchema() *schema.Schema {
 func resourceDigitalOceanKubernetesCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*godo.Client)
 
+	pools := expandNodePools(d.Get("node_pool").(*schema.Set).List())
+	poolCreateRequests := make([]*godo.KubernetesNodePoolCreateRequest, len(pools))
+	for i, pool := range pools {
+		poolCreateRequests[i] = &godo.KubernetesNodePoolCreateRequest{
+			Name:  pool.Name,
+			Size:  pool.Size,
+			Tags:  pool.Tags,
+			Count: pool.Count,
+		}
+	}
+
 	opts := &godo.KubernetesClusterCreateRequest{
 		Name:        d.Get("name").(string),
 		RegionSlug:  d.Get("region").(string),
 		VersionSlug: d.Get("version").(string),
 		Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
-		NodePools:   expandNodePools(d.Get("node_pool").([]interface{})),
+		NodePools:   poolCreateRequests,
 	}
 
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
@@ -208,7 +228,7 @@ func resourceDigitalOceanKubernetesRead(d *schema.ResourceData, meta interface{}
 	d.Set("created_at", cluster.CreatedAt.UTC().String())
 	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
 
-	if err := d.Set("node_pool", flattenNodePools(cluster.NodePools)); err != nil {
+	if err := d.Set("node_pool", flattenNodePools(cluster.NodePools, cluster.Tags...)); err != nil {
 		log.Printf("[DEBUG] Error setting node pool attributes: %s %#v", err, cluster.NodePools)
 	}
 
@@ -228,17 +248,40 @@ func resourceDigitalOceanKubernetesUpdate(d *schema.ResourceData, meta interface
 	client := meta.(*godo.Client)
 
 	// Figure out the changes and then call the appropriate API methods
+	if d.HasChange("name") || d.HasChange("tags") {
 
-	opts := &godo.KubernetesClusterUpdateRequest{}
-
-	_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)
-	if err != nil {
-		if resp.StatusCode == 404 {
-			d.SetId("")
-			return nil
+		opts := &godo.KubernetesClusterUpdateRequest{
+			Name: d.Get("name").(string),
+			Tags: expandTags(d.Get("tags").(*schema.Set).List()),
 		}
 
-		return fmt.Errorf("Unable to update cluster: %s", err)
+		_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)
+		if err != nil {
+			if resp.StatusCode == 404 {
+				d.SetId("")
+				return nil
+			}
+
+			return fmt.Errorf("Unable to update cluster: %s", err)
+		}
+	}
+
+	// Update node pools
+	if d.HasChange("node_pool") {
+		old, new := d.GetChange("node_pool")
+		fmt.Println("old:")
+		pretty.Println(old)
+
+		fmt.Println("new:")
+		pretty.Println(new)
+
+		/*
+			// process deleted pools
+			poolsToDelete := make([]godo.KubernetesNodePool, 0)
+			for i, p := range old. {
+
+			}
+		*/
 	}
 
 	return resourceDigitalOceanKubernetesRead(d, meta)
@@ -290,15 +333,17 @@ func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.Kuber
 	return nil, fmt.Errorf("Timeout waiting to create cluster")
 }
 
-func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePoolCreateRequest {
-	expandedNodePools := make([]*godo.KubernetesNodePoolCreateRequest, 0, len(nodePools))
+func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
+	expandedNodePools := make([]*godo.KubernetesNodePool, 0, len(nodePools))
 	for _, rawPool := range nodePools {
 		pool := rawPool.(map[string]interface{})
-		cr := &godo.KubernetesNodePoolCreateRequest{
+		cr := &godo.KubernetesNodePool{
+			ID:    pool["id"].(string),
 			Name:  pool["name"].(string),
 			Size:  pool["size"].(string),
 			Count: pool["count"].(int),
 			Tags:  expandTags(pool["tags"].(*schema.Set).List()),
+			Nodes: expandNodes(pool["nodes"].([]interface{})),
 		}
 
 		expandedNodePools = append(expandedNodePools, cr)
@@ -307,12 +352,27 @@ func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePoolCreateRe
 	return expandedNodePools
 }
 
-func flattenNodePools(pools []*godo.KubernetesNodePool) []interface{} {
+func expandNodes(nodes []interface{}) []*godo.KubernetesNode {
+	expandedNodes := make([]*godo.KubernetesNode, 0, len(nodes))
+	for _, rawNode := range nodes {
+		node := rawNode.(map[string]interface{})
+		n := &godo.KubernetesNode{
+			ID:   node["id"].(string),
+			Name: node["name"].(string),
+		}
+
+		expandedNodes = append(expandedNodes, n)
+	}
+
+	return expandedNodes
+}
+
+func flattenNodePools(pools []*godo.KubernetesNodePool, parentTags ...string) *schema.Set {
 	if pools == nil {
 		return nil
 	}
 
-	flattenedPools := make([]interface{}, 0)
+	flattenedPools := schema.NewSet(hashNodePool, []interface{}{})
 	for _, pool := range pools {
 		rawPool := map[string]interface{}{
 			"id":    pool.ID,
@@ -322,14 +382,14 @@ func flattenNodePools(pools []*godo.KubernetesNodePool) []interface{} {
 		}
 
 		if pool.Tags != nil {
-			rawPool["tags"] = flattenTags(filterTags(pool.Tags))
+			rawPool["tags"] = flattenTags(filterTags(pool.Tags, parentTags...))
 		}
 
 		if pool.Nodes != nil {
 			rawPool["nodes"] = flattenNodes(pool.Nodes)
 		}
 
-		flattenedPools = append(flattenedPools, rawPool)
+		flattenedPools.Add(rawPool)
 	}
 
 	return flattenedPools
@@ -343,6 +403,7 @@ func flattenNodes(nodes []*godo.KubernetesNode) []interface{} {
 	flattenedNodes := make([]interface{}, 0)
 	for _, node := range nodes {
 		rawNode := map[string]interface{}{
+			"id":         node.ID,
 			"name":       node.Name,
 			"status":     node.Status.State,
 			"created_at": node.CreatedAt.UTC().String(),
@@ -355,14 +416,35 @@ func flattenNodes(nodes []*godo.KubernetesNode) []interface{} {
 	return flattenedNodes
 }
 
-// we need to filter tags to remove automatically added to avoid state problems
-func filterTags(tags []string) []string {
+// custom hashing function for the set index
+func hashNodePool(v interface{}) int {
+	pool := v.(map[string]interface{})
+	hash := hashcode.String(pool["name"].(string))
+
+	//fmt.Printf("id: %s, hash: %d", pool["name"], hash)
+
+	return hash
+}
+
+// we need to filter tags to remove any automatically added to avoid state problems,
+// these are tags starting with "k8s:", named "k8s" or duplicates of the cluster tags
+func filterTags(tags []string, parentTags ...string) []string {
 	filteredTags := make([]string, 0)
 	for _, t := range tags {
-		if !strings.HasPrefix(t, "k8s") {
+		if !strings.HasPrefix(t, "k8s:") && t != "k8s" && !tagsContain(parentTags, t) {
 			filteredTags = append(filteredTags, t)
 		}
 	}
 
 	return filteredTags
+}
+
+func tagsContain(tags []string, tag string) bool {
+	for _, t := range tags {
+		if t == tag {
+			return true
+		}
+	}
+
+	return false
 }

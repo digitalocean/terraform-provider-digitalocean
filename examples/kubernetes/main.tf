@@ -1,13 +1,13 @@
 resource "digitalocean_kubernetes_cluster" "foobar" {
-  name    = "%s"
+  name    = "testing"
   region  = "lon1"
   version = "1.12.1-do.2"
   tags    = ["foo", "bar"]
 
   node_pool {
-    name  = "default"
-    size  = "s-1vcpu-2gb"
-    count = 3
-    tags  = ["one", "two"]
+    name  = "pool1"
+    size  = "s-1vcpu-2gb3"
+    count = 5
+    tags  = ["foo", "bar"]
   }
 }
