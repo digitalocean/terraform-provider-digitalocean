@@ -11,19 +11,19 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccDigitalOceanKubernetes_Basic(t *testing.T) {
+func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesDestroy,
+		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckDigitalOceanKubernetesExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "version", "1.12.1-do.2"),
@@ -38,19 +38,16 @@ func TestAccDigitalOceanKubernetes_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.name", "pool1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.size", "s-1vcpu-2gb"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.count", "3"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.tags.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.tags.2053932785", "one"), // Currently tags are being copied from parent this will fail
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.tags.298486374", "two"),  // requires API update
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.nodes.#", "3"),
-					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.nodes.0.name"),
-					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.nodes.0.status"),
-					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.nodes.0.created_at"),
-					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.nodes.0.updated_at"),
-					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.nodes.1.name"),
-					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.nodes.2.name"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-1vcpu-2gb"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.#", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.2053932785", "one"), // Currently tags are being copied from parent this will fail
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.298486374", "two"),  // requires API update
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.#", "1"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.0.name"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.0.status"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.0.created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.0.updated_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.raw_config"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.cluster_ca_certificate"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.host"),
@@ -62,89 +59,93 @@ func TestAccDigitalOceanKubernetes_Basic(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanKubernetes_MultiplePools(t *testing.T) {
+func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesDestroy,
+		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigMultipleNodePools(rName),
+				Config: testAccDigitalOceanKubernetesConfigBasic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckDigitalOceanKubernetesExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.nodes.#", "3"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.513870257.nodes.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.name", "pool1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.513870257.name", "pool2"),
+				),
+			},
+			{
+				Config: testAccDigitalOceanKubernetesConfigBasic2(rName + "-updated"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName+"-updated"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.#", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.2053932785", "one"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.298486374", "two"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDigitalOceanKubernetes_AddPool(t *testing.T) {
+func TestAccDigitalOceanKubernetesCluster_UpdatePool(t *testing.T) {
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesDestroy,
+		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckDigitalOceanKubernetesExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.name", "pool1"),
 				),
 			},
 			{
-				Config: testAccDigitalOceanKubernetesConfigMultipleNodePools(rName),
+				Config: testAccDigitalOceanKubernetesConfigBasic2(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckDigitalOceanKubernetesExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.name", "pool1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.513870257.name", "pool2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.count", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.#", "3"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDigitalOceanKubernetes_RemovePool(t *testing.T) {
+func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesDestroy,
+		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
-			{
-				Config: testAccDigitalOceanKubernetesConfigMultipleNodePools(rName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckDigitalOceanKubernetesExists("digitalocean_kubernetes_cluster.foobar", &k8s),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "2"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.name", "pool1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.513870257.name", "pool2"),
-				),
-			},
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasic(rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckDigitalOceanKubernetesExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.2275956747.name", "pool1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-1vcpu-2gb"),
+				),
+			},
+			{
+				Config: testAccDigitalOceanKubernetesConfigBasic3(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-2vcpu-4gb"),
 				),
 			},
 		},
@@ -160,16 +161,32 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	tags    = ["foo","bar"]
 
 	node_pool {
-		name  = "pool1"
 		size  = "s-1vcpu-2gb"
-		count = 3
+		count = 1
 		tags  = ["one","two"]
 	}
 }
 `, rName)
 }
 
-func testAccDigitalOceanKubernetesConfigMultipleNodePools(rName string) string {
+func testAccDigitalOceanKubernetesConfigBasic2(rName string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_kubernetes_cluster" "foobar" {
+	name    = "%s"
+	region  = "lon1"
+	version = "1.12.1-do.2"
+	tags    = ["one","two"]
+
+	node_pool {
+		size  = "s-1vcpu-2gb"
+		count = 2
+		tags  = ["one","two","three"]
+	}
+}
+`, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigBasic3(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
@@ -178,23 +195,15 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	tags    = ["foo","bar"]
 
 	node_pool {
-		name  = "pool1"
-		size  = "s-1vcpu-2gb"
-		count = 3
-		tags  = ["foo","bar"]
-	}
-	
-	node_pool {
-		name  = "pool2"
-		size  = "s-1vcpu-2gb"
+		size  = "s-2vcpu-4gb"
 		count = 1
-		tags  = ["foo","bar"]
+		tags  = ["one","two"]
 	}
 }
 `, rName)
 }
 
-func testAccCheckDigitalOceanKubernetesDestroy(s *terraform.State) error {
+func testAccCheckDigitalOceanKubernetesClusterDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*godo.Client)
 
 	for _, rs := range s.RootModule().Resources {
@@ -213,7 +222,7 @@ func testAccCheckDigitalOceanKubernetesDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckDigitalOceanKubernetesExists(n string, cluster *godo.KubernetesCluster) resource.TestCheckFunc {
+func testAccCheckDigitalOceanKubernetesClusterExists(n string, cluster *godo.KubernetesCluster) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
