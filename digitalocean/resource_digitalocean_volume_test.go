@@ -39,7 +39,7 @@ func testSweepVolumes(region string) error {
 	}
 
 	for _, v := range volumes {
-		if strings.HasPrefix(v.Name, "volume-") {
+		if strings.HasPrefix(v.Name, "volume-") || strings.HasPrefix(v.Name, "tf-acc-test-") {
 
 			if len(v.DropletIDs) > 0 {
 				log.Printf("Detaching volume %v from Droplet %v", v.ID, v.DropletIDs[0])
