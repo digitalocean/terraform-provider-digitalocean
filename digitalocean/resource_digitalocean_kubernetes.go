@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -275,13 +276,75 @@ func resourceDigitalOceanKubernetesUpdate(d *schema.ResourceData, meta interface
 		fmt.Println("new:")
 		pretty.Println(new)
 
-		/*
-			// process deleted pools
-			poolsToDelete := make([]godo.KubernetesNodePool, 0)
-			for i, p := range old. {
+		// process deleted pools
+		poolsToDelete := make([]string, 0)
 
+		for _, op := range old.(*schema.Set).List() {
+			found := false
+			oldPool := op.(map[string]interface{})
+
+			for _, np := range new.(*schema.Set).List() {
+				newPool := np.(map[string]interface{})
+
+				if oldPool["id"].(string) == newPool["id"].(string) {
+					found = true
+				}
 			}
-		*/
+
+			if !found {
+				poolsToDelete = append(poolsToDelete, oldPool["id"].(string))
+			}
+		}
+
+		for _, p := range poolsToDelete {
+			fmt.Println("Deleting pool", p)
+
+			_, err := client.Kubernetes.DeleteNodePool(context.Background(), d.Id(), p)
+			if err != nil {
+				return fmt.Errorf("Unable to delete node pool %s", err)
+			}
+
+			err = waitForKubernetesNodePoolDelete(client, d.Id(), p)
+			if err != nil {
+				return err
+			}
+		}
+
+		// process new pools
+		poolsToAdd := make([]*godo.KubernetesNodePoolCreateRequest, 0)
+		for _, np := range new.(*schema.Set).List() {
+			found := false
+			newPool := np.(map[string]interface{})
+
+			for _, op := range old.(*schema.Set).List() {
+				oldPool := op.(map[string]interface{})
+				if oldPool["id"] == newPool["id"].(string) {
+					found = true
+				}
+			}
+
+			if !found {
+				poolsToAdd = append(poolsToAdd, &godo.KubernetesNodePoolCreateRequest{
+					Name:  newPool["name"].(string),
+					Size:  newPool["size"].(string),
+					Tags:  expandTags(newPool["tags"].(*schema.Set).List()),
+					Count: newPool["count"].(int),
+				})
+			}
+		}
+
+		for _, p := range poolsToAdd {
+			fmt.Printf("Adding pool %s", p.Name)
+			pool, _, err := client.Kubernetes.CreateNodePool(context.Background(), d.Id(), p)
+			if err != nil {
+				return fmt.Errorf("Unable to delete node pool %s", err)
+			}
+
+			err = waitForKubernetesNodePoolCreate(client, d.Id(), pool.ID)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return resourceDigitalOceanKubernetesRead(d, meta)
@@ -331,6 +394,71 @@ func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.Kuber
 	}
 
 	return nil, fmt.Errorf("Timeout waiting to create cluster")
+}
+
+func waitForKubernetesNodePoolCreate(client *godo.Client, id string, poolID string) error {
+	ticker := time.NewTicker(10 * time.Second)
+	timeout := 120
+	n := 0
+
+	for range ticker.C {
+		pool, _, err := client.Kubernetes.GetNodePool(context.Background(), id, poolID)
+		if err != nil {
+			ticker.Stop()
+			return fmt.Errorf("Error trying to read nodepool state: %s", err)
+		}
+
+		allRunning := true
+		for _, n := range pool.Nodes {
+			if n.Status.State != "running" {
+				allRunning = false
+			} else {
+				fmt.Println(n.Status.State)
+			}
+		}
+
+		if allRunning {
+			ticker.Stop()
+			return nil
+		}
+
+		if n > timeout {
+			ticker.Stop()
+			break
+		}
+
+		n++
+	}
+
+	return fmt.Errorf("Timeout waiting to create nodepool")
+}
+
+func waitForKubernetesNodePoolDelete(client *godo.Client, id string, poolID string) error {
+	ticker := time.NewTicker(10 * time.Second)
+	timeout := 120
+	n := 0
+
+	for range ticker.C {
+		_, resp, err := client.Kubernetes.GetNodePool(context.Background(), id, poolID)
+		if err != nil {
+			ticker.Stop()
+			return fmt.Errorf("Error trying to read nodepool state: %s", err)
+		}
+
+		if resp.StatusCode == http.StatusNotFound {
+			ticker.Stop()
+			return nil
+		}
+
+		if n > timeout {
+			ticker.Stop()
+			break
+		}
+
+		n++
+	}
+
+	return fmt.Errorf("Timeout waiting to delete nodepool")
 }
 
 func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
