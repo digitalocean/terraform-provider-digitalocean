@@ -37,6 +37,21 @@ func testSweepVolumes(region string) error {
 
 	for _, v := range volumes {
 		if strings.HasPrefix(v.Name, "volume-") {
+
+			if len(v.DropletIDs) > 0 {
+				log.Printf("Detaching volume %v from Droplet %v", v.ID, v.DropletIDs[0])
+
+				action, _, err := client.StorageActions.DetachByDropletID(context.Background(), v.ID, v.DropletIDs[0])
+				if err != nil {
+					return fmt.Errorf("Error resizing volume (%s): %s", v.ID, err)
+				}
+
+				if err = waitForAction(client, action); err != nil {
+					return fmt.Errorf(
+						"Error waiting for volume (%s): %s", v.ID, err)
+				}
+			}
+
 			log.Printf("Destroying Volume %s", v.Name)
 
 			if _, err := client.Storage.DeleteVolume(context.Background(), v.ID); err != nil {
