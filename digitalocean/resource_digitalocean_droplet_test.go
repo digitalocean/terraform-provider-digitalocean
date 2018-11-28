@@ -30,7 +30,8 @@ func testSweepDroplets(region string) error {
 
 	client := meta.(*CombinedConfig).godoClient()
 
-	droplets, _, err := client.Droplets.List(context.Background(), nil)
+	opt := &godo.ListOptions{PerPage: 200}
+	droplets, _, err := client.Droplets.List(context.Background(), opt)
 	if err != nil {
 		return err
 	}

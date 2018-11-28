@@ -30,7 +30,8 @@ func testSweepLoadbalancer(region string) error {
 
 	client := meta.(*CombinedConfig).godoClient()
 
-	lbs, _, err := client.LoadBalancers.List(context.Background(), nil)
+	opt := &godo.ListOptions{PerPage: 200}
+	lbs, _, err := client.LoadBalancers.List(context.Background(), opt)
 	if err != nil {
 		return err
 	}

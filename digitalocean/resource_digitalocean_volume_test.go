@@ -30,7 +30,10 @@ func testSweepVolumes(region string) error {
 
 	client := meta.(*CombinedConfig).godoClient()
 
-	volumes, _, err := client.Storage.ListVolumes(context.Background(), nil)
+	opt := &godo.ListVolumeParams{
+		ListOptions: &godo.ListOptions{PerPage: 200},
+	}
+	volumes, _, err := client.Storage.ListVolumes(context.Background(), opt)
 	if err != nil {
 		return err
 	}

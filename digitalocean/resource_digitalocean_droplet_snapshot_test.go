@@ -29,7 +29,8 @@ func testSweepDropletSnapshots(region string) error {
 
 	client := meta.(*CombinedConfig).godoClient()
 
-	snapshots, _, err := client.Snapshots.ListDroplet(context.Background(), nil)
+	opt := &godo.ListOptions{PerPage: 200}
+	snapshots, _, err := client.Snapshots.ListDroplet(context.Background(), opt)
 	if err != nil {
 		return err
 	}
