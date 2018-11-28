@@ -175,7 +175,7 @@ resource "digitalocean_droplet" "foobar" {
 var testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroy = `
 resource "digitalocean_droplet" "foobar" {
   image = "centos-7-x64"
-  name = "foobar"
+  name = "foo-bar"
   region = "nyc3"
   size = "s-1vcpu-1gb"
   private_networking = false
