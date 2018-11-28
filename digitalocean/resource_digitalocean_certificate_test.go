@@ -9,6 +9,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"fmt"
+	"log"
 	"math/big"
 	"strings"
 	"testing"
@@ -19,6 +20,41 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("digitalocean_certificate", &resource.Sweeper{
+		Name: "digitalocean_certificate",
+		F:    testSweepCertificate,
+	})
+
+}
+
+func testSweepCertificate(region string) error {
+	meta, err := sharedConfigForRegion(region)
+	if err != nil {
+		return err
+	}
+
+	client := meta.(*godo.Client)
+
+	opt := &godo.ListOptions{PerPage: 200}
+	certs, _, err := client.Certificates.List(context.Background(), opt)
+	if err != nil {
+		return err
+	}
+
+	for _, c := range certs {
+		if strings.HasPrefix(c.Name, "certificate-") {
+			log.Printf("Destroying certificate %s", c.Name)
+
+			if _, err := client.Certificates.Delete(context.Background(), c.ID); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
 
 func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
 	var cert godo.Certificate
