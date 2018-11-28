@@ -90,7 +90,7 @@ resource "digitalocean_tag" "foo" {
 resource "digitalocean_droplet" "foo" {
   count              = 2
   image              = "ubuntu-18-04-x64"
-  name               = "droplet-%d-${count.index}"
+  name               = "foo-%d-${count.index}"
   region             = "nyc3"
   size               = "512mb"
   private_networking = true

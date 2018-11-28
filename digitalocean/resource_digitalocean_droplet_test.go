@@ -37,7 +37,7 @@ func testSweepDroplets(region string) error {
 	log.Printf("[DEBUG] Found %d droplets to sweep", len(droplets))
 
 	for _, d := range droplets {
-		if strings.HasPrefix(d.Name, "foo-") || strings.HasPrefix(d.Name, "bar-") || strings.HasPrefix(d.Name, "baz-") {
+		if strings.HasPrefix(d.Name, "foo-") || strings.HasPrefix(d.Name, "bar-") || strings.HasPrefix(d.Name, "baz-") || strings.HasPrefix(d.Name, "tf-acc-test-") || strings.HasPrefix(d.Name, "foobar-") {
 			log.Printf("Destroying Droplet %s", d.Name)
 
 			if _, err := client.Droplets.Delete(context.Background(), d.ID); err != nil {

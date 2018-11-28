@@ -35,7 +35,7 @@ func testSweepDropletSnapshots(region string) error {
 	}
 
 	for _, s := range snapshots {
-		if strings.HasPrefix(s.Name, "snapshot-") {
+		if strings.HasPrefix(s.Name, "snapshot-") || strings.HasPrefix(s.Name, "snap-") {
 			log.Printf("Destroying Droplet Snapshot %s", s.Name)
 
 			if _, err := client.Snapshots.Delete(context.Background(), s.ID); err != nil {
@@ -62,7 +62,7 @@ func TestAccDigitalOceanDropletSnapshot_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDropletSnapshotExists("digitalocean_droplet_snapshot.foobar", &snapshot),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("snapshotone-%d", rInt2)),
+						"digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("snapshot-one-%d", rInt2)),
 				),
 			},
 		},
@@ -127,6 +127,6 @@ resource "digitalocean_droplet" "foo" {
   }
   resource "digitalocean_droplet_snapshot" "foobar" {
 	droplet_id = "${digitalocean_droplet.foo.id}"
-	name = "snapshotone-%d"
+	name = "snapshot-one-%d"
   }
   `

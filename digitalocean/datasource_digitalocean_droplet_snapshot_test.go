@@ -128,7 +128,7 @@ data "digitalocean_droplet_snapshot" "foobar" {
 const testAccCheckDataSourceDigitalOceanDropletSnapshot_regex = `
 resource "digitalocean_droplet" "foo" {
   region      = "nyc1"
-  name        = "droplet-%d"
+  name        = "foo-%d"
   size        = "512mb"
   image  			= "centos-7-x64"
   ipv6   			= true
@@ -147,7 +147,7 @@ data "digitalocean_droplet_snapshot" "foobar" {
 const testAccCheckDataSourceDigitalOceanDropletSnapshot_region = `
 resource "digitalocean_droplet" "foo" {
   region      = "nyc1"
-  name        = "droplet-nyc-%d"
+  name        = "foo-nyc-%d"
   size        = "512mb"
   image  			= "centos-7-x64"
   ipv6   			= true
@@ -155,7 +155,7 @@ resource "digitalocean_droplet" "foo" {
 
 resource "digitalocean_droplet" "bar" {
   region      = "lon1"
-  name        = "droplet-lon-%d"
+  name        = "bar-lon-%d"
   size        = "512mb"
   image  			= "centos-7-x64"
   ipv6   			= true
