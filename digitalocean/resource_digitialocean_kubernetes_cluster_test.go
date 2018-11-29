@@ -161,6 +161,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	tags    = ["foo","bar"]
 
 	node_pool {
+	  name = "default"
 		size  = "s-1vcpu-2gb"
 		count = 1
 		tags  = ["one","two"]
@@ -178,6 +179,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	tags    = ["one","two"]
 
 	node_pool {
+	  name = "default"
 		size  = "s-1vcpu-2gb"
 		count = 2
 		tags  = ["one","two","three"]
@@ -195,6 +197,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	tags    = ["foo","bar"]
 
 	node_pool {
+	  name = "default"
 		size  = "s-2vcpu-4gb"
 		count = 1
 		tags  = ["one","two"]

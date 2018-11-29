@@ -103,10 +103,11 @@ func resourceDigitalOceanKubernetesClusterCreate(d *schema.ResourceData, meta in
 	pools := expandNodePools(d.Get("node_pool").([]interface{}))
 	poolCreateRequests := make([]*godo.KubernetesNodePoolCreateRequest, len(pools))
 	for i, pool := range pools {
+		tags := append(pool.Tags, digitaloceanKubernetesDefaultNodePoolTag)
 		poolCreateRequests[i] = &godo.KubernetesNodePoolCreateRequest{
-			Name:  "default-" + digitaloceanRandString(10),
+			Name:  pool.Name,
 			Size:  pool.Size,
-			Tags:  pool.Tags,
+			Tags:  tags,
 			Count: pool.Count,
 		}
 	}
@@ -161,11 +162,14 @@ func resourceDigitalOceanKubernetesClusterRead(d *schema.ResourceData, meta inte
 	d.Set("created_at", cluster.CreatedAt.UTC().String())
 	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
 
-	//find the default node pool from all the pools in the cluster
+	// find the default node pool from all the pools in the cluster
+	// the default node pool has a custom tag k8s:default-node-pool
 	for _, p := range cluster.NodePools {
-		if strings.HasPrefix(p.Name, "default-") {
-			if err := d.Set("node_pool", flattenNodePool(p, cluster.Tags...)); err != nil {
-				log.Printf("[DEBUG] Error setting node pool attributes: %s %#v", err, cluster.NodePools)
+		for _, t := range p.Tags {
+			if t == digitaloceanKubernetesDefaultNodePoolTag {
+				if err := d.Set("node_pool", flattenNodePool(p, cluster.Tags...)); err != nil {
+					log.Printf("[DEBUG] Error setting node pool attributes: %s %#v", err, cluster.NodePools)
+				}
 			}
 		}
 	}
@@ -219,7 +223,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 
 	if oldPool["size"] != newPool["size"] {
 		// create a new pool
-		_, err := digitaloceanKubernetesNodePoolCreate(client, newPool, d.Id(), "default-"+digitaloceanRandString(10))
+		_, err := digitaloceanKubernetesNodePoolCreate(client, newPool, d.Id(), digitaloceanKubernetesDefaultNodePoolTag)
 		if err != nil {
 			return err
 		}
@@ -233,7 +237,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 	}
 
 	// only update the existing default pool
-	_, err := digitaloceanKubernetesNodePoolUpdate(client, newPool, d.Id(), oldPool["id"].(string), oldPool["name"].(string))
+	_, err := digitaloceanKubernetesNodePoolUpdate(client, newPool, d.Id(), oldPool["id"].(string), digitaloceanKubernetesDefaultNodePoolTag)
 	if err != nil {
 		return err
 	}
