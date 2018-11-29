@@ -46,7 +46,7 @@ func resourceDigitalOceanBucket() *schema.Resource {
 
 func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
-	client, err := meta.(*CombinedConfig).awsClient(region)
+	client, err := meta.(*CombinedConfig).spacesClient(region)
 	svc := s3.New(client)
 
 	if err != nil {
@@ -87,7 +87,7 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 
 func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
-	client, err := meta.(*CombinedConfig).awsClient(region)
+	client, err := meta.(*CombinedConfig).spacesClient(region)
 	svc := s3.New(client)
 
 	if err != nil {
@@ -105,7 +105,7 @@ func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
-	client, err := meta.(*CombinedConfig).awsClient(region)
+	client, err := meta.(*CombinedConfig).spacesClient(region)
 	svc := s3.New(client)
 
 	if err != nil {
@@ -164,7 +164,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 
 func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
-	client, err := meta.(*CombinedConfig).awsClient(region)
+	client, err := meta.(*CombinedConfig).spacesClient(region)
 	svc := s3.New(client)
 
 	if err != nil {

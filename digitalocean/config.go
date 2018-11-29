@@ -33,7 +33,7 @@ type CombinedConfig struct {
 
 func (c *CombinedConfig) godoClient() *godo.Client { return c.client }
 
-func (c *CombinedConfig) awsClient(region string) (*session.Session, error) {
+func (c *CombinedConfig) spacesClient(region string) (*session.Session, error) {
 	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", region)
 	client, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
