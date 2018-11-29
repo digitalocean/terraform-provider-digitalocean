@@ -108,7 +108,7 @@ func testAccCheckDataSourceDigitalOceanDropletSnapshotExists(n string, snapshot 
 
 const testAccCheckDataSourceDigitalOceanDropletSnapshot_basic = `
 resource "digitalocean_droplet" "foo" {
-  name   = "%d"
+  name   = "foo-%d"
   size   = "512mb"
   image  = "centos-7-x64"
   region = "nyc3"
