@@ -5,16 +5,17 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   tags    = ["foo", "bar"]
 
   node_pool {
-    size  = "s-1vcpu-2gb3"
-    count = 1
-    tags  = ["foo", "bar"]
+    size       = "s-1vcpu-2gb3"
+    node_count = 1
+    tags       = ["one", "two"] // Tags from cluster are automatically added to node pools
   }
 }
 
+// Add a second node pool
 resource "digitalocean_kubernetes_node_pool" "barfoo" {
   cluster_id = "${digitalocean_kubernetes_cluster.foobar.id}"
 
-  size  = "s-1vcpu-2gb3"
-  count = 1
-  tags  = ["foo", "bar"]
+  size       = "s-1vcpu-2gb3"
+  node_count = 1
+  tags       = ["three", "four"] // Tags from cluster are automatically added to node pools
 }

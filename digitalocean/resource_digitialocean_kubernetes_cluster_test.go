@@ -39,7 +39,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-1vcpu-2gb"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.node_count", "1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.#", "2"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.2053932785", "one"), // Currently tags are being copied from parent this will fail
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.298486374", "two"),  // requires API update
@@ -114,7 +114,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.name", "default-rename"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.count", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.node_count", "2"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.#", "3"),
 				),
 			},
@@ -146,7 +146,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.node_count", "1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-2vcpu-4gb"),
 				),
 			},
@@ -165,7 +165,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	node_pool {
 	  name = "default"
 		size  = "s-1vcpu-2gb"
-		count = 1
+		node_count = 1
 		tags  = ["one","two"]
 	}
 }
@@ -183,7 +183,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	node_pool {
 	  name = "default-rename"
 		size  = "s-1vcpu-2gb"
-		count = 2
+		node_count = 2
 		tags  = ["one","two","three"]
 	}
 }
@@ -201,7 +201,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	node_pool {
 	  name = "default"
 		size  = "s-2vcpu-4gb"
-		count = 1
+		node_count = 1
 		tags  = ["one","two"]
 	}
 }
@@ -219,8 +219,8 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	node_pool {
 	  name = "default"
 		size  = "s-2vcpu-4gb"
-		count = 1
-		tags  = ["one","two"]
+		node_count = 1
+		tags  = ["foo","bar"]
 	}
 }
 `, rName)

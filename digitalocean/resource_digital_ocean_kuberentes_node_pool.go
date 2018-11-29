@@ -15,7 +15,7 @@ import (
 // we automatically add this tag to the default pool
 const digitaloceanKubernetesDefaultNodePoolTag = "terraform:default-node-pool"
 
-func resourceDigitalOceanKubernetesCreate() *schema.Resource {
+func resourceDigitalOceanKubernetesNodePool() *schema.Resource {
 
 	return &schema.Resource{
 		Create:        resourceDigitalOceanKubernetesNodePoolCreate,
@@ -42,6 +42,8 @@ func nodePoolResourceSchema() map[string]*schema.Schema {
 		ForceNew:     true,
 	}
 
+	delete(s, "id")
+
 	return s
 }
 
@@ -51,7 +53,6 @@ func nodePoolSchema() map[string]*schema.Schema {
 			Type:     schema.TypeString,
 			Computed: true,
 		},
-
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
@@ -64,7 +65,7 @@ func nodePoolSchema() map[string]*schema.Schema {
 			ValidateFunc: validation.NoZeroValues,
 		},
 
-		"count": {
+		"node_count": {
 			Type:         schema.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntAtLeast(1),
@@ -115,12 +116,13 @@ func resourceDigitalOceanKubernetesNodePoolCreate(d *schema.ResourceData, meta i
 	client := meta.(*godo.Client)
 
 	rawPool := map[string]interface{}{
-		"size":  d.Get("size"),
-		"count": d.Get("count"),
-		"tags":  d.Get("tags"),
+		"name":       d.Get("name"),
+		"size":       d.Get("size"),
+		"node_count": d.Get("node_count"),
+		"tags":       d.Get("tags"),
 	}
 
-	pool, err := digitaloceanKubernetesNodePoolCreate(client, rawPool, d.Get("cluster_id").(string), d.Get("name").(string))
+	pool, err := digitaloceanKubernetesNodePoolCreate(client, rawPool, d.Get("cluster_id").(string))
 	if err != nil {
 		return fmt.Errorf("Error creating Kubernetes node pool: %s", err)
 	}
@@ -155,7 +157,7 @@ func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta int
 
 	d.Set("name", pool.Name)
 	d.Set("size", pool.Size)
-	d.Set("count", pool.Count)
+	d.Set("node_count", pool.Count)
 	d.Set("tags", flattenTags(filterTags(pool.Tags, cluster.Tags...)))
 
 	if pool.Nodes != nil {
@@ -169,9 +171,9 @@ func resourceDigitalOceanKubernetesNodePoolUpdate(d *schema.ResourceData, meta i
 	client := meta.(*godo.Client)
 
 	rawPool := map[string]interface{}{
-		"name":  d.Get("name"),
-		"count": d.Get("count"),
-		"tags":  d.Get("tags"),
+		"name":       d.Get("name"),
+		"node_count": d.Get("node_count"),
+		"tags":       d.Get("tags"),
 	}
 
 	_, err := digitaloceanKubernetesNodePoolUpdate(client, rawPool, d.Get("cluster_id").(string), d.Id())
@@ -196,7 +198,7 @@ func digitaloceanKubernetesNodePoolCreate(client *godo.Client, pool map[string]i
 	p, _, err := client.Kubernetes.CreateNodePool(context.Background(), clusterID, &godo.KubernetesNodePoolCreateRequest{
 		Name:  pool["name"].(string),
 		Size:  pool["size"].(string),
-		Count: pool["count"].(int),
+		Count: pool["node_count"].(int),
 		Tags:  tags,
 	})
 
@@ -218,7 +220,7 @@ func digitaloceanKubernetesNodePoolUpdate(client *godo.Client, pool map[string]i
 
 	p, resp, err := client.Kubernetes.UpdateNodePool(context.Background(), clusterID, poolID, &godo.KubernetesNodePoolUpdateRequest{
 		Name:  pool["name"].(string),
-		Count: pool["count"].(int),
+		Count: pool["node_count"].(int),
 		Tags:  tags,
 	})
 
@@ -270,8 +272,6 @@ func waitForKubernetesNodePoolCreate(client *godo.Client, id string, poolID stri
 		for _, n := range pool.Nodes {
 			if n.Status.State != "running" {
 				allRunning = false
-			} else {
-				fmt.Println(n.Status.State)
 			}
 		}
 
@@ -292,10 +292,11 @@ func waitForKubernetesNodePoolCreate(client *godo.Client, id string, poolID stri
 }
 
 func waitForKubernetesNodePoolDelete(client *godo.Client, id string, poolID string) error {
-	ticker := time.NewTicker(10 * time.Second)
-	timeout := 120
+	tickerInterval := 10 //10s
+	timeout := 1800      //1800s, 30min
 	n := 0
 
+	ticker := time.NewTicker(time.Duration(tickerInterval) * time.Second)
 	for range ticker.C {
 		_, resp, err := client.Kubernetes.GetNodePool(context.Background(), id, poolID)
 		if err != nil {
@@ -308,7 +309,7 @@ func waitForKubernetesNodePoolDelete(client *godo.Client, id string, poolID stri
 			return fmt.Errorf("Error trying to read nodepool state: %s", err)
 		}
 
-		if n > timeout {
+		if n*tickerInterval > timeout {
 			ticker.Stop()
 			break
 		}
@@ -327,7 +328,7 @@ func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
 			ID:    pool["id"].(string),
 			Name:  pool["name"].(string),
 			Size:  pool["size"].(string),
-			Count: pool["count"].(int),
+			Count: pool["node_count"].(int),
 			Tags:  expandTags(pool["tags"].(*schema.Set).List()),
 			Nodes: expandNodes(pool["nodes"].([]interface{})),
 		}
@@ -355,10 +356,10 @@ func expandNodes(nodes []interface{}) []*godo.KubernetesNode {
 
 func flattenNodePool(pool *godo.KubernetesNodePool, parentTags ...string) []interface{} {
 	rawPool := map[string]interface{}{
-		"id":    pool.ID,
-		"name":  pool.Name,
-		"size":  pool.Size,
-		"count": pool.Count,
+		"id":         pool.ID,
+		"name":       pool.Name,
+		"size":       pool.Size,
+		"node_count": pool.Count,
 	}
 
 	if pool.Tags != nil {
