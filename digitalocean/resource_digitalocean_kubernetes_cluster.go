@@ -296,7 +296,9 @@ func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.Kuber
 func filterTags(tags []string, parentTags ...string) []string {
 	filteredTags := make([]string, 0)
 	for _, t := range tags {
-		if !strings.HasPrefix(t, "k8s:") && t != "k8s" && !tagsContain(parentTags, t) {
+		if !strings.HasPrefix(t, "k8s:") &&
+			!strings.HasPrefix(t, "terraform:") &&
+			t != "k8s" && !tagsContain(parentTags, t) {
 			filteredTags = append(filteredTags, t)
 		}
 	}

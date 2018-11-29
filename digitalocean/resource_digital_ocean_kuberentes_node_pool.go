@@ -11,7 +11,9 @@ import (
 	"github.com/hashicorp/terraform/helper/validation"
 )
 
-const digitaloceanKubernetesDefaultNodePoolTag = "k8s:default-node-pool"
+// to distinguish between a node pool resource and the default pool from the cluster
+// we automatically add this tag to the default pool
+const digitaloceanKubernetesDefaultNodePoolTag = "terraform:default-node-pool"
 
 func resourceDigitalOceanKubernetesCreate() *schema.Resource {
 
