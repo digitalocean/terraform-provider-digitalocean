@@ -15,6 +15,18 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_TOKEN", nil),
 				Description: "The token key for API operations.",
 			},
+			"access_id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DO_ACCESS_KEY_ID", nil),
+				Description: "The access key ID for Spaces API operations.",
+			},
+			"secret_key": {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DO_SECRET_ACCESS_KEY", nil),
+				Description: "The secret access key for Spaces API operations.",
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -56,7 +68,9 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
-		Token: d.Get("token").(string),
+		Token:     d.Get("token").(string),
+		AccessID:  d.Get("access_id").(string),
+		SecretKey: d.Get("secret_key").(string),
 	}
 
 	return config.Client()

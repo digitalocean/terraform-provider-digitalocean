@@ -7,8 +7,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -25,18 +23,6 @@ func resourceDigitalOceanBucket() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"access_id": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DO_ACCESS_KEY_ID", nil),
-				Description: "The access key ID for Spaces API operations.",
-			},
-			"secret_key": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DO_SECRET_ACCESS_KEY", nil),
-				Description: "The secret access key for Spaces API operations.",
-			},
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -59,16 +45,12 @@ func resourceDigitalOceanBucket() *schema.Resource {
 }
 
 func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) error {
-	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", d.Get("region").(string))
-	sesh, err := session.NewSession(&aws.Config{
-		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials(d.Get("access_id").(string), d.Get("secret_key").(string), ""),
-		Endpoint:    aws.String(endpoint)},
-	)
-	svc := s3.New(sesh)
+	region := d.Get("region").(string)
+	client, err := meta.(*CombinedConfig).awsClient(region)
+	svc := s3.New(client)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Error creating bucket: %s", err)
 	}
 
 	input := &s3.CreateBucketInput{
@@ -104,16 +86,12 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) error {
-	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", d.Get("region").(string))
-	sesh, err := session.NewSession(&aws.Config{
-		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials(d.Get("access_id").(string), d.Get("secret_key").(string), ""),
-		Endpoint:    aws.String(endpoint)},
-	)
-	svc := s3.New(sesh)
+	region := d.Get("region").(string)
+	client, err := meta.(*CombinedConfig).awsClient(region)
+	svc := s3.New(client)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Error updating bucket: %s", err)
 	}
 
 	if d.HasChange("acl") {
@@ -126,16 +104,12 @@ func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) error {
-	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", d.Get("region").(string))
-	sesh, err := session.NewSession(&aws.Config{
-		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials(d.Get("access_id").(string), d.Get("secret_key").(string), ""),
-		Endpoint:    aws.String(endpoint)},
-	)
-	svc := s3.New(sesh)
+	region := d.Get("region").(string)
+	client, err := meta.(*CombinedConfig).awsClient(region)
+	svc := s3.New(client)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Error reading bucket: %s", err)
 	}
 
 	_, err = retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
@@ -175,7 +149,6 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 	location := locationResponse.(*s3.GetBucketLocationOutput)
-	var region string
 	if location.LocationConstraint != nil {
 		region = *location.LocationConstraint
 	}
@@ -190,16 +163,12 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) error {
-	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", d.Get("region").(string))
-	sesh, err := session.NewSession(&aws.Config{
-		Region:      aws.String("us-east-1"),
-		Credentials: credentials.NewStaticCredentials(d.Get("access_id").(string), d.Get("secret_key").(string), ""),
-		Endpoint:    aws.String(endpoint)},
-	)
-	svc := s3.New(sesh)
+	region := d.Get("region").(string)
+	client, err := meta.(*CombinedConfig).awsClient(region)
+	svc := s3.New(client)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Error deleting bucket: %s", err)
 	}
 
 	log.Printf("[DEBUG] Spaces Delete Bucket: %s", d.Id())

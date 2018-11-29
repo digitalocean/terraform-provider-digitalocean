@@ -9,6 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/logging"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -17,29 +20,57 @@ import (
 )
 
 type Config struct {
-	Token string
+	Token     string
+	AccessID  string
+	SecretKey string
+}
+
+type CombinedConfig struct {
+	client    *godo.Client
+	accessID  string
+	secretKey string
+}
+
+func (c *CombinedConfig) godoClient() *godo.Client { return c.client }
+
+func (c *CombinedConfig) awsClient(region string) (*session.Session, error) {
+	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", region)
+	client, err := session.NewSession(&aws.Config{
+		Region:      aws.String("us-east-1"),
+		Credentials: credentials.NewStaticCredentials(c.accessID, c.secretKey, ""),
+		Endpoint:    aws.String(endpoint)},
+	)
+	if err != nil {
+		return &session.Session{}, err
+	}
+
+	return client, nil
 }
 
 // Client() returns a new client for accessing digital ocean.
-func (c *Config) Client() (*godo.Client, error) {
+func (c *Config) Client() (*CombinedConfig, error) {
 	tokenSrc := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: c.Token,
 	})
 
 	userAgent := fmt.Sprintf("Terraform/%s", terraform.VersionString())
 
-	client, err := godo.New(oauth2.NewClient(oauth2.NoContext, tokenSrc), godo.SetUserAgent(userAgent))
+	do, err := godo.New(oauth2.NewClient(oauth2.NoContext, tokenSrc), godo.SetUserAgent(userAgent))
 	if err != nil {
 		return nil, err
 	}
 
 	if logging.IsDebugOrHigher() {
-		client.OnRequestCompleted(logRequestAndResponse)
+		do.OnRequestCompleted(logRequestAndResponse)
 	}
 
-	log.Printf("[INFO] DigitalOcean Client configured for URL: %s", client.BaseURL.String())
+	log.Printf("[INFO] DigitalOcean Client configured for URL: %s", do.BaseURL.String())
 
-	return client, nil
+	return &CombinedConfig{
+		client:    do,
+		accessID:  c.AccessID,
+		secretKey: c.SecretKey,
+	}, nil
 }
 
 func logRequestAndResponse(req *http.Request, resp *http.Response) {
