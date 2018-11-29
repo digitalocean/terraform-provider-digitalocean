@@ -76,7 +76,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDigitalOceanKubernetesConfigBasic2(rName + "-updated"),
+				Config: testAccDigitalOceanKubernetesConfigBasic4(rName + "-updated"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName+"-updated"),
@@ -89,7 +89,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanKubernetesCluster_UpdatePool(t *testing.T) {
+func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 
@@ -104,6 +104,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePool(t *testing.T) {
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.name", "default"),
 				),
 			},
 			{
@@ -112,6 +113,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePool(t *testing.T) {
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.name", "default-rename"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.count", "2"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.#", "3"),
 				),
@@ -176,10 +178,10 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
 	version = "1.12.1-do.2"
-	tags    = ["one","two"]
+	tags    = ["foo","bar"]
 
 	node_pool {
-	  name = "default"
+	  name = "default-rename"
 		size  = "s-1vcpu-2gb"
 		count = 2
 		tags  = ["one","two","three"]
@@ -195,6 +197,24 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	region  = "lon1"
 	version = "1.12.1-do.2"
 	tags    = ["foo","bar"]
+
+	node_pool {
+	  name = "default"
+		size  = "s-2vcpu-4gb"
+		count = 1
+		tags  = ["one","two"]
+	}
+}
+`, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigBasic4(rName string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_kubernetes_cluster" "foobar" {
+	name    = "%s"
+	region  = "lon1"
+	version = "1.12.1-do.2"
+	tags    = ["one","two"]
 
 	node_pool {
 	  name = "default"

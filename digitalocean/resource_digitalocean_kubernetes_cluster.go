@@ -214,8 +214,8 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 	}
 
 	old, new := d.GetChange("node_pool")
-	fmt.Println(old)
-	fmt.Println(new)
+	//pretty.Println(old)
+	//pretty.Println(new)
 
 	// has the size changed if so we need to create a new pool and then destroy the old one
 	oldPool := old.([]interface{})[0].(map[string]interface{})

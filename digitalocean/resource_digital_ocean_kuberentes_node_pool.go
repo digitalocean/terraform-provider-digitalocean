@@ -230,6 +230,11 @@ func digitaloceanKubernetesNodePoolUpdate(client *godo.Client, pool map[string]i
 		return nil, fmt.Errorf("Unable to update nodepool: %s", err)
 	}
 
+	err = waitForKubernetesNodePoolCreate(client, clusterID, p.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	return p, nil
 }
 
