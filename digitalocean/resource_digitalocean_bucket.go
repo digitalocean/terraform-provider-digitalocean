@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -19,7 +20,7 @@ func resourceDigitalOceanBucket() *schema.Resource {
 		Update: resourceDigitalOceanBucketUpdate,
 		Delete: resourceDigitalOceanBucketDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceDigitalOceanBucketImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -47,11 +48,12 @@ func resourceDigitalOceanBucket() *schema.Resource {
 func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
-	svc := s3.New(client)
 
 	if err != nil {
 		return fmt.Errorf("Error creating bucket: %s", err)
 	}
+
+	svc := s3.New(client)
 
 	input := &s3.CreateBucketInput{
 		Bucket: aws.String(d.Get("name").(string)),
@@ -88,14 +90,15 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
-	svc := s3.New(client)
 
 	if err != nil {
 		return fmt.Errorf("Error updating bucket: %s", err)
 	}
 
+	svc := s3.New(client)
+
 	if d.HasChange("acl") {
-		if err := resourceDigitalOceanBucketAclUpdate(svc, d); err != nil {
+		if err := resourceDigitalOceanBucketACLUpdate(svc, d); err != nil {
 			return err
 		}
 	}
@@ -106,11 +109,12 @@ func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) 
 func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
-	svc := s3.New(client)
 
 	if err != nil {
 		return fmt.Errorf("Error reading bucket: %s", err)
 	}
+
+	svc := s3.New(client)
 
 	_, err = retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
 		return svc.HeadBucket(&s3.HeadBucketInput{
@@ -165,11 +169,12 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
-	svc := s3.New(client)
 
 	if err != nil {
 		return fmt.Errorf("Error deleting bucket: %s", err)
 	}
+
+	svc := s3.New(client)
 
 	log.Printf("[DEBUG] Spaces Delete Bucket: %s", d.Id())
 	_, err = svc.DeleteBucket(&s3.DeleteBucketInput{
@@ -239,7 +244,7 @@ func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceDigitalOceanBucketAclUpdate(svc *s3.S3, d *schema.ResourceData) error {
+func resourceDigitalOceanBucketACLUpdate(svc *s3.S3, d *schema.ResourceData) error {
 	acl := d.Get("acl").(string)
 	bucket := d.Get("name").(string)
 
@@ -257,6 +262,25 @@ func resourceDigitalOceanBucketAclUpdate(svc *s3.S3, d *schema.ResourceData) err
 	}
 
 	return nil
+}
+
+func resourceDigitalOceanBucketImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if strings.Contains(d.Id(), ",") {
+		s := strings.Split(d.Id(), ",")
+
+		d.SetId(s[1])
+		d.Set("region", s[0])
+	}
+
+	err := resourceDigitalOceanBucketRead(d, meta)
+	if err != nil {
+		return nil, fmt.Errorf("unable to import bucket: %v", err)
+	}
+
+	results := make([]*schema.ResourceData, 0)
+	results = append(results, d)
+
+	return results, nil
 }
 
 func bucketDomainName(bucket string, region string) string {

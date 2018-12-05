@@ -66,8 +66,8 @@ func TestAccDigitalOceanBucket_region(t *testing.T) {
 
 func TestAccDigitalOceanBucket_UpdateAcl(t *testing.T) {
 	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithAcl, ri)
-	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithAclUpdate, ri)
+	preConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithACL, ri)
+	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithACLUpdate, ri)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -121,23 +121,25 @@ func testAccCheckDigitalOceanBucketDestroy(s *terraform.State) error {
 }
 
 func testAccCheckDigitalOceanBucketDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-	sesh, err := session.NewSession(&aws.Config{
-		Region:      aws.String("nyc3"),
-		Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), "")},
-	)
-	svc := s3.New(sesh, &aws.Config{
-		Endpoint: aws.String("https://nyc3.digitaloceanspaces.com")},
-	)
-
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	for _, rs := range s.RootModule().Resources {
+		sesh, err := session.NewSession(&aws.Config{
+			Region:      aws.String(rs.Primary.Attributes["region"]),
+			Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), "")},
+		)
+
+		svc := s3.New(sesh, &aws.Config{
+			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
+		)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		if rs.Type != "digitalocean_bucket" {
 			continue
 		}
-		_, err := svc.DeleteBucket(&s3.DeleteBucketInput{
+		_, err = svc.DeleteBucket(&s3.DeleteBucketInput{
 			Bucket: aws.String(rs.Primary.ID),
 		})
 		if err != nil {
@@ -166,11 +168,11 @@ func testAccCheckDigitalOceanBucketExistsWithProvider(n string, providerF func()
 		}
 
 		sesh, err := session.NewSession(&aws.Config{
-			Region:      aws.String("nyc3"),
+			Region:      aws.String(rs.Primary.Attributes["region"]),
 			Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), "")},
 		)
 		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String("https://nyc3.digitaloceanspaces.com")},
+			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
 		)
 
 		if err != nil {
@@ -204,11 +206,11 @@ func testAccCheckDigitalOceanDestroyBucket(n string) resource.TestCheckFunc {
 		}
 
 		sesh, err := session.NewSession(&aws.Config{
-			Region:      aws.String("nyc3"),
+			Region:      aws.String(rs.Primary.Attributes["region"]),
 			Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), "")},
 		)
 		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String("https://nyc3.digitaloceanspaces.com")},
+			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
 		)
 
 		if err != nil {
@@ -266,14 +268,22 @@ resource "digitalocean_bucket" "bucket" {
 `, randInt)
 }
 
-var testAccDigitalOceanBucketConfigWithAcl = `
+func testAccDigitalOceanBucketConfigImport(randInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_bucket" "bucket" {
+	name = "tf-test-bucket-%d"
+}
+`, randInt)
+}
+
+var testAccDigitalOceanBucketConfigWithACL = `
 resource "digitalocean_bucket" "bucket" {
 	name = "tf-test-bucket-%d"
 	acl = "public-read"
 }
 `
 
-var testAccDigitalOceanBucketConfigWithAclUpdate = `
+var testAccDigitalOceanBucketConfigWithACLUpdate = `
 resource "digitalocean_bucket" "bucket" {
 	name = "tf-test-bucket-%d"
 	acl = "private"

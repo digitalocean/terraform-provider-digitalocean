@@ -49,8 +49,8 @@ The following attributes are exported:
 
 ## Import
 
-Buckets can be imported using the `name`, e.g.
+Buckets can be imported using the `region` and `name` attributes (delimited by a comma):
 
 ```
-terraform import digitalocean_bucket.foobar `name`
+terraform import digitalocean_bucket.foobar `region`,`name`
 ```

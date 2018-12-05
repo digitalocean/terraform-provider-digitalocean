@@ -34,6 +34,11 @@ type CombinedConfig struct {
 func (c *CombinedConfig) godoClient() *godo.Client { return c.client }
 
 func (c *CombinedConfig) spacesClient(region string) (*session.Session, error) {
+	if c.accessID == "" || c.secretKey == "" {
+		err := fmt.Errorf("Spaces credentials not configured")
+		return &session.Session{}, err
+	}
+
 	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", region)
 	client, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
