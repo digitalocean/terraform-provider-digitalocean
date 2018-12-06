@@ -254,29 +254,10 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 	}
 
 	old, new := d.GetChange("node_pool")
-	//pretty.Println(old)
-	//pretty.Println(new)
-
-	// has the size changed if so we need to create a new pool and then destroy the old one
 	oldPool := old.([]interface{})[0].(map[string]interface{})
 	newPool := new.([]interface{})[0].(map[string]interface{})
 
-	if oldPool["size"] != newPool["size"] {
-		// create a new pool
-		_, err := digitaloceanKubernetesNodePoolCreate(client, newPool, d.Id(), digitaloceanKubernetesDefaultNodePoolTag)
-		if err != nil {
-			return err
-		}
-
-		err = digitaloceanKubernetesNodePoolDelete(client, d.Id(), oldPool["id"].(string))
-		if err != nil {
-			return err
-		}
-
-		return resourceDigitalOceanKubernetesClusterRead(d, meta)
-	}
-
-	// only update the existing default pool
+	// update the existing default pool
 	_, err := digitaloceanKubernetesNodePoolUpdate(client, newPool, d.Id(), oldPool["id"].(string), digitaloceanKubernetesDefaultNodePoolTag)
 	if err != nil {
 		return err

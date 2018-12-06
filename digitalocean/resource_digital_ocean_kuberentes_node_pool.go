@@ -31,9 +31,6 @@ func resourceDigitalOceanKubernetesNodePool() *schema.Resource {
 func nodePoolResourceSchema() map[string]*schema.Schema {
 	s := nodePoolSchema()
 
-	// for a node pool resource name is not computed
-	s["name"].Computed = false
-
 	// add the cluster id
 	s["cluster_id"] = &schema.Schema{
 		Type:         schema.TypeString,
@@ -42,6 +39,8 @@ func nodePoolResourceSchema() map[string]*schema.Schema {
 		ForceNew:     true,
 	}
 
+	// remove the id when this is used in a specific resource
+	// not as a child
 	delete(s, "id")
 
 	return s
@@ -62,6 +61,7 @@ func nodePoolSchema() map[string]*schema.Schema {
 		"size": {
 			Type:         schema.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.NoZeroValues,
 		},
 
