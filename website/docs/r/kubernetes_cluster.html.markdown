@@ -28,7 +28,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 }
 ```
 
-The cluster's kubeconfig is exported as an attribute allowing you to use it with the [Kubernetes Terrafrom provider](https://www.terraform.io/docs/providers/kubernetes/index.html). For example:
+The cluster's kubeconfig is exported as an attribute allowing you to use it with the [Kubernetes Terraform provider](https://www.terraform.io/docs/providers/kubernetes/index.html). For example:
 
 ```hcl
 resource "digitalocean_kubernetes_cluster" "foo" {
