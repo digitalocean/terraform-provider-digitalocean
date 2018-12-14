@@ -20,7 +20,7 @@ An error is triggered if the provided volume name does not exist.
 Get the volume:
 
 ```hcl
-data "digitalocean_volume "example" {
+data "digitalocean_volume" "example" {
   name   = "app-data"
   region = "nyc3"
 }
@@ -29,7 +29,7 @@ data "digitalocean_volume "example" {
 Reuse the data about a volume to attach it to a Droplet:
 
 ```hcl
-data "digitalocean_volume "example" {
+data "digitalocean_volume" "example" {
   name   = "app-data"
   region = "nyc3"
 }
