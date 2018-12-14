@@ -16,7 +16,7 @@ resources.
 
 Get the volume snapshot:
 
-```
+```hcl
 data "digitalocean_volume_snapshot" "snapshot" {
   name_regex  = "^web"
   region      = "nyc3"
@@ -26,7 +26,7 @@ data "digitalocean_volume_snapshot" "snapshot" {
 
 Reuse the data about a volume snapshot to create a new volume based on it:
 
-```
+```hcl
 data "digitalocean_volume_snapshot" "snapshot" {
   name_regex  = "^web"
   region      = "nyc3"
