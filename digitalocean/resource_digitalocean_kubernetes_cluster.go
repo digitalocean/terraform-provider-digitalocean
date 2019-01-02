@@ -15,10 +15,13 @@ import (
 
 func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceDigitalOceanKubernetesClusterCreate,
-		Read:          resourceDigitalOceanKubernetesClusterRead,
-		Update:        resourceDigitalOceanKubernetesClusterUpdate,
-		Delete:        resourceDigitalOceanKubernetesClusterDelete,
+		Create: resourceDigitalOceanKubernetesClusterCreate,
+		Read:   resourceDigitalOceanKubernetesClusterRead,
+		Update: resourceDigitalOceanKubernetesClusterUpdate,
+		Delete: resourceDigitalOceanKubernetesClusterDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceDigitalOceanKubernetesClusterImport,
+		},
 		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
@@ -310,6 +313,17 @@ func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.Kuber
 	}
 
 	return nil, fmt.Errorf("Timeout waiting to create cluster")
+}
+
+func resourceDigitalOceanKubernetesClusterImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	err := resourceDigitalOceanKubernetesClusterRead(d, meta)
+	if err != nil {
+		return nil, fmt.Errorf("invalid cluster id: %v", err)
+	}
+
+	results := make([]*schema.ResourceData, 1)
+	results[0] = d
+	return results, nil
 }
 
 type kubernetesConfig struct {

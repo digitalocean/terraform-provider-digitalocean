@@ -96,4 +96,8 @@ In addition to the arguments listed above, the following additional attributes a
 
 ## Import
 
-Kubernetes clusters can not be imported at this time.
+Kubernetes clusters can be imported using the cluster `id`, e.g.
+
+```
+terraform import digitalocean_kubernetes_cluster.mycluster b8ecd2ab-2267-4a5e-8692-cbf1d32583e3
+```
