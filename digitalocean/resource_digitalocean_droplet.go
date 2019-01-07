@@ -192,7 +192,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 }
 
 func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	image := d.Get("image").(string)
 
@@ -281,7 +281,7 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
@@ -388,7 +388,7 @@ func findIPv4AddrByType(d *godo.Droplet, addrType string) string {
 }
 
 func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
@@ -406,7 +406,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		// Wait for power off
-		_, err = waitForDropletAttribute(d, "off", []string{"active"}, "status", client)
+		_, err = waitForDropletAttribute(d, "off", []string{"active"}, "status", meta)
 		if err != nil {
 			return fmt.Errorf(
 				"Error waiting for droplet (%s) to become powered off: %s", d.Id(), err)
@@ -557,7 +557,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 }
 
 func resourceDigitalOceanDropletDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
@@ -625,7 +625,7 @@ func waitForDropletAttribute(
 // cleaner and more efficient
 func newDropletStateRefreshFunc(
 	d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 	return func() (interface{}, string, error) {
 		id, err := strconv.Atoi(d.Id())
 		if err != nil {
@@ -672,14 +672,14 @@ func powerOnAndWait(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("invalid droplet id: %v", err)
 	}
 
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 	_, _, err = client.DropletActions.PowerOn(context.Background(), id)
 	if err != nil {
 		return err
 	}
 
 	// Wait for power on
-	_, err = waitForDropletAttribute(d, "active", []string{"off"}, "status", client)
+	_, err = waitForDropletAttribute(d, "active", []string{"off"}, "status", meta)
 	if err != nil {
 		return err
 	}
@@ -709,7 +709,7 @@ func detachVolumeIDOnDroplet(d *schema.ResourceData, volumeID string, meta inter
 	if err != nil {
 		return fmt.Errorf("invalid droplet id: %v", err)
 	}
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 	action, _, err := client.StorageActions.DetachByDropletID(context.Background(), volumeID, id)
 	if err != nil {
 		return fmt.Errorf("Error detaching volume %q from droplet (%s): %s", volumeID, d.Id(), err)

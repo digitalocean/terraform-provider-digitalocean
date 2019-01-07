@@ -73,7 +73,7 @@ func dataSourceDigitalOceanRecord() *schema.Resource {
 }
 
 func dataSourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 	domain := d.Get("domain").(string)
 	name := d.Get("name").(string)
 

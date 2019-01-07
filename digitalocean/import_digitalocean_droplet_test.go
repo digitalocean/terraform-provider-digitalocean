@@ -74,7 +74,7 @@ func TestAccDigitalOceanDroplet_ImportWithNoImageSlug(t *testing.T) {
 
 func takeDropletSnapshot(rInt int, droplet *godo.Droplet, snapshotId *[]int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		action, _, err := client.DropletActions.Snapshot(context.Background(), (*droplet).ID, fmt.Sprintf("snap-%d", rInt))
 		if err != nil {

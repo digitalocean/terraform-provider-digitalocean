@@ -45,7 +45,7 @@ func resourceDigitalOceanFloatingIp() *schema.Resource {
 }
 
 func resourceDigitalOceanFloatingIpCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Create a FloatingIP In a Region")
 	regionOpts := &godo.FloatingIPCreateRequest{
@@ -80,7 +80,7 @@ func resourceDigitalOceanFloatingIpCreate(d *schema.ResourceData, meta interface
 }
 
 func resourceDigitalOceanFloatingIpUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("droplet_id") {
 		if v, ok := d.GetOk("droplet_id"); ok {
@@ -116,7 +116,7 @@ func resourceDigitalOceanFloatingIpUpdate(d *schema.ResourceData, meta interface
 }
 
 func resourceDigitalOceanFloatingIpRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Reading the details of the FloatingIP %s", d.Id())
 	floatingIp, resp, err := client.FloatingIPs.Get(context.Background(), d.Id())
@@ -143,7 +143,7 @@ func resourceDigitalOceanFloatingIpRead(d *schema.ResourceData, meta interface{}
 }
 
 func resourceDigitalOceanFloatingIpImport(rs *schema.ResourceData, v interface{}) ([]*schema.ResourceData, error) {
-	client := v.(*godo.Client)
+	client := v.(*CombinedConfig).godoClient()
 	floatingIp, resp, err := client.FloatingIPs.Get(context.Background(), rs.Id())
 	if resp.StatusCode != 404 {
 		if err != nil {
@@ -162,7 +162,7 @@ func resourceDigitalOceanFloatingIpImport(rs *schema.ResourceData, v interface{}
 }
 
 func resourceDigitalOceanFloatingIpDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	if _, ok := d.GetOk("droplet_id"); ok {
 		log.Printf("[INFO] Unassigning the Floating IP from the Droplet")
@@ -215,7 +215,7 @@ func waitForFloatingIPReady(
 
 func newFloatingIPStateRefreshFunc(
 	d *schema.ResourceData, attribute string, meta interface{}, actionId int) resource.StateRefreshFunc {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 	return func() (interface{}, string, error) {
 
 		log.Printf("[INFO] Assigning the Floating IP to the Droplet")

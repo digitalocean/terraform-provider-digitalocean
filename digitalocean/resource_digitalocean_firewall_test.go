@@ -314,7 +314,7 @@ resource "digitalocean_firewall" "foobar" {
 }
 
 func testAccCheckDigitalOceanFirewallDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_firewall" {
@@ -344,7 +344,7 @@ func testAccCheckDigitalOceanFirewallExists(n string, firewall *godo.Firewall) r
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		foundFirewall, _, err := client.Firewalls.Get(context.Background(), rs.Primary.ID)
 

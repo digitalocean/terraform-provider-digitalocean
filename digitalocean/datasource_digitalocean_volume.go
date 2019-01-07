@@ -58,7 +58,7 @@ func dataSourceDigitalOceanVolume() *schema.Resource {
 }
 
 func dataSourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)
 

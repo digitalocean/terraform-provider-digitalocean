@@ -40,7 +40,7 @@ func TestAccDigitalOceanSSHKey_Basic(t *testing.T) {
 }
 
 func testAccCheckDigitalOceanSSHKeyDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_ssh_key" {
@@ -75,7 +75,7 @@ func testAccCheckDigitalOceanSSHKeyExists(n string, key *godo.Key) resource.Test
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		id, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {

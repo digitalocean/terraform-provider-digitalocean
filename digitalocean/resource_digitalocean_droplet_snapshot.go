@@ -56,7 +56,7 @@ func resourceDigitalOceanDropletSnapshot() *schema.Resource {
 }
 
 func resourceDigitalOceanDropletSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	resourceId, _ := strconv.Atoi(d.Get("droplet_id").(string))
 	action, _, err := client.DropletActions.Snapshot(context.Background(), resourceId, d.Get("name").(string))
@@ -86,7 +86,7 @@ func resourceDigitalOceanDropletSnapshotCreate(d *schema.ResourceData, meta inte
 }
 
 func resourceDigitalOceanDropletSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	snapshot, resp, err := client.Snapshots.Get(context.Background(), d.Id())
 	if err != nil {
@@ -110,7 +110,7 @@ func resourceDigitalOceanDropletSnapshotRead(d *schema.ResourceData, meta interf
 }
 
 func resourceDigitalOceanDropletSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting snaphot: %s", d.Id())
 	_, err := client.Snapshots.Delete(context.Background(), d.Id())

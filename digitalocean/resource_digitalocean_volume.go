@@ -110,7 +110,7 @@ func resourceDigitalOceanVolume() *schema.Resource {
 }
 
 func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	opts := &godo.VolumeCreateRequest{
 		Name:        d.Get("name").(string),
@@ -149,7 +149,7 @@ func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceDigitalOceanVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	id := d.Id()
 	region := d.Get("region").(string)
@@ -174,7 +174,7 @@ func resourceDigitalOceanVolumeUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	volume, resp, err := client.Storage.GetVolume(context.Background(), d.Id())
 	if err != nil {
@@ -206,7 +206,7 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceDigitalOceanVolumeDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting volume: %s", d.Id())
 	_, err := client.Storage.DeleteVolume(context.Background(), d.Id())
@@ -219,7 +219,7 @@ func resourceDigitalOceanVolumeDelete(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceDigitalOceanVolumeImport(rs *schema.ResourceData, v interface{}) ([]*schema.ResourceData, error) {
-	client := v.(*godo.Client)
+	client := v.(*CombinedConfig).godoClient()
 	volume, _, err := client.Storage.GetVolume(context.Background(), rs.Id())
 	if err != nil {
 		return nil, err

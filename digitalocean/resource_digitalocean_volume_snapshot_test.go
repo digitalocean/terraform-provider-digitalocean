@@ -28,7 +28,7 @@ func testSweepVolumeSnapshots(region string) error {
 		return err
 	}
 
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	snapshots, _, err := client.Snapshots.ListVolume(context.Background(), nil)
 	if err != nil {
@@ -79,7 +79,7 @@ func TestAccDigitalOceanVolumeSnapshot_Basic(t *testing.T) {
 
 func testAccCheckDigitalOceanVolumeSnapshotExists(n string, snapshot *godo.Snapshot) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		rs, ok := s.RootModule().Resources[n]
 
@@ -107,7 +107,7 @@ func testAccCheckDigitalOceanVolumeSnapshotExists(n string, snapshot *godo.Snaps
 }
 
 func testAccCheckDigitalOceanVolumeSnapshotDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_volume_snapshot" {

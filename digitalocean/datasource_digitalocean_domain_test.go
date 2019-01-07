@@ -55,7 +55,7 @@ func testAccCheckDataSourceDigitalOceanDomainExists(n string, domain *godo.Domai
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		foundDomain, _, err := client.Domains.Get(context.Background(), rs.Primary.ID)
 

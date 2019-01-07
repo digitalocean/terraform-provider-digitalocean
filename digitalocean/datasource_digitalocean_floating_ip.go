@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -36,7 +35,7 @@ func dataSourceDigitalOceanFloatingIp() *schema.Resource {
 }
 
 func dataSourceDigitalOceanFloatingIpRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	ipAddress := d.Get("ip_address").(string)
 

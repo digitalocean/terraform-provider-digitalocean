@@ -43,7 +43,7 @@ func testAccCheckDataSourceDigitalOceanTagExists(n string, tag *godo.Tag) resour
 			return fmt.Errorf("No tag ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		foundTag, _, err := client.Tags.Get(context.Background(), rs.Primary.ID)
 

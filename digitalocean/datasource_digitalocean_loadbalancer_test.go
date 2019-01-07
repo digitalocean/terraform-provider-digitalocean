@@ -63,7 +63,7 @@ func testAccCheckDataSourceDigitalOceanLoadBalancerExists(n string, loadbalancer
 			return fmt.Errorf("No Load Balancer ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		foundLoadbalancer, _, err := client.LoadBalancers.Get(context.Background(), rs.Primary.ID)
 

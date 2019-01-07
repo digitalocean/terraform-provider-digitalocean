@@ -28,7 +28,7 @@ func testSweepLoadbalancer(region string) error {
 		return err
 	}
 
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	lbs, _, err := client.LoadBalancers.List(context.Background(), nil)
 	if err != nil {
@@ -294,7 +294,7 @@ func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 }
 
 func testAccCheckDigitalOceanLoadbalancerDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_loadbalancer" {
@@ -324,7 +324,7 @@ func testAccCheckDigitalOceanLoadbalancerExists(n string, loadbalancer *godo.Loa
 			return fmt.Errorf("No Loadbalancer ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		lb, _, err := client.LoadBalancers.Get(context.Background(), rs.Primary.ID)
 

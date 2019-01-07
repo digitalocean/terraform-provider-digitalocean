@@ -56,7 +56,7 @@ func testAccCheckDataSourceDigitalOceanSSHKeyExists(n string, key *godo.Key) res
 			return fmt.Errorf("No ssh key ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		id, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {

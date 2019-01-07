@@ -285,7 +285,7 @@ func buildLoadBalancerRequest(d *schema.ResourceData) (*godo.LoadBalancerRequest
 }
 
 func resourceDigitalOceanLoadbalancerCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Create a Loadbalancer Request")
 
@@ -318,7 +318,7 @@ func resourceDigitalOceanLoadbalancerCreate(d *schema.ResourceData, meta interfa
 }
 
 func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Reading the details of the Loadbalancer %s", d.Id())
 	loadbalancer, resp, err := client.LoadBalancers.Get(context.Background(), d.Id())
@@ -360,7 +360,7 @@ func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface
 }
 
 func resourceDigitalOceanLoadbalancerUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	lbOpts, err := buildLoadBalancerRequest(d)
 	if err != nil {
@@ -377,7 +377,7 @@ func resourceDigitalOceanLoadbalancerUpdate(d *schema.ResourceData, meta interfa
 }
 
 func resourceDigitalOceanLoadbalancerDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting Load Balancer: %s", d.Id())
 	_, err := client.LoadBalancers.Delete(context.Background(), d.Id())

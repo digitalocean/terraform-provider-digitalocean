@@ -32,7 +32,7 @@ func TestAccDigitalOceanTag_Basic(t *testing.T) {
 }
 
 func testAccCheckDigitalOceanTagDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_tag" {
@@ -73,7 +73,7 @@ func testAccCheckDigitalOceanTagExists(n string, tag *godo.Tag) resource.TestChe
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		// Try to find the tag
 		foundTag, _, err := client.Tags.Get(context.Background(), rs.Primary.ID)

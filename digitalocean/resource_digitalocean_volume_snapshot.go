@@ -59,7 +59,7 @@ func resourceDigitalOceanVolumeSnapshot() *schema.Resource {
 }
 
 func resourceDigitalOceanVolumeSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	opts := &godo.SnapshotCreateRequest{
 		Name:     d.Get("name").(string),
@@ -79,7 +79,7 @@ func resourceDigitalOceanVolumeSnapshotCreate(d *schema.ResourceData, meta inter
 }
 
 func resourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	snapshot, resp, err := client.Snapshots.Get(context.Background(), d.Id())
 	if err != nil {
@@ -104,7 +104,7 @@ func resourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta interfa
 }
 
 func resourceDigitalOceanVolumeSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting snaphot: %s", d.Id())
 	_, err := client.Snapshots.Delete(context.Background(), d.Id())

@@ -183,7 +183,7 @@ func testAccCheckDigitalOceanVolumeAttachmentExists(rn string) resource.TestChec
 			return fmt.Errorf("no volume ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		volumeId := rs.Primary.Attributes["volume_id"]
 		dropletId, err := strconv.Atoi(rs.Primary.Attributes["droplet_id"])

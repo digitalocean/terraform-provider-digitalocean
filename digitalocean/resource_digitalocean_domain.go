@@ -38,7 +38,7 @@ func resourceDigitalOceanDomain() *schema.Resource {
 }
 
 func resourceDigitalOceanDomainCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	// Build up our creation options
 
@@ -63,7 +63,7 @@ func resourceDigitalOceanDomainCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	domain, resp, err := client.Domains.Get(context.Background(), d.Id())
 	if err != nil {
@@ -83,7 +83,7 @@ func resourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceDigitalOceanDomainDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting Domain: %s", d.Id())
 	_, err := client.Domains.Delete(context.Background(), d.Id())

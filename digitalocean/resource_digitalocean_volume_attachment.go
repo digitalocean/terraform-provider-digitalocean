@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -37,7 +36,7 @@ func resourceDigitalOceanVolumeAttachment() *schema.Resource {
 }
 
 func resourceDigitalOceanVolumeAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	dropletId := d.Get("droplet_id").(int)
 	volumeId := d.Get("volume_id").(string)
@@ -84,7 +83,7 @@ func resourceDigitalOceanVolumeAttachmentCreate(d *schema.ResourceData, meta int
 }
 
 func resourceDigitalOceanVolumeAttachmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	dropletId := d.Get("droplet_id").(int)
 	volumeId := d.Get("volume_id").(string)
@@ -110,7 +109,7 @@ func resourceDigitalOceanVolumeAttachmentRead(d *schema.ResourceData, meta inter
 }
 
 func resourceDigitalOceanVolumeAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	dropletId := d.Get("droplet_id").(int)
 	volumeId := d.Get("volume_id").(string)

@@ -193,7 +193,7 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 }
 
 func resourceDigitalOceanFirewallCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	opts, err := firewallRequest(d, client)
 	if err != nil {
@@ -216,7 +216,7 @@ func resourceDigitalOceanFirewallCreate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	// Retrieve the firewall properties for updating the state
 	firewall, resp, err := client.Firewalls.Get(context.Background(), d.Id())
@@ -256,7 +256,7 @@ func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceDigitalOceanFirewallUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	opts, err := firewallRequest(d, client)
 	if err != nil {
@@ -274,7 +274,7 @@ func resourceDigitalOceanFirewallUpdate(d *schema.ResourceData, meta interface{}
 }
 
 func resourceDigitalOceanFirewallDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting firewall: %s", d.Id())
 
