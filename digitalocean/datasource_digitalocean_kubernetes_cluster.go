@@ -51,7 +51,7 @@ func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 
 			"tags": tagsSchema(),
 
-			"node_pool": &schema.Schema{
+			"node_pool": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{

@@ -14,13 +14,13 @@ func dataSourceDigitalOceanVolume() *schema.Resource {
 		Read: dataSourceDigitalOceanVolumeRead,
 		Schema: map[string]*schema.Schema{
 
-			"name": &schema.Schema{
+			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "name of the volume",
 				ValidateFunc: validation.NoZeroValues,
 			},
-			"region": &schema.Schema{
+			"region": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Description:  "the region that the volume is provisioned in",
@@ -47,7 +47,7 @@ func dataSourceDigitalOceanVolume() *schema.Resource {
 				Computed:    true,
 				Description: "the label currently applied to the filesystem",
 			},
-			"droplet_ids": &schema.Schema{
+			"droplet_ids": {
 				Type:        schema.TypeSet,
 				Elem:        &schema.Schema{Type: schema.TypeInt},
 				Computed:    true,

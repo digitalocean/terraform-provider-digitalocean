@@ -15,55 +15,55 @@ func dataSourceDigitalOceanRecord() *schema.Resource {
 		Read: dataSourceDigitalOceanRecordRead,
 		Schema: map[string]*schema.Schema{
 
-			"domain": &schema.Schema{
+			"domain": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "domain of the name record",
 				ValidateFunc: validation.NoZeroValues,
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "name of the record",
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
-			"type": &schema.Schema{
+			"type": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "type of the name record",
 			},
-			"data": &schema.Schema{
+			"data": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "name record data",
 			},
-			"priority": &schema.Schema{
+			"priority": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "priority of the name record",
 			},
-			"port": &schema.Schema{
+			"port": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "port of the name record",
 			},
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "ttl of the name record",
 			},
-			"weight": &schema.Schema{
+			"weight": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "weight of the name record",
 			},
-			"flags": &schema.Schema{
+			"flags": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "flags of the name record",
 			},
-			"tag": &schema.Schema{
+			"tag": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "tag of the name record",

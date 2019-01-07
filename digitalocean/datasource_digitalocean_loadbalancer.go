@@ -14,14 +14,14 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 		Read: dataSourceDigitalOceanLoadbalancerRead,
 		Schema: map[string]*schema.Schema{
 
-			"name": &schema.Schema{
+			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "name of the load balancer",
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
-			"region": &schema.Schema{
+			"region": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "the region that the load blanacer is deployed in",

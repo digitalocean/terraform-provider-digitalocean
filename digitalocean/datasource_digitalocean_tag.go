@@ -13,7 +13,7 @@ func dataSourceDigitalOceanTag() *schema.Resource {
 		Read: dataSourceDigitalOceanTagRead,
 		Schema: map[string]*schema.Schema{
 
-			"name": &schema.Schema{
+			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "name of the tag",

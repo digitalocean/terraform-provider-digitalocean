@@ -14,19 +14,19 @@ func dataSourceDigitalOceanFloatingIp() *schema.Resource {
 		Read: dataSourceDigitalOceanFloatingIpRead,
 		Schema: map[string]*schema.Schema{
 
-			"ip_address": &schema.Schema{
+			"ip_address": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "floating ip address",
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
-			"region": &schema.Schema{
+			"region": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "the region that the floating ip is reserved to",
 			},
-			"droplet_id": &schema.Schema{
+			"droplet_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "the droplet id that the floating ip has been assigned to.",

@@ -15,19 +15,19 @@ func dataSourceDigitalOceanSSHKey() *schema.Resource {
 		Read: dataSourceDigitalOceanSSHKeyRead,
 		Schema: map[string]*schema.Schema{
 
-			"name": &schema.Schema{
+			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "name of the ssh key",
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
-			"public_key": &schema.Schema{
+			"public_key": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "public key part of the ssh key",
 			},
-			"fingerprint": &schema.Schema{
+			"fingerprint": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "fingerprint of the ssh key",
