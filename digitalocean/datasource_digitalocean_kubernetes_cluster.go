@@ -104,7 +104,7 @@ func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 }
 
 func dataSourceDigitalOceanKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	clusters, resp, err := client.Kubernetes.List(context.Background(), &godo.ListOptions{})
 	if err != nil {

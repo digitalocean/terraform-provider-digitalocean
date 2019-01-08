@@ -227,7 +227,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 }
 
 func testAccCheckDigitalOceanKubernetesClusterDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_kubernetes_cluster" {
@@ -257,7 +257,7 @@ func testAccCheckDigitalOceanKubernetesClusterExists(n string, cluster *godo.Kub
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		foundCluster, _, err := client.Kubernetes.Get(context.Background(), rs.Primary.ID)
 

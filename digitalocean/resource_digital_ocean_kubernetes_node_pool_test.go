@@ -138,7 +138,7 @@ func testAccCheckDigitalOceanKubernetesNodePoolExists(n string, cluster *godo.Ku
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		foundPool, _, err := client.Kubernetes.GetNodePool(context.Background(), cluster.ID, rs.Primary.ID)
 

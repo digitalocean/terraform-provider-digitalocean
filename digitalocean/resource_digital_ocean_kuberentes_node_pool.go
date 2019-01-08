@@ -113,7 +113,7 @@ func nodeSchema() *schema.Schema {
 }
 
 func resourceDigitalOceanKubernetesNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	rawPool := map[string]interface{}{
 		"name":       d.Get("name"),
@@ -133,7 +133,7 @@ func resourceDigitalOceanKubernetesNodePoolCreate(d *schema.ResourceData, meta i
 }
 
 func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	pool, resp, err := client.Kubernetes.GetNodePool(context.Background(), d.Get("cluster_id").(string), d.Id())
 	if err != nil {
@@ -168,7 +168,7 @@ func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta int
 }
 
 func resourceDigitalOceanKubernetesNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	rawPool := map[string]interface{}{
 		"name":       d.Get("name"),
@@ -185,7 +185,7 @@ func resourceDigitalOceanKubernetesNodePoolUpdate(d *schema.ResourceData, meta i
 }
 
 func resourceDigitalOceanKubernetesNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	return digitaloceanKubernetesNodePoolDelete(client, d.Get("cluster_id").(string), d.Id())
 }

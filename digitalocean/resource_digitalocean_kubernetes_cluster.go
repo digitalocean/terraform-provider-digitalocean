@@ -134,7 +134,7 @@ func kubernetesConfigSchema() *schema.Schema {
 }
 
 func resourceDigitalOceanKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	pools := expandNodePools(d.Get("node_pool").([]interface{}))
 	poolCreateRequests := make([]*godo.KubernetesNodePoolCreateRequest, len(pools))
@@ -174,7 +174,7 @@ func resourceDigitalOceanKubernetesClusterCreate(d *schema.ResourceData, meta in
 }
 
 func resourceDigitalOceanKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	cluster, resp, err := client.Kubernetes.Get(context.Background(), d.Id())
 	if err != nil {
@@ -227,7 +227,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 }
 
 func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	// Figure out the changes and then call the appropriate API methods
 	if d.HasChange("name") || d.HasChange("tags") {
@@ -267,7 +267,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 }
 
 func resourceDigitalOceanKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	resp, err := client.Kubernetes.Delete(context.Background(), d.Id())
 	if err != nil {

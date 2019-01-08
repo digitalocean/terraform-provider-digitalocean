@@ -67,7 +67,7 @@ func testAccCheckDataSourceDigitalOceanKubernetesClusterExists(n string, cluster
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		foundCluster, _, err := client.Kubernetes.Get(context.Background(), rs.Primary.ID)
 
