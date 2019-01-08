@@ -1,4 +1,9 @@
 ## 1.2.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource** `digitalocean_spaces_bucket` ([#42](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/42)). Thanks to @slapula!
+
 ## 1.1.0 (December 12, 2018)
 
 FEATURES:
