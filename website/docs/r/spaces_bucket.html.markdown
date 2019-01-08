@@ -54,6 +54,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the bucket
 * `region` - The region where the bucket resides (Defaults to `nyc3`)
 * `acl` - Canned ACL applied on bucket creation (`private` or `public-read`)
+* `force_destroy` - Unless `true`, the bucket will only be destroyed if empty (Defalts to `false`)
 
 ## Attributes Reference
 
@@ -61,7 +62,7 @@ The following attributes are exported:
 
 * `name` - The name of the bucket
 * `region` - The name of the region
-
+* `bucket_domain_name` - The FQDN of the bucket (e.g. bucket-name.nyc3.digitaloceanspaces.com)
 
 ## Import
 

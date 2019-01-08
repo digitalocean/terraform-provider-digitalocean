@@ -38,8 +38,19 @@ func resourceDigitalOceanBucket() *schema.Resource {
 			"acl": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Canned ACL applied on bucket creation (Change requires replacement)",
+				Description: "Canned ACL applied on bucket creation",
 				Default:     "private",
+			},
+			"bucket_domain_name": {
+				Type:        schema.TypeString,
+				Description: "The FQDN of the bucket",
+				Computed:    true,
+			},
+			"force_destroy": {
+				Type:        schema.TypeBool,
+				Description: "Unless true, the bucket will only be destroyed if empty",
+				Optional:    true,
+				Default:     false,
 			},
 		},
 	}
@@ -284,7 +295,7 @@ func resourceDigitalOceanBucketImport(d *schema.ResourceData, meta interface{}) 
 }
 
 func bucketDomainName(bucket string, region string) string {
-	return fmt.Sprintf("%q.%q.digitaloceanspaces.com", bucket, region)
+	return fmt.Sprintf("%s.%s.digitaloceanspaces.com", bucket, region)
 }
 
 func retryOnAwsCode(code string, f func() (interface{}, error)) (interface{}, error) {
