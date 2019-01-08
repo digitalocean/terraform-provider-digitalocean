@@ -25,7 +25,7 @@ func TestAccDigitalOceanBucket_basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testAccPreCheck(t) },
 		/*
-			IDRefreshName:   "digitalocean_bucket.bucket",
+			IDRefreshName:   "digitalocean_spaces_bucket.bucket",
 			IDRefreshIgnore: []string{"force_destroy"},
 		*/
 		Providers:    testAccProviders,
@@ -34,11 +34,11 @@ func TestAccDigitalOceanBucket_basic(t *testing.T) {
 			{
 				Config: testAccDigitalOceanBucketConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanBucketExists("digitalocean_bucket.bucket"),
+					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_bucket.bucket", "region", "nyc3"),
+						"digitalocean_spaces_bucket.bucket", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_bucket.bucket", "name", testAccBucketName(rInt)),
+						"digitalocean_spaces_bucket.bucket", "name", testAccBucketName(rInt)),
 				),
 			},
 		},
@@ -56,8 +56,8 @@ func TestAccDigitalOceanBucket_region(t *testing.T) {
 			{
 				Config: testAccDigitalOceanBucketConfigWithRegion(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanBucketExists("digitalocean_bucket.bucket"),
-					resource.TestCheckResourceAttr("digitalocean_bucket.bucket", "region", "ams3"),
+					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
+					resource.TestCheckResourceAttr("digitalocean_spaces_bucket.bucket", "region", "ams3"),
 				),
 			},
 		},
@@ -77,17 +77,17 @@ func TestAccDigitalOceanBucket_UpdateAcl(t *testing.T) {
 			{
 				Config: preConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanBucketExists("digitalocean_bucket.bucket"),
+					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_bucket.bucket", "acl", "public-read"),
+						"digitalocean_spaces_bucket.bucket", "acl", "public-read"),
 				),
 			},
 			{
 				Config: postConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanBucketExists("digitalocean_bucket.bucket"),
+					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_bucket.bucket", "acl", "private"),
+						"digitalocean_spaces_bucket.bucket", "acl", "private"),
 				),
 			},
 		},
@@ -107,8 +107,8 @@ func TestAccDigitalOceanBucket_shouldFailNotFound(t *testing.T) {
 			{
 				Config: testAccDigitalOceanBucketDestroyedConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanBucketExists("digitalocean_bucket.bucket"),
-					testAccCheckDigitalOceanDestroyBucket("digitalocean_bucket.bucket"),
+					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
+					testAccCheckDigitalOceanDestroyBucket("digitalocean_spaces_bucket.bucket"),
 				),
 				ExpectNonEmptyPlan: true,
 			},
@@ -125,7 +125,7 @@ func testAccCheckDigitalOceanBucketDestroyWithProvider(s *terraform.State, provi
 	for _, rs := range s.RootModule().Resources {
 		sesh, err := session.NewSession(&aws.Config{
 			Region:      aws.String(rs.Primary.Attributes["region"]),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), "")},
+			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
 		)
 
 		svc := s3.New(sesh, &aws.Config{
@@ -136,7 +136,7 @@ func testAccCheckDigitalOceanBucketDestroyWithProvider(s *terraform.State, provi
 			log.Fatal(err)
 		}
 
-		if rs.Type != "digitalocean_bucket" {
+		if rs.Type != "digitalocean_spaces_bucket" {
 			continue
 		}
 		_, err = svc.DeleteBucket(&s3.DeleteBucketInput{
@@ -169,7 +169,7 @@ func testAccCheckDigitalOceanBucketExistsWithProvider(n string, providerF func()
 
 		sesh, err := session.NewSession(&aws.Config{
 			Region:      aws.String(rs.Primary.Attributes["region"]),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), "")},
+			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
 		)
 		svc := s3.New(sesh, &aws.Config{
 			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
@@ -207,7 +207,7 @@ func testAccCheckDigitalOceanDestroyBucket(n string) resource.TestCheckFunc {
 
 		sesh, err := session.NewSession(&aws.Config{
 			Region:      aws.String(rs.Primary.Attributes["region"]),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("DO_ACCESS_KEY_ID"), os.Getenv("DO_SECRET_ACCESS_KEY"), "")},
+			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
 		)
 		svc := s3.New(sesh, &aws.Config{
 			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
@@ -236,14 +236,13 @@ func isAWSErr(err error, code string, message string) bool {
 }
 
 // These need a bit of randomness as the name can only be used once globally
-// within AWS
 func testAccBucketName(randInt int) string {
 	return fmt.Sprintf("tf-test-bucket-%d", randInt)
 }
 
 func testAccDigitalOceanBucketConfig(randInt int) string {
 	return fmt.Sprintf(`
-resource "digitalocean_bucket" "bucket" {
+resource "digitalocean_spaces_bucket" "bucket" {
 	name = "tf-test-bucket-%d"
 	acl = "public-read"
 }
@@ -252,7 +251,7 @@ resource "digitalocean_bucket" "bucket" {
 
 func testAccDigitalOceanBucketDestroyedConfig(randInt int) string {
 	return fmt.Sprintf(`
-resource "digitalocean_bucket" "bucket" {
+resource "digitalocean_spaces_bucket" "bucket" {
 	name = "tf-test-bucket-%d"
 	acl = "public-read"
 }
@@ -261,7 +260,7 @@ resource "digitalocean_bucket" "bucket" {
 
 func testAccDigitalOceanBucketConfigWithRegion(randInt int) string {
 	return fmt.Sprintf(`
-resource "digitalocean_bucket" "bucket" {
+resource "digitalocean_spaces_bucket" "bucket" {
 	name = "tf-test-bucket-%d"
 	region = "ams3"
 }
@@ -270,21 +269,21 @@ resource "digitalocean_bucket" "bucket" {
 
 func testAccDigitalOceanBucketConfigImport(randInt int) string {
 	return fmt.Sprintf(`
-resource "digitalocean_bucket" "bucket" {
+resource "digitalocean_spaces_bucket" "bucket" {
 	name = "tf-test-bucket-%d"
 }
 `, randInt)
 }
 
 var testAccDigitalOceanBucketConfigWithACL = `
-resource "digitalocean_bucket" "bucket" {
+resource "digitalocean_spaces_bucket" "bucket" {
 	name = "tf-test-bucket-%d"
 	acl = "public-read"
 }
 `
 
 var testAccDigitalOceanBucketConfigWithACLUpdate = `
-resource "digitalocean_bucket" "bucket" {
+resource "digitalocean_spaces_bucket" "bucket" {
 	name = "tf-test-bucket-%d"
 	acl = "private"
 }

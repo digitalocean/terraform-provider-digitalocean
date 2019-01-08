@@ -1,12 +1,12 @@
 ---
 layout: "digitalocean"
-page_title: "DigitalOcean: digitalocean_bucket"
-sidebar_current: "docs-do-resource-bucket"
+page_title: "DigitalOcean: digitalocean_spaces_bucket"
+sidebar_current: "docs-do-resource-spaces-bucket"
 description: |-
   Provides a DigitalOcean Spaces Bucket resource.
 ---
 
-# digitalocean\_bucket
+# digitalocean\_spaces\_bucket
 
 Provides a bucket resource for Spaces, DigitalOcean's object storage product.
 
@@ -18,18 +18,19 @@ similar to Amazon's Access ID and Secret Key.
 
 The authentication requirement can be met by either setting the
 `SPACES_ACCESS_KEY_ID` and `SPACES_SECRET_ACCESS_KEY` environment variables or
-the provider's `access_id` and `secret_key` arguments to the access ID and
-secret you generate via the DigitalOcean control panel. For example:
+the provider's `spaces_access_id` and `spaces_secret_key` arguments to the
+access ID and secret you generate via the DigitalOcean control panel. For
+example:
 
 ```
 provider "digitalocean" {
-  token      = "${var.digitalocean_token}"
+  token             = "${var.digitalocean_token}"
 
-  access_id  = "${var.access_id}"
-  secret_key = "${var.secret_key}"
+  spaces_access_id  = "${var.access_id}"
+  spaces_secret_key = "${var.secret_key}"
 }
 
-resource "digitalocean_bucket" "static-assets" {
+resource "digitalocean_spaces_bucket" "static-assets" {
   # ...
 }
 ```
@@ -40,7 +41,7 @@ For more information, See [An Introduction to DigitalOcean Spaces](https://www.d
 
 ```hcl
 # Create a new bucket
-resource "digitalocean_bucket" "foobar" {
+resource "digitalocean_spaces_bucket" "foobar" {
   name   = "foobar"
   region = "nyc3"
 }
@@ -67,5 +68,5 @@ The following attributes are exported:
 Buckets can be imported using the `region` and `name` attributes (delimited by a comma):
 
 ```
-terraform import digitalocean_bucket.foobar `region`,`name`
+terraform import digitalocean_spaces_bucket.foobar `region`,`name`
 ```

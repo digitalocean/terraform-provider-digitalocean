@@ -9,7 +9,7 @@ import (
 )
 
 func TestAccDigitalOceanBucket_importBasic(t *testing.T) {
-	resourceName := "digitalocean_bucket.bucket"
+	resourceName := "digitalocean_spaces_bucket.bucket"
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{

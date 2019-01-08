@@ -15,16 +15,16 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_TOKEN", nil),
 				Description: "The token key for API operations.",
 			},
-			"access_id": {
+			"spaces_access_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DO_ACCESS_KEY_ID", nil),
+				DefaultFunc: schema.EnvDefaultFunc("SPACES_ACCESS_KEY_ID", nil),
 				Description: "The access key ID for Spaces API operations.",
 			},
-			"secret_key": {
+			"spaces_secret_key": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DO_SECRET_ACCESS_KEY", nil),
+				DefaultFunc: schema.EnvDefaultFunc("SPACES_SECRET_ACCESS_KEY", nil),
 				Description: "The secret access key for Spaces API operations.",
 			},
 		},
@@ -45,7 +45,6 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"digitalocean_bucket":                 resourceDigitalOceanBucket(),
 			"digitalocean_certificate":            resourceDigitalOceanCertificate(),
 			"digitalocean_domain":                 resourceDigitalOceanDomain(),
 			"digitalocean_droplet":                resourceDigitalOceanDroplet(),
@@ -55,6 +54,7 @@ func Provider() terraform.ResourceProvider {
 			"digitalocean_floating_ip_assignment": resourceDigitalOceanFloatingIpAssignment(),
 			"digitalocean_loadbalancer":           resourceDigitalOceanLoadbalancer(),
 			"digitalocean_record":                 resourceDigitalOceanRecord(),
+			"digitalocean_spaces_bucket":          resourceDigitalOceanBucket(),
 			"digitalocean_ssh_key":                resourceDigitalOceanSSHKey(),
 			"digitalocean_tag":                    resourceDigitalOceanTag(),
 			"digitalocean_volume":                 resourceDigitalOceanVolume(),
@@ -69,8 +69,8 @@ func Provider() terraform.ResourceProvider {
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
 		Token:     d.Get("token").(string),
-		AccessID:  d.Get("access_id").(string),
-		SecretKey: d.Get("secret_key").(string),
+		AccessID:  d.Get("spaces_access_id").(string),
+		SecretKey: d.Get("spaces_secret_key").(string),
 	}
 
 	return config.Client()

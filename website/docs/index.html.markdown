@@ -38,7 +38,9 @@ The following arguments are supported:
 
 * `token` - (Required) This is the DO API token. This can also be specified
   with the `DIGITALOCEAN_TOKEN` shell environment variable.
-* `access_id` - (Optional) The access key ID used for Spaces API operations
-  (Defaults to the value of the `DO_ACCESS_KEY_ID` environment variable).
-* `secret_key` - (Optional) The secret access key used for Spaces API operations
-  (Defaults to the value of the `DO_SECRET_ACCESS_KEY` environment variable).
+* `spaces_access_id` - (Optional) The access key ID used for Spaces API
+  operations (Defaults to the value of the `SPACES_ACCESS_KEY_ID` environment
+  variable).
+* `spaces_secret_key` - (Optional) The secret access key used for Spaces API
+  operations (Defaults to the value of the `SPACES_SECRET_ACCESS_KEY`
+  environment variable).
