@@ -27,7 +27,7 @@ func testSweepDropletSnapshots(region string) error {
 		return err
 	}
 
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	snapshots, _, err := client.Snapshots.ListDroplet(context.Background(), nil)
 	if err != nil {
@@ -71,7 +71,7 @@ func TestAccDigitalOceanDropletSnapshot_Basic(t *testing.T) {
 
 func testAccCheckDigitalOceanDropletSnapshotExists(n string, snapshot *godo.Snapshot) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		rs, ok := s.RootModule().Resources[n]
 
@@ -99,7 +99,7 @@ func testAccCheckDigitalOceanDropletSnapshotExists(n string, snapshot *godo.Snap
 }
 
 func testAccCheckDigitalOceanDropletSnapshotDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_droplet_snapshot" {

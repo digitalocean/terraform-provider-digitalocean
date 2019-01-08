@@ -75,7 +75,7 @@ func testAccCheckDataSourceDigitalOceanVolumeExists(n string, volume *godo.Volum
 			return fmt.Errorf("No Volume ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		foundVolume, _, err := client.Storage.GetVolume(context.Background(), rs.Primary.ID)
 

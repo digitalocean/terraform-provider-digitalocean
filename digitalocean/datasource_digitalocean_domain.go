@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
 )
@@ -36,7 +35,7 @@ func dataSourceDigitalOceanDomain() *schema.Resource {
 }
 
 func dataSourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)
 

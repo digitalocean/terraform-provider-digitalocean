@@ -52,7 +52,7 @@ func dataSourceDigitalOceanCertificate() *schema.Resource {
 }
 
 func dataSourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)
 

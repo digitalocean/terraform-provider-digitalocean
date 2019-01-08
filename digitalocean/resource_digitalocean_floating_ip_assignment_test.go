@@ -98,7 +98,7 @@ func testAccCheckDigitalOceanFloatingIPAttachmentExists(n string) resource.TestC
 			return err
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		// Try to find the FloatingIP
 		foundFloatingIP, _, err := client.FloatingIPs.Get(context.Background(), fipID)

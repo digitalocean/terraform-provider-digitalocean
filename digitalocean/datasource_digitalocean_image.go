@@ -65,7 +65,7 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 }
 
 func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	name, hasName := d.GetOk("name")
 	slug, hasSlug := d.GetOk("slug")

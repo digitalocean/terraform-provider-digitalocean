@@ -155,7 +155,7 @@ func resourceDigitalOceanRecord() *schema.Resource {
 }
 
 func resourceDigitalOceanRecordCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	newRecord, err := expandDigitalOceanRecordResource(d)
 	if err != nil {
@@ -177,7 +177,7 @@ func resourceDigitalOceanRecordCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 	domain := d.Get("domain").(string)
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
@@ -246,7 +246,7 @@ func resourceDigitalOceanRecordImport(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceDigitalOceanRecordUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	domain := d.Get("domain").(string)
 	id, err := strconv.Atoi(d.Id())
@@ -269,7 +269,7 @@ func resourceDigitalOceanRecordUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceDigitalOceanRecordDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	domain := d.Get("domain").(string)
 	id, err := strconv.Atoi(d.Id())

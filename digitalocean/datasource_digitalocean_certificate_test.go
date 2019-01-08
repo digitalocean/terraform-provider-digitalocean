@@ -47,7 +47,7 @@ func testAccCheckDataSourceDigitalOceanCertificateExists(n string, certificate *
 			return fmt.Errorf("No certificate ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		foundCertificate, _, err := client.Certificates.Get(context.Background(), rs.Primary.ID)
 

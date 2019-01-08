@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -40,7 +39,7 @@ func resourceDigitalOceanFloatingIpAssignment() *schema.Resource {
 }
 
 func resourceDigitalOceanFloatingIpAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	ip_address := d.Get("ip_address").(string)
 	droplet_id := d.Get("droplet_id").(int)
@@ -63,7 +62,7 @@ func resourceDigitalOceanFloatingIpAssignmentCreate(d *schema.ResourceData, meta
 }
 
 func resourceDigitalOceanFloatingIpAssignmentRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	ip_address := d.Get("ip_address").(string)
 	droplet_id := d.Get("droplet_id").(int)
@@ -83,7 +82,7 @@ func resourceDigitalOceanFloatingIpAssignmentRead(d *schema.ResourceData, meta i
 }
 
 func resourceDigitalOceanFloatingIpAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	ip_address := d.Get("ip_address").(string)
 	droplet_id := d.Get("droplet_id").(int)
@@ -136,7 +135,7 @@ func waitForFloatingIPAssignmentReady(
 
 func newFloatingIPAssignmentStateRefreshFunc(
 	d *schema.ResourceData, attribute string, meta interface{}, actionId int) resource.StateRefreshFunc {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 	return func() (interface{}, string, error) {
 
 		log.Printf("[INFO] Refreshing the Floating IP state")

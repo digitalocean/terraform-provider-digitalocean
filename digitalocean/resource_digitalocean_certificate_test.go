@@ -49,7 +49,7 @@ func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
 }
 
 func testAccCheckDigitalOceanCertificateDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_certificate" {
@@ -79,7 +79,7 @@ func testAccCheckDigitalOceanCertificateExists(n string, cert *godo.Certificate)
 			return fmt.Errorf("No Certificate ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		c, _, err := client.Certificates.Get(context.Background(), rs.Primary.ID)
 

@@ -28,7 +28,7 @@ func testSweepDroplets(region string) error {
 		return err
 	}
 
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	droplets, _, err := client.Droplets.List(context.Background(), nil)
 	if err != nil {
@@ -452,7 +452,7 @@ func TestAccDigitalOceanDroplet_conditionalVolumes(t *testing.T) {
 }
 
 func testAccCheckDigitalOceanDropletDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_droplet" {
@@ -607,7 +607,7 @@ func testAccCheckDigitalOceanDropletExists(n string, droplet *godo.Droplet) reso
 			return fmt.Errorf("No Droplet ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		id, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {

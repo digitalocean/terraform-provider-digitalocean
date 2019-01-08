@@ -526,7 +526,7 @@ func TestAccDigitalOceanRecord_CaaUpdated(t *testing.T) {
 }
 
 func testAccCheckDigitalOceanRecordDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_record" {
@@ -582,7 +582,7 @@ func testAccCheckDigitalOceanRecordExists(n string, record *godo.DomainRecord) r
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		domain := rs.Primary.Attributes["domain"]
 		id, err := strconv.Atoi(rs.Primary.ID)

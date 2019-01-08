@@ -15,6 +15,18 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_TOKEN", nil),
 				Description: "The token key for API operations.",
 			},
+			"spaces_access_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("SPACES_ACCESS_KEY_ID", nil),
+				Description: "The access key ID for Spaces API operations.",
+			},
+			"spaces_secret_key": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("SPACES_SECRET_ACCESS_KEY", nil),
+				Description: "The secret access key for Spaces API operations.",
+			},
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -45,6 +57,7 @@ func Provider() terraform.ResourceProvider {
 			"digitalocean_kubernetes_node_pool":   resourceDigitalOceanKubernetesNodePool(),
 			"digitalocean_loadbalancer":           resourceDigitalOceanLoadbalancer(),
 			"digitalocean_record":                 resourceDigitalOceanRecord(),
+			"digitalocean_spaces_bucket":          resourceDigitalOceanBucket(),
 			"digitalocean_ssh_key":                resourceDigitalOceanSSHKey(),
 			"digitalocean_tag":                    resourceDigitalOceanTag(),
 			"digitalocean_volume":                 resourceDigitalOceanVolume(),
@@ -58,7 +71,9 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
-		Token: d.Get("token").(string),
+		Token:     d.Get("token").(string),
+		AccessID:  d.Get("spaces_access_id").(string),
+		SecretKey: d.Get("spaces_secret_key").(string),
 	}
 
 	return config.Client()

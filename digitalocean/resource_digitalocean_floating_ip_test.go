@@ -25,7 +25,7 @@ func testSweepFloatingIps(region string) error {
 		return err
 	}
 
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	ips, _, err := client.FloatingIPs.List(context.Background(), nil)
 	if err != nil {
@@ -99,7 +99,7 @@ func TestAccDigitalOceanFloatingIP_Droplet(t *testing.T) {
 }
 
 func testAccCheckDigitalOceanFloatingIPDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_floating_ip" {
@@ -129,7 +129,7 @@ func testAccCheckDigitalOceanFloatingIPExists(n string, floatingIP *godo.Floatin
 			return fmt.Errorf("No Record ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		// Try to find the FloatingIP
 		foundFloatingIP, _, err := client.FloatingIPs.Get(context.Background(), rs.Primary.ID)

@@ -54,7 +54,7 @@ func testAccCheckDataSourceDigitalOceanRecordAttributes(record *godo.DomainRecor
 
 func testAccCheckDataSourceDigitalOceanRecordExists(n string, record *godo.DomainRecord) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		rs, ok := s.RootModule().Resources[n]
 

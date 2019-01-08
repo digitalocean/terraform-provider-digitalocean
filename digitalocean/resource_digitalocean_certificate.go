@@ -140,7 +140,7 @@ func buildCertificateRequest(d *schema.ResourceData) (*godo.CertificateRequest, 
 }
 
 func resourceDigitalOceanCertificateCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Create a Certificate Request")
 
@@ -175,7 +175,7 @@ func resourceDigitalOceanCertificateCreate(d *schema.ResourceData, meta interfac
 }
 
 func resourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Reading the details of the Certificate %s", d.Id())
 	cert, resp, err := client.Certificates.Get(context.Background(), d.Id())
@@ -205,7 +205,7 @@ func resourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interface{
 }
 
 func resourceDigitalOceanCertificateDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting Certificate: %s", d.Id())
 	_, err := client.Certificates.Delete(context.Background(), d.Id())
@@ -242,7 +242,7 @@ func flattenDigitalOceanCertificateDomains(domains []string) *schema.Set {
 }
 
 func newCertificateStateRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 	return func() (interface{}, string, error) {
 
 		// Retrieve the certificate properties

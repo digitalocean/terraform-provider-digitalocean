@@ -50,7 +50,7 @@ func resourceDigitalOceanSSHKeyPublicKeyDiffSuppress(k, old, new string, d *sche
 }
 
 func resourceDigitalOceanSSHKeyCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	// Build up our creation options
 	opts := &godo.KeyCreateRequest{
@@ -71,7 +71,7 @@ func resourceDigitalOceanSSHKeyCreate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
@@ -98,7 +98,7 @@ func resourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) er
 }
 
 func resourceDigitalOceanSSHKeyUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
@@ -123,7 +123,7 @@ func resourceDigitalOceanSSHKeyUpdate(d *schema.ResourceData, meta interface{}) 
 }
 
 func resourceDigitalOceanSSHKeyDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {

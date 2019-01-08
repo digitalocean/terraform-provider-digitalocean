@@ -28,7 +28,7 @@ func testSweepVolumes(region string) error {
 		return err
 	}
 
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	volumes, _, err := client.Storage.ListVolumes(context.Background(), nil)
 	if err != nil {
@@ -96,7 +96,7 @@ func testAccCheckDigitalOceanVolumeExists(rn string, volume *godo.Volume) resour
 			return fmt.Errorf("no volume ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		got, _, err := client.Storage.GetVolume(context.Background(), rs.Primary.ID)
 		if err != nil {
@@ -112,7 +112,7 @@ func testAccCheckDigitalOceanVolumeExists(rn string, volume *godo.Volume) resour
 }
 
 func testAccCheckDigitalOceanVolumeDestroy(s *terraform.State) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_volume" {

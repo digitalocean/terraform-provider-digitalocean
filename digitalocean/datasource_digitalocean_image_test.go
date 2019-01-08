@@ -89,7 +89,7 @@ func TestAccDigitalOceanImage_PublicSlug(t *testing.T) {
 
 func takeSnapshotsOfDroplet(rInt int, droplet *godo.Droplet, snapshotsId *[]int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 		for i := 0; i < 3; i++ {
 			err := takeSnapshotOfDroplet(rInt, i%2, droplet)
 			if err != nil {
@@ -106,7 +106,7 @@ func takeSnapshotsOfDroplet(rInt int, droplet *godo.Droplet, snapshotsId *[]int)
 }
 
 func takeSnapshotOfDroplet(rInt, sInt int, droplet *godo.Droplet) error {
-	client := testAccProvider.Meta().(*godo.Client)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 	action, _, err := client.DropletActions.Snapshot(context.Background(), (*droplet).ID, fmt.Sprintf("snap-%d-%d", rInt, sInt))
 	if err != nil {
 		return err
@@ -119,7 +119,7 @@ func deleteDropletSnapshots(snapshotsId *[]int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		log.Printf("Deleting Droplet snapshots")
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		snapshots := *snapshotsId
 		for _, value := range snapshots {

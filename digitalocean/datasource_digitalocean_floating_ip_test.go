@@ -43,7 +43,7 @@ func testAccCheckDataSourceDigitalOceanFloatingIpExists(n string, floatingIp *go
 			return fmt.Errorf("No floating ip ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		foundFloatingIp, _, err := client.FloatingIPs.Get(context.Background(), rs.Primary.ID)
 

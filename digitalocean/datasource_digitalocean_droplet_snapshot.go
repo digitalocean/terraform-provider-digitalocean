@@ -63,7 +63,7 @@ func dataSourceDigitalOceanDropletSnapshot() *schema.Resource {
 
 // dataSourceDoSnapshotRead performs the Snapshot lookup.
 func dataSourceDigitalOceanDropletSnapshotRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	name, hasName := d.GetOk("name")
 	nameRegex, hasNameRegex := d.GetOk("name_regex")

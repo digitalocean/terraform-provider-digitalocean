@@ -30,7 +30,7 @@ func resourceDigitalOceanTag() *schema.Resource {
 }
 
 func resourceDigitalOceanTagCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	// Build up our creation options
 	opts := &godo.TagCreateRequest{
@@ -50,7 +50,7 @@ func resourceDigitalOceanTagCreate(d *schema.ResourceData, meta interface{}) err
 }
 
 func resourceDigitalOceanTagRead(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	tag, resp, err := client.Tags.Get(context.Background(), d.Id())
 	if err != nil {
@@ -70,7 +70,7 @@ func resourceDigitalOceanTagRead(d *schema.ResourceData, meta interface{}) error
 }
 
 func resourceDigitalOceanTagDelete(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting tag: %s", d.Id())
 	_, err := client.Tags.Delete(context.Background(), d.Id())

@@ -79,7 +79,7 @@ func TestAccDataSourceDigitalOceanDropletSnapshot_region(t *testing.T) {
 
 func testAccCheckDataSourceDigitalOceanDropletSnapshotExists(n string, snapshot *godo.Snapshot) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		rs, ok := s.RootModule().Resources[n]
 

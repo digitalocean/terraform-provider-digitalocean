@@ -52,7 +52,7 @@ func testAccCheckDataSourceDigitalOceanDropletExists(n string, droplet *godo.Dro
 			return fmt.Errorf("No droplet ID is set")
 		}
 
-		client := testAccProvider.Meta().(*godo.Client)
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 		id, err := strconv.Atoi(rs.Primary.ID)
 		if err != nil {
