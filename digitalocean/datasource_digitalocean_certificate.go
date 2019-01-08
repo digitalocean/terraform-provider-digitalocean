@@ -14,7 +14,7 @@ func dataSourceDigitalOceanCertificate() *schema.Resource {
 		Read: dataSourceDigitalOceanCertificateRead,
 		Schema: map[string]*schema.Schema{
 
-			"name": &schema.Schema{
+			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "name of the certificate",

@@ -15,47 +15,47 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 		Read: dataSourceDigitalOceanImageRead,
 		Schema: map[string]*schema.Schema{
 
-			"name": &schema.Schema{
+			"name": {
 				Type:          schema.TypeString,
 				Optional:      true,
 				Description:   "name of the image",
 				ValidateFunc:  validation.NoZeroValues,
 				ConflictsWith: []string{"slug"},
 			},
-			"slug": &schema.Schema{
+			"slug": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Description:  "slug of the image",
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
-			"image": &schema.Schema{
+			"image": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "slug or id of the image",
 			},
-			"distribution": &schema.Schema{
+			"distribution": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "distribution of the OS of the image",
 			},
-			"private": &schema.Schema{
+			"private": {
 				Type:        schema.TypeBool,
 				Computed:    true,
 				Description: "Is the image private or non-private",
 			},
-			"min_disk_size": &schema.Schema{
+			"min_disk_size": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "minimum disk size required by the image",
 			},
-			"regions": &schema.Schema{
+			"regions": {
 				Type:        schema.TypeSet,
 				Computed:    true,
 				Description: "list of the regions that the image is available in",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
-			"type": &schema.Schema{
+			"type": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "type of the image",

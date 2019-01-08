@@ -13,19 +13,19 @@ func dataSourceDigitalOceanDomain() *schema.Resource {
 		Read: dataSourceDigitalOceanDomainRead,
 		Schema: map[string]*schema.Schema{
 
-			"name": &schema.Schema{
+			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "name of the domain",
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
-			"ttl": &schema.Schema{
+			"ttl": {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "ttl of the domain",
 			},
-			"zone_file": &schema.Schema{
+			"zone_file": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "zone file of the domain",

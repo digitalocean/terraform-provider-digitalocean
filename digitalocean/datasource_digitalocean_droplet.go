@@ -16,14 +16,14 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 		Read: dataSourceDigitalOceanDropletRead,
 		Schema: map[string]*schema.Schema{
 
-			"name": &schema.Schema{
+			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "name of the droplet",
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
-			"region": &schema.Schema{
+			"region": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "the region that the droplet instance is deployed in",
