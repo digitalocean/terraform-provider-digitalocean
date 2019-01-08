@@ -26,7 +26,7 @@ func TestAccDigitalOceanBucket_importBasic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateIdPrefix:     fmt.Sprintf("%s,", "nyc3"),
-				ImportStateVerifyIgnore: []string{"acl"}, // ACLs are not saved to tf state
+				ImportStateVerifyIgnore: []string{"acl", "force_destroy"},
 			},
 		},
 	})
