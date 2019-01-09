@@ -62,7 +62,7 @@ func (c *Config) Client() (*CombinedConfig, error) {
 
 	userAgent := fmt.Sprintf("Terraform/%s", terraform.VersionString())
 
-	do, err := godo.New(oauth2.NewClient(oauth2.NoContext, tokenSrc), godo.SetUserAgent(userAgent))
+	godoClient, err := godo.New(oauth2.NewClient(oauth2.NoContext, tokenSrc), godo.SetUserAgent(userAgent))
 	if err != nil {
 		return nil, err
 	}
@@ -71,16 +71,16 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	client.BaseURL = apiURL
+	godoClient.BaseURL = apiURL
 
 	if logging.IsDebugOrHigher() {
-		do.OnRequestCompleted(logRequestAndResponse)
+		godoClient.OnRequestCompleted(logRequestAndResponse)
 	}
 
-	log.Printf("[INFO] DigitalOcean Client configured for URL: %s", do.BaseURL.String())
+	log.Printf("[INFO] DigitalOcean Client configured for URL: %s", godoClient.BaseURL.String())
 
 	return &CombinedConfig{
-		client:    do,
+		client:    godoClient,
 		accessID:  c.AccessID,
 		secretKey: c.SecretKey,
 	}, nil

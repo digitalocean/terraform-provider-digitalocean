@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform/config"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -31,5 +32,52 @@ func TestProvider_impl(t *testing.T) {
 func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("DIGITALOCEAN_TOKEN"); v == "" {
 		t.Fatal("DIGITALOCEAN_TOKEN must be set for acceptance tests")
+	}
+}
+
+func TestURLOverride(t *testing.T) {
+	customEndpoint := "https://mock-api.internal.example.com/"
+
+	rawProvider := Provider()
+	raw := map[string]interface{}{
+		"token":        "12345",
+		"api_endpoint": customEndpoint,
+	}
+
+	rawConfig, err := config.NewRawConfig(raw)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	err = rawProvider.Configure(terraform.NewResourceConfig(rawConfig))
+	meta := rawProvider.(*schema.Provider).Meta()
+	if meta == nil {
+		t.Fatalf("Expected metadata, got nil: err: %s", err)
+	}
+	client := meta.(*CombinedConfig).godoClient()
+	if client.BaseURL.String() != customEndpoint {
+		t.Fatalf("Expected %s, got %s", customEndpoint, client.BaseURL.String())
+	}
+}
+
+func TestURLDefault(t *testing.T) {
+	rawProvider := Provider()
+	raw := map[string]interface{}{
+		"token": "12345",
+	}
+
+	rawConfig, err := config.NewRawConfig(raw)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	err = rawProvider.Configure(terraform.NewResourceConfig(rawConfig))
+	meta := rawProvider.(*schema.Provider).Meta()
+	if meta == nil {
+		t.Fatalf("Expected metadata, got nil: err: %s", err)
+	}
+	client := meta.(*CombinedConfig).godoClient()
+	if client.BaseURL.String() != "https://api.digitalocean.com" {
+		t.Fatalf("Expected %s, got %s", "https://api.digitalocean.com", client.BaseURL.String())
 	}
 }
