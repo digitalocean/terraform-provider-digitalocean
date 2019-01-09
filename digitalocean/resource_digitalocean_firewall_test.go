@@ -27,7 +27,7 @@ func testSweepFirewall(region string) error {
 		return err
 	}
 
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	opt := &godo.ListOptions{PerPage: 200}
 	fws, _, err := client.Firewalls.List(context.Background(), opt)

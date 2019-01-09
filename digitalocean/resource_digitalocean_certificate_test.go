@@ -35,7 +35,7 @@ func testSweepCertificate(region string) error {
 		return err
 	}
 
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	opt := &godo.ListOptions{PerPage: 200}
 	certs, _, err := client.Certificates.List(context.Background(), opt)

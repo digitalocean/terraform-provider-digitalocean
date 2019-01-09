@@ -27,7 +27,7 @@ func testSweepDomain(region string) error {
 		return err
 	}
 
-	client := meta.(*godo.Client)
+	client := meta.(*CombinedConfig).godoClient()
 
 	opt := &godo.ListOptions{PerPage: 200}
 	domains, _, err := client.Domains.List(context.Background(), opt)
