@@ -6,7 +6,7 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* The DigitalOcean API URL can now be overridden using the provider's `api_endpoint` attribute ([#84](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/84)).
+* provider: The DigitalOcean API URL can now be overridden using `api_endpoint` attribute ([#84](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/84)).
   Thanks to @protochron!
 
 NOTES:
