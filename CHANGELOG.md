@@ -4,6 +4,11 @@ FEATURES:
 
 * **New Resource** `digitalocean_spaces_bucket` ([#42](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/42)). Thanks to @slapula!
 
+IMPROVEMENTS:
+
+* The DigitalOcean API URL can now be overridden using the provider's `api_endpoint` attribute ([#84](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/84)).
+  Thanks to @protochron!
+
 NOTES:
 
 * This provider is now built and tested using Go 1.11.x. ([#178](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/178))
