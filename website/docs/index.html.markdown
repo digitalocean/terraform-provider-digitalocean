@@ -44,3 +44,6 @@ The following arguments are supported:
 * `spaces_secret_key` - (Optional) The secret access key used for Spaces API
   operations (Defaults to the value of the `SPACES_SECRET_ACCESS_KEY`
   environment variable).
+* `api_endpoint` - (Optional) This can be used to override the base URL for
+  DigitalOcean API requests (Defaults to the value of the `DIGITALOCEAN_API_URL`
+  environment variable or `https://api.digitalocean.com if unset).
