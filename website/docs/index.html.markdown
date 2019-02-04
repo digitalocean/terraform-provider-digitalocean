@@ -46,4 +46,4 @@ The following arguments are supported:
   environment variable).
 * `api_endpoint` - (Optional) This can be used to override the base URL for
   DigitalOcean API requests (Defaults to the value of the `DIGITALOCEAN_API_URL`
-  environment variable or `https://api.digitalocean.com if unset).
+  environment variable or `https://api.digitalocean.com` if unset).
