@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"strings"
 	"time"
@@ -61,8 +59,11 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	})
 
 	userAgent := fmt.Sprintf("Terraform/%s", terraform.VersionString())
+	client := oauth2.NewClient(oauth2.NoContext, tokenSrc)
 
-	godoClient, err := godo.New(oauth2.NewClient(oauth2.NoContext, tokenSrc), godo.SetUserAgent(userAgent))
+	client.Transport = logging.NewTransport("DigitalOcean", client.Transport)
+
+	godoClient, err := godo.New(client, godo.SetUserAgent(userAgent))
 	if err != nil {
 		return nil, err
 	}
@@ -73,10 +74,6 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	}
 	godoClient.BaseURL = apiURL
 
-	if logging.IsDebugOrHigher() {
-		godoClient.OnRequestCompleted(logRequestAndResponse)
-	}
-
 	log.Printf("[INFO] DigitalOcean Client configured for URL: %s", godoClient.BaseURL.String())
 
 	return &CombinedConfig{
@@ -84,22 +81,6 @@ func (c *Config) Client() (*CombinedConfig, error) {
 		accessID:  c.AccessID,
 		secretKey: c.SecretKey,
 	}, nil
-}
-
-func logRequestAndResponse(req *http.Request, resp *http.Response) {
-	reqData, err := httputil.DumpRequest(req, true)
-	if err == nil {
-		log.Printf("[DEBUG] "+logReqMsg, string(reqData))
-	} else {
-		log.Printf("[ERROR] DigitalOcean API Request error: %#v", err)
-	}
-
-	respData, err := httputil.DumpResponse(resp, true)
-	if err == nil {
-		log.Printf("[DEBUG] "+logRespMsg, string(respData))
-	} else {
-		log.Printf("[ERROR] DigitalOcean API Response error: %#v", err)
-	}
 }
 
 // waitForAction waits for the action to finish using the resource.StateChangeConf.
@@ -145,13 +126,3 @@ func isDigitalOceanError(err error, code int, message string) bool {
 	}
 	return false
 }
-
-const logReqMsg = `DigitalOcean API Request Details:
----[ REQUEST ]---------------------------------------
-%s
------------------------------------------------------`
-
-const logRespMsg = `DigitalOcean API Response Details:
----[ RESPONSE ]--------------------------------------
-%s
------------------------------------------------------`
