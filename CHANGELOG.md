@@ -2,12 +2,13 @@
 
 FEATURES:
 
-* **New Resource** `digitalocean_spaces_bucket` ([#42](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/42)). Thanks to @slapula!
+* **New Resource:** `digitalocean_spaces_bucket` ([#42](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/42)). Thanks to @slapula!
 
 IMPROVEMENTS:
 
 * provider: The DigitalOcean API URL can now be overridden using `api_endpoint` attribute ([#84](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/84)).
   Thanks to @protochron!
+* provider: Refactor logic for logging API requests/responses ([#190](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/190)). Thanks to @radeksimko!
 
 NOTES:
 
