@@ -12,7 +12,8 @@ IMPROVEMENTS:
 
 NOTES:
 
-* This provider is now built and tested using Go 1.11.x. ([#178](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/178))
+* This provider is now built and tested using Go 1.11.x ([#178](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/178)).
+* Dependencies for this provider are now managed using Go Modules ([#187](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/187)).
 
 ## 1.1.0 (December 12, 2018)
 
