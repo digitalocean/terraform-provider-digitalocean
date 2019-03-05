@@ -31,7 +31,6 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			"image": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
@@ -205,10 +204,10 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 		Tags:   expandTags(d.Get("tags").(*schema.Set).List()),
 	}
 
-	imageId, err := strconv.Atoi(image)
+	imageID, err := strconv.Atoi(image)
 	if err == nil {
 		// The image field is provided as an ID (number).
-		opts.Image.ID = imageId
+		opts.Image.ID = imageID
 	} else {
 		opts.Image.Slug = image
 	}
@@ -441,6 +440,68 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		if err != nil {
 			return fmt.Errorf(
 				"Error powering on droplet (%s) after resize: %s", d.Id(), err)
+		}
+
+		// Wait for power off
+		_, err = waitForDropletAttribute(d, "active", []string{"off"}, "status", meta)
+		if err != nil {
+			return err
+		}
+	}
+
+	if d.HasChange("image") {
+		newImage := d.Get("image").(string)
+
+		_, _, err = client.DropletActions.PowerOff(context.Background(), id)
+		if err != nil && !strings.Contains(err.Error(), "Droplet is already powered off") {
+			return fmt.Errorf(
+				"Error powering off droplet (%s): %s", d.Id(), err)
+		}
+
+		// Wait for power off
+		_, err = waitForDropletAttribute(d, "off", []string{"active"}, "status", meta)
+		if err != nil {
+			return fmt.Errorf(
+				"Error waiting for droplet (%s) to become powered off: %s", d.Id(), err)
+		}
+
+		// Rebuild the droplet
+		var action *godo.Action
+		var imageID int
+		imageID, err = strconv.Atoi(newImage)
+		if err == nil {
+			// The image field is provided as an ID (number).
+			action, _, err = client.DropletActions.RebuildByImageID(context.Background(), id, imageID)
+		} else {
+			action, _, err = client.DropletActions.RebuildByImageSlug(context.Background(), id, newImage)
+		}
+
+		if err != nil {
+			newErr := powerOnAndWait(d, meta)
+			if newErr != nil {
+				return fmt.Errorf(
+					"Error powering on droplet (%s) after failed rebuild: %s", d.Id(), err)
+			}
+			return fmt.Errorf(
+				"Error rebuilding droplet (%s): %s", d.Id(), err)
+		}
+
+		// Wait for the rebuild action to complete.
+		if err = waitForAction(client, action); err != nil {
+			newErr := powerOnAndWait(d, meta)
+			if newErr != nil {
+				return fmt.Errorf(
+					"Error powering on droplet (%s) after waiting for rebuild to finish: %s", d.Id(), err)
+			}
+			return fmt.Errorf(
+				"Error waiting for rebuild droplet (%s) to finish: %s", d.Id(), err)
+		}
+
+		_, _, err = client.DropletActions.PowerOn(context.Background(), id)
+
+		if err != nil {
+			return fmt.Errorf(
+				"Error powering on droplet (%s) after rebuild: %s", d.Id(), err)
 		}
 
 		// Wait for power off

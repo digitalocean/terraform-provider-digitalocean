@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -339,6 +340,51 @@ func TestAccDigitalOceanDroplet_UpdateTags(t *testing.T) {
 						"digitalocean_droplet.foobar",
 						"tags.#",
 						"1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDroplet_UpdateImage(t *testing.T) {
+	var droplet godo.Droplet
+	rInt := acctest.RandInt()
+	slugForID := "centos-7-x64"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					testAccCheckDigitalOceanDropletAttributes(&droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "image", "centos-7-x64"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_UpdateImageSlug(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "image", "ubuntu-18-04-x64"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_withID(rInt, slugForID),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+					resource.TestMatchResourceAttr(
+						"digitalocean_droplet.foobar", "image", regexp.MustCompile(`^\d+$`)),
 				),
 			},
 		},
@@ -746,6 +792,18 @@ resource "digitalocean_droplet" "foobar" {
   region   = "nyc3"
   user_data = "foobar"
   resize_disk = true
+}
+`, rInt)
+}
+
+func testAccCheckDigitalOceanDropletConfig_UpdateImageSlug(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name     = "foo-%d"
+  size     = "512mb"
+  image    = "ubuntu-18-04-x64"
+  region   = "nyc3"
+	user_data = "foobar"
 }
 `, rInt)
 }
