@@ -442,7 +442,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 				"Error powering on droplet (%s) after resize: %s", d.Id(), err)
 		}
 
-		// Wait for power off
+		// Wait for power on
 		_, err = waitForDropletAttribute(d, "active", []string{"off"}, "status", meta)
 		if err != nil {
 			return err
@@ -504,7 +504,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 				"Error powering on droplet (%s) after rebuild: %s", d.Id(), err)
 		}
 
-		// Wait for power off
+		// Wait for power on
 		_, err = waitForDropletAttribute(d, "active", []string{"off"}, "status", meta)
 		if err != nil {
 			return err
