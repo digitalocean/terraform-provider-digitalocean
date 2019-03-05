@@ -803,7 +803,7 @@ resource "digitalocean_droplet" "foobar" {
   size     = "512mb"
   image    = "ubuntu-18-04-x64"
   region   = "nyc3"
-	user_data = "foobar"
+  user_data = "foobar"
 }
 `, rInt)
 }
