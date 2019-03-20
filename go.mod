@@ -4,7 +4,7 @@ require (
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/aws/aws-sdk-go v1.14.31
 	github.com/blang/semver v3.5.1+incompatible // indirect
-	github.com/digitalocean/godo v1.7.0
+	github.com/digitalocean/godo v1.10.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
 	github.com/hashicorp/go-getter v0.0.0-20180809191950-4bda8fa99001 // indirect
 	github.com/hashicorp/go-hclog v0.0.0-20180709165350-ff2cf002a8dd // indirect

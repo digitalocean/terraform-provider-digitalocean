@@ -63,6 +63,8 @@ github.com/dgrijalva/jwt-go v0.0.0-20160617170158-f0777076321a h1:pzKxqfSfp4kqrm
 github.com/dgrijalva/jwt-go v0.0.0-20160617170158-f0777076321a/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/digitalocean/godo v1.7.0 h1:JIh+VoKGbK83feLAsgx5IPMG2VHK5/YjFVK14yDXEPA=
 github.com/digitalocean/godo v1.7.0/go.mod h1:h6faOIcZ8lWIwNQ+DN7b3CgX4Kwby5T+nbpNqkUIozU=
+github.com/digitalocean/godo v1.10.0 h1:uW1/FcvZE/hoixnJcnlmIUvTVNdZCLjRLzmDtRi1xXY=
+github.com/digitalocean/godo v1.10.0/go.mod h1:h6faOIcZ8lWIwNQ+DN7b3CgX4Kwby5T+nbpNqkUIozU=
 github.com/dnaeon/go-vcr v0.0.0-20170218072653-87d4990451a8/go.mod h1:aBB1+wY4s93YsC3HHjMBMrwTj2R9FHDzUr9KyGc8n1E=
 github.com/dylanmei/iso8601 v0.1.0 h1:812NGQDBcqquTfH5Yeo7lwR0nzx/cKdsmf3qMjPURUI=
 github.com/dylanmei/iso8601 v0.1.0/go.mod h1:w9KhXSgIyROl1DefbMYIE7UVSIvELTbMrCfx+QkYnoQ=
