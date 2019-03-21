@@ -17,12 +17,10 @@ require (
 	github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77 // indirect
 	github.com/posener/complete v1.1.2 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190222223459-a17d461953aa // indirect
-	github.com/tent/http-link-go v0.0.0-20130702225549-ac974c61c2f9 // indirect
 	golang.org/x/crypto v0.0.0-20180816225734-aabede6cba87
 	golang.org/x/net v0.0.0-20180824152047-4bcd98cce591 // indirect
 	golang.org/x/oauth2 v0.0.0-20170928010508-bb50c06baba3
 	google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8 // indirect
 	google.golang.org/grpc v0.0.0-20180822160039-e00d24941bce // indirect
 	gopkg.in/yaml.v2 v2.2.1
-	launchpad.net/gocheck v0.0.0-20140225173054-000000000087 // indirect
 )

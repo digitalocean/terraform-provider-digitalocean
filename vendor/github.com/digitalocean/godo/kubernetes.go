@@ -3,8 +3,10 @@ package godo
 import (
 	"bytes"
 	"context"
+	"encoding"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -100,10 +102,46 @@ type KubernetesCluster struct {
 	UpdatedAt time.Time                `json:"updated_at,omitempty"`
 }
 
+// Possible states for a cluster.
+const (
+	KubernetesClusterStatusProvisioning = KubernetesClusterStatusState("provisioning")
+	KubernetesClusterStatusRunning      = KubernetesClusterStatusState("running")
+	KubernetesClusterStatusDegraded     = KubernetesClusterStatusState("degraded")
+	KubernetesClusterStatusError        = KubernetesClusterStatusState("error")
+	KubernetesClusterStatusDeleted      = KubernetesClusterStatusState("deleted")
+	KubernetesClusterStatusInvalid      = KubernetesClusterStatusState("invalid")
+)
+
+// KubernetesClusterStatusState represents states for a cluster.
+type KubernetesClusterStatusState string
+
+var _ encoding.TextUnmarshaler = (*KubernetesClusterStatusState)(nil)
+
+// UnmarshalText unmarshals the state.
+func (s *KubernetesClusterStatusState) UnmarshalText(text []byte) error {
+	switch KubernetesClusterStatusState(strings.ToLower(string(text))) {
+	case KubernetesClusterStatusProvisioning:
+		*s = KubernetesClusterStatusProvisioning
+	case KubernetesClusterStatusRunning:
+		*s = KubernetesClusterStatusRunning
+	case KubernetesClusterStatusDegraded:
+		*s = KubernetesClusterStatusDegraded
+	case KubernetesClusterStatusError:
+		*s = KubernetesClusterStatusError
+	case KubernetesClusterStatusDeleted:
+		*s = KubernetesClusterStatusDeleted
+	case "", KubernetesClusterStatusInvalid:
+		*s = KubernetesClusterStatusInvalid
+	default:
+		return fmt.Errorf("unknown cluster state %q", string(text))
+	}
+	return nil
+}
+
 // KubernetesClusterStatus describes the status of a cluster.
 type KubernetesClusterStatus struct {
-	State   string `json:"state,omitempty"`
-	Message string `json:"message,omitempty"`
+	State   KubernetesClusterStatusState `json:"state,omitempty"`
+	Message string                       `json:"message,omitempty"`
 }
 
 // KubernetesNodePool represents a node pool in a Kubernetes cluster.
@@ -135,13 +173,27 @@ type KubernetesNodeStatus struct {
 
 // KubernetesOptions represents options available for creating Kubernetes clusters.
 type KubernetesOptions struct {
-	Versions []*KubernetesVersion `json:"versions,omitempty"`
+	Versions []*KubernetesVersion  `json:"versions,omitempty"`
+	Regions  []*KubernetesRegion   `json:"regions,omitempty"`
+	Sizes    []*KubernetesNodeSize `json:"sizes,omitempty"`
 }
 
 // KubernetesVersion is a DigitalOcean Kubernetes release.
 type KubernetesVersion struct {
 	Slug              string `json:"slug,omitempty"`
 	KubernetesVersion string `json:"kubernetes_version,omitempty"`
+}
+
+// KubernetesNodeSize is a node sizes supported for Kubernetes clusters.
+type KubernetesNodeSize struct {
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+}
+
+// KubernetesRegion is a region usable by Kubernetes clusters.
+type KubernetesRegion struct {
+	Name string `json:"name"`
+	Slug string `json:"slug"`
 }
 
 type kubernetesClustersRoot struct {
