@@ -46,7 +46,7 @@ github.com/bgentry/speakeasy
 github.com/blang/semver
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
-# github.com/digitalocean/godo v1.7.0
+# github.com/digitalocean/godo v1.10.0
 github.com/digitalocean/godo
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
@@ -163,8 +163,6 @@ github.com/posener/complete
 github.com/posener/complete/cmd/install
 github.com/posener/complete/cmd
 github.com/posener/complete/match
-# github.com/tent/http-link-go v0.0.0-20130702225549-ac974c61c2f9
-github.com/tent/http-link-go
 # github.com/ulikunitz/xz v0.5.4
 github.com/ulikunitz/xz
 github.com/ulikunitz/xz/internal/xlog
