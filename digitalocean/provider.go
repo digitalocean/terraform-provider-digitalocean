@@ -53,6 +53,7 @@ func Provider() terraform.ResourceProvider {
 
 		ResourcesMap: map[string]*schema.Resource{
 			"digitalocean_certificate":            resourceDigitalOceanCertificate(),
+			"digitalocean_database_cluster":       resourceDigitalOceanDatabaseCluster(),
 			"digitalocean_domain":                 resourceDigitalOceanDomain(),
 			"digitalocean_droplet":                resourceDigitalOceanDroplet(),
 			"digitalocean_droplet_snapshot":       resourceDigitalOceanDropletSnapshot(),
