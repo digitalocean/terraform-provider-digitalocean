@@ -15,7 +15,7 @@ import (
 func TestAccDataSourceDigitalOceanRecord_Basic(t *testing.T) {
 	var record godo.DomainRecord
 	recordName := fmt.Sprintf("foo-%s", acctest.RandString(10))
-	recordDomain := fmt.Sprintf("bar-test-terraform-%s.com", acctest.RandString(10))
+	recordDomain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
 	recordType := "A"
 
 	resource.Test(t, resource.TestCase{

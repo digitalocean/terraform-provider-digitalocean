@@ -30,7 +30,8 @@ func testSweepVolumeSnapshots(region string) error {
 
 	client := meta.(*CombinedConfig).godoClient()
 
-	snapshots, _, err := client.Snapshots.ListVolume(context.Background(), nil)
+	opt := &godo.ListOptions{PerPage: 200}
+	snapshots, _, err := client.Snapshots.ListVolume(context.Background(), opt)
 	if err != nil {
 		return err
 	}

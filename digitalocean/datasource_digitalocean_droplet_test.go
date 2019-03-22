@@ -14,7 +14,7 @@ import (
 
 func TestAccDataSourceDigitalOceanDroplet_Basic(t *testing.T) {
 	var droplet godo.Droplet
-	name := fmt.Sprintf("droplet-%s", acctest.RandString(10))
+	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },

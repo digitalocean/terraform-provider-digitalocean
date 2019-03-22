@@ -30,14 +30,15 @@ func testSweepDroplets(region string) error {
 
 	client := meta.(*CombinedConfig).godoClient()
 
-	droplets, _, err := client.Droplets.List(context.Background(), nil)
+	opt := &godo.ListOptions{PerPage: 200}
+	droplets, _, err := client.Droplets.List(context.Background(), opt)
 	if err != nil {
 		return err
 	}
 	log.Printf("[DEBUG] Found %d droplets to sweep", len(droplets))
 
 	for _, d := range droplets {
-		if strings.HasPrefix(d.Name, "foo-") || strings.HasPrefix(d.Name, "bar-") || strings.HasPrefix(d.Name, "baz-") {
+		if strings.HasPrefix(d.Name, "foo-") || strings.HasPrefix(d.Name, "bar-") || strings.HasPrefix(d.Name, "baz-") || strings.HasPrefix(d.Name, "tf-acc-test-") || strings.HasPrefix(d.Name, "foobar-") {
 			log.Printf("Destroying Droplet %s", d.Name)
 
 			if _, err := client.Droplets.Delete(context.Background(), d.ID); err != nil {
@@ -110,6 +111,10 @@ func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 func TestAccDigitalOceanDroplet_withSSH(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
+	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
+	if err != nil {
+		t.Fatalf("Cannot generate test SSH key pair: %s", err)
+	}
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -117,7 +122,7 @@ func TestAccDigitalOceanDroplet_withSSH(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_withSSH(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_withSSH(rInt, publicKeyMaterial),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletAttributes(&droplet),
@@ -667,7 +672,7 @@ resource "digitalocean_droplet" "foobar" {
 }`, slug, rInt)
 }
 
-func testAccCheckDigitalOceanDropletConfig_withSSH(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_withSSH(rInt int, testAccValidPublicKey string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_ssh_key" "foobar" {
   name       = "foobar-%d"
@@ -801,5 +806,3 @@ resource "digitalocean_droplet" "foobar" {
 }
 `, rInt, rInt, rInt)
 }
-
-var testAccValidPublicKey = `ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCKVmnMOlHKcZK8tpt3MP1lqOLAcqcJzhsvJcjscgVERRN7/9484SOBJ3HSKxxNG5JN8owAjy5f9yYwcUg+JaUVuytn5Pv3aeYROHGGg+5G346xaq3DAwX6Y5ykr2fvjObgncQBnuU5KHWCECO/4h8uWuwh/kfniXPVjFToc+gnkqA+3RKpAecZhFXwfalQ9mMuYGFxn+fwn8cYEApsJbsEmb0iJwPiZ5hjFC8wREuiTlhPHDgkBLOiycd20op2nXzDbHfCHInquEe/gYxEitALONxm0swBOwJZwlTDOB7C6y2dzlrtxr1L59m7pCkWI4EtTRLvleehBoj3u7jB4usR`

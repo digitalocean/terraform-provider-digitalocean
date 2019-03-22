@@ -3,6 +3,8 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -10,6 +12,41 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
+
+func init() {
+	resource.AddTestSweepers("digitalocean_firewall", &resource.Sweeper{
+		Name: "digitalocean_firewall",
+		F:    testSweepFirewall,
+	})
+
+}
+
+func testSweepFirewall(region string) error {
+	meta, err := sharedConfigForRegion(region)
+	if err != nil {
+		return err
+	}
+
+	client := meta.(*CombinedConfig).godoClient()
+
+	opt := &godo.ListOptions{PerPage: 200}
+	fws, _, err := client.Firewalls.List(context.Background(), opt)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range fws {
+		if strings.HasPrefix(f.Name, "foobar-") {
+			log.Printf("Destroying firewall %s", f.Name)
+
+			if _, err := client.Firewalls.Delete(context.Background(), f.ID); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
 
 func TestAccDigitalOceanFirewall_AllowOnlyInbound(t *testing.T) {
 	rName := acctest.RandString(10)
@@ -180,7 +217,7 @@ func TestAccDigitalOceanFirewall_ImportMultipleRules(t *testing.T) {
 func testAccDigitalOceanFirewallConfig_OnlyInbound(rName string) string {
 	return fmt.Sprintf(`
 	resource "digitalocean_firewall" "foobar" {
-				name          = "%s"
+				name          = "foobar-%s"
 				inbound_rule {
 					protocol         = "tcp"
 					port_range       = "22"
@@ -194,7 +231,7 @@ func testAccDigitalOceanFirewallConfig_OnlyInbound(rName string) string {
 func testAccDigitalOceanFirewallConfig_OnlyOutbound(rName string) string {
 	return fmt.Sprintf(`
 	resource "digitalocean_firewall" "foobar" {
-				name          = "%s"
+				name          = "foobar-%s"
 				outbound_rule {
 					protocol              = "tcp"
 					port_range            = "22"
@@ -208,7 +245,7 @@ func testAccDigitalOceanFirewallConfig_OnlyOutbound(rName string) string {
 func testAccDigitalOceanFirewallConfig_OnlyMultipleInbound(rName string) string {
 	return fmt.Sprintf(`
 	resource "digitalocean_firewall" "foobar" {
-				name          = "%s"
+				name          = "foobar-%s"
 				inbound_rule {
 					protocol         = "tcp"
 					port_range       = "22"
@@ -227,7 +264,7 @@ func testAccDigitalOceanFirewallConfig_OnlyMultipleInbound(rName string) string 
 func testAccDigitalOceanFirewallConfig_OnlyMultipleOutbound(rName string) string {
 	return fmt.Sprintf(`
 	resource "digitalocean_firewall" "foobar" {
-				name          = "%s"
+				name          = "foobar-%s"
 				outbound_rule {
 					protocol              = "tcp"
 					port_range            = "22"
@@ -250,7 +287,7 @@ func testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(tagName string
 	}
 
 	resource "digitalocean_firewall" "foobar" {
-				name          = "%s"
+				name          = "foobar-%s"
 				inbound_rule {
 					protocol         = "tcp"
 					port_range       = "22"
@@ -281,7 +318,7 @@ func testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(tagName string
 func testAccDigitalOceanFirewallConfig_fullPortRange(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_firewall" "foobar" {
-	name          = "%s"
+	name          = "foobar-%s"
 	inbound_rule {
 		protocol         = "tcp"
 		port_range       = "all"
@@ -299,7 +336,7 @@ resource "digitalocean_firewall" "foobar" {
 func testAccDigitalOceanFirewallConfig_icmp(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_firewall" "foobar" {
-	name          = "%s"
+	name          = "foobar-%s"
 	inbound_rule {
 		protocol         = "icmp"
 		source_addresses = ["192.168.1.1/32"]
