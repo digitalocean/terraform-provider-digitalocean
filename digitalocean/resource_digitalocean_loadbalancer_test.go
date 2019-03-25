@@ -294,6 +294,44 @@ func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	rInt := acctest.RandInt()
+	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.0.entry_port", "443"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.0.entry_protocol", "https"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.0.target_port", "80"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.0.target_protocol", "http"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "redirect_http_to_https", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "true"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanLoadbalancerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -501,4 +539,37 @@ resource "digitalocean_loadbalancer" "foobar" {
 
   droplet_ids = ["${digitalocean_droplet.foobar.id}"]
 }`, rInt, rInt)
+}
+
+func testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(rInt int, privateKeyMaterial, leafCert, certChain string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_certificate" "foobar" {
+  name = "certificate-%d"
+  private_key = <<EOF
+%s
+EOF
+  leaf_certificate = <<EOF
+%s
+EOF
+  certificate_chain = <<EOF
+%s
+EOF
+}
+
+resource "digitalocean_loadbalancer" "foobar" {
+  name                   = "loadbalancer-%d"
+  region                 = "nyc3"
+  redirect_http_to_https = true
+  enable_proxy_protocol  = true
+
+  forwarding_rule {
+    entry_port      = 443
+    entry_protocol  = "https"
+
+    target_port     = 80
+    target_protocol = "http"
+
+    certificate_id  = "${digitalocean_certificate.foobar.id}"
+  }
+}`, rInt, privateKeyMaterial, leafCert, certChain, rInt)
 }
