@@ -53,7 +53,6 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 			"region": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 				StateFunc: func(val interface{}) string {
 					// DO API V2 region slug is always lowercase
 					return strings.ToLower(val.(string))
@@ -65,6 +64,36 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
+			},
+
+			"host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"port": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"uri": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"database": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"user": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"password": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -126,6 +155,29 @@ func resourceDigitalOceanDatabaseClusterUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
+	if d.HasChange("region") {
+		opts := &godo.DatabaseMigrateRequest{
+			Region: d.Get("region").(string),
+		}
+
+		resp, err := client.Databases.Migrate(context.Background(), d.Id(), opts)
+		if err != nil {
+			// If the database is somehow already destroyed, mark as
+			// successfully gone
+			if resp.StatusCode == 404 {
+				d.SetId("")
+				return nil
+			}
+
+			return fmt.Errorf("Error migrating database: %s", err)
+		}
+
+		_, err = waitForDatabaseCluster(client, d.Id(), "online")
+		if err != nil {
+			return fmt.Errorf("Error migrating DatabaseCluster: %s", err)
+		}
+	}
+
 	return resourceDigitalOceanDatabaseClusterRead(d, meta)
 }
 
@@ -150,6 +202,14 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 	d.Set("size", database.SizeSlug)
 	d.Set("region", database.RegionSlug)
 	d.Set("node_count", database.NumNodes)
+
+	// Computed values
+	d.Set("host", database.Connection.Host)
+	d.Set("port", database.Connection.Port)
+	d.Set("uri", database.Connection.URI)
+	d.Set("database", database.DBNames[0])
+	d.Set("user", database.Users[0].Name)
+	d.Set("password", database.Users[0].Password)
 
 	return nil
 }

@@ -29,6 +29,14 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "name", databaseName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_cluster.foobar", "engine", "pg"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "host"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "port"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "user"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "password"),
 				),
 			},
 		},
@@ -60,6 +68,37 @@ func TestAccDigitalOceanDatabaseCluster_WithUpdate(t *testing.T) {
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_cluster.foobar", "size", "db-s-1vcpu-2gb"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDatabaseCluster_WithMigration(t *testing.T) {
+	var database godo.Database
+	databaseName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "region", "nyc1"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithMigration, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "region", "lon1"),
 				),
 			},
 		},
@@ -143,5 +182,15 @@ resource "digitalocean_database_cluster" "foobar" {
 	version    = "11"
 	size       = "db-s-1vcpu-2gb"
 	region     = "nyc1"
+    node_count = 1
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithMigration = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "pg"
+	version    = "11"
+	size       = "db-s-1vcpu-1gb"
+	region     = "lon1"
     node_count = 1
 }`
