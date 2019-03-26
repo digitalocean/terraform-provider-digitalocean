@@ -34,12 +34,24 @@ The following arguments are supported:
 * `size` - (Required) Database droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`).
 * `region` - (Required) DigitalOcean region where the cluster will reside.
 * `node_count` - (Required) Number of nodes that will be included in the cluster.
+* `maintenance_window` - (Optional) Defines when the automatic maintenance should be performed for the database cluster.
+
+`maintenance_window` supports the following:
+
+* `day` - (Required) The day of the week on which to apply maintenance updates.
+* `hour` - (Required) The hour in UTC at which maintenance updates will be applied in 24 hour format.
 
 ## Attributes Reference
 
 In addition to the above arguments, the following attributes are exported:
 
 * `id` - The ID of the database cluster.
+* `host` - Database cluster's hostname.
+* `port` - Network port that the database cluster is listening on.
+* `uri` - The full URI for connecting to the database cluster.
+* `database` - Name of the cluster's default database.
+* `user` - Username for the cluster's default user.
+* `password` - Password for the cluster's default user.
 
 ## Import
 

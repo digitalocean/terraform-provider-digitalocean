@@ -66,6 +66,24 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"maintenance_window": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MinItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"day": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"hour": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"host": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -125,6 +143,22 @@ func resourceDigitalOceanDatabaseClusterCreate(d *schema.ResourceData, meta inte
 	d.SetId(database.ID)
 	log.Printf("[INFO] DatabaseCluster Name: %s", database.Name)
 
+	if v, ok := d.GetOk("maintenance_window"); ok {
+		opts := expandMaintWindowOpts(v.([]interface{}))
+
+		resp, err := client.Databases.UpdateMaintenance(context.Background(), d.Id(), opts)
+		if err != nil {
+			// If the database is somehow already destroyed, mark as
+			// successfully gone
+			if resp.StatusCode == 404 {
+				d.SetId("")
+				return nil
+			}
+
+			return fmt.Errorf("Error adding maintenance window for DatabaseCluster: %s", err)
+		}
+	}
+
 	return resourceDigitalOceanDatabaseClusterRead(d, meta)
 }
 
@@ -146,7 +180,7 @@ func resourceDigitalOceanDatabaseClusterUpdate(d *schema.ResourceData, meta inte
 				return nil
 			}
 
-			return fmt.Errorf("Error resizing database: %s", err)
+			return fmt.Errorf("Error resizing DatabaseCluster: %s", err)
 		}
 
 		_, err = waitForDatabaseCluster(client, d.Id(), "online")
@@ -169,12 +203,28 @@ func resourceDigitalOceanDatabaseClusterUpdate(d *schema.ResourceData, meta inte
 				return nil
 			}
 
-			return fmt.Errorf("Error migrating database: %s", err)
+			return fmt.Errorf("Error migrating DatabaseCluster: %s", err)
 		}
 
 		_, err = waitForDatabaseCluster(client, d.Id(), "online")
 		if err != nil {
 			return fmt.Errorf("Error migrating DatabaseCluster: %s", err)
+		}
+	}
+
+	if d.HasChange("maintenance_window") {
+		opts := expandMaintWindowOpts(d.Get("maintenance_window").([]interface{}))
+
+		resp, err := client.Databases.UpdateMaintenance(context.Background(), d.Id(), opts)
+		if err != nil {
+			// If the database is somehow already destroyed, mark as
+			// successfully gone
+			if resp.StatusCode == 404 {
+				d.SetId("")
+				return nil
+			}
+
+			return fmt.Errorf("Error updating maintenance window for DatabaseCluster: %s", err)
 		}
 	}
 
@@ -193,7 +243,7 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving database: %s", err)
+		return fmt.Errorf("Error retrieving DatabaseCluster: %s", err)
 	}
 
 	d.Set("name", database.Name)
@@ -203,13 +253,17 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 	d.Set("region", database.RegionSlug)
 	d.Set("node_count", database.NumNodes)
 
+	if err := d.Set("maintenance_window", flattenMaintWindowOpts(*database.MaintenanceWindow)); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting maintenance_window - error: %#v", err)
+	}
+
 	// Computed values
 	d.Set("host", database.Connection.Host)
 	d.Set("port", database.Connection.Port)
 	d.Set("uri", database.Connection.URI)
-	d.Set("database", database.DBNames[0])
-	d.Set("user", database.Users[0].Name)
-	d.Set("password", database.Users[0].Password)
+	d.Set("database", database.Connection.Database)
+	d.Set("user", database.Connection.User)
+	d.Set("password", database.Connection.Password)
 
 	return nil
 }
@@ -236,7 +290,7 @@ func waitForDatabaseCluster(client *godo.Client, id string, status string) (*god
 		database, _, err := client.Databases.Get(context.Background(), id)
 		if err != nil {
 			ticker.Stop()
-			return nil, fmt.Errorf("Error trying to read database state: %s", err)
+			return nil, fmt.Errorf("Error trying to read DatabaseCluster state: %s", err)
 		}
 
 		if database.Status == status {
@@ -252,5 +306,31 @@ func waitForDatabaseCluster(client *godo.Client, id string, status string) (*god
 		n++
 	}
 
-	return nil, fmt.Errorf("Timeout waiting to database to become %s", status)
+	return nil, fmt.Errorf("Timeout waiting to DatabaseCluster to become %s", status)
+}
+
+func expandMaintWindowOpts(config []interface{}) *godo.DatabaseUpdateMaintenanceRequest {
+	maintWindowOpts := &godo.DatabaseUpdateMaintenanceRequest{}
+	configMap := config[0].(map[string]interface{})
+
+	if v, ok := configMap["day"]; ok {
+		maintWindowOpts.Day = v.(string)
+	}
+
+	if v, ok := configMap["hour"]; ok {
+		maintWindowOpts.Hour = v.(string)
+	}
+
+	return maintWindowOpts
+}
+
+func flattenMaintWindowOpts(opts godo.DatabaseMaintenanceWindow) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	item := make(map[string]interface{})
+
+	item["day"] = opts.Day
+	item["hour"] = opts.Hour
+	result = append(result, item)
+
+	return result
 }

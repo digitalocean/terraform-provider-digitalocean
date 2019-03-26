@@ -105,6 +105,30 @@ func TestAccDigitalOceanDatabaseCluster_WithMigration(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_WithMaintWindow(t *testing.T) {
+	var database godo.Database
+	databaseName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithMaintWindow, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "maintenance_window.0.day"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "maintenance_window.0.hour"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDatabaseClusterDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -193,4 +217,19 @@ resource "digitalocean_database_cluster" "foobar" {
 	size       = "db-s-1vcpu-1gb"
 	region     = "lon1"
     node_count = 1
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithMaintWindow = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "pg"
+	version    = "11"
+	size       = "db-s-1vcpu-1gb"
+	region     = "nyc1"
+	node_count = 1
+	
+	maintenance_window {
+        day  = "friday"
+        hour = "13:00:00"
+	}
 }`
