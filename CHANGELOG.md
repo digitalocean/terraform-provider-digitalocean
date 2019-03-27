@@ -3,6 +3,7 @@
 FEATURES:
 
 * **New Resource:** `digitalocean_spaces_bucket` ([#42](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/42)). Thanks to @slapula!
+* **New Resource:** `digitalocean_database_cluster` ([#198](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/198)) Thanks to @slapula!
 
 IMPROVEMENTS:
 
