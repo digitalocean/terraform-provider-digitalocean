@@ -253,8 +253,10 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 	d.Set("region", database.RegionSlug)
 	d.Set("node_count", database.NumNodes)
 
-	if err := d.Set("maintenance_window", flattenMaintWindowOpts(*database.MaintenanceWindow)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting maintenance_window - error: %#v", err)
+	if _, ok := d.GetOk("maintenance_window"); ok {
+		if err := d.Set("maintenance_window", flattenMaintWindowOpts(*database.MaintenanceWindow)); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting maintenance_window - error: %#v", err)
+		}
 	}
 
 	// Computed values
