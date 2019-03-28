@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -79,6 +80,31 @@ func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_certificate.foobar", "certificate_chain", fmt.Sprintf("%s\n", certChainMaterial)),
 				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanCertificate_ExpectedErrors(t *testing.T) {
+	rInt := acctest.RandInt()
+	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccCheckDigitalOceanCertificateConfig_customNoLeaf(rInt, privateKeyMaterial, certChainMaterial),
+				ExpectError: regexp.MustCompile("`leaf_certificate` is required for when type is `custom` or empty"),
+			},
+			{
+				Config:      testAccCheckDigitalOceanCertificateConfig_customNoKey(rInt, leafCertMaterial, certChainMaterial),
+				ExpectError: regexp.MustCompile("`private_key` is required for when type is `custom` or empty"),
+			},
+			{
+				Config:      testAccCheckDigitalOceanCertificateConfig_noDomains(rInt),
+				ExpectError: regexp.MustCompile("`domains` is required for when type is `lets_encrypt`"),
 			},
 		},
 	})
@@ -218,4 +244,38 @@ EOF
 %s
 EOF
 }`, rInt, privateKeyMaterial, leafCert, certChain)
+}
+
+func testAccCheckDigitalOceanCertificateConfig_customNoLeaf(rInt int, privateKeyMaterial, certChain string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_certificate" "foobar" {
+  name = "certificate-%d"
+  private_key = <<EOF
+%s
+EOF
+  certificate_chain = <<EOF
+%s
+EOF
+}`, rInt, privateKeyMaterial, certChain)
+}
+
+func testAccCheckDigitalOceanCertificateConfig_customNoKey(rInt int, leafCert, certChain string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_certificate" "foobar" {
+  name = "certificate-%d"
+  leaf_certificate = <<EOF
+%s
+EOF
+  certificate_chain = <<EOF
+%s
+EOF
+}`, rInt, leafCert, certChain)
+}
+
+func testAccCheckDigitalOceanCertificateConfig_noDomains(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_certificate" "foobar" {
+  name = "certificate-%d"
+  type = "lets_encrypt"
+}`, rInt)
 }
