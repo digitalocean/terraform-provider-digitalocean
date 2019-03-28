@@ -199,6 +199,12 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 				Default:  false,
 			},
 
+			"enable_proxy_protocol": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"ip": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -259,6 +265,7 @@ func buildLoadBalancerRequest(d *schema.ResourceData) (*godo.LoadBalancerRequest
 		Region:              d.Get("region").(string),
 		Algorithm:           d.Get("algorithm").(string),
 		RedirectHttpToHttps: d.Get("redirect_http_to_https").(bool),
+		EnableProxyProtocol: d.Get("enable_proxy_protocol").(bool),
 		ForwardingRules:     expandForwardingRules(d.Get("forwarding_rule").([]interface{})),
 	}
 
@@ -337,6 +344,7 @@ func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface
 	d.Set("algorithm", loadbalancer.Algorithm)
 	d.Set("region", loadbalancer.Region.Slug)
 	d.Set("redirect_http_to_https", loadbalancer.RedirectHttpToHttps)
+	d.Set("enable_proxy_protocol", loadbalancer.EnableProxyProtocol)
 	d.Set("droplet_tag", loadbalancer.Tag)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {

@@ -167,6 +167,11 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Computed:    true,
 				Description: "whether http requests will be redirected to https",
 			},
+			"enable_proxy_protocol": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "whether PROXY Protocol should be used to pass information from connecting client requests to the backend service",
+			},
 		},
 	}
 }
@@ -220,6 +225,7 @@ func dataSourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interfa
 	d.Set("status", loadbalancer.Status)
 	d.Set("droplet_tag", loadbalancer.Tag)
 	d.Set("redirect_http_to_https", loadbalancer.RedirectHttpToHttps)
+	d.Set("enable_proxy_protocol", loadbalancer.EnableProxyProtocol)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)
