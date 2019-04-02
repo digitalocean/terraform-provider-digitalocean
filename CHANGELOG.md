@@ -13,6 +13,10 @@ IMPROVEMENTS:
 * resource/digitalocean_loadbalancer: Add support for enabling PROXY Protocol ([#199](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/199)).
 * docs/digitalocean_firewall: Update syntax to be compatible with Terraform 0.12-beta ([#201](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/201)).
 
+BUG FIXES:
+
+* resource/digitalocean_certificate: Fix issue when using computed values for custom certificates ([#163](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/163)).
+
 NOTES:
 
 * This provider is now built and tested using Go 1.11.x ([#178](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/178)).
