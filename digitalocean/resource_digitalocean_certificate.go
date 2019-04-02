@@ -92,27 +92,6 @@ func resourceDigitalOceanCertificate() *schema.Resource {
 				Computed: true,
 			},
 		},
-
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
-			certificateType := diff.Get("type").(string)
-			if certificateType == "custom" {
-				if _, ok := diff.GetOk("private_key"); !ok {
-					return fmt.Errorf("`private_key` is required for when type is `custom` or empty")
-				}
-
-				if _, ok := diff.GetOk("leaf_certificate"); !ok {
-					return fmt.Errorf("`leaf_certificate` is required for when type is `custom` or empty")
-				}
-			} else if certificateType == "lets_encrypt" {
-
-				if _, ok := diff.GetOk("domains"); !ok {
-					return fmt.Errorf("`domains` is required for when type is `lets_encrypt`")
-				}
-			}
-
-			return nil
-		},
 	}
 }
 
@@ -141,6 +120,22 @@ func buildCertificateRequest(d *schema.ResourceData) (*godo.CertificateRequest, 
 
 func resourceDigitalOceanCertificateCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
+
+	certificateType := d.Get("type").(string)
+	if certificateType == "custom" {
+		if _, ok := d.GetOk("private_key"); !ok {
+			return fmt.Errorf("`private_key` is required for when type is `custom` or empty")
+		}
+
+		if _, ok := d.GetOk("leaf_certificate"); !ok {
+			return fmt.Errorf("`leaf_certificate` is required for when type is `custom` or empty")
+		}
+	} else if certificateType == "lets_encrypt" {
+
+		if _, ok := d.GetOk("domains"); !ok {
+			return fmt.Errorf("`domains` is required for when type is `lets_encrypt`")
+		}
+	}
 
 	log.Printf("[INFO] Create a Certificate Request")
 
