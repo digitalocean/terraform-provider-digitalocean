@@ -10,14 +10,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-// func init() {
-// 	resource.AddTestSweepers("digitalocean_cdn", &resource.Sweeper{
-// 		Name: "digitalocean_cdn",
-// 		F:    testSweepCertificate,
-// 	})
-
-// }
-
 func TestAccDigitalOceanCDN_Basic(t *testing.T) {
 	digitalOceanBucketName := fmt.Sprintf("tf-cdn-test-bucket-%d", acctest.RandInt())
 	cdnConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_basic, digitalOceanBucketName)
@@ -62,33 +54,37 @@ func TestAccDigitalOceanCDN_withTTL(t *testing.T) {
 	})
 }
 
-// func TestAccDigitalOceanCDN_withCustomDomain(t *testing.T) {
+func TestAccDigitalOceanCDN_Create_And_Update(t *testing.T) {
+	digitalOceanBucketName := fmt.Sprintf("tf-cdn-test-bucket-%d", acctest.RandInt())
+	cdnCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_basic, digitalOceanBucketName)
+	cdnUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_withTTL, digitalOceanBucketName)
 
-// 	rInt := acctest.RandInt()
-// 	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
-// 	//domainName := fmt.Sprintf("trenttest%d.com", rInt)
-// 	domainName := "trenttest1.com"
-// 	bucketName := fmt.Sprintf("tf-cdn-test-bucket-%d", rInt)
-
-// 	cdnConfig := testAccCheckDigitalOceanCDNConfig_withDomain(rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial, domainName, bucketName)
-
-// 	resource.Test(t, resource.TestCase{
-// 		PreCheck:     func() { testAccPreCheck(t) },
-// 		Providers:    testAccProviders,
-// 		CheckDestroy: testAccCheckDigitalOceanCDNDestroy,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: cdnConfig,
-// 				Check: resource.ComposeTestCheckFunc(
-// 					testAccCheckDigitalOceanCDNExists("digitalocean_cdn.mycdn"),
-// 					resource.TestCheckResourceAttr(
-// 						"digitalocean_cdn.mycdn", "origin", bucketName+".ams3.digitaloceanspaces.com"),
-// 					resource.TestCheckResourceAttr("digitalocean_cdn.mycdn", "ttl", "3600"),
-// 				),
-// 			},
-// 		},
-// 	})
-// }
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanCDNDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: cdnCreateConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanCDNExists("digitalocean_cdn.foobar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_cdn.foobar", "origin", digitalOceanBucketName+".ams3.digitaloceanspaces.com"),
+					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "ttl", "3600"),
+				),
+			},
+			{
+				Config: cdnUpdateConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanCDNExists("digitalocean_cdn.foobar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_cdn.foobar", "origin", digitalOceanBucketName+".ams3.digitaloceanspaces.com"),
+					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "ttl", "1800"),
+				),
+			},
+		},
+	})
+}
 
 func testAccCheckDigitalOceanCDNDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
@@ -158,36 +154,3 @@ resource "digitalocean_cdn" "foobar" {
 	origin = "${digitalocean_spaces_bucket.bucket.bucket_domain_name}"
 	ttl = 1800
 }`
-
-// func testAccCheckDigitalOceanCDNConfig_withDomain(rInt int, privateKeyMaterial, leafCert, certChain, domainName, bucketName string) string {
-
-// 	return fmt.Sprintf(`
-// resource "digitalocean_certificate" "mycert" {
-//   	name = "certificate-%d"
-//   	private_key = <<EOF
-// %s
-// EOF
-//   	leaf_certificate = <<EOF
-// %s
-// EOF
-//   	certificate_chain = <<EOF
-// %s
-// EOF
-// }
-
-// resource "digitalocean_domain" "mydomain" {
-// 	name       = "%s"
-// }
-
-// resource "digitalocean_spaces_bucket" "mybucket" {
-// 	name = "%s"
-// 	region = "ams3"
-// 	acl = "public-read"
-// }
-
-// resource "digitalocean_cdn" "mycdn" {
-// 	origin = "${digitalocean_spaces_bucket.mybucket.bucket_domain_name}"
-// 	custom_domain = "${digitalocean_domain.mydomain.name}"
-// 	certificate_id = "${digitalocean_certificate.mycert.id}"
-// }`, rInt, privateKeyMaterial, leafCert, certChain, domainName, bucketName)
-//}
