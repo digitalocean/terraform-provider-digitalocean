@@ -10,54 +10,15 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 )
 
-func TestAccDigitalOceanCDN_Basic(t *testing.T) {
-	digitalOceanBucketName := fmt.Sprintf("tf-cdn-test-bucket-%d", acctest.RandInt())
-	cdnConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_basic, digitalOceanBucketName)
+const originSuffix = ".ams3.digitaloceanspaces.com"
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanCDNDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: cdnConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanCDNExists("digitalocean_cdn.foobar"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_cdn.foobar", "origin", digitalOceanBucketName+".ams3.digitaloceanspaces.com"),
-					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "ttl", "3600"),
-				),
-			},
-		},
-	})
-}
+func TestAccDigitalOceanCDN_Create(t *testing.T) {
 
-func TestAccDigitalOceanCDN_withTTL(t *testing.T) {
-	digitalOceanBucketName := fmt.Sprintf("tf-cdn-test-bucket-%d", acctest.RandInt())
-	cdnConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_withTTL, digitalOceanBucketName)
+	bucketName := generateBucketName()
+	cdnCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_Create, bucketName)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanCDNDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: cdnConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanCDNExists("digitalocean_cdn.foobar"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_cdn.foobar", "origin", digitalOceanBucketName+".ams3.digitaloceanspaces.com"),
-					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "ttl", "1800"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccDigitalOceanCDN_Create_And_Update(t *testing.T) {
-	digitalOceanBucketName := fmt.Sprintf("tf-cdn-test-bucket-%d", acctest.RandInt())
-	cdnCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_basic, digitalOceanBucketName)
-	cdnUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_withTTL, digitalOceanBucketName)
+	expectedOrigin := bucketName + originSuffix
+	expectedTTL := "3600"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -69,7 +30,63 @@ func TestAccDigitalOceanCDN_Create_And_Update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanCDNExists("digitalocean_cdn.foobar"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_cdn.foobar", "origin", digitalOceanBucketName+".ams3.digitaloceanspaces.com"),
+						"digitalocean_cdn.foobar", "origin", expectedOrigin),
+					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "ttl", expectedTTL),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanCDN_Create_with_TTL(t *testing.T) {
+
+	bucketName := generateBucketName()
+	ttl := 1800
+	cdnCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_Create_with_TTL, bucketName, ttl)
+
+	expectedOrigin := bucketName + originSuffix
+	expectedTTL := "1800"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanCDNDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: cdnCreateConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanCDNExists("digitalocean_cdn.foobar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_cdn.foobar", "origin", expectedOrigin),
+					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "ttl", expectedTTL),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanCDN_Create_and_Update(t *testing.T) {
+
+	bucketName := generateBucketName()
+	ttl := 1800
+
+	cdnCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_Create, bucketName)
+	cdnUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_Create_with_TTL, bucketName, ttl)
+
+	expectedOrigin := bucketName + originSuffix
+	expectedTTL := "1800"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanCDNDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: cdnCreateConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanCDNExists("digitalocean_cdn.foobar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_cdn.foobar", "origin", expectedOrigin),
 					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "ttl", "3600"),
 				),
 			},
@@ -78,8 +95,8 @@ func TestAccDigitalOceanCDN_Create_And_Update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanCDNExists("digitalocean_cdn.foobar"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_cdn.foobar", "origin", digitalOceanBucketName+".ams3.digitaloceanspaces.com"),
-					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "ttl", "1800"),
+						"digitalocean_cdn.foobar", "origin", expectedOrigin),
+					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "ttl", expectedTTL),
 				),
 			},
 		},
@@ -132,7 +149,11 @@ func testAccCheckDigitalOceanCDNExists(resource string) resource.TestCheckFunc {
 	}
 }
 
-const testAccCheckDigitalOceanCDNConfig_basic = `
+func generateBucketName() string {
+	return fmt.Sprintf("tf-cdn-test-bucket-%d", acctest.RandInt())
+}
+
+const testAccCheckDigitalOceanCDNConfig_Create = `
 resource "digitalocean_spaces_bucket" "bucket" {
 	name = "%s"
 	region = "ams3"
@@ -143,7 +164,7 @@ resource "digitalocean_cdn" "foobar" {
 	origin = "${digitalocean_spaces_bucket.bucket.bucket_domain_name}"
 }`
 
-const testAccCheckDigitalOceanCDNConfig_withTTL = `
+const testAccCheckDigitalOceanCDNConfig_Create_with_TTL = `
 resource "digitalocean_spaces_bucket" "bucket" {
 	name = "%s"
 	region = "ams3"
@@ -152,5 +173,5 @@ resource "digitalocean_spaces_bucket" "bucket" {
 
 resource "digitalocean_cdn" "foobar" {
 	origin = "${digitalocean_spaces_bucket.bucket.bucket_domain_name}"
-	ttl = 1800
+	ttl = %d
 }`
