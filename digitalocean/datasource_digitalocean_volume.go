@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -21,9 +22,13 @@ func dataSourceDigitalOceanVolume() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			"region": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Description:  "the region that the volume is provisioned in",
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "the region that the volume is provisioned in",
+				StateFunc: func(val interface{}) string {
+					// DO API V2 region slug is always lowercase
+					return strings.ToLower(val.(string))
+				},
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes

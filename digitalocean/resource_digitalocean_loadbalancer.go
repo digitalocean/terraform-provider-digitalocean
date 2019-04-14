@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -27,6 +28,10 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				StateFunc: func(val interface{}) string {
+					// DO API V2 region slug is always lowercase
+					return strings.ToLower(val.(string))
+				},
 			},
 
 			"name": {

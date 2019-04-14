@@ -6,6 +6,7 @@ import (
 	"log"
 	"regexp"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -29,8 +30,12 @@ func dataSourceDigitalOceanVolumeSnapshot() *schema.Resource {
 				ConflictsWith: []string{"name"},
 			},
 			"region": {
-				Type:         schema.TypeString,
-				Optional:     true,
+				Type:     schema.TypeString,
+				Optional: true,
+				StateFunc: func(val interface{}) string {
+					// DO API V2 region slug is always lowercase
+					return strings.ToLower(val.(string))
+				},
 				ValidateFunc: validation.NoZeroValues,
 			},
 			"most_recent": {

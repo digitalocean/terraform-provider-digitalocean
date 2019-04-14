@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -25,6 +26,10 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ForceNew: true,
+				StateFunc: func(val interface{}) string {
+					// DO API V2 region slug is always lowercase
+					return strings.ToLower(val.(string))
+				},
 			},
 
 			"name": {

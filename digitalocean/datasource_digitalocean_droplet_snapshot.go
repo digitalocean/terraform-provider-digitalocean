@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -26,8 +27,12 @@ func dataSourceDigitalOceanDropletSnapshot() *schema.Resource {
 				ConflictsWith: []string{"name"},
 			},
 			"region": {
-				Type:         schema.TypeString,
-				Optional:     true,
+				Type:     schema.TypeString,
+				Optional: true,
+				StateFunc: func(val interface{}) string {
+					// DO API V2 region slug is always lowercase
+					return strings.ToLower(val.(string))
+				},
 				ValidateFunc: validation.NoZeroValues,
 			},
 			"most_recent": {
