@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -14,6 +15,8 @@ import (
 func TestAccDataSourceDigitalOceanVolume_Basic(t *testing.T) {
 	var volume godo.Volume
 	rInt := acctest.RandInt()
+
+	expectedURNRegEx, _ := regexp.Compile(`do:volume:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -31,6 +34,7 @@ func TestAccDataSourceDigitalOceanVolume_Basic(t *testing.T) {
 						"data.digitalocean_volume.foobar", "size", "10"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_volume.foobar", "droplet_ids.#", "0"),
+					resource.TestMatchResourceAttr("data.digitalocean_volume.foobar", "urn", expectedURNRegEx),
 				),
 			},
 		},

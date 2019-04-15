@@ -66,6 +66,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The unique identifier for the block storage volume.
+* `urn`: The uniform resource name for the storage volume.
 * `filesystem_type` - Filesystem type (`xfs` or `ext4`) for the block storage volume.
 * `filesystem_label` - Filesystem label for the block storage volume.
 * `droplet_ids` - A list of associated droplet ids.

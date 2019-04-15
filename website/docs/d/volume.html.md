@@ -59,6 +59,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id`: The ID of the block storage volume.
+* `urn`: The uniform resource name for the storage volume.
 * `size` - The size of the block storage volume in GiB.
 * `description` - Text describing a block storage volume.
 * `filesystem_type` - Filesystem type currently in-use on the block storage volume.

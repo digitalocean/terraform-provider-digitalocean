@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"strings"
@@ -69,6 +70,8 @@ func testSweepVolumes(region string) error {
 func TestAccDigitalOceanVolume_Basic(t *testing.T) {
 	name := fmt.Sprintf("volume-%s", acctest.RandString(10))
 
+	expectedURNRegEx, _ := regexp.Compile(`do:volume:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
+
 	volume := godo.Volume{
 		Name: name,
 	}
@@ -81,6 +84,7 @@ func TestAccDigitalOceanVolume_Basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeConfig_basic, name),
 				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeAttributes(&volume),
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
 					resource.TestCheckResourceAttr(
 						"digitalocean_volume.foobar", "name", name),
@@ -90,10 +94,24 @@ func TestAccDigitalOceanVolume_Basic(t *testing.T) {
 						"digitalocean_volume.foobar", "region", "nyc1"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_volume.foobar", "description", "peace makes plenty"),
+					resource.TestMatchResourceAttr("digitalocean_volume.foobar", "urn", expectedURNRegEx),
 				),
 			},
 		},
 	})
+}
+
+func testAccCheckDigitalOceanVolumeAttributes(volume *godo.Volume) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+
+		expectedURN := fmt.Sprintf("do:volume:%s", volume.ID)
+
+		if volume.URN() != expectedURN {
+			return fmt.Errorf("Volume, Expected %s, but actual was %s", expectedURN, volume.URN())
+		}
+
+		return nil
+	}
 }
 
 const testAccCheckDigitalOceanVolumeConfig_basic = `

@@ -27,6 +27,11 @@ func dataSourceDigitalOceanVolume() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
+			"urn": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "the iniform resource name for the volume",
+			},
 			"description": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -107,6 +112,7 @@ func dataSourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(volume.ID)
 	d.Set("name", volume.Name)
+	d.Set("urn", volume.URN())
 	d.Set("region", volume.Region.Slug)
 	d.Set("size", int(volume.SizeGigaBytes))
 

@@ -33,7 +33,11 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
-
+			"urn": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "the uniform resource name for the volume.",
+			},
 			"size": {
 				Type:         schema.TypeInt,
 				Required:     true,
@@ -190,6 +194,7 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 
 	d.Set("region", volume.Region.Slug)
 	d.Set("size", int(volume.SizeGigaBytes))
+	d.Set("urn", volume.URN())
 
 	if v := volume.FilesystemType; v != "" {
 		d.Set("filesystem_type", v)
@@ -228,6 +233,7 @@ func resourceDigitalOceanVolumeImport(rs *schema.ResourceData, v interface{}) ([
 	rs.Set("name", volume.Name)
 	rs.Set("region", volume.Region.Slug)
 	rs.Set("size", int(volume.SizeGigaBytes))
+	rs.Set("urn", volume.URN())
 
 	if v := volume.Description; v != "" {
 		rs.Set("description", v)
