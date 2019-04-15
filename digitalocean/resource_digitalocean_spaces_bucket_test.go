@@ -22,6 +22,10 @@ import (
 func TestAccDigitalOceanBucket_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 
+	expectedRegion := "ams3"
+	expectedBucketName := testAccBucketName(rInt)
+	expectBucketURN := fmt.Sprintf("do:space:%s", expectedBucketName)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testAccPreCheck(t) },
 		/*
@@ -36,9 +40,10 @@ func TestAccDigitalOceanBucket_basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_spaces_bucket.bucket", "region", "nyc3"),
+						"digitalocean_spaces_bucket.bucket", "region", expectedRegion),
 					resource.TestCheckResourceAttr(
-						"digitalocean_spaces_bucket.bucket", "name", testAccBucketName(rInt)),
+						"digitalocean_spaces_bucket.bucket", "name", expectedBucketName),
+					resource.TestCheckResourceAttr("digitalocean_spaces_bucket.bucket", "urn", expectBucketURN),
 				),
 			},
 		},
@@ -245,6 +250,7 @@ func testAccDigitalOceanBucketConfig(randInt int) string {
 resource "digitalocean_spaces_bucket" "bucket" {
 	name = "tf-test-bucket-%d"
 	acl = "public-read"
+	region = "ams3"
 }
 `, randInt)
 }
