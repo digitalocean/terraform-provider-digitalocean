@@ -28,7 +28,11 @@ func resourceDigitalOceanFloatingIp() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
-
+			"urn": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "the uniform resource name for the floating ip",
+			},
 			"ip_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -135,6 +139,7 @@ func resourceDigitalOceanFloatingIpRead(d *schema.ResourceData, meta interface{}
 		}
 
 		d.Set("ip_address", floatingIp.IP)
+		d.Set("urn", floatingIp.URN())
 	} else {
 		d.SetId("")
 	}
@@ -151,6 +156,7 @@ func resourceDigitalOceanFloatingIpImport(rs *schema.ResourceData, v interface{}
 		}
 
 		rs.Set("ip_address", floatingIp.IP)
+		rs.Set("urn", floatingIp.URN())
 		rs.Set("region", floatingIp.Region.Slug)
 
 		if floatingIp.Droplet != nil {

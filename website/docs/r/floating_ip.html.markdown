@@ -42,6 +42,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `ip_address` - The IP Address of the resource
+* `urn` - The uniform resource name of the floating ip
 
 ## Import
 
