@@ -29,6 +29,11 @@ func resourceDigitalOceanBucket() *schema.Resource {
 				Required:    true,
 				Description: "Bucket name",
 			},
+			"urn": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "the uniform resource name for the bucket",
+			},
 			"region": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -177,6 +182,9 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", d.Get("name").(string))
+
+	urn := fmt.Sprintf("do:space:%s", d.Get("name"))
+	d.Set("urn", urn)
 
 	return nil
 }

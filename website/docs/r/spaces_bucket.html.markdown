@@ -61,6 +61,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `name` - The name of the bucket
+* `urn` - The uniform resource name for the bucket
 * `region` - The name of the region
 * `bucket_domain_name` - The FQDN of the bucket (e.g. bucket-name.nyc3.digitaloceanspaces.com)
 
