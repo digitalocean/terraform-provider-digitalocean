@@ -26,12 +26,15 @@ func resourceDigitalOceanDomain() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
-
 			"ip_address": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
+			},
+			"urn": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -78,6 +81,7 @@ func resourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	d.Set("name", domain.Name)
+	d.Set("urn", domain.URN())
 
 	return nil
 }

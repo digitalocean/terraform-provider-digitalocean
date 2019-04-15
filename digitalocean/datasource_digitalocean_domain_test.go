@@ -15,6 +15,8 @@ func TestAccDataSourceDigitalOceanDomain_Basic(t *testing.T) {
 	var domain godo.Domain
 	domainName := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
 
+	expectedURN := fmt.Sprintf("do:domain:%s", domainName)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -26,6 +28,8 @@ func TestAccDataSourceDigitalOceanDomain_Basic(t *testing.T) {
 					testAccCheckDataSourceDigitalOceanDomainAttributes(&domain, domainName),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_domain.foobar", "name", domainName),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_domain.foobar", "urn", expectedURN),
 				),
 			},
 		},
