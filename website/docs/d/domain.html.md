@@ -61,4 +61,5 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `ttl`: The TTL of the domain.
+* `urn` - The uniform resource name of the domain
 * `zone_file`: The zone file of the domain.
