@@ -20,6 +20,11 @@ func dataSourceDigitalOceanFloatingIp() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
+			"urn": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "the uniform resource name for the floating ip",
+			},
 			"region": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -49,6 +54,7 @@ func dataSourceDigitalOceanFloatingIpRead(d *schema.ResourceData, meta interface
 
 	d.SetId(floatingIp.IP)
 	d.Set("ip_address", floatingIp.IP)
+	d.Set("urn", floatingIp.URN())
 	d.Set("region", floatingIp.Region.Slug)
 
 	if floatingIp.Droplet != nil {

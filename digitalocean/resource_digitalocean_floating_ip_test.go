@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -44,6 +45,8 @@ func testSweepFloatingIps(region string) error {
 func TestAccDigitalOceanFloatingIP_Region(t *testing.T) {
 	var floatingIP godo.FloatingIP
 
+	expectedURNRegEx, _ := regexp.Compile(`do:floatingip:(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$`)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -55,6 +58,7 @@ func TestAccDigitalOceanFloatingIP_Region(t *testing.T) {
 					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip.foobar", &floatingIP),
 					resource.TestCheckResourceAttr(
 						"digitalocean_floating_ip.foobar", "region", "nyc3"),
+					resource.TestMatchResourceAttr("digitalocean_floating_ip.foobar", "urn", expectedURNRegEx),
 				),
 			},
 		},

@@ -38,4 +38,5 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `region`: The region that the floating IP is reserved to.
+* `urn`: The uniform resource name of the floating IP.
 * `droplet_id`: The Droplet id that the floating IP has been assigned to.
