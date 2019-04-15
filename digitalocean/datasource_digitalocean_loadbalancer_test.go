@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -14,6 +15,8 @@ import (
 func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
+
+	expectedURNRegEx, _ := regexp.Compile(`do:loadbalancer:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -45,6 +48,7 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 						"data.digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "tcp"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "droplet_ids.#", "2"),
+					resource.TestMatchResourceAttr("data.digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
 				),
 			},
 		},

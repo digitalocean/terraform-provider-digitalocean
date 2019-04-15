@@ -30,6 +30,7 @@ data "digitalocean_loadbalancer" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of load balancer.
+* `urn` - The uniform resource name for the Load Balancer
 
 ## Attributes Reference
 

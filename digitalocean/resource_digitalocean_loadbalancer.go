@@ -39,7 +39,11 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
-
+			"urn": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "the uniform resource name for the load balancer",
+			},
 			"algorithm": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -344,6 +348,7 @@ func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface
 	}
 
 	d.Set("name", loadbalancer.Name)
+	d.Set("urn", loadbalancer.URN())
 	d.Set("ip", loadbalancer.IP)
 	d.Set("status", loadbalancer.Status)
 	d.Set("algorithm", loadbalancer.Algorithm)
