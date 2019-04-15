@@ -34,6 +34,10 @@ func resourceDigitalOceanBucket() *schema.Resource {
 				Optional:    true,
 				Description: "Bucket region",
 				Default:     "nyc3",
+				StateFunc: func(val interface{}) string {
+					// DO API V2 region slug is always lowercase
+					return strings.ToLower(val.(string))
+				},
 			},
 			"acl": {
 				Type:        schema.TypeString,
