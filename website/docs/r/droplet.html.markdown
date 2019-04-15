@@ -59,6 +59,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Droplet
+* `urn` - The uniform resource name of the Droplet
 * `name`- The name of the Droplet
 * `region` - The region of the Droplet
 * `image` - The image of the Droplet

@@ -62,6 +62,11 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"urn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"disk": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -311,6 +316,7 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	d.Set("name", droplet.Name)
+	d.Set("urn", droplet.URN())
 	d.Set("region", droplet.Region.Slug)
 	d.Set("size", droplet.Size.Slug)
 	d.Set("price_hourly", droplet.Size.PriceHourly)
