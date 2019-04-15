@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -53,6 +54,8 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 
+	expectedURNRegEx, _ := regexp.Compile(`do:loadbalancer:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -62,7 +65,6 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_basic(rInt),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
-					testAccCheckDigitalOceanLoadBalancerAttributes(&loadbalancer),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
 					resource.TestCheckResourceAttr(
@@ -85,23 +87,11 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "tcp"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "droplet_ids.#", "1"),
+					resource.TestMatchResourceAttr("digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
 				),
 			},
 		},
 	})
-}
-
-func testAccCheckDigitalOceanLoadBalancerAttributes(loadbalancer *godo.LoadBalancer) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-
-		expectURN := fmt.Sprintf("do:loadbalancer:%s", loadbalancer.ID)
-
-		if loadbalancer.URN() != expectURN {
-			return fmt.Errorf("URN: Expected %s, but actual was %s", expectURN, loadbalancer.URN())
-		}
-
-		return nil
-	}
 }
 
 func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {

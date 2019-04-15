@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -15,6 +16,8 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 
+	expectedURNRegEx, _ := regexp.Compile(`do:loadbalancer:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
+
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
@@ -23,11 +26,8 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 				Config: testAccCheckDataSourceDigitalOceanLoadBalancerConfig_basic(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanLoadBalancerExists("data.digitalocean_loadbalancer.foobar", &loadbalancer),
-					testAccCheckDataSourceDigitalOceanLoadBalancerAttributes(&loadbalancer),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "urn", fmt.Sprintf("do:loadbalancer:%s", loadbalancer.ID)),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -48,23 +48,11 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 						"data.digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "tcp"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "droplet_ids.#", "2"),
+					resource.TestMatchResourceAttr("data.digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
 				),
 			},
 		},
 	})
-}
-
-func testAccCheckDataSourceDigitalOceanLoadBalancerAttributes(loadbalancer *godo.LoadBalancer) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-
-		expectURN := fmt.Sprintf("do:loadbalancer:%s", loadbalancer.ID)
-
-		if loadbalancer.URN() != expectURN {
-			return fmt.Errorf("URN: Expected %s, but actual was %s", expectURN, loadbalancer.URN())
-		}
-
-		return nil
-	}
 }
 
 func testAccCheckDataSourceDigitalOceanLoadBalancerExists(n string, loadbalancer *godo.LoadBalancer) resource.TestCheckFunc {
