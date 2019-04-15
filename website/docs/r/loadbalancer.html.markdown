@@ -146,6 +146,7 @@ The following attributes are exported:
 
 * `id` - The ID of the Load Balancer
 * `ip`- The ip of the Load Balancer
+* `urn` - The uniform resource name for the Load Balancer
 
 ## Import
 

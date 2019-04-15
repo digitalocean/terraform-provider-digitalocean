@@ -23,8 +23,11 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 				Config: testAccCheckDataSourceDigitalOceanLoadBalancerConfig_basic(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanLoadBalancerExists("data.digitalocean_loadbalancer.foobar", &loadbalancer),
+					testAccCheckDataSourceDigitalOceanLoadBalancerAttributes(&loadbalancer),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "urn", fmt.Sprintf("do:loadbalancer:%s", loadbalancer.ID)),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -49,6 +52,19 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccCheckDataSourceDigitalOceanLoadBalancerAttributes(loadbalancer *godo.LoadBalancer) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+
+		expectURN := fmt.Sprintf("do:loadbalancer:%s", loadbalancer.ID)
+
+		if loadbalancer.URN() != expectURN {
+			return fmt.Errorf("URN: Expected %s, but actual was %s", expectURN, loadbalancer.URN())
+		}
+
+		return nil
+	}
 }
 
 func testAccCheckDataSourceDigitalOceanLoadBalancerExists(n string, loadbalancer *godo.LoadBalancer) resource.TestCheckFunc {
