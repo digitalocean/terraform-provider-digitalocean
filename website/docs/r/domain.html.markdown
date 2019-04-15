@@ -33,6 +33,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The name of the domain
+* `urn` - The uniform resource name of the domain
 
 ## Import
 

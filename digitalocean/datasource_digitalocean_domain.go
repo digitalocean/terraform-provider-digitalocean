@@ -20,6 +20,11 @@ func dataSourceDigitalOceanDomain() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
+			"urn": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "the uniform resource name for the domain",
+			},
 			"ttl": {
 				Type:        schema.TypeInt,
 				Computed:    true,
@@ -49,6 +54,7 @@ func dataSourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId(domain.Name)
 	d.Set("name", domain.Name)
+	d.Set("urn", domain.URN())
 	d.Set("ttl", domain.TTL)
 	d.Set("zone_file", domain.ZoneFile)
 
