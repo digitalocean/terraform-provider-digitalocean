@@ -110,7 +110,7 @@ func resourceDigitalOceanCDNRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("created_at", cdn.CreatedAt)
 	d.Set("custom_domain", cdn.CustomDomain)
 	d.Set("certificate_id", cdn.CertificateID)
-	return nil
+	return err
 }
 
 func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) error {
