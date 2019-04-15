@@ -29,10 +29,11 @@ func resourceDigitalOceanCDN() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			"ttl": {
-				Type:        schema.TypeInt,
-				Optional:    true,
-				Computed:    true,
-				Description: "The amount of time the content is cached in the CDN",
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				Description:  "The amount of time the content is cached in the CDN",
+				ValidateFunc: validation.IntAtLeast(0),
 			},
 			"certificate_id": {
 				Type:        schema.TypeString,
@@ -77,15 +78,14 @@ func resourceDigitalOceanCDNCreate(d *schema.ResourceData, meta interface{}) err
 		cdnRequest.CertificateID = v.(string)
 	}
 
+	log.Printf("[DEBUG] CDN create request: %#v", cdnRequest)
 	cdn, _, err := client.CDNs.Create(context.Background(), cdnRequest)
 	if err != nil {
 		return fmt.Errorf("Error creating CDN: %s", err)
 	}
 
 	d.SetId(cdn.ID)
-	log.Printf("CDN created with ID: %s", d.Id())
-
-	log.Printf("The state of CDN: %+v", cdn)
+	log.Printf("[INFO] CDN created, ID: %s", d.Id())
 
 	return resourceDigitalOceanCDNRead(d, meta)
 }
@@ -97,6 +97,7 @@ func resourceDigitalOceanCDNRead(d *schema.ResourceData, meta interface{}) error
 
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
+			log.Printf("[DEBUG] CDN  (%s) was not found - removing from state", d.Id())
 			d.SetId("")
 		}
 		return fmt.Errorf("Error reading CDN: %s", err)
@@ -118,7 +119,6 @@ func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) err
 	d.Partial(true)
 
 	if d.HasChange("ttl") {
-		d.SetPartial("ttl")
 		ttlUpdateRequest := &godo.CDNUpdateTTLRequest{
 			TTL: uint32(d.Get("ttl").(int)),
 		}
@@ -127,10 +127,11 @@ func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) err
 		if err != nil {
 			return fmt.Errorf("Error updating CDN TTL: %s", err)
 		}
+		log.Printf("[INFO] Updated TTL on CDN")
+		d.SetPartial("ttl")
 	}
 
 	if d.HasChange("certificate_id") || d.HasChange("custom_domain") {
-		d.SetPartial("custom_domain_and_certificate_id")
 		cdUpdateRequest := &godo.CDNUpdateCustomDomainRequest{
 			CustomDomain:  d.Get("certificate_id").(string),
 			CertificateID: d.Get("custom_domain").(string),
@@ -141,6 +142,8 @@ func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) err
 		if err != nil {
 			return fmt.Errorf("Error updating CDN custom domain: %s", err)
 		}
+		log.Printf("[INFO] Updated custom domain/certificate on CDN")
+		d.SetPartial("custom_domain_and_certificate_id")
 	}
 
 	d.Partial(false)
@@ -149,13 +152,15 @@ func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) err
 
 func resourceDigitalOceanCDNDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
+	resourceId := d.Id()
 
-	_, err := client.CDNs.Delete(context.Background(), d.Id())
+	_, err := client.CDNs.Delete(context.Background(), resourceId)
 	if err != nil {
 		return fmt.Errorf("Error deleting CDN: %s", err)
 	}
 
 	d.SetId("")
+	log.Printf("[INFO] CDN deleted, ID: %s", resourceId)
 
 	return nil
 }
