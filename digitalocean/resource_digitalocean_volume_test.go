@@ -84,7 +84,6 @@ func TestAccDigitalOceanVolume_Basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeConfig_basic, name),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanVolumeAttributes(&volume),
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
 					resource.TestCheckResourceAttr(
 						"digitalocean_volume.foobar", "name", name),
@@ -101,18 +100,6 @@ func TestAccDigitalOceanVolume_Basic(t *testing.T) {
 	})
 }
 
-func testAccCheckDigitalOceanVolumeAttributes(volume *godo.Volume) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-
-		expectedURN := fmt.Sprintf("do:volume:%s", volume.ID)
-
-		if volume.URN() != expectedURN {
-			return fmt.Errorf("Volume, Expected %s, but actual was %s", expectedURN, volume.URN())
-		}
-
-		return nil
-	}
-}
 
 const testAccCheckDigitalOceanVolumeConfig_basic = `
 resource "digitalocean_volume" "foobar" {
