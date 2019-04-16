@@ -82,6 +82,7 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 						"digitalocean_droplet.foobar", "ipv4_address_private", ""),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "ipv6_address", ""),
+					resource.TestCheckResourceAttrSet("digitalocean_droplet.foobar", "urn"),
 				),
 			},
 		},
@@ -486,6 +487,10 @@ func testAccCheckDigitalOceanDropletDestroy(s *terraform.State) error {
 
 func testAccCheckDigitalOceanDropletAttributes(droplet *godo.Droplet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
+
+		if droplet.URN() != fmt.Sprintf("do:droplet:%d", droplet.ID) {
+			return fmt.Errorf("Bad URN: %s", droplet.URN())
+		}
 
 		if droplet.Image.Slug != "centos-7-x64" {
 			return fmt.Errorf("Bad image_slug: %s", droplet.Image.Slug)

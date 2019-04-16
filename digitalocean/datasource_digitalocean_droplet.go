@@ -23,6 +23,11 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
+			"urn": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "the uniform resource name for the Droplet",
+			},
 			"region": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -168,6 +173,7 @@ func dataSourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{})
 
 	d.SetId(strconv.Itoa(droplet.ID))
 	d.Set("name", droplet.Name)
+	d.Set("urn", droplet.URN())
 	d.Set("region", droplet.Region.Slug)
 	d.Set("size", droplet.Size.Slug)
 	d.Set("price_hourly", droplet.Size.PriceHourly)
