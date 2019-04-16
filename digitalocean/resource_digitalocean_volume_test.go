@@ -100,7 +100,6 @@ func TestAccDigitalOceanVolume_Basic(t *testing.T) {
 	})
 }
 
-
 const testAccCheckDigitalOceanVolumeConfig_basic = `
 resource "digitalocean_volume" "foobar" {
 	region      = "nyc1"
