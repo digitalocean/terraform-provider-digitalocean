@@ -82,6 +82,7 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 						"digitalocean_droplet.foobar", "ipv4_address_private", ""),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "ipv6_address", ""),
+					resource.TestCheckResourceAttrSet("digitalocean_droplet.foobar", "urn"),
 				),
 			},
 		},
