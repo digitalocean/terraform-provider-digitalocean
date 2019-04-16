@@ -33,6 +33,13 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
+				// Ensure that when the API change slug to image after upgrade
+				// the change is not duplicated
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					changeFromSlug, newID := changeFromSlugToID(old, new)
+					return ((changeFromSlug && d.Get("image_id") == 0) ||
+						(changeFromSlug && d.Get("image_id") == newID))
+				},
 			},
 
 			"name": {
@@ -136,6 +143,11 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 
 			"ipv4_address": {
 				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"image_id": {
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
@@ -309,7 +321,8 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	} else {
 		d.Set("image", droplet.Image.Slug)
 	}
-
+	// save image id in the state, to compare future changes in the slug
+	d.Set("image_id", droplet.Image.ID)
 	d.Set("name", droplet.Name)
 	d.Set("region", droplet.Region.Slug)
 	d.Set("size", droplet.Size.Slug)
@@ -756,4 +769,10 @@ func flattenDigitalOceanDropletVolumeIds(volumeids []string) *schema.Set {
 	}
 
 	return flattenedVolumes
+}
+
+func changeFromSlugToID(old, new string) (bool, int) {
+	_, oldErr := strconv.Atoi(old)
+	newID, newErr := strconv.Atoi(new)
+	return newErr == nil && oldErr != nil, newID
 }
