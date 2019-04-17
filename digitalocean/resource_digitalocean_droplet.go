@@ -44,8 +44,14 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 					if d.IsNewResource() {
 						return true
 					}
-					// No idea of change as we dont have state
+					// No information store as there is not slug in the image
 					if imageID == 0 && slug == "" {
+						_, err := strconv.Atoi(new)
+						// do previous information, the new image has change to a id, and there is not
+						// slug so compare base on the ids
+						if err == nil {
+							return old == new
+						}
 						return true
 					}
 					return new == slug || new == godo.Stringify(imageID)
