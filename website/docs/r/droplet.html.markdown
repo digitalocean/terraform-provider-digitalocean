@@ -77,6 +77,7 @@ The following attributes are exported:
 * `status` - The status of the Droplet
 * `tags` - The tags associated with the Droplet
 * `volume_ids` - A list of the attached block storage volumes
+* `image_id` - The ID of the image used by the Droplet ( equal to `image` when the image do not have an slug)
 
 ## Import
 

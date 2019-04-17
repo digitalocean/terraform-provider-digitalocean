@@ -36,7 +36,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				// Ensure that when the API change slug to image after upgrade
 				// the change is not duplicated
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					log.Printf("[INFO] Slug diff suppress: Old: %s, New: %s", old, new)
+					log.Printf("[DEBUG] Slug diff suppress: Old: %s, New: %s", old, new)
 					changeFromSlug, oldID := changeFromSlugToID(old, new)
 					return ((changeFromSlug && d.Get("image_id") == 0) ||
 						(changeFromSlug && d.Get("image_id") == oldID))
