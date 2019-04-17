@@ -36,7 +36,14 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				// Ensure that when the API change slug to image after upgrade
 				// the change is not duplicated
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return new == d.Get("slug") || new == godo.Stringify(d.Get("image_id"))
+					slug := d.Get("slug")
+					imageID := d.Get("image_id")
+					log.Printf("[DEBUG] slug %s, imageid %s", slug, imageID)
+					// No idea of a change
+					if imageID == 0 && slug == "" {
+						return true
+					}
+					return new == slug || new == godo.Stringify(imageID)
 				},
 			},
 
