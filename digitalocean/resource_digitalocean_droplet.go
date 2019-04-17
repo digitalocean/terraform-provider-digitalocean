@@ -38,19 +38,20 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					slug := d.Get("slug")
 					imageID := d.Get("image_id")
+
 					log.Printf("[DEBUG] slug %s, imageid %s", slug, imageID)
 
 					// Dont suppress changes for new resources
-					if d.IsNewResource() {
-						return true
+					if d.Id() == "" {
+						return false
 					}
 					// No information store as there is not slug in the image
 					if imageID == 0 && slug == "" {
 						_, err := strconv.Atoi(new)
-						// do previous information, the new image has change to a id, and there is not
+						// no previous information, the new image has change to a id, and there is not
 						// slug so compare base on the ids
 						if err == nil {
-							return old == new
+							return old != new
 						}
 						return true
 					}
