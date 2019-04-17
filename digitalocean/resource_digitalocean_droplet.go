@@ -333,6 +333,11 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 		d.Set("image", godo.Stringify(droplet.Image.ID))
 	} else {
 		d.Set("image", droplet.Image.Slug)
+
+		// the user have define a slug and we have a slug and imageid
+		// we can update the status
+		d.Set("slug", droplet.Image.Slug)
+		d.Set("image_id", godo.Stringify(droplet.Image.ID))
 	}
 
 	d.Set("name", droplet.Name)
