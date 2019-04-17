@@ -214,27 +214,6 @@ func TestAccDigitalOceanDroplet_ResizeWithOutDisk(t *testing.T) {
 	})
 }
 
-func TestChangeFromSlugToID(t *testing.T) {
-	parameters := []struct {
-		old      string
-		new      string
-		expected bool
-	}{
-		{"120007", "ubuntu_17_04", true},
-		{"ubuntu_17_04", "120007", false},
-		{"ubuntu_17_04", "ubuntu_17_04", false},
-		{"120007", "120007", false},
-	}
-
-	for i := range parameters {
-		actual, _ := changeFromSlugToID(parameters[i].old, parameters[i].new)
-		if actual != parameters[i].expected {
-			t.Logf("old: %s, new: %s => expected:%t , actual:%t", parameters[i].old, parameters[i].new, parameters[i].expected, actual)
-			t.Fail()
-		}
-	}
-}
-
 func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
