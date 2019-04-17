@@ -36,9 +36,10 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				// Ensure that when the API change slug to image after upgrade
 				// the change is not duplicated
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					changeFromSlug, newID := changeFromSlugToID(old, new)
+					log.Printf("[INFO] Slug diff suppress: Old: %s, New: %s", old, new)
+					changeFromSlug, oldID := changeFromSlugToID(old, new)
 					return ((changeFromSlug && d.Get("image_id") == 0) ||
-						(changeFromSlug && d.Get("image_id") == newID))
+						(changeFromSlug && d.Get("image_id") == oldID))
 				},
 			},
 
@@ -772,7 +773,7 @@ func flattenDigitalOceanDropletVolumeIds(volumeids []string) *schema.Set {
 }
 
 func changeFromSlugToID(old, new string) (bool, int) {
-	_, oldErr := strconv.Atoi(old)
-	newID, newErr := strconv.Atoi(new)
-	return newErr == nil && oldErr != nil, newID
+	oldId, oldErr := strconv.Atoi(old)
+	_, newErr := strconv.Atoi(new)
+	return newErr != nil && oldErr == nil, oldId
 }

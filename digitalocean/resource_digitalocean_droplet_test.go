@@ -220,8 +220,8 @@ func TestChangeFromSlugToID(t *testing.T) {
 		new      string
 		expected bool
 	}{
-		{"120007", "ubuntu_17_04", false},
-		{"ubuntu_17_04", "120007", true},
+		{"120007", "ubuntu_17_04", true},
+		{"ubuntu_17_04", "120007", false},
 		{"ubuntu_17_04", "ubuntu_17_04", false},
 		{"120007", "120007", false},
 	}
@@ -233,7 +233,6 @@ func TestChangeFromSlugToID(t *testing.T) {
 			t.Fail()
 		}
 	}
-
 }
 
 func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
