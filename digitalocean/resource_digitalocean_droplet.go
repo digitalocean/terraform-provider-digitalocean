@@ -39,7 +39,12 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 					slug := d.Get("slug")
 					imageID := d.Get("image_id")
 					log.Printf("[DEBUG] slug %s, imageid %s", slug, imageID)
-					// No idea of a change
+
+					// Dont suppress changes for new resources
+					if d.IsNewResource() {
+						return true
+					}
+					// No idea of change as we dont have state
 					if imageID == 0 && slug == "" {
 						return true
 					}
