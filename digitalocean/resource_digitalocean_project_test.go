@@ -130,6 +130,138 @@ func TestAccDigitalOceanProject_UpdateWithInitialValues(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanProject_CreateWithDropletResource(t *testing.T) {
+
+	expectedName := generateProjectName()
+	expectedDropletName := generateDropletName()
+
+	createConfig := fixtureCreateWithDropletResource(expectedDropletName, expectedName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: createConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "name", expectedName),
+					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanProject_UpdateWithDropletResource(t *testing.T) {
+
+	expectedName := generateProjectName()
+	expectedDropletName := generateDropletName()
+
+	createConfig := fixtureCreateWithDropletResource(expectedDropletName, expectedName)
+
+	updateConfig := fixtureCreateWithDefaults(expectedName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: createConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "name", expectedName),
+					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "1"),
+				),
+			},
+			{
+				Config: updateConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "name", expectedName),
+					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanProject_UpdateFromDropletToSpacesResource(t *testing.T) {
+
+	expectedName := generateProjectName()
+	expectedDropletName := generateDropletName()
+	expectedSpacesName := generateSpacesName()
+
+	createConfig := fixtureCreateWithDropletResource(expectedDropletName, expectedName)
+
+	updateConfig := fixtureCreateWithSpacesResource(expectedSpacesName, expectedName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: createConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "name", expectedName),
+					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "1"),
+					resource.TestCheckResourceAttrSet("digitalocean_droplet.foobar", "urn"),
+				),
+			},
+			{
+				Config: updateConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
+					testAccCheckDigitalOceanProjectResourceURNIsPresent("digitalocean_project.myproj", "do:spaces:"+generateSpacesName()),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "name", expectedName),
+					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "1"),
+					resource.TestCheckResourceAttrSet("digitalocean_spaces_bucket.foobar", "urn"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckDigitalOceanProjectResourceURNIsPresent(resource, expectedURN string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
+
+		rs, ok := s.RootModule().Resources[resource]
+
+		if !ok {
+			return fmt.Errorf("Not found: %s", resource)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No ID set for resource: %s", resource)
+		}
+
+		projectResources, _, err := client.Projects.ListResources(context.Background(), rs.Primary.ID, nil)
+		if err != nil {
+			return fmt.Errorf("Error Retrieving project resources to confrim.")
+		}
+
+		for _, v := range projectResources {
+
+			if v.URN == expectedURN {
+				return nil
+			}
+
+		}
+
+		return nil
+	}
+}
+
 func testAccCheckDigitalOceanProjectDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -180,6 +312,14 @@ func generateProjectName() string {
 	return fmt.Sprintf("tf-proj-test-%d", acctest.RandInt())
 }
 
+func generateDropletName() string {
+	return fmt.Sprintf("tf-proj-test-rsrc-droplet-%d", acctest.RandInt())
+}
+
+func generateSpacesName() string {
+	return fmt.Sprintf("tf-proj-test-rsrc-spaces-%d", acctest.RandInt())
+}
+
 func fixtureCreateWithDefaults(name string) string {
 	return fmt.Sprintf(`
 		resource "digitalocean_project" "myproj" {
@@ -199,4 +339,36 @@ func fixtureCreateWithInitialValues(name, description, purpose, environment stri
 			purpose = "%s"
 			environment = "%s"
 		}`, name, description, purpose, environment)
+}
+
+func fixtureCreateWithDropletResource(dropletName, name string) string {
+	return fmt.Sprintf(`
+		resource "digitalocean_droplet" "foobar" {
+		  name      = "%s"
+		  size      = "512mb"
+		  image     = "centos-7-x64"
+		  region    = "nyc3"
+		  user_data = "foobar"
+		}		
+
+		resource "digitalocean_project" "myproj" {
+			name = "%s"
+			resources = ["${digitalocean_droplet.foobar.urn}"]
+		}`, dropletName, name)
+
+}
+
+func fixtureCreateWithSpacesResource(spacesBucketName, name string) string {
+	return fmt.Sprintf(`
+		resource "digitalocean_spaces_bucket" "foobar" {
+			name = "%s"
+			acl = "public-read"
+			region = "ams3"
+		}		
+
+		resource "digitalocean_project" "myproj" {
+			name = "%s"
+			resources = ["${digitalocean_spaces_bucket.foobar.urn}"]
+		}`, spacesBucketName, name)
+
 }
