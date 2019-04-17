@@ -50,8 +50,6 @@ resource "digitalocean_project" "playground" {
     resources = ["${digitalocean_droplet.foobar.urn}"]
 }
 
-```
-
 ## Argument Reference
 
 The following arguments are supported:

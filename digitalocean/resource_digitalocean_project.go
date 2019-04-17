@@ -170,6 +170,7 @@ func resourceDigitalOceanProjectUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	_, _, err := client.Projects.Update(context.Background(), projectId, projectRequest)
+
 	if err != nil {
 		return fmt.Errorf("Error updating Project: %s", err)
 	}
@@ -196,7 +197,7 @@ func resourceDigitalOceanProjectUpdate(d *schema.ResourceData, meta interface{})
 		d.SetPartial("project_resources_updated")
 	}
 
-	log.Printf("[INFO] Updated Project, ID: ")
+	log.Printf("[INFO] Updated Project, ID: %s", projectId)
 	d.Partial(false)
 
 	return resourceDigitalOceanProjectRead(d, meta)
