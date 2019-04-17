@@ -38,8 +38,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					slug := d.Get("slug")
 					imageID := d.Get("image_id")
-
-					log.Printf("[DEBUG] slug %s, imageid %s", slug, imageID)
+					log.Printf("[DEBUG] slug %s, image_id %s", slug, imageID)
 
 					// Dont suppress changes for new resources
 					if d.Id() == "" {

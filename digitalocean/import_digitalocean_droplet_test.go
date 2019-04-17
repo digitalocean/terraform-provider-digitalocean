@@ -28,8 +28,9 @@ func TestAccDigitalOceanDroplet_importBasic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				//we ignore the ssh_keys, resize_disk and user_data as we do not set to state and image_id (without slug image_id = image)
 				ImportStateVerifyIgnore: []string{
-					"ssh_keys", "user_data", "resize_disk"}, //we ignore the ssh_keys, resize_disk and user_data as we do not set to state
+					"ssh_keys", "user_data", "resize_disk", "image_id"},
 			},
 		},
 	})
@@ -59,8 +60,9 @@ func TestAccDigitalOceanDroplet_ImportWithNoImageSlug(t *testing.T) {
 				ResourceName:      "digitalocean_droplet.from-snapshot",
 				ImportState:       true,
 				ImportStateVerify: true,
+				//we ignore the ssh_keys, resize_disk and user_data as we do not set to state and image_id (without slug image_id = image)
 				ImportStateVerifyIgnore: []string{
-					"ssh_keys", "user_data", "resize_disk"}, //we ignore the ssh_keys, resize_disk and user_data as we do not set to state
+					"ssh_keys", "user_data", "resize_disk", "image_id", "slug"},
 			},
 			{
 				Config: " ",

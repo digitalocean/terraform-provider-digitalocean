@@ -26,6 +26,9 @@ func TestAccDigitalOceanDropletSnapshot_importBasic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				// image_id oposite than image isnt store if no slug
+				ImportStateVerifyIgnore: []string{
+					"image_id"},
 			},
 		},
 	})
