@@ -281,7 +281,6 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf(
 			"Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
 	}
-
 	return resourceDigitalOceanDropletRead(d, meta)
 }
 
@@ -306,14 +305,8 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error retrieving droplet: %s", err)
 	}
 
-	_, err = strconv.Atoi(d.Get("image").(string))
-	if err == nil || droplet.Image.Slug == "" {
-		// The image field is provided as an ID (number), or
-		// the image has no slug. In both cases we store it as an ID.
-		d.Set("image", godo.Stringify(droplet.Image.ID))
-	} else {
-		d.Set("image", droplet.Image.Slug)
-	}
+	// Image can drift once the image is build if a remote drift is detected
+	// as can cause issues with slug changes due image patch that shoudn't be sync.
 
 	d.Set("name", droplet.Name)
 	d.Set("urn", droplet.URN())
@@ -363,6 +356,16 @@ func resourceDigitalOceanDropletImport(d *schema.ResourceData, meta interface{})
 	err := resourceDigitalOceanDropletRead(d, meta)
 	if err != nil {
 		return nil, fmt.Errorf("invalid droplet id: %v", err)
+	}
+
+	// retrieve the image from API during importing,
+	client := meta.(*CombinedConfig).godoClient()
+	id, _ := strconv.Atoi(d.Id())
+	droplet, _, _ := client.Droplets.Get(context.Background(), id)
+	if droplet.Image.Slug != "" {
+		d.Set("image", droplet.Image.Slug)
+	} else {
+		d.Set("image", godo.Stringify(droplet.Image.ID))
 	}
 
 	results := make([]*schema.ResourceData, 1)
