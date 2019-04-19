@@ -4,6 +4,8 @@ FEATURES:
 
 * **New Resource:** `digitalocean_spaces_bucket` ([#42](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/42)). Thanks to @slapula!
 * **New Resource:** `digitalocean_database_cluster` ([#198](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/198)) Thanks to @slapula!
+* **New Resource:** `digitalocean_cdn` ([#204](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/204))
+* **New Resource:** `digitalocean_project` ([#207](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/207))
 
 IMPROVEMENTS:
 
@@ -12,10 +14,17 @@ IMPROVEMENTS:
 * provider: Refactor logic for logging API requests/responses ([#190](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/190)). Thanks to @radeksimko!
 * resource/digitalocean_loadbalancer: Add support for enabling PROXY Protocol ([#199](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/199)).
 * docs/digitalocean_firewall: Update syntax to be compatible with Terraform 0.12-beta ([#201](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/201)).
+* resource/digitalocean_droplet: Expose uniform resource name (URN) attribute for use with Projects resource ([#215](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/215)).
+* resource/digitalocean_loadbalancer: Expose uniform resource name (URN) attribute for use with Projects resource ([#214](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/214)).
+* resource/digitalocean_domain: Expose uniform resource name (URN) attribute for use with Projects resource ([#213](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/213)).
+* resource/digitalocean_volume: Expose uniform resource name (URN) attribute for use with Projects resource ([#212](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/212)).
+* resource/digitalocean_floating_ip: Expose uniform resource name (URN) attribute for use with Projects resource ([#211](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/211)).
+* resource/digitalocean_spaces_bucket: Expose uniform resource name (URN) attribute for use with Projects resource ([#210](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/210)).
 
 BUG FIXES:
 
 * resource/digitalocean_certificate: Fix issue when using computed values for custom certificates ([#163](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/163)).
+* resource/digitalocean_droplet: Prevent unexpected rebuilds for Droplets created using image slugs when the backing image is updated ([#152](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/152)).
 
 NOTES:
 
