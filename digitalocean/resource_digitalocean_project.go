@@ -206,25 +206,17 @@ func resourceDigitalOceanProjectUpdate(d *schema.ResourceData, meta interface{})
 func resourceDigitalOceanProjectDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
-	defaultProject, _, defaultProjErr := client.Projects.GetDefault(context.Background())
-	if defaultProjErr != nil {
-		return fmt.Errorf("Error locating default project %s", defaultProjErr)
-	}
-
 	projectId := d.Id()
-	defaultProjectId := defaultProject.ID
-
-	log.Printf("[DEBUG] Default project located, ID: %s", defaultProjectId)
 
 	if v, ok := d.GetOk("resources"); ok {
 
-		_, err := assignResourcesToProject(client, defaultProjectId, v.(*schema.Set))
+		_, err := assignResourcesToDefaultProject(client, v.(*schema.Set))
 		if err != nil {
 			return fmt.Errorf("Error assigning resource to default project: %s", err)
 		}
 
 		d.Set("resources", nil)
-		log.Printf("[DEBUG] Resources assigned to default project: %s", defaultProjectId)
+		log.Printf("[DEBUG] Resources assigned to default project.")
 	}
 
 	_, err := client.Projects.Delete(context.Background(), projectId)
