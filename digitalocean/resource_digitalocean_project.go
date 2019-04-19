@@ -50,6 +50,9 @@ func resourceDigitalOceanProject() *schema.Resource {
 				Default:      "Development",
 				Description:  "the environment of the project's resources",
 				ValidateFunc: validation.StringInSlice([]string{"development", "staging", "production"}, true),
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return strings.ToLower(old) == strings.ToLower(new)
+				},
 			},
 			"owner_uuid": {
 				Type:        schema.TypeString,
