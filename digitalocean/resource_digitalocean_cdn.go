@@ -132,12 +132,12 @@ func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("certificate_id") || d.HasChange("custom_domain") {
-		cdUpdateRequest := &godo.CDNUpdateCustomDomainRequest{
-			CustomDomain:  d.Get("certificate_id").(string),
-			CertificateID: d.Get("custom_domain").(string),
+		cdnUpdateRequest := &godo.CDNUpdateCustomDomainRequest{
+			CustomDomain:  d.Get("custom_domain").(string),
+			CertificateID: d.Get("certificate_id").(string),
 		}
 
-		_, _, err := client.CDNs.UpdateCustomDomain(context.Background(), d.Id(), cdUpdateRequest)
+		_, _, err := client.CDNs.UpdateCustomDomain(context.Background(), d.Id(), cdnUpdateRequest)
 
 		if err != nil {
 			return fmt.Errorf("Error updating CDN custom domain: %s", err)
