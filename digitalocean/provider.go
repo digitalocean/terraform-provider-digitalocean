@@ -64,6 +64,7 @@ func Provider() terraform.ResourceProvider {
 			"digitalocean_kubernetes_cluster":     resourceDigitalOceanKubernetesCluster(),
 			"digitalocean_kubernetes_node_pool":   resourceDigitalOceanKubernetesNodePool(),
 			"digitalocean_loadbalancer":           resourceDigitalOceanLoadbalancer(),
+			"digitalocean_project":                resourceDigitalOceanProject(),
 			"digitalocean_record":                 resourceDigitalOceanRecord(),
 			"digitalocean_spaces_bucket":          resourceDigitalOceanBucket(),
 			"digitalocean_ssh_key":                resourceDigitalOceanSSHKey(),
