@@ -20,7 +20,7 @@ Let's Encrypt.
 ```hcl
 # Create a new TLS certificate
 resource "digitalocean_certificate" "cert" {
-  name              = "Terraform Example"
+  name              = "terraform-example"
   type              = "custom"
   private_key       = "${file("/Users/terraform/certs/privkey.pem")}"
   leaf_certificate  = "${file("/Users/terraform/certs/cert.pem")}"
