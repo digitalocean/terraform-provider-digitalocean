@@ -17,14 +17,38 @@ Let's Encrypt.
 
 ## Example Usage
 
+#### Custom Certificate
+
 ```hcl
-# Create a new TLS certificate
 resource "digitalocean_certificate" "cert" {
-  name              = "terraform-example"
+  name              = "custom-terraform-example"
   type              = "custom"
   private_key       = "${file("/Users/terraform/certs/privkey.pem")}"
   leaf_certificate  = "${file("/Users/terraform/certs/cert.pem")}"
   certificate_chain = "${file("/Users/terraform/certs/fullchain.pem")}"
+}
+```
+
+#### Let's Encrypt Certificate
+
+```hcl
+resource "digitalocean_certificate" "cert" {
+  name    = "le-terraform-example"
+  type    = "lets_encrypt"
+  domains = ["example.com"]
+}
+```
+
+#### Use with Other Resources
+
+Both custom and Let's Encrypt certificates can be used with other resources
+including the `digitalocean_loadbalancer` and `digitalocean_cdn` resources.
+
+```hcl
+resource "digitalocean_certificate" "cert" {
+  name    = "le-terraform-example"
+  type    = "lets_encrypt"
+  domains = ["example.com"]
 }
 
 # Create a new Load Balancer with TLS termination
