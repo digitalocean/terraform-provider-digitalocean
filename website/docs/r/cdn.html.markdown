@@ -82,4 +82,8 @@ The following attributes are exported:
 
 ## Import
 
-CDN Endpoints cannot be imported at this time.
+CDN Endpoints can be imported using the CDN `id`, e.g.
+
+```
+terraform import digitalocean_cdn.mycdn fb06ad00-351f-45c8-b5eb-13523c438661
+```
