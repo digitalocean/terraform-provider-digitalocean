@@ -49,6 +49,7 @@ resource "digitalocean_project" "playground" {
     environment = "Development"
     resources = ["${digitalocean_droplet.foobar.urn}"]
 }
+```
 
 ## Argument Reference
 
@@ -56,9 +57,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Project
 * `description` - (Optional) the descirption of the project
-* `purpose` - (Optional) the purpose of the project, (Default "Web Application")
-* `environment` - (Optional) the environment of the project's resources.  The possible values are: `development`, `Staging`, `Production`)
-* `resources` - the resources associated with the project
+* `purpose` - (Optional) the purpose of the project, (Default: "Web Application")
+* `environment` - (Optional) the environment of the project's resources.  The possible values are: `Development`, `Staging`, `Production`)
+* `resources` - a list of uniform resource names (URNs) for the resources associated with the project
 
 The following resources can be associated with a project
 
