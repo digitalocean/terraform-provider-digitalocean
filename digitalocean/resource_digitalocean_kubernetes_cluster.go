@@ -367,13 +367,13 @@ func flattenKubeConfig(config *godo.KubernetesClusterConfig) []interface{} {
 }
 
 // we need to filter tags to remove any automatically added to avoid state problems,
-// these are tags starting with "k8s:", named "k8s" or duplicates of the cluster tags
-func filterTags(tags []string, parentTags ...string) []string {
+// these are tags starting with "k8s:" or named "k8s"
+func filterTags(tags []string) []string {
 	filteredTags := make([]string, 0)
 	for _, t := range tags {
 		if !strings.HasPrefix(t, "k8s:") &&
 			!strings.HasPrefix(t, "terraform:") &&
-			t != "k8s" && !tagsContain(parentTags, t) {
+			t != "k8s" {
 			filteredTags = append(filteredTags, t)
 		}
 	}

@@ -145,20 +145,10 @@ func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error retrieving Kubernetes node pool: %s", err)
 	}
 
-	cluster, resp, err := client.Kubernetes.Get(context.Background(), d.Get("cluster_id").(string))
-	if err != nil {
-		if resp.StatusCode == 404 {
-			d.SetId("")
-			return nil
-		}
-
-		return fmt.Errorf("Error retrieving Kubernetes cluster: %s", err)
-	}
-
 	d.Set("name", pool.Name)
 	d.Set("size", pool.Size)
 	d.Set("node_count", pool.Count)
-	d.Set("tags", flattenTags(filterTags(pool.Tags, cluster.Tags...)))
+	d.Set("tags", flattenTags(filterTags(pool.Tags)))
 
 	if pool.Nodes != nil {
 		d.Set("nodes", flattenNodes(pool.Nodes))
@@ -363,7 +353,7 @@ func flattenNodePool(pool *godo.KubernetesNodePool, parentTags ...string) []inte
 	}
 
 	if pool.Tags != nil {
-		rawPool["tags"] = flattenTags(filterTags(pool.Tags, parentTags...))
+		rawPool["tags"] = flattenTags(filterTags(pool.Tags))
 	}
 
 	if pool.Nodes != nil {
