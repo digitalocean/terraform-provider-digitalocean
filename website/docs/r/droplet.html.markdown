@@ -47,8 +47,7 @@ The following arguments are supported:
    size when resizing a Droplet. It defaults to `true`. When set to `false`,
    only the Droplet's RAM and CPU will be resized. **Increasing a Droplet's disk
    size is a permanent change**. Increasing only RAM and CPU is reversible.
-* `tags` - (Optional) A list of the tags to label this Droplet. A tag resource
-   must exist before it can be associated with a Droplet.
+* `tags` - (Optional) A list of the tags to be applied to this Droplet.
 * `user_data` (Optional) - A string of the desired User Data for the Droplet.
 * `volume_ids` (Optional) - A list of the IDs of each [block storage volume](/docs/providers/do/r/volume.html) to be attached to the Droplet.
 
