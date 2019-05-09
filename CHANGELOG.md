@@ -1,4 +1,9 @@
 ## 1.3.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* Terraform SDK upgrade with compatibility for Terraform v0.12.
+
 ## 1.2.0 (April 23, 2019)
 
 FEATURES:
