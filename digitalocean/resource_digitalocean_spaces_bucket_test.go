@@ -276,7 +276,8 @@ resource "digitalocean_spaces_bucket" "bucket" {
 func testAccDigitalOceanBucketConfigImport(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-	name = "tf-test-bucket-%d"
+	name   = "tf-test-bucket-%d"
+	region = "sfo2"
 }
 `, randInt)
 }

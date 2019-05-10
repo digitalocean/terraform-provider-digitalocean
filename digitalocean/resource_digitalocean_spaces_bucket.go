@@ -295,15 +295,7 @@ func resourceDigitalOceanBucketImport(d *schema.ResourceData, meta interface{}) 
 		d.Set("region", s[0])
 	}
 
-	err := resourceDigitalOceanBucketRead(d, meta)
-	if err != nil {
-		return nil, fmt.Errorf("unable to import bucket: %v", err)
-	}
-
-	results := make([]*schema.ResourceData, 0)
-	results = append(results, d)
-
-	return results, nil
+	return []*schema.ResourceData{d}, nil
 }
 
 func bucketDomainName(bucket string, region string) string {
