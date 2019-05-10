@@ -18,7 +18,7 @@ func resourceDigitalOceanVolume() *schema.Resource {
 		Update: resourceDigitalOceanVolumeUpdate,
 		Delete: resourceDigitalOceanVolumeDelete,
 		Importer: &schema.ResourceImporter{
-			State: resourceDigitalOceanVolumeImport,
+			State: schema.ImportStatePassthrough,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -197,10 +197,14 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Error retrieving volume: %s", err)
 	}
 
+	d.Set("name", volume.Name)
 	d.Set("region", volume.Region.Slug)
 	d.Set("size", int(volume.SizeGigaBytes))
 	d.Set("urn", volume.URN())
 
+	if v := volume.Description; v != "" {
+		d.Set("description", v)
+	}
 	if v := volume.FilesystemType; v != "" {
 		d.Set("filesystem_type", v)
 	}
@@ -226,35 +230,6 @@ func resourceDigitalOceanVolumeDelete(d *schema.ResourceData, meta interface{}) 
 
 	d.SetId("")
 	return nil
-}
-
-func resourceDigitalOceanVolumeImport(rs *schema.ResourceData, v interface{}) ([]*schema.ResourceData, error) {
-	client := v.(*CombinedConfig).godoClient()
-	volume, _, err := client.Storage.GetVolume(context.Background(), rs.Id())
-	if err != nil {
-		return nil, err
-	}
-
-	rs.Set("name", volume.Name)
-	rs.Set("region", volume.Region.Slug)
-	rs.Set("size", int(volume.SizeGigaBytes))
-	rs.Set("urn", volume.URN())
-
-	if v := volume.Description; v != "" {
-		rs.Set("description", v)
-	}
-	if v := volume.FilesystemType; v != "" {
-		rs.Set("filesystem_type", v)
-	}
-	if v := volume.FilesystemLabel; v != "" {
-		rs.Set("filesystem_label", v)
-	}
-
-	if err = rs.Set("droplet_ids", flattenDigitalOceanVolumeDropletIds(volume.DropletIDs)); err != nil {
-		return nil, fmt.Errorf("[DEBUG] Error setting droplet_ids: %#v", err)
-	}
-
-	return []*schema.ResourceData{rs}, nil
 }
 
 func flattenDigitalOceanVolumeDropletIds(droplets []int) *schema.Set {
