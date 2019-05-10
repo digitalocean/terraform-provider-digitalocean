@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -30,6 +31,14 @@ func TestAccDigitalOceanDroplet_importBasic(t *testing.T) {
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"ssh_keys", "user_data", "resize_disk"}, //we ignore the ssh_keys, resize_disk and user_data as we do not set to state
+			},
+			// Test importing non-existent resource provides expected error.
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "123",
+				ExpectError:       regexp.MustCompile(`(Please verify the ID is correct|Cannot import non-existent remote object)`),
 			},
 		},
 	})
