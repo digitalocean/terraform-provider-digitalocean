@@ -1,4 +1,15 @@
 ## 1.4.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* resource/digitalocean_droplet: Make importing more robust and test error case when importing non-existent resource ([#231](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/231)).
+* resource/digitalocean_spaces_bucket: Simplify importing and test error case when importing non-existent resource ([#231](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/231)).
+* resource/digitalocean_volume: Remove need for custom import function ([#231](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/231)).
+
+BUG FIXES:
+
+* resource/digitalocean_record: Simplify importing and provide better error messaging when attempting to import non-existent resource ([#232](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/232)).
+
 ## 1.3.0 (May 09, 2019)
 
 IMPROVEMENTS:
