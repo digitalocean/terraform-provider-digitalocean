@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"fmt"
+	"regexp"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -28,6 +29,14 @@ func TestAccDigitalOceanRecord_importBasic(t *testing.T) {
 				ImportStateVerify: true,
 				// Requires passing both the ID and domain
 				ImportStateIdPrefix: fmt.Sprintf("%s,", domainName),
+			},
+			// Test importing non-existent resource provides expected error.
+			{
+				ResourceName:        resourceName,
+				ImportState:         true,
+				ImportStateVerify:   false,
+				ImportStateIdPrefix: fmt.Sprintf("%s,", "nonexistent.com"),
+				ExpectError:         regexp.MustCompile(`(Please verify the ID is correct|Cannot import non-existent remote object)`),
 			},
 		},
 	})

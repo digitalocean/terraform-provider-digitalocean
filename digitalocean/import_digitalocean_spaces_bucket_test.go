@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -25,8 +26,16 @@ func TestAccDigitalOceanBucket_importBasic(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateIdPrefix:     fmt.Sprintf("%s,", "nyc3"),
+				ImportStateIdPrefix:     fmt.Sprintf("%s,", "sfo2"),
 				ImportStateVerifyIgnore: []string{"acl", "force_destroy"},
+			},
+			// Test importing non-existent resource provides expected error.
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "sfo2,nonexistent-bucket",
+				ExpectError:       regexp.MustCompile(`(Please verify the ID is correct|Cannot import non-existent remote object)`),
 			},
 		},
 	})

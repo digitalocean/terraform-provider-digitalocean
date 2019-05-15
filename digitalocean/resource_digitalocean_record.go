@@ -234,15 +234,7 @@ func resourceDigitalOceanRecordImport(d *schema.ResourceData, meta interface{}) 
 		d.Set("domain", s[0])
 	}
 
-	err := resourceDigitalOceanRecordRead(d, meta)
-	if err != nil {
-		return nil, fmt.Errorf("unable to import record: %v", err)
-	}
-
-	results := make([]*schema.ResourceData, 0)
-	results = append(results, d)
-
-	return results, nil
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceDigitalOceanRecordUpdate(d *schema.ResourceData, meta interface{}) error {
