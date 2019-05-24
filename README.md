@@ -69,4 +69,4 @@ In order to run a specific acceptance test, use the `TESTARGS` environment varia
 $ make testacc TESTARGS='-run=TestAccDigitalOceanDomain_Basic'
 ```
 
-For information about writting acceptance tests, see the main Terraform [contributing guide](https://github.com/hashicorp/terraform/blob/master/.github/CONTRIBUTING.md#writing-acceptance-tests).
+For information about writing acceptance tests, see the main Terraform [contributing guide](https://github.com/hashicorp/terraform/blob/master/.github/CONTRIBUTING.md#writing-acceptance-tests).
