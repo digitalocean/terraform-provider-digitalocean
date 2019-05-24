@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform/config"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
+	"github.com/terraform-providers/terraform-provider-kubernetes/kubernetes"
 )
 
 var testAccProviders map[string]terraform.ResourceProvider
@@ -16,6 +17,7 @@ func init() {
 	testAccProvider = Provider().(*schema.Provider)
 	testAccProviders = map[string]terraform.ResourceProvider{
 		"digitalocean": testAccProvider,
+		"kubernetes":   kubernetes.Provider(),
 	}
 }
 
