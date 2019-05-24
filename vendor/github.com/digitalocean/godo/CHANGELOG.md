@@ -1,5 +1,34 @@
 # Change Log
 
+## [v1.15.0] - 2019-05-13
+
+- #231 Add private connection fields to Databases - @mikejholly
+- #223 Introduce Go modules - @andreiavrammsd
+
+## [v1.14.0] - 2019-05-13
+
+- #229 Add support for upgrading Kubernetes clusters - @adamwg
+
+## [v1.13.0] - 2019-04-19
+
+- #213 Add tagging support for volume snapshots - @jcodybaker
+
+## [v1.12.0] - 2019-04-18
+
+- #224 Add maintenance window support for Kubernetes- @fatih
+
+## [v1.11.1] - 2019-04-04
+
+- #222 Fix Create Database Pools json fields - @sunny-b
+
+## [v1.11.0] - 2019-04-03
+
+- #220 roll out vpc functionality - @jheimann
+
+## [v1.10.1] - 2019-03-27
+
+- #219 Fix Database Pools json field - @sunny-b
+
 ## [v1.10.0] - 2019-03-20
 
 - #215 Add support for Databases - @mikejholly
