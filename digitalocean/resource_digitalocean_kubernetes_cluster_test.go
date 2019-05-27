@@ -27,6 +27,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "version", "1.12.1-do.2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "auto_upgrade", "true"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "ipv4_address"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_subnet"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "service_subnet"),
@@ -150,6 +151,17 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-2vcpu-4gb"),
 				),
 			},
+			{
+				Config: testAccDigitalOceanKubernetesConfigBasic5(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "auto_upgrade", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-2vcpu-4gb"),
+				),
+			},
 		},
 	})
 }
@@ -185,6 +197,25 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 		size  = "s-1vcpu-2gb"
 		node_count = 2
 		tags  = ["one","two","three"]
+	}
+}
+`, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigBasic5(rName string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_kubernetes_cluster" "foobar" {
+	name         = "%s"
+	region       = "lon1"
+	version      = "1.12.1-do.2"
+	tags         = ["one","two"]
+	auto_upgrade = true
+
+	node_pool {
+	  name = "default"
+		size  = "s-2vcpu-4gb"
+		node_count = 1
+		tags  = ["foo","bar"]
 	}
 }
 `, rName)

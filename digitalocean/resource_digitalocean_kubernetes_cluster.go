@@ -93,6 +93,11 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"auto_upgrade": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+
 			"kube_config": kubernetesConfigSchema(),
 		},
 	}
@@ -136,6 +141,8 @@ func kubernetesConfigSchema() *schema.Schema {
 func resourceDigitalOceanKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
+	autoUptRaw, autoUptOk := d.GetOk("auto_upgrade")
+
 	pools := expandNodePools(d.Get("node_pool").([]interface{}))
 	poolCreateRequests := make([]*godo.KubernetesNodePoolCreateRequest, len(pools))
 	for i, pool := range pools {
@@ -154,6 +161,10 @@ func resourceDigitalOceanKubernetesClusterCreate(d *schema.ResourceData, meta in
 		VersionSlug: d.Get("version").(string),
 		Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
 		NodePools:   poolCreateRequests,
+	}
+
+	if autoUptOk {
+		opts.AutoUpgrade = autoUptRaw.(bool)
 	}
 
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
@@ -201,6 +212,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 	d.Set("status", cluster.Status.State)
 	d.Set("created_at", cluster.CreatedAt.UTC().String())
 	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
+	d.Set("auto_upgrade", cluster.AutoUpgrade)
 
 	// find the default node pool from all the pools in the cluster
 	// the default node pool has a custom tag k8s:default-node-pool
@@ -230,11 +242,12 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChange("name") || d.HasChange("tags") {
+	if d.HasChange("name") || d.HasChange("tags") || d.HasChange("auto_upgrade") {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
-			Name: d.Get("name").(string),
-			Tags: expandTags(d.Get("tags").(*schema.Set).List()),
+			Name:        d.Get("name").(string),
+			Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
+			AutoUpgrade: d.Get("auto_upgrade").(bool),
 		}
 
 		_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)
