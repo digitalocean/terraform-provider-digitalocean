@@ -9,6 +9,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * resource/digitalocean_record: Simplify importing and provide better error messaging when attempting to import non-existent resource ([#232](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/232)).
+* resource/digitalocean_kubernetes_cluster: Fix access to kube_config attributes under Terraform 0.12 by using TypeList rather than TypeSet in the schema ([#239](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/239)).
 
 ## 1.3.0 (May 09, 2019)
 
