@@ -18,7 +18,7 @@ Provides a DigitalOcean Kubernetes cluster resource. This can be used to create,
 resource "digitalocean_kubernetes_cluster" "foo" {
   name    = "foo"
   region  = "nyc1"
-  version = "1.12.1-do.2"
+  version = "1.14.2-do.0"
 
   node_pool {
     name       = "worker-pool"
@@ -34,7 +34,7 @@ The cluster's kubeconfig is exported as an attribute allowing you to use it with
 resource "digitalocean_kubernetes_cluster" "foo" {
   name    = "foo"
   region  = "nyc1"
-  version = "1.12.1-do.2"
+  version = "1.14.2-do.0"
   tags    = ["staging"]
 
   node_pool {

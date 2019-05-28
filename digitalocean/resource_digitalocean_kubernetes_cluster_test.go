@@ -26,7 +26,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "version", "1.12.1-do.2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "version", "1.14.2-do.0"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "ipv4_address"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_subnet"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "service_subnet"),
@@ -154,12 +154,35 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_KubernetesProviderInteroperability(t *testing.T) {
+	rName := acctest.RandString(10)
+	var k8s godo.KubernetesCluster
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfig_KubernetesProviderInteroperability(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s), resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.raw_config"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.cluster_ca_certificate"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.host"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.client_key"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.client_certificate"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDigitalOceanKubernetesConfigBasic(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.12.1-do.2"
+	version = "1.14.2-do.0"
 	tags    = ["foo","bar"]
 
 	node_pool {
@@ -177,7 +200,7 @@ func testAccDigitalOceanKubernetesConfigBasic2(rName string) string {
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.12.1-do.2"
+	version = "1.14.2-do.0"
 	tags    = ["foo","bar"]
 
 	node_pool {
@@ -195,7 +218,7 @@ func testAccDigitalOceanKubernetesConfigBasic3(rName string) string {
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.12.1-do.2"
+	version = "1.14.2-do.0"
 	tags    = ["foo","bar"]
 
 	node_pool {
@@ -213,7 +236,7 @@ func testAccDigitalOceanKubernetesConfigBasic4(rName string) string {
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.12.1-do.2"
+	version = "1.14.2-do.0"
 	tags    = ["one","two"]
 
 	node_pool {
@@ -222,6 +245,45 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 		node_count = 1
 		tags  = ["foo","bar"]
 	}
+}
+`, rName)
+}
+
+func testAccDigitalOceanKubernetesConfig_KubernetesProviderInteroperability(rName string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_kubernetes_cluster" "foobar" {
+	name    = "%s"
+	region  = "lon1"
+	version = "1.14.2-do.0"
+
+	node_pool {
+	  name = "default"
+		size  = "s-2vcpu-4gb"
+		node_count = 1
+	}
+}
+
+provider "kubernetes" {
+  host = digitalocean_kubernetes_cluster.foobar.endpoint
+
+  client_certificate = base64decode(
+    digitalocean_kubernetes_cluster.foobar.kube_config[0].client_certificate
+  )
+  client_key = base64decode(
+    digitalocean_kubernetes_cluster.foobar.kube_config[0].client_key
+  )
+  cluster_ca_certificate = base64decode(
+    digitalocean_kubernetes_cluster.foobar.kube_config[0].cluster_ca_certificate
+  )
+}
+
+resource "kubernetes_service_account" "tiller" {
+  metadata {
+    name      = "tiller"
+    namespace = "kube-system"
+  }
+
+  automount_service_account_token = true
 }
 `, rName)
 }
