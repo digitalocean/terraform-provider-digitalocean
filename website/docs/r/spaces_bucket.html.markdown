@@ -54,7 +54,7 @@ The following arguments are supported:
 * `name` - (Required) The name of the bucket
 * `region` - The region where the bucket resides (Defaults to `nyc3`)
 * `acl` - Canned ACL applied on bucket creation (`private` or `public-read`)
-* `force_destroy` - Unless `true`, the bucket will only be destroyed if empty (Defalts to `false`)
+* `force_destroy` - Unless `true`, the bucket will only be destroyed if empty (Defaults to `false`)
 
 ## Attributes Reference
 
