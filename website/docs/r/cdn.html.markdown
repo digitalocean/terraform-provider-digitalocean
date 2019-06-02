@@ -62,7 +62,7 @@ resource "digitalocean_cdn" "mycdn" {
 
 The following arguments are supported:
 
-* `origin` - (Requied) The fully qualified domain name, (FQDN) for a Space.
+* `origin` - (Required) The fully qualified domain name, (FQDN) for a Space.
 * `ttl` - (Optional) The time to live for the CDN Endpoint, in seconds. Default is 3600 seconds.
 * `certificate_id`- (Optional) The ID of a DigitalOcean managed TLS certificate used for SSL when a custom subdomain is provided.
 * `custom_domain` - (Optional) The fully qualified domain name (FQDN) of the custom subdomain used with the CDN Endpoint.
