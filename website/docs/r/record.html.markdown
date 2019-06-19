@@ -45,7 +45,7 @@ The following arguments are supported:
 * `weight` - (Optional) The weight of the record. Only valid when type is `SRV`.  Must be between 0 and 65535.
 * `ttl` - (Optional) The time to live for the record, in seconds. Must be at least 0.
 * `flags` - (Optional) The flags of the record. Only valid when type is `CAA`. Must be between 0 and 255.
-* `tag` - (Optional) The tag of the record. Only valid when type is `CAA`. Must be one of `issue`, `wildissue`, or `iodef`.
+* `tag` - (Optional) The tag of the record. Only valid when type is `CAA`. Must be one of `issue`, `issuewild`, or `iodef`.
 
 ## Attributes Reference
 
