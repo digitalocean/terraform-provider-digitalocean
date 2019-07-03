@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -31,7 +32,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_subnet"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "service_subnet"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.#", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.#", "3"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.2356372769", "foo"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.1996459178", "bar"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
@@ -183,7 +184,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
 	version = "1.14.2-do.0"
-	tags    = ["foo","bar"]
+	tags    = ["foo","bar", "one"]
 
 	node_pool {
 	  name = "default"
@@ -334,5 +335,36 @@ func testAccCheckDigitalOceanKubernetesClusterExists(n string, cluster *godo.Kub
 		*cluster = *foundCluster
 
 		return nil
+	}
+}
+
+func Test_filterTags(t *testing.T) {
+	tests := []struct {
+		have []string
+		want []string
+	}{
+		{
+			have: []string{"k8s", "foo"},
+			want: []string{"foo"},
+		},
+		{
+			have: []string{"k8s", "k8s:looks-like-a-uuid", "bar"},
+			want: []string{"bar"},
+		},
+		{
+			have: []string{"k8s", "k8s:looks-like-a-uuid", "bar", "k8s-this-is-ok"},
+			want: []string{"bar", "k8s-this-is-ok"},
+		},
+		{
+			have: []string{"k8s", "k8s:looks-like-a-uuid", "terraform:default-node-pool", "baz"},
+			want: []string{"baz"},
+		},
+	}
+
+	for _, tt := range tests {
+		filteredTags := filterTags(tt.have)
+		if !reflect.DeepEqual(filteredTags, tt.want) {
+			t.Errorf("filterTags returned %+v, expected %+v", filteredTags, tt.want)
+		}
 	}
 }
