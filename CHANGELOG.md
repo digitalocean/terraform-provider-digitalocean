@@ -7,6 +7,7 @@ FEATURES:
 BUG FIXES:
 
 * resource/digitalocean_droplet: DigitalOcean doesn't support IPv6 private networking. Mark the `ipv6_address_private` attribute in the schema as removed ([#181](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/181)). Thanks to @stack72!
+* resource/digitalocean_kubernetes_cluster: Do not filter out node pool tags also applied to the cluster ([#184](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/184)).
 
 ## 1.4.0 (May 29, 2019)
 
