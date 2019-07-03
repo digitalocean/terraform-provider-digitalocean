@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -334,5 +335,36 @@ func testAccCheckDigitalOceanKubernetesClusterExists(n string, cluster *godo.Kub
 		*cluster = *foundCluster
 
 		return nil
+	}
+}
+
+func Test_filterTags(t *testing.T) {
+	tests := []struct {
+		have []string
+		want []string
+	}{
+		{
+			have: []string{"k8s", "foo"},
+			want: []string{"foo"},
+		},
+		{
+			have: []string{"k8s", "k8s:looks-like-a-uuid", "bar"},
+			want: []string{"bar"},
+		},
+		{
+			have: []string{"k8s", "k8s:looks-like-a-uuid", "bar", "k8s-this-is-ok"},
+			want: []string{"bar", "k8s-this-is-ok"},
+		},
+		{
+			have: []string{"k8s", "k8s:looks-like-a-uuid", "terraform:default-node-pool", "baz"},
+			want: []string{"baz"},
+		},
+	}
+
+	for _, tt := range tests {
+		filteredTags := filterTags(tt.have)
+		if !reflect.DeepEqual(filteredTags, tt.want) {
+			t.Errorf("filterTags returned %+v, expected %+v", filteredTags, tt.want)
+		}
 	}
 }
