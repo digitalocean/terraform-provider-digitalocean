@@ -12,7 +12,10 @@ func Provider() terraform.ResourceProvider {
 			"token": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_TOKEN", nil),
+				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
+					"DIGITALOCEAN_TOKEN",
+					"DIGITALOCEAN_ACCESS_TOKEN",
+				}, nil),
 				Description: "The token key for API operations.",
 			},
 			"api_endpoint": {
