@@ -1,4 +1,9 @@
 ## 1.6.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* provider: Add the ability to set `DIGITALOCEAN_ACCESS_TOKEN` ([#260](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/260)). Thanks to @stack72!
+
 ## 1.5.0 (July 03, 2019)
 
 FEATURES:
