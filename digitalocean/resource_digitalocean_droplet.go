@@ -483,6 +483,32 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
+	if d.HasChange("backups") {
+		if d.Get("backups").(bool) {
+			// Enable backups on droplet
+			action, _, err := client.DropletActions.EnableBackups(context.Background(), id)
+			if err != nil {
+				return fmt.Errorf(
+					"Error enabling backups on droplet (%s): %s", d.Id(), err)
+			}
+
+			if err := waitForAction(client, action); err != nil {
+				return fmt.Errorf("Error waiting for backups to be enabled for droplet (%s): %s", d.Id(), err)
+			}
+		} else {
+			// Disable backups on droplet
+			action, _, err := client.DropletActions.DisableBackups(context.Background(), id)
+			if err != nil {
+				return fmt.Errorf(
+					"Error disabling backups on droplet (%s): %s", d.Id(), err)
+			}
+
+			if err := waitForAction(client, action); err != nil {
+				return fmt.Errorf("Error waiting for backups to be disabled for droplet (%s): %s", d.Id(), err)
+			}
+		}
+	}
+
 	// As there is no way to disable private networking,
 	// we only check if it needs to be enabled
 	if d.HasChange("private_networking") && d.Get("private_networking").(bool) {
