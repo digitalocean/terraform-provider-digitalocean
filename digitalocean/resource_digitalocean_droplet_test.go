@@ -457,6 +457,48 @@ func TestAccDigitalOceanDroplet_conditionalVolumes(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDroplet_EnableAndDisableBackups(t *testing.T) {
+	var droplet godo.Droplet
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					testAccCheckDigitalOceanDropletAttributes(&droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backups", "false"),
+				),
+			},
+
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_EnableBackups(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backups", "true"),
+				),
+			},
+
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_DisableBackups(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backups", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDropletDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -810,4 +852,28 @@ resource "digitalocean_droplet" "foobar" {
   volume_ids = ["${count.index == 0 ? digitalocean_volume.myvol-01.id : digitalocean_volume.myvol-02.id}"]
 }
 `, rInt, rInt, rInt)
+}
+
+func testAccCheckDigitalOceanDropletConfig_EnableBackups(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name      = "foo-%d"
+  size      = "512mb"
+  image     = "centos-7-x64"
+  region    = "nyc3"
+  user_data = "foobar"
+  backups   = true
+}`, rInt)
+}
+
+func testAccCheckDigitalOceanDropletConfig_DisableBackups(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name      = "foo-%d"
+  size      = "512mb"
+  image     = "centos-7-x64"
+  region    = "nyc3"
+  user_data = "foobar"
+  backups   = false
+}`, rInt)
 }
