@@ -22,6 +22,7 @@ const (
 	databasePoolsPath       = databaseBasePath + "/%s/pools"
 	databaseReplicaPath     = databaseBasePath + "/%s/replicas/%s"
 	databaseReplicasPath    = databaseBasePath + "/%s/replicas"
+	evictionPolicyPath      = databaseBasePath + "/%s/eviction_policy"
 )
 
 // DatabasesService is an interface for interfacing with the databases endpoints
@@ -52,6 +53,8 @@ type DatabasesService interface {
 	ListReplicas(context.Context, string, *ListOptions) ([]DatabaseReplica, *Response, error)
 	CreateReplica(context.Context, string, *DatabaseCreateReplicaRequest) (*DatabaseReplica, *Response, error)
 	DeleteReplica(context.Context, string, string) (*Response, error)
+	GetEvictionPolicy(context.Context, string) (string, *Response, error)
+	SetEvictionPolicy(context.Context, string, string) (*Response, error)
 }
 
 // DatabasesServiceOp handles communication with the Databases related methods
@@ -68,19 +71,21 @@ var _ DatabasesService = &DatabasesServiceOp{}
 // "pg", "mysql" or "redis". A Database also includes connection information and other
 // properties of the service like region, size and current status.
 type Database struct {
-	ID                string                     `json:"id,omitempty"`
-	Name              string                     `json:"name,omitempty"`
-	EngineSlug        string                     `json:"engine,omitempty"`
-	VersionSlug       string                     `json:"version,omitempty"`
-	Connection        *DatabaseConnection        `json:"connection,omitempty"`
-	Users             []DatabaseUser             `json:"users,omitempty"`
-	NumNodes          int                        `json:"num_nodes,omitempty"`
-	SizeSlug          string                     `json:"size,omitempty"`
-	DBNames           []string                   `json:"db_names,omitempty"`
-	RegionSlug        string                     `json:"region,omitempty"`
-	Status            string                     `json:"status,omitempty"`
-	MaintenanceWindow *DatabaseMaintenanceWindow `json:"maintenance_window,omitempty"`
-	CreatedAt         time.Time                  `json:"created_at,omitempty"`
+	ID                 string                     `json:"id,omitempty"`
+	Name               string                     `json:"name,omitempty"`
+	EngineSlug         string                     `json:"engine,omitempty"`
+	VersionSlug        string                     `json:"version,omitempty"`
+	Connection         *DatabaseConnection        `json:"connection,omitempty"`
+	PrivateConnection  *DatabaseConnection        `json:"private_connection,omitempty"`
+	Users              []DatabaseUser             `json:"users,omitempty"`
+	NumNodes           int                        `json:"num_nodes,omitempty"`
+	SizeSlug           string                     `json:"size,omitempty"`
+	DBNames            []string                   `json:"db_names,omitempty"`
+	RegionSlug         string                     `json:"region,omitempty"`
+	Status             string                     `json:"status,omitempty"`
+	MaintenanceWindow  *DatabaseMaintenanceWindow `json:"maintenance_window,omitempty"`
+	CreatedAt          time.Time                  `json:"created_at,omitempty"`
+	PrivateNetworkUUID string                     `json:"private_network_uuid,omitempty"`
 }
 
 // DatabaseConnection represents a database connection
@@ -118,12 +123,13 @@ type DatabaseBackup struct {
 
 // DatabaseCreateRequest represents a request to create a database cluster
 type DatabaseCreateRequest struct {
-	Name       string `json:"name,omitempty"`
-	EngineSlug string `json:"engine,omitempty"`
-	Version    string `json:"version,omitempty"`
-	SizeSlug   string `json:"size,omitempty"`
-	Region     string `json:"region,omitempty"`
-	NumNodes   int    `json:"num_nodes,omitempty"`
+	Name               string `json:"name,omitempty"`
+	EngineSlug         string `json:"engine,omitempty"`
+	Version            string `json:"version,omitempty"`
+	SizeSlug           string `json:"size,omitempty"`
+	Region             string `json:"region,omitempty"`
+	NumNodes           int    `json:"num_nodes,omitempty"`
+	PrivateNetworkUUID string `json:"private_network_uuid"`
 }
 
 // DatabaseResizeRequest can be used to initiate a database resize operation.
@@ -134,7 +140,8 @@ type DatabaseResizeRequest struct {
 
 // DatabaseMigrateRequest can be used to initiate a database migrate operation.
 type DatabaseMigrateRequest struct {
-	Region string `json:"region,omitempty"`
+	Region             string `json:"region,omitempty"`
+	PrivateNetworkUUID string `json:"private_network_uuid"`
 }
 
 // DatabaseUpdateMaintenanceRequest can be used to update the database's maintenance window.
@@ -153,26 +160,33 @@ type DatabaseDB struct {
 
 // DatabaseReplica represents a read-only replica of a particular database
 type DatabaseReplica struct {
-	Name       string              `json:"name"`
-	Connection *DatabaseConnection `json:"connection"`
-	Region     string              `json:"region"`
-	Status     string              `json:"status"`
-	CreatedAt  time.Time           `json:"created_at"`
+	Name               string              `json:"name"`
+	Connection         *DatabaseConnection `json:"connection"`
+	PrivateConnection  *DatabaseConnection `json:"private_connection,omitempty"`
+	Region             string              `json:"region"`
+	Status             string              `json:"status"`
+	CreatedAt          time.Time           `json:"created_at"`
+	PrivateNetworkUUID string              `json:"private_network_uuid,omitempty"`
 }
 
 // DatabasePool represents a database connection pool
 type DatabasePool struct {
-	User       string              `json:"user"`
-	Name       string              `json:"name"`
-	Size       int                 `json:"size"`
-	Database   string              `json:"database"`
-	Mode       string              `json:"mode"`
-	Connection *DatabaseConnection `json:"connection"`
+	User              string              `json:"user"`
+	Name              string              `json:"name"`
+	Size              int                 `json:"size"`
+	Database          string              `json:"db"`
+	Mode              string              `json:"mode"`
+	Connection        *DatabaseConnection `json:"connection"`
+	PrivateConnection *DatabaseConnection `json:"private_connection,omitempty"`
 }
 
 // DatabaseCreatePoolRequest is used to create a new database connection pool
 type DatabaseCreatePoolRequest struct {
-	Pool *DatabasePool `json:"pool"`
+	User     string `json:"user"`
+	Name     string `json:"name"`
+	Size     int    `json:"size"`
+	Database string `json:"db"`
+	Mode     string `json:"mode"`
 }
 
 // DatabaseCreateUserRequest is used to create a new database user
@@ -187,9 +201,10 @@ type DatabaseCreateDBRequest struct {
 
 // DatabaseCreateReplicaRequest is used to create a new read-only replica
 type DatabaseCreateReplicaRequest struct {
-	Name   string `json:"name"`
-	Region string `json:"region"`
-	Size   string `json:"size"`
+	Name               string `json:"name"`
+	Region             string `json:"region"`
+	Size               string `json:"size"`
+	PrivateNetworkUUID string `json:"private_network_uuid"`
 }
 
 type databaseUserRoot struct {
@@ -234,6 +249,14 @@ type databaseReplicaRoot struct {
 
 type databaseReplicasRoot struct {
 	Replicas []DatabaseReplica `json:"replicas"`
+}
+
+type evictionPolicyRoot struct {
+	EvictionPolicy string `json:"eviction_policy"`
+}
+
+func (d Database) URN() string {
+	return ToURN("dbaas", d.ID)
 }
 
 // List returns a list of the Databases visible with the caller's API token
@@ -603,6 +626,36 @@ func (svc *DatabasesServiceOp) CreateReplica(ctx context.Context, databaseID str
 func (svc *DatabasesServiceOp) DeleteReplica(ctx context.Context, databaseID, name string) (*Response, error) {
 	path := fmt.Sprintf(databaseReplicaPath, databaseID, name)
 	req, err := svc.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := svc.client.Do(ctx, req, nil)
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
+}
+
+// GetEvictionPolicy loads the eviction policy for a given Redis cluster.
+func (svc *DatabasesServiceOp) GetEvictionPolicy(ctx context.Context, databaseID string) (string, *Response, error) {
+	path := fmt.Sprintf(evictionPolicyPath, databaseID)
+	req, err := svc.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return "", nil, err
+	}
+	root := new(evictionPolicyRoot)
+	resp, err := svc.client.Do(ctx, req, root)
+	if err != nil {
+		return "", resp, err
+	}
+	return root.EvictionPolicy, resp, nil
+}
+
+// SetEvictionPolicy updates the eviction policy for a given Redis cluster.
+func (svc *DatabasesServiceOp) SetEvictionPolicy(ctx context.Context, databaseID, policy string) (*Response, error) {
+	path := fmt.Sprintf(evictionPolicyPath, databaseID)
+	root := &evictionPolicyRoot{EvictionPolicy: policy}
+	req, err := svc.client.NewRequest(ctx, http.MethodPut, path, root)
 	if err != nil {
 		return nil, err
 	}

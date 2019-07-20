@@ -75,7 +75,7 @@ github.com/census-instrumentation/opencensus-proto/gen-go/trace/v1
 github.com/davecgh/go-spew/spew
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 github.com/dgrijalva/jwt-go
-# github.com/digitalocean/godo v1.10.0
+# github.com/digitalocean/godo v1.19.0
 github.com/digitalocean/godo
 # github.com/fatih/color v1.7.0
 github.com/fatih/color
@@ -328,7 +328,7 @@ golang.org/x/net/http2
 golang.org/x/net/http2/hpack
 golang.org/x/net/idna
 golang.org/x/net/http/httpguts
-# golang.org/x/oauth2 v0.0.0-20190220154721-9b3c75971fc9
+# golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/google
