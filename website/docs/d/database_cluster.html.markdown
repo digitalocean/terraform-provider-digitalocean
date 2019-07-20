@@ -30,6 +30,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the database cluster.
+* `urn` - The uniform resource name of the database cluster.
 * `engine` - Database engine used by the cluster (ex. `pg` for PostreSQL).
 * `version` - Engine version used by the cluster (ex. `11` for PostgreSQL 11).
 * `size` - Database droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`).

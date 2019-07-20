@@ -86,6 +86,11 @@ func dataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"urn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -150,6 +155,7 @@ func dataSourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta inte
 			d.Set("uri", db.Connection.URI)
 			d.Set("database", db.Connection.Database)
 			d.Set("user", db.Connection.User)
+			d.Set("urn", db.URN())
 
 			break
 		}

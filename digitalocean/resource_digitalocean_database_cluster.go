@@ -113,6 +113,10 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"urn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -266,7 +270,8 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 	d.Set("database", database.Connection.Database)
 	d.Set("user", database.Connection.User)
 	d.Set("password", database.Connection.Password)
-
+	d.Set("urn", database.URN())
+	
 	return nil
 }
 
