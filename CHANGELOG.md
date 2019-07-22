@@ -4,6 +4,7 @@ IMPROVEMENTS:
 
 * provider: Add the ability to set `DIGITALOCEAN_ACCESS_TOKEN` ([#260](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/260)). Thanks to @stack72!
 * resource/digitalocean_droplet: Support enabling and disabling backups on Droplets ([#266](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/267)).
+* resource/digitalocean_database_cluster: Allow Databases to have URNs for use with Projects ([#270](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/270)). Thanks to @stack72!
 
 ## 1.5.0 (July 03, 2019)
 
