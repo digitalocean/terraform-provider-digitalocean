@@ -46,6 +46,7 @@ The following arguments are supported:
 In addition to the above arguments, the following attributes are exported:
 
 * `id` - The ID of the database cluster.
+* `urn` - The uniform resource name of the database cluster.
 * `host` - Database cluster's hostname.
 * `port` - Network port that the database cluster is listening on.
 * `uri` - The full URI for connecting to the database cluster.

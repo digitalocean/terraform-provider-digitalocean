@@ -1,5 +1,52 @@
 # Change Log
 
+## [v1.19.0] - 2019-07-19
+
+- #244 dbaas: add private-network-uuid field to create request
+
+## [v1.18.0] - 2019-07-17
+
+- #241 Databases: support for custom VPC UUID on migrate @mikejholly
+- #240 Add the ability to get URN for a Database @stack72
+- #236 Fix omitempty typos in JSON struct tags @amccarthy1
+
+## [v1.17.0] - 2019-06-21
+
+- #238 Add support for Redis eviction policy in Databases @mikejholly
+
+## [v1.16.0] - 2019-06-04
+
+- #233 Add Kubernetes DeleteNode method, deprecate RecycleNodePoolNodes @bouk
+
+## [v1.15.0] - 2019-05-13
+
+- #231 Add private connection fields to Databases - @mikejholly
+- #223 Introduce Go modules - @andreiavrammsd
+
+## [v1.14.0] - 2019-05-13
+
+- #229 Add support for upgrading Kubernetes clusters - @adamwg
+
+## [v1.13.0] - 2019-04-19
+
+- #213 Add tagging support for volume snapshots - @jcodybaker
+
+## [v1.12.0] - 2019-04-18
+
+- #224 Add maintenance window support for Kubernetes- @fatih
+
+## [v1.11.1] - 2019-04-04
+
+- #222 Fix Create Database Pools json fields - @sunny-b
+
+## [v1.11.0] - 2019-04-03
+
+- #220 roll out vpc functionality - @jheimann
+
+## [v1.10.1] - 2019-03-27
+
+- #219 Fix Database Pools json field - @sunny-b
+
 ## [v1.10.0] - 2019-03-20
 
 - #215 Add support for Databases - @mikejholly
