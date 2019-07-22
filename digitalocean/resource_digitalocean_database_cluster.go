@@ -271,7 +271,7 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 	d.Set("user", database.Connection.User)
 	d.Set("password", database.Connection.Password)
 	d.Set("urn", database.URN())
-	
+
 	return nil
 }
 
