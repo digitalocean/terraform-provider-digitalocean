@@ -108,7 +108,7 @@ func dataSourceDigitalOceanKubernetesClusterRead(d *schema.ResourceData, meta in
 
 	clusters, resp, err := client.Kubernetes.List(context.Background(), &godo.ListOptions{})
 	if err != nil {
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			return fmt.Errorf("No clusters found")
 		}
 

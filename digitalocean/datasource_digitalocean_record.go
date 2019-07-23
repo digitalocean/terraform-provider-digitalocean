@@ -81,7 +81,7 @@ func dataSourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) 
 
 	records, resp, err := client.Domains.Records(context.Background(), domain, opts)
 	if err != nil {
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			return fmt.Errorf("domain not found: %s", err)
 		}
 		return fmt.Errorf("Error retrieving domain: %s", err)

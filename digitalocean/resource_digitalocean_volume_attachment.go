@@ -92,7 +92,7 @@ func resourceDigitalOceanVolumeAttachmentRead(d *schema.ResourceData, meta inter
 	if err != nil {
 		// If the volume is already destroyed, mark as
 		// successfully removed
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			d.SetId("")
 			return nil
 		}

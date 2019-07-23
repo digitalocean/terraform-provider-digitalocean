@@ -121,7 +121,7 @@ func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) e
 
 		image, resp, err = client.Images.GetBySlug(context.Background(), slug.(string))
 		if err != nil {
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				return fmt.Errorf("image not found: %s", err)
 			}
 			return fmt.Errorf("Error retrieving image: %s", err)

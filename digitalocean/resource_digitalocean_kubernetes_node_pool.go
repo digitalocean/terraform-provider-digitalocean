@@ -137,7 +137,7 @@ func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta int
 
 	pool, resp, err := client.Kubernetes.GetNodePool(context.Background(), d.Get("cluster_id").(string), d.Id())
 	if err != nil {
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			d.SetId("")
 			return nil
 		}
@@ -215,7 +215,7 @@ func digitaloceanKubernetesNodePoolUpdate(client *godo.Client, pool map[string]i
 	})
 
 	if err != nil {
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			return nil, nil
 		}
 
