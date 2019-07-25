@@ -37,7 +37,7 @@ resource "digitalocean_volume" "foobar" {
   region      = "nyc3"
   name        = "baz"
   size        = 100
-  snapshot_id = "${data.digitalocean_volume_snapshot.snapshot.id}"
+  snapshot_id = data.digitalocean_volume_snapshot.snapshot.id
 }
 ```
 

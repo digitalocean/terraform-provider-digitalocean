@@ -23,9 +23,9 @@ Let's Encrypt.
 resource "digitalocean_certificate" "cert" {
   name              = "custom-terraform-example"
   type              = "custom"
-  private_key       = "${file("/Users/terraform/certs/privkey.pem")}"
-  leaf_certificate  = "${file("/Users/terraform/certs/cert.pem")}"
-  certificate_chain = "${file("/Users/terraform/certs/fullchain.pem")}"
+  private_key       = file("/Users/terraform/certs/privkey.pem")
+  leaf_certificate  = file("/Users/terraform/certs/cert.pem")
+  certificate_chain = file("/Users/terraform/certs/fullchain.pem")
 }
 ```
 
@@ -58,13 +58,13 @@ resource "digitalocean_loadbalancer" "public" {
   droplet_tag = "backend"
 
   forwarding_rule {
-    entry_port      = 443
-    entry_protocol  = "https"
+    entry_port     = 443
+    entry_protocol = "https"
 
     target_port     = 80
     target_protocol = "http"
 
-    certificate_id  = "${digitalocean_certificate.cert.id}"
+    certificate_id = digitalocean_certificate.cert.id
   }
 }
 ```

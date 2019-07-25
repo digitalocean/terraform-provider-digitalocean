@@ -23,6 +23,10 @@ Get the load balancer:
 data "digitalocean_loadbalancer" "example" {
   name = "app"
 }
+
+output "lb_output" {
+  value = data.digitalocean_loadbalancer.example.ip
+}
 ```
 
 ## Argument Reference

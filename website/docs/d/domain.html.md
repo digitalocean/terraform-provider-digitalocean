@@ -26,7 +26,7 @@ data "digitalocean_domain" "example" {
 }
 
 output "domain_output" {
-  value = "${data.digitalocean_domain.example.zone_file}"
+  value = data.digitalocean_domain.example.zone_file
 }
 ```
 

@@ -28,12 +28,12 @@ data "digitalocean_image" "example1" {
 Reuse the data about a snapshot to create a Droplet:
 
 ```hcl
-data "digitalocean_image" "example1" {
+data "digitalocean_image" "example" {
   name = "example-1.0.0"
 }
 
-resource "digitalocean_droplet" "example1" {
-  image  = "${data.digitalocean_image.example1.image}"
+resource "digitalocean_droplet" "example" {
+  image  = data.digitalocean_image.example.id
   name   = "example-1"
   region = "nyc2"
   size   = "s-1vcpu-1gb"

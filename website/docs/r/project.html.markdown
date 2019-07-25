@@ -53,7 +53,7 @@ resource "digitalocean_project" "playground" {
   description = "A project to represent development resources."
   purpose     = "Web Application"
   environment = "Development"
-  resources   = ["${digitalocean_droplet.foobar.urn}"]
+  resources   = [digitalocean_droplet.foobar.urn]
 }
 ```
 

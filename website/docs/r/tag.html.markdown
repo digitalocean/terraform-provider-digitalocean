@@ -27,7 +27,7 @@ resource "digitalocean_droplet" "web" {
   name   = "web-1"
   region = "nyc3"
   size   = "s-1vcpu-1gb"
-  tags   = ["${digitalocean_tag.foobar.id}"]
+  tags   = [digitalocean_tag.foobar.id]
 }
 ```
 

@@ -23,6 +23,14 @@ Get the ssh key:
 data "digitalocean_ssh_key" "example" {
   name = "example"
 }
+
+resource "digitalocean_droplet" "example" {
+  image    = "ubuntu-18-04-x64"
+  name     = "example-1"
+  region   = "nyc2"
+  size     = "s-1vcpu-1gb"
+  ssh_keys = [data.digitalocean_ssh_key.example.id]
+}
 ```
 
 ## Argument Reference

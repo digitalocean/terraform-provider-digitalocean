@@ -16,7 +16,7 @@ Provides a DigitalOcean domain resource.
 # Create a new domain
 resource "digitalocean_domain" "default" {
   name       = "example.com"
-  ip_address = "${digitalocean_droplet.foo.ipv4_address}"
+  ip_address = digitalocean_droplet.foo.ipv4_address
 }
 ```
 

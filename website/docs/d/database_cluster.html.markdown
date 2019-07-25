@@ -17,6 +17,10 @@ Provides information on a DigitalOcean database cluster resource.
 data "digitalocean_database_cluster" "example" {
   name = "example-cluster"
 }
+
+output "database_output" {
+  value = data.digitalocean_database_cluster.example.uri
+}
 ```
 
 ## Argument Reference

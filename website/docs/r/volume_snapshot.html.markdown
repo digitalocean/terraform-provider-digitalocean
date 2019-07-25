@@ -22,7 +22,7 @@ resource "digitalocean_volume" "foobar" {
 
 resource "digitalocean_volume_snapshot" "foobar" {
   name      = "foo"
-  volume_id = "${digitalocean_volume.foobar.id}"
+  volume_id = digitalocean_volume.foobar.id
 }
 ```
 
