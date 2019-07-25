@@ -29,7 +29,7 @@ func dataSourceDigitalOceanTagRead(d *schema.ResourceData, meta interface{}) err
 
 	tag, resp, err := client.Tags.Get(context.Background(), name)
 	if err != nil {
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			return fmt.Errorf("tag not found: %s", err)
 		}
 		return fmt.Errorf("Error retrieving tag: %s", err)

@@ -178,7 +178,7 @@ func resourceDigitalOceanKubernetesClusterRead(d *schema.ResourceData, meta inte
 
 	cluster, resp, err := client.Kubernetes.Get(context.Background(), d.Id())
 	if err != nil {
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			d.SetId("")
 			return nil
 		}
@@ -217,7 +217,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 	// fetch the K8s config  and update the resource
 	config, resp, err := client.Kubernetes.GetKubeConfig(context.Background(), cluster.ID)
 	if err != nil {
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			return fmt.Errorf("Unable to fetch Kubernetes config: %s", err)
 		}
 	}
@@ -239,7 +239,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 
 		_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)
 		if err != nil {
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				d.SetId("")
 				return nil
 			}
@@ -271,7 +271,7 @@ func resourceDigitalOceanKubernetesClusterDelete(d *schema.ResourceData, meta in
 
 	resp, err := client.Kubernetes.Delete(context.Background(), d.Id())
 	if err != nil {
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			d.SetId("")
 			return nil
 		}

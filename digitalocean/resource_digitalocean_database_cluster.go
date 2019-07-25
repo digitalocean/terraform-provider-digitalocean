@@ -154,7 +154,7 @@ func resourceDigitalOceanDatabaseClusterCreate(d *schema.ResourceData, meta inte
 		if err != nil {
 			// If the database is somehow already destroyed, mark as
 			// successfully gone
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				d.SetId("")
 				return nil
 			}
@@ -179,7 +179,7 @@ func resourceDigitalOceanDatabaseClusterUpdate(d *schema.ResourceData, meta inte
 		if err != nil {
 			// If the database is somehow already destroyed, mark as
 			// successfully gone
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				d.SetId("")
 				return nil
 			}
@@ -202,7 +202,7 @@ func resourceDigitalOceanDatabaseClusterUpdate(d *schema.ResourceData, meta inte
 		if err != nil {
 			// If the database is somehow already destroyed, mark as
 			// successfully gone
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				d.SetId("")
 				return nil
 			}
@@ -223,7 +223,7 @@ func resourceDigitalOceanDatabaseClusterUpdate(d *schema.ResourceData, meta inte
 		if err != nil {
 			// If the database is somehow already destroyed, mark as
 			// successfully gone
-			if resp.StatusCode == 404 {
+			if resp != nil && resp.StatusCode == 404 {
 				d.SetId("")
 				return nil
 			}
@@ -242,7 +242,7 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 	if err != nil {
 		// If the database is somehow already destroyed, mark as
 		// successfully gone
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			d.SetId("")
 			return nil
 		}
