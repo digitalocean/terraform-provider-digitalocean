@@ -6,6 +6,10 @@ IMPROVEMENTS:
 * resource/digitalocean_droplet: Support enabling and disabling backups on Droplets ([#266](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/267)).
 * resource/digitalocean_database_cluster: Allow Databases to have URNs for use with Projects ([#270](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/270)). Thanks to @stack72!
 
+BUG FIXES:
+
+* Consistently protect against nil response in error handling ([#272](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/273)).
+
 ## 1.5.0 (July 03, 2019)
 
 FEATURES:
