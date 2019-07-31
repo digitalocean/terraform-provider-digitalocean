@@ -7,7 +7,7 @@ import (
 
 // Provider returns a schema.Provider for DigitalOcean.
 func Provider() terraform.ResourceProvider {
-	return &schema.Provider{
+	provider := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"token": {
 				Type:     schema.TypeString,
@@ -77,17 +77,22 @@ func Provider() terraform.ResourceProvider {
 			"digitalocean_volume_attachment":      resourceDigitalOceanVolumeAttachment(),
 			"digitalocean_volume_snapshot":        resourceDigitalOceanVolumeSnapshot(),
 		},
-
-		ConfigureFunc: providerConfigure,
 	}
+
+	provider.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
+		return providerConfigure(d, provider.TerraformVersion)
+	}
+
+	return provider
 }
 
-func providerConfigure(d *schema.ResourceData) (interface{}, error) {
+func providerConfigure(d *schema.ResourceData, terraformVersion string) (interface{}, error) {
 	config := Config{
-		Token:       d.Get("token").(string),
-		APIEndpoint: d.Get("api_endpoint").(string),
-		AccessID:    d.Get("spaces_access_id").(string),
-		SecretKey:   d.Get("spaces_secret_key").(string),
+		Token:            d.Get("token").(string),
+		APIEndpoint:      d.Get("api_endpoint").(string),
+		AccessID:         d.Get("spaces_access_id").(string),
+		SecretKey:        d.Get("spaces_secret_key").(string),
+		terraformVersion: terraformVersion,
 	}
 
 	return config.Client()
