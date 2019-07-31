@@ -23,7 +23,7 @@ github.com/apparentlymart/go-cidr/cidr
 github.com/apparentlymart/go-textseg/textseg
 # github.com/armon/go-radix v1.0.0
 github.com/armon/go-radix
-# github.com/aws/aws-sdk-go v1.19.26
+# github.com/aws/aws-sdk-go v1.20.19
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/credentials
@@ -49,14 +49,15 @@ github.com/aws/aws-sdk-go/private/protocol/eventstream
 github.com/aws/aws-sdk-go/private/protocol/eventstream/eventstreamapi
 github.com/aws/aws-sdk-go/private/protocol/rest
 github.com/aws/aws-sdk-go/private/protocol/restxml
+github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/internal/sdkrand
 github.com/aws/aws-sdk-go/service/sts
 github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds
 github.com/aws/aws-sdk-go/aws/credentials/endpointcreds
 github.com/aws/aws-sdk-go/aws/ec2metadata
 github.com/aws/aws-sdk-go/private/protocol/query
-github.com/aws/aws-sdk-go/private/protocol/xml/xmlutil
 github.com/aws/aws-sdk-go/internal/sdkuri
+github.com/aws/aws-sdk-go/private/protocol/json/jsonutil
 github.com/aws/aws-sdk-go/private/protocol/query/queryutil
 # github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d
 github.com/bgentry/go-netrc/netrc
@@ -92,9 +93,10 @@ github.com/golang/protobuf/protoc-gen-go/descriptor
 github.com/golang/protobuf/ptypes/wrappers
 # github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c
 github.com/google/btree
-# github.com/google/go-cmp v0.2.0
+# github.com/google/go-cmp v0.3.0
 github.com/google/go-cmp/cmp
 github.com/google/go-cmp/cmp/internal/diff
+github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
 # github.com/google/go-querystring v1.0.0
@@ -122,14 +124,14 @@ github.com/gregjones/httpcache/diskcache
 github.com/hashicorp/errwrap
 # github.com/hashicorp/go-cleanhttp v0.5.1
 github.com/hashicorp/go-cleanhttp
-# github.com/hashicorp/go-getter v1.3.0
+# github.com/hashicorp/go-getter v1.3.1-0.20190627223108-da0323b9545e
 github.com/hashicorp/go-getter
 github.com/hashicorp/go-getter/helper/url
 # github.com/hashicorp/go-hclog v0.7.0
 github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.0.0
 github.com/hashicorp/go-multierror
-# github.com/hashicorp/go-plugin v1.0.1-0.20190430211030-5692942914bb
+# github.com/hashicorp/go-plugin v1.0.1-0.20190610192547-a1bc61569a26
 github.com/hashicorp/go-plugin
 github.com/hashicorp/go-plugin/internal/plugin
 # github.com/hashicorp/go-safetemp v1.0.0
@@ -148,14 +150,14 @@ github.com/hashicorp/hcl/hcl/scanner
 github.com/hashicorp/hcl/hcl/strconv
 github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
-# github.com/hashicorp/hcl2 v0.0.0-20190515223218-4b22149b7cef
+# github.com/hashicorp/hcl2 v0.0.0-20190725010614-0c3fe388e450
 github.com/hashicorp/hcl2/hcl
 github.com/hashicorp/hcl2/hcl/hclsyntax
 github.com/hashicorp/hcl2/hcldec
 github.com/hashicorp/hcl2/hcled
 github.com/hashicorp/hcl2/hclparse
-github.com/hashicorp/hcl2/gohcl
 github.com/hashicorp/hcl2/ext/typeexpr
+github.com/hashicorp/hcl2/gohcl
 github.com/hashicorp/hcl2/ext/dynblock
 github.com/hashicorp/hcl2/hcl/json
 github.com/hashicorp/hcl2/hclwrite
@@ -166,13 +168,14 @@ github.com/hashicorp/hil/parser
 github.com/hashicorp/hil/scanner
 # github.com/hashicorp/logutils v1.0.0
 github.com/hashicorp/logutils
-# github.com/hashicorp/terraform v0.12.0
+# github.com/hashicorp/terraform v0.12.6-0.20190731140945-7d55cbf3b2e8
 github.com/hashicorp/terraform/plugin
 github.com/hashicorp/terraform/helper/hashcode
 github.com/hashicorp/terraform/helper/logging
 github.com/hashicorp/terraform/helper/resource
 github.com/hashicorp/terraform/helper/schema
 github.com/hashicorp/terraform/helper/validation
+github.com/hashicorp/terraform/httpclient
 github.com/hashicorp/terraform/terraform
 github.com/hashicorp/terraform/configs/configschema
 github.com/hashicorp/terraform/helper/plugin
@@ -184,7 +187,6 @@ github.com/hashicorp/terraform/provisioners
 github.com/hashicorp/terraform/version
 github.com/hashicorp/terraform/addrs
 github.com/hashicorp/terraform/command/format
-github.com/hashicorp/terraform/config
 github.com/hashicorp/terraform/config/hcl2shim
 github.com/hashicorp/terraform/configs
 github.com/hashicorp/terraform/configs/configload
@@ -193,12 +195,12 @@ github.com/hashicorp/terraform/internal/initwd
 github.com/hashicorp/terraform/plans
 github.com/hashicorp/terraform/states
 github.com/hashicorp/terraform/tfdiags
+github.com/hashicorp/terraform/config
 github.com/hashicorp/terraform/helper/structure
 github.com/hashicorp/terraform/config/module
 github.com/hashicorp/terraform/dag
 github.com/hashicorp/terraform/flatmap
 github.com/hashicorp/terraform/helper/didyoumean
-github.com/hashicorp/terraform/httpclient
 github.com/hashicorp/terraform/lang
 github.com/hashicorp/terraform/moduledeps
 github.com/hashicorp/terraform/plans/objchange
@@ -208,9 +210,9 @@ github.com/hashicorp/terraform/registry
 github.com/hashicorp/terraform/registry/regsrc
 github.com/hashicorp/terraform/registry/response
 github.com/hashicorp/terraform/svchost/disco
-github.com/hashicorp/terraform/helper/hilmapstructure
 github.com/hashicorp/terraform/internal/modsdir
 github.com/hashicorp/terraform/internal/earlyconfig
+github.com/hashicorp/terraform/helper/hilmapstructure
 github.com/hashicorp/terraform/lang/blocktoattr
 github.com/hashicorp/terraform/lang/funcs
 github.com/hashicorp/terraform/svchost
@@ -260,6 +262,8 @@ github.com/posener/complete
 github.com/posener/complete/cmd/install
 github.com/posener/complete/cmd
 github.com/posener/complete/match
+# github.com/satori/go.uuid v1.2.0
+github.com/satori/go.uuid
 # github.com/spf13/afero v1.2.1
 github.com/spf13/afero
 github.com/spf13/afero/mem
@@ -275,7 +279,7 @@ github.com/ulikunitz/xz/internal/hash
 # github.com/vmihailenco/msgpack v4.0.2+incompatible
 github.com/vmihailenco/msgpack
 github.com/vmihailenco/msgpack/codes
-# github.com/zclconf/go-cty v0.0.0-20190516203816-4fecf87372ec
+# github.com/zclconf/go-cty v1.0.1-0.20190708163926-19588f92a98f
 github.com/zclconf/go-cty/cty
 github.com/zclconf/go-cty/cty/msgpack
 github.com/zclconf/go-cty/cty/convert
@@ -284,6 +288,8 @@ github.com/zclconf/go-cty/cty/gocty
 github.com/zclconf/go-cty/cty/set
 github.com/zclconf/go-cty/cty/function
 github.com/zclconf/go-cty/cty/function/stdlib
+# github.com/zclconf/go-cty-yaml v0.1.0
+github.com/zclconf/go-cty-yaml
 # go.opencensus.io v0.19.0
 go.opencensus.io/trace
 go.opencensus.io/plugin/ochttp
@@ -301,7 +307,7 @@ go.opencensus.io
 go.opencensus.io/stats/internal
 go.opencensus.io/internal/tagencoding
 go.opencensus.io/resource
-# golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734
+# golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 golang.org/x/crypto/ssh
 golang.org/x/crypto/openpgp
 golang.org/x/crypto/bcrypt
