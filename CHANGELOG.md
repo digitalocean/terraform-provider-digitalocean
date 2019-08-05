@@ -1,4 +1,4 @@
-## 1.6.0 (Unreleased)
+## 1.6.0 (August 05, 2019)
 
 IMPROVEMENTS:
 
