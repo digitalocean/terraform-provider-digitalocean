@@ -62,6 +62,11 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"created_at": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"urn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -321,6 +326,7 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("memory", droplet.Memory)
 	d.Set("status", droplet.Status)
 	d.Set("locked", droplet.Locked)
+	d.Set("created_at", droplet.Created)
 
 	d.Set("ipv4_address", findIPv4AddrByType(droplet, "public"))
 	d.Set("ipv4_address_private", findIPv4AddrByType(droplet, "private"))

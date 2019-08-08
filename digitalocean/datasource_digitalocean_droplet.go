@@ -23,6 +23,11 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
+			"created_at": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "the creation date for the Droplet",
+			},
 			"urn": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -183,6 +188,7 @@ func dataSourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{})
 	d.Set("memory", droplet.Memory)
 	d.Set("status", droplet.Status)
 	d.Set("locked", droplet.Locked)
+	d.Set("created_at", droplet.Created)
 
 	if droplet.Image.Slug == "" {
 		d.Set("image", droplet.Image.ID)

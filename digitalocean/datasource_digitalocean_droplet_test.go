@@ -35,6 +35,7 @@ func TestAccDataSourceDigitalOceanDroplet_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet.foobar", "private_networking", "false"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet.foobar", "urn"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_droplet.foobar", "created_at"),
 				),
 			},
 		},
