@@ -1,4 +1,10 @@
 ## 1.7.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* resource/digitalocean_droplet: Expose created_at attribute ([#277](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/277)). Thanks to @petems!
+* datasource/digitalocean_droplet: Expose created_at attribute ([#277](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/277)). Thanks to @petems!
+
 ## 1.6.0 (August 05, 2019)
 
 IMPROVEMENTS:
