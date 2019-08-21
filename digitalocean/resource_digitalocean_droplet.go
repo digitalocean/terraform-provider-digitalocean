@@ -647,7 +647,7 @@ func waitForDropletDestroy(d *schema.ResourceData, meta interface{}) (interface{
 	log.Printf("[INFO] Waiting for droplet (%s) to be destroyed", d.Id())
 
 	stateConf := &resource.StateChangeConf{
-		Pending:    []string{"active"},
+		Pending:    []string{"active", "off"},
 		Target:     []string{"archived"},
 		Refresh:    newDropletStateRefreshFunc(d, "status", meta),
 		Timeout:    60 * time.Second,
