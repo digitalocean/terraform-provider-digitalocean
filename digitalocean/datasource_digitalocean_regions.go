@@ -11,7 +11,7 @@ import (
 
 func dataSourceDigitalOceanRegions() *schema.Resource {
 	return &schema.Resource{
-		Read:   dataSourceDigitalOceanRegionsRead,
+		Read: dataSourceDigitalOceanRegionsRead,
 		Schema: map[string]*schema.Schema{
 			"regions": {
 				Type:     schema.TypeSet,
@@ -24,6 +24,18 @@ func dataSourceDigitalOceanRegions() *schema.Resource {
 						},
 						"slug": {
 							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"sizes": {
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Computed: true,
+						},
+						"sizes": {
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Computed: true,
+						},
+						"available": {
+							Type:     schema.TypeBool,
 							Computed: true,
 						},
 					},
@@ -65,13 +77,8 @@ func dataSourceDigitalOceanRegionsRead(d *schema.ResourceData, meta interface{})
 		opts.Page = page + 1
 	}
 
-	regions := make([]string, len(regionList))
-	for _, region := range regionList {
-		regions = append(regions, region.Slug)
-	}
-
 	d.SetId(fmt.Sprintf("%d", hashcode.String(fmt.Sprintf("%+v\n", opts))))
-	d.Set("regions", regions)
+	d.Set("regions", regionsList)
 
 	return nil
 }
