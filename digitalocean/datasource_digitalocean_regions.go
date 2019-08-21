@@ -12,7 +12,24 @@ import (
 func dataSourceDigitalOceanRegions() *schema.Resource {
 	return &schema.Resource{
 		Read:   dataSourceDigitalOceanRegionsRead,
-		Schema: map[string]*schema.Schema{},
+		Schema: map[string]*schema.Schema{
+			"regions": {
+				Type:     schema.TypeSet,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"slug": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
