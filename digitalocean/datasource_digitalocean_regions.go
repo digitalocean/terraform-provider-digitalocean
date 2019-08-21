@@ -27,10 +27,12 @@ func dataSourceDigitalOceanRegions() *schema.Resource {
 							Computed: true,
 						},
 						"sizes": {
+							Type:     schema.TypeSet,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Computed: true,
 						},
 						"features": {
+							Type:     schema.TypeSet,
 							Elem:     &schema.Schema{Type: schema.TypeString},
 							Computed: true,
 						},
