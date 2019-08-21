@@ -78,7 +78,7 @@ func dataSourceDigitalOceanRegionsRead(d *schema.ResourceData, meta interface{})
 	}
 
 	d.SetId(fmt.Sprintf("%d", hashcode.String(fmt.Sprintf("%+v\n", opts))))
-	d.Set("regions", regionsList)
+	d.Set("regions", regionList)
 
 	return nil
 }
