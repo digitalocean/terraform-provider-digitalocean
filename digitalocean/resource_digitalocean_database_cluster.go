@@ -38,10 +38,9 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 			},
 
 			"version": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"size": {
