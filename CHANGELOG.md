@@ -5,6 +5,11 @@ IMPROVEMENTS:
 * resource/digitalocean_droplet: Expose created_at attribute ([#277](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/277)). Thanks to @petems!
 * datasource/digitalocean_droplet: Expose created_at attribute ([#277](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/277)). Thanks to @petems!
 
+BUG FIXES:
+
+* resource/digitalocean_database_cluster: `version` should not be required ([#288](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/288)).
+* resource/digitalocean_droplet: Verify Droplet is destroyed before removing from state ([#283](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/283)).
+
 ## 1.6.0 (August 05, 2019)
 
 IMPROVEMENTS:
