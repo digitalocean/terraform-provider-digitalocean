@@ -626,18 +626,36 @@ func resourceDigitalOceanDropletDelete(d *schema.ResourceData, meta interface{})
 	log.Printf("[INFO] Deleting droplet: %s", d.Id())
 
 	// Destroy the droplet
-	_, err = client.Droplets.Delete(context.Background(), id)
+	resp, err := client.Droplets.Delete(context.Background(), id)
 
-	// Handle remotely destroyed droplets
-	if err != nil && strings.Contains(err.Error(), "404 Not Found") {
+	// Handle already destroyed droplets
+	if err != nil && resp.StatusCode == 404 {
 		return nil
 	}
 
-	if err != nil {
+	_, err = waitForDropletDestroy(d, meta)
+	if err != nil && strings.Contains(err.Error(), "404") {
+		return nil
+	} else if err != nil {
 		return fmt.Errorf("Error deleting droplet: %s", err)
 	}
 
 	return nil
+}
+
+func waitForDropletDestroy(d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	log.Printf("[INFO] Waiting for droplet (%s) to be destroyed", d.Id())
+
+	stateConf := &resource.StateChangeConf{
+		Pending:    []string{"active", "off"},
+		Target:     []string{"archived"},
+		Refresh:    newDropletStateRefreshFunc(d, "status", meta),
+		Timeout:    60 * time.Second,
+		Delay:      10 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+
+	return stateConf.WaitForState()
 }
 
 func waitForDropletAttribute(
