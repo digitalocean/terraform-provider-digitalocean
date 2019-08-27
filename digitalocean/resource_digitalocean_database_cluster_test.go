@@ -131,6 +131,40 @@ func TestAccDigitalOceanDatabaseCluster_WithMaintWindow(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
+	var database godo.Database
+	databaseName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterRedisNoVersion, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "name", databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "engine", "redis"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "host"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "port"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "user"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "password"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "urn"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDatabaseClusterDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -229,9 +263,18 @@ resource "digitalocean_database_cluster" "foobar" {
 	size       = "db-s-1vcpu-1gb"
 	region     = "nyc1"
 	node_count = 1
-	
+
 	maintenance_window {
         day  = "friday"
         hour = "13:00:00"
 	}
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterRedisNoVersion = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "redis"
+	size       = "db-s-1vcpu-1gb"
+	region     = "nyc1"
+    node_count = 1
 }`

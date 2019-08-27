@@ -12,12 +12,34 @@ Provides a DigitalOcean database cluster resource.
 
 ## Example Usage
 
+### Create a new PostgreSQL database cluster
 ```hcl
-# Create a new database cluster
-resource "digitalocean_database_cluster" "example" {
-  name       = "example-cluster"
+resource "digitalocean_database_cluster" "postgres-example" {
+  name       = "example-postgres-cluster"
   engine     = "pg"
   version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+}
+```
+
+### Create a new MySQL database cluster
+```hcl
+resource "digitalocean_database_cluster" "mysql-example" {
+  name       = "example-mysql-cluster"
+  engine     = "mysql"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+}
+```
+
+### Create a new Redis database cluster
+```hcl
+resource "digitalocean_database_cluster" "redis-example" {
+  name       = "example-redis-cluster"
+  engine     = "redis"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
@@ -29,11 +51,11 @@ resource "digitalocean_database_cluster" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the database cluster.
-* `engine` - (Required) Database engine used by the cluster (ex. `pg` for PostreSQL).
-* `version` - (Required) Engine version used by the cluster (ex. `11` for PostgreSQL 11).
+* `engine` - (Required) Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, or `redis` for Redis).
 * `size` - (Required) Database droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`).
 * `region` - (Required) DigitalOcean region where the cluster will reside.
 * `node_count` - (Required) Number of nodes that will be included in the cluster.
+* `version` - (Optional) Engine version used by the cluster (ex. `11` for PostgreSQL 11).
 * `maintenance_window` - (Optional) Defines when the automatic maintenance should be performed for the database cluster.
 
 `maintenance_window` supports the following:
