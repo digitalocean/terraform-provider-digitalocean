@@ -17,7 +17,7 @@ An error is triggered if the provided Droplet name does not exist.
 
 ## Example Usage
 
-Get the Droplet:
+Get the Droplet by name:
 
 ```hcl
 data "digitalocean_droplet" "example" {
@@ -25,11 +25,20 @@ data "digitalocean_droplet" "example" {
 }
 ```
 
+Get the Droplet by tag:
+
+```hcl
+data "digitalocean_droplet" "example" {
+  tag = "web"
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of Droplet.
+* `name` - (Optional) The name of Droplet.
+* `tag` - (Optional) The tag of Droplet. It is an error if multiple droplets have the same tag.
 
 ## Attributes Reference
 
