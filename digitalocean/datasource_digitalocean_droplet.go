@@ -214,9 +214,11 @@ func findDropletByName(droplets []godo.Droplet, name string) (*godo.Droplet, err
 
 func findDropletByTag(droplets []godo.Droplet, tag string) (*godo.Droplet, error) {
 	results := make([]godo.Droplet, 0)
-	for _, v := range droplets {
-		if v.Tags[0] == tag {
-			results = append(results, v)
+	for _, d := range droplets {
+		for _, t := range d.Tags {
+			if t == tag {
+				results = append(results, d)
+			}
 		}
 	}
 	if len(results) == 1 {
