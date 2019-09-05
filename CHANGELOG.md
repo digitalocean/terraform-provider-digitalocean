@@ -1,4 +1,9 @@
-## 1.7.1 (Unreleased)
+## 1.8.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* resource/digitalocean_kubernetes_cluster: Mark the kube_config field as sensitive ([#289](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/289)). Thanks to @RoboticCheese!
+
 ## 1.7.0 (August 27, 2019)
 
 IMPROVEMENTS:
