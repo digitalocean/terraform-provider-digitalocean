@@ -233,6 +233,7 @@ resource "digitalocean_database_cluster" "foobar" {
 	size       = "db-s-1vcpu-1gb"
 	region     = "nyc1"
     node_count = 1
+	tags       = ["production"]
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithUpdate = `
@@ -243,6 +244,7 @@ resource "digitalocean_database_cluster" "foobar" {
 	size       = "db-s-1vcpu-2gb"
 	region     = "nyc1"
     node_count = 1
+	tags       = ["production"]
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithMigration = `
@@ -253,6 +255,7 @@ resource "digitalocean_database_cluster" "foobar" {
 	size       = "db-s-1vcpu-1gb"
 	region     = "lon1"
     node_count = 1
+	tags       = ["production"]
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithMaintWindow = `
@@ -263,6 +266,7 @@ resource "digitalocean_database_cluster" "foobar" {
 	size       = "db-s-1vcpu-1gb"
 	region     = "nyc1"
 	node_count = 1
+	tags       = ["production"]
 
 	maintenance_window {
         day  = "friday"
@@ -277,4 +281,5 @@ resource "digitalocean_database_cluster" "foobar" {
 	size       = "db-s-1vcpu-1gb"
 	region     = "nyc1"
     node_count = 1
+	tags       = ["production"]
 }`
