@@ -2,7 +2,7 @@ module github.com/terraform-providers/terraform-provider-digitalocean
 
 require (
 	github.com/aws/aws-sdk-go v1.19.26
-	github.com/digitalocean/godo v1.19.0
+	github.com/digitalocean/godo v1.21.0
 	github.com/hashicorp/terraform v0.12.0
 	github.com/terraform-providers/terraform-provider-kubernetes v1.7.0
 	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734

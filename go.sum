@@ -81,6 +81,7 @@ github.com/digitalocean/godo v1.10.0 h1:uW1/FcvZE/hoixnJcnlmIUvTVNdZCLjRLzmDtRi1
 github.com/digitalocean/godo v1.10.0/go.mod h1:h6faOIcZ8lWIwNQ+DN7b3CgX4Kwby5T+nbpNqkUIozU=
 github.com/digitalocean/godo v1.19.0 h1:9ApuchfzGD/XI8Zm0RRnZnytdfYHPjPTRKTnmzQNV7o=
 github.com/digitalocean/godo v1.19.0/go.mod h1:AAPQ+tiM4st79QHlEBTg8LM7JQNre4SAQCbn56wEyKY=
+github.com/digitalocean/godo v1.21.0/go.mod h1:AAPQ+tiM4st79QHlEBTg8LM7JQNre4SAQCbn56wEyKY=
 github.com/dimchansky/utfbom v1.0.0/go.mod h1:rO41eb7gLfo8SF1jd9F8HplJm1Fewwi4mQvIirEdv+8=
 github.com/dnaeon/go-vcr v0.0.0-20180920040454-5637cf3d8a31/go.mod h1:aBB1+wY4s93YsC3HHjMBMrwTj2R9FHDzUr9KyGc8n1E=
 github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25KnS6fMYU6eOk=
