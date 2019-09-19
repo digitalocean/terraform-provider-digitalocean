@@ -3,6 +3,7 @@
 IMPROVEMENTS:
 
 * resource/digitalocean_kubernetes_cluster: Mark the kube_config field as sensitive ([#289](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/289)). Thanks to @RoboticCheese!
+* provider: Remove usage of `github.com/hashicorp/terraform/config` package ([#291](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/291)). Thanks to @appilon!
 
 ## 1.7.0 (August 27, 2019)
 
