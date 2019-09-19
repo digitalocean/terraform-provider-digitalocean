@@ -4,7 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/terraform/config"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-kubernetes/kubernetes"
@@ -46,12 +45,7 @@ func TestURLOverride(t *testing.T) {
 		"api_endpoint": customEndpoint,
 	}
 
-	rawConfig, err := config.NewRawConfig(raw)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-
-	err = rawProvider.Configure(terraform.NewResourceConfig(rawConfig))
+	err := rawProvider.Configure(terraform.NewResourceConfigRaw(raw))
 	meta := rawProvider.(*schema.Provider).Meta()
 	if meta == nil {
 		t.Fatalf("Expected metadata, got nil: err: %s", err)
@@ -68,12 +62,7 @@ func TestURLDefault(t *testing.T) {
 		"token": "12345",
 	}
 
-	rawConfig, err := config.NewRawConfig(raw)
-	if err != nil {
-		t.Fatalf("err: %s", err)
-	}
-
-	err = rawProvider.Configure(terraform.NewResourceConfig(rawConfig))
+	err := rawProvider.Configure(terraform.NewResourceConfigRaw(raw))
 	meta := rawProvider.(*schema.Provider).Meta()
 	if meta == nil {
 		t.Fatalf("Expected metadata, got nil: err: %s", err)
