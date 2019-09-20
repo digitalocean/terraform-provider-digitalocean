@@ -77,7 +77,7 @@ func testAccDigitalOceanKubernetesConfigBasicWithNodePool(rName string) string {
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.12.1-do.2"
+	version = "1.15.3-do.2"
 	tags    = ["foo","bar"]
 
 	node_pool {
@@ -104,7 +104,7 @@ func testAccDigitalOceanKubernetesConfigBasicWithNodePool2(rName string) string 
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.12.1-do.2"
+	version = "1.15.3-do.2"
 	tags    = ["foo","bar"]
 
 	node_pool {

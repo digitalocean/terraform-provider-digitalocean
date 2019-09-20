@@ -3,8 +3,9 @@ package digitalocean
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform/terraform"
 	"testing"
+
+	"github.com/hashicorp/terraform/terraform"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -79,6 +80,7 @@ resource "digitalocean_database_cluster" "foobar" {
 	size       = "db-s-1vcpu-1gb"
 	region     = "nyc1"
     node_count = 1
+	tags       = ["production"]
 }
 `
 
@@ -90,6 +92,7 @@ resource "digitalocean_database_cluster" "foobar" {
 	size       = "db-s-1vcpu-1gb"
 	region     = "nyc1"
     node_count = 1
+	tags       = ["production"]
 }
 
 data "digitalocean_database_cluster" "foobar" {
