@@ -56,6 +56,7 @@ The following arguments are supported:
 * `region` - (Required) DigitalOcean region where the cluster will reside.
 * `node_count` - (Required) Number of nodes that will be included in the cluster.
 * `version` - (Optional) Engine version used by the cluster (ex. `11` for PostgreSQL 11).
+* `tags` - (Optional) A list of tag names to be applied to the database cluster.
 * `maintenance_window` - (Optional) Defines when the automatic maintenance should be performed for the database cluster.
 
 `maintenance_window` supports the following:
