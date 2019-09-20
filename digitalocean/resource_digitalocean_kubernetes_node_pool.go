@@ -208,9 +208,10 @@ func digitaloceanKubernetesNodePoolUpdate(client *godo.Client, pool map[string]i
 	tags := expandTags(pool["tags"].(*schema.Set).List())
 	tags = append(tags, customTags...)
 
+	count := pool["node_count"].(int)
 	p, resp, err := client.Kubernetes.UpdateNodePool(context.Background(), clusterID, poolID, &godo.KubernetesNodePoolUpdateRequest{
 		Name:  pool["name"].(string),
-		Count: pool["node_count"].(*int),
+		Count: &count,
 		Tags:  tags,
 	})
 
