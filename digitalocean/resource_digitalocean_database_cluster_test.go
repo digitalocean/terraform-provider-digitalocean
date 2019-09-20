@@ -39,6 +39,8 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "password"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "urn"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "tags.#", "1"),
 				),
 			},
 		},
