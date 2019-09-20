@@ -30,19 +30,19 @@ func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 
 			"cluster_id": {
 				Type:         schema.TypeString,
-				Computed:     true,
+				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"region": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Optional: true,
 			},
 
 			"size": {
 				Type:     schema.TypeString,
-				Computed: true,
+				Required: true,
 			},
 		},
 	}

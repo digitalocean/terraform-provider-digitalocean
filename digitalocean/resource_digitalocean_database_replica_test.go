@@ -101,7 +101,7 @@ func testAccCheckDigitalOceanDatabaseReplicaAttributes(databaseReplica *godo.Dat
 
 const testAccCheckDigitalOceanDatabaseReplicaConfigBasic = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = ""
+	name       = "%s"
 	engine     = "pg"
 	version    = "11"
 	size       = "db-s-1vcpu-1gb"
