@@ -38,11 +38,13 @@ func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ForceNew: true,
 			},
 
 			"size": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 		},
 	}
