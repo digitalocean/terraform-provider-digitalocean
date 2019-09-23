@@ -119,4 +119,5 @@ resource "digitalocean_database_replica" "read-01" {
   name       = "%s"
   region     = "nyc3"
   size       = "db-s-2vcpu-4gb"
+  tags       =	["staging"]
 }`

@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	database "cloud.google.com/go/spanner/admin/database/apiv1"
+
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -46,6 +48,38 @@ func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 			},
+
+			"host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"port": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
+			"uri": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"database": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"user": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"password": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -58,6 +92,7 @@ func resourceDigitalOceanDatabaseReplicaCreate(d *schema.ResourceData, meta inte
 		Name:   d.Get("name").(string),
 		Region: d.Get("region").(string),
 		Size:   d.Get("size").(string),
+		Tags:   expandTags(d.Get("tags").(*schema.Set).List()),
 	}
 
 	log.Printf("[DEBUG] DatabaseReplica create configuration: %#v", opts)
@@ -73,7 +108,7 @@ func resourceDigitalOceanDatabaseReplicaCreate(d *schema.ResourceData, meta inte
 
 	log.Printf("[INFO] DatabaseReplica Name: %s", replica.Name)
 
-	return resourceDigitalOceanDatabaseClusterRead(d, meta)
+	return resourceDigitalOceanDatabaseReplicaRead(d, meta)
 }
 
 func resourceDigitalOceanDatabaseReplicaRead(d *schema.ResourceData, meta interface{}) error {
@@ -93,6 +128,15 @@ func resourceDigitalOceanDatabaseReplicaRead(d *schema.ResourceData, meta interf
 	}
 
 	d.Set("region", replica.Region)
+	d.Set("tags", database.Tags)
+
+	// Computed values
+	d.Set("host", replica.Connection.Host)
+	d.Set("port", replica.Connection.Port)
+	d.Set("uri", replica.Connection.URI)
+	d.Set("database", replica.Connection.Database)
+	d.Set("user", replica.Connection.User)
+	d.Set("password", replica.Connection.Password)
 
 	return nil
 }
