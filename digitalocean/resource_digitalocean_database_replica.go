@@ -6,8 +6,6 @@ import (
 	"log"
 	"time"
 
-	database "cloud.google.com/go/spanner/admin/database/apiv1"
-
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -79,7 +77,16 @@ func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 				Computed: true,
 			},
 
-			"tags": tagsSchema(),
+			"tags": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				ForceNew: true,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validateTag,
+				},
+				Set: HashStringIgnoreCase,
+			},
 		},
 	}
 }
@@ -128,7 +135,7 @@ func resourceDigitalOceanDatabaseReplicaRead(d *schema.ResourceData, meta interf
 	}
 
 	d.Set("region", replica.Region)
-	d.Set("tags", database.Tags)
+	d.Set("tags", replica.Tags)
 
 	// Computed values
 	d.Set("host", replica.Connection.Host)
