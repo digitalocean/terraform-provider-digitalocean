@@ -24,12 +24,26 @@ func TestAccDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigBasic, databaseName, databaseReplicaName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanDatabaseReplicaExists("digitalocean_database_replica.foobar", &databaseReplica),
+					testAccCheckDigitalOceanDatabaseReplicaExists("digitalocean_database_replica.read-01", &databaseReplica),
 					testAccCheckDigitalOceanDatabaseReplicaAttributes(&databaseReplica, databaseReplicaName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_replica.foobar", "size", "db-s-2vcpu-4gb"),
+						"digitalocean_database_replica.read-01", "size", "db-s-2vcpu-4gb"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_replica.foobar", "region", "nyc3"),
+						"digitalocean_database_replica.read-01", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_replica.read-01", "name", databaseReplicaName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_replica.read-01", "host"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_replica.read-01", "port"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_replica.read-01", "user"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_replica.read-01", "uri"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_replica.read-01", "password"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_replica.read-01", "tags.#", "1"),
 				),
 			},
 		},
