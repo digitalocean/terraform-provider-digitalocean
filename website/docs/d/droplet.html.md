@@ -11,9 +11,10 @@ description: |-
 Get information on a Droplet for use in other resources. This data source provides
 all of the Droplet's properties as configured on your DigitalOcean account. This
 is useful if the Droplet in question is not managed by Terraform or you need to
-utilize any of the Droplets data.
+utilize any of the Droplet's data.
 
-An error is triggered if the provided Droplet name does not exist.
+**Note:** This data source returns a single Droplet. When specifying a `tag`, an
+error is triggered if more than one Droplet is found.
 
 ## Example Usage
 
@@ -35,10 +36,10 @@ data "digitalocean_droplet" "example" {
 
 ## Argument Reference
 
-The following arguments are supported:
+One of following the arguments must be provided:
 
 * `name` - (Optional) The name of Droplet.
-* `tag` - (Optional) The tag of Droplet. It is an error if multiple droplets have the same tag.
+* `tag` - (Optional) A tag applied to the Droplet.
 
 ## Attributes Reference
 
