@@ -6,7 +6,7 @@ IMPROVEMENTS:
 * resource/digitalocean_database_cluster: Add support for tags ([#253](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/253)). Thanks to @Zyqsempai!
 * resource/digitalocean_kubernetes_cluster: Mark the kube_config field as sensitive ([#289](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/289)). Thanks to @RoboticCheese!
 * provider: Remove usage of `github.com/hashicorp/terraform/config` package ([#291](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/291)). Thanks to @appilon!
-* datasource/digitalocean_droplet: Allow lookup by tag ([#290[(https://github.com/terraform-providers/terraform-provider-digitalocean/pull/290)). Thanks to @danramteke!
+* datasource/digitalocean_droplet: Allow lookup by tag ([#290](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/290)). Thanks to @danramteke!
 
 ## 1.7.0 (August 27, 2019)
 
