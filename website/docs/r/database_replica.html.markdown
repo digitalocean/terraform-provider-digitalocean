@@ -15,9 +15,19 @@ Provides a DigitalOcean database replica resource.
 ### Create a new PostgreSQL database replica
 ```hcl
 resource "digitalocean_database_replica" "read-replica" {
+  cluster_id = "${digitalocean_database_cluster.postgres-example.id}"
+  name       = "read-replica"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
-  cluster_id = "${digitalocean_database_cluster.some_db.id}"
+}
+
+resource "digitalocean_database_cluster" "postgres-example" {
+  name       = "example-postgres-cluster"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
 }
 ```
 
@@ -25,9 +35,10 @@ resource "digitalocean_database_replica" "read-replica" {
 
 The following arguments are supported:
 
-* `size` - (Required) Database droplet size associated with the replica (ex. `db-s-1vcpu-1gb`).
-* `region` - (Required) DigitalOcean region where the replica will reside.
 * `cluster_id` - (Required) The ID of the original source database cluster.
+* `name` - (Required) The name for the database replica.
+* `size` - (Required) Database Droplet size associated with the replica (ex. `db-s-1vcpu-1gb`).
+* `region` - (Required) DigitalOcean region where the replica will reside.
 
 ## Attributes Reference
 
@@ -43,8 +54,9 @@ In addition to the above arguments, the following attributes are exported:
 
 ## Import
 
-Database replicas can be imported using the `id` returned from DigitalOcean, e.g.
+Database replicas can be imported using the `id` of the source database cluster
+and the `name` of the replica joined with a comma. For example:
 
 ```
-terraform import digitalocean_database_replica.myreplica 245bcfd0-7f31-4ce6-a2bc-475a116cca97
+terraform import digitalocean_database_replica.read-replica 245bcfd0-7f31-4ce6-a2bc-475a116cca97,read-replica
 ```

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -17,7 +18,7 @@ func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 		Read:   resourceDigitalOceanDatabaseReplicaRead,
 		Delete: resourceDigitalOceanDatabaseReplicaDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceDigitalOceanDatabaseReplicaImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -43,7 +44,7 @@ func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 
 			"size": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 			},
 
@@ -113,6 +114,7 @@ func resourceDigitalOceanDatabaseReplicaCreate(d *schema.ResourceData, meta inte
 		return fmt.Errorf("Error creating DatabaseReplica: %s", err)
 	}
 
+	d.SetId(makeReplicaId(clusterId, replica.Name))
 	log.Printf("[INFO] DatabaseReplica Name: %s", replica.Name)
 
 	return resourceDigitalOceanDatabaseReplicaRead(d, meta)
@@ -148,6 +150,17 @@ func resourceDigitalOceanDatabaseReplicaRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
+func resourceDigitalOceanDatabaseReplicaImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if strings.Contains(d.Id(), ",") {
+		s := strings.Split(d.Id(), ",")
+		d.SetId(makeReplicaId(s[0], s[1]))
+		d.Set("cluster_id", s[0])
+		d.Set("name", s[1])
+	}
+
+	return []*schema.ResourceData{d}, nil
+}
+
 func resourceDigitalOceanDatabaseReplicaDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterId := d.Get("cluster_id").(string)
@@ -161,6 +174,10 @@ func resourceDigitalOceanDatabaseReplicaDelete(d *schema.ResourceData, meta inte
 
 	d.SetId("")
 	return nil
+}
+
+func makeReplicaId(clusterId string, replicaName string) string {
+	return fmt.Sprintf("%s/replicas/%s", clusterId, replicaName)
 }
 
 func waitForDatabaseReplica(client *godo.Client, cluster_id, status, name string) (*godo.DatabaseReplica, error) {
