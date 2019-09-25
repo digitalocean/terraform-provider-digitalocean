@@ -116,6 +116,7 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -130,6 +131,7 @@ func resourceDigitalOceanDatabaseClusterCreate(d *schema.ResourceData, meta inte
 		SizeSlug:   d.Get("size").(string),
 		Region:     d.Get("region").(string),
 		NumNodes:   d.Get("node_count").(int),
+		Tags:       expandTags(d.Get("tags").(*schema.Set).List()),
 	}
 
 	log.Printf("[DEBUG] DatabaseCluster create configuration: %#v", opts)
@@ -255,6 +257,7 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 	d.Set("size", database.SizeSlug)
 	d.Set("region", database.RegionSlug)
 	d.Set("node_count", database.NumNodes)
+	d.Set("tags", database.Tags)
 
 	if _, ok := d.GetOk("maintenance_window"); ok {
 		if err := d.Set("maintenance_window", flattenMaintWindowOpts(*database.MaintenanceWindow)); err != nil {

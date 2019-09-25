@@ -100,8 +100,9 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 
 func kubernetesConfigSchema() *schema.Schema {
 	return &schema.Schema{
-		Type:     schema.TypeList,
-		Computed: true,
+		Type:      schema.TypeList,
+		Computed:  true,
+		Sensitive: true,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"raw_config": {

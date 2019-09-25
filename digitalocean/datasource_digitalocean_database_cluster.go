@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
@@ -91,6 +92,7 @@ func dataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -143,6 +145,7 @@ func dataSourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta inte
 			d.Set("size", db.SizeSlug)
 			d.Set("region", db.RegionSlug)
 			d.Set("node_count", db.NumNodes)
+			d.Set("tags", db.Tags)
 
 			if _, ok := d.GetOk("maintenance_window"); ok {
 				if err := d.Set("maintenance_window", flattenMaintWindowOpts(*db.MaintenanceWindow)); err != nil {
