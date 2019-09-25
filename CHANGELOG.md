@@ -2,6 +2,8 @@
 
 IMPROVEMENTS:
 
+* **New Data Source:** `digitalocean_database_replica` ([#224](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/224)) Thanks to @Zyqsempai!
+* resource/digitalocean_database_cluster: Add support for tags ([#253](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/253)). Thanks to @Zyqsempai!
 * resource/digitalocean_kubernetes_cluster: Mark the kube_config field as sensitive ([#289](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/289)). Thanks to @RoboticCheese!
 * provider: Remove usage of `github.com/hashicorp/terraform/config` package ([#291](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/291)). Thanks to @appilon!
 
