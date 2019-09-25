@@ -14,15 +14,15 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/logging"
 	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
 	"golang.org/x/oauth2"
 )
 
 type Config struct {
-	Token       string
-	APIEndpoint string
-	AccessID    string
-	SecretKey   string
+	Token            string
+	APIEndpoint      string
+	AccessID         string
+	SecretKey        string
+	TerraformVersion string
 }
 
 type CombinedConfig struct {
@@ -58,7 +58,7 @@ func (c *Config) Client() (*CombinedConfig, error) {
 		AccessToken: c.Token,
 	})
 
-	userAgent := fmt.Sprintf("Terraform/%s", terraform.VersionString())
+	userAgent := fmt.Sprintf("Terraform/%s", c.TerraformVersion)
 	client := oauth2.NewClient(oauth2.NoContext, tokenSrc)
 
 	client.Transport = logging.NewTransport("DigitalOcean", client.Transport)

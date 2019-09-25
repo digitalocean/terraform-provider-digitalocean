@@ -7,7 +7,7 @@ import (
 
 // Provider returns a schema.Provider for DigitalOcean.
 func Provider() terraform.ResourceProvider {
-	return &schema.Provider{
+	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"token": {
 				Type:     schema.TypeString,
@@ -78,17 +78,28 @@ func Provider() terraform.ResourceProvider {
 			"digitalocean_volume_attachment":      resourceDigitalOceanVolumeAttachment(),
 			"digitalocean_volume_snapshot":        resourceDigitalOceanVolumeSnapshot(),
 		},
-
-		ConfigureFunc: providerConfigure,
 	}
+
+	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
+		terraformVersion := p.TerraformVersion
+		if terraformVersion == "" {
+			// Terraform 0.12 introduced this field to the protocol
+			// We can therefore assume that if it's missing it's 0.10 or 0.11
+			terraformVersion = "0.11+compatible"
+		}
+		return providerConfigure(d, terraformVersion)
+	}
+
+	return p
 }
 
-func providerConfigure(d *schema.ResourceData) (interface{}, error) {
+func providerConfigure(d *schema.ResourceData, terraformVersion string) (interface{}, error) {
 	config := Config{
-		Token:       d.Get("token").(string),
-		APIEndpoint: d.Get("api_endpoint").(string),
-		AccessID:    d.Get("spaces_access_id").(string),
-		SecretKey:   d.Get("spaces_secret_key").(string),
+		Token:            d.Get("token").(string),
+		APIEndpoint:      d.Get("api_endpoint").(string),
+		AccessID:         d.Get("spaces_access_id").(string),
+		SecretKey:        d.Get("spaces_secret_key").(string),
+		TerraformVersion: terraformVersion,
 	}
 
 	return config.Client()
