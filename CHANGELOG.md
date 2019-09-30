@@ -1,4 +1,4 @@
-## 1.8.0 (Unreleased)
+## 1.8.0 (September 30, 2019)
 
 IMPROVEMENTS:
 
