@@ -88,12 +88,22 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"private_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"port": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"uri": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"private_uri": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -112,10 +122,12 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"urn": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -267,8 +279,10 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 
 	// Computed values
 	d.Set("host", database.Connection.Host)
+	d.Set("private_host", database.PrivateConnection.Host)
 	d.Set("port", database.Connection.Port)
 	d.Set("uri", database.Connection.URI)
+	d.Set("private_uri", database.PrivateConnection.URI)
 	d.Set("database", database.Connection.Database)
 	d.Set("user", database.Connection.User)
 	d.Set("password", database.Connection.Password)

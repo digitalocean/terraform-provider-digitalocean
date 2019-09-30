@@ -68,12 +68,22 @@ func dataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"private_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"port": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"uri": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"private_uri": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -154,8 +164,10 @@ func dataSourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta inte
 			}
 
 			d.Set("host", db.Connection.Host)
+			d.Set("private_host", database.PrivateConnection.Host)
 			d.Set("port", db.Connection.Port)
 			d.Set("uri", db.Connection.URI)
+			d.Set("private_uri", database.PrivateConnection.URI)
 			d.Set("database", db.Connection.Database)
 			d.Set("user", db.Connection.User)
 			d.Set("urn", db.URN())
