@@ -32,6 +32,8 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "host"),
 					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "private_host"),
+					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "port"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "user"),
