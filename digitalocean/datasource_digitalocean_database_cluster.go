@@ -164,10 +164,10 @@ func dataSourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta inte
 			}
 
 			d.Set("host", db.Connection.Host)
-			d.Set("private_host", database.PrivateConnection.Host)
+			d.Set("private_host", db.PrivateConnection.Host)
 			d.Set("port", db.Connection.Port)
 			d.Set("uri", db.Connection.URI)
-			d.Set("private_uri", database.PrivateConnection.URI)
+			d.Set("private_uri", db.PrivateConnection.URI)
 			d.Set("database", db.Connection.Database)
 			d.Set("user", db.Connection.User)
 			d.Set("urn", db.URN())
