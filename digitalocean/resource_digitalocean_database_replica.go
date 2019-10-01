@@ -53,14 +53,26 @@ func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 				Computed: true,
 			},
 
+			"private_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"port": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
 			"uri": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"private_uri": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"database": {
@@ -74,8 +86,9 @@ func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 			},
 
 			"password": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"tags": {
@@ -141,8 +154,10 @@ func resourceDigitalOceanDatabaseReplicaRead(d *schema.ResourceData, meta interf
 
 	// Computed values
 	d.Set("host", replica.Connection.Host)
+	d.Set("private_host", replica.PrivateConnection.Host)
 	d.Set("port", replica.Connection.Port)
 	d.Set("uri", replica.Connection.URI)
+	d.Set("private_uri", replica.PrivateConnection.URI)
 	d.Set("database", replica.Connection.Database)
 	d.Set("user", replica.Connection.User)
 	d.Set("password", replica.Connection.Password)
