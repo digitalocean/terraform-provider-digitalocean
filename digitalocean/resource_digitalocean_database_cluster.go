@@ -99,13 +99,15 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 			},
 
 			"uri": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"private_uri": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"database": {
@@ -119,8 +121,9 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 			},
 
 			"password": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"urn": {
