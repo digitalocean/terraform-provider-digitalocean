@@ -35,11 +35,15 @@ func TestAccDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_replica.read-01", "host"),
 					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_replica.read-01", "private_host"),
+					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_replica.read-01", "port"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_replica.read-01", "user"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_replica.read-01", "uri"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_replica.read-01", "private_uri"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_replica.read-01", "password"),
 					resource.TestCheckResourceAttr(

@@ -78,14 +78,22 @@ func dataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"password": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"uri": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"private_uri": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
 			"database": {
@@ -170,6 +178,7 @@ func dataSourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta inte
 			d.Set("private_uri", db.PrivateConnection.URI)
 			d.Set("database", db.Connection.Database)
 			d.Set("user", db.Connection.User)
+			d.Set("password", db.Connection.Password)
 			d.Set("urn", db.URN())
 
 			break
