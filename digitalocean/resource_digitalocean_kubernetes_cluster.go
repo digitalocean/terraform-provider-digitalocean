@@ -153,10 +153,13 @@ func resourceDigitalOceanKubernetesClusterCreate(d *schema.ResourceData, meta in
 	for i, pool := range pools {
 		tags := append(pool.Tags, digitaloceanKubernetesDefaultNodePoolTag)
 		poolCreateRequests[i] = &godo.KubernetesNodePoolCreateRequest{
-			Name:  pool.Name,
-			Size:  pool.Size,
-			Tags:  tags,
-			Count: pool.Count,
+			Name:      pool.Name,
+			Size:      pool.Size,
+			Tags:      tags,
+			Count:     pool.Count,
+			AutoScale: pool.AutoScale,
+			MinNodes:  pool.MinNodes,
+			MaxNodes:  pool.MaxNodes,
 		}
 	}
 
@@ -216,10 +219,11 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 
 	// find the default node pool from all the pools in the cluster
 	// the default node pool has a custom tag k8s:default-node-pool
-	for _, p := range cluster.NodePools {
+	for i, p := range cluster.NodePools {
 		for _, t := range p.Tags {
 			if t == digitaloceanKubernetesDefaultNodePoolTag {
-				if err := d.Set("node_pool", flattenNodePool(p, cluster.Tags...)); err != nil {
+				keyPrefix := fmt.Sprintf("node_pool.%d.", i)
+				if err := d.Set("node_pool", flattenNodePool(d, keyPrefix, p, cluster.Tags...)); err != nil {
 					log.Printf("[DEBUG] Error setting node pool attributes: %s %#v", err, cluster.NodePools)
 				}
 			}
@@ -282,6 +286,11 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 	old, new := d.GetChange("node_pool")
 	oldPool := old.([]interface{})[0].(map[string]interface{})
 	newPool := new.([]interface{})[0].(map[string]interface{})
+
+	// If the node_count is unset, then remove it from the update map.
+	if _, ok := d.GetOk("node_pool.0.node_count"); !ok {
+		delete(newPool, "node_count")
+	}
 
 	// update the existing default pool
 	_, err := digitaloceanKubernetesNodePoolUpdate(client, newPool, d.Id(), oldPool["id"].(string), digitaloceanKubernetesDefaultNodePoolTag)
@@ -452,4 +461,32 @@ func filterTags(tags []string) []string {
 	}
 
 	return filteredTags
+}
+
+func flattenNodePool(d *schema.ResourceData, keyPrefix string, pool *godo.KubernetesNodePool, parentTags ...string) []interface{} {
+	rawPool := map[string]interface{}{
+		"id":                pool.ID,
+		"name":              pool.Name,
+		"size":              pool.Size,
+		"actual_node_count": pool.Count,
+		"auto_scale":        pool.AutoScale,
+		"min_nodes":         pool.MinNodes,
+		"max_nodes":         pool.MaxNodes,
+	}
+
+	if pool.Tags != nil {
+		rawPool["tags"] = flattenTags(filterTags(pool.Tags))
+	}
+
+	if pool.Nodes != nil {
+		rawPool["nodes"] = flattenNodes(pool.Nodes)
+	}
+
+	// Assign a node_count only if it's been set explicitly, since it's
+	// optional and we don't want to update with a 0 if it's not set.
+	if _, ok := d.GetOk(keyPrefix + "node_count"); ok {
+		rawPool["node_count"] = pool.Count
+	}
+
+	return []interface{}{rawPool}
 }

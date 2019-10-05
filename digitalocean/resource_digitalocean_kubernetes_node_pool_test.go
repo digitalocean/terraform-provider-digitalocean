@@ -54,6 +54,7 @@ func TestAccDigitalOceanKubernetesNodePool_Update(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "tags.#", "2"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "actual_node_count", "1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.#", "1"),
 				),
 			},
@@ -66,7 +67,55 @@ func TestAccDigitalOceanKubernetesNodePool_Update(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "name", rName+"-updated"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "tags.#", "3"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "node_count", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "actual_node_count", "2"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.#", "2"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesNodePool_UpdateAutoScale(t *testing.T) {
+	t.Parallel()
+	rName := randomTestName()
+	var k8s godo.KubernetesCluster
+	var k8sPool godo.KubernetesNodePool
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfigBasicWithNodePoolWithAutoScale1(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "tags.#", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "actual_node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "auto_scale", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "min_nodes", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "max_nodes", "5"),
+				),
+			},
+			{
+				Config: testAccDigitalOceanKubernetesConfigBasicWithNodePoolWithAutoScale2(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "tags.#", "3"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "actual_node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "auto_scale", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "min_nodes", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "max_nodes", "3"),
 				),
 			},
 		},
@@ -123,6 +172,65 @@ resource digitalocean_kubernetes_node_pool "barfoo" {
 	size  = "s-1vcpu-2gb"
 	node_count = 2
 	tags  = ["one","two", "three"]
+}
+`, rName, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigBasicWithNodePoolWithAutoScale1(rName string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_kubernetes_cluster" "foobar" {
+	name    = "%s"
+	region  = "lon1"
+	version = "1.15.3-do.3"
+	tags    = ["foo","bar"]
+
+	node_pool {
+		name = "default"
+		size  = "s-1vcpu-2gb"
+		node_count = 1
+		tags  = ["one","two"]
+	}
+}
+
+resource digitalocean_kubernetes_node_pool "barfoo" {
+  cluster_id = "${digitalocean_kubernetes_cluster.foobar.id}"
+
+	name    = "%s"
+	size  = "s-1vcpu-2gb"
+	node_count = 1
+	tags  = ["one","two"]
+	auto_scale = true
+	min_nodes = 1
+	max_nodes = 5
+}
+`, rName, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigBasicWithNodePoolWithAutoScale2(rName string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_kubernetes_cluster" "foobar" {
+	name    = "%s"
+	region  = "lon1"
+	version = "1.15.3-do.3"
+	tags    = ["foo","bar"]
+
+	node_pool {
+		name = "default"
+		size  = "s-1vcpu-2gb"
+		node_count = 1
+		tags  = ["one","two"]
+	}
+}
+
+resource digitalocean_kubernetes_node_pool "barfoo" {
+  cluster_id = "${digitalocean_kubernetes_cluster.foobar.id}"
+
+	name    = "%s"
+	size  = "s-1vcpu-2gb"
+	tags  = ["one","two", "three"]
+	auto_scale = true
+	min_nodes = 1
+	max_nodes = 3
 }
 `, rName, rName)
 }
