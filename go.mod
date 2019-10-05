@@ -5,13 +5,17 @@ require (
 	github.com/aws/aws-sdk-go v1.22.0
 	github.com/digitalocean/godo v1.21.0
 	github.com/hashicorp/terraform v0.12.8
-	github.com/terraform-providers/terraform-provider-kubernetes v1.7.0
+	github.com/terraform-providers/terraform-provider-kubernetes v1.9.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	gopkg.in/yaml.v2 v2.2.2
 )
 
 replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
+
+replace github.com/gophercloud/gophercloud v0.0.0-20190523203818-4885c347dcf4 => github.com/gophercloud/gophercloud v0.0.0-20190523203039-4885c347dcf4
+
+replace github.com/keybase/go-crypto v0.0.0-20190523171820-b785b22cc757 => github.com/keybase/go-crypto v0.0.0-20190416182011-b785b22cc757
 
 replace github.com/go-critic/go-critic v0.0.0-20181204210945-ee9bf5809ead => github.com/go-critic/go-critic v0.3.5-0.20190210220443-ee9bf5809ead
 

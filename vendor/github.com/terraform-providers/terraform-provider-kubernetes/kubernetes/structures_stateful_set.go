@@ -24,7 +24,7 @@ func expandStatefulSetSpec(s []interface{}) (*v1.StatefulSetSpec, error) {
 		obj.PodManagementPolicy = v1.PodManagementPolicyType(v)
 	}
 
-	if v, ok := in["replicas"].(int); ok && v > 0 {
+	if v, ok := in["replicas"].(int); ok && v >= 0 {
 		obj.Replicas = ptrToInt32(int32(v))
 	}
 
@@ -182,10 +182,14 @@ func flattenStatefulSetSpec(spec v1.StatefulSetSpec, d *schema.ResourceData) ([]
 	return []interface{}{att}, nil
 }
 
-func flattenPodTemplateSpec(t corev1.PodTemplateSpec, d *schema.ResourceData) ([]interface{}, error) {
+func flattenPodTemplateSpec(t corev1.PodTemplateSpec, d *schema.ResourceData, prefix ...string) ([]interface{}, error) {
 	template := make(map[string]interface{})
 
-	template["metadata"] = flattenMetadata(t.ObjectMeta, d, "spec.0.template.0.")
+	metaPrefix := "spec.0.template.0."
+	if len(prefix) > 0 {
+		metaPrefix = prefix[0]
+	}
+	template["metadata"] = flattenMetadata(t.ObjectMeta, d, metaPrefix)
 	spec, err := flattenPodSpec(t.Spec)
 	if err != nil {
 		return []interface{}{template}, err

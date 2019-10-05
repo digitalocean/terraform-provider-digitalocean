@@ -14,6 +14,7 @@ import (
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	aggregator "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 )
 
 func Provider() terraform.ResourceProvider {
@@ -138,14 +139,17 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
+			"kubernetes_api_service":               resourceKubernetesAPIService(),
 			"kubernetes_cluster_role":              resourceKubernetesClusterRole(),
 			"kubernetes_cluster_role_binding":      resourceKubernetesClusterRoleBinding(),
 			"kubernetes_config_map":                resourceKubernetesConfigMap(),
+			"kubernetes_cron_job":                  resourceKubernetesCronJob(),
 			"kubernetes_daemonset":                 resourceKubernetesDaemonSet(),
 			"kubernetes_deployment":                resourceKubernetesDeployment(),
 			"kubernetes_endpoints":                 resourceKubernetesEndpoints(),
 			"kubernetes_horizontal_pod_autoscaler": resourceKubernetesHorizontalPodAutoscaler(),
 			"kubernetes_ingress":                   resourceKubernetesIngress(),
+			"kubernetes_job":                       resourceKubernetesJob(),
 			"kubernetes_limit_range":               resourceKubernetesLimitRange(),
 			"kubernetes_namespace":                 resourceKubernetesNamespace(),
 			"kubernetes_network_policy":            resourceKubernetesNetworkPolicy(),
@@ -164,6 +168,11 @@ func Provider() terraform.ResourceProvider {
 		},
 		ConfigureFunc: providerConfigure,
 	}
+}
+
+type KubeClientsets struct {
+	MainClientset       *kubernetes.Clientset
+	AggregatorClientset *aggregator.Clientset
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
@@ -230,7 +239,12 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		return nil, fmt.Errorf("Failed to configure: %s", err)
 	}
 
-	return k, nil
+	a, err := aggregator.NewForConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to configure: %s", err)
+	}
+
+	return &KubeClientsets{k, a}, nil
 }
 
 func tryLoadingConfigFile(d *schema.ResourceData) (*restclient.Config, error) {

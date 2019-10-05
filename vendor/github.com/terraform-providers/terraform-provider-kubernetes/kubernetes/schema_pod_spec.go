@@ -28,6 +28,11 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Description:  "Optional duration in seconds the pod may be active on the node relative to StartTime before the system will actively try to mark it failed and kill associated containers. Value must be a positive integer.",
 			Deprecated:   deprecatedMessage,
 		},
+		"automount_service_account_token": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "AutomountServiceAccountToken indicates whether a service account token should be automatically mounted.",
+		},
 		"container": {
 			Type:        schema.TypeList,
 			Optional:    true,
@@ -254,6 +259,12 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Description: "ServiceAccountName is the name of the ServiceAccount to use to run this pod. More info: http://releases.k8s.io/HEAD/docs/design/service_accounts.md.",
 			Deprecated:  deprecatedMessage,
 		},
+		"share_process_namespace": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Share a single process namespace between all of the containers in a pod. When this is set containers will be able to view and signal processes from other containers in the same pod, and the first process in each container will not be assigned PID 1. HostPID and ShareProcessNamespace cannot both be set. Optional: Defaults to false.",
+		},
 		"subdomain": {
 			Type:        schema.TypeString,
 			Optional:    true,
@@ -270,11 +281,49 @@ func podSpecFields(isUpdatable, isDeprecated, isComputed bool) map[string]*schem
 			Description:  "Optional duration in seconds the pod needs to terminate gracefully. May be decreased in delete request. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period will be used instead. The grace period is the duration in seconds after the processes running in the pod are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process.",
 			Deprecated:   deprecatedMessage,
 		},
-
+		"toleration": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "If specified, the pod's toleration. Optional: Defaults to empty",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"effect": {
+						Type:         schema.TypeString,
+						Description:  "Effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.",
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice([]string{"NoSchedule", "PreferNoSchedule", "NoExecute"}, false),
+					},
+					"key": {
+						Type:        schema.TypeString,
+						Description: "Key is the taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be Exists; this combination means to match all values and all keys.",
+						Optional:    true,
+					},
+					"operator": {
+						Type:         schema.TypeString,
+						Description:  "Operator represents a key's relationship to the value. Valid operators are Exists and Equal. Defaults to Equal. Exists is equivalent to wildcard for value, so that a pod can tolerate all taints of a particular category.",
+						Default:      "Equal",
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice([]string{"Exists", "Equal"}, false),
+					},
+					"toleration_seconds": {
+						// Use TypeString to allow an "unspecified" value,
+						Type:         schema.TypeString,
+						Description:  "TolerationSeconds represents the period of time the toleration (which must be of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default, it is not set, which means tolerate the taint forever (do not evict). Zero and negative values will be treated as 0 (evict immediately) by the system.",
+						Optional:     true,
+						ValidateFunc: validateTypeStringNullableInt,
+					},
+					"value": {
+						Type:        schema.TypeString,
+						Description: "Value is the taint value the toleration matches to. If the operator is Exists, the value should be empty, otherwise just a regular string.",
+						Optional:    true,
+					},
+				},
+			},
+		},
 		"volume": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Computed:    isComputed,
+			Computed:    true,
 			Description: "List of volumes that can be mounted by containers belonging to the pod. More info: http://kubernetes.io/docs/user-guide/volumes",
 			Deprecated:  deprecatedMessage,
 			Elem:        volumeSchema(),
