@@ -11,8 +11,12 @@ import (
 	"github.com/terraform-providers/terraform-provider-kubernetes/kubernetes"
 )
 
-var testAccProviders map[string]terraform.ResourceProvider
-var testAccProvider *schema.Provider
+const testNamePrefix = "tf-acc-test-"
+
+var (
+	testAccProviders map[string]terraform.ResourceProvider
+	testAccProvider  *schema.Provider
+)
 
 func init() {
 	testAccProvider = Provider().(*schema.Provider)
@@ -76,7 +80,7 @@ func TestURLDefault(t *testing.T) {
 }
 
 func randomTestName() string {
-	return randomName("test-", 5)
+	return randomName(testNamePrefix, 10)
 }
 
 func randomName(prefix string, length int) string {
