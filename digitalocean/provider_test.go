@@ -1,9 +1,11 @@
 package digitalocean
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-kubernetes/kubernetes"
@@ -71,4 +73,12 @@ func TestURLDefault(t *testing.T) {
 	if client.BaseURL.String() != "https://api.digitalocean.com" {
 		t.Fatalf("Expected %s, got %s", "https://api.digitalocean.com", client.BaseURL.String())
 	}
+}
+
+func randomTestName() string {
+	return randomName("test-", 5)
+}
+
+func randomName(prefix string, length int) string {
+	return fmt.Sprintf("%s%s", prefix, acctest.RandString(length))
 }

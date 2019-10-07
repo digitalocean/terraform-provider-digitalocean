@@ -7,14 +7,13 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	t.Parallel()
-	rName := acctest.RandString(10)
+	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
@@ -63,7 +62,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 
 func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 	t.Parallel()
-	rName := acctest.RandString(10)
+	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
@@ -94,7 +93,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 
 func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
 	t.Parallel()
-	rName := acctest.RandString(10)
+	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
@@ -128,7 +127,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
 
 func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
 	t.Parallel()
-	rName := acctest.RandString(10)
+	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
@@ -161,7 +160,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
 
 func TestAccDigitalOceanKubernetesCluster_KubernetesProviderInteroperability(t *testing.T) {
 	t.Parallel()
-	rName := acctest.RandString(10)
+	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{

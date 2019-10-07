@@ -6,14 +6,13 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	t.Parallel()
-	rName := acctest.RandString(10)
+	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
