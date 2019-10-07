@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
+	t.Parallel()
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 

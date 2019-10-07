@@ -12,6 +12,7 @@ import (
 )
 
 func TestAccDigitalOceanKubernetesNodePool_Basic(t *testing.T) {
+	t.Parallel()
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 	var k8sPool godo.KubernetesNodePool
@@ -35,6 +36,7 @@ func TestAccDigitalOceanKubernetesNodePool_Basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesNodePool_Update(t *testing.T) {
+	t.Parallel()
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 	var k8sPool godo.KubernetesNodePool

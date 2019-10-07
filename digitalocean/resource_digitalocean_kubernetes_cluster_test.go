@@ -13,6 +13,7 @@ import (
 )
 
 func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
+	t.Parallel()
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 
@@ -61,6 +62,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
+	t.Parallel()
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 
@@ -91,6 +93,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
+	t.Parallel()
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 
@@ -124,6 +127,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
+	t.Parallel()
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 
@@ -156,6 +160,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesCluster_KubernetesProviderInteroperability(t *testing.T) {
+	t.Parallel()
 	rName := acctest.RandString(10)
 	var k8s godo.KubernetesCluster
 
