@@ -129,6 +129,11 @@ func kubernetesConfigSchema() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+
+				"token": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -335,6 +340,7 @@ type kubernetesConfigUser struct {
 type kubernetesConfigUserData struct {
 	ClientKeyData     string `yaml:"client-key-data"`
 	ClientCertificate string `yaml:"client-certificate-data"`
+	Token             string `yaml:"token"`
 }
 
 func flattenKubeConfig(config *godo.KubernetesClusterConfig) []interface{} {
@@ -363,6 +369,7 @@ func flattenKubeConfig(config *godo.KubernetesClusterConfig) []interface{} {
 
 	rawConfig["client_key"] = c.Users[0].User.ClientKeyData
 	rawConfig["client_certificate"] = c.Users[0].User.ClientCertificate
+	rawConfig["token"] = c.Users[0].User.Token
 
 	return []interface{}{rawConfig}
 }
