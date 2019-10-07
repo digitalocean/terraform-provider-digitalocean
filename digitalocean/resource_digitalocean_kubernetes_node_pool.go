@@ -259,7 +259,7 @@ func waitForKubernetesNodePoolCreate(client *godo.Client, id string, poolID stri
 			return fmt.Errorf("Error trying to read nodepool state: %s", err)
 		}
 
-		allRunning := true
+		allRunning := len(pool.Nodes) == pool.Count
 		for _, n := range pool.Nodes {
 			if n.Status.State != "running" {
 				allRunning = false
