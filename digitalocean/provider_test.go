@@ -1,16 +1,22 @@
 package digitalocean
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 	"github.com/terraform-providers/terraform-provider-kubernetes/kubernetes"
 )
 
-var testAccProviders map[string]terraform.ResourceProvider
-var testAccProvider *schema.Provider
+const testNamePrefix = "tf-acc-test-"
+
+var (
+	testAccProviders map[string]terraform.ResourceProvider
+	testAccProvider  *schema.Provider
+)
 
 func init() {
 	testAccProvider = Provider().(*schema.Provider)
@@ -71,4 +77,12 @@ func TestURLDefault(t *testing.T) {
 	if client.BaseURL.String() != "https://api.digitalocean.com" {
 		t.Fatalf("Expected %s, got %s", "https://api.digitalocean.com", client.BaseURL.String())
 	}
+}
+
+func randomTestName() string {
+	return randomName(testNamePrefix, 10)
+}
+
+func randomName(prefix string, length int) string {
+	return fmt.Sprintf("%s%s", prefix, acctest.RandString(length))
 }

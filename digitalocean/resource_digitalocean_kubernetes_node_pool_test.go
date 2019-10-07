@@ -6,13 +6,13 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccDigitalOceanKubernetesNodePool_Basic(t *testing.T) {
-	rName := acctest.RandString(10)
+	t.Parallel()
+	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 	var k8sPool godo.KubernetesNodePool
 
@@ -35,7 +35,8 @@ func TestAccDigitalOceanKubernetesNodePool_Basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesNodePool_Update(t *testing.T) {
-	rName := acctest.RandString(10)
+	t.Parallel()
+	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 	var k8sPool godo.KubernetesNodePool
 
