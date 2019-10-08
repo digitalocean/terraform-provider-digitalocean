@@ -1,4 +1,13 @@
-## 1.8.1 (Unreleased)
+## 1.9.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* resource/digitalocean_database_cluster: Expose private connection details ([#299](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/299)). Thanks to @clickyotomy!
+* resource/digitalocean_database_cluster: Mark `uri`, `private_uri`, `password` as sensitive ([#298](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/298)). Thanks to @clickyotomy!
+* resource/digitalocean_database_replica: Expose private connection details ([#302](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/302)).
+* resource/digitalocean_kubernetes_cluster: Expose new `token` attribute for use in Kubernetes authentication ([#309](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/309)). Thanks to @snormore!
+* resource/digitalocean_kubernetes_cluster: Only fetch new Kubernetes credentials when expired ([#311](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/311)). Thanks to @snormore!
+
 ## 1.8.0 (September 30, 2019)
 
 IMPROVEMENTS:
