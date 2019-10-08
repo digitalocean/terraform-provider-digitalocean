@@ -27,7 +27,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "version", "1.15.3-do.3"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "version", "1.15.4-do.0"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "ipv4_address"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_subnet"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "service_subnet"),
@@ -185,7 +185,7 @@ func testAccDigitalOceanKubernetesConfigBasic(rName string) string {
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.15.3-do.3"
+	version = "1.15.4-do.0"
 	tags    = ["foo","bar", "one"]
 
 	node_pool {
@@ -203,7 +203,7 @@ func testAccDigitalOceanKubernetesConfigBasic2(rName string) string {
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.15.3-do.3"
+	version = "1.15.4-do.0"
 	tags    = ["foo","bar"]
 
 	node_pool {
@@ -221,7 +221,7 @@ func testAccDigitalOceanKubernetesConfigBasic3(rName string) string {
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.15.3-do.3"
+	version = "1.15.4-do.0"
 	tags    = ["foo","bar"]
 
 	node_pool {
@@ -239,7 +239,7 @@ func testAccDigitalOceanKubernetesConfigBasic4(rName string) string {
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.15.3-do.3"
+	version = "1.15.4-do.0"
 	tags    = ["one","two"]
 
 	node_pool {
@@ -257,7 +257,7 @@ func testAccDigitalOceanKubernetesConfig_KubernetesProviderInteroperability(rNam
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.15.3-do.3"
+	version = "1.15.4-do.0"
 
 	node_pool {
 	  name = "default"
