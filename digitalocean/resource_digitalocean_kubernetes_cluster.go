@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"strings"
@@ -134,6 +135,11 @@ func kubernetesConfigSchema() *schema.Schema {
 					Type:     schema.TypeString,
 					Computed: true,
 				},
+
+				"expires_at": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
 			},
 		},
 	}
@@ -220,14 +226,28 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 		}
 	}
 
-	// fetch the K8s config  and update the resource
-	config, resp, err := client.Kubernetes.GetKubeConfig(context.Background(), cluster.ID)
-	if err != nil {
-		if resp != nil && resp.StatusCode == 404 {
-			return fmt.Errorf("Unable to fetch Kubernetes config: %s", err)
+	// fetch cluster credentials and update the resource if the credentials are expired.
+	var creds map[string]interface{}
+	if d.Get("kube_config") != nil && len(d.Get("kube_config").([]interface{})) > 0 {
+		creds = d.Get("kube_config").([]interface{})[0].(map[string]interface{})
+	}
+	var expiresAt time.Time
+	if creds["expires_at"] != nil && creds["expires_at"].(string) != "" {
+		var err error
+		expiresAt, err = time.Parse(time.RFC3339, creds["expires_at"].(string))
+		if err != nil {
+			return fmt.Errorf("Unable to parse Kubernetes credentials expiry: %s", err)
 		}
 	}
-	d.Set("kube_config", flattenKubeConfig(config))
+	if expiresAt.IsZero() || expiresAt.Before(time.Now()) {
+		creds, resp, err := client.Kubernetes.GetCredentials(context.Background(), cluster.ID, &godo.KubernetesClusterCredentialsGetRequest{})
+		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				return fmt.Errorf("Unable to fetch Kubernetes credentials: %s", err)
+			}
+		}
+		d.Set("kube_config", flattenCredentials(cluster.Name, creds))
+	}
 
 	return nil
 }
@@ -328,8 +348,8 @@ type kubernetesConfigCluster struct {
 	Name    string                      `yaml:"name"`
 }
 type kubernetesConfigClusterData struct {
-	ClusterCACertificate string `yaml:"certificate-authority-data"`
-	Server               string `yaml:"server"`
+	CertificateAuthorityData string `yaml:"certificate-authority-data"`
+	Server                   string `yaml:"server"`
 }
 
 type kubernetesConfigUser struct {
@@ -338,40 +358,60 @@ type kubernetesConfigUser struct {
 }
 
 type kubernetesConfigUserData struct {
-	ClientKeyData     string `yaml:"client-key-data"`
-	ClientCertificate string `yaml:"client-certificate-data"`
-	Token             string `yaml:"token"`
+	ClientKeyData         string `yaml:"client-key-data"`
+	ClientCertificateData string `yaml:"client-certificate-data"`
+	Token                 string `yaml:"token"`
 }
 
-func flattenKubeConfig(config *godo.KubernetesClusterConfig) []interface{} {
-	rawConfig := map[string]interface{}{
-		"raw_config": string(config.KubeconfigYAML),
+func flattenCredentials(name string, creds *godo.KubernetesClusterCredentials) []interface{} {
+	raw := map[string]interface{}{
+		"cluster_ca_certificate": base64.StdEncoding.EncodeToString(creds.CertificateAuthorityData),
+		"host":                   creds.Server,
+		"token":                  creds.Token,
+		"expires_at":             creds.ExpiresAt.Format(time.RFC3339),
 	}
 
-	// parse the yaml into an object
-	var c kubernetesConfig
-	err := yaml.Unmarshal(config.KubeconfigYAML, &c)
+	if creds.ClientKeyData != nil {
+		raw["client_key"] = string(creds.ClientKeyData)
+	}
+
+	if creds.ClientCertificateData != nil {
+		raw["client_certificate"] = string(creds.ClientCertificateData)
+	}
+
+	kubeconfigYAML, err := renderKubeconfig(name, creds)
 	if err != nil {
-		log.Printf("[DEBUG] error unmarshalling config: %s", err)
+		log.Printf("[DEBUG] error marshalling config: %s", err)
 		return nil
 	}
+	raw["raw_config"] = string(kubeconfigYAML)
 
-	if len(c.Clusters) < 1 {
-		return []interface{}{rawConfig}
+	return []interface{}{raw}
+}
+
+func renderKubeconfig(name string, creds *godo.KubernetesClusterCredentials) ([]byte, error) {
+	config := kubernetesConfig{
+		Clusters: []kubernetesConfigCluster{{
+			Name: "",
+			Cluster: kubernetesConfigClusterData{
+				CertificateAuthorityData: base64.StdEncoding.EncodeToString(creds.CertificateAuthorityData),
+				Server:                   creds.Server,
+			},
+		}},
+		Users: []kubernetesConfigUser{{
+			Name: "",
+			User: kubernetesConfigUserData{
+				Token: creds.Token,
+			},
+		}},
 	}
-
-	rawConfig["cluster_ca_certificate"] = c.Clusters[0].Cluster.ClusterCACertificate
-	rawConfig["host"] = c.Clusters[0].Cluster.Server
-
-	if len(c.Users) < 1 {
-		return []interface{}{rawConfig}
+	if creds.ClientKeyData != nil {
+		config.Users[0].User.ClientKeyData = base64.StdEncoding.EncodeToString(creds.ClientKeyData)
 	}
-
-	rawConfig["client_key"] = c.Users[0].User.ClientKeyData
-	rawConfig["client_certificate"] = c.Users[0].User.ClientCertificate
-	rawConfig["token"] = c.Users[0].User.Token
-
-	return []interface{}{rawConfig}
+	if creds.ClientCertificateData != nil {
+		config.Users[0].User.ClientCertificateData = base64.StdEncoding.EncodeToString(creds.ClientCertificateData)
+	}
+	return yaml.Marshal(config)
 }
 
 // we need to filter tags to remove any automatically added to avoid state problems,
