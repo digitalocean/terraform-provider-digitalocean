@@ -2,9 +2,11 @@ package digitalocean
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -370,5 +372,44 @@ func Test_filterTags(t *testing.T) {
 		if !reflect.DeepEqual(filteredTags, tt.want) {
 			t.Errorf("filterTags returned %+v, expected %+v", filteredTags, tt.want)
 		}
+	}
+}
+
+func Test_renderKubeconfig(t *testing.T) {
+	certAuth := []byte("LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURKekNDQWWlOQT09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K")
+	expected := fmt.Sprintf(`apiVersion: v1
+kind: Config
+clusters:
+- cluster:
+    certificate-authority-data: %v
+    server: https://6a37a0f6-c355-4527-b54d-521beffd9817.k8s.ondigitalocean.com
+  name: do-lon1-test-cluster
+contexts:
+- context:
+    cluster: do-lon1-test-cluster
+    user: do-lon1-test-cluster-admin
+  name: do-lon1-test-cluster
+current-context: do-lon1-test-cluster
+users:
+- name: do-lon1-test-cluster-admin
+  user:
+    token: 97ae2bbcfd85c34155a56b822ffa73909d6770b28eb7e5dfa78fa83e02ffc60f
+`, base64.StdEncoding.EncodeToString(certAuth))
+
+	creds := godo.KubernetesClusterCredentials{
+		Server:                   "https://6a37a0f6-c355-4527-b54d-521beffd9817.k8s.ondigitalocean.com",
+		CertificateAuthorityData: certAuth,
+		Token:                    "97ae2bbcfd85c34155a56b822ffa73909d6770b28eb7e5dfa78fa83e02ffc60f",
+		ExpiresAt:                time.Now(),
+	}
+	kubeConfigRenderd, err := renderKubeconfig("test-cluster", "lon1", &creds)
+	if err != nil {
+		t.Errorf("error calling renderKubeconfig: %s", err)
+
+	}
+	got := string(kubeConfigRenderd)
+
+	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("renderKubeconfig returned %+v\n, expected %+v\n", got, expected)
 	}
 }
