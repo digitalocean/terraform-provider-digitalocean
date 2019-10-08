@@ -83,6 +83,7 @@ In addition to the arguments listed above, the following additional attributes a
   - `token` - The DigitalOcean API access token used by clients to access the cluster.
   - `client_key` - The base64 encoded private key used by clients to access the cluster. Only available if token authentication is not supported on your cluster.
   - `client_certificate` - The base64 encoded public certificate used by clients to access the cluster. Only available if token authentication is not supported on your cluster.
+  - `expires_at` - The date and time when the credentials will expire and need to be regenerated.
 * `node_pool` - In addition to the arguments provided, these additional attributes about the cluster's default node pool are exported:
   - `id` -  A unique ID that can be used to identify and reference the node pool.
   - `nodes` - A list of nodes in the pool. Each node exports the following attributes:
