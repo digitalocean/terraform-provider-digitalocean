@@ -371,8 +371,8 @@ type kubernetesConfigUser struct {
 }
 
 type kubernetesConfigUserData struct {
-	ClientKeyData         string `yaml:"client-key-data"`
-	ClientCertificateData string `yaml:"client-certificate-data"`
+	ClientKeyData         string `yaml:"client-key-data,omitempty"`
+	ClientCertificateData string `yaml:"client-certificate-data,omitempty"`
 	Token                 string `yaml:"token"`
 }
 

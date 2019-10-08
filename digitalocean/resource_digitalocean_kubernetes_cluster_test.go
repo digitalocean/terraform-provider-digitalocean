@@ -393,8 +393,6 @@ current-context: do-lon1-test-cluster
 users:
 - name: do-lon1-test-cluster-admin
   user:
-    client-key-data: ""
-    client-certificate-data: ""
     token: 97ae2bbcfd85c34155a56b822ffa73909d6770b28eb7e5dfa78fa83e02ffc60f
 `, base64.StdEncoding.EncodeToString(certAuth))
 
