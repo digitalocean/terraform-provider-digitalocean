@@ -1,4 +1,9 @@
 ## 1.9.1 (Unreleased)
+
+BUG FIXES:
+
+* resource/digitalocean_kubernetes_cluster: Ensure `raw_config` is a valid kubeconfig file ([#315](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/315)).
+
 ## 1.9.0 (October 08, 2019)
 
 IMPROVEMENTS:
