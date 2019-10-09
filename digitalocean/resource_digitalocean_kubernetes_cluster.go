@@ -246,7 +246,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 				return fmt.Errorf("Unable to fetch Kubernetes credentials: %s", err)
 			}
 		}
-		d.Set("kube_config", flattenCredentials(cluster.Name, creds))
+		d.Set("kube_config", flattenCredentials(cluster.Name, cluster.RegionSlug, creds))
 	}
 
 	return nil
@@ -339,8 +339,12 @@ func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.Kuber
 }
 
 type kubernetesConfig struct {
-	Clusters []kubernetesConfigCluster `yaml:"clusters"`
-	Users    []kubernetesConfigUser    `yaml:"users"`
+	APIVersion     string                    `yaml:"apiVersion"`
+	Kind           string                    `yaml:"kind"`
+	Clusters       []kubernetesConfigCluster `yaml:"clusters"`
+	Contexts       []kubernetesConfigContext `yaml:"contexts"`
+	CurrentContext string                    `yaml:"current-context"`
+	Users          []kubernetesConfigUser    `yaml:"users"`
 }
 
 type kubernetesConfigCluster struct {
@@ -352,18 +356,27 @@ type kubernetesConfigClusterData struct {
 	Server                   string `yaml:"server"`
 }
 
+type kubernetesConfigContext struct {
+	Context kubernetesConfigContextData `yaml:"context"`
+	Name    string                      `yaml:"name"`
+}
+type kubernetesConfigContextData struct {
+	Cluster string `yaml:"cluster"`
+	User    string `yaml:"user"`
+}
+
 type kubernetesConfigUser struct {
 	Name string                   `yaml:"name"`
 	User kubernetesConfigUserData `yaml:"user"`
 }
 
 type kubernetesConfigUserData struct {
-	ClientKeyData         string `yaml:"client-key-data"`
-	ClientCertificateData string `yaml:"client-certificate-data"`
+	ClientKeyData         string `yaml:"client-key-data,omitempty"`
+	ClientCertificateData string `yaml:"client-certificate-data,omitempty"`
 	Token                 string `yaml:"token"`
 }
 
-func flattenCredentials(name string, creds *godo.KubernetesClusterCredentials) []interface{} {
+func flattenCredentials(name string, region string, creds *godo.KubernetesClusterCredentials) []interface{} {
 	raw := map[string]interface{}{
 		"cluster_ca_certificate": base64.StdEncoding.EncodeToString(creds.CertificateAuthorityData),
 		"host":                   creds.Server,
@@ -379,7 +392,7 @@ func flattenCredentials(name string, creds *godo.KubernetesClusterCredentials) [
 		raw["client_certificate"] = string(creds.ClientCertificateData)
 	}
 
-	kubeconfigYAML, err := renderKubeconfig(name, creds)
+	kubeconfigYAML, err := renderKubeconfig(name, region, creds)
 	if err != nil {
 		log.Printf("[DEBUG] error marshalling config: %s", err)
 		return nil
@@ -389,17 +402,29 @@ func flattenCredentials(name string, creds *godo.KubernetesClusterCredentials) [
 	return []interface{}{raw}
 }
 
-func renderKubeconfig(name string, creds *godo.KubernetesClusterCredentials) ([]byte, error) {
+func renderKubeconfig(name string, region string, creds *godo.KubernetesClusterCredentials) ([]byte, error) {
+	clusterName := fmt.Sprintf("do-%s-%s", region, name)
+	userName := fmt.Sprintf("do-%s-%s-admin", region, name)
 	config := kubernetesConfig{
+		APIVersion: "v1",
+		Kind:       "Config",
 		Clusters: []kubernetesConfigCluster{{
-			Name: "",
+			Name: clusterName,
 			Cluster: kubernetesConfigClusterData{
 				CertificateAuthorityData: base64.StdEncoding.EncodeToString(creds.CertificateAuthorityData),
 				Server:                   creds.Server,
 			},
 		}},
+		Contexts: []kubernetesConfigContext{{
+			Context: kubernetesConfigContextData{
+				Cluster: clusterName,
+				User:    userName,
+			},
+			Name: clusterName,
+		}},
+		CurrentContext: clusterName,
 		Users: []kubernetesConfigUser{{
-			Name: "",
+			Name: userName,
 			User: kubernetesConfigUserData{
 				Token: creds.Token,
 			},
