@@ -22,6 +22,14 @@ Get the tag:
 data "digitalocean_tag" "example" {
   name = "example"
 }
+
+resource "digitalocean_droplet" "example" {
+  image  = "ubuntu-18-04-x64"
+  name   = "example-1"
+  region = "nyc2"
+  size   = "s-1vcpu-1gb"
+  tags   = [data.digitalocean_tag.example.name]
+}
 ```
 
 ## Argument Reference

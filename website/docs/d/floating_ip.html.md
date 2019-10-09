@@ -23,7 +23,11 @@ Get the floating IP:
 variable "public_ip" {}
 
 data "digitalocean_floating_ip" "example" {
-  ip_address = "${var.public_ip}"
+  ip_address = var.public_ip
+}
+
+output "fip_output" {
+  value = data.digitalocean_floating_ip.example.droplet_id
 }
 ```
 

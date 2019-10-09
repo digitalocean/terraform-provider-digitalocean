@@ -22,15 +22,15 @@ resource "digitalocean_volume" "foobar" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name       = "baz"
-  size       = "s-1vcpu-1gb"
-  image      = "ubuntu-18-04-x64"
-  region     = "nyc1"
+  name   = "baz"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-18-04-x64"
+  region = "nyc1"
 }
 
 resource "digitalocean_volume_attachment" "foobar" {
-  droplet_id = "${digitalocean_droplet.foobar.id}"
-  volume_id  = "${digitalocean_volume.foobar.id}"
+  droplet_id = digitalocean_droplet.foobar.id
+  volume_id  = digitalocean_volume.foobar.id
 }
 ```
 
@@ -44,8 +44,8 @@ data "digitalocean_volume_snapshot" "foobar" {
 resource "digitalocean_volume" "foobar" {
   region      = "lon1"
   name        = "foo"
-  size        = "${data.digitalocean_volume_snapshot.foobar.min_disk_size}"
-  snapshot_id = "${data.digitalocean_volume_snapshot.foobar.id}"
+  size        = data.digitalocean_volume_snapshot.foobar.min_disk_size
+  snapshot_id = data.digitalocean_volume_snapshot.foobar.id
 }
 ```
 

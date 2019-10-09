@@ -13,14 +13,13 @@ Provides a DigitalOcean DNS record resource.
 ## Example Usage
 
 ```hcl
-# Create a new domain
 resource "digitalocean_domain" "default" {
   name = "example.com"
 }
 
 # Add a record to the domain
 resource "digitalocean_record" "www" {
-  domain = "${digitalocean_domain.default.name}"
+  domain = digitalocean_domain.default.name
   type   = "A"
   name   = "www"
   value  = "192.168.0.11"
@@ -28,7 +27,7 @@ resource "digitalocean_record" "www" {
 
 # Output the FQDN for the record
 output "fqdn" {
-  value = "${digitalocean_record.www.fqdn}"
+  value = digitalocean_record.www.fqdn
 }
 ```
 

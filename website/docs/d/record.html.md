@@ -26,11 +26,11 @@ data "digitalocean_record" "example" {
 }
 
 output "record_type" {
-  value = "${data.digitalocean_record.example.type}"
+  value = data.digitalocean_record.example.type
 }
 
 output "record_ttl" {
-  value = "${data.digitalocean_record.example.ttl}"
+  value = data.digitalocean_record.example.ttl
 }
 ```
 

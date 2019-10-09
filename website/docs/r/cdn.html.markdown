@@ -17,19 +17,19 @@ Provides a DigitalOcean CDN Endpoint resource for use with Spaces.
 ```hcl
 # Create a new Spaces Bucket
 resource "digitalocean_spaces_bucket" "mybucket" {
-    name   = "example"
-    region = "sfo2"
-    acl    = "public-read"
+  name   = "example"
+  region = "sfo2"
+  acl    = "public-read"
 }
 
 # Add a CDN endpoint to the Spaces Bucket
 resource "digitalocean_cdn" "mycdn" {
-  origin = "${digitalocean_spaces_bucket.mybucket.bucket_domain_name}"
+  origin = digitalocean_spaces_bucket.mybucket.bucket_domain_name
 }
 
 # Output the endpoint for the CDN resource
 output "fqdn" {
-  value = "${digitalocean_cdn.mycdn.endpoint}"
+  value = digitalocean_cdn.mycdn.endpoint
 }
 ```
 
@@ -52,9 +52,9 @@ resource "digitalocean_certificate" "cert" {
 
 # Add a CDN endpoint with a custom sub-domain to the Spaces Bucket
 resource "digitalocean_cdn" "mycdn" {
-  origin         = "${digitalocean_spaces_bucket.mybucket.bucket_domain_name}"
+  origin         = digitalocean_spaces_bucket.mybucket.bucket_domain_name
   custom_domain  = "static.example.com"
-  certificate_id = "${digitalocean_certificate.cert.id}"
+  certificate_id = digitalocean_certificate.cert.id
 }
 ```
 

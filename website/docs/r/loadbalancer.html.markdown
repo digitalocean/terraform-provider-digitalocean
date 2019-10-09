@@ -15,30 +15,30 @@ modify, and delete Load Balancers.
 
 ```hcl
 resource "digitalocean_droplet" "web" {
-  name      = "web-1"
-  size      = "s-1vcpu-1gb"
-  image     = "ubuntu-18-04-x64"
-  region    = "nyc3"
+  name   = "web-1"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-18-04-x64"
+  region = "nyc3"
 }
 
 resource "digitalocean_loadbalancer" "public" {
-  name = "loadbalancer-1"
+  name   = "loadbalancer-1"
   region = "nyc3"
 
   forwarding_rule {
-    entry_port = 80
+    entry_port     = 80
     entry_protocol = "http"
 
-    target_port = 80
+    target_port     = 80
     target_protocol = "http"
   }
 
   healthcheck {
-    port = 22
+    port     = 22
     protocol = "tcp"
   }
 
-  droplet_ids = ["${digitalocean_droplet.web.id}"]
+  droplet_ids = [digitalocean_droplet.web.id]
 }
 ```
 
@@ -51,8 +51,8 @@ as there cannot be multiple certificates with the same name in an account.
 ```hcl
 resource "digitalocean_certificate" "cert" {
   name             = "cert"
-  private_key      = "${file("key.pem")}"
-  leaf_certificate = "${file("cert.pem")}"
+  private_key      = "file("key.pem")}"
+  leaf_certificate = "file("cert.pem")"
 
   lifecycle {
     create_before_destroy = true
@@ -77,7 +77,7 @@ resource "digitalocean_loadbalancer" "public" {
     target_port = 80
     target_protocol = "http"
 
-    certificate_id = "${digitalocean_certificate.cert.id}"
+    certificate_id = digitalocean_certificate.cert.id
   }
 
   healthcheck {
@@ -85,7 +85,7 @@ resource "digitalocean_loadbalancer" "public" {
     protocol = "tcp"
   }
 
-  droplet_ids = ["${digitalocean_droplet.web.id}"]
+  droplet_ids = [digitalocean_droplet.web.id]
 }
 ```
 

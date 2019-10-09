@@ -26,7 +26,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 }
 
 resource "digitalocean_kubernetes_node_pool" "bar" {
-  cluster_id = "${digitalocean_kubernetes_cluster.foo.id}"
+  cluster_id = digitalocean_kubernetes_cluster.foo.id
 
   name       = "backend-pool"
   size       = "c-2"

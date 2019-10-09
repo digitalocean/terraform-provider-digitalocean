@@ -14,17 +14,16 @@ Provides a resource which can be used to create a snapshot from an existing Digi
 
 ```hcl
 resource "digitalocean_droplet" "web" {
-	name      = "web-01"
-	size      = "s-1vcpu-1gb"
-	image     = "centos-7-x64"
-	region    = "nyc3"
+  name   = "web-01"
+  size   = "s-1vcpu-1gb"
+  image  = "centos-7-x64"
+  region = "nyc3"
 }
 
 resource "digitalocean_droplet_snapshot" "web-snapshot" {
-	droplet_id = "${digitalocean_droplet.web.id}"
-	name       = "web-snapshot-01"
+  droplet_id = digitalocean_droplet.web.id
+  name       = "web-snapshot-01"
 }
-
 ```
 
 ## Argument Reference

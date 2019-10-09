@@ -16,7 +16,7 @@ Droplet.
 
 ```hcl
 resource "digitalocean_floating_ip" "foobar" {
-  region            = "sgp1"
+  region = "sgp1"
 }
 
 resource "digitalocean_droplet" "foobar" {
@@ -29,8 +29,8 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_floating_ip_assignment" "foobar" {
-  ip_address = "${digitalocean_floating_ip.foobar.ip_address}"
-  droplet_id = "${digitalocean_droplet.foobar.id}"
+  ip_address = digitalocean_floating_ip.foobar.ip_address
+  droplet_id = digitalocean_droplet.foobar.id
 }
 ```
 

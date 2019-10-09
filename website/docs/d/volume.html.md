@@ -42,8 +42,8 @@ resource "digitalocean_droplet" "example" {
 }
 
 resource "digitalocean_volume_attachment" "foobar" {
-  droplet_id = "${digitalocean_droplet.example.id}"
-  volume_id  = "${data.digitalocean_volume.example.id}"
+  droplet_id = digitalocean_droplet.example.id
+  volume_id  = data.digitalocean_volume.example.id
 }
 ```
 
