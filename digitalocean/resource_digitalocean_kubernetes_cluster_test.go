@@ -13,6 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
+const testClusterVersion = "1.15.4-do.0"
+
 func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	t.Parallel()
 	rName := randomTestName()
@@ -29,7 +31,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "version", "1.15.4-do.0"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "version", testClusterVersion),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "ipv4_address"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_subnet"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "service_subnet"),
@@ -167,6 +169,236 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_CreatePoolWithAutoScale(t *testing.T) {
+	t.Parallel()
+	rName := randomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			// Create with auto-scaling and explicit node_count.
+			{
+				Config: fmt.Sprintf(`
+					resource "digitalocean_kubernetes_cluster" "foobar" {
+						name    = "%s"
+						region  = "lon1"
+						version = "%s"
+
+						node_pool {
+							name = "default"
+							size  = "s-1vcpu-2gb"
+							node_count = 1
+							auto_scale = true
+							min_nodes = 1
+							max_nodes = 3
+						}
+					}
+				`, rName, testClusterVersion),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.actual_node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-1vcpu-2gb"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.auto_scale", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.min_nodes", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.max_nodes", "3"),
+				),
+			},
+			// Remove node_count, keep auto-scaling.
+			{
+				Config: fmt.Sprintf(`
+					resource "digitalocean_kubernetes_cluster" "foobar" {
+						name    = "%s"
+						region  = "lon1"
+						version = "%s"
+
+						node_pool {
+							name = "default"
+							size  = "s-1vcpu-2gb"
+							auto_scale = true
+							min_nodes = 1
+							max_nodes = 3
+						}
+					}
+				`, rName, testClusterVersion),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.actual_node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-1vcpu-2gb"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.auto_scale", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.min_nodes", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.max_nodes", "3"),
+				),
+			},
+			// Update node_count, keep auto-scaling.
+			{
+				Config: fmt.Sprintf(`
+					resource "digitalocean_kubernetes_cluster" "foobar" {
+						name    = "%s"
+						region  = "lon1"
+						version = "%s"
+
+						node_pool {
+							name = "default"
+							size  = "s-1vcpu-2gb"
+							node_count = 2
+							auto_scale = true
+							min_nodes = 1
+							max_nodes = 3
+						}
+					}
+				`, rName, testClusterVersion),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.node_count", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.actual_node_count", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-1vcpu-2gb"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.auto_scale", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.min_nodes", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.max_nodes", "3"),
+				),
+			},
+			// Disable auto-scaling.
+			{
+				Config: fmt.Sprintf(`
+					resource "digitalocean_kubernetes_cluster" "foobar" {
+						name    = "%s"
+						region  = "lon1"
+						version = "%s"
+
+						node_pool {
+							name = "default"
+							size  = "s-1vcpu-2gb"
+							node_count = 2
+						}
+					}
+				`, rName, testClusterVersion),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.node_count", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.actual_node_count", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-1vcpu-2gb"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.auto_scale", "false"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.min_nodes", "0"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.max_nodes", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesCluster_UpdatePoolWithAutoScale(t *testing.T) {
+	t.Parallel()
+	rName := randomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			// Create with auto-scaling disabled.
+			{
+				Config: fmt.Sprintf(`
+				resource "digitalocean_kubernetes_cluster" "foobar" {
+					name    = "%s"
+					region  = "lon1"
+					version = "%s"
+
+					node_pool {
+						name = "default"
+						size  = "s-1vcpu-2gb"
+						node_count = 1
+					}
+				}
+			`, rName, testClusterVersion),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.actual_node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-1vcpu-2gb"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.auto_scale", "false"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.min_nodes", "0"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.max_nodes", "0"),
+				),
+			},
+			// Enable auto-scaling with explicit node_count.
+			{
+				Config: fmt.Sprintf(`
+					resource "digitalocean_kubernetes_cluster" "foobar" {
+						name    = "%s"
+						region  = "lon1"
+						version = "%s"
+
+						node_pool {
+							name = "default"
+							size  = "s-1vcpu-2gb"
+							node_count = 1
+							auto_scale = true
+							min_nodes = 1
+							max_nodes = 3
+						}
+					}
+				`, rName, testClusterVersion),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.actual_node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-1vcpu-2gb"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.auto_scale", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.min_nodes", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.max_nodes", "3"),
+				),
+			},
+			// Remove node_count, keep auto-scaling.
+			{
+				Config: fmt.Sprintf(`
+					resource "digitalocean_kubernetes_cluster" "foobar" {
+						name    = "%s"
+						region  = "lon1"
+						version = "%s"
+
+						node_pool {
+							name = "default"
+							size  = "s-1vcpu-2gb"
+							auto_scale = true
+							min_nodes = 1
+							max_nodes = 3
+						}
+					}
+				`, rName, testClusterVersion),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.actual_node_count", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.size", "s-1vcpu-2gb"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.auto_scale", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.min_nodes", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.max_nodes", "3"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanKubernetesCluster_KubernetesProviderInteroperability(t *testing.T) {
 	t.Parallel()
 	rName := randomTestName()
@@ -195,7 +427,7 @@ func testAccDigitalOceanKubernetesConfigBasic(rName string) string {
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.15.4-do.0"
+	version = "%s"
 	tags    = ["foo","bar", "one"]
 
 	node_pool {
@@ -205,7 +437,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 		tags  = ["one","two"]
 	}
 }
-`, rName)
+`, rName, testClusterVersion)
 }
 
 func testAccDigitalOceanKubernetesConfigBasic2(rName string) string {
@@ -213,7 +445,7 @@ func testAccDigitalOceanKubernetesConfigBasic2(rName string) string {
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.15.4-do.0"
+	version = "%s"
 	tags    = ["foo","bar"]
 
 	node_pool {
@@ -223,7 +455,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 		tags  = ["one","two","three"]
 	}
 }
-`, rName)
+`, rName, testClusterVersion)
 }
 
 func testAccDigitalOceanKubernetesConfigBasic3(rName string) string {
@@ -231,7 +463,7 @@ func testAccDigitalOceanKubernetesConfigBasic3(rName string) string {
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.15.4-do.0"
+	version = "%s"
 	tags    = ["foo","bar"]
 
 	node_pool {
@@ -241,7 +473,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 		tags  = ["one","two"]
 	}
 }
-`, rName)
+`, rName, testClusterVersion)
 }
 
 func testAccDigitalOceanKubernetesConfigBasic4(rName string) string {
@@ -249,7 +481,7 @@ func testAccDigitalOceanKubernetesConfigBasic4(rName string) string {
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.15.4-do.0"
+	version = "%s"
 	tags    = ["one","two"]
 
 	node_pool {
@@ -259,7 +491,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 		tags  = ["foo","bar"]
 	}
 }
-`, rName)
+`, rName, testClusterVersion)
 }
 
 func testAccDigitalOceanKubernetesConfig_KubernetesProviderInteroperability(rName string) string {
@@ -267,7 +499,7 @@ func testAccDigitalOceanKubernetesConfig_KubernetesProviderInteroperability(rNam
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.15.4-do.0"
+	version = "%s"
 
 	node_pool {
 	  name = "default"
@@ -299,7 +531,7 @@ resource "kubernetes_service_account" "tiller" {
 
   automount_service_account_token = true
 }
-`, rName)
+`, rName, testClusterVersion)
 }
 
 func testAccCheckDigitalOceanKubernetesClusterDestroy(s *terraform.State) error {

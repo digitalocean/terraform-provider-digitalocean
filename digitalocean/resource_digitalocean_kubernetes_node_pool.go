@@ -229,17 +229,9 @@ func resourceDigitalOceanKubernetesNodePoolUpdate(d *schema.ResourceData, meta i
 		rawPool["node_count"] = d.Get("node_count")
 	}
 
-	if _, ok := d.GetOk("auto_scale"); ok {
-		rawPool["auto_scale"] = d.Get("auto_scale")
-	}
-
-	if _, ok := d.GetOk("min_nodes"); ok {
-		rawPool["min_nodes"] = d.Get("min_nodes")
-	}
-
-	if _, ok := d.GetOk("max_nodes"); ok {
-		rawPool["max_nodes"] = d.Get("max_nodes")
-	}
+	rawPool["auto_scale"] = d.Get("auto_scale")
+	rawPool["min_nodes"] = d.Get("min_nodes")
+	rawPool["max_nodes"] = d.Get("max_nodes")
 
 	_, err := digitaloceanKubernetesNodePoolUpdate(client, rawPool, d.Get("cluster_id").(string), d.Id())
 	if err != nil {
@@ -297,9 +289,10 @@ func digitaloceanKubernetesNodePoolUpdate(client *godo.Client, pool map[string]i
 		req.Count = intPtr(pool["node_count"].(int))
 	}
 
-	if pool["auto_scale"] != nil {
-		req.AutoScale = boolPtr(pool["auto_scale"].(bool))
+	if pool["auto_scale"] == nil {
+		pool["auto_scale"] = false
 	}
+	req.AutoScale = boolPtr(pool["auto_scale"].(bool))
 
 	if pool["min_nodes"] != nil {
 		req.MinNodes = intPtr(pool["min_nodes"].(int))
