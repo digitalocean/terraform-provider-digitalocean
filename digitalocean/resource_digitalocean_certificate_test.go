@@ -58,6 +58,7 @@ func testSweepCertificate(region string) error {
 }
 
 func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
+	t.Parallel()
 	var cert godo.Certificate
 	rInt := acctest.RandInt()
 	name := fmt.Sprintf("certificate-%d", rInt)
@@ -89,6 +90,7 @@ func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanCertificate_ExpectedErrors(t *testing.T) {
+	t.Parallel()
 	rInt := acctest.RandInt()
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
 
