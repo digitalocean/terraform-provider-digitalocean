@@ -289,7 +289,12 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 	}
 }
 
-func buildLoadBalancerRequest(d *schema.ResourceData) (*godo.LoadBalancerRequest, error) {
+func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*godo.LoadBalancerRequest, error) {
+	forwardingRules, err := expandForwardingRules(client, d.Get("forwarding_rule").([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+
 	opts := &godo.LoadBalancerRequest{
 		Name:                   d.Get("name").(string),
 		Region:                 d.Get("region").(string),
@@ -297,7 +302,7 @@ func buildLoadBalancerRequest(d *schema.ResourceData) (*godo.LoadBalancerRequest
 		RedirectHttpToHttps:    d.Get("redirect_http_to_https").(bool),
 		EnableProxyProtocol:    d.Get("enable_proxy_protocol").(bool),
 		EnableBackendKeepalive: d.Get("enable_backend_keepalive").(bool),
-		ForwardingRules:        expandForwardingRules(d.Get("forwarding_rule").(*schema.Set).List()),
+		ForwardingRules:        forwardingRules,
 	}
 
 	if v, ok := d.GetOk("droplet_tag"); ok {
@@ -331,7 +336,7 @@ func resourceDigitalOceanLoadbalancerCreate(d *schema.ResourceData, meta interfa
 
 	log.Printf("[INFO] Create a Loadbalancer Request")
 
-	lbOpts, err := buildLoadBalancerRequest(d)
+	lbOpts, err := buildLoadBalancerRequest(client, d)
 	if err != nil {
 		return err
 	}
@@ -397,7 +402,12 @@ func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface
 		return fmt.Errorf("[DEBUG] Error setting Load Balancer healthcheck - error: %#v", err)
 	}
 
-	if err := d.Set("forwarding_rule", flattenForwardingRules(loadbalancer.ForwardingRules)); err != nil {
+	forwardingRules, err := flattenForwardingRules(client, loadbalancer.ForwardingRules)
+	if err != nil {
+		return fmt.Errorf("[DEBUG] Error building Load Balancer forwarding rules - error: %#v", err)
+	}
+
+	if err := d.Set("forwarding_rule", forwardingRules); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Load Balancer forwarding_rule - error: %#v", err)
 	}
 
@@ -408,7 +418,7 @@ func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface
 func resourceDigitalOceanLoadbalancerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
-	lbOpts, err := buildLoadBalancerRequest(d)
+	lbOpts, err := buildLoadBalancerRequest(client, d)
 	if err != nil {
 		return err
 	}

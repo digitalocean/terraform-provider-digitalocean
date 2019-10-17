@@ -1,7 +1,6 @@
 package digitalocean
 
 import (
-	"context"
 	"fmt"
 	"testing"
 
@@ -26,6 +25,8 @@ func TestAccDataSourceDigitalOceanCertificate_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanCertificateExists("data.digitalocean_certificate.foobar", &certificate),
 					resource.TestCheckResourceAttr(
+						"data.digitalocean_certificate.foobar", "id", name),
+					resource.TestCheckResourceAttr(
 						"data.digitalocean_certificate.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_certificate.foobar", "type", "custom"),
@@ -49,14 +50,9 @@ func testAccCheckDataSourceDigitalOceanCertificateExists(n string, certificate *
 
 		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
-		foundCertificate, _, err := client.Certificates.Get(context.Background(), rs.Primary.ID)
-
+		foundCertificate, err := findCertificateByName(client, rs.Primary.ID)
 		if err != nil {
 			return err
-		}
-
-		if foundCertificate.ID != rs.Primary.ID {
-			return fmt.Errorf("Certificate not found")
 		}
 
 		*certificate = *foundCertificate

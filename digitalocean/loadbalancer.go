@@ -60,7 +60,7 @@ func expandHealthCheck(config []interface{}) *godo.HealthCheck {
 	return healthcheck
 }
 
-func expandForwardingRules(config []interface{}) []godo.ForwardingRule {
+func expandForwardingRules(client *godo.Client, config []interface{}) ([]godo.ForwardingRule, error) {
 	forwardingRules := make([]godo.ForwardingRule, 0, len(config))
 
 	for _, rawRule := range config {
@@ -75,14 +75,24 @@ func expandForwardingRules(config []interface{}) []godo.ForwardingRule {
 		}
 
 		if v, ok := rule["certificate_id"]; ok {
-			r.CertificateID = v.(string)
+			// When the certificate type is lets_encrypt, the certificate
+			// ID will change when it's renewed, so we have to rely on the
+			// certificate name as the primary identifier instead.
+			certName := v.(string)
+			if certName != "" {
+				cert, err := findCertificateByName(client, certName)
+				if err != nil {
+					return nil, err
+				}
+				r.CertificateID = cert.ID
+			}
 		}
 
 		forwardingRules = append(forwardingRules, r)
 
 	}
 
-	return forwardingRules
+	return forwardingRules, nil
 }
 
 func hashForwardingRules(v interface{}) int {
@@ -150,22 +160,33 @@ func flattenStickySessions(session *godo.StickySessions) []map[string]interface{
 	return result
 }
 
-func flattenForwardingRules(rules []godo.ForwardingRule) []map[string]interface{} {
+func flattenForwardingRules(client *godo.Client, rules []godo.ForwardingRule) ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, 0, 1)
 
 	if rules != nil {
 		for _, rule := range rules {
 			r := make(map[string]interface{})
+
 			r["entry_protocol"] = rule.EntryProtocol
 			r["entry_port"] = rule.EntryPort
 			r["target_protocol"] = rule.TargetProtocol
 			r["target_port"] = rule.TargetPort
-			r["certificate_id"] = rule.CertificateID
 			r["tls_passthrough"] = rule.TlsPassthrough
+
+			if rule.CertificateID != "" {
+				// When the certificate type is lets_encrypt, the certificate
+				// ID will change when it's renewed, so we have to rely on the
+				// certificate name as the primary identifier instead.
+				cert, _, err := client.Certificates.Get(context.Background(), rule.CertificateID)
+				if err != nil {
+					return nil, err
+				}
+				r["certificate_id"] = cert.Name
+			}
 
 			result = append(result, r)
 		}
 	}
 
-	return result
+	return result, nil
 }

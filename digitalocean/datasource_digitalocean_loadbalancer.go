@@ -258,7 +258,12 @@ func dataSourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interfa
 		return fmt.Errorf("[DEBUG] Error setting Load Balancer healthcheck - error: %#v", err)
 	}
 
-	if err := d.Set("forwarding_rule", flattenForwardingRules(loadbalancer.ForwardingRules)); err != nil {
+	forwardingRules, err := flattenForwardingRules(client, loadbalancer.ForwardingRules)
+	if err != nil {
+		return fmt.Errorf("[DEBUG] Error building Load Balancer forwarding rules - error: %#v", err)
+	}
+
+	if err := d.Set("forwarding_rule", forwardingRules); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Load Balancer forwarding_rule - error: %#v", err)
 	}
 

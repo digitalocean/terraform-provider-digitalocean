@@ -60,6 +60,7 @@ func testSweepCertificate(region string) error {
 func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
 	var cert godo.Certificate
 	rInt := acctest.RandInt()
+	name := fmt.Sprintf("certificate-%d", rInt)
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
 
 	resource.Test(t, resource.TestCase{
@@ -72,7 +73,9 @@ func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanCertificateExists("digitalocean_certificate.foobar", &cert),
 					resource.TestCheckResourceAttr(
-						"digitalocean_certificate.foobar", "name", fmt.Sprintf("certificate-%d", rInt)),
+						"digitalocean_certificate.foobar", "id", name),
+					resource.TestCheckResourceAttr(
+						"digitalocean_certificate.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_certificate.foobar", "private_key", HashString(fmt.Sprintf("%s\n", privateKeyMaterial))),
 					resource.TestCheckResourceAttr(
@@ -118,9 +121,9 @@ func testAccCheckDigitalOceanCertificateDestroy(s *terraform.State) error {
 			continue
 		}
 
-		_, _, err := client.Certificates.Get(context.Background(), rs.Primary.ID)
+		_, err := findCertificateByName(client, rs.Primary.ID)
 
-		if err != nil && !strings.Contains(err.Error(), "404") {
+		if err != nil && !strings.Contains(err.Error(), "not found") {
 			return fmt.Errorf(
 				"Error waiting for certificate (%s) to be destroyed: %s",
 				rs.Primary.ID, err)
@@ -143,14 +146,9 @@ func testAccCheckDigitalOceanCertificateExists(n string, cert *godo.Certificate)
 
 		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
-		c, _, err := client.Certificates.Get(context.Background(), rs.Primary.ID)
-
+		c, err := findCertificateByName(client, rs.Primary.ID)
 		if err != nil {
 			return err
-		}
-
-		if c.ID != rs.Primary.ID {
-			return fmt.Errorf("Certificate not found")
 		}
 
 		*cert = *c
