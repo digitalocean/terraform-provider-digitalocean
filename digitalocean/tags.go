@@ -7,7 +7,7 @@ import (
 	"regexp"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 var tagNameRe = regexp.MustCompile("^[a-zA-Z0-9:\\-_]{1,255}$")

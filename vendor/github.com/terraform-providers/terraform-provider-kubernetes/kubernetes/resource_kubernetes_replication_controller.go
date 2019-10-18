@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	api "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -110,7 +110,7 @@ func useDeprecatedSpecFields(d *schema.ResourceData) (deprecatedSpecFieldsExist 
 }
 
 func resourceKubernetesReplicationControllerCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*KubeClientsets).MainClientset
 
 	metadata := expandMetadata(d.Get("metadata").([]interface{}))
 
@@ -118,8 +118,6 @@ func resourceKubernetesReplicationControllerCreate(d *schema.ResourceData, meta 
 	if err != nil {
 		return err
 	}
-
-	spec.Template.Spec.AutomountServiceAccountToken = ptrToBool(false)
 
 	rc := api.ReplicationController{
 		ObjectMeta: metadata,
@@ -152,7 +150,7 @@ func resourceKubernetesReplicationControllerCreate(d *schema.ResourceData, meta 
 }
 
 func resourceKubernetesReplicationControllerRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*KubeClientsets).MainClientset
 
 	namespace, name, err := idParts(d.Id())
 	if err != nil {
@@ -186,7 +184,7 @@ func resourceKubernetesReplicationControllerRead(d *schema.ResourceData, meta in
 }
 
 func resourceKubernetesReplicationControllerUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*KubeClientsets).MainClientset
 
 	namespace, name, err := idParts(d.Id())
 	if err != nil {
@@ -227,7 +225,7 @@ func resourceKubernetesReplicationControllerUpdate(d *schema.ResourceData, meta 
 }
 
 func resourceKubernetesReplicationControllerDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*KubeClientsets).MainClientset
 
 	namespace, name, err := idParts(d.Id())
 	if err != nil {
@@ -258,7 +256,7 @@ func resourceKubernetesReplicationControllerDelete(d *schema.ResourceData, meta 
 		return err
 	}
 
-	err = conn.CoreV1().ReplicationControllers(namespace).Delete(name, &metav1.DeleteOptions{})
+	err = conn.CoreV1().ReplicationControllers(namespace).Delete(name, &deleteOptions)
 	if err != nil {
 		return err
 	}
@@ -270,7 +268,7 @@ func resourceKubernetesReplicationControllerDelete(d *schema.ResourceData, meta 
 }
 
 func resourceKubernetesReplicationControllerExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*KubeClientsets).MainClientset
 
 	namespace, name, err := idParts(d.Id())
 	if err != nil {
