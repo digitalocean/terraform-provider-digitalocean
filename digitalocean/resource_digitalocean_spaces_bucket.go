@@ -50,6 +50,37 @@ func resourceDigitalOceanBucket() *schema.Resource {
 				Description: "Canned ACL applied on bucket creation",
 				Default:     "private",
 			},
+			"cors_rule": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "A container holding a list of elements describing allowed methods for a specific origin.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"allowed_methods": {
+							Type:        schema.TypeList,
+							Required:    true,
+							Description: "A list of HTTP methods (e.g. GET) which are allowed from the specified origin.",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+						},
+						"allowed_origins": {
+							Type:        schema.TypeList,
+							Required:    true,
+							Description: "A list of hosts from which requests using the specified methods are allowed. A host may contain one wildcard (e.g. http://*.example.com).",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+						},
+						"allowed_headers": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "A list of headers that will be included in the CORS preflight request's Access-Control-Request-Headers. A header may contain one wildcard (e.g. x-amz-*).",
+							Elem:        &schema.Schema{Type: schema.TypeString},
+						},
+						"max_age_seconds": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
+					},
+				},
+			},
 			"bucket_domain_name": {
 				Type:        schema.TypeString,
 				Description: "The FQDN of the bucket",
@@ -104,7 +135,7 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 	log.Println("Bucket created")
 
 	d.SetId(d.Get("name").(string))
-	return resourceDigitalOceanBucketRead(d, meta)
+	return resourceDigitalOceanBucketUpdate(d, meta)
 }
 
 func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -119,6 +150,12 @@ func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) 
 
 	if d.HasChange("acl") {
 		if err := resourceDigitalOceanBucketACLUpdate(svc, d); err != nil {
+			return err
+		}
+	}
+
+	if d.HasChange("cors_rule") {
+		if err := resourceDigitalOceanBucketCorsUpdate(svc, d); err != nil {
 			return err
 		}
 	}
@@ -282,6 +319,63 @@ func resourceDigitalOceanBucketACLUpdate(svc *s3.S3, d *schema.ResourceData) err
 	})
 	if err != nil {
 		return fmt.Errorf("Error putting Spaces ACL: %s", err)
+	}
+
+	return nil
+}
+
+func resourceDigitalOceanBucketCorsUpdate(svc *s3.S3, d *schema.ResourceData) error {
+	rawCors := d.Get("cors_rule").([]interface{})
+	bucket := d.Get("name").(string)
+
+	if len(rawCors) == 0 {
+		// Delete CORS
+		log.Printf("[DEBUG] Spaces bucket: %s, delete CORS", bucket)
+		_, err := svc.DeleteBucketCors(&s3.DeleteBucketCorsInput{
+			Bucket: aws.String(bucket),
+		})
+		if err != nil {
+			return fmt.Errorf("Error deleting Spaces CORS: %s", err)
+		}
+	} else {
+		// Put CORS
+		rules := make([]*s3.CORSRule, 0, len(rawCors))
+		for _, cors := range rawCors {
+			corsMap := cors.(map[string]interface{})
+			r := &s3.CORSRule{}
+			for k, v := range corsMap {
+				log.Printf("[DEBUG] Spaces bucket: %s, put CORS: %#v, %#v", bucket, k, v)
+				if k == "max_age_seconds" {
+					r.MaxAgeSeconds = aws.Int64(int64(v.(int)))
+				} else {
+					vMap := make([]*string, len(v.([]interface{})))
+					for i, vv := range v.([]interface{}) {
+						str := vv.(string)
+						vMap[i] = aws.String(str)
+					}
+					switch k {
+					case "allowed_headers":
+						r.AllowedHeaders = vMap
+					case "allowed_methods":
+						r.AllowedMethods = vMap
+					case "allowed_origins":
+						r.AllowedOrigins = vMap
+					}
+				}
+			}
+			rules = append(rules, r)
+		}
+		corsInput := &s3.PutBucketCorsInput{
+			Bucket: aws.String(bucket),
+			CORSConfiguration: &s3.CORSConfiguration{
+				CORSRules: rules,
+			},
+		}
+		log.Printf("[DEBUG] Spaces bucket: %s, put CORS: %#v", bucket, corsInput)
+		_, err := svc.PutBucketCors(corsInput)
+		if err != nil {
+			return fmt.Errorf("Error putting Spaces CORS: %s", err)
+		}
 	}
 
 	return nil

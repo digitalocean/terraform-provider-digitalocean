@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -93,6 +94,109 @@ func TestAccDigitalOceanBucket_UpdateAcl(t *testing.T) {
 					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_spaces_bucket.bucket", "acl", "private"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanBucket_UpdateCors(t *testing.T) {
+	ri := acctest.RandInt()
+	preConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORS, ri)
+	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORSUpdate, ri)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: preConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_spaces_bucket.bucket", "cors_rule"),
+				),
+			},
+			{
+				Config: postConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
+					testAccCheckDigitalOceanBucketCors(
+						"digitalocean_spaces_bucket.bucket",
+						[]*s3.CORSRule{
+							{
+								AllowedHeaders: []*string{aws.String("*")},
+								AllowedMethods: []*string{aws.String("PUT"), aws.String("POST")},
+								AllowedOrigins: []*string{aws.String("https://www.example.com")},
+								MaxAgeSeconds:  aws.Int64(3000),
+							},
+						},
+					),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanBucket_WithCors(t *testing.T) {
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORSUpdate, ri),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
+					testAccCheckDigitalOceanBucketCors(
+						"digitalocean_spaces_bucket.bucket",
+						[]*s3.CORSRule{
+							{
+								AllowedHeaders: []*string{aws.String("*")},
+								AllowedMethods: []*string{aws.String("PUT"), aws.String("POST")},
+								AllowedOrigins: []*string{aws.String("https://www.example.com")},
+								MaxAgeSeconds:  aws.Int64(3000),
+							},
+						},
+					),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanBucket_WithMultipleCorsRules(t *testing.T) {
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccDigitalOceanBucketConfigWithMultiCORS, ri),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
+					testAccCheckDigitalOceanBucketCors(
+						"digitalocean_spaces_bucket.bucket",
+						[]*s3.CORSRule{
+							{
+								AllowedHeaders: []*string{aws.String("*")},
+								AllowedMethods: []*string{aws.String("GET")},
+								AllowedOrigins: []*string{aws.String("*")},
+								MaxAgeSeconds:  aws.Int64(3000),
+							},
+							{
+								AllowedHeaders: []*string{aws.String("*")},
+								AllowedMethods: []*string{aws.String("PUT"), aws.String("DELETE"), aws.String("POST")},
+								AllowedOrigins: []*string{aws.String("https://www.example.com")},
+								MaxAgeSeconds:  aws.Int64(3000),
+							},
+						},
+					),
 				),
 			},
 		},
@@ -233,6 +337,41 @@ func testAccCheckDigitalOceanDestroyBucket(n string) resource.TestCheckFunc {
 	}
 }
 
+func testAccCheckDigitalOceanBucketCors(n string, corsRules []*s3.CORSRule) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[n]
+		if !ok {
+			return fmt.Errorf("Not found: %s", n)
+		}
+
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No Spaces Bucket ID is set")
+		}
+
+		sesh, err := session.NewSession(&aws.Config{
+			Region:      aws.String(rs.Primary.Attributes["region"]),
+			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
+		)
+		svc := s3.New(sesh, &aws.Config{
+			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
+		)
+
+		out, err := svc.GetBucketCors(&s3.GetBucketCorsInput{
+			Bucket: aws.String(rs.Primary.ID),
+		})
+
+		if err != nil {
+			return fmt.Errorf("GetBucketCors error: %v", err)
+		}
+
+		if !reflect.DeepEqual(out.CORSRules, corsRules) {
+			return fmt.Errorf("bad error cors rule, expected: %v, got %v", corsRules, out.CORSRules)
+		}
+
+		return nil
+	}
+}
+
 func isAWSErr(err error, code string, message string) bool {
 	if err, ok := err.(awserr.Error); ok {
 		return err.Code() == code && strings.Contains(err.Message(), message)
@@ -293,5 +432,43 @@ var testAccDigitalOceanBucketConfigWithACLUpdate = `
 resource "digitalocean_spaces_bucket" "bucket" {
 	name = "tf-test-bucket-%d"
 	acl = "private"
+}
+`
+
+var testAccDigitalOceanBucketConfigWithCORS = `
+resource "digitalocean_spaces_bucket" "bucket" {
+	name = "tf-test-bucket-%d"
+}
+`
+
+var testAccDigitalOceanBucketConfigWithCORSUpdate = `
+resource "digitalocean_spaces_bucket" "bucket" {
+	name = "tf-test-bucket-%d"
+	cors_rule {
+			allowed_headers = ["*"]
+			allowed_methods = ["PUT","POST"]
+			allowed_origins = ["https://www.example.com"]
+			max_age_seconds = 3000
+	}
+}
+`
+
+var testAccDigitalOceanBucketConfigWithMultiCORS = `
+resource "digitalocean_spaces_bucket" "bucket" {
+	name = "tf-test-bucket-%d"
+
+	cors_rule {
+			allowed_headers = ["*"]
+			allowed_methods = ["GET"]
+			allowed_origins = ["*"]
+			max_age_seconds = 3000
+	}
+
+	cors_rule {
+			allowed_headers = ["*"]
+			allowed_methods = ["PUT", "DELETE", "POST"]
+			allowed_origins = ["https://www.example.com"]
+			max_age_seconds = 3000
+	}
 }
 `

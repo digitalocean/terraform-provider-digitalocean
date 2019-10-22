@@ -39,11 +39,35 @@ For more information, See [An Introduction to DigitalOcean Spaces](https://www.d
 
 ## Example Usage
 
+### Create a New Bucket
+
 ```hcl
-# Create a new bucket
 resource "digitalocean_spaces_bucket" "foobar" {
   name   = "foobar"
   region = "nyc3"
+}
+```
+
+### Create a New Bucket With CORS Rules
+
+```hcl
+resource "digitalocean_spaces_bucket" "foobar" {
+  name   = "foobar"
+  region = "nyc3"
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET"]
+    allowed_origins = ["*"]
+    max_age_seconds = 3000
+  }
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["PUT", "POST", "DELETE"]
+    allowed_origins = ["https://www.example.com"]
+    max_age_seconds = 3000
+  }
 }
 ```
 
@@ -55,6 +79,13 @@ The following arguments are supported:
 * `region` - The region where the bucket resides (Defaults to `nyc3`)
 * `acl` - Canned ACL applied on bucket creation (`private` or `public-read`)
 * `force_destroy` - Unless `true`, the bucket will only be destroyed if empty (Defaults to `false`)
+
+The `cors_rule` object supports the following:
+
+* `allowed_headers` - (Optional) A list of headers that will be included in the CORS preflight request's `Access-Control-Request-Headers`. A header may contain one wildcard (e.g. `x-amz-*`).
+* `allowed_methods` - (Required) A list of HTTP methods (e.g. `GET`) which are allowed from the specified origin.
+* `allowed_origins` - (Required) A list of hosts from which requests using the specified methods are allowed. A host may contain one wildcard (e.g. http://*.example.com).
+* `max_age_seconds` - (Optional) The time in seconds that browser can cache the response for a preflight request.
 
 ## Attributes Reference
 
