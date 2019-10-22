@@ -3,7 +3,7 @@ package kubernetes
 import (
 	v1 "k8s.io/api/core/v1"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 // Flatteners
@@ -217,6 +217,9 @@ func flattenGlusterfsVolumeSource(in *v1.GlusterfsVolumeSource) []interface{} {
 func flattenHostPathVolumeSource(in *v1.HostPathVolumeSource) []interface{} {
 	att := make(map[string]interface{})
 	att["path"] = in.Path
+	if in.Type != nil {
+		att["type"] = string(*in.Type)
+	}
 	return []interface{}{att}
 }
 
@@ -752,8 +755,10 @@ func expandHostPathVolumeSource(l []interface{}) *v1.HostPathVolumeSource {
 		return &v1.HostPathVolumeSource{}
 	}
 	in := l[0].(map[string]interface{})
+	typ := v1.HostPathType(in["type"].(string))
 	obj := &v1.HostPathVolumeSource{
 		Path: in["path"].(string),
+		Type: &typ,
 	}
 	return obj
 }

@@ -3,7 +3,7 @@ package digitalocean
 import (
 	"strings"
 
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func CaseSensitive(_, old, new string, _ *schema.ResourceData) bool {

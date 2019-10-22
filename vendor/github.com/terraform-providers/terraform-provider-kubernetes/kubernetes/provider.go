@@ -4,20 +4,23 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 	"github.com/mitchellh/go-homedir"
 	kubernetes "k8s.io/client-go/kubernetes"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	aggregator "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 )
 
 func Provider() terraform.ResourceProvider {
-	return &schema.Provider{
+	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"host": {
 				Type:        schema.TypeString,
@@ -138,20 +141,24 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
+			"kubernetes_api_service":               resourceKubernetesAPIService(),
 			"kubernetes_cluster_role":              resourceKubernetesClusterRole(),
 			"kubernetes_cluster_role_binding":      resourceKubernetesClusterRoleBinding(),
 			"kubernetes_config_map":                resourceKubernetesConfigMap(),
+			"kubernetes_cron_job":                  resourceKubernetesCronJob(),
 			"kubernetes_daemonset":                 resourceKubernetesDaemonSet(),
 			"kubernetes_deployment":                resourceKubernetesDeployment(),
 			"kubernetes_endpoints":                 resourceKubernetesEndpoints(),
 			"kubernetes_horizontal_pod_autoscaler": resourceKubernetesHorizontalPodAutoscaler(),
 			"kubernetes_ingress":                   resourceKubernetesIngress(),
+			"kubernetes_job":                       resourceKubernetesJob(),
 			"kubernetes_limit_range":               resourceKubernetesLimitRange(),
 			"kubernetes_namespace":                 resourceKubernetesNamespace(),
 			"kubernetes_network_policy":            resourceKubernetesNetworkPolicy(),
 			"kubernetes_persistent_volume":         resourceKubernetesPersistentVolume(),
 			"kubernetes_persistent_volume_claim":   resourceKubernetesPersistentVolumeClaim(),
 			"kubernetes_pod":                       resourceKubernetesPod(),
+			"kubernetes_priority_class":            resourceKubernetesPriorityClass(),
 			"kubernetes_replication_controller":    resourceKubernetesReplicationController(),
 			"kubernetes_role_binding":              resourceKubernetesRoleBinding(),
 			"kubernetes_resource_quota":            resourceKubernetesResourceQuota(),
@@ -162,11 +169,27 @@ func Provider() terraform.ResourceProvider {
 			"kubernetes_stateful_set":              resourceKubernetesStatefulSet(),
 			"kubernetes_storage_class":             resourceKubernetesStorageClass(),
 		},
-		ConfigureFunc: providerConfigure,
 	}
+
+	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
+		terraformVersion := p.TerraformVersion
+		if terraformVersion == "" {
+			// Terraform 0.12 introduced this field to the protocol
+			// We can therefore assume that if it's missing it's 0.10 or 0.11
+			terraformVersion = "0.11+compatible"
+		}
+		return providerConfigure(d, terraformVersion)
+	}
+
+	return p
 }
 
-func providerConfigure(d *schema.ResourceData) (interface{}, error) {
+type KubeClientsets struct {
+	MainClientset       *kubernetes.Clientset
+	AggregatorClientset *aggregator.Clientset
+}
+
+func providerConfigure(d *schema.ResourceData, terraformVersion string) (interface{}, error) {
 
 	var cfg *restclient.Config
 	var err error
@@ -179,11 +202,20 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		return nil, err
 	}
 	if cfg == nil {
-		cfg = &restclient.Config{}
+		// Attempt to load in-cluster config
+		cfg, err = restclient.InClusterConfig()
+		if err != nil {
+			// Fallback to standard config if we are not running inside a cluster
+			if err == restclient.ErrNotInCluster {
+				cfg = &restclient.Config{}
+			} else {
+				return nil, fmt.Errorf("Failed to configure: %s", err)
+			}
+		}
 	}
 
 	// Overriding with static configuration
-	cfg.UserAgent = fmt.Sprintf("HashiCorp/1.0 Terraform/%s", terraform.VersionString())
+	cfg.UserAgent = fmt.Sprintf("HashiCorp/1.0 Terraform/%s", terraformVersion)
 
 	if v, ok := d.GetOk("host"); ok {
 		cfg.Host = v.(string)
@@ -225,12 +257,24 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		cfg.ExecProvider = exec
 	}
 
+	if logging.IsDebugOrHigher() {
+		log.Printf("[DEBUG] Enabling HTTP requests/responses tracing")
+		cfg.WrapTransport = func(rt http.RoundTripper) http.RoundTripper {
+			return logging.NewTransport("Kubernetes", rt)
+		}
+	}
+
 	k, err := kubernetes.NewForConfig(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to configure: %s", err)
 	}
 
-	return k, nil
+	a, err := aggregator.NewForConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to configure: %s", err)
+	}
+
+	return &KubeClientsets{k, a}, nil
 }
 
 func tryLoadingConfigFile(d *schema.ResourceData) (*restclient.Config, error) {
