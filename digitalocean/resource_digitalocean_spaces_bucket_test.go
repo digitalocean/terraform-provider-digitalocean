@@ -168,6 +168,41 @@ func TestAccDigitalOceanBucket_WithCors(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanBucket_WithMultipleCorsRules(t *testing.T) {
+	ri := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccDigitalOceanBucketConfigWithMultiCORS, ri),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
+					testAccCheckDigitalOceanBucketCors(
+						"digitalocean_spaces_bucket.bucket",
+						[]*s3.CORSRule{
+							{
+								AllowedHeaders: []*string{aws.String("*")},
+								AllowedMethods: []*string{aws.String("GET")},
+								AllowedOrigins: []*string{aws.String("*")},
+								MaxAgeSeconds:  aws.Int64(3000),
+							},
+							{
+								AllowedHeaders: []*string{aws.String("*")},
+								AllowedMethods: []*string{aws.String("PUT"), aws.String("DELETE"), aws.String("POST")},
+								AllowedOrigins: []*string{aws.String("https://www.example.com")},
+								MaxAgeSeconds:  aws.Int64(3000),
+							},
+						},
+					),
+				),
+			},
+		},
+	})
+}
+
 // Test TestAccDigitalOceanBucket_shouldFailNotFound is designed to fail with a "plan
 // not empty" error in Terraform, to check against regresssions.
 // See https://github.com/hashicorp/terraform/pull/2925
@@ -412,6 +447,26 @@ resource "digitalocean_spaces_bucket" "bucket" {
 	cors_rule {
 			allowed_headers = ["*"]
 			allowed_methods = ["PUT","POST"]
+			allowed_origins = ["https://www.example.com"]
+			max_age_seconds = 3000
+	}
+}
+`
+
+var testAccDigitalOceanBucketConfigWithMultiCORS = `
+resource "digitalocean_spaces_bucket" "bucket" {
+	name = "tf-test-bucket-%d"
+
+	cors_rule {
+			allowed_headers = ["*"]
+			allowed_methods = ["GET"]
+			allowed_origins = ["*"]
+			max_age_seconds = 3000
+	}
+
+	cors_rule {
+			allowed_headers = ["*"]
+			allowed_methods = ["PUT", "DELETE", "POST"]
 			allowed_origins = ["https://www.example.com"]
 			max_age_seconds = 3000
 	}
