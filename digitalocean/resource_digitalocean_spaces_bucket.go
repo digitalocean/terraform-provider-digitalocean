@@ -59,19 +59,19 @@ func resourceDigitalOceanBucket() *schema.Resource {
 						"allowed_methods": {
 							Type:        schema.TypeList,
 							Required:    true,
-							Description: "An individual HTTP method (e.g. GET) which is allowed from the specified origin.",
+							Description: "A list of HTTP methods (e.g. GET) which are allowed from the specified origin.",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 						"allowed_origins": {
 							Type:        schema.TypeList,
 							Required:    true,
-							Description: "A host from which requests using the specified methods are allowed. It may contain one wildcard (e.g. http://*.example.com).",
+							Description: "A list of hosts from which requests using the specified methods are allowed. A host may contain one wildcard (e.g. http://*.example.com).",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 						"allowed_headers": {
 							Type:        schema.TypeList,
 							Optional:    true,
-							Description: "A header that will be included in the CORS preflight request's Access-Control-Request-Headers. It may contain one wildcard (e.g. x-amz-*).",
+							Description: "A list of headers that will be included in the CORS preflight request's Access-Control-Request-Headers. A header may contain one wildcard (e.g. x-amz-*).",
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 						"max_age_seconds": {
