@@ -135,7 +135,7 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 	log.Println("Bucket created")
 
 	d.SetId(d.Get("name").(string))
-	return resourceDigitalOceanBucketRead(d, meta)
+	return resourceDigitalOceanBucketUpdate(d, meta)
 }
 
 func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) error {
