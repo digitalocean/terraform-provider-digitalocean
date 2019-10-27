@@ -50,6 +50,7 @@ func Provider() terraform.ResourceProvider {
 			"digitalocean_kubernetes_cluster": dataSourceDigitalOceanKubernetesCluster(),
 			"digitalocean_loadbalancer":       dataSourceDigitalOceanLoadbalancer(),
 			"digitalocean_record":             dataSourceDigitalOceanRecord(),
+			"digitalocean_sizes":              dataSourceDigitalOceanSizes(),
 			"digitalocean_ssh_key":            dataSourceDigitalOceanSSHKey(),
 			"digitalocean_tag":                dataSourceDigitalOceanTag(),
 			"digitalocean_volume_snapshot":    dataSourceDigitalOceanVolumeSnapshot(),
