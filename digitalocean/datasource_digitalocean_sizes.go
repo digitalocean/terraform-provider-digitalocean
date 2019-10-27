@@ -3,6 +3,9 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -21,6 +24,16 @@ var (
 		"price_hourly",
 		"available",
 	}
+
+	sortKeysDigitalOceanSizes = []string{
+		"slug",
+		"memory",
+		"vcpus",
+		"disk",
+		"transfer",
+		"price_monthly",
+		"price_hourly",
+	}
 )
 
 func dataSourceDigitalOceanSizes() *schema.Resource {
@@ -28,7 +41,7 @@ func dataSourceDigitalOceanSizes() *schema.Resource {
 		Read: dataSourceDigitalOceanSizeRead,
 		Schema: map[string]*schema.Schema{
 			"filter": filterSchema(filterKeysDigitalOceanSizes),
-			"sort":   sortSchema(filterKeysDigitalOceanSizes),
+			"sort":   sortSchema(sortKeysDigitalOceanSizes),
 
 			// Computed properties
 			"sizes": {
@@ -92,19 +105,19 @@ func dataSourceDigitalOceanSizes() *schema.Resource {
 
 func dataSourceDigitalOceanSizeRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
-	sizes, err := getAllDigitalOceanSizes(client)
+	sizes, err := getDigitalOceanSizes(client)
 	if err != nil {
 		return err
 	}
 
 	if v, ok := d.GetOk("filter"); ok {
 		filters := expandFilters(v.(*schema.Set).List())
-		fmt.Printf("%+v", filters)
+		sizes = filterDigitalOceanSizes(sizes, filters)
 	}
 
 	if v, ok := d.GetOk("sort"); ok {
 		sorts := expandSorts(v.(*schema.Set).List())
-		fmt.Printf("%+v", sorts)
+		sizes = sortDigitalOceanSizes(sizes, sorts)
 	}
 
 	d.SetId(resource.UniqueId())
@@ -115,7 +128,7 @@ func dataSourceDigitalOceanSizeRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func getAllDigitalOceanSizes(client *godo.Client) ([]godo.Size, error) {
+func getDigitalOceanSizes(client *godo.Client) ([]godo.Size, error) {
 	sizes := []godo.Size{}
 
 	opts := &godo.ListOptions{
@@ -146,6 +159,101 @@ func getAllDigitalOceanSizes(client *godo.Client) ([]godo.Size, error) {
 	}
 
 	return sizes, nil
+}
+
+func filterDigitalOceanSizes(sizes []godo.Size, filters []commonFilter) []godo.Size {
+	for _, f := range filters {
+		var filteredSizes []godo.Size
+		filterFunc := func(size godo.Size) bool {
+			result := false
+
+			for _, filterValue := range f.values {
+				switch f.key {
+				case "slug":
+					result = result || strings.EqualFold(filterValue, size.Slug)
+				case "regions":
+					for _, region := range size.Regions {
+						result = result || strings.EqualFold(filterValue, region)
+					}
+				case "memory":
+					if memory, err := strconv.Atoi(filterValue); err == nil {
+						result = result || memory == size.Memory
+					}
+				case "vcpus":
+					if vcpus, err := strconv.Atoi(filterValue); err == nil {
+						result = result || vcpus == size.Vcpus
+					}
+				case "disk":
+					if disk, err := strconv.Atoi(filterValue); err == nil {
+						result = result || disk == size.Disk
+					}
+				case "transfer":
+					if transfer, err := strconv.ParseFloat(filterValue, 64); err == nil {
+						result = result || fmt.Sprintf("%.5f", transfer) == fmt.Sprintf("%.5f", size.Transfer)
+					}
+				case "price_monthly":
+					if priceMonthly, err := strconv.ParseFloat(filterValue, 64); err == nil {
+						result = result || fmt.Sprintf("%.5f", priceMonthly) == fmt.Sprintf("%.5f", size.PriceMonthly)
+					}
+				case "price_hourly":
+					if priceHourly, err := strconv.ParseFloat(filterValue, 64); err == nil {
+						result = result || fmt.Sprintf("%.5f", priceHourly) == fmt.Sprintf("%.5f", size.PriceHourly)
+					}
+				case "available":
+					if available, err := strconv.ParseBool(filterValue); err == nil {
+						result = result || available == size.Available
+					}
+				default:
+				}
+			}
+
+			return result
+		}
+
+		for _, size := range sizes {
+			if filterFunc(size) {
+				filteredSizes = append(filteredSizes, size)
+			}
+		}
+
+		sizes = filteredSizes
+	}
+
+	return sizes
+}
+
+func sortDigitalOceanSizes(sizes []godo.Size, sorts []commonSort) []godo.Size {
+	for _, s := range sorts {
+		sortAscFunc := func(size1, size2 godo.Size) bool {
+			switch s.key {
+			case "slug":
+				return size1.Slug <= size2.Slug
+			case "memory":
+				return size1.Memory <= size2.Memory
+			case "vcpus":
+				return size1.Vcpus <= size2.Vcpus
+			case "disk":
+				return size1.Disk <= size2.Disk
+			case "transfer":
+				return size1.Transfer <= size2.Transfer
+			case "price_monthly":
+				return size1.PriceMonthly <= size2.PriceMonthly
+			case "price_hourly":
+				return size1.PriceHourly <= size2.PriceHourly
+			default:
+				return true
+			}
+		}
+
+		sort.Slice(sizes, func(i, j int) bool {
+			if strings.EqualFold(s.direction, "asc") {
+				return sortAscFunc(sizes[i], sizes[j])
+			}
+			return sortAscFunc(sizes[j], sizes[i])
+		})
+	}
+
+	return sizes
 }
 
 func flattenDigitalOceanSizes(sizes []godo.Size) []interface{} {
