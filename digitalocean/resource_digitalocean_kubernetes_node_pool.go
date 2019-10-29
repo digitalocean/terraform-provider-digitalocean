@@ -203,15 +203,12 @@ func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta int
 	d.Set("auto_scale", pool.AutoScale)
 	d.Set("min_nodes", pool.MinNodes)
 	d.Set("max_nodes", pool.MaxNodes)
+	d.Set("nodes", flattenNodes(pool.Nodes))
 
 	// Assign a node_count only if it's been set explicitly, since it's
 	// optional and we don't want to update with a 0 if it's not set.
 	if _, ok := d.GetOk("node_count"); ok {
 		d.Set("node_count", pool.Count)
-	}
-
-	if pool.Nodes != nil {
-		d.Set("nodes", flattenNodes(pool.Nodes))
 	}
 
 	return nil
@@ -438,11 +435,11 @@ func expandNodes(nodes []interface{}) []*godo.KubernetesNode {
 }
 
 func flattenNodes(nodes []*godo.KubernetesNode) []interface{} {
+	flattenedNodes := make([]interface{}, 0)
 	if nodes == nil {
-		return nil
+		return flattenedNodes
 	}
 
-	flattenedNodes := make([]interface{}, 0)
 	for _, node := range nodes {
 		rawNode := map[string]interface{}{
 			"id":         node.ID,
