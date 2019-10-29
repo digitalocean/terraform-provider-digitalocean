@@ -1,21 +1,21 @@
 ---
 layout: "digitalocean"
-page_title: "DigitalOcean: digitalocean_database"
-sidebar_current: "docs-do-resource-database"
+page_title: "DigitalOcean: digitalocean_database_db"
+sidebar_current: "docs-do-resource-database-db"
 description: |-
   Provides a DigitalOcean database resource.
 ---
 
-# digitalocean\_database
+# digitalocean\_database\_db
 
-Provides a DigitalOcean database resource. When creating a new database cluster, a default db with name `defaultdb` will be created. Then, this resource can be used to provide additional databases inside the cluster.
+Provides a DigitalOcean database resource. When creating a new database cluster, a default database with name `defaultdb` will be created. Then, this resource can be used to provide additional database inside the cluster.
 
 ## Example Usage
 
 ### Create a new PostgreSQL database
 ```hcl
-resource "digitalocean_database" "database-example" {
-  cluster_id = "${digitalocean_database_cluster.postgres-example.id}"
+resource "digitalocean_database_db" "database-example" {
+  cluster_id = digitalocean_database_cluster.postgres-example.id
   name       = "foobar"
 }
 
@@ -46,5 +46,5 @@ Database can be imported using the `id` of the source database cluster
 and the `name` of the database joined with a comma. For example:
 
 ```
-terraform import digitalocean_database.database-example 245bcfd0-7f31-4ce6-a2bc-475a116cca97,foobar
+terraform import digitalocean_database_db.database-example 245bcfd0-7f31-4ce6-a2bc-475a116cca97,foobar
 ```
