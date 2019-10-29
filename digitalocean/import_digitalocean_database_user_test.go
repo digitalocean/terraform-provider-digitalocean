@@ -28,7 +28,7 @@ func TestAccDigitalOceanDatabaseUser_importBasic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				// Requires passing both the cluster ID and replica name
+				// Requires passing both the cluster ID and user name
 				ImportStateIdFunc: testAccDatabaseUserImportID(resourceName),
 			},
 			// Test importing non-existent resource provides expected error.
