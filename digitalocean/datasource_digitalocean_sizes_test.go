@@ -60,7 +60,7 @@ func TestFilterDigitalOceanSizes(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			sizes := filterDigitalOceanSizes(testSizes(), []commonFilter{testCase.filter})
+			sizes := filterDigitalOceanSizes(sizesTestData(), []commonFilter{testCase.filter})
 			if len(sizes) != len(testCase.expectations) {
 				t.Fatalf("Expecting %d size results, found %d size results instead", len(testCase.expectations), len(sizes))
 			}
@@ -91,7 +91,7 @@ func TestSortDigitalOceanSizes(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			// Test ascending order
-			sizes := sortDigitalOceanSizes(testSizes(), []commonSort{{testCase.key, "asc"}})
+			sizes := sortDigitalOceanSizes(sizesTestData(), []commonSort{{testCase.key, "asc"}})
 			if len(sizes) != len(testCase.expectedAsc) {
 				t.Fatalf("Expecting %d size results, found %d size results instead", len(testCase.expectedAsc), len(sizes))
 			}
@@ -102,7 +102,7 @@ func TestSortDigitalOceanSizes(t *testing.T) {
 			}
 
 			// Test descending order
-			sizes = sortDigitalOceanSizes(testSizes(), []commonSort{{testCase.key, "desc"}})
+			sizes = sortDigitalOceanSizes(sizesTestData(), []commonSort{{testCase.key, "desc"}})
 			if len(sizes) != len(testCase.expectedAsc) {
 				t.Fatalf("Expecting %d size results, found %d size results instead", len(testCase.expectedAsc), len(sizes))
 			}
@@ -112,6 +112,30 @@ func TestSortDigitalOceanSizes(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestSortMultipleDigitalOceanSizes(t *testing.T) {
+	// Test ascending order
+	sizes := sortDigitalOceanSizes(
+		sizesTestDataForTestMultipleSort(),
+		[]commonSort{
+			{"memory", "desc"}, // Sort by memory descendingly first
+			{"disk", "asc"},    // Then for sizes with same memory, sort by disk ascendingly
+		},
+	)
+
+	if len(sizes) != 3 {
+		t.Fatalf("Expecting 3 size results, found %d size results instead", len(sizes))
+	}
+
+	// s-2vcpu-2gb 	(Memory = 2048)
+	// s-1vcpu-1gb 	(Memory = 1024, Disk = 25)
+	// 1gb			(Memory = 1024, Disk = 30)
+	if sizes[0].Slug != "s-2vcpu-2gb" ||
+		sizes[1].Slug != "s-1vcpu-1gb" ||
+		sizes[2].Slug != "1gb" {
+		t.Fatalf("Expecting sizes to be sorted by memory in descending order, then by disk in ascending order")
 	}
 }
 
@@ -192,7 +216,7 @@ func testAccCheckDataSourceDigitalOceanSizesFilteredAndSorted(n string) resource
 	}
 }
 
-func testSizes() []godo.Size {
+func sizesTestData() []godo.Size {
 	return []godo.Size{
 		godo.Size{
 			Slug:         "s-1vcpu-1gb",
@@ -226,6 +250,44 @@ func testSizes() []godo.Size {
 			PriceHourly:  0.05951999872922897,
 			Regions:      []string{"ams1", "ams2"},
 			Available:    true,
+		},
+	}
+}
+
+func sizesTestDataForTestMultipleSort() []godo.Size {
+	return []godo.Size{
+		godo.Size{
+			Slug:         "s-1vcpu-1gb",
+			Memory:       1024,
+			Vcpus:        1,
+			Disk:         25,
+			Transfer:     1.0,
+			PriceMonthly: 5.0,
+			PriceHourly:  0.007439999841153622,
+			Regions:      []string{"sgp1", "sgp2"},
+			Available:    true,
+		},
+		godo.Size{
+			Slug:         "1gb",
+			Memory:       1024,
+			Vcpus:        1,
+			Disk:         30,
+			Transfer:     2.0,
+			PriceMonthly: 10.0,
+			PriceHourly:  0.01487999968230724,
+			Regions:      []string{"sgp1", "sgp2"},
+			Available:    true,
+		},
+		godo.Size{
+			Slug:         "s-2vcpu-2gb",
+			Memory:       2048,
+			Vcpus:        2,
+			Disk:         60,
+			Transfer:     3.0,
+			PriceMonthly: 15.0,
+			PriceHourly:  0.02232000045478344,
+			Regions:      []string{"nyc1", "nyc2"},
+			Available:    false,
 		},
 	}
 }

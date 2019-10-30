@@ -163,7 +163,10 @@ func getDigitalOceanSizes(client *godo.Client) ([]godo.Size, error) {
 
 func filterDigitalOceanSizes(sizes []godo.Size, filters []commonFilter) []godo.Size {
 	for _, f := range filters {
+		// Handle multiple filters by applying them in order
 		var filteredSizes []godo.Size
+
+		// Define the filter strategy based on the filter key
 		filterFunc := func(size godo.Size) bool {
 			result := false
 
@@ -223,35 +226,52 @@ func filterDigitalOceanSizes(sizes []godo.Size, filters []commonFilter) []godo.S
 }
 
 func sortDigitalOceanSizes(sizes []godo.Size, sorts []commonSort) []godo.Size {
-	for _, s := range sorts {
-		sortAscFunc := func(size1, size2 godo.Size) bool {
+	sort.Slice(sizes, func(_i, _j int) bool {
+		for _, s := range sorts {
+			// Handle multiple sorts by applying them in order
+
+			i := _i
+			j := _j
+			if strings.EqualFold(s.direction, "desc") {
+				// If the direction is desc, reverse index to compare
+				i = _j
+				j = _i
+			}
+
 			switch s.key {
 			case "slug":
-				return size1.Slug <= size2.Slug
+				if sizes[i].Slug != sizes[j].Slug {
+					return sizes[i].Slug < sizes[j].Slug
+				}
 			case "memory":
-				return size1.Memory <= size2.Memory
+				if sizes[i].Memory != sizes[j].Memory {
+					return sizes[i].Memory < sizes[j].Memory
+				}
 			case "vcpus":
-				return size1.Vcpus <= size2.Vcpus
+				if sizes[i].Vcpus != sizes[j].Vcpus {
+					return sizes[i].Vcpus < sizes[j].Vcpus
+				}
 			case "disk":
-				return size1.Disk <= size2.Disk
+				if sizes[i].Disk != sizes[j].Disk {
+					return sizes[i].Disk < sizes[j].Disk
+				}
 			case "transfer":
-				return size1.Transfer <= size2.Transfer
+				if sizes[i].Transfer != sizes[j].Transfer {
+					return sizes[i].Transfer < sizes[j].Transfer
+				}
 			case "price_monthly":
-				return size1.PriceMonthly <= size2.PriceMonthly
+				if sizes[i].PriceMonthly != sizes[j].PriceMonthly {
+					return sizes[i].PriceMonthly < sizes[j].PriceMonthly
+				}
 			case "price_hourly":
-				return size1.PriceHourly <= size2.PriceHourly
-			default:
-				return true
+				if sizes[i].PriceHourly != sizes[j].PriceHourly {
+					return sizes[i].PriceHourly < sizes[j].PriceHourly
+				}
 			}
 		}
 
-		sort.Slice(sizes, func(i, j int) bool {
-			if strings.EqualFold(s.direction, "asc") {
-				return sortAscFunc(sizes[i], sizes[j])
-			}
-			return sortAscFunc(sizes[j], sizes[i])
-		})
-	}
+		return true
+	})
 
 	return sizes
 }

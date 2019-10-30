@@ -30,7 +30,7 @@ resource "digitalocean_droplet" "web" {
 }
 ```
 
-The data source also supports multiple filters and sorts. For example, fetch sizes with virtual CPU 1 or 2 that are available "sgp1" region. Pick the cheapest one:
+The data source also supports multiple filters and sorts. For example, to fetch sizes with 1 or 2 virtual CPU that are available "sgp1" region, then pick the cheapest one:
 
 ```hcl
 data "digitalocean_sizes" "main" {
@@ -55,6 +55,24 @@ resource "digitalocean_droplet" "web" {
   name   = "web-1"
   region = "sgp1"
   size   = element(data.digitalocean_sizes.main.sizes, 0).slug
+}
+```
+
+The data source can also handle multiple sorts. In which case, the sort will be applied in the order it is defined. For example, to sort by memory in ascending order, then sort by disk in descending order between sizes with same memory:
+
+```hcl
+data "digitalocean_sizes" "main" {
+  sort {
+    // Sort by memory ascendingly
+    key       = "memory"
+    direction = "asc"
+  }
+
+  sort {
+    // Then sort by disk descendingly for sizes with same memory
+    key       = "disk"
+    direction = "desc"
+  }
 }
 ```
 
