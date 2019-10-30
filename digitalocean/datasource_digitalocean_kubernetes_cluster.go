@@ -71,7 +71,27 @@ func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 							Computed: true,
 						},
 
+						"actual_node_count": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
 						"node_count": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
+						"auto_scale": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+
+						"min_nodes": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+
+						"max_nodes": {
 							Type:     schema.TypeInt,
 							Computed: true,
 						},

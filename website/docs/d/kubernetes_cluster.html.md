@@ -60,6 +60,10 @@ The following attributes are exported:
   - `name` - The name of the node pool.
   - `size` - The slug identifier for the type of Droplet used as workers in the node pool.
   - `node_count` - The number of Droplet instances in the node pool.
+  - `actual_node_count` - The actual number of nodes in the node pool, which is especially useful when auto-scaling is enabled.
+  - `auto_scale` - A boolean indicating whether auto-scaling is enabled on the node pool.
+  - `min_nodes` - If auto-scaling is enabled, this represents the minimum number of nodes that the node pool can be scaled down to.
+  - `max_nodes` - If auto-scaling is enabled, this represents the maximum number of nodes that the node pool can be scaled up to.
   - `tags` - A list of tag names applied to the node pool.
   - `nodes` - A list of nodes in the pool. Each node exports the following attributes:
      + `id` -  A unique ID that can be used to identify and reference the node.

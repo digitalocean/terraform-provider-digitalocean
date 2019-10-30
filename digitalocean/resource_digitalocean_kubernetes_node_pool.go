@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -65,10 +66,56 @@ func nodePoolSchema() map[string]*schema.Schema {
 			ValidateFunc: validation.NoZeroValues,
 		},
 
+		"actual_node_count": {
+			Type:     schema.TypeInt,
+			Computed: true,
+		},
+
 		"node_count": {
 			Type:         schema.TypeInt,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: validation.IntAtLeast(1),
+			DiffSuppressFunc: func(key, old, new string, d *schema.ResourceData) bool {
+				nodeCountKey := "node_count"
+				actualNodeCountKey := "actual_node_count"
+
+				// Since this schema is shared between the node pool resource
+				// and as the node pool sub-element of the cluster resource,
+				// we need to check for both variants of the incoming key.
+				keyParts := strings.Split(key, ".")
+				if keyParts[0] == "node_pool" {
+					npKeyParts := keyParts[:len(keyParts)-1]
+					nodeCountKeyParts := append(npKeyParts, "node_count")
+					nodeCountKey = strings.Join(nodeCountKeyParts, ".")
+					actualNodeCountKeyParts := append(npKeyParts, "actual_node_count")
+					actualNodeCountKey = strings.Join(actualNodeCountKeyParts, ".")
+				}
+
+				// If node_count equals actual_node_count already, then
+				// suppress the diff.
+				if d.Get(nodeCountKey).(int) == d.Get(actualNodeCountKey).(int) {
+					return true
+				}
+
+				// Otherwise suppress the diff only if old equals new.
+				return old == new
+			},
+		},
+
+		"auto_scale": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"min_nodes": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+
+		"max_nodes": {
+			Type:     schema.TypeInt,
+			Optional: true,
 		},
 
 		"tags": tagsSchema(),
@@ -118,8 +165,11 @@ func resourceDigitalOceanKubernetesNodePoolCreate(d *schema.ResourceData, meta i
 	rawPool := map[string]interface{}{
 		"name":       d.Get("name"),
 		"size":       d.Get("size"),
-		"node_count": d.Get("node_count"),
 		"tags":       d.Get("tags"),
+		"node_count": d.Get("node_count"),
+		"auto_scale": d.Get("auto_scale"),
+		"min_nodes":  d.Get("min_nodes"),
+		"max_nodes":  d.Get("max_nodes"),
 	}
 
 	pool, err := digitaloceanKubernetesNodePoolCreate(client, rawPool, d.Get("cluster_id").(string))
@@ -148,10 +198,17 @@ func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta int
 	d.Set("name", pool.Name)
 	d.Set("size", pool.Size)
 	d.Set("node_count", pool.Count)
+	d.Set("actual_node_count", pool.Count)
 	d.Set("tags", flattenTags(filterTags(pool.Tags)))
+	d.Set("auto_scale", pool.AutoScale)
+	d.Set("min_nodes", pool.MinNodes)
+	d.Set("max_nodes", pool.MaxNodes)
+	d.Set("nodes", flattenNodes(pool.Nodes))
 
-	if pool.Nodes != nil {
-		d.Set("nodes", flattenNodes(pool.Nodes))
+	// Assign a node_count only if it's been set explicitly, since it's
+	// optional and we don't want to update with a 0 if it's not set.
+	if _, ok := d.GetOk("node_count"); ok {
+		d.Set("node_count", pool.Count)
 	}
 
 	return nil
@@ -161,10 +218,17 @@ func resourceDigitalOceanKubernetesNodePoolUpdate(d *schema.ResourceData, meta i
 	client := meta.(*CombinedConfig).godoClient()
 
 	rawPool := map[string]interface{}{
-		"name":       d.Get("name"),
-		"node_count": d.Get("node_count"),
-		"tags":       d.Get("tags"),
+		"name": d.Get("name"),
+		"tags": d.Get("tags"),
 	}
+
+	if _, ok := d.GetOk("node_count"); ok {
+		rawPool["node_count"] = d.Get("node_count")
+	}
+
+	rawPool["auto_scale"] = d.Get("auto_scale")
+	rawPool["min_nodes"] = d.Get("min_nodes")
+	rawPool["max_nodes"] = d.Get("max_nodes")
 
 	_, err := digitaloceanKubernetesNodePoolUpdate(client, rawPool, d.Get("cluster_id").(string), d.Id())
 	if err != nil {
@@ -185,12 +249,17 @@ func digitaloceanKubernetesNodePoolCreate(client *godo.Client, pool map[string]i
 	tags := expandTags(pool["tags"].(*schema.Set).List())
 	tags = append(tags, customTags...)
 
-	p, _, err := client.Kubernetes.CreateNodePool(context.Background(), clusterID, &godo.KubernetesNodePoolCreateRequest{
-		Name:  pool["name"].(string),
-		Size:  pool["size"].(string),
-		Count: pool["node_count"].(int),
-		Tags:  tags,
-	})
+	req := &godo.KubernetesNodePoolCreateRequest{
+		Name:      pool["name"].(string),
+		Size:      pool["size"].(string),
+		Count:     pool["node_count"].(int),
+		Tags:      tags,
+		AutoScale: pool["auto_scale"].(bool),
+		MinNodes:  pool["min_nodes"].(int),
+		MaxNodes:  pool["max_nodes"].(int),
+	}
+
+	p, _, err := client.Kubernetes.CreateNodePool(context.Background(), clusterID, req)
 
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create new default node pool %s", err)
@@ -208,12 +277,29 @@ func digitaloceanKubernetesNodePoolUpdate(client *godo.Client, pool map[string]i
 	tags := expandTags(pool["tags"].(*schema.Set).List())
 	tags = append(tags, customTags...)
 
-	count := pool["node_count"].(int)
-	p, resp, err := client.Kubernetes.UpdateNodePool(context.Background(), clusterID, poolID, &godo.KubernetesNodePoolUpdateRequest{
-		Name:  pool["name"].(string),
-		Count: &count,
-		Tags:  tags,
-	})
+	req := &godo.KubernetesNodePoolUpdateRequest{
+		Name: pool["name"].(string),
+		Tags: tags,
+	}
+
+	if pool["node_count"] != nil {
+		req.Count = intPtr(pool["node_count"].(int))
+	}
+
+	if pool["auto_scale"] == nil {
+		pool["auto_scale"] = false
+	}
+	req.AutoScale = boolPtr(pool["auto_scale"].(bool))
+
+	if pool["min_nodes"] != nil {
+		req.MinNodes = intPtr(pool["min_nodes"].(int))
+	}
+
+	if pool["max_nodes"] != nil {
+		req.MaxNodes = intPtr(pool["max_nodes"].(int))
+	}
+
+	p, resp, err := client.Kubernetes.UpdateNodePool(context.Background(), clusterID, poolID, req)
 
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
@@ -316,12 +402,15 @@ func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
 	for _, rawPool := range nodePools {
 		pool := rawPool.(map[string]interface{})
 		cr := &godo.KubernetesNodePool{
-			ID:    pool["id"].(string),
-			Name:  pool["name"].(string),
-			Size:  pool["size"].(string),
-			Count: pool["node_count"].(int),
-			Tags:  expandTags(pool["tags"].(*schema.Set).List()),
-			Nodes: expandNodes(pool["nodes"].([]interface{})),
+			ID:        pool["id"].(string),
+			Name:      pool["name"].(string),
+			Size:      pool["size"].(string),
+			Count:     pool["node_count"].(int),
+			AutoScale: pool["auto_scale"].(bool),
+			MinNodes:  pool["min_nodes"].(int),
+			MaxNodes:  pool["max_nodes"].(int),
+			Tags:      expandTags(pool["tags"].(*schema.Set).List()),
+			Nodes:     expandNodes(pool["nodes"].([]interface{})),
 		}
 
 		expandedNodePools = append(expandedNodePools, cr)
@@ -345,31 +434,12 @@ func expandNodes(nodes []interface{}) []*godo.KubernetesNode {
 	return expandedNodes
 }
 
-func flattenNodePool(pool *godo.KubernetesNodePool, parentTags ...string) []interface{} {
-	rawPool := map[string]interface{}{
-		"id":         pool.ID,
-		"name":       pool.Name,
-		"size":       pool.Size,
-		"node_count": pool.Count,
-	}
-
-	if pool.Tags != nil {
-		rawPool["tags"] = flattenTags(filterTags(pool.Tags))
-	}
-
-	if pool.Nodes != nil {
-		rawPool["nodes"] = flattenNodes(pool.Nodes)
-	}
-
-	return []interface{}{rawPool}
-}
-
 func flattenNodes(nodes []*godo.KubernetesNode) []interface{} {
+	flattenedNodes := make([]interface{}, 0)
 	if nodes == nil {
-		return nil
+		return flattenedNodes
 	}
 
-	flattenedNodes := make([]interface{}, 0)
 	for _, node := range nodes {
 		rawNode := map[string]interface{}{
 			"id":         node.ID,

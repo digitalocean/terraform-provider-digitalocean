@@ -43,7 +43,10 @@ The following arguments are supported:
 * `cluster_id` - (Required) The ID of the Kubernetes cluster to which the node pool is associated.
 * `name` - (Required) A name for the node pool.
 * `size` - (Required) The slug identifier for the type of Droplet to be used as workers in the node pool.
-* `node_count` - (Required) The number of Droplet instances in the node pool.
+* `node_count` - (Optional) The number of Droplet instances in the node pool. If auto-scaling is enabled, this should only be set if the desired result is to explicitly reset the number of nodes to this value. If auto-scaling is enabled, and the node count is outside of the given min/max range, it will use the min nodes value.
+* `auto_scale` - (Optional) Enable auto-scaling of the number of nodes in the node pool within the given min/max range.
+* `min_nodes` - (Optional) If auto-scaling is enabled, this represents the minimum number of nodes that the node pool can be scaled down to.
+* `max_nodes` - (Optional) If auto-scaling is enabled, this represents the maximum number of nodes that the node pool can be scaled up to.
 * `tags` - (Optional) A list of tag names to be applied to the Kubernetes cluster.
 
 ## Attributes Reference
@@ -51,6 +54,7 @@ The following arguments are supported:
 In addition to the arguments listed above, the following additional attributes are exported:
 
 * `id` -  A unique ID that can be used to identify and reference the node pool.
+* `actual_node_count` - A computed field representing the actual number of nodes in the node pool, which is especially useful when auto-scaling is enabled.
 * `nodes` - A list of nodes in the pool. Each node exports the following attributes:
   - `id` -  A unique ID that can be used to identify and reference the node.
   - `name` - The auto-generated name for the node.
