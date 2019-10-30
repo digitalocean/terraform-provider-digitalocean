@@ -16,7 +16,7 @@ type commonSort struct {
 
 func sortSchema(allowedKeys []string) *schema.Schema {
 	return &schema.Schema{
-		Type: schema.TypeSet,
+		Type: schema.TypeList,
 		Elem: &schema.Resource{
 			Schema: map[string]*schema.Schema{
 				"key": {

@@ -116,7 +116,7 @@ func dataSourceDigitalOceanSizeRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if v, ok := d.GetOk("sort"); ok {
-		sorts := expandSorts(v.(*schema.Set).List())
+		sorts := expandSorts(v.([]interface{}))
 		sizes = sortDigitalOceanSizes(sizes, sorts)
 	}
 
