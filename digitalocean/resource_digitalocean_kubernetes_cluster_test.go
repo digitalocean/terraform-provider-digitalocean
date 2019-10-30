@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-const testClusterVersion = "1.15.4-do.0"
+const testClusterVersion = "1.15.5-do.0"
 
 func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	t.Parallel()
