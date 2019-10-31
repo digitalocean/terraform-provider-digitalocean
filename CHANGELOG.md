@@ -1,4 +1,19 @@
-## 1.9.2 (Unreleased)
+## 1.10.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `digitalocean_database_user` ([#328](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/328)) Thanks to @Permagate!
+* **New Resource:** `digitalocean_database_db` ([#327](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/327)) Thanks to @Permagate!
+* **New Data Source:** `digitalocean_sizes` ([#325](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/325)) hanks to @Permagate!
+* **New Data Source:** `digitalocean_account` ([#324](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/324)) Thanks to @Permagate!
+
+IMPROVEMENTS:
+
+* resource/digitalocean_kubernetes_node_pool: Add support for node pool auto-scaling ([#307](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/307)). Thanks to @snormore!
+* resource/digitalocean_space_bucket: Add support for configuring CORS rules ([#254](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/254)). Thanks to @pohzipohzi!
+* Migrate to using the Terraform Plugin SDK ([#316](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/316)). Thanks to @stack72!
+* website: Update all documentation to use v0.12 syntax ([#314](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/314)).
+
 ## 1.9.1 (October 09, 2019)
 
 BUG FIXES:
