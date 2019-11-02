@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func resourceDigitalOceanCertificate() *schema.Resource {
@@ -20,6 +21,9 @@ func resourceDigitalOceanCertificate() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		SchemaVersion: 1,
+		MigrateState:  resourceCertificateMigrateState,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -115,6 +119,31 @@ func resourceDigitalOceanCertificate() *schema.Resource {
 			},
 		},
 	}
+}
+
+func resourceCertificateMigrateState(v int, instance *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
+	switch v {
+	case 0:
+		log.Println("[INFO] Found Certificate State v0; migrating to v1")
+		return migrateCertificateStateV0toV1(instance)
+	default:
+		return instance, fmt.Errorf("Unexpected schema version: %d", v)
+	}
+}
+
+func migrateCertificateStateV0toV1(instance *terraform.InstanceState) (*terraform.InstanceState, error) {
+	if instance.Empty() {
+		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
+		return instance, nil
+	}
+
+	// When the certificate type is lets_encrypt, the certificate
+	// ID will change when it's renewed, so we have to rely on the
+	// certificate name as the primary identifier instead.
+	instance.Attributes["uuid"] = instance.Attributes["id"]
+	instance.Attributes["id"] = instance.Attributes["name"]
+
+	return instance, nil
 }
 
 func buildCertificateRequest(d *schema.ResourceData) (*godo.CertificateRequest, error) {
