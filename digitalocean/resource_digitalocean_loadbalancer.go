@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func resourceDigitalOceanLoadbalancer() *schema.Resource {
@@ -22,6 +23,9 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
+
+		SchemaVersion: 1,
+		MigrateState:  resourceLoadBalancerMigrateState,
 
 		Schema: map[string]*schema.Schema{
 			"region": {
@@ -287,6 +291,49 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 			return nil
 		},
 	}
+}
+
+func resourceLoadBalancerMigrateState(v int, instance *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
+	switch v {
+	case 0:
+		log.Println("[INFO] Found LoadBalancer State v0; migrating to v1")
+		return migrateLoadBalancerStateV0toV1(instance, meta)
+	default:
+		return instance, fmt.Errorf("Unexpected schema version: %d", v)
+	}
+}
+
+func migrateLoadBalancerStateV0toV1(instance *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
+	if instance.Empty() {
+		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
+		return instance, nil
+	}
+
+	client := meta.(*CombinedConfig).godoClient()
+
+	loadBalancer, _, err := client.LoadBalancers.Get(context.Background(), instance.ID)
+	if err != nil {
+		return instance, err
+	}
+
+	// When the certificate type is lets_encrypt, the certificate
+	// ID will change when it's renewed, so we have to rely on the
+	// certificate name as the primary identifier instead.
+	for i, forwardingRule := range loadBalancer.ForwardingRules {
+		if forwardingRule.CertificateID == "" {
+			continue
+		}
+
+		cert, _, err := client.Certificates.Get(context.Background(), forwardingRule.CertificateID)
+		if err != nil {
+			return instance, err
+		}
+
+		certIDKey := fmt.Sprintf("forwarding_rule.%d.certificate_id", i)
+		instance.Attributes[certIDKey] = cert.Name
+	}
+
+	return instance, nil
 }
 
 func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*godo.LoadBalancerRequest, error) {
