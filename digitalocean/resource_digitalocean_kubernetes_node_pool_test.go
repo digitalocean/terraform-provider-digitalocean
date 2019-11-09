@@ -110,7 +110,7 @@ func TestAccDigitalOceanKubernetesNodePool_CreateWithAutoScale(t *testing.T) {
 						min_nodes = 1
 						max_nodes = 5
 					}
-				`, rName, testClusterVersion, rName),
+				`, rName, testClusterVersion16, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -147,7 +147,7 @@ func TestAccDigitalOceanKubernetesNodePool_CreateWithAutoScale(t *testing.T) {
 						min_nodes = 1
 						max_nodes = 3
 					}
-				`, rName, testClusterVersion, rName),
+				`, rName, testClusterVersion16, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -185,7 +185,7 @@ func TestAccDigitalOceanKubernetesNodePool_CreateWithAutoScale(t *testing.T) {
 						min_nodes = 1
 						max_nodes = 3
 					}
-				`, rName, testClusterVersion, rName),
+				`, rName, testClusterVersion16, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -220,7 +220,7 @@ func TestAccDigitalOceanKubernetesNodePool_CreateWithAutoScale(t *testing.T) {
 						size = "s-1vcpu-2gb"
 						node_count = 2
 					}
-				`, rName, testClusterVersion, rName),
+				`, rName, testClusterVersion16, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -270,7 +270,7 @@ func TestAccDigitalOceanKubernetesNodePool_UpdateWithAutoScale(t *testing.T) {
 						size = "s-1vcpu-2gb"
 						node_count = 1
 					}
-				`, rName, testClusterVersion, rName),
+				`, rName, testClusterVersion16, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -308,7 +308,7 @@ func TestAccDigitalOceanKubernetesNodePool_UpdateWithAutoScale(t *testing.T) {
 						min_nodes = 1
 						max_nodes = 3
 					}
-				`, rName, testClusterVersion, rName),
+				`, rName, testClusterVersion16, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -345,7 +345,7 @@ func TestAccDigitalOceanKubernetesNodePool_UpdateWithAutoScale(t *testing.T) {
 						min_nodes = 1
 						max_nodes = 3
 					}
-				`, rName, testClusterVersion, rName),
+				`, rName, testClusterVersion16, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -416,7 +416,7 @@ resource digitalocean_kubernetes_node_pool "barfoo" {
 	node_count = 1
 	tags  = ["three","four"]
 }
-`, rName, testClusterVersion, rName)
+`, rName, testClusterVersion16, rName)
 }
 
 func testAccDigitalOceanKubernetesConfigBasicWithNodePool2(rName string) string {
@@ -443,7 +443,7 @@ resource digitalocean_kubernetes_node_pool "barfoo" {
 	node_count = 2
 	tags  = ["one","two", "three"]
 }
-`, rName, testClusterVersion, rName)
+`, rName, testClusterVersion16, rName)
 }
 
 func testAccDigitalOceanKubernetesConfigWithEmptyNodePool(rName string) string {
@@ -469,7 +469,7 @@ resource digitalocean_kubernetes_node_pool "barfoo" {
 	min_nodes  = 0
 	max_nodes  = 3
 }
-`, rName, testClusterVersion, rName)
+`, rName, testClusterVersion16, rName)
 }
 
 func testAccCheckDigitalOceanKubernetesNodePoolExists(n string, cluster *godo.KubernetesCluster, pool *godo.KubernetesNodePool) resource.TestCheckFunc {

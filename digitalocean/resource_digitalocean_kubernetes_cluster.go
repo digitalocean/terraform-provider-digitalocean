@@ -43,7 +43,6 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 			"version": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
@@ -296,6 +295,17 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 	_, err := digitaloceanKubernetesNodePoolUpdate(client, newPool, d.Id(), oldPool["id"].(string), digitaloceanKubernetesDefaultNodePoolTag)
 	if err != nil {
 		return err
+	}
+
+	if d.HasChange("version") {
+		opts := &godo.KubernetesClusterUpgradeRequest{
+			VersionSlug: d.Get("version").(string),
+		}
+
+		_, err := client.Kubernetes.Upgrade(context.Background(), d.Id(), opts)
+		if err != nil {
+			return fmt.Errorf("Unable to upgrade cluster verion: %s", err)
+		}
 	}
 
 	return resourceDigitalOceanKubernetesClusterRead(d, meta)
