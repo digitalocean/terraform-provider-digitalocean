@@ -4,6 +4,7 @@ require (
 	contrib.go.opencensus.io/exporter/ocagent v0.6.0 // indirect
 	github.com/aws/aws-sdk-go v1.25.4
 	github.com/digitalocean/godo v1.22.0
+	github.com/hashicorp/go-version v1.2.0
 	github.com/hashicorp/terraform v0.12.0 // indirect
 	github.com/hashicorp/terraform-plugin-sdk v1.1.1
 	github.com/terraform-providers/terraform-provider-kubernetes v1.9.1-0.20191018170806-2c80accb5635
