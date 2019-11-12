@@ -21,7 +21,7 @@ func resourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"db_id": {
+			"cluster_id": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -43,10 +43,13 @@ func resourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
 			},
 
 			"mode": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				Type:     schema.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"session",
+					"transaction",
+					"statement"}, false),
 			},
 
 			"size": {
@@ -56,41 +59,44 @@ func resourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"database": {
+			"db_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
-			"pool_host": {
+			"host": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
-			"pool_port": {
+			"private_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"port": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
-			"pool_uri": {
-				Type:     schema.TypeString,
-				Computed: true,
+			"uri": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
-			"pool_database": {
-				Type:     schema.TypeString,
-				Computed: true,
+			"private_uri": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 
-			"pool_user": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-
-			"pool_password": {
-				Type:     schema.TypeString,
-				Computed: true,
+			"password": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
@@ -99,22 +105,22 @@ func resourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
 func resourceDigitalOceanDatabaseConnectionPoolCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
-	dbID := d.Get("db_id").(string)
+	clusterID := d.Get("cluster_id").(string)
 	opts := &godo.DatabaseCreatePoolRequest{
 		Name:     d.Get("name").(string),
 		User:     d.Get("user").(string),
 		Mode:     d.Get("mode").(string),
 		Size:     d.Get("size").(int),
-		Database: d.Get("database").(string),
+		Database: d.Get("db_name").(string),
 	}
 
 	log.Printf("[DEBUG] DatabaseConnectionPool create configuration: %#v", opts)
-	pool, _, err := client.Databases.CreatePool(context.Background(), dbID, opts)
+	pool, _, err := client.Databases.CreatePool(context.Background(), clusterID, opts)
 	if err != nil {
 		return fmt.Errorf("Error creating DatabaseConnectionPool: %s", err)
 	}
 
-	d.SetId(createConnectionPoolID(dbID, pool.Name))
+	d.SetId(createConnectionPoolID(clusterID, pool.Name))
 	log.Printf("[INFO] DatabaseConnectionPool Name: %s", pool.Name)
 
 	return resourceDigitalOceanDatabaseConnectionPoolRead(d, meta)
@@ -122,9 +128,9 @@ func resourceDigitalOceanDatabaseConnectionPoolCreate(d *schema.ResourceData, me
 
 func resourceDigitalOceanDatabaseConnectionPoolRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
-	dbID, poolID := splitConnectionPoolID(d.Id())
+	clusterID, poolName := splitConnectionPoolID(d.Id())
 
-	pool, resp, err := client.Databases.GetPool(context.Background(), dbID, poolID)
+	pool, resp, err := client.Databases.GetPool(context.Background(), clusterID, poolName)
 	if err != nil {
 		// If the pool is somehow already destroyed, mark as
 		// successfully gone
@@ -136,31 +142,31 @@ func resourceDigitalOceanDatabaseConnectionPoolRead(d *schema.ResourceData, meta
 		return fmt.Errorf("Error retrieving DatabaseConnectionPool: %s", err)
 	}
 
-	d.SetId(createConnectionPoolID(dbID, pool.Name))
-	d.Set("db_id", dbID)
+	d.SetId(createConnectionPoolID(clusterID, pool.Name))
+	d.Set("cluster_id", clusterID)
 	d.Set("name", pool.Name)
 	d.Set("user", pool.User)
 	d.Set("mode", pool.Mode)
 	d.Set("size", pool.Size)
-	d.Set("database", pool.Database)
+	d.Set("db_name", pool.Database)
 
 	// Computed values
-	d.Set("pool_host", pool.Connection.Host)
-	d.Set("pool_port", pool.Connection.Port)
-	d.Set("pool_uri", pool.Connection.URI)
-	d.Set("pool_database", pool.Connection.Database)
-	d.Set("pool_user", pool.Connection.User)
-	d.Set("pool_password", pool.Connection.Password)
+	d.Set("host", pool.Connection.Host)
+	d.Set("private_host", pool.PrivateConnection.Host)
+	d.Set("port", pool.Connection.Port)
+	d.Set("uri", pool.Connection.URI)
+	d.Set("private_uri", pool.PrivateConnection.URI)
+	d.Set("password", pool.Connection.Password)
 
 	return nil
 }
 
 func resourceDigitalOceanDatabaseConnectionPoolDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
-	dbID, poolID := splitConnectionPoolID(d.Id())
+	clusterID, poolName := splitConnectionPoolID(d.Id())
 
-	log.Printf("[INFO] Deleting DatabaseConnectionPool: %s", poolID)
-	_, err := client.Databases.DeletePool(context.Background(), dbID, poolID)
+	log.Printf("[INFO] Deleting DatabaseConnectionPool: %s", poolName)
+	_, err := client.Databases.DeletePool(context.Background(), clusterID, poolName)
 	if err != nil {
 		return fmt.Errorf("Error deleting DatabaseConnectionPool: %s", err)
 	}
@@ -169,14 +175,14 @@ func resourceDigitalOceanDatabaseConnectionPoolDelete(d *schema.ResourceData, me
 	return nil
 }
 
-func createConnectionPoolID(dbID string, poolID string) string {
-	return fmt.Sprintf("%s/%s", dbID, poolID)
+func createConnectionPoolID(clusterID string, poolName string) string {
+	return fmt.Sprintf("%s/%s", clusterID, poolName)
 }
 
 func splitConnectionPoolID(id string) (string, string) {
 	splitID := strings.Split(id, "/")
-	dbID := splitID[0]
-	poolID := splitID[1]
+	clusterID := splitID[0]
+	poolName := splitID[1]
 
-	return dbID, poolID
+	return clusterID, poolName
 }
