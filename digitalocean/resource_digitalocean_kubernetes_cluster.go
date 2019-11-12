@@ -43,13 +43,9 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			"version": {
-				Type:     schema.TypeString,
-				Required: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					"1.16.2-do.0",
-					"1.15.5-do.1",
-					"1.14.8-do.1",
-				}, false),
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"cluster_subnet": {

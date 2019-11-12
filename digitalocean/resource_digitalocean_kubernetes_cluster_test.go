@@ -443,6 +443,7 @@ func TestAccDigitalOceanKubernetesCluster_UpgradeVersion(t *testing.T) {
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasic(rName, testClusterVersion16),
 				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttrPtr("digitalocean_kubernetes_cluster.foobar", "id", &k8s.ID),
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "version", testClusterVersion16),
 				),
