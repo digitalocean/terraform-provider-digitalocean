@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	yaml "gopkg.in/yaml.v2"
@@ -43,7 +45,6 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 			"version": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
@@ -96,6 +97,27 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 
 			"kube_config": kubernetesConfigSchema(),
 		},
+
+		CustomizeDiff: customdiff.All(
+			customdiff.ForceNewIfChange("version", func(old, new, meta interface{}) bool {
+				// "version" can only be upgraded to newer versions, so we must create a new resource
+				// if it is decreased.
+				newVer, err := version.NewVersion(new.(string))
+				if err != nil {
+					return false
+				}
+
+				oldVer, err := version.NewVersion(old.(string))
+				if err != nil {
+					return false
+				}
+
+				if newVer.LessThan(oldVer) {
+					return true
+				}
+				return false
+			}),
+		),
 	}
 }
 
@@ -296,6 +318,17 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 	_, err := digitaloceanKubernetesNodePoolUpdate(client, newPool, d.Id(), oldPool["id"].(string), digitaloceanKubernetesDefaultNodePoolTag)
 	if err != nil {
 		return err
+	}
+
+	if d.HasChange("version") {
+		opts := &godo.KubernetesClusterUpgradeRequest{
+			VersionSlug: d.Get("version").(string),
+		}
+
+		_, err := client.Kubernetes.Upgrade(context.Background(), d.Id(), opts)
+		if err != nil {
+			return fmt.Errorf("Unable to upgrade cluster verion: %s", err)
+		}
 	}
 
 	return resourceDigitalOceanKubernetesClusterRead(d, meta)

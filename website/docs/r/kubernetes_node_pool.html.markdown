@@ -16,7 +16,7 @@ Provides a DigitalOcean Kubernetes node pool resource. While the default node po
 resource "digitalocean_kubernetes_cluster" "foo" {
   name    = "foo"
   region  = "nyc1"
-  version = "1.12.1-do.2"
+  version = "1.15.5-do.1"
 
   node_pool {
     name       = "front-end-pool"

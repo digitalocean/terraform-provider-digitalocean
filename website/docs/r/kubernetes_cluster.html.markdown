@@ -17,7 +17,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   name    = "foo"
   region  = "nyc1"
   // Grab the latest version slug from `doctl kubernetes options versions`
-  version = "1.15.4-do.0"
+  version = "1.15.5-do.1"
 
   node_pool {
     name       = "worker-pool"
@@ -34,7 +34,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   name    = "foo"
   region  = "nyc1"
   // Grab the latest version slug from `doctl kubernetes options versions`
-  version = "1.15.4-do.0"
+  version = "1.15.5-do.1"
   tags    = ["staging"]
 
   node_pool {
@@ -59,7 +59,7 @@ The following arguments are supported:
 
 * `name` - (Required) A name for the Kubernetes cluster.
 * `region` - (Required) The slug identifier for the region where the Kubernetes cluster will be created.
-* `version` - (Required) The slug identifier for the version of Kubernetes used for the cluster. Use [doctl](https://github.com/digitalocean/doctl) to find the available versions `doctl kubernetes options versions`.
+* `version` - (Required) The slug identifier for the version of Kubernetes used for the cluster. Use [doctl](https://github.com/digitalocean/doctl) to find the available versions `doctl kubernetes options versions`. (**Note:** A cluster may only be upgraded to newer versions in-place. If the version is decreased, a new resource will be created.)
 * `node_pool` - (Required) A block representing the cluster's default node pool. Additional node pools may be added to the cluster using the `digitalocean_kubernetes_node_pool` resource. The following arguments may be specified:
   - `name` - (Required) A name for the node pool.
   - `size` - (Required) The slug identifier for the type of Droplet to be used as workers in the node pool.
