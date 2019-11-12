@@ -15,7 +15,6 @@ func resourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceDigitalOceanDatabaseConnectionPoolCreate,
 		Read:   resourceDigitalOceanDatabaseConnectionPoolRead,
-		// Update: resourceDigitalOceanDatabaseConnectionPoolUpdate,
 		Delete: resourceDigitalOceanDatabaseConnectionPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -119,15 +118,6 @@ func resourceDigitalOceanDatabaseConnectionPoolCreate(d *schema.ResourceData, me
 	log.Printf("[INFO] DatabaseConnectionPool Name: %s", pool.Name)
 
 	return resourceDigitalOceanDatabaseConnectionPoolRead(d, meta)
-}
-
-func resourceDigitalOceanDatabaseConnectionPoolUpdate(d *schema.ResourceData, meta interface{}) error {
-	err := resourceDigitalOceanDatabaseConnectionPoolDelete(d, meta)
-	if err != nil {
-		return err
-	}
-
-	return resourceDigitalOceanDatabaseConnectionPoolCreate(d, meta)
 }
 
 func resourceDigitalOceanDatabaseConnectionPoolRead(d *schema.ResourceData, meta interface{}) error {
