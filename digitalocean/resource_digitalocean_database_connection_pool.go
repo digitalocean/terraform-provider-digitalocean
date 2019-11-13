@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func resourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
@@ -17,7 +17,7 @@ func resourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
 		Read:   resourceDigitalOceanDatabaseConnectionPoolRead,
 		Delete: resourceDigitalOceanDatabaseConnectionPoolDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceDigitalOceanDatabaseConnectionPoolImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -159,6 +159,17 @@ func resourceDigitalOceanDatabaseConnectionPoolRead(d *schema.ResourceData, meta
 	d.Set("password", pool.Connection.Password)
 
 	return nil
+}
+
+func resourceDigitalOceanDatabaseConnectionPoolImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if strings.Contains(d.Id(), ",") {
+		s := strings.Split(d.Id(), ",")
+		d.SetId(createConnectionPoolID(s[0], s[1]))
+		d.Set("cluster_id", s[0])
+		d.Set("name", s[1])
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceDigitalOceanDatabaseConnectionPoolDelete(d *schema.ResourceData, meta interface{}) error {
