@@ -1,5 +1,34 @@
 # Change Log
 
+## [v1.22.0] - 2019-09-24
+
+- #259 Add Kubernetes GetCredentials method - @snormore
+
+## [v1.21.1] - 2019-09-19
+
+- #257 Upgrade to Go 1.13 - @bentranter
+
+## [v1.21.0] - 2019-09-16
+
+- #255 Add DropletID to Kubernetes Node instance - @snormore
+- #254 Add tags to Database, DatabaseReplica - @Zyqsempai
+
+## [v1.20.0] - 2019-09-06
+
+- #252 Add Kubernetes autoscale config fields - @snormore
+- #251 Support unset fields on Kubernetes cluster and node pool updates - @snormore
+- #250 Add Kubernetes GetUser method - @snormore
+
+## [v1.19.0] - 2019-07-19
+
+- #244 dbaas: add private-network-uuid field to create request
+
+## [v1.18.0] - 2019-07-17
+
+- #241 Databases: support for custom VPC UUID on migrate @mikejholly
+- #240 Add the ability to get URN for a Database @stack72
+- #236 Fix omitempty typos in JSON struct tags @amccarthy1
+
 ## [v1.17.0] - 2019-06-21
 
 - #238 Add support for Redis eviction policy in Databases @mikejholly
