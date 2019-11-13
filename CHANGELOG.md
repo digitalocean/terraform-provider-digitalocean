@@ -1,4 +1,13 @@
-## 1.10.1 (Unreleased)
+## 1.11.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource:** `digitalocean_database_connection_pool` ([#225](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/225)) Thanks to @Photonios!
+
+IMPROVEMENTS:
+
+* resource/digitalocean_kubernetes_cluster: Add support for upgrading cluster versions ([#333](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/333)). Thanks to @aqche!
+
 ## 1.10.0 (October 31, 2019)
 
 FEATURES:
