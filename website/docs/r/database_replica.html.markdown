@@ -15,7 +15,7 @@ Provides a DigitalOcean database replica resource.
 ### Create a new PostgreSQL database replica
 ```hcl
 resource "digitalocean_database_replica" "read-replica" {
-  cluster_id = "${digitalocean_database_cluster.postgres-example.id}"
+  cluster_id = digitalocean_database_cluster.postgres-example.id
   name       = "read-replica"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
