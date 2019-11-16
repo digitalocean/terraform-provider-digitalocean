@@ -34,6 +34,8 @@ func TestAccDataSourceDigitalOceanVolume_Basic(t *testing.T) {
 						"data.digitalocean_volume.foobar", "size", "10"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_volume.foobar", "droplet_ids.#", "0"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_volume.foobar", "tags.#", "2"),
 					resource.TestMatchResourceAttr("data.digitalocean_volume.foobar", "urn", expectedURNRegEx),
 				),
 			},
@@ -61,6 +63,8 @@ func TestAccDataSourceDigitalOceanVolume_RegionScoped(t *testing.T) {
 						"data.digitalocean_volume.foobar", "size", "20"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_volume.foobar", "droplet_ids.#", "0"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_volume.foobar", "tags.#", "0"),
 				),
 			},
 		},
@@ -103,6 +107,7 @@ resource "digitalocean_volume" "foo" {
   region = "nyc3"
   name   = "volume-%d"
   size   = 10
+  tags   = ["foo","bar"]
 }
 
 data "digitalocean_volume" "foobar" {
@@ -116,6 +121,7 @@ resource "digitalocean_volume" "foo" {
   region = "nyc3"
   name   = "volume-%d"
   size   = 10
+  tags   = ["foo","bar"]
 }
 
 resource "digitalocean_volume" "bar" {

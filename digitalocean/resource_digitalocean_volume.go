@@ -102,6 +102,8 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"tags": tagsSchema(),
 		},
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
@@ -124,6 +126,7 @@ func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	opts := &godo.VolumeCreateRequest{
 		Name:        d.Get("name").(string),
 		Description: d.Get("description").(string),
+		Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
 	}
 
 	if v, ok := d.GetOk("region"); ok {
@@ -179,6 +182,13 @@ func resourceDigitalOceanVolumeUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
+	if d.HasChange("tags") {
+		err := setTags(client, d, godo.VolumeResourceType)
+		if err != nil {
+			return fmt.Errorf("Error updating tags: %s", err)
+		}
+	}
+
 	return resourceDigitalOceanVolumeRead(d, meta)
 }
 
@@ -201,6 +211,7 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("region", volume.Region.Slug)
 	d.Set("size", int(volume.SizeGigaBytes))
 	d.Set("urn", volume.URN())
+	d.Set("tags", volume.Tags)
 
 	if v := volume.Description; v != "" {
 		d.Set("description", v)

@@ -555,7 +555,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("tags") {
-		err = setTags(client, d)
+		err = setTags(client, d, godo.DropletResourceType)
 		if err != nil {
 			return fmt.Errorf("Error updating tags: %s", err)
 		}

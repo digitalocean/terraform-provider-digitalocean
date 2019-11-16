@@ -60,6 +60,7 @@ The following arguments are supported:
 * `snapshot_id` - (Optional) The ID of an existing volume snapshot from which the new volume will be created. If supplied, the region and size will be limitied on creation to that of the referenced snapshot
 * `initial_filesystem_type` - (Optional) Initial filesystem type (`xfs` or `ext4`) for the block storage volume.
 * `initial_filesystem_label` - (Optional) Initial filesystem label for the block storage volume.
+* `tags` - (Optional) A list of the tags to be applied to this Volume.
 
 ## Attributes Reference
 
