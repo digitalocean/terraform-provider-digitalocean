@@ -211,7 +211,7 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("region", volume.Region.Slug)
 	d.Set("size", int(volume.SizeGigaBytes))
 	d.Set("urn", volume.URN())
-	d.Set("tags", volume.Tags)
+	d.Set("tags", flattenTags(volume.Tags))
 
 	if v := volume.Description; v != "" {
 		d.Set("description", v)
