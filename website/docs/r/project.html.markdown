@@ -14,14 +14,15 @@ Projects allow you to organize your resources into groups that fit the way you w
 You can group resources (like Droplets, Spaces, Load Balancers, domains, and Floating IPs)
 in ways that align with the applications you host on DigitalOcean.
 
-The following resources can be associated with a project:
+The following resource types can be associated with a project:
 
-* Droplet
-* Load Balancer
-* Domain
-* Volume
+* Database Clusters
+* Domains
+* Droplets
 * Floating IP
+* Load Balancers
 * Spaces Bucket
+* Volume
 
 **Note:** A Terrafrom managed project cannot be set as a default project.
 
@@ -76,3 +77,11 @@ The following attributes are exported:
 * `owner_id` - the id of the project owner.
 * `created_at` - the date and time when the project was created, (ISO8601)
 * `updated_at` - the date and time when the project was last updated, (ISO8601)
+
+## Import
+
+Projects can be imported using the `id` returned from DigitalOcean, e.g.
+
+```
+terraform import digitalocean_project.myproject 245bcfd0-7f31-4ce6-a2bc-475a116cca97
+```
