@@ -12,6 +12,8 @@ Provides a DigitalOcean Kubernetes node pool resource. While the default node po
 
 ## Example Usage
 
+### Basic Example
+
 ```hcl
 resource "digitalocean_kubernetes_cluster" "foo" {
   name    = "foo"
@@ -32,6 +34,22 @@ resource "digitalocean_kubernetes_node_pool" "bar" {
   size       = "c-2"
   node_count = 2
   tags       = ["backend"]
+}
+```
+
+### Autoscaling Example
+
+Node pools may also be configured to [autoscale](https://www.digitalocean.com/docs/kubernetes/how-to/autoscale/).
+For example:
+
+```hcl
+resource "digitalocean_kubernetes_node_pool" "autoscale-pool-01" {
+  cluster_id = digitalocean_kubernetes_cluster.foo.id
+  name       = "autoscale-pool-01"
+  size       = "s-1vcpu-2gb"
+  auto_scale = true
+  min_nodes = 0
+  max_nodes = 5
 }
 ```
 

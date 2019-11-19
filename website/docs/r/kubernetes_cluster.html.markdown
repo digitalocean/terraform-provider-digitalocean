@@ -12,11 +12,13 @@ Provides a DigitalOcean Kubernetes cluster resource. This can be used to create,
 
 ## Example Usage
 
+### Basic Example
+
 ```hcl
 resource "digitalocean_kubernetes_cluster" "foo" {
   name    = "foo"
   region  = "nyc1"
-  // Grab the latest version slug from `doctl kubernetes options versions`
+  # Grab the latest version slug from `doctl kubernetes options versions`
   version = "1.15.5-do.1"
 
   node_pool {
@@ -27,13 +29,15 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 }
 ```
 
+### Kubernetes Terraform Provider Example
+
 The cluster's kubeconfig is exported as an attribute allowing you to use it with the [Kubernetes Terraform provider](https://www.terraform.io/docs/providers/kubernetes/index.html). For example:
 
 ```hcl
 resource "digitalocean_kubernetes_cluster" "foo" {
   name    = "foo"
   region  = "nyc1"
-  // Grab the latest version slug from `doctl kubernetes options versions`
+  # Grab the latest version slug from `doctl kubernetes options versions`
   version = "1.15.5-do.1"
   tags    = ["staging"]
 
@@ -52,6 +56,29 @@ provider "kubernetes" {
   )
 }
 ```
+
+### Autoscaling Example
+
+Node pools may also be configured to [autoscale](https://www.digitalocean.com/docs/kubernetes/how-to/autoscale/).
+For example:
+
+```
+resource "digitalocean_kubernetes_cluster" "foo" {
+  name    = "foo"
+  region  = "nyc1"
+  version = "1.15.5-do.1"
+
+  node_pool {
+    name       = "autoscale-worker-pool"
+    size       = "s-2vcpu-2gb"
+    auto_scale = true
+    min_nodes  = 1
+    max_nodes  = 5
+  }
+}
+```
+
+Note that, while individual node pools may scale to 0, a cluster must always include at least one node.
 
 ## Argument Reference
 
