@@ -42,7 +42,7 @@ func validateTag(value interface{}, key string) ([]string, []error) {
 
 // setTags is a helper to set the tags for a resource. It expects the
 // tags field to be named "tags"
-func setTags(conn *godo.Client, d *schema.ResourceData) error {
+func setTags(conn *godo.Client, d *schema.ResourceData, resourceType godo.ResourceType) error {
 	oraw, nraw := d.GetChange("tags")
 	remove, create := diffTags(tagsFromSchema(oraw), tagsFromSchema(nraw))
 
@@ -52,7 +52,7 @@ func setTags(conn *godo.Client, d *schema.ResourceData) error {
 			Resources: []godo.Resource{
 				{
 					ID:   d.Id(),
-					Type: godo.DropletResourceType,
+					Type: resourceType,
 				},
 			},
 		})
@@ -75,7 +75,7 @@ func setTags(conn *godo.Client, d *schema.ResourceData) error {
 			Resources: []godo.Resource{
 				{
 					ID:   d.Id(),
-					Type: godo.DropletResourceType,
+					Type: resourceType,
 				},
 			},
 		})

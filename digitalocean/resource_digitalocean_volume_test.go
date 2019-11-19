@@ -93,6 +93,8 @@ func TestAccDigitalOceanVolume_Basic(t *testing.T) {
 						"digitalocean_volume.foobar", "region", "nyc1"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_volume.foobar", "description", "peace makes plenty"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "tags.#", "2"),
 					resource.TestMatchResourceAttr("digitalocean_volume.foobar", "urn", expectedURNRegEx),
 				),
 			},
@@ -106,6 +108,7 @@ resource "digitalocean_volume" "foobar" {
 	name        = "%s"
 	size        = 100
 	description = "peace makes plenty"
+	tags        = ["foo","bar"]
 }`
 
 func testAccCheckDigitalOceanVolumeExists(rn string, volume *godo.Volume) resource.TestCheckFunc {
@@ -389,3 +392,44 @@ resource "digitalocean_volume" "foobar" {
   snapshot_id = "${digitalocean_volume_snapshot.foo.id}"
 }`, rInt, rInt, rInt)
 }
+
+func TestAccDigitalOceanVolume_UpdateTags(t *testing.T) {
+	name := fmt.Sprintf("volume-%s", acctest.RandString(10))
+
+	volume := godo.Volume{
+		Name: name,
+	}
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeConfig_basic, name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "tags.#", "2"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeConfig_basic_tag_update, name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "tags.#", "3"),
+				),
+			},
+		},
+	})
+}
+
+const testAccCheckDigitalOceanVolumeConfig_basic_tag_update = `
+resource "digitalocean_volume" "foobar" {
+	region      = "nyc1"
+	name        = "%s"
+	size        = 100
+	description = "peace makes plenty"
+	tags        = ["foo","bar","baz"]
+}`

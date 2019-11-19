@@ -65,3 +65,4 @@ The following attributes are exported:
 * `filesystem_type` - Filesystem type currently in-use on the block storage volume.
 * `filesystem_label` - Filesystem label currently in-use on the block storage volume.
 * `droplet_ids` - A list of associated Droplet ids.
+* `tags` - A list of the tags associated to the Volume.
