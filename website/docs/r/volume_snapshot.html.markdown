@@ -32,6 +32,7 @@ The following arguments are supported:
 
 * `name` - (Required) A name for the volume snapshot.
 * `volume_id` - (Required) The ID of the volume from which the volume snapshot originated.
+* `tags` - (Optional) A list of the tags to be applied to this volume snapshot.
 
 ## Attributes Reference
 

@@ -70,6 +70,8 @@ func TestAccDigitalOceanVolumeSnapshot_Basic(t *testing.T) {
 						"digitalocean_volume_snapshot.foobar", "regions.#", "1"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_volume_snapshot.foobar", "min_disk_size", "100"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume_snapshot.foobar", "tags.#", "2"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_volume_snapshot.foobar", "volume_id"),
 				),
@@ -137,4 +139,46 @@ resource "digitalocean_volume" "foo" {
 resource "digitalocean_volume_snapshot" "foobar" {
   name = "snapshot-%d"
   volume_id = "${digitalocean_volume.foo.id}"
+  tags = ["foo","bar"]
+}`
+
+func TestAccDigitalOceanVolumeSnapshot_UpdateTags(t *testing.T) {
+	var snapshot godo.Snapshot
+	rInt := acctest.RandInt()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanVolumeSnapshotDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeSnapshotConfig_basic, rInt, rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeSnapshotExists("digitalocean_volume_snapshot.foobar", &snapshot),
+					resource.TestCheckResourceAttr("digitalocean_volume_snapshot.foobar", "tags.#", "2"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeSnapshotConfig_basic_tag_update, rInt, rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeSnapshotExists("digitalocean_volume_snapshot.foobar", &snapshot),
+					resource.TestCheckResourceAttr("digitalocean_volume_snapshot.foobar", "tags.#", "3"),
+				),
+			},
+		},
+	})
+}
+
+const testAccCheckDigitalOceanVolumeSnapshotConfig_basic_tag_update = `
+resource "digitalocean_volume" "foo" {
+  region      = "nyc1"
+  name        = "volume-%d"
+  size        = 100
+  description = "peace makes plenty"
+}
+
+resource "digitalocean_volume_snapshot" "foobar" {
+  name = "snapshot-%d"
+  volume_id = "${digitalocean_volume.foo.id}"
+  tags = ["foo","bar","baz"]
 }`

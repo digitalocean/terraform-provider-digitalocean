@@ -65,6 +65,7 @@ func dataSourceDigitalOceanVolumeSnapshot() *schema.Resource {
 				Type:     schema.TypeFloat,
 				Computed: true,
 			},
+			"tags": tagsDataSourceSchema(),
 		},
 	}
 }
@@ -146,6 +147,7 @@ func dataSourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta inter
 	d.Set("regions", snapshot.Regions)
 	d.Set("volume_id", snapshot.ResourceID)
 	d.Set("size", snapshot.SizeGigaBytes)
+	d.Set("tags", flattenTags(snapshot.Tags))
 
 	return nil
 }

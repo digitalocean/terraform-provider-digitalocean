@@ -65,3 +65,4 @@ The following attributes are exported:
 * `regions` - A list of DigitalOcean region "slugs" indicating where the volume snapshot is available.
 * `volume_id` - The ID of the volume from which the volume snapshot originated.
 * `size` - The billable size of the volume snapshot in gigabytes.
+* `tags` - A list of the tags associated to the volume snapshot.
