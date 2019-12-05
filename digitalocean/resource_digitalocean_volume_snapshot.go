@@ -85,11 +85,8 @@ func resourceDigitalOceanVolumeSnapshotCreate(d *schema.ResourceData, meta inter
 func resourceDigitalOceanVolumeSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
-	// godo.VolumeSnapshotResourceType is currently incorrectly set as "volumesnapshot"
-	var VolumeSnapshotResourceType godo.ResourceType = "volume_snapshot"
-
 	if d.HasChange("tags") {
-		err := setTags(client, d, VolumeSnapshotResourceType)
+		err := setTags(client, d, godo.VolumeSnapshotResourceType)
 		if err != nil {
 			return fmt.Errorf("Error updating tags: %s", err)
 		}
