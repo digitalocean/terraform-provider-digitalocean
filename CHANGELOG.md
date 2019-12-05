@@ -1,4 +1,10 @@
-## 1.11.1 (Unreleased)
+## 1.12.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* resource/digitalocean_volume, datasource/digitalocean_volume: Add support for tags ([#336](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/336)). Thanks to @aqche!
+* resource/digitalocean_volume_snapshot, datasource/digitalocean_volume_snapshot: Add support for tags ([#339](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/339)). Thanks to @aqche!
+
 ## 1.11.0 (November 13, 2019)
 
 FEATURES:
