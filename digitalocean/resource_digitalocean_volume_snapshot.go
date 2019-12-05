@@ -14,6 +14,7 @@ func resourceDigitalOceanVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceDigitalOceanVolumeSnapshotCreate,
 		Read:   resourceDigitalOceanVolumeSnapshotRead,
+		Update: resourceDigitalOceanVolumeSnapshotUpdate,
 		Delete: resourceDigitalOceanVolumeSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -54,6 +55,8 @@ func resourceDigitalOceanVolumeSnapshot() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+
+			"tags": tagsSchema(),
 		},
 	}
 }
@@ -64,6 +67,7 @@ func resourceDigitalOceanVolumeSnapshotCreate(d *schema.ResourceData, meta inter
 	opts := &godo.SnapshotCreateRequest{
 		Name:     d.Get("name").(string),
 		VolumeID: d.Get("volume_id").(string),
+		Tags:     expandTags(d.Get("tags").(*schema.Set).List()),
 	}
 
 	log.Printf("[DEBUG] Volume Snapshot create configuration: %#v", opts)
@@ -74,6 +78,19 @@ func resourceDigitalOceanVolumeSnapshotCreate(d *schema.ResourceData, meta inter
 
 	d.SetId(snapshot.ID)
 	log.Printf("[INFO] Volume Snapshot name: %s", snapshot.Name)
+
+	return resourceDigitalOceanVolumeSnapshotRead(d, meta)
+}
+
+func resourceDigitalOceanVolumeSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).godoClient()
+
+	if d.HasChange("tags") {
+		err := setTags(client, d, godo.VolumeSnapshotResourceType)
+		if err != nil {
+			return fmt.Errorf("Error updating tags: %s", err)
+		}
+	}
 
 	return resourceDigitalOceanVolumeSnapshotRead(d, meta)
 }
@@ -99,6 +116,7 @@ func resourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta interfa
 	d.Set("size", snapshot.SizeGigaBytes)
 	d.Set("created_at", snapshot.Created)
 	d.Set("min_disk_size", snapshot.MinDiskSize)
+	d.Set("tags", flattenTags(snapshot.Tags))
 
 	return nil
 }

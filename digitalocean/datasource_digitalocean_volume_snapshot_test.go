@@ -27,6 +27,7 @@ func TestAccDataSourceDigitalOceanVolumeSnapshot_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "size", "0"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "min_disk_size", "100"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "regions.#", "1"),
+					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "tags.#", "2"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_volume_snapshot.foobar", "volume_id"),
 				),
 			},
@@ -50,6 +51,7 @@ func TestAccDataSourceDigitalOceanVolumeSnapshot_regex(t *testing.T) {
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "size", "0"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "min_disk_size", "100"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "regions.#", "1"),
+					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "tags.#", "2"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_volume_snapshot.foobar", "volume_id"),
 				),
 			},
@@ -73,6 +75,7 @@ func TestAccDataSourceDigitalOceanVolumeSnapshot_region(t *testing.T) {
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "size", "0"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "min_disk_size", "100"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "regions.#", "1"),
+					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "tags.#", "0"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_volume_snapshot.foobar", "volume_id"),
 				),
 			},
@@ -120,6 +123,7 @@ resource "digitalocean_volume" "foo" {
 resource "digitalocean_volume_snapshot" "foo" {
   name = "snapshot-%d"
   volume_id = "${digitalocean_volume.foo.id}"
+  tags = ["foo","bar"]
 }
 
 data "digitalocean_volume_snapshot" "foobar" {
@@ -138,6 +142,7 @@ resource "digitalocean_volume" "foo" {
 resource "digitalocean_volume_snapshot" "foo" {
   name = "snapshot-%d"
   volume_id = "${digitalocean_volume.foo.id}"
+  tags = ["foo","bar"]
 }
 
 data "digitalocean_volume_snapshot" "foobar" {
@@ -163,6 +168,7 @@ resource "digitalocean_volume" "bar" {
 resource "digitalocean_volume_snapshot" "foo" {
   name = "snapshot-%d"
   volume_id = "${digitalocean_volume.foo.id}"
+  tags   = ["foo","bar"]
 }
 
 resource "digitalocean_volume_snapshot" "bar" {
