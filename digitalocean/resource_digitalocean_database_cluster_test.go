@@ -168,6 +168,22 @@ func TestAccDigitalOceanDatabaseCluster_WithSQLMode(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_CheckSQLModeSupport(t *testing.T) {
+	databaseName := randomTestName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithRedisSQLModeError, databaseName),
+				ExpectError: regexp.MustCompile(`sql_mode is only supported for MySQL`),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
 	var database godo.Database
 	databaseName := randomTestName()
@@ -396,6 +412,16 @@ resource "digitalocean_database_cluster" "foobar" {
 	region     = "lon1"
     node_count = 1
     sql_mode   = "ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE"
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithRedisSQLModeError = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "redis"
+	size       = "db-s-1vcpu-1gb"
+	region     = "nyc1"
+    node_count = 1
+    sql_mode   = "ANSI"
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterRedisNoVersion = `
