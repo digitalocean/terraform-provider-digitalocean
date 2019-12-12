@@ -240,7 +240,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
 
 	// find the default node pool from all the pools in the cluster
-	// the default node pool has a custom tag k8s:default-node-pool
+	// the default node pool has a custom tag terraform:default-node-pool
 	for i, p := range cluster.NodePools {
 		for _, t := range p.Tags {
 			if t == digitaloceanKubernetesDefaultNodePoolTag {
