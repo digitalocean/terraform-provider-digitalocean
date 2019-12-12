@@ -135,6 +135,39 @@ func TestAccDigitalOceanDatabaseCluster_WithMaintWindow(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_WithSQLMode(t *testing.T) {
+	var database godo.Database
+	databaseName := randomTestName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithSQLMode, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "sql_mode",
+						"ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithSQLModeUpdate, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "sql_mode",
+						"ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
 	var database godo.Database
 	databaseName := randomTestName()
@@ -343,6 +376,26 @@ resource "digitalocean_database_cluster" "foobar" {
         day  = "friday"
         hour = "13:00:00"
 	}
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithSQLMode = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "mysql"
+	size       = "db-s-1vcpu-1gb"
+	region     = "lon1"
+    node_count = 1
+    sql_mode   = "ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE"
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithSQLModeUpdate = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "mysql"
+	size       = "db-s-1vcpu-1gb"
+	region     = "lon1"
+    node_count = 1
+    sql_mode   = "ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE"
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterRedisNoVersion = `

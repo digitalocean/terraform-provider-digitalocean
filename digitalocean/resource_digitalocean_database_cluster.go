@@ -89,6 +89,11 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"sql_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+
 			"host": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -143,6 +148,11 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 			engine := diff.Get("engine")
 			_, hasEvictionPolicy := diff.GetOk("eviction_policy")
+			_, hasSqlMode := diff.GetOk("sql_mode")
+
+			if hasSqlMode && engine != "mysql" {
+				return fmt.Errorf("sql_mode is only supported for MySQL Database Clusters")
+			}
 
 			if hasEvictionPolicy && engine != "redis" {
 				return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
@@ -200,6 +210,13 @@ func resourceDigitalOceanDatabaseClusterCreate(d *schema.ResourceData, meta inte
 		_, err := client.Databases.SetEvictionPolicy(context.Background(), d.Id(), policy.(string))
 		if err != nil {
 			return fmt.Errorf("Error adding eviction policy for DatabaseCluster: %s", err)
+		}
+	}
+
+	if mode, ok := d.GetOk("sql_mode"); ok {
+		_, err := client.Databases.SetSQLMode(context.Background(), d.Id(), mode.(string))
+		if err != nil {
+			return fmt.Errorf("Error adding SQL mode for DatabaseCluster: %s", err)
 		}
 	}
 
@@ -287,6 +304,13 @@ func resourceDigitalOceanDatabaseClusterUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
+	if d.HasChange("sql_mode") {
+		_, err := client.Databases.SetSQLMode(context.Background(), d.Id(), d.Get("sql_mode").(string))
+		if err != nil {
+			return fmt.Errorf("Error updating SQL mode for DatabaseCluster: %s", err)
+		}
+	}
+
 	return resourceDigitalOceanDatabaseClusterRead(d, meta)
 }
 
@@ -326,6 +350,15 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 		}
 
 		d.Set("eviction_policy", policy)
+	}
+
+	if _, ok := d.GetOk("sql_mode"); ok {
+		mode, _, err := client.Databases.GetSQLMode(context.Background(), d.Id())
+		if err != nil {
+			return fmt.Errorf("Error retrieving SQL mode for DatabaseCluster: %s", err)
+		}
+
+		d.Set("sql_mode", mode)
 	}
 
 	// Computed values
