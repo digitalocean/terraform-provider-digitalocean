@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -219,6 +220,22 @@ func TestAccDigitalOceanDatabaseCluster_RedisWithEvictionPolicy(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_CheckEvictionPolicySupport(t *testing.T) {
+	databaseName := randomTestName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicyError, databaseName),
+				ExpectError: regexp.MustCompile(`eviction_policy is only supported for Redis`),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDatabaseClusterDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -358,6 +375,17 @@ resource "digitalocean_database_cluster" "foobar" {
 	region          = "nyc1"
     node_count      = 1
 	tags            = ["production"]
+	eviction_policy = "allkeys_lru"
+}
+`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicyError = `
+resource "digitalocean_database_cluster" "foobar" {
+	name            = "%s"
+	engine          = "psql"
+	size            = "db-s-1vcpu-1gb"
+	region          = "nyc1"
+    node_count      = 1
 	eviction_policy = "allkeys_lru"
 }
 `

@@ -139,6 +139,17 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 
 			"tags": tagsSchema(),
 		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			engine := diff.Get("engine")
+			_, hasEvictionPolicy := diff.GetOk("eviction_policy")
+
+			if hasEvictionPolicy && engine != "redis" {
+				return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
+			}
+
+			return nil
+		},
 	}
 }
 
