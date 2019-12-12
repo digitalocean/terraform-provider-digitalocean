@@ -57,7 +57,7 @@ The following arguments are supported:
 * `node_count` - (Required) Number of nodes that will be included in the cluster.
 * `version` - (Optional) Engine version used by the cluster (ex. `11` for PostgreSQL 11).
 * `tags` - (Optional) A list of tag names to be applied to the database cluster.
-* `eviction_policy` - (Optional) A string specifying the eviction policy for a Redis cluster. Valid vaules are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.
+* `eviction_policy` - (Optional) A string specifying the eviction policy for a Redis cluster. Valid values are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.
 * `maintenance_window` - (Optional) Defines when the automatic maintenance should be performed for the database cluster.
 
 `maintenance_window` supports the following:
