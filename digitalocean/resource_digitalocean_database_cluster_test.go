@@ -6,14 +6,13 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 	var database godo.Database
-	databaseName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
+	databaseName := randomTestName()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -51,7 +50,7 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 
 func TestAccDigitalOceanDatabaseCluster_WithUpdate(t *testing.T) {
 	var database godo.Database
-	databaseName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
+	databaseName := randomTestName()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -82,7 +81,7 @@ func TestAccDigitalOceanDatabaseCluster_WithUpdate(t *testing.T) {
 
 func TestAccDigitalOceanDatabaseCluster_WithMigration(t *testing.T) {
 	var database godo.Database
-	databaseName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
+	databaseName := randomTestName()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -113,7 +112,7 @@ func TestAccDigitalOceanDatabaseCluster_WithMigration(t *testing.T) {
 
 func TestAccDigitalOceanDatabaseCluster_WithMaintWindow(t *testing.T) {
 	var database godo.Database
-	databaseName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
+	databaseName := randomTestName()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -137,7 +136,7 @@ func TestAccDigitalOceanDatabaseCluster_WithMaintWindow(t *testing.T) {
 
 func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
 	var database godo.Database
-	databaseName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
+	databaseName := randomTestName()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -163,6 +162,57 @@ func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "password"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "urn"),
+				),
+			},
+			// Add eviction policy when not initially set
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicyUpdate, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "eviction_policy", "allkeys_lru"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDatabaseCluster_RedisWithEvictionPolicy(t *testing.T) {
+	var database godo.Database
+	databaseName := randomTestName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			// Create with an eviction policy
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicy, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "eviction_policy", "volatile_random"),
+				),
+			},
+			// Update eviction policy
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicyUpdate, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "eviction_policy", "allkeys_lru"),
+				),
+			},
+			// Remove eviction policy
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterRedisNoVersion, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
 				),
 			},
 		},
@@ -287,3 +337,27 @@ resource "digitalocean_database_cluster" "foobar" {
     node_count = 1
 	tags       = ["production"]
 }`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicy = `
+resource "digitalocean_database_cluster" "foobar" {
+	name            = "%s"
+	engine          = "redis"
+	size            = "db-s-1vcpu-1gb"
+	region          = "nyc1"
+    node_count      = 1
+	tags            = ["production"]
+	eviction_policy = "volatile_random"
+}
+`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicyUpdate = `
+resource "digitalocean_database_cluster" "foobar" {
+	name            = "%s"
+	engine          = "redis"
+	size            = "db-s-1vcpu-1gb"
+	region          = "nyc1"
+    node_count      = 1
+	tags            = ["production"]
+	eviction_policy = "allkeys_lru"
+}
+`
