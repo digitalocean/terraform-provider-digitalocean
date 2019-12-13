@@ -169,14 +169,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
-				StateFunc: func(v interface{}) string {
-					switch v.(type) {
-					case string:
-						return HashString(v.(string))
-					default:
-						return ""
-					}
-				},
+				StateFunc:    HashStringStateFunc(),
 				// In order to support older statefiles with fully saved user data
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return new != "" && old == d.Get("user_data")
