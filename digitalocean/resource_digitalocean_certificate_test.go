@@ -74,11 +74,11 @@ func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_certificate.foobar", "name", fmt.Sprintf("certificate-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_certificate.foobar", "private_key", fmt.Sprintf("%s\n", privateKeyMaterial)),
+						"digitalocean_certificate.foobar", "private_key", HashString(fmt.Sprintf("%s\n", privateKeyMaterial))),
 					resource.TestCheckResourceAttr(
-						"digitalocean_certificate.foobar", "leaf_certificate", fmt.Sprintf("%s\n", leafCertMaterial)),
+						"digitalocean_certificate.foobar", "leaf_certificate", HashString(fmt.Sprintf("%s\n", leafCertMaterial))),
 					resource.TestCheckResourceAttr(
-						"digitalocean_certificate.foobar", "certificate_chain", fmt.Sprintf("%s\n", certChainMaterial)),
+						"digitalocean_certificate.foobar", "certificate_chain", HashString(fmt.Sprintf("%s\n", certChainMaterial))),
 				),
 			},
 		},
