@@ -93,11 +93,7 @@ func resourceDigitalOceanDatabaseFirewallRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error retrieving DatabaseFirewall: %s", err)
 	}
 
-	if err := d.Set("rule", flattenDatabaseFirewallRules(rules)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting DatabaseFirewall rule error: %#v", err)
-	}
-
-	return nil
+	return d.Set("rule", flattenDatabaseFirewallRules(rules))
 }
 
 func resourceDigitalOceanDatabaseFirewallUpdate(d *schema.ResourceData, meta interface{}) error {
@@ -157,12 +153,9 @@ func buildDatabaseFirewallRequest(rules []interface{}) godo.DatabaseUpdateFirewa
 		expandedRules = append(expandedRules, &r)
 	}
 
-	req := godo.DatabaseUpdateFirewallRulesRequest{
+	return godo.DatabaseUpdateFirewallRulesRequest{
 		Rules: expandedRules,
 	}
-
-	return req
-
 }
 
 func flattenDatabaseFirewallRules(rules []godo.DatabaseFirewallRule) []interface{} {
