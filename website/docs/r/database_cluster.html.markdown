@@ -58,6 +58,7 @@ The following arguments are supported:
 * `version` - (Optional) Engine version used by the cluster (ex. `11` for PostgreSQL 11).
 * `tags` - (Optional) A list of tag names to be applied to the database cluster.
 * `eviction_policy` - (Optional) A string specifying the eviction policy for a Redis cluster. Valid values are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.
+* `sql_mode` - (Optional) A comma separated string specifying the  SQL modes for a MySQL cluster.
 * `maintenance_window` - (Optional) Defines when the automatic maintenance should be performed for the database cluster.
 
 `maintenance_window` supports the following:
