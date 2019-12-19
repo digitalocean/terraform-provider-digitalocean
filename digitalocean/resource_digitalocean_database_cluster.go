@@ -83,6 +83,12 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				},
 			},
 
+			"eviction_policy": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
 			"host": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -133,6 +139,17 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 
 			"tags": tagsSchema(),
 		},
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+			engine := diff.Get("engine")
+			_, hasEvictionPolicy := diff.GetOk("eviction_policy")
+
+			if hasEvictionPolicy && engine != "redis" {
+				return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -176,6 +193,13 @@ func resourceDigitalOceanDatabaseClusterCreate(d *schema.ResourceData, meta inte
 			}
 
 			return fmt.Errorf("Error adding maintenance window for DatabaseCluster: %s", err)
+		}
+	}
+
+	if policy, ok := d.GetOk("eviction_policy"); ok {
+		_, err := client.Databases.SetEvictionPolicy(context.Background(), d.Id(), policy.(string))
+		if err != nil {
+			return fmt.Errorf("Error adding eviction policy for DatabaseCluster: %s", err)
 		}
 	}
 
@@ -248,6 +272,21 @@ func resourceDigitalOceanDatabaseClusterUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
+	if d.HasChange("eviction_policy") {
+		if policy, ok := d.GetOk("eviction_policy"); ok {
+			_, err := client.Databases.SetEvictionPolicy(context.Background(), d.Id(), policy.(string))
+			if err != nil {
+				return fmt.Errorf("Error updating eviction policy for DatabaseCluster: %s", err)
+			}
+		} else {
+			// If the eviction policy is completely removed from the config, set to noeviction
+			_, err := client.Databases.SetEvictionPolicy(context.Background(), d.Id(), godo.EvictionPolicyNoEviction)
+			if err != nil {
+				return fmt.Errorf("Error updating eviction policy for DatabaseCluster: %s", err)
+			}
+		}
+	}
+
 	return resourceDigitalOceanDatabaseClusterRead(d, meta)
 }
 
@@ -278,6 +317,15 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 		if err := d.Set("maintenance_window", flattenMaintWindowOpts(*database.MaintenanceWindow)); err != nil {
 			return fmt.Errorf("[DEBUG] Error setting maintenance_window - error: %#v", err)
 		}
+	}
+
+	if _, ok := d.GetOk("eviction_policy"); ok {
+		policy, _, err := client.Databases.GetEvictionPolicy(context.Background(), d.Id())
+		if err != nil {
+			return fmt.Errorf("Error retrieving eviction policy for DatabaseCluster: %s", err)
+		}
+
+		d.Set("eviction_policy", policy)
 	}
 
 	// Computed values
