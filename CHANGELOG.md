@@ -1,9 +1,17 @@
 ## 1.12.0 (Unreleased)
 
+FEATURES:
+
+* **New Data Source**: `digitalocean_kubernetes_versions` ([#341](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/341))
+* **New Resource:** : `digitalocean_database_firewall` ([#340](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/340))
+
 IMPROVEMENTS:
 
 * resource/digitalocean_volume, datasource/digitalocean_volume: Add support for tags ([#336](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/336)). Thanks to @aqche!
 * resource/digitalocean_volume_snapshot, datasource/digitalocean_volume_snapshot: Add support for tags ([#339](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/339)). Thanks to @aqche!
+* resource/digitalocean_database_cluster: Add support for Redis eviction policies ([#342](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/342)).
+* resource/digitalocean_database_cluster: Add support for configuring SQL mode ([#347](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/347)).
+* resource/digitalocean_certificate: Don't store full certificate data in state file ([#156](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/156)).
 
 ## 1.11.0 (November 13, 2019)
 
