@@ -285,6 +285,37 @@ func TestAccDigitalOceanDatabaseCluster_CheckEvictionPolicySupport(t *testing.T)
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_TagUpdate(t *testing.T) {
+	var database godo.Database
+	databaseName := randomTestName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "tags.#", "1"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigTagUpdate, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "tags.#", "2"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDatabaseClusterDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -468,3 +499,14 @@ resource "digitalocean_database_cluster" "foobar" {
 	eviction_policy = "allkeys_lru"
 }
 `
+
+const testAccCheckDigitalOceanDatabaseClusterConfigTagUpdate = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "pg"
+	version    = "11"
+	size       = "db-s-1vcpu-1gb"
+	region     = "nyc1"
+    node_count = 1
+	tags       = ["production", "foo"]
+}`

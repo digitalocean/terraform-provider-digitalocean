@@ -311,6 +311,13 @@ func resourceDigitalOceanDatabaseClusterUpdate(d *schema.ResourceData, meta inte
 		}
 	}
 
+	if d.HasChange("tags") {
+		err := setTags(client, d, godo.DatabaseResourceType)
+		if err != nil {
+			return fmt.Errorf("Error updating tags: %s", err)
+		}
+	}
+
 	return resourceDigitalOceanDatabaseClusterRead(d, meta)
 }
 
