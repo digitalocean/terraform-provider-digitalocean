@@ -49,6 +49,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 }
 
 provider "kubernetes" {
+  load_config_file = false
   host  = digitalocean_kubernetes_cluster.foo.endpoint
   token = digitalocean_kubernetes_cluster.foo.kube_config[0].token
   cluster_ca_certificate = base64decode(
