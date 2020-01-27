@@ -11,7 +11,7 @@ func Provider() terraform.ResourceProvider {
 		Schema: map[string]*schema.Schema{
 			"token": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				DefaultFunc: schema.MultiEnvDefaultFunc([]string{
 					"DIGITALOCEAN_TOKEN",
 					"DIGITALOCEAN_ACCESS_TOKEN",
