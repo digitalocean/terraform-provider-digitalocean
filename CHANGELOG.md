@@ -1,4 +1,13 @@
-## 1.12.1 (Unreleased)
+## 1.13.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* resource/digitalocean_database_cluster: Add support for tags ([#353](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/353)). Thanks to @aqche!
+
+BUG FIXES:
+
+* provider: Mark API token as optional to support Spaces only usage and running `validate` without a token specified ([#356](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/356)).
+
 ## 1.12.0 (December 19, 2019)
 
 FEATURES:
