@@ -42,6 +42,36 @@ func TestAccDataSourceDigitalOceanDroplet_BasicByName(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceDigitalOceanDroplet_BasicById(t *testing.T) {
+	var droplet godo.Droplet
+	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDataSourceDigitalOceanDropletConfig_basicById(name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceDigitalOceanDropletExists("data.digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_droplet.foobar", "name", name),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_droplet.foobar", "image", "centos-7-x64"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_droplet.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_droplet.foobar", "ipv6", "true"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_droplet.foobar", "private_networking", "false"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_droplet.foobar", "urn"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_droplet.foobar", "created_at"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDataSourceDigitalOceanDroplet_BasicByTag(t *testing.T) {
 	var droplet godo.Droplet
 	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
@@ -128,6 +158,22 @@ resource "digitalocean_droplet" "foo" {
 
 data "digitalocean_droplet" "foobar" {
   name = "${digitalocean_droplet.foo.name}"
+}
+`, name)
+}
+
+func testAccCheckDataSourceDigitalOceanDropletConfig_basicById(name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foo" {
+  name   = "%s"
+  size   = "512mb"
+  image  = "centos-7-x64"
+  region = "nyc3"
+  ipv6   = true
+}
+
+data "digitalocean_droplet" "foobar" {
+  id = "${digitalocean_droplet.foo.id}"
 }
 `, name)
 }

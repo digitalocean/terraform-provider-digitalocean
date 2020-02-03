@@ -15,7 +15,12 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceDigitalOceanDropletRead,
 		Schema: map[string]*schema.Schema{
-
+			"id": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Description:  "id of the droplet",
+				ValidateFunc: validation.NoZeroValues,
+			},
 			"tag": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -174,7 +179,15 @@ func dataSourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{})
 		opts.Page = page + 1
 	}
 
-	if v, ok := d.GetOk("tag"); ok {
+	if v, ok := d.GetOk("id"); ok {
+		droplet, err := findDropletById(dropletList, v.(int))
+
+		if err != nil {
+			return err
+		}
+
+		exportDropletProperties(d, droplet)
+	} else if v, ok := d.GetOk("tag"); ok {
 		droplet, err := findDropletByTag(dropletList, v.(string))
 
 		if err != nil {
@@ -191,7 +204,7 @@ func dataSourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{})
 
 		exportDropletProperties(d, droplet)
 	} else {
-		return fmt.Errorf("Error: specify either a name or a tag used to look up the droplet")
+		return fmt.Errorf("Error: specify either a name, tag, or id to use to look up the droplet")
 	}
 	return nil
 }
@@ -228,6 +241,22 @@ func findDropletByTag(droplets []godo.Droplet, tag string) (*godo.Droplet, error
 		return nil, fmt.Errorf("no droplet found with tag %s", tag)
 	}
 	return nil, fmt.Errorf("too many droplets found with tag %s (found %d, expected 1)", tag, len(results))
+}
+
+func findDropletById(droplets []godo.Droplet, id int) (*godo.Droplet, error) {
+	results := make([]godo.Droplet, 0)
+	for _, v := range droplets {
+		if v.ID == id {
+			results = append(results, v)
+		}
+	}
+	if len(results) == 1 {
+		return &results[0], nil
+	}
+	if len(results) == 0 {
+		return nil, fmt.Errorf("no droplet found with id %d", id)
+	}
+	return nil, fmt.Errorf("too many droplets found with id %d (found %d, expected 1)", id, len(results))
 }
 
 func exportDropletProperties(d *schema.ResourceData, droplet *godo.Droplet) error {
