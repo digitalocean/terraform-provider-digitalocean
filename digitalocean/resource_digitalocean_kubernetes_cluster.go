@@ -18,10 +18,13 @@ import (
 
 func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceDigitalOceanKubernetesClusterCreate,
-		Read:          resourceDigitalOceanKubernetesClusterRead,
-		Update:        resourceDigitalOceanKubernetesClusterUpdate,
-		Delete:        resourceDigitalOceanKubernetesClusterDelete,
+		Create: resourceDigitalOceanKubernetesClusterCreate,
+		Read:   resourceDigitalOceanKubernetesClusterRead,
+		Update: resourceDigitalOceanKubernetesClusterUpdate,
+		Delete: resourceDigitalOceanKubernetesClusterDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
@@ -241,15 +244,25 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 
 	// find the default node pool from all the pools in the cluster
 	// the default node pool has a custom tag terraform:default-node-pool
+	foundDefaultNodePool := false
 	for i, p := range cluster.NodePools {
 		for _, t := range p.Tags {
 			if t == digitaloceanKubernetesDefaultNodePoolTag {
+				if foundDefaultNodePool {
+					return fmt.Errorf("Multiple node pools are marked as the default; only one node pool may have the `%s` tag", digitaloceanKubernetesDefaultNodePoolTag)
+				}
+
 				keyPrefix := fmt.Sprintf("node_pool.%d.", i)
 				if err := d.Set("node_pool", flattenNodePool(d, keyPrefix, p, cluster.Tags...)); err != nil {
 					log.Printf("[DEBUG] Error setting node pool attributes: %s %#v", err, cluster.NodePools)
 				}
+
+				foundDefaultNodePool = true
 			}
 		}
+	}
+	if !foundDefaultNodePool {
+		return fmt.Errorf("No default node pool was found; the default node pool must have the `%s` tag", digitaloceanKubernetesDefaultNodePoolTag)
 	}
 
 	// fetch cluster credentials and update the resource if the credentials are expired.
