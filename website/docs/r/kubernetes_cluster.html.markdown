@@ -130,4 +130,13 @@ In addition to the arguments listed above, the following additional attributes a
 
 ## Import
 
-Kubernetes clusters can not be imported at this time.
+Before importing a Kubernetes cluster, the cluster's default node pool must be tagged with
+the `terraform:default-node-pool` tag. The provider adds this tag if it was responsible for 
+creating the Kubernetes cluster. Clusters created outside of Terraform, however, may not have this
+tag, and thus the tag must be added manually.
+
+Then the Kubernetes cluster may be imported using the cluster's `id`, e.g.
+
+```
+terraform import digitalocean_kubernetes_cluster.mycluster 1b8b2100-0e9f-4e8f-ad78-9eb578c2a0af
+```
