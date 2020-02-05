@@ -231,6 +231,44 @@ func TestAccDigitalOceanProject_UpdateFromDropletToSpacesResource(t *testing.T) 
 	})
 }
 
+func TestAccDigitalOceanProject_WithManyResources(t *testing.T) {
+	projectName := generateProjectName()
+	domainBase := randomTestName()
+
+	createConfig := fixtureCreateDomainResources(domainBase)
+	updateConfig := fixtureWithManyResources(domainBase, projectName)
+	destroyConfig := fixtureCreateWithDefaults(projectName)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: createConfig,
+			},
+			{
+				Config: updateConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "name", projectName),
+					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "30"),
+				),
+			},
+			{
+				Config: destroyConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "name", projectName),
+					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "0"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanProjectResourceURNIsPresent(resource, expectedURN string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
@@ -349,7 +387,7 @@ func fixtureCreateWithDropletResource(dropletName, name string) string {
 		  image     = "centos-7-x64"
 		  region    = "nyc3"
 		  user_data = "foobar"
-		}		
+		}
 
 		resource "digitalocean_project" "myproj" {
 			name = "%s"
@@ -364,11 +402,32 @@ func fixtureCreateWithSpacesResource(spacesBucketName, name string) string {
 			name = "%s"
 			acl = "public-read"
 			region = "ams3"
-		}		
+		}
 
 		resource "digitalocean_project" "myproj" {
 			name = "%s"
 			resources = ["${digitalocean_spaces_bucket.foobar.urn}"]
 		}`, spacesBucketName, name)
 
+}
+
+func fixtureCreateDomainResources(domainBase string) string {
+	return fmt.Sprintf(`
+		resource "digitalocean_domain" "foobar" {
+			count = 30
+			name  = "%s-${count.index}.com"
+		}`, domainBase)
+}
+
+func fixtureWithManyResources(domainBase string, name string) string {
+	return fmt.Sprintf(`
+		resource "digitalocean_domain" "foobar" {
+			count = 30
+			name  = "%s-${count.index}.com"
+		}
+
+		resource "digitalocean_project" "myproj" {
+			name = "%s"
+			resources = digitalocean_domain.foobar[*].urn
+		}`, domainBase, name)
 }
