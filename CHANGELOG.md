@@ -1,4 +1,14 @@
-## 1.13.1 (Unreleased)
+## 1.14.0 (Unreleased)
+
+IMPROVEMENTS:
+
+* resource/digitalocean_kubernetes_cluster, resource/digitalocean_kubernetes_node_pool: Expose the Droplet IDs for individual nodes ([#366](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/366)). Thanks to @tdyas!
+* datasource/digitalocean_droplet: Allow lookup by ID ([#366](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/366)). Thanks to @tdyas!
+
+BUG FIXES:
+
+* resource/digitalocean_project: Handle pagination for project resources ([#368](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/368)).
+
 ## 1.13.0 (January 27, 2020)
 
 IMPROVEMENTS:

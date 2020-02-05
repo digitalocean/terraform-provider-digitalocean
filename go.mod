@@ -24,5 +24,3 @@ replace github.com/keybase/go-crypto v0.0.0-20190523171820-b785b22cc757 => githu
 replace github.com/terraform-providers/terraform-provider-google v2.17.0+incompatible => github.com/terraform-providers/terraform-provider-google v1.20.1-0.20191008212436-363f2d283518
 
 replace github.com/terraform-providers/terraform-provider-aws v2.32.0+incompatible => github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20191010190908-1261a98537f2
-
-go 1.13
