@@ -145,6 +145,11 @@ func nodeSchema() *schema.Schema {
 					Computed: true,
 				},
 
+				"droplet_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
 				"created_at": {
 					Type:     schema.TypeString,
 					Computed: true,
@@ -445,6 +450,7 @@ func flattenNodes(nodes []*godo.KubernetesNode) []interface{} {
 			"id":         node.ID,
 			"name":       node.Name,
 			"status":     node.Status.State,
+			"droplet_id": node.DropletID,
 			"created_at": node.CreatedAt.UTC().String(),
 			"updated_at": node.UpdatedAt.UTC().String(),
 		}

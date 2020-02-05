@@ -15,7 +15,12 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 	return &schema.Resource{
 		Read: dataSourceDigitalOceanDropletRead,
 		Schema: map[string]*schema.Schema{
-
+			"id": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Description:  "id of the droplet",
+				ValidateFunc: validation.NoZeroValues,
+			},
 			"tag": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -144,6 +149,16 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 func dataSourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
+	if id, ok := d.GetOk("id"); ok {
+		droplet, _, err := client.Droplets.Get(context.Background(), id.(int))
+		if err != nil {
+			return err
+		}
+
+		exportDropletProperties(d, droplet)
+		return nil
+	}
+
 	opts := &godo.ListOptions{
 		Page:    1,
 		PerPage: 200,
@@ -191,7 +206,7 @@ func dataSourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{})
 
 		exportDropletProperties(d, droplet)
 	} else {
-		return fmt.Errorf("Error: specify either a name or a tag used to look up the droplet")
+		return fmt.Errorf("Error: specify either a name, tag, or id to use to look up the droplet")
 	}
 	return nil
 }

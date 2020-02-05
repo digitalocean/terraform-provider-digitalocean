@@ -38,11 +38,20 @@ data "digitalocean_droplet" "example" {
 }
 ```
 
+Get the Droplet by ID:
+
+```hcl
+data "digitalocean_droplet" "example" {
+  id = digitalocean_kubernetes_cluster.example.node_pool[0].nodes[0].droplet_id
+}
+```
+
 ## Argument Reference
 
 One of following the arguments must be provided:
 
-* `name` - (Optional) The name of Droplet.
+* `id` - (Optional) The ID of the Droplet
+* `name` - (Optional) The name of the Droplet.
 * `tag` - (Optional) A tag applied to the Droplet.
 
 ## Attributes Reference

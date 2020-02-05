@@ -125,6 +125,7 @@ In addition to the arguments listed above, the following additional attributes a
      + `id` -  A unique ID that can be used to identify and reference the node.
      + `name` - The auto-generated name for the node.
      + `status` -  A string indicating the current status of the individual node.
+     + `droplet_id` - The id of the node's droplet
      + `created_at` - The date and time when the node was created.
      + `updated_at` - The date and time when the node was last updated.
 
