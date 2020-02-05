@@ -270,15 +270,36 @@ func assignResourcesToProject(client *godo.Client, projectId string, resources *
 }
 
 func loadResourceURNs(client *godo.Client, projectId string) (*[]interface{}, error) {
+	opts := &godo.ListOptions{
+		Page:    1,
+		PerPage: 200,
+	}
 
-	resources, _, err := client.Projects.ListResources(context.Background(), projectId, nil)
+	resourceList := []godo.ProjectResource{}
+	for {
+		resources, resp, err := client.Projects.ListResources(context.Background(), projectId, opts)
+		if err != nil {
+			return nil, fmt.Errorf("Error loading project resources: %s", err)
+		}
 
-	if err != nil {
-		return nil, fmt.Errorf("Error loading resources %s", err)
+		for _, r := range resources {
+			resourceList = append(resourceList, r)
+		}
+
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return nil, fmt.Errorf("Error loading project resources: %s", err)
+		}
+
+		opts.Page = page + 1
 	}
 
 	var urns []interface{}
-	for _, rsrc := range resources {
+	for _, rsrc := range resourceList {
 		urns = append(urns, rsrc.URN)
 	}
 
