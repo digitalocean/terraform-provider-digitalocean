@@ -1,9 +1,13 @@
 package digitalocean
 
 import (
+	"context"
+	"fmt"
 	"testing"
 
+	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccDigitalOceanKubernetesCluster_ImportBasic(t *testing.T) {
@@ -16,6 +20,10 @@ func TestAccDigitalOceanKubernetesCluster_ImportBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasic(clusterName, testClusterVersion16),
+				// TODO: We need a way to disable the ID-refresh check because removing the default node pool
+				// tag prevents the ID-refresh from succeeding since the resource will error if the tag is
+				// not present.
+				//Check:  testAccDigitalOceanKubernetesRemoveDefaultNodePoolTag(clusterName),
 			},
 			{
 				ResourceName:      "digitalocean_kubernetes_cluster.foobar",
@@ -28,4 +36,52 @@ func TestAccDigitalOceanKubernetesCluster_ImportBasic(t *testing.T) {
 			},
 		},
 	})
+}
+
+func testAccDigitalOceanKubernetesRemoveDefaultNodePoolTag(clusterName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
+
+		clusters, resp, err := client.Kubernetes.List(context.Background(), &godo.ListOptions{})
+		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				return fmt.Errorf("No clusters found")
+			}
+
+			return fmt.Errorf("Error listing Kubernetes clusters: %s", err)
+		}
+
+		var cluster *godo.KubernetesCluster
+		for _, c := range clusters {
+			if c.Name == clusterName {
+				cluster = c
+				break
+			}
+		}
+		if cluster == nil {
+			return fmt.Errorf("Unable to find Kubernetes cluster with name: %s", clusterName)
+		}
+
+		for _, nodePool := range cluster.NodePools {
+			tags := make([]string, 0)
+			for _, tag := range nodePool.Tags {
+				if tag != digitaloceanKubernetesDefaultNodePoolTag {
+					tags = append(tags, tag)
+				}
+			}
+
+			if len(tags) != len(nodePool.Tags) {
+				nodePoolUpdateRequest := &godo.KubernetesNodePoolUpdateRequest{
+					Tags: tags,
+				}
+
+				_, _, err := client.Kubernetes.UpdateNodePool(context.Background(), cluster.ID, nodePool.ID, nodePoolUpdateRequest)
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	}
 }

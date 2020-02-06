@@ -19,10 +19,13 @@ const digitaloceanKubernetesDefaultNodePoolTag = "terraform:default-node-pool"
 func resourceDigitalOceanKubernetesNodePool() *schema.Resource {
 
 	return &schema.Resource{
-		Create:        resourceDigitalOceanKubernetesNodePoolCreate,
-		Read:          resourceDigitalOceanKubernetesNodePoolRead,
-		Update:        resourceDigitalOceanKubernetesNodePoolUpdate,
-		Delete:        resourceDigitalOceanKubernetesNodePoolDelete,
+		Create: resourceDigitalOceanKubernetesNodePoolCreate,
+		Read:   resourceDigitalOceanKubernetesNodePoolRead,
+		Update: resourceDigitalOceanKubernetesNodePoolUpdate,
+		Delete: resourceDigitalOceanKubernetesNodePoolDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 		SchemaVersion: 1,
 
 		Schema: nodePoolResourceSchema(),
