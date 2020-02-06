@@ -39,7 +39,7 @@ resource digitalocean_kubernetes_node_pool "barfoo" {
 				Config: config,
 			},
 			{
-				ResourceName:      "digitalocean_kubernetes_cluster_node_pool.barfoo",
+				ResourceName:      "digitalocean_kubernetes_node_pool.barfoo",
 				ImportState:       true,
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
