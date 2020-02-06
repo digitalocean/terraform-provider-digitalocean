@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccDigitalOceanKubernetesClusterNodePool_Import(t *testing.T) {
+func TestAccDigitalOceanKubernetesNodePool_Import(t *testing.T) {
 	rName := randomTestName()
 	config := fmt.Sprintf(`
 resource "digitalocean_kubernetes_cluster" "foobar" {
