@@ -1,5 +1,7 @@
 module github.com/terraform-providers/terraform-provider-digitalocean
 
+go 1.11
+
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.6.0 // indirect
 	github.com/aws/aws-sdk-go v1.25.4
