@@ -430,16 +430,26 @@ func resourceDigitalOceanKubernetesClusterImportState(d *schema.ResourceData, me
 	resourceDatas := make([]*schema.ResourceData, 1)
 	resourceDatas[0] = d // the cluster
 	for _, nodePool := range cluster.NodePools {
-		for _, tag := range nodePool.Tags {
-			if tag != digitaloceanKubernetesDefaultNodePoolTag {
-				// Add every node pool except the default node pool to the list of importable resources.
-				resource := resourceDigitalOceanKubernetesNodePool()
-				resourceData := resource.Data(nil)
-				resourceData.SetId(nodePool.ID)
-				resourceData.Set("cluster_id", cluster.ID)
+		// Add every node pool except the default node pool to the list of importable resources.
 
-				resourceDatas = append(resourceDatas, resourceData)
+		importNodePool := true
+		for _, tag := range nodePool.Tags {
+			if tag == digitaloceanKubernetesDefaultNodePoolTag {
+				importNodePool = false
 			}
+		}
+
+		if importNodePool {
+			resource := resourceDigitalOceanKubernetesNodePool()
+
+			// Note: Must set type and ID.
+			// See https://www.terraform.io/docs/extend/resources/import.html#multiple-resource-import
+			resourceData := resource.Data(nil)
+			resourceData.SetType("digitalocean_kubernetes_node_pool")
+			resourceData.SetId(nodePool.ID)
+			resourceData.Set("cluster_id", cluster.ID)
+
+			resourceDatas = append(resourceDatas, resourceData)
 		}
 	}
 
