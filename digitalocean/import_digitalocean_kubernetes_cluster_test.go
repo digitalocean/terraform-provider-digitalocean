@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -20,10 +21,12 @@ func TestAccDigitalOceanKubernetesCluster_ImportBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasic(clusterName, testClusterVersion16),
-				// TODO: We need a way to disable the ID-refresh check because removing the default node pool
-				// tag prevents the ID-refresh from succeeding since the resource will error if the tag is
-				// not present.
-				//Check:  testAccDigitalOceanKubernetesRemoveDefaultNodePoolTag(clusterName),
+			},
+			{
+				// Remove the default node pool tag so that the import code which infers
+				// the need to add the tag gets triggered.
+				Check:       testAccDigitalOceanKubernetesRemoveDefaultNodePoolTag(clusterName),
+				ExpectError: regexp.MustCompile("No default node pool was found"),
 			},
 			{
 				ResourceName:      "digitalocean_kubernetes_cluster.foobar",
