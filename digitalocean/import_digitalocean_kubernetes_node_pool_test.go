@@ -2,6 +2,8 @@ package digitalocean
 
 import (
 	"fmt"
+	"reflect"
+	"sort"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -48,16 +50,15 @@ resource digitalocean_kubernetes_node_pool "barfoo" {
 					if len(s) != 2 {
 						return fmt.Errorf("expected 2 states: %#v", s)
 					}
-					clusterState, nodePoolState := s[0], s[1]
 
-					if clusterState.Attributes["name"] != testName1 {
-						return fmt.Errorf("expected name attribute for cluster to match: expected=%s, actual=%s",
-							clusterState.Attributes["name"], testName1)
-					}
+					actualNames := []string{s[0].Attributes["name"], s[1].Attributes["name"]}
+					expectedNames := []string{testName1, testName2}
+					sort.Strings(actualNames)
+					sort.Strings(expectedNames)
 
-					if nodePoolState.Attributes["name"] != testName2 {
-						return fmt.Errorf("expected name attribute for node pool to match: expected=%s, actual=%s",
-							nodePoolState.Attributes["name"], testName2)
+					if !reflect.DeepEqual(actualNames, expectedNames) {
+						return fmt.Errorf("expected name attributes for cluster and node pools to match: expected=%#v, actual=%#v, s=%#v",
+							expectedNames, actualNames, s)
 					}
 
 					return nil
