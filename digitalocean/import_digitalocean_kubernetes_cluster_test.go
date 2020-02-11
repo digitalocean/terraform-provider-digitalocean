@@ -21,8 +21,6 @@ func TestAccDigitalOceanKubernetesCluster_ImportBasic(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasic(clusterName, testClusterVersion16),
-			},
-			{
 				// Remove the default node pool tag so that the import code which infers
 				// the need to add the tag gets triggered.
 				Check:       testAccDigitalOceanKubernetesRemoveDefaultNodePoolTag(clusterName),
@@ -35,6 +33,7 @@ func TestAccDigitalOceanKubernetesCluster_ImportBasic(t *testing.T) {
 				ImportStateVerifyIgnore: []string{
 					"kube_config",            // because kube_config was completely different for imported state
 					"node_pool.0.node_count", // because import test failed before DO had started the node in pool
+					"updated_at",             // because removing default tag updates the resource outside of Terraform
 				},
 			},
 		},
