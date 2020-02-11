@@ -418,7 +418,7 @@ func resourceDigitalOceanKubernetesClusterImportState(d *schema.ResourceData, me
 		}
 	}
 
-	// Refresh the cluster and node pools so that any the added tag
+	// Refresh the cluster and node pools metadata if we added the default tag.
 	if refreshCluster {
 		cluster, _, err = client.Kubernetes.Get(context.Background(), d.Id())
 		if err != nil {
