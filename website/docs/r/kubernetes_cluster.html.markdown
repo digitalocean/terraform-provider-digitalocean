@@ -136,7 +136,7 @@ the cluster has a single node pool. Clusters with more than one node pool, howev
 that you manually add the `terraform:default-node-pool` tag to the node pool that you intend to be
 the default node pool.
 
-Then the Kubernetes cluster may be imported using the cluster's `id`, e.g.
+Then the Kubernetes cluster and all of its node pools can be imported using the cluster's `id`, e.g.
 
 ```
 terraform import digitalocean_kubernetes_cluster.mycluster 1b8b2100-0e9f-4e8f-ad78-9eb578c2a0af
