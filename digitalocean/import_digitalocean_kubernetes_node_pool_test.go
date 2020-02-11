@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -31,6 +32,7 @@ resource "digitalocean_kubernetes_node_pool" "barfoo" {
   node_count = 1
 }
 `, testName1, testClusterVersion16, testName2)
+	resourceName := "digitalocean_kubernetes_node_pool.barfoo"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -41,9 +43,16 @@ resource "digitalocean_kubernetes_node_pool" "barfoo" {
 				Config: config,
 			},
 			{
-				ResourceName:      "digitalocean_kubernetes_node_pool.barfoo",
+				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "this-is-not-a-valid-ID",
+				ExpectError:       regexp.MustCompile("Did not find the cluster owning the node pool"),
 			},
 		},
 	})
