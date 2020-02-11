@@ -25,7 +25,7 @@ func resourceDigitalOceanFloatingIpAssignment() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.SingleIP(),
+				ValidateFunc: validation.IsIPv4Address,
 			},
 
 			"droplet_id": {
