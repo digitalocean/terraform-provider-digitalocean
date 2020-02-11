@@ -24,7 +24,7 @@ func resourceDigitalOceanKubernetesNodePool() *schema.Resource {
 		Update: resourceDigitalOceanKubernetesNodePoolUpdate,
 		Delete: resourceDigitalOceanKubernetesNodePoolDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceDigitalOceanKubernetesNodePoolImportState,
 		},
 		SchemaVersion: 1,
 
@@ -245,6 +245,68 @@ func resourceDigitalOceanKubernetesNodePoolDelete(d *schema.ResourceData, meta i
 	client := meta.(*CombinedConfig).godoClient()
 
 	return digitaloceanKubernetesNodePoolDelete(client, d.Get("cluster_id").(string), d.Id())
+}
+
+func resourceDigitalOceanKubernetesNodePoolImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if _, ok := d.GetOk("cluster_id"); ok {
+		// Short-circuit: The resource already has a cluster ID, no need to search for it.
+		return []*schema.ResourceData{d}, nil
+	}
+
+	client := meta.(*CombinedConfig).godoClient()
+
+	nodePoolId := d.Id()
+
+	// Scan all of the Kubernetes clusters to recover the node pool's cluster ID.
+	var clusterId string
+	var nodePool *godo.KubernetesNodePool
+	listOptions := godo.ListOptions{}
+	for {
+		clusters, response, err := client.Kubernetes.List(context.Background(), &listOptions)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to list Kubernetes clusters: %v", err)
+		}
+
+		for _, cluster := range clusters {
+			for _, np := range cluster.NodePools {
+				if np.ID == nodePoolId {
+					if clusterId != "" {
+						// This should never happen but good practice to assert that it does not occur.
+						return nil, fmt.Errorf("Illegal state: node pool ID %s is associated with multiple clusters", nodePoolId)
+					}
+					clusterId = cluster.ID
+					nodePool = np
+				}
+			}
+		}
+
+		if response.Links == nil || response.Links.IsLastPage() {
+			break
+		}
+
+		page, err := response.Links.CurrentPage()
+		if err != nil {
+			return nil, err
+		}
+
+		listOptions.Page = page + 1
+	}
+
+	if clusterId == "" {
+		return nil, fmt.Errorf("Did not find the cluster owning the node pool %s", nodePoolId)
+	}
+
+	// Ensure that the node pool does not have the default tag set.
+	for _, tag := range nodePool.Tags {
+		if tag == digitaloceanKubernetesDefaultNodePoolTag {
+			return nil, fmt.Errorf("Node pool %s has the default node pool tag set; import the owning digitalocean_kubernetes_cluster resource instead (cluster ID=%s)",
+				nodePoolId, clusterId)
+		}
+	}
+
+	// Set the cluster_id attribute with the cluster's ID.
+	d.Set("cluster_id", clusterId)
+	return []*schema.ResourceData{d}, nil
 }
 
 func digitaloceanKubernetesNodePoolCreate(client *godo.Client, pool map[string]interface{}, clusterID string, customTags ...string) (*godo.KubernetesNodePool, error) {
