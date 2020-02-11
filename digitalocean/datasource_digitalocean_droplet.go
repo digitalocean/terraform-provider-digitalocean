@@ -20,18 +20,21 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 				Optional:     true,
 				Description:  "id of the droplet",
 				ValidateFunc: validation.NoZeroValues,
+				ExactlyOneOf: []string{"id", "tag", "name"},
 			},
 			"tag": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Description:  "unique tag of the droplet",
 				ValidateFunc: validation.NoZeroValues,
+				ExactlyOneOf: []string{"id", "tag", "name"},
 			},
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Description:  "name of the droplet",
 				ValidateFunc: validation.NoZeroValues,
+				ExactlyOneOf: []string{"id", "tag", "name"},
 			},
 			// computed attributes
 			"created_at": {
