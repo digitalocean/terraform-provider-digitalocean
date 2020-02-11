@@ -14,7 +14,7 @@ import (
 )
 
 const testClusterVersion15 = "1.15.5-do.1"
-const testClusterVersion16 = "1.16.2-do.0"
+const testClusterVersion16 = "1.16.6-do.0"
 
 func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	t.Parallel()

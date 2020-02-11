@@ -18,10 +18,13 @@ import (
 
 func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Create:        resourceDigitalOceanKubernetesClusterCreate,
-		Read:          resourceDigitalOceanKubernetesClusterRead,
-		Update:        resourceDigitalOceanKubernetesClusterUpdate,
-		Delete:        resourceDigitalOceanKubernetesClusterDelete,
+		Create: resourceDigitalOceanKubernetesClusterCreate,
+		Read:   resourceDigitalOceanKubernetesClusterRead,
+		Update: resourceDigitalOceanKubernetesClusterUpdate,
+		Delete: resourceDigitalOceanKubernetesClusterDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceDigitalOceanKubernetesClusterImportState,
+		},
 		SchemaVersion: 1,
 
 		Schema: map[string]*schema.Schema{
@@ -241,15 +244,25 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 
 	// find the default node pool from all the pools in the cluster
 	// the default node pool has a custom tag terraform:default-node-pool
+	foundDefaultNodePool := false
 	for i, p := range cluster.NodePools {
 		for _, t := range p.Tags {
 			if t == digitaloceanKubernetesDefaultNodePoolTag {
+				if foundDefaultNodePool {
+					return fmt.Errorf("Multiple node pools are marked as the default; only one node pool may have the `%s` tag", digitaloceanKubernetesDefaultNodePoolTag)
+				}
+
 				keyPrefix := fmt.Sprintf("node_pool.%d.", i)
 				if err := d.Set("node_pool", flattenNodePool(d, keyPrefix, p, cluster.Tags...)); err != nil {
 					log.Printf("[DEBUG] Error setting node pool attributes: %s %#v", err, cluster.NodePools)
 				}
+
+				foundDefaultNodePool = true
 			}
 		}
+	}
+	if !foundDefaultNodePool {
+		return fmt.Errorf("No default node pool was found; the default node pool must have the `%s` tag", digitaloceanKubernetesDefaultNodePoolTag)
 	}
 
 	// fetch cluster credentials and update the resource if the credentials are expired.
@@ -350,6 +363,97 @@ func resourceDigitalOceanKubernetesClusterDelete(d *schema.ResourceData, meta in
 	d.SetId("")
 
 	return nil
+}
+
+// Import a Kubernetes cluster and its node pools into the Terraform state.
+//
+// Note: This resource cannot make use of the pass-through importer because special handling is
+// required to ensure the default node pool has the `terraform:default-node-pool` tag and to
+// import any non-default node pools associated with the cluster.
+func resourceDigitalOceanKubernetesClusterImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	client := meta.(*CombinedConfig).godoClient()
+
+	cluster, _, err := client.Kubernetes.Get(context.Background(), d.Id())
+	if err != nil {
+		return nil, err
+	}
+
+	// Check how many node pools have the required tag. The goal is ensure that one and only one node pool
+	// has the tag (i.e., the default node pool).
+	countOfNodePoolsWithTag := 0
+	refreshCluster := false
+	for _, nodePool := range cluster.NodePools {
+		for _, tag := range nodePool.Tags {
+			if tag == digitaloceanKubernetesDefaultNodePoolTag {
+				countOfNodePoolsWithTag += 1
+			}
+		}
+	}
+	if countOfNodePoolsWithTag > 1 {
+		// Multiple node pools have the tag. Stop the import and notify the user they need to manually ensure
+		// only one node pool has the tag.
+		return nil, fmt.Errorf("Multiple node pools are tagged as the default node pool; only one node pool may have the `%s` tag", digitaloceanKubernetesDefaultNodePoolTag)
+	} else if countOfNodePoolsWithTag == 0 {
+		// None of the node pools have the tag. If there is only one node pool, then it must be the default
+		// node pool and thus add the tag. Adding the tag is non-destructive, and thus should be fine.
+		if len(cluster.NodePools) == 1 {
+			nodePool := cluster.NodePools[0]
+			tags := append(nodePool.Tags, digitaloceanKubernetesDefaultNodePoolTag)
+
+			nodePoolUpdateRequest := &godo.KubernetesNodePoolUpdateRequest{
+				Tags: tags,
+			}
+
+			log.Printf("[INFO] Adding %s tag to node pool %s in cluster %s", digitaloceanKubernetesDefaultNodePoolTag,
+				nodePool.ID, cluster.ID)
+
+			_, _, err := client.Kubernetes.UpdateNodePool(context.Background(), cluster.ID, nodePool.ID, nodePoolUpdateRequest)
+			if err != nil {
+				return nil, err
+			}
+
+			refreshCluster = true
+		} else {
+			return nil, fmt.Errorf("Cannot infer default node pool since there are multiple node pools; please manually add the `%s` tag to the default node pool", digitaloceanKubernetesDefaultNodePoolTag)
+		}
+	}
+
+	// Refresh the cluster and node pools metadata if we added the default tag.
+	if refreshCluster {
+		cluster, _, err = client.Kubernetes.Get(context.Background(), d.Id())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Generate a list of ResourceData for the cluster and node pools.
+	resourceDatas := make([]*schema.ResourceData, 1)
+	resourceDatas[0] = d // the cluster
+	for _, nodePool := range cluster.NodePools {
+		// Add every node pool except the default node pool to the list of importable resources.
+
+		importNodePool := true
+		for _, tag := range nodePool.Tags {
+			if tag == digitaloceanKubernetesDefaultNodePoolTag {
+				importNodePool = false
+			}
+		}
+
+		if importNodePool {
+			resource := resourceDigitalOceanKubernetesNodePool()
+
+			// Note: Must set type and ID.
+			// See https://www.terraform.io/docs/extend/resources/import.html#multiple-resource-import
+			resourceData := resource.Data(nil)
+			resourceData.SetType("digitalocean_kubernetes_node_pool")
+			resourceData.SetId(nodePool.ID)
+			resourceData.Set("cluster_id", cluster.ID)
+
+			resourceDatas = append(resourceDatas, resourceData)
+		}
+	}
+
+	return resourceDatas, nil
 }
 
 func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.KubernetesCluster, error) {
