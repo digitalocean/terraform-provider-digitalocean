@@ -98,6 +98,14 @@ func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 
 						"tags": tagsSchema(),
 
+						"labels": {
+							Type:     schema.TypeMap,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+
 						"nodes": nodeSchema(),
 					},
 				},

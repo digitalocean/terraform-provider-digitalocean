@@ -21,38 +21,42 @@ func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigWithDataSource(rName),
+				Config: testAccDigitalOceanKubernetesConfigWithDataSource(rName, testClusterVersion16),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanKubernetesClusterExists("data.digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
-					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "version", "1.12.1-do.2"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "version", testClusterVersion16),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "node_pool.0.labels.priority", "high"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDigitalOceanKubernetesConfigWithDataSource(rName string) string {
+func testAccDigitalOceanKubernetesConfigWithDataSource(rName string, version string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_kubernetes_cluster" "foo" {
 	name    = "%s"
 	region  = "lon1"
-	version = "1.12.1-do.2"
+	version = "%s"
 	tags    = ["foo","bar"]
 
 	node_pool {
-	  name = "default"
+	    name = "default"
 		size  = "s-1vcpu-2gb"
 		node_count = 1
 		tags  = ["one","two"]
+        labels = {
+          priority = "high"
+        }
 	}
 }
 
 data "digitalocean_kubernetes_cluster" "foobar" {
 	name = "${digitalocean_kubernetes_cluster.foo.name}"
 }
-`, rName)
+`, rName, version)
 }
 
 func testAccCheckDataSourceDigitalOceanKubernetesClusterExists(n string, cluster *godo.KubernetesCluster) resource.TestCheckFunc {
