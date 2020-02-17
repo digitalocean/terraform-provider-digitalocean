@@ -96,6 +96,7 @@ The following arguments are supported:
   - `min_nodes` - (Optional) If auto-scaling is enabled, this represents the minimum number of nodes that the node pool can be scaled down to.
   - `max_nodes` - (Optional) If auto-scaling is enabled, this represents the maximum number of nodes that the node pool can be scaled up to.
   - `tags` - (Optional) A list of tag names to be applied to the Kubernetes cluster.
+  - `labels` - (Optional) key/value pairs to apply to nodes in the default node pool 
 * `tags` - (Optional) A list of tag names to be applied to the Kubernetes cluster.
 
 ## Attributes Reference
