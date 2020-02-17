@@ -485,16 +485,20 @@ func waitForKubernetesNodePoolDelete(client *godo.Client, id string, poolID stri
 
 func expandLabels(labels map[string]interface{}) map[string]string {
 	expandedLabels := make(map[string]string)
-	for key, value := range labels {
-		expandedLabels[key] = value.(string)
+	if labels != nil {
+		for key, value := range labels {
+			expandedLabels[key] = value.(string)
+		}
 	}
 	return expandedLabels
 }
 
 func flattenLabels(labels map[string]string) map[string]interface{} {
 	flattenedLabels := make(map[string]interface{})
-	for key, value := range labels {
-		flattenedLabels[key] = value
+	if labels != nil {
+		for key, value := range labels {
+			flattenedLabels[key] = value
+		}
 	}
 	return flattenedLabels
 }

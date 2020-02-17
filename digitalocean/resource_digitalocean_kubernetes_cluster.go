@@ -181,6 +181,7 @@ func resourceDigitalOceanKubernetesClusterCreate(d *schema.ResourceData, meta in
 			Name:      pool.Name,
 			Size:      pool.Size,
 			Tags:      tags,
+			Labels:    pool.Labels,
 			Count:     pool.Count,
 			AutoScale: pool.AutoScale,
 			MinNodes:  pool.MinNodes,
@@ -613,6 +614,10 @@ func flattenNodePool(d *schema.ResourceData, keyPrefix string, pool *godo.Kubern
 
 	if pool.Tags != nil {
 		rawPool["tags"] = flattenTags(filterTags(pool.Tags))
+	}
+
+	if pool.Labels != nil {
+		rawPool["labels"] = flattenLabels(pool.Labels)
 	}
 
 	if pool.Nodes != nil {
