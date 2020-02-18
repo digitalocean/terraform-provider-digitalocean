@@ -49,16 +49,17 @@ func dataSourceDigitalOceanRegionsRead(d *schema.ResourceData, meta interface{})
 		}
 
 		if filterByRequiredFeatures {
-			match := false
 			for _, requiredFeature := range requiredFeatures.([]interface{}) {
+				match := false
 				for _, feature := range region.Features {
 					if feature == requiredFeature.(string) {
 						match = true
 					}
 				}
-			}
-			if !match {
-				continue
+
+				if !match {
+					continue
+				}
 			}
 		}
 
