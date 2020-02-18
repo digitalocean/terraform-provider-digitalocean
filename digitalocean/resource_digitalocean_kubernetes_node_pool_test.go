@@ -53,6 +53,8 @@ func TestAccDigitalOceanKubernetesNodePool_Update(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "tags.#", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "labels.%", "0"),
+					resource.TestCheckNoResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "labels.priority"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "node_count", "1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "actual_node_count", "1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.#", "1"),
@@ -66,6 +68,8 @@ func TestAccDigitalOceanKubernetesNodePool_Update(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "name", rName+"-updated"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "tags.#", "3"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "labels.%", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "labels.priority", "high"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "node_count", "2"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "actual_node_count", "2"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.#", "2"),
@@ -442,6 +446,9 @@ resource digitalocean_kubernetes_node_pool "barfoo" {
 	size  = "s-1vcpu-2gb"
 	node_count = 2
 	tags  = ["one","two", "three"]
+	labels = {
+      priority = "high"
+	}
 }
 `, rName, testClusterVersion16, rName)
 }

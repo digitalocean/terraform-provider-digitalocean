@@ -34,6 +34,11 @@ resource "digitalocean_kubernetes_node_pool" "bar" {
   size       = "c-2"
   node_count = 2
   tags       = ["backend"]
+
+  labels = {
+    service  = "backend"
+    priority = "high"
+  }
 }
 ```
 
@@ -53,7 +58,6 @@ resource "digitalocean_kubernetes_node_pool" "autoscale-pool-01" {
 }
 ```
 
-
 ## Argument Reference
 
 The following arguments are supported:
@@ -66,6 +70,7 @@ The following arguments are supported:
 * `min_nodes` - (Optional) If auto-scaling is enabled, this represents the minimum number of nodes that the node pool can be scaled down to.
 * `max_nodes` - (Optional) If auto-scaling is enabled, this represents the maximum number of nodes that the node pool can be scaled up to.
 * `tags` - (Optional) A list of tag names to be applied to the Kubernetes cluster.
+* `labels` - (Optional) A map of key/value pairs to apply to nodes in the pool. The labels are exposed in the Kubernetes API as labels in the metadata of the corresponding [Node resources](https://kubernetes.io/docs/concepts/architecture/nodes/).
 
 ## Attributes Reference
 

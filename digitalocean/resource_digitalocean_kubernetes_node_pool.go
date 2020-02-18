@@ -123,6 +123,14 @@ func nodePoolSchema() map[string]*schema.Schema {
 
 		"tags": tagsSchema(),
 
+		"labels": {
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+
 		"nodes": nodeSchema(),
 	}
 }
@@ -174,6 +182,7 @@ func resourceDigitalOceanKubernetesNodePoolCreate(d *schema.ResourceData, meta i
 		"name":       d.Get("name"),
 		"size":       d.Get("size"),
 		"tags":       d.Get("tags"),
+		"labels":     d.Get("labels"),
 		"node_count": d.Get("node_count"),
 		"auto_scale": d.Get("auto_scale"),
 		"min_nodes":  d.Get("min_nodes"),
@@ -208,6 +217,7 @@ func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta int
 	d.Set("node_count", pool.Count)
 	d.Set("actual_node_count", pool.Count)
 	d.Set("tags", flattenTags(filterTags(pool.Tags)))
+	d.Set("labels", flattenLabels(pool.Labels))
 	d.Set("auto_scale", pool.AutoScale)
 	d.Set("min_nodes", pool.MinNodes)
 	d.Set("max_nodes", pool.MaxNodes)
@@ -234,6 +244,7 @@ func resourceDigitalOceanKubernetesNodePoolUpdate(d *schema.ResourceData, meta i
 		rawPool["node_count"] = d.Get("node_count")
 	}
 
+	rawPool["labels"] = d.Get("labels")
 	rawPool["auto_scale"] = d.Get("auto_scale")
 	rawPool["min_nodes"] = d.Get("min_nodes")
 	rawPool["max_nodes"] = d.Get("max_nodes")
@@ -324,6 +335,7 @@ func digitaloceanKubernetesNodePoolCreate(client *godo.Client, pool map[string]i
 		Size:      pool["size"].(string),
 		Count:     pool["node_count"].(int),
 		Tags:      tags,
+		Labels:    expandLabels(pool["labels"].(map[string]interface{})),
 		AutoScale: pool["auto_scale"].(bool),
 		MinNodes:  pool["min_nodes"].(int),
 		MaxNodes:  pool["max_nodes"].(int),
@@ -367,6 +379,10 @@ func digitaloceanKubernetesNodePoolUpdate(client *godo.Client, pool map[string]i
 
 	if pool["max_nodes"] != nil {
 		req.MaxNodes = intPtr(pool["max_nodes"].(int))
+	}
+
+	if pool["labels"] != nil {
+		req.Labels = expandLabels(pool["labels"].(map[string]interface{}))
 	}
 
 	p, resp, err := client.Kubernetes.UpdateNodePool(context.Background(), clusterID, poolID, req)
@@ -467,6 +483,26 @@ func waitForKubernetesNodePoolDelete(client *godo.Client, id string, poolID stri
 	return fmt.Errorf("Timeout waiting to delete nodepool")
 }
 
+func expandLabels(labels map[string]interface{}) map[string]string {
+	expandedLabels := make(map[string]string)
+	if labels != nil {
+		for key, value := range labels {
+			expandedLabels[key] = value.(string)
+		}
+	}
+	return expandedLabels
+}
+
+func flattenLabels(labels map[string]string) map[string]interface{} {
+	flattenedLabels := make(map[string]interface{})
+	if labels != nil {
+		for key, value := range labels {
+			flattenedLabels[key] = value
+		}
+	}
+	return flattenedLabels
+}
+
 func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
 	expandedNodePools := make([]*godo.KubernetesNodePool, 0, len(nodePools))
 	for _, rawPool := range nodePools {
@@ -480,6 +516,7 @@ func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
 			MinNodes:  pool["min_nodes"].(int),
 			MaxNodes:  pool["max_nodes"].(int),
 			Tags:      expandTags(pool["tags"].(*schema.Set).List()),
+			Labels:    expandLabels(pool["labels"].(map[string]interface{})),
 			Nodes:     expandNodes(pool["nodes"].([]interface{})),
 		}
 

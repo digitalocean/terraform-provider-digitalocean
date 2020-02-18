@@ -66,6 +66,7 @@ The following attributes are exported:
   - `min_nodes` - If auto-scaling is enabled, this represents the minimum number of nodes that the node pool can be scaled down to.
   - `max_nodes` - If auto-scaling is enabled, this represents the maximum number of nodes that the node pool can be scaled up to.
   - `tags` - A list of tag names applied to the node pool.
+  - `labels` - A map of key/value pairs applied to nodes in the pool. The labels are exposed in the Kubernetes API as labels in the metadata of the corresponding [Node resources](https://kubernetes.io/docs/concepts/architecture/nodes/).
   - `nodes` - A list of nodes in the pool. Each node exports the following attributes:
      + `id` -  A unique ID that can be used to identify and reference the node.
      + `name` - The auto-generated name for the node.
