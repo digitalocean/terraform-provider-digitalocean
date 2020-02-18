@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-func getDigitalOceanRegions(client *godo.Client) (map[string]godo.Region, error) {
-	allRegions := map[string]godo.Region{}
+func getDigitalOceanRegions(client *godo.Client) ([]godo.Region, error) {
+	allRegions := []godo.Region{}
 
 	opts := &godo.ListOptions{
 		Page:    1,
@@ -24,7 +24,7 @@ func getDigitalOceanRegions(client *godo.Client) (map[string]godo.Region, error)
 		}
 
 		for _, region := range regions {
-			allRegions[region.Slug] = region
+			allRegions = append(allRegions, region)
 		}
 
 		if resp.Links == nil || resp.Links.IsLastPage() {

@@ -71,16 +71,9 @@ func dataSourceDigitalOceanRegions() *schema.Resource {
 func dataSourceDigitalOceanRegionsRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
-	regionsBySlug, err := getDigitalOceanRegions(client)
+	regions, err := getDigitalOceanRegions(client)
 	if err != nil {
 		return fmt.Errorf("Unable to load regions: %s", err)
-	}
-
-	regions := make([]godo.Region, len(regionsBySlug))
-	i := 0
-	for _, region := range regionsBySlug {
-		regions[i] = region
-		i += 1
 	}
 
 	if v, ok := d.GetOk("filter"); ok {

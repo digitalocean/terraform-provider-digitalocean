@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"fmt"
 
+	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -40,7 +41,7 @@ func dataSourceDigitalOceanRegion() *schema.Resource {
 func dataSourceDigitalOceanRegionRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
-	regionsBySlug, err := getDigitalOceanRegions(client)
+	regions, err := getDigitalOceanRegions(client)
 	if err != nil {
 		return fmt.Errorf("Unable to load regions: %s", err)
 	}
@@ -50,13 +51,20 @@ func dataSourceDigitalOceanRegionRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("`slug` property must be specified")
 	}
 
-	region, ok := regionsBySlug[slug.(string)]
-	if !ok {
+	var regionForSlug *godo.Region
+	for _, region := range regions {
+		if region.Slug == slug.(string) {
+			regionForSlug = &region
+			break
+		}
+	}
+
+	if regionForSlug == nil {
 		return fmt.Errorf("Region does not exist: %s", slug)
 	}
 
 	d.SetId(resource.UniqueId())
-	if err := setResourceDataFromMap(d, flattenRegion(region)); err != nil {
+	if err := setResourceDataFromMap(d, flattenRegion(*regionForSlug)); err != nil {
 		return err
 	}
 
