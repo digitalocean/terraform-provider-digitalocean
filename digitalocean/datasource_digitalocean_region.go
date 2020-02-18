@@ -56,33 +56,8 @@ func dataSourceDigitalOceanRegionRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.SetId(resource.UniqueId())
-
-	if err := d.Set("slug", region.Slug); err != nil {
-		return fmt.Errorf("Unable to set `slug` attribute: %s", err)
-	}
-
-	if err := d.Set("name", region.Name); err != nil {
-		return fmt.Errorf("Unable to set `name` attribute: %s", err)
-	}
-
-	if err := d.Set("available", region.Available); err != nil {
-		return fmt.Errorf("Unable to set `available` attribute: %s", err)
-	}
-
-	sizesSet := schema.NewSet(schema.HashString, []interface{}{})
-	for _, size := range region.Sizes {
-		sizesSet.Add(size)
-	}
-	if err := d.Set("sizes", sizesSet); err != nil {
-		return fmt.Errorf("Unable to set `sizes` attribute: %s", err)
-	}
-
-	featuresSet := schema.NewSet(schema.HashString, []interface{}{})
-	for _, feature := range region.Features {
-		featuresSet.Add(feature)
-	}
-	if err := d.Set("features", featuresSet); err != nil {
-		return fmt.Errorf("Unable to set `features` attribute: %s", err)
+	if err := setResourceDataFromMap(d, flattenRegion(region)); err != nil {
+		return err
 	}
 
 	return nil
