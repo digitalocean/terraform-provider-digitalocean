@@ -13,20 +13,39 @@ data "digitalocean_regions" "all" {
 `
 	configAvailableFilter := `
 data "digitalocean_regions" "filtered" {
-	available = true
+	filter {
+        key = "available"
+        values = ["true"]
+    }
+    sort {
+		key = "slug"
+    }
 }
 `
 
 	configFeaturesFilter := `
 data "digitalocean_regions" "filtered" {
-	features = ["private_networking", "backups"]
+	filter {
+        key = "features"
+        values = ["private_networking", "backups"]
+    }
+    sort {
+		key = "available"
+		direction = "desc"
+    }
 }
 `
 
 	configAllFilters := `
 data "digitalocean_regions" "filtered" {
-	available = true
-	features = ["private_networking", "backups"]
+	filter {
+        key = "available"
+        values = ["true"]
+    }
+	filter {
+        key = "features"
+        values = ["private_networking", "backups"]
+    }
 }
 `
 	resource.Test(t, resource.TestCase{
@@ -36,25 +55,25 @@ data "digitalocean_regions" "filtered" {
 			{
 				Config: configNoFilter,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.digitalocean_regions.all", "slugs.#"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_regions.all", "regions.#"),
 				),
 			},
 			{
 				Config: configAvailableFilter,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.digitalocean_regions.filtered", "slugs.#"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_regions.filtered", "regions.#"),
 				),
 			},
 			{
 				Config: configFeaturesFilter,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.digitalocean_regions.filtered", "slugs.#"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_regions.filtered", "regions.#"),
 				),
 			},
 			{
 				Config: configAllFilters,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.digitalocean_regions.filtered", "slugs.#"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_regions.filtered", "regions.#"),
 				),
 			},
 		},
