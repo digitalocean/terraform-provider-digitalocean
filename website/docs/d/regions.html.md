@@ -3,7 +3,7 @@ layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_regions"
 sidebar_current: "docs-do-datasource-regions"
 description: |-
-  Get identifiers for all or a filtered subset of DigitalOcean regions.
+  Retrieve metadata about DigitalOcean regions.
 ---
 
 # digitalocean_regions
