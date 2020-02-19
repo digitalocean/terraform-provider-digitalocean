@@ -41,6 +41,11 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
+				// Maintain support for clusters created using defualt version
+				// that is not set explicitly in a config.
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return new == ""
+				},
 			},
 
 			"size": {
