@@ -29,6 +29,7 @@ resource "digitalocean_database_cluster" "postgres-example" {
 resource "digitalocean_database_cluster" "mysql-example" {
   name       = "example-mysql-cluster"
   engine     = "mysql"
+  version    = "8"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
@@ -40,6 +41,7 @@ resource "digitalocean_database_cluster" "mysql-example" {
 resource "digitalocean_database_cluster" "redis-example" {
   name       = "example-redis-cluster"
   engine     = "redis"
+  version    = "5"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
