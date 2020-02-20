@@ -35,7 +35,7 @@ func dataSourceDigitalOceanRegions() *schema.Resource {
 			"sort":   sortSchema(dataSourceDigitalOceanRegionsSortKeys),
 
 			"regions": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
