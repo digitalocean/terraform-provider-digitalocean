@@ -6,6 +6,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
 func dataSourceDigitalOceanRegion() *schema.Resource {
@@ -13,8 +14,9 @@ func dataSourceDigitalOceanRegion() *schema.Resource {
 		Read: dataSourceDigitalOceanRegionRead,
 		Schema: map[string]*schema.Schema{
 			"slug": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -46,14 +48,11 @@ func dataSourceDigitalOceanRegionRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Unable to load regions: %s", err)
 	}
 
-	slug, ok := d.GetOk("slug")
-	if !ok || slug == "" {
-		return fmt.Errorf("`slug` property must be specified")
-	}
+	slug := d.Get("slug").(string)
 
 	var regionForSlug *godo.Region
 	for _, region := range regions {
-		if region.Slug == slug.(string) {
+		if region.Slug == slug {
 			regionForSlug = &region
 			break
 		}
