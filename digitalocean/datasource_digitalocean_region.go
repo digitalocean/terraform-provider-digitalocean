@@ -50,9 +50,9 @@ func dataSourceDigitalOceanRegionRead(d *schema.ResourceData, meta interface{}) 
 
 	slug := d.Get("slug").(string)
 
-	var regionForSlug *godo.Region
+	var regionForSlug *interface{}
 	for _, region := range regions {
-		if region.Slug == slug {
+		if region.(godo.Region).Slug == slug {
 			regionForSlug = &region
 			break
 		}
