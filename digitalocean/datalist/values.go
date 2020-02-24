@@ -9,7 +9,7 @@ import (
 )
 
 func floatApproxEquals(a, b float64) bool {
-	return math.Abs(a - b) < 0.000001
+	return math.Abs(a-b) < 0.000001
 }
 
 func valueMatches(s *schema.Schema, value interface{}, filterValue string) bool {
