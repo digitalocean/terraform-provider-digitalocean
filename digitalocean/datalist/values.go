@@ -1,11 +1,16 @@
 package datalist
 
 import (
+	"math"
 	"strconv"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
+
+func floatApproxEquals(a, b float64) bool {
+	return math.Abs(a - b) < 0.000001
+}
 
 func valueMatches(s *schema.Schema, value interface{}, filterValue string) bool {
 	switch s.Type {
@@ -24,14 +29,25 @@ func valueMatches(s *schema.Schema, value interface{}, filterValue string) bool 
 
 	case schema.TypeFloat:
 		if floatValue, err := strconv.ParseFloat(filterValue, 64); err == nil {
-			return floatValue == value.(float64)
+			return floatApproxEquals(floatValue, value.(float64))
 		}
 
 	case schema.TypeList:
 		listValues := value.([]interface{})
 		result := false
 		for _, listValue := range listValues {
-			result = result || valueMatches(s.Elem.(*schema.Schema), listValue, filterValue)
+			valueDoesMatch := valueMatches(s.Elem.(*schema.Schema), listValue, filterValue)
+			result = result || valueDoesMatch
+		}
+		return result
+
+	case schema.TypeSet:
+		setValue := value.(*schema.Set)
+		listValues := setValue.List()
+		result := false
+		for _, listValue := range listValues {
+			valueDoesMatch := valueMatches(s.Elem.(*schema.Schema), listValue, filterValue)
+			result = result || valueDoesMatch
 		}
 		return result
 	}
@@ -69,7 +85,9 @@ func compareValues(s *schema.Schema, value1 interface{}, value2 interface{}) int
 	case schema.TypeFloat:
 		floatValue1 := value1.(float64)
 		floatValue2 := value2.(float64)
-		if floatValue1 < floatValue2 {
+		if floatApproxEquals(floatValue1, floatValue2) {
+			return 0
+		} else if floatValue1 < floatValue2 {
 			return -1
 		} else if floatValue1 > floatValue2 {
 			return 1
