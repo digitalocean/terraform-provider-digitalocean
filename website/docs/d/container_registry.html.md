@@ -36,3 +36,5 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id`: The ID of the tag. This is the same as the name.
+* `endpoint`: The URL endpoint of the container registry.
+* `docker_credentials`: Credentials for the container registry.
