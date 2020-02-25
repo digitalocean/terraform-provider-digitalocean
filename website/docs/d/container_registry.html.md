@@ -17,11 +17,24 @@ An error is triggered if the provided container registry name does not exist.
 
 ## Example Usage
 
-Get the tag:
+Get the container registry:
 
 ```hcl
 data "digitalocean_container_registry" "example" {
   name = "example"
+}
+```
+
+Use the endpoint and docker_credentials in the docker provider
+
+```
+provider "docker" {
+  host = "tcp:localhost:2376"
+
+  registry_auth {
+    address = "registry.digitalocean.com"
+    config_file_content = data.digitalocean_container_registry.registry.docker_credentials
+  }
 }
 ```
 
