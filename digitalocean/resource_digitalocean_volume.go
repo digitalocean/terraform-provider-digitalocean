@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/digitalocean/godo"
@@ -36,7 +37,7 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9]+$`), "Names must be lowercase and alphanumeric"),
 			},
 			"urn": {
 				Type:        schema.TypeString,
