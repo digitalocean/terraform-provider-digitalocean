@@ -32,8 +32,8 @@ provider "docker" {
   host = "tcp:localhost:2376"
 
   registry_auth {
-    address = "registry.digitalocean.com"
-    config_file_content = data.digitalocean_container_registry.registry.docker_credentials
+    address = data.digitalocean_container_registry.example.server_url
+    config_file_content = data.digitalocean_container_registry.example.docker_credentials
   }
 }
 ```
@@ -49,5 +49,6 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id`: The ID of the tag. This is the same as the name.
-* `endpoint`: The URL endpoint of the container registry.
+* `endpoint`: The URL endpoint of the container registry. Ex: `registry.digitalocean.com/my_registry`
+* `server_url`: The domain of the container registry. Ex: `registry.digitalocean.com`
 * `docker_credentials`: Credentials for the container registry.

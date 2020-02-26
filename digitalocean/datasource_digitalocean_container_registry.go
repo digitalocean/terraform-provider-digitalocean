@@ -31,6 +31,10 @@ func dataSourceDigitalOceanContainerRegistry() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"server_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"docker_credentials": {
 				Type:      schema.TypeString,
 				Computed:  true,
@@ -69,5 +73,6 @@ func dataSourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta in
 		return fmt.Errorf("Empty docker credentials")
 	}
 	d.Set("docker_credentials", string(dockerCreds.DockerConfigJSON))
+	d.Set("server_url", RegistryHostname)
 	return nil
 }
