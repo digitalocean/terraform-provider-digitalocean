@@ -43,12 +43,14 @@ provider "docker" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the container registry.
+* `write` - (Optional) Boolean  to retrieve read/write credentials, suitable for use with the Docker client or in a CI system.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
 * `id`: The ID of the tag. This is the same as the name.
+* `name` - The name of the container registry
 * `endpoint`: The URL endpoint of the container registry. Ex: `registry.digitalocean.com/my_registry`
 * `server_url`: The domain of the container registry. Ex: `registry.digitalocean.com`
 * `docker_credentials`: Credentials for the container registry.
