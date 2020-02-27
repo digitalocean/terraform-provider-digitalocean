@@ -2,6 +2,7 @@ package datalist
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -39,6 +40,13 @@ type ResourceConfig struct {
 // is a resource with `filter` and `sort` attributes that can select a subset
 // of records from a list of records for a particular type of resource.
 func NewResource(config *ResourceConfig) *schema.Resource {
+	err := validateResourceConfig(config)
+	if err != nil {
+		// Panic if the resource config is invalid since this will prevent the resource
+		// from operating.
+		log.Panicf("datalist.NewResource: invalid resource configuration: %v", err)
+	}
+
 	resultSchema := map[string]*schema.Schema{}
 	for key, value := range config.RecordSchema {
 		resultSchema[key] = &schema.Schema{
@@ -94,4 +102,37 @@ func dataListResourceRead(config *ResourceConfig) schema.ReadFunc {
 
 		return nil
 	}
+}
+
+// Validate a ResourceConfig to ensure it conforms to this package's assumptions.
+func validateResourceConfig(config *ResourceConfig) error {
+	// Ensure that all of the filter keys exist in the schema and are of a supported type.
+	for _, filterKey := range config.FilterKeys {
+		if s, ok := config.RecordSchema[filterKey]; ok {
+			if s.Type == schema.TypeMap {
+				return fmt.Errorf("filtering is not supported for map types: %s", filterKey)
+			}
+		} else {
+			return fmt.Errorf("filter attribute '%s' does not exist in schema", filterKey)
+		}
+	}
+
+	// Ensure that all of the sort keys exist in the schema and are of a supported type.
+	for _, sortKey := range config.SortKeys {
+		if s, ok := config.RecordSchema[sortKey]; ok {
+			supported := false
+			switch s.Type {
+			case schema.TypeString, schema.TypeBool, schema.TypeInt, schema.TypeFloat:
+				supported = true
+			}
+
+			if !supported {
+				return fmt.Errorf("sorting is only supported for string, bool, int, and float types: %s", sortKey)
+			}
+		} else {
+			return fmt.Errorf("sort key '%s' does not exist in schema", sortKey)
+		}
+	}
+
+	return nil
 }
