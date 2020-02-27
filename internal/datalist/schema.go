@@ -7,15 +7,37 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+// This is the configuration for a "data list" resource. It represents the schema and operations
+// needed to create the data list resource.
 type ResourceConfig struct {
-	RecordSchema        map[string]*schema.Schema
-	FilterKeys          []string
-	SortKeys            []string
+	// The schema for a single instance of the resource.
+	RecordSchema map[string]*schema.Schema
+
+	// A string slice with the attribute keys on which the filter attribute can operate.
+	// The filter attribute operates on all field types except for schema.TypeMap.
+	FilterKeys []string
+
+	// A string slice with the attribute keys on which the sort attribute can operate.
+	// The sort attribute only operates on the schema.TypeString, schema.TypeBool,
+	// schema.TypeInt, and schema.TypeFloat field types.
+	SortKeys []string
+
+	// The name of the attribute in the resource through which to expose results.
 	ResultAttributeName string
-	FlattenRecord       func(record interface{}) map[string]interface{}
-	GetRecords          func(meta interface{}) ([]interface{}, error)
+
+	// Given a record returned from the GetRecords function, flatten the record to a
+	// map acceptable to the Set method on schema.ResourceData.
+	FlattenRecord func(record interface{}) map[string]interface{}
+
+	// Return all of the records on which the data list resource should operate.
+	// The `meta` argument is the same meta argument passed into the resource's Read
+	// function.
+	GetRecords func(meta interface{}) ([]interface{}, error)
 }
 
+// Returns a new "data list" resource given the specified configuration. This
+// is a resource with `filter` and `sort` attributes that can select a subset
+// of records from a list of records for a particular type of resource.
 func NewResource(config *ResourceConfig) *schema.Resource {
 	resultSchema := map[string]*schema.Schema{}
 	for key, value := range config.RecordSchema {
