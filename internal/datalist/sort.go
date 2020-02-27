@@ -34,7 +34,7 @@ func sortSchema(allowedKeys []string) *schema.Schema {
 			},
 		},
 		Optional:    true,
-		Description: "One or more key/direction pairs to sort droplet size results.",
+		Description: "One or more key/direction pairs on which to sort results",
 	}
 }
 

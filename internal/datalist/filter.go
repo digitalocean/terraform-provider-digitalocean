@@ -28,7 +28,7 @@ func filterSchema(allowedKeys []string) *schema.Schema {
 			},
 		},
 		Optional:    true,
-		Description: "One or more key/value pairs to filter droplet size results.",
+		Description: "One or more key/value pairs on which to filter results",
 	}
 }
 
