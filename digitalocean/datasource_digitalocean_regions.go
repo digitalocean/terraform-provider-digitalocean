@@ -2,7 +2,7 @@ package digitalocean
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-digitalocean/digitalocean/datalist"
+	"github.com/terraform-providers/terraform-provider-digitalocean/internal/datalist"
 )
 
 func dataSourceDigitalOceanRegions() *schema.Resource {

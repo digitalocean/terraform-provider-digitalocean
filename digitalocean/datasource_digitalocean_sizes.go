@@ -6,7 +6,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-digitalocean/digitalocean/datalist"
+	"github.com/terraform-providers/terraform-provider-digitalocean/internal/datalist"
 )
 
 func dataSourceDigitalOceanSizes() *schema.Resource {
