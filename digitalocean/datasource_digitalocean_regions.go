@@ -6,7 +6,7 @@ import (
 )
 
 func dataSourceDigitalOceanRegions() *schema.Resource {
-	dataListConfig := &datalist.DataListResourceConfig{
+	dataListConfig := &datalist.ResourceConfig{
 		RecordSchema: map[string]*schema.Schema{
 			"slug": {
 				Type: schema.TypeString,
@@ -43,5 +43,5 @@ func dataSourceDigitalOceanRegions() *schema.Resource {
 		GetRecords:          getDigitalOceanRegions,
 	}
 
-	return datalist.NewDataListResource(dataListConfig)
+	return datalist.NewResource(dataListConfig)
 }

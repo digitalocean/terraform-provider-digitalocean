@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
-type DataListResourceConfig struct {
+type ResourceConfig struct {
 	RecordSchema        map[string]*schema.Schema
 	FilterKeys          []string
 	SortKeys            []string
@@ -16,7 +16,7 @@ type DataListResourceConfig struct {
 	GetRecords          func(meta interface{}) ([]interface{}, error)
 }
 
-func NewDataListResource(config *DataListResourceConfig) *schema.Resource {
+func NewResource(config *ResourceConfig) *schema.Resource {
 	resultSchema := map[string]*schema.Schema{}
 	for key, value := range config.RecordSchema {
 		resultSchema[key] = &schema.Schema{
@@ -42,7 +42,7 @@ func NewDataListResource(config *DataListResourceConfig) *schema.Resource {
 	}
 }
 
-func dataListResourceRead(config *DataListResourceConfig) schema.ReadFunc {
+func dataListResourceRead(config *ResourceConfig) schema.ReadFunc {
 	return func(d *schema.ResourceData, meta interface{}) error {
 		records, err := config.GetRecords(meta)
 		if err != nil {

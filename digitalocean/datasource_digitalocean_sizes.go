@@ -10,7 +10,7 @@ import (
 )
 
 func dataSourceDigitalOceanSizes() *schema.Resource {
-	dataListConfig := &datalist.DataListResourceConfig{
+	dataListConfig := &datalist.ResourceConfig{
 		RecordSchema: map[string]*schema.Schema{
 			"slug": {
 				Type:        schema.TypeString,
@@ -75,7 +75,7 @@ func dataSourceDigitalOceanSizes() *schema.Resource {
 		GetRecords:          getDigitalOceanSizes,
 	}
 
-	return datalist.NewDataListResource(dataListConfig)
+	return datalist.NewResource(dataListConfig)
 }
 
 func getDigitalOceanSizes(meta interface{}) ([]interface{}, error) {
