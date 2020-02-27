@@ -47,13 +47,14 @@ func NewResource(config *ResourceConfig) *schema.Resource {
 		log.Panicf("datalist.NewResource: invalid resource configuration: %v", err)
 	}
 
-	resultSchema := map[string]*schema.Schema{}
-	for key, value := range config.RecordSchema {
-		resultSchema[key] = &schema.Schema{
-			Type:     value.Type,
-			Elem:     value.Elem,
-			Computed: true,
-		}
+	recordSchema := map[string]*schema.Schema{}
+	for attributeName, attributeSchema := range config.RecordSchema {
+		newAttributeSchema := &schema.Schema{}
+		*newAttributeSchema = *attributeSchema
+		newAttributeSchema.Computed = true
+		newAttributeSchema.Required = false
+		newAttributeSchema.Optional = false
+		recordSchema[attributeName] = newAttributeSchema
 	}
 
 	return &schema.Resource{
@@ -65,7 +66,7 @@ func NewResource(config *ResourceConfig) *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: resultSchema,
+					Schema: recordSchema,
 				},
 			},
 		},
