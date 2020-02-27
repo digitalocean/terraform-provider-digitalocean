@@ -67,6 +67,10 @@ func sizesTestSchema() map[string]*schema.Schema {
 			Type: schema.TypeList,
 			Elem: &schema.Schema{Type: schema.TypeString},
 		},
+		"regions_set": {
+			Type: schema.TypeSet,
+			Elem: &schema.Schema{Type: schema.TypeString},
+		},
 	}
 }
 func sizesTestData() []map[string]interface{} {
@@ -80,6 +84,7 @@ func sizesTestData() []map[string]interface{} {
 			"price_monthly": 5.0,
 			"price_hourly":  0.007439999841153622,
 			"regions":       []interface{}{"sgp1", "sgp2"},
+			"regions_set":   schema.NewSet(schema.HashString, []interface{}{"sgp1", "sgp2"}),
 			"available":     true,
 		},
 		{
@@ -91,6 +96,7 @@ func sizesTestData() []map[string]interface{} {
 			"price_monthly": 15.0,
 			"price_hourly":  0.02232000045478344,
 			"regions":       []interface{}{"nyc1", "nyc2"},
+			"regions_set":   schema.NewSet(schema.HashString, []interface{}{"nyc1", "nyc2"}),
 			"available":     false,
 		},
 		{
@@ -102,6 +108,7 @@ func sizesTestData() []map[string]interface{} {
 			"price_monthly": 40.0,
 			"price_hourly":  0.05951999872922897,
 			"regions":       []interface{}{"ams1", "ams2"},
+			"regions_set":   schema.NewSet(schema.HashString, []interface{}{"ams1", "ams2"}),
 			"available":     true,
 		},
 	}
@@ -121,6 +128,7 @@ func TestApplyFilters(t *testing.T) {
 		{"ByPriceMonthly", commonFilter{"price_monthly", []string{"5.0", "40.0"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
 		{"ByPriceHourly", commonFilter{"price_hourly", []string{"0.00744", "0.05952"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
 		{"ByRegions", commonFilter{"regions", []string{"sgp1", "ams2"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
+		{"ByRegionsSet", commonFilter{"regions_set", []string{"sgp1", "ams2"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
 		{"ByAvailable", commonFilter{"available", []string{"true"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
 	}
 
