@@ -14,6 +14,7 @@ func resourceDigitalOceanContainerRegistry() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceDigitalOceanContainerRegistryCreate,
 		Read:   resourceDigitalOceanContainerRegistryRead,
+		Update: resourceDigitalOceanContainerRegistryUpdate,
 		Delete: resourceDigitalOceanContainerRegistryDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
@@ -87,21 +88,26 @@ func resourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta inte
 	d.SetId(reg.Name)
 	d.Set("name", reg.Name)
 	d.Set("endpoint", fmt.Sprintf("%s/%s", RegistryHostname, reg.Name))
-	dockerCreds, response, err := client.Registry.DockerCredentials(context.Background(), &godo.RegistryDockerCredentialsRequest{ReadWrite: write})
+	dockerConfigJSON, err := generateDockerCredentials(write, client)
 	if err != nil {
-		if response != nil && response.StatusCode == 404 {
-			return fmt.Errorf("docker credentials not found: %s", err)
-		}
-		return fmt.Errorf("Error retrieving docker credentials: %s", err)
+		return err
 	}
-	dockerConfigJSON := string(dockerCreds.DockerConfigJSON)
-	// TODO: Do we need this
-	if dockerConfigJSON == "" {
-		return fmt.Errorf("Empty docker credentials")
-	}
-	d.Set("docker_credentials", string(dockerCreds.DockerConfigJSON))
+	d.Set("docker_credentials", dockerConfigJSON)
 	d.Set("server_url", RegistryHostname)
 
+	return nil
+}
+
+func resourceDigitalOceanContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
+	if d.HasChange("write") {
+		write := d.Get("write").(bool)
+		client := meta.(*CombinedConfig).godoClient()
+		dockerConfigJSON, err := generateDockerCredentials(write, client)
+		if err != nil {
+			return err
+		}
+		d.Set("docker_credentials", dockerConfigJSON)
+	}
 	return nil
 }
 
@@ -116,4 +122,16 @@ func resourceDigitalOceanContainerRegistryDelete(d *schema.ResourceData, meta in
 
 	d.SetId("")
 	return nil
+}
+
+func generateDockerCredentials(readWrite bool, client *godo.Client) (string, error) {
+	dockerCreds, response, err := client.Registry.DockerCredentials(context.Background(), &godo.RegistryDockerCredentialsRequest{ReadWrite: readWrite})
+	if err != nil {
+		if response != nil && response.StatusCode == 404 {
+			return "", fmt.Errorf("docker credentials not found: %s", err)
+		}
+		return "", fmt.Errorf("Error retrieving docker credentials: %s", err)
+	}
+	dockerConfigJSON := string(dockerCreds.DockerConfigJSON)
+	return dockerConfigJSON, nil
 }
