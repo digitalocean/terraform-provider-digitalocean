@@ -22,7 +22,7 @@ func TestAccDataSourceDigitalOceanContainerRegistry_Basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanContainerRegistryConfig_basic, regName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceDigitalOceanContainerRegistryExists("data.digitalocean_tag.foobar", &reg),
+					testAccCheckDataSourceDigitalOceanContainerRegistryExists("data.digitalocean_container_registry.foobar", &reg),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_container_registry.foobar", "name", regName),
 				),
@@ -66,6 +66,6 @@ resource "digitalocean_container_registry" "foo" {
   name = "%s"
 }
 
-data "digitalocean_tag" "foobar" {
+data "digitalocean_container_registry" "foobar" {
   name = "${digitalocean_container_registry.foo.name}"
 }`

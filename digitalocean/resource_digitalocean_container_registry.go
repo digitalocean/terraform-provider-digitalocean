@@ -87,6 +87,7 @@ func resourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta inte
 	write := d.Get("write").(bool)
 	d.SetId(reg.Name)
 	d.Set("name", reg.Name)
+	d.Set("write", write)
 	d.Set("endpoint", fmt.Sprintf("%s/%s", RegistryHostname, reg.Name))
 	dockerConfigJSON, err := generateDockerCredentials(write, client)
 	if err != nil {
@@ -106,6 +107,7 @@ func resourceDigitalOceanContainerRegistryUpdate(d *schema.ResourceData, meta in
 		if err != nil {
 			return err
 		}
+		d.Set("write", write)
 		d.Set("docker_credentials", dockerConfigJSON)
 	}
 	return nil

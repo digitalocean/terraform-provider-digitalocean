@@ -43,7 +43,7 @@ provider "docker" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the container registry.
-* `write` - (Optional) Boolean  to retrieve read/write credentials, suitable for use with the Docker client or in a CI system.
+* `write` - (Optional) Boolean  to retrieve read/write credentials, suitable for use with the Docker client or in a CI system. Defaults to false.
 
 ## Attributes Reference
 

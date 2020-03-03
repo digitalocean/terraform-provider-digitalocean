@@ -59,6 +59,7 @@ func dataSourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta in
 	write := d.Get("write").(bool)
 	d.SetId(reg.Name)
 	d.Set("name", reg.Name)
+	d.Set("write", write)
 	d.Set("endpoint", fmt.Sprintf("%s/%s", RegistryHostname, reg.Name))
 	dockerCreds, response, err := client.Registry.DockerCredentials(context.Background(), &godo.RegistryDockerCredentialsRequest{ReadWrite: write})
 	if err != nil {

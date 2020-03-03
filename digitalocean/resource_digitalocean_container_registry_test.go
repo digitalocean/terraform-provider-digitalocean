@@ -25,6 +25,23 @@ func TestAccDigitalOceanContainerRegistry_Basic(t *testing.T) {
 					testAccCheckDigitalOceanContainerRegistryAttributes(&reg),
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry.foobar", "name", "foobar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_container_registry.foobar", "write", "false"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry.foobar", "docker_credentials"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/foobar"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanContainerRegistryConfig_write,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanContainerRegistryExists("digitalocean_container_registry.foobar", &reg),
+					testAccCheckDigitalOceanContainerRegistryAttributes(&reg),
+					resource.TestCheckResourceAttr(
+						"digitalocean_container_registry.foobar", "name", "foobar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_container_registry.foobar", "write", "true"),
 				),
 			},
 		},
@@ -88,7 +105,13 @@ func testAccCheckDigitalOceanContainerRegistryExists(n string, reg *godo.Registr
 	}
 }
 
-var testAccCheckDigitalOceanContainerRegistryConfig_basic = fmt.Sprintf(`
+var testAccCheckDigitalOceanContainerRegistryConfig_basic = `
 resource "digitalocean_container_registry" "foobar" {
     name = "foobar"
-}`)
+}`
+
+var testAccCheckDigitalOceanContainerRegistryConfig_write = `
+resource "digitalocean_container_registry" "foobar" {
+    name  = "foobar"
+    write = true
+}`
