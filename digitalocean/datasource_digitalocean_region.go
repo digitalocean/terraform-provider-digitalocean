@@ -62,10 +62,15 @@ func dataSourceDigitalOceanRegionRead(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("Region does not exist: %s", slug)
 	}
 
-	d.SetId(resource.UniqueId())
-	if err := setResourceDataFromMap(d, flattenRegion(*regionForSlug)); err != nil {
+	flattenedRegion, err := flattenRegion(*regionForSlug, meta)
+	if err != nil {
+		return nil
+	}
+
+	if err := setResourceDataFromMap(d, flattenedRegion); err != nil {
 		return err
 	}
 
+	d.SetId(resource.UniqueId())
 	return nil
 }

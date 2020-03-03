@@ -44,7 +44,7 @@ func getDigitalOceanRegions(meta interface{}) ([]interface{}, error) {
 	return allRegions, nil
 }
 
-func flattenRegion(rawRegion interface{}) map[string]interface{} {
+func flattenRegion(rawRegion, meta interface{}) (map[string]interface{}, error) {
 	region := rawRegion.(godo.Region)
 
 	flattenedRegion := map[string]interface{}{}
@@ -64,5 +64,5 @@ func flattenRegion(rawRegion interface{}) map[string]interface{} {
 	}
 	flattenedRegion["features"] = featuresSet
 
-	return flattenedRegion
+	return flattenedRegion, nil
 }

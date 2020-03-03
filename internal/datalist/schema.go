@@ -28,7 +28,7 @@ type ResourceConfig struct {
 
 	// Given a record returned from the GetRecords function, flatten the record to a
 	// map acceptable to the Set method on schema.ResourceData.
-	FlattenRecord func(record interface{}) map[string]interface{}
+	FlattenRecord func(record, meta interface{}) (map[string]interface{}, error)
 
 	// Return all of the records on which the data list resource should operate.
 	// The `meta` argument is the same meta argument passed into the resource's Read
@@ -82,7 +82,11 @@ func dataListResourceRead(config *ResourceConfig) schema.ReadFunc {
 
 		flattenedRecords := make([]map[string]interface{}, len(records))
 		for i, record := range records {
-			flattenedRecords[i] = config.FlattenRecord(record)
+			flattenedRecord, err := config.FlattenRecord(record, meta)
+			if err != nil {
+				return err
+			}
+			flattenedRecords[i] = flattenedRecord
 		}
 
 		if v, ok := d.GetOk("filter"); ok {

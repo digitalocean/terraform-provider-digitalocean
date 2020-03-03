@@ -113,7 +113,7 @@ func getDigitalOceanSizes(meta interface{}) ([]interface{}, error) {
 	return sizes, nil
 }
 
-func flattenDigitalOceanSize(size interface{}) map[string]interface{} {
+func flattenDigitalOceanSize(size, meta interface{}) (map[string]interface{}, error) {
 	s := size.(godo.Size)
 
 	flattenedSize := map[string]interface{}{}
@@ -132,5 +132,5 @@ func flattenDigitalOceanSize(size interface{}) map[string]interface{} {
 	}
 	flattenedSize["regions"] = flattenedRegions
 
-	return flattenedSize
+	return flattenedSize, nil
 }
