@@ -50,8 +50,10 @@ func projectSchema() map[string]*schema.Schema {
 	}
 }
 
-func getDigitalOceanProjects(client *godo.Client) ([]*godo.Project, error) {
-	allProjects := []*godo.Project{}
+func getDigitalOceanProjects(meta interface{}) ([]interface{}, error) {
+	client := meta.(*CombinedConfig).godoClient()
+
+	var allProjects []interface{}
 
 	opts := &godo.ListOptions{
 		Page:    1,
@@ -66,7 +68,7 @@ func getDigitalOceanProjects(client *godo.Client) ([]*godo.Project, error) {
 		}
 
 		for _, project := range projects {
-			allProjects = append(allProjects, &project)
+			allProjects = append(allProjects, project)
 		}
 
 		if resp.Links == nil || resp.Links.IsLastPage() {
@@ -87,9 +89,9 @@ func getDigitalOceanProjects(client *godo.Client) ([]*godo.Project, error) {
 func flattenDigitalOceanProject(rawProject interface{}, meta interface{}) (map[string]interface{}, error) {
 	client := meta.(*CombinedConfig).godoClient()
 
-	project, ok := rawProject.(*godo.Project)
+	project, ok := rawProject.(godo.Project)
 	if !ok {
-		return nil, fmt.Errorf("Unable to convert to *godo.Project")
+		return nil, fmt.Errorf("Unable to convert to godo.Project")
 	}
 
 	flattenedProject := map[string]interface{}{}

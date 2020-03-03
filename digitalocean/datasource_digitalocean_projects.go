@@ -23,19 +23,7 @@ func dataSourceDigitalOceanProjects() *schema.Resource {
 		},
 		ResultAttributeName: "projects",
 		FlattenRecord:       flattenDigitalOceanProject,
-		GetRecords: func(meta interface{}) ([]interface{}, error) {
-			client := meta.(*CombinedConfig).godoClient()
-			projects, err := getDigitalOceanProjects(client)
-			if err == nil {
-				var rawProjects []interface{}
-				for _, project := range projects {
-					rawProjects = append(rawProjects, project)
-				}
-				return rawProjects, nil
-			} else {
-				return nil, err
-			}
-		},
+		GetRecords:          getDigitalOceanProjects,
 	}
 
 	return datalist.NewResource(dataListConfig)

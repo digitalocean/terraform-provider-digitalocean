@@ -11,7 +11,7 @@ func TestAccDataSourceDigitalOceanProjects_Basic(t *testing.T) {
 	prodProjectName := randomName("tf-acc-project-", 6)
 	stagingProjectName := randomName("tf-acc-project-", 6)
 
-	config := fmt.Sprintf(`
+	resourcesConfig := fmt.Sprintf(`
 resource "digitalocean_project" "prod" {
 	name = "%s"
 	environment = "Production"
@@ -21,7 +21,9 @@ resource "digitalocean_project" "staging" {
 	name = "%s"
 	environment = "Staging"
 }
+`, prodProjectName, stagingProjectName)
 
+	datasourcesConfig := fmt.Sprintf(`
 data "digitalocean_projects" "prod" {
 	filter {
       key = "environment"
@@ -31,7 +33,7 @@ data "digitalocean_projects" "prod" {
       key = "is_default"
       values = ["false"]
     }
-	depends_on = [digitalocean_project.prod, digitalocean_project.staging]
+	#depends_on = [digitalocean_project.prod, digitalocean_project.staging]
 }
 
 data "digitalocean_projects" "staging" {
@@ -39,7 +41,11 @@ data "digitalocean_projects" "staging" {
       key = "name"
       values = ["%s"]
     }
-	depends_on = [digitalocean_project.prod, digitalocean_project.staging]
+    filter {
+      key = "is_default"
+      values = ["false"]
+    }
+	#depends_on = [digitalocean_project.prod, digitalocean_project.staging]
 }
 
 data "digitalocean_projects" "both" {
@@ -51,16 +57,19 @@ data "digitalocean_projects" "both" {
       key = "name"
       values = ["%s"]
     }
-	depends_on = [digitalocean_project.prod, digitalocean_project.staging]
+	#depends_on = [digitalocean_project.prod, digitalocean_project.staging]
 }
-`, prodProjectName, stagingProjectName, stagingProjectName, stagingProjectName)
+`, stagingProjectName, stagingProjectName)
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: resourcesConfig,
+			},
+			{
+				Config: datasourcesConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.digitalocean_projects.prod", "projects.#", "1"),
 					resource.TestCheckResourceAttr("data.digitalocean_projects.prod", "projects.0.name", prodProjectName),

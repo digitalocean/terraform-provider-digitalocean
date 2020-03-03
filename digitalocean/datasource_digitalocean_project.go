@@ -32,22 +32,23 @@ func dataSourceDigitalOceanProjectRead(d *schema.ResourceData, meta interface{})
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Load the specified project, otherwise load the default project.
-	var project *godo.Project
+	var foundProject *godo.Project
 	if projectId, ok := d.GetOk("id"); ok {
 		thisProject, _, err := client.Projects.Get(context.Background(), projectId.(string))
 		if err != nil {
 			return fmt.Errorf("Unable to load project ID %s: %s", projectId, err)
 		}
-		project = thisProject
+		foundProject = thisProject
 	} else if name, ok := d.GetOk("name"); ok {
 		projects, err := getDigitalOceanProjects(client)
 		if err != nil {
 			return fmt.Errorf("Unable to load projects: %s", err)
 		}
 
-		var projectsWithName []*godo.Project
-		for _, project := range projects {
-			if project.Name == name {
+		var projectsWithName []godo.Project
+		for _, p := range projects {
+			project := p.(godo.Project)
+			if project.Name == name.(string) {
 				projectsWithName = append(projectsWithName, project)
 			}
 		}
@@ -58,16 +59,20 @@ func dataSourceDigitalOceanProjectRead(d *schema.ResourceData, meta interface{})
 		}
 
 		// Single result so choose that project.
-		project = projects[0]
+		foundProject = &projectsWithName[0]
 	} else {
 		defaultProject, _, err := client.Projects.GetDefault(context.Background())
 		if err != nil {
 			return fmt.Errorf("Unable to load default project: %s", err)
 		}
-		project = defaultProject
+		foundProject = defaultProject
 	}
 
-	flattenedProject, err := flattenDigitalOceanProject(project, meta)
+	if foundProject == nil {
+		return fmt.Errorf("No project found.")
+	}
+
+	flattenedProject, err := flattenDigitalOceanProject(*foundProject, meta)
 	if err != nil {
 		return err
 	}
@@ -76,6 +81,6 @@ func dataSourceDigitalOceanProjectRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
-	d.SetId(project.ID)
+	d.SetId(foundProject.ID)
 	return nil
 }
