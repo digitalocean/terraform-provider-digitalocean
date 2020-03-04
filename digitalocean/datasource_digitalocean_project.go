@@ -17,10 +17,8 @@ func dataSourceDigitalOceanProject() *schema.Resource {
 
 	recordSchema["id"].ConflictsWith = []string{"name"}
 	recordSchema["id"].Optional = true
-	recordSchema["id"].Computed = false
 	recordSchema["name"].ConflictsWith = []string{"id"}
 	recordSchema["name"].Optional = true
-	recordSchema["name"].Computed = false
 
 	return &schema.Resource{
 		Read:   dataSourceDigitalOceanProjectRead,

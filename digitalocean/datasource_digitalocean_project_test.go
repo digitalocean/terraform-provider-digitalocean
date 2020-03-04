@@ -38,7 +38,11 @@ resource "digitalocean_project" "foo" {
 data "digitalocean_project" "bar" {
   	id = digitalocean_project.foo.id
 }
-`, nonDefaultProjectName)
+
+data "digitalocean_project" "barfoo" {
+    name = "%s"
+}
+`, nonDefaultProjectName, nonDefaultProjectName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -51,6 +55,8 @@ data "digitalocean_project" "bar" {
 					resource.TestCheckResourceAttrSet("data.digitalocean_project.bar", "id"),
 					resource.TestCheckResourceAttr("data.digitalocean_project.bar", "is_default", "false"),
 					resource.TestCheckResourceAttr("data.digitalocean_project.bar", "name", nonDefaultProjectName),
+					resource.TestCheckResourceAttr("data.digitalocean_project.barfoo", "is_default", "false"),
+					resource.TestCheckResourceAttr("data.digitalocean_project.barfoo", "name", nonDefaultProjectName),
 				),
 			},
 		},
