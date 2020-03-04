@@ -7,15 +7,14 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccDigitalOceanDatabaseUser_Basic(t *testing.T) {
 	var databaseUser godo.DatabaseUser
-	databaseClusterName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
-	databaseUserName := fmt.Sprintf("foobar-test-user-terraform-%s", acctest.RandString(10))
+	databaseClusterName := randomTestName()
+	databaseUserName := randomTestName()
 	databaseUserNameUpdated := databaseUserName + "-up"
 
 	resource.Test(t, resource.TestCase{
@@ -44,6 +43,65 @@ func TestAccDigitalOceanDatabaseUser_Basic(t *testing.T) {
 					testAccCheckDigitalOceanDatabaseUserAttributes(&databaseUser, databaseUserNameUpdated),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_user.foobar_user", "name", databaseUserNameUpdated),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDatabaseUser_MySQLAuth(t *testing.T) {
+	var databaseUser godo.DatabaseUser
+	databaseClusterName := randomTestName()
+	databaseUserName := randomTestName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseUserConfigMySQLAuth, databaseClusterName, databaseUserName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseUserExists("digitalocean_database_user.foobar_user", &databaseUser),
+					testAccCheckDigitalOceanDatabaseUserAttributes(&databaseUser, databaseUserName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "name", databaseUserName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "role"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "password"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "mysql_auth_plugin", "mysql_native_password"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseUserConfigMySQLAuthUpdate, databaseClusterName, databaseUserName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseUserExists("digitalocean_database_user.foobar_user", &databaseUser),
+					testAccCheckDigitalOceanDatabaseUserAttributes(&databaseUser, databaseUserName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "name", databaseUserName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "role"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "password"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "mysql_auth_plugin", "caching_sha2_password"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseUserConfigMySQLAuthRemoved, databaseClusterName, databaseUserName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseUserExists("digitalocean_database_user.foobar_user", &databaseUser),
+					testAccCheckDigitalOceanDatabaseUserAttributes(&databaseUser, databaseUserName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "name", databaseUserName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "role"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "password"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "mysql_auth_plugin", "caching_sha2_password"),
 				),
 			},
 		},
@@ -156,6 +214,53 @@ resource "digitalocean_database_cluster" "foobar" {
         day  = "friday"
         hour = "13:00:00"
 	}
+}
+
+resource "digitalocean_database_user" "foobar_user" {
+  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  name       = "%s"
+}`
+
+const testAccCheckDigitalOceanDatabaseUserConfigMySQLAuth = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "mysql"
+	version    = "8"
+	size       = "db-s-1vcpu-1gb"
+	region     = "nyc1"
+	node_count = 1
+}
+
+resource "digitalocean_database_user" "foobar_user" {
+  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  name       = "%s"
+  mysql_auth_plugin = "mysql_native_password"
+}`
+
+const testAccCheckDigitalOceanDatabaseUserConfigMySQLAuthUpdate = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "mysql"
+	version    = "8"
+	size       = "db-s-1vcpu-1gb"
+	region     = "nyc1"
+	node_count = 1
+}
+
+resource "digitalocean_database_user" "foobar_user" {
+  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  name       = "%s"
+  mysql_auth_plugin = "caching_sha2_password"
+}`
+
+const testAccCheckDigitalOceanDatabaseUserConfigMySQLAuthRemoved = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "mysql"
+	version    = "8"
+	size       = "db-s-1vcpu-1gb"
+	region     = "nyc1"
+	node_count = 1
 }
 
 resource "digitalocean_database_user" "foobar_user" {
