@@ -17,6 +17,8 @@ An error is triggered if the provided container registry name does not exist.
 
 ## Example Usage
 
+### Basic Example
+
 Get the container registry:
 
 ```hcl
