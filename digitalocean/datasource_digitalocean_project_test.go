@@ -40,9 +40,9 @@ data "digitalocean_project" "bar" {
 }
 
 data "digitalocean_project" "barfoo" {
-    name = "%s"
+    name = digitalocean_project.foo.name
 }
-`, nonDefaultProjectName, nonDefaultProjectName)
+`, nonDefaultProjectName)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

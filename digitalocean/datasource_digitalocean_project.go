@@ -38,7 +38,7 @@ func dataSourceDigitalOceanProjectRead(d *schema.ResourceData, meta interface{})
 		}
 		foundProject = thisProject
 	} else if name, ok := d.GetOk("name"); ok {
-		projects, err := getDigitalOceanProjects(client)
+		projects, err := getDigitalOceanProjects(meta)
 		if err != nil {
 			return fmt.Errorf("Unable to load projects: %s", err)
 		}

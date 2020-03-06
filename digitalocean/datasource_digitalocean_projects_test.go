@@ -33,7 +33,6 @@ data "digitalocean_projects" "prod" {
       key = "is_default"
       values = ["false"]
     }
-	#depends_on = [digitalocean_project.prod, digitalocean_project.staging]
 }
 
 data "digitalocean_projects" "staging" {
@@ -45,7 +44,6 @@ data "digitalocean_projects" "staging" {
       key = "is_default"
       values = ["false"]
     }
-	#depends_on = [digitalocean_project.prod, digitalocean_project.staging]
 }
 
 data "digitalocean_projects" "both" {
@@ -57,7 +55,6 @@ data "digitalocean_projects" "both" {
       key = "name"
       values = ["%s"]
     }
-	#depends_on = [digitalocean_project.prod, digitalocean_project.staging]
 }
 `, stagingProjectName, stagingProjectName)
 	resource.Test(t, resource.TestCase{
