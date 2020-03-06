@@ -1,4 +1,22 @@
 ## 1.15.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Sources**: digitalocean_regions and digitalocean_region ([#380](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/380)) Thanks to @tdyas!
+* **New Data Sources**: digitalocean_projects and digitalocean_project ([#391](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/391)) Thanks to @tdyas!
+* resource/digitalocean_kubernetes_cluster, resource/digitalocean_kubernetes_node_pool: Add support for importing existing resources ([#365](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/365)). Thanks to @tdyas!
+
+IMPROVEMENTS:
+
+* datasource/digitalocean_droplet_snapshot, datasource/digitalocean_volume_snapshot resource/digitalocean_floating_ip, resource/digitalocean_floating_ip_assignment: Update for deprecated terraform-plugin-sdk helper/validation methods ([#376](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/376)).
+* resource/digitalocean_kubernetes_cluster, resource/digitalocean_kubernetes_node_pool: Add support for Kubernetes node pool labels ([#379](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/379)). Thanks to @tdyas!
+* internal/datalist: Add a generic filter/sort framework for datasources ([#385](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/385)). Thanks to @tdyas!
+
+BUG FIXES:
+
+* datasource/digitalocean_droplet: Validate only one of "id", "tag", or "name" are provided as an argument ([#375](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/375)). Thanks to @tdyas!
+* resource/digitalocean_volume: Validate that volume names are lowercase and alphanumeric ([#386](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/386)). Thanks to @danrabinowitz!
+
 ## 1.14.0 (February 05, 2020)
 
 IMPROVEMENTS:
