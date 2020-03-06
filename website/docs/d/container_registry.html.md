@@ -27,7 +27,9 @@ data "digitalocean_container_registry" "example" {
 }
 ```
 
-Use the endpoint and docker_credentials in the docker provider
+### Docker Provider Example
+
+Use the `endpoint` and `docker_credentials` with the Docker provider:
 
 ```
 provider "docker" {
