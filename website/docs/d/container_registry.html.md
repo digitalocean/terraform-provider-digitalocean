@@ -32,6 +32,10 @@ data "digitalocean_container_registry" "example" {
 Use the `endpoint` and `docker_credentials` with the Docker provider:
 
 ```
+data "digitalocean_container_registry" "example" {
+  name = "example"
+}
+
 provider "docker" {
   host = "tcp:localhost:2376"
 
