@@ -64,6 +64,10 @@ func resourceDigitalOceanProject() *schema.Resource {
 				Computed:    true,
 				Description: "the id of the project owner.",
 			},
+			"is_default": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"created_at": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -269,7 +273,7 @@ func assignResourcesToProject(client *godo.Client, projectId string, resources *
 	return &urns, nil
 }
 
-func loadResourceURNs(client *godo.Client, projectId string) (*[]interface{}, error) {
+func loadResourceURNs(client *godo.Client, projectId string) (*[]string, error) {
 	opts := &godo.ListOptions{
 		Page:    1,
 		PerPage: 200,
@@ -298,7 +302,7 @@ func loadResourceURNs(client *godo.Client, projectId string) (*[]interface{}, er
 		opts.Page = page + 1
 	}
 
-	var urns []interface{}
+	var urns []string
 	for _, rsrc := range resourceList {
 		urns = append(urns, rsrc.URN)
 	}
