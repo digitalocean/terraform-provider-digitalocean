@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
+type imageListFunc func(ctx context.Context, opt *godo.ListOptions) ([]godo.Image, *godo.Response, error)
+
 func imageSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
@@ -73,7 +75,10 @@ func imageSchema() map[string]*schema.Schema {
 
 func getDigitalOceanImages(meta interface{}) ([]interface{}, error) {
 	client := meta.(*CombinedConfig).godoClient()
+	return listDigitalOceanImages(client.Images.List)
+}
 
+func listDigitalOceanImages(listImages imageListFunc) ([]interface{}, error) {
 	var allImages []interface{}
 
 	opts := &godo.ListOptions{
@@ -82,8 +87,7 @@ func getDigitalOceanImages(meta interface{}) ([]interface{}, error) {
 	}
 
 	for {
-		images, resp, err := client.Images.List(context.Background(), opts)
-
+		images, resp, err := listImages(context.Background(), opts)
 		if err != nil {
 			return nil, fmt.Errorf("Error retrieving images: %s", err)
 		}

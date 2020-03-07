@@ -17,13 +17,20 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 		f.Computed = true
 	}
 
+	recordSchema["id"].Optional = true
+	recordSchema["id"].ValidateFunc = validation.NoZeroValues
+	recordSchema["id"].ExactlyOneOf = []string{"id", "slug", "name"}
+
 	recordSchema["name"].Optional = true
 	recordSchema["name"].ValidateFunc = validation.StringIsNotEmpty
-	recordSchema["name"].ExactlyOneOf = []string{"slug", "name"}
+	recordSchema["name"].ExactlyOneOf = []string{"id", "slug", "name"}
 
 	recordSchema["slug"].Optional = true
 	recordSchema["slug"].ValidateFunc = validation.StringIsNotEmpty
-	recordSchema["slug"].ExactlyOneOf = []string{"slug", "name"}
+	recordSchema["slug"].ExactlyOneOf = []string{"id", "slug", "name"}
+
+	recordSchema["private"].Optional = true
+	recordSchema["private"].ConflictsWith = []string{"id", "slug"}
 
 	return &schema.Resource{
 		Read:   dataSourceDigitalOceanImageRead,
@@ -34,68 +41,65 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
-	name, hasName := d.GetOk("name")
-	slug, hasSlug := d.GetOk("slug")
+	var foundImage *godo.Image
 
-	if !hasName && !hasSlug {
-		return fmt.Errorf("One of `name` or `slug` must be assigned")
-	}
-
-	var image *godo.Image
-
-	if hasName {
-		opts := &godo.ListOptions{
-			Page:    1,
-			PerPage: 200,
-		}
-
-		imageList := []godo.Image{}
-
-		for {
-			images, resp, err := client.Images.ListUser(context.Background(), opts)
-
-			if err != nil {
-				return fmt.Errorf("Error retrieving images: %s", err)
-			}
-
-			for _, image := range images {
-				imageList = append(imageList, image)
-			}
-
-			if resp.Links == nil || resp.Links.IsLastPage() {
-				break
-			}
-
-			page, err := resp.Links.CurrentPage()
-			if err != nil {
-				return fmt.Errorf("Error retrieving images: %s", err)
-			}
-
-			opts.Page = page + 1
-		}
-
-		var err error
-		image, err = findImageByName(imageList, name.(string))
-
+	if id, ok := d.GetOk("id"); ok {
+		image, resp, err := client.Images.GetByID(context.Background(), id.(int))
 		if err != nil {
-			return err
+			if resp != nil && resp.StatusCode == 404 {
+				return fmt.Errorf("image ID %d not found: %s", id.(int), err)
+			}
+			return fmt.Errorf("Error retrieving image: %s", err)
 		}
-	} else {
-		var (
-			err  error
-			resp *godo.Response
-		)
-
-		image, resp, err = client.Images.GetBySlug(context.Background(), slug.(string))
+		foundImage = image
+	} else if slug, ok := d.GetOk("slug"); ok {
+		image, resp, err := client.Images.GetBySlug(context.Background(), slug.(string))
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
 				return fmt.Errorf("image not found: %s", err)
 			}
 			return fmt.Errorf("Error retrieving image: %s", err)
 		}
+		foundImage = image
+	} else if name, ok := d.GetOk("name"); ok {
+		private := d.Get("private")
+
+		var allImages []interface{}
+		if private.(bool) {
+			images, err := listDigitalOceanImages(client.Images.ListUser)
+			if err != nil {
+				return err
+			}
+			allImages = images
+		} else {
+			images, err := listDigitalOceanImages(client.Images.List)
+			if err != nil {
+				return err
+			}
+			allImages = images
+		}
+
+		var results []interface{}
+
+		for _, image := range allImages {
+			if image.(godo.Image).Name == name {
+				results = append(results, image)
+			}
+		}
+
+		if len(results) == 0 {
+			return fmt.Errorf("no image found with name %s", name)
+		} else if len(results) > 1 {
+			fmt.Errorf("too many images found with name %s (found %d, expected 1)", name, len(results))
+		}
+
+		result := results[0].(godo.Image)
+		foundImage = &result
+	} else {
+		return fmt.Errorf("Illegal state: one of id, name, or slug must be set")
 	}
 
-	flattenedImage, err := flattenDigitalOceanImage(*image, meta)
+	flattenedImage, err := flattenDigitalOceanImage(*foundImage, meta)
 	if err != nil {
 		return err
 	}
@@ -104,23 +108,7 @@ func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) e
 		return err
 	}
 
-	d.SetId(strconv.Itoa(image.ID))
+	d.SetId(strconv.Itoa(foundImage.ID))
 
 	return nil
-}
-
-func findImageByName(images []godo.Image, name string) (*godo.Image, error) {
-	results := make([]godo.Image, 0)
-	for _, v := range images {
-		if v.Name == name {
-			results = append(results, v)
-		}
-	}
-	if len(results) == 1 {
-		return &results[0], nil
-	}
-	if len(results) == 0 {
-		return nil, fmt.Errorf("no user image found with name %s", name)
-	}
-	return nil, fmt.Errorf("too many user images found with name %s (found %d, expected 1)", name, len(results))
 }
