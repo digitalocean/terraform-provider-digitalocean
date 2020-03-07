@@ -59,13 +59,20 @@ The following arguments are supported:
 
 The following attributes are exported:
 
+* `slug`: Unique text identifier of the image.
 * `id`: The ID of the image.
-* `image` - The id of the image.
+* `name`: The name of the image.
+* `type`: Type of the image.
 * `distribution` - The name of the distribution of the OS of the image.
 * `min_disk_size`: The minimum 'disk' required for the image.
+* `size_gigabytes`: The size of the image in GB.
 * `private` - Is image a public image or not. Public images represent
   Linux distributions or One-Click Applications, while non-public images represent
   snapshots and backups and are only available within your account.
-* `regions`: The regions that the image is available in.
-* `type`: Type of the image.
+* `regions`: A set of the regions that the image is available in.
+* `tags`: A set of tags applied to the image 
+* `created`: When the image was created
+* `status`: Current status of the image
+* `error_message`: Any applicable error message pertaining to the image
+* `image` - The id of the image (legacy parameter).
 

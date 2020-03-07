@@ -59,7 +59,7 @@ func imageSchema() map[string]*schema.Schema {
 		},
 		"tags": {
 			Type:        schema.TypeSet,
-			Description: "list of the regions that the image is available in",
+			Description: "tags applied to the image",
 			Elem:        &schema.Schema{Type: schema.TypeString},
 		},
 		"status": {
