@@ -11,56 +11,23 @@ import (
 )
 
 func dataSourceDigitalOceanImage() *schema.Resource {
-	return &schema.Resource{
-		Read: dataSourceDigitalOceanImageRead,
-		Schema: map[string]*schema.Schema{
+	recordSchema := imageSchema()
 
-			"name": {
-				Type:          schema.TypeString,
-				Optional:      true,
-				Description:   "name of the image",
-				ValidateFunc:  validation.NoZeroValues,
-				ConflictsWith: []string{"slug"},
-			},
-			"slug": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Description:  "slug of the image",
-				ValidateFunc: validation.NoZeroValues,
-			},
-			// computed attributes
-			"image": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "slug or id of the image",
-			},
-			"distribution": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "distribution of the OS of the image",
-			},
-			"private": {
-				Type:        schema.TypeBool,
-				Computed:    true,
-				Description: "Is the image private or non-private",
-			},
-			"min_disk_size": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "minimum disk size required by the image",
-			},
-			"regions": {
-				Type:        schema.TypeSet,
-				Computed:    true,
-				Description: "list of the regions that the image is available in",
-				Elem:        &schema.Schema{Type: schema.TypeString},
-			},
-			"type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "type of the image",
-			},
-		},
+	for _, f := range recordSchema {
+		f.Computed = true
+	}
+
+	recordSchema["name"].Optional = true
+	recordSchema["name"].ValidateFunc = validation.StringIsNotEmpty
+	recordSchema["name"].ExactlyOneOf = []string{"slug", "name"}
+
+	recordSchema["slug"].Optional = true
+	recordSchema["slug"].ValidateFunc = validation.StringIsNotEmpty
+	recordSchema["slug"].ExactlyOneOf = []string{"slug", "name"}
+
+	return &schema.Resource{
+		Read:   dataSourceDigitalOceanImageRead,
+		Schema: recordSchema,
 	}
 }
 
@@ -128,15 +95,16 @@ func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) e
 		}
 	}
 
+	flattenedImage, err := flattenDigitalOceanImage(*image, meta)
+	if err != nil {
+		return err
+	}
+
+	if err := setResourceDataFromMap(d, flattenedImage); err != nil {
+		return err
+	}
+
 	d.SetId(strconv.Itoa(image.ID))
-	d.Set("name", image.Name)
-	d.Set("slug", image.Slug)
-	d.Set("image", strconv.Itoa(image.ID))
-	d.Set("distribution", image.Distribution)
-	d.Set("min_disk_size", image.MinDiskSize)
-	d.Set("private", !image.Public)
-	d.Set("regions", image.Regions)
-	d.Set("type", image.Type)
 
 	return nil
 }
