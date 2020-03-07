@@ -90,7 +90,7 @@ func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) e
 		if len(results) == 0 {
 			return fmt.Errorf("no image found with name %s", name)
 		} else if len(results) > 1 {
-			fmt.Errorf("too many images found with name %s (found %d, expected 1)", name, len(results))
+			return fmt.Errorf("too many images found with name %s (found %d, expected 1)", name, len(results))
 		}
 
 		result := results[0].(godo.Image)
