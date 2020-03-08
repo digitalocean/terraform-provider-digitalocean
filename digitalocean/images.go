@@ -122,10 +122,7 @@ func flattenDigitalOceanImage(rawImage interface{}, meta interface{}) (map[strin
 		flattenedRegions.Add(region)
 	}
 
-	flattenedTags := schema.NewSet(schema.HashString, []interface{}{})
-	for _, tag := range image.Tags {
-		flattenedTags.Add(tag)
-	}
+	flattenedTags := flattenTags(image.Tags)
 
 	flattenedImage := map[string]interface{}{
 		"id":             image.ID,
