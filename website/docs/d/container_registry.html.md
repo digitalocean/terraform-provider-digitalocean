@@ -8,6 +8,9 @@ description: |-
 
 # digitalocean_container_registry
 
+-> **Note**: DigitalOcean Container Registry is currently in private beta.
+This feature will become available to the general public soon.
+
 Get information on a container registry. This data source provides the name as 
 configured on your DigitalOcean account. This is useful if the container 
 registry name in question is not managed by Terraform or you need validate if 

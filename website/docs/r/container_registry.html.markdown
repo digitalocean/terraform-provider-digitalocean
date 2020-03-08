@@ -8,6 +8,9 @@ description: |-
 
 # digitalocean\_container_registry
 
+-> **Note**: DigitalOcean Container Registry is currently in private beta.
+This feature will become available to the general public soon.
+
 Provides a DigitalOcean Container Registry resource. A Container Registry is
 a secure, private location to store your containers for rapid deployment. 
 
