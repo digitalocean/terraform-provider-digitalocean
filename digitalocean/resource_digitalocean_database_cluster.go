@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -41,11 +42,6 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				ForceNew: true,
-				// Maintain support for clusters created using default version
-				// that is not set explicitly in a config.
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return new == ""
-				},
 			},
 
 			"size": {
@@ -150,21 +146,38 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 			"tags": tagsSchema(),
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			engine := diff.Get("engine")
-			_, hasEvictionPolicy := diff.GetOk("eviction_policy")
-			_, hasSqlMode := diff.GetOk("sql_mode")
+		CustomizeDiff: customdiff.All(
+			schema.CustomizeDiffFunc(func(diff *schema.ResourceDiff, v interface{}) error {
+				engine := diff.Get("engine")
+				_, hasVersion := diff.GetOk("version")
+				old, _ := diff.GetChange("version")
 
-			if hasSqlMode && engine != "mysql" {
-				return fmt.Errorf("sql_mode is only supported for MySQL Database Clusters")
-			}
+				if !hasVersion {
+					if old != "" {
+						return fmt.Errorf(`The argument "version" is now required. Set the %v version to the value saved to state: %v`, engine, old)
+					}
 
-			if hasEvictionPolicy && engine != "redis" {
-				return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
-			}
+					return fmt.Errorf(`The argument "version" is required, but no definition was found.`)
+				}
 
-			return nil
-		},
+				return nil
+			}),
+			schema.CustomizeDiffFunc(func(diff *schema.ResourceDiff, v interface{}) error {
+				engine := diff.Get("engine")
+				_, hasEvictionPolicy := diff.GetOk("eviction_policy")
+				_, hasSqlMode := diff.GetOk("sql_mode")
+
+				if hasSqlMode && engine != "mysql" {
+					return fmt.Errorf("sql_mode is only supported for MySQL Database Clusters")
+				}
+
+				if hasEvictionPolicy && engine != "redis" {
+					return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 

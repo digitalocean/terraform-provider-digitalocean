@@ -57,7 +57,7 @@ The following arguments are supported:
 * `size` - (Required) Database Droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`).
 * `region` - (Required) DigitalOcean region where the cluster will reside.
 * `node_count` - (Required) Number of nodes that will be included in the cluster.
-* `version` - (Optional) Engine version used by the cluster (ex. `11` for PostgreSQL 11).
+* `version` - (Required) Engine version used by the cluster (ex. `11` for PostgreSQL 11).
 * `tags` - (Optional) A list of tag names to be applied to the database cluster.
 * `eviction_policy` - (Optional) A string specifying the eviction policy for a Redis cluster. Valid values are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.
 * `sql_mode` - (Optional) A comma separated string specifying the  SQL modes for a MySQL cluster.
