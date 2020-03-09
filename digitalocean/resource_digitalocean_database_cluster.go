@@ -39,7 +39,9 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type: schema.TypeString,
+				// In practice, this is required
+				// See transitionVersionToRequired CustomizeDiffFunc
 				Optional: true,
 				ForceNew: true,
 			},
@@ -147,38 +149,46 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 		},
 
 		CustomizeDiff: customdiff.All(
-			schema.CustomizeDiffFunc(func(diff *schema.ResourceDiff, v interface{}) error {
-				engine := diff.Get("engine")
-				_, hasVersion := diff.GetOk("version")
-				old, _ := diff.GetChange("version")
-
-				if !hasVersion {
-					if old != "" {
-						return fmt.Errorf(`The argument "version" is now required. Set the %v version to the value saved to state: %v`, engine, old)
-					}
-
-					return fmt.Errorf(`The argument "version" is required, but no definition was found.`)
-				}
-
-				return nil
-			}),
-			schema.CustomizeDiffFunc(func(diff *schema.ResourceDiff, v interface{}) error {
-				engine := diff.Get("engine")
-				_, hasEvictionPolicy := diff.GetOk("eviction_policy")
-				_, hasSqlMode := diff.GetOk("sql_mode")
-
-				if hasSqlMode && engine != "mysql" {
-					return fmt.Errorf("sql_mode is only supported for MySQL Database Clusters")
-				}
-
-				if hasEvictionPolicy && engine != "redis" {
-					return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
-				}
-
-				return nil
-			}),
+			transitionVersionToRequired(),
+			validateExclusiveAttributes(),
 		),
 	}
+}
+
+func transitionVersionToRequired() schema.CustomizeDiffFunc {
+	return schema.CustomizeDiffFunc(func(diff *schema.ResourceDiff, v interface{}) error {
+		engine := diff.Get("engine")
+		_, hasVersion := diff.GetOk("version")
+		old, _ := diff.GetChange("version")
+
+		if !hasVersion {
+			if old != "" {
+				return fmt.Errorf(`The argument "version" is now required. Set the %v version to the value saved to state: %v`, engine, old)
+			}
+
+			return fmt.Errorf(`The argument "version" is required, but no definition was found.`)
+		}
+
+		return nil
+	})
+}
+
+func validateExclusiveAttributes() schema.CustomizeDiffFunc {
+	return schema.CustomizeDiffFunc(func(diff *schema.ResourceDiff, v interface{}) error {
+		engine := diff.Get("engine")
+		_, hasEvictionPolicy := diff.GetOk("eviction_policy")
+		_, hasSqlMode := diff.GetOk("sql_mode")
+
+		if hasSqlMode && engine != "mysql" {
+			return fmt.Errorf("sql_mode is only supported for MySQL Database Clusters")
+		}
+
+		if hasEvictionPolicy && engine != "redis" {
+			return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
+		}
+
+		return nil
+	})
 }
 
 func resourceDigitalOceanDatabaseClusterCreate(d *schema.ResourceData, meta interface{}) error {
