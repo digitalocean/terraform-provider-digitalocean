@@ -21,7 +21,6 @@ func dataSourceDigitalOceanContainerRegistry() *schema.Resource {
 				Description:  "name of the container registry",
 				ValidateFunc: validation.NoZeroValues,
 			},
-			//TODO: Need better name?
 			"write": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -69,7 +68,6 @@ func dataSourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error retrieving docker credentials: %s", err)
 	}
 	dockerConfigJSON := string(dockerCreds.DockerConfigJSON)
-	// TODO: Do we need this
 	if dockerConfigJSON == "" {
 		return fmt.Errorf("Empty docker credentials")
 	}
