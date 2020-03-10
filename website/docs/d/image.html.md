@@ -61,7 +61,7 @@ If `name` is specified, you may also specify:
 * `source` - (Optional) Restrict the search to one of the following categories of images:
   - `all` - All images (whether public or private)
   - `applications` - One-click applications
-  - `distribution` - Distributions
+  - `distributions` - Distributions
   - `user` - (Default) User (private) images
 
 ## Attributes Reference
