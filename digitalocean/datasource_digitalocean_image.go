@@ -33,7 +33,7 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 	recordSchema["source"] = &schema.Schema{
 		Type:          schema.TypeString,
 		Optional:      true,
-		Default:       "all",
+		Default:       "user",
 		ValidateFunc:  validation.StringInSlice([]string{"all", "applications", "distributions", "user"}, true),
 		ConflictsWith: []string{"id", "slug"},
 	}
