@@ -4,6 +4,7 @@ FEATURES:
 
 * **New Data Sources**: digitalocean_regions and digitalocean_region ([#380](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/380)) Thanks to @tdyas!
 * **New Data Sources**: digitalocean_projects and digitalocean_project ([#391](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/391)) Thanks to @tdyas!
+* **New Data Source**: digitalocean_images ([#394](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/394)) Thanks to @tdyas!
 * resource/digitalocean_kubernetes_cluster, resource/digitalocean_kubernetes_node_pool: Add support for importing existing resources ([#365](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/365)). Thanks to @tdyas!
 
 IMPROVEMENTS:
