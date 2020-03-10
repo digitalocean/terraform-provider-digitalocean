@@ -40,8 +40,10 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 
 			"version": {
 				Type: schema.TypeString,
-				// In practice, this is required
-				// See transitionVersionToRequired CustomizeDiffFunc
+				// TODO: Finalize transition to being required.
+				// In practice, this is already required. The transitionVersionToRequired
+				// CustomizeDiffFunc is used to provide users with a better hint in the error message.
+				// Required: true,
 				Optional: true,
 				ForceNew: true,
 			},
