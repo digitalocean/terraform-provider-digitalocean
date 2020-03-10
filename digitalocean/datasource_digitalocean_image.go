@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -29,8 +30,13 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 	recordSchema["slug"].ValidateFunc = validation.StringIsNotEmpty
 	recordSchema["slug"].ExactlyOneOf = []string{"id", "slug", "name"}
 
-	recordSchema["private"].Optional = true
-	recordSchema["private"].ConflictsWith = []string{"id", "slug"}
+	recordSchema["source"] = &schema.Schema{
+		Type:          schema.TypeString,
+		Optional:      true,
+		Default:       "all",
+		ValidateFunc:  validation.StringInSlice([]string{"all", "applications", "distributions", "user"}, true),
+		ConflictsWith: []string{"id", "slug"},
+	}
 
 	return &schema.Resource{
 		Read:   dataSourceDigitalOceanImageRead,
@@ -62,26 +68,29 @@ func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) e
 		}
 		foundImage = image
 	} else if name, ok := d.GetOk("name"); ok {
-		private := d.Get("private")
+		source := strings.ToLower(d.Get("source").(string))
 
-		var allImages []interface{}
-		if private.(bool) {
-			images, err := listDigitalOceanImages(client.Images.ListUser)
-			if err != nil {
-				return err
-			}
-			allImages = images
+		var listImages imageListFunc
+		if source == "all" {
+			listImages = client.Images.List
+		} else if source == "distributions" {
+			listImages = client.Images.ListDistribution
+		} else if source == "applications" {
+			listImages = client.Images.ListApplication
+		} else if source == "user" {
+			listImages = client.Images.ListUser
 		} else {
-			images, err := listDigitalOceanImages(client.Images.List)
-			if err != nil {
-				return err
-			}
-			allImages = images
+			return fmt.Errorf("Illegal state: source=%s", source)
+		}
+
+		images, err := listDigitalOceanImages(listImages)
+		if err != nil {
+			return err
 		}
 
 		var results []interface{}
 
-		for _, image := range allImages {
+		for _, image := range images {
 			if image.(godo.Image).Name == name {
 				results = append(results, image)
 			}

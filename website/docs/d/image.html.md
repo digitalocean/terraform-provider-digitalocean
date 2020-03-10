@@ -50,10 +50,19 @@ data "digitalocean_image" "example2" {
 
 ## Argument Reference
 
-The following arguments are supported:
+One of the following arguments must be provided:
 
-* `name` - (Optional) The name of the private image.
-* `slug` - (Optional) The slug of the official image.
+* `id` - The id of the image
+* `name` - The name of the image.
+* `slug` - The slug of the official image.
+
+If `name` is specified, you may also specify:
+
+* `source` - (Optional) Restrict the search to one of the following categories of images:
+  - `all` - (Default) All images (whether public or private)
+  - `applications` - One-click applications
+  - `distribution` - Distributions
+  - `user` - User (private) images. In prior versions of this provider, this was the behavior.
 
 ## Attributes Reference
 
