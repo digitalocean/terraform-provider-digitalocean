@@ -59,10 +59,10 @@ One of the following arguments must be provided:
 If `name` is specified, you may also specify:
 
 * `source` - (Optional) Restrict the search to one of the following categories of images:
-  - `all` - (Default) All images (whether public or private)
+  - `all` - All images (whether public or private)
   - `applications` - One-click applications
-  - `distribution` - Distributions
-  - `user` - User (private) images. In prior versions of this provider, this was the behavior.
+  - `distributions` - Distributions
+  - `user` - (Default) User (private) images
 
 ## Attributes Reference
 
