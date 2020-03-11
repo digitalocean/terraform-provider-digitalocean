@@ -38,7 +38,7 @@ The following arguments are supported (always as String):
 
 * `name` - (Required) The name of the database cluster.
 * `engine` - (Required) Database engine used by the cluster (ex. `pg` for PostreSQL).
-* `region` - (Required) DigitalOcean region where the cluster will reside.
+* `region` - (Required) DigitalOcean region where the cluster will reside. ([Regional Availability Matrix](https://www.digitalocean.com/docs/platform/availability-matrix/))
 * `size` - (Required) Database droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`).
 * `node_count` - (Required) Number of nodes that will be included in the cluster.
 * `version` - Engine version used by the cluster (ex. `11` for PostgreSQL 11).
