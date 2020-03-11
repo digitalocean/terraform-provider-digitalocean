@@ -16,6 +16,15 @@ Provides information on a DigitalOcean database cluster resource.
 # Create a new database cluster
 data "digitalocean_database_cluster" "example" {
   name = "example-cluster"
+  engine = "pg"
+  region = "fra1"
+  node_count = "2"
+  size = "db-s-1vcpu-1gb"
+
+  maintenance_window {
+    day  = "friday"
+	hour = "13:00:00"
+  }
 }
 
 output "database_output" {
@@ -25,23 +34,37 @@ output "database_output" {
 
 ## Argument Reference
 
-The following arguments are supported:
+The following arguments are supported (always as String):
 
 * `name` - (Required) The name of the database cluster.
+* `engine` - (Required) Database engine used by the cluster (ex. `pg` for PostreSQL).
+* `region` - (Required) DigitalOcean region where the cluster will reside.
+* `size` - (Required) Database droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`).
+* `node_count` - (Required) Number of nodes that will be included in the cluster.
+* `version` - Engine version used by the cluster (ex. `11` for PostgreSQL 11).
+* `maintenance_window` - Defines when the automatic maintenance should be performed for the database cluster.
+* `eviction_policy` - (Redis only) Specify the eviction policy for a Redis cluster.
+* `sql_mode` - (MySql only) A comma separated string specifying the  SQL modes for a MySQL cluster.
+
+
+`maintenance_window` supports the following:
+
+* `day` - The day of the week on which to apply maintenance updates.
+* `hour` - The hour in UTC at which maintenance updates will be applied in 24 hour format.
+
+`eviction_policy` supports the following:
+* `noeviction`
+* `allkeys_lru`
+* `allkeys_random`
+* `volatile_lru`
+* `volatile_random`
+* `volatile_ttl`
 
 ## Attributes Reference
 
-The following attributes are exported:
+The following attributes are computed by DigitalOcean:
 
-* `id` - The ID of the database cluster.
 * `urn` - The uniform resource name of the database cluster.
-* `engine` - Database engine used by the cluster (ex. `pg` for PostreSQL).
-* `version` - Engine version used by the cluster (ex. `11` for PostgreSQL 11).
-* `size` - Database droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`).
-* `region` - DigitalOcean region where the cluster will reside.
-* `node_count` - Number of nodes that will be included in the cluster.
-* `maintenance_window` - Defines when the automatic maintenance should be performed for the database cluster.
-
 * `host` - Database cluster's hostname.
 * `private_host` - Same as `host`, but only accessible from resources within the account and in the same region.
 * `port` - Network port that the database cluster is listening on.
@@ -50,9 +73,3 @@ The following attributes are exported:
 * `database` - Name of the cluster's default database.
 * `user` - Username for the cluster's default user.
 * `password` - Password for the cluster's default user.
-
-`maintenance_window` supports the following:
-
-* `day` - The day of the week on which to apply maintenance updates.
-* `hour` - The hour in UTC at which maintenance updates will be applied in 24 hour format.
-
