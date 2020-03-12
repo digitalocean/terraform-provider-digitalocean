@@ -81,6 +81,7 @@ func resourceDigitalOceanProject() *schema.Resource {
 			"resources": {
 				Type:        schema.TypeSet,
 				Optional:    true,
+				Computed:    true,
 				Description: "the resources associated with the project",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},

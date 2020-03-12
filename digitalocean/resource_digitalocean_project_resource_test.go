@@ -43,7 +43,6 @@ resource "digitalocean_project_resource" "barfoo" {
 				Check: resource.ComposeTestCheckFunc(
 					testResourceInstanceState("digitalocean_project_resource.barfoo", testAccCheckDigitalOceanProjectResourceExists),
 				),
-				ExpectNonEmptyPlan: true,
 			},
 		},
 	})
