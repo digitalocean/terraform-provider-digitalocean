@@ -9,11 +9,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-func resourceDigitalOceanProjectResource() *schema.Resource {
+func resourceDigitalOceanProjectResources() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanProjectResourceCreate,
-		Read:   resourceDigitalOceanProjectResourceRead,
-		Delete: resourceDigitalOceanProjectResourceDelete,
+		Create: resourceDigitalOceanProjectResourcesCreate,
+		Read:   resourceDigitalOceanProjectResourcesRead,
+		Delete: resourceDigitalOceanProjectResourcesDelete,
 
 		Schema: map[string]*schema.Schema{
 			"project": {
@@ -32,7 +32,7 @@ func resourceDigitalOceanProjectResource() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanProjectResourceCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectResourcesCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId := d.Get("project").(string)
@@ -53,7 +53,7 @@ func resourceDigitalOceanProjectResourceCreate(d *schema.ResourceData, meta inte
 	}
 
 	d.SetId(fmt.Sprintf("%s:%s", project.ID, urn))
-	return resourceDigitalOceanProjectResourceRead(d, meta)
+	return resourceDigitalOceanProjectResourcesRead(d, meta)
 }
 
 func decodeProjectResourceId(id string) (string, string, error) {
@@ -65,7 +65,7 @@ func decodeProjectResourceId(id string) (string, string, error) {
 	}
 }
 
-func resourceDigitalOceanProjectResourceRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectResourcesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId, urn, err := decodeProjectResourceId(d.Id())
@@ -113,7 +113,7 @@ func resourceDigitalOceanProjectResourceRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceDigitalOceanProjectResourceDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectResourcesDelete(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId := d.Get("project").(string)

@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccDigitalOceanProjectResource_Basic(t *testing.T) {
+func TestAccDigitalOceanProjectResources_Basic(t *testing.T) {
 	projectName := generateProjectName()
 	dropletName := generateDropletName()
 
@@ -36,19 +36,19 @@ resource "digitalocean_project_resource" "barfoo" {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanProjectResourceDestroy,
+		CheckDestroy: testAccCheckDigitalOceanProjectResourcesDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
 				Check: resource.ComposeTestCheckFunc(
-					testResourceInstanceState("digitalocean_project_resource.barfoo", testAccCheckDigitalOceanProjectResourceExists),
+					testResourceInstanceState("digitalocean_project_resource.barfoo", testAccCheckDigitalOceanProjectResourcesExists),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckDigitalOceanProjectResourceExists(is *terraform.InstanceState) error {
+func testAccCheckDigitalOceanProjectResourcesExists(is *terraform.InstanceState) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	projectId, ok := is.Attributes["project"]
@@ -75,7 +75,7 @@ func testAccCheckDigitalOceanProjectResourceExists(is *terraform.InstanceState) 
 	return fmt.Errorf("URN %s was not assigned to project", urn)
 }
 
-func testAccCheckDigitalOceanProjectResourceDestroy(s *terraform.State) error {
+func testAccCheckDigitalOceanProjectResourcesDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
