@@ -81,7 +81,7 @@ func resourceDigitalOceanProjectResourcesUpdate(d *schema.ResourceData, meta int
 func resourceDigitalOceanProjectResourcesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
-	projectId := d.Get("project").(string)
+	projectId := d.Id()
 
 	_, resp, err := client.Projects.Get(context.Background(), projectId)
 	if err != nil {
@@ -92,6 +92,10 @@ func resourceDigitalOceanProjectResourcesRead(d *schema.ResourceData, meta inter
 		}
 
 		return fmt.Errorf("Error while retrieving project: %v", err)
+	}
+
+	if err = d.Set("project", projectId); err != nil {
+		return err
 	}
 
 	apiURNs, err := loadResourceURNs(client, projectId)
