@@ -3,7 +3,6 @@ package digitalocean
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -11,7 +10,8 @@ import (
 
 func resourceDigitalOceanProjectResources() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanProjectResourcesCreate,
+		Create: resourceDigitalOceanProjectResourcesUpdate,
+		Update: resourceDigitalOceanProjectResourcesUpdate,
 		Read:   resourceDigitalOceanProjectResourcesRead,
 		Delete: resourceDigitalOceanProjectResourcesDelete,
 
@@ -20,60 +20,70 @@ func resourceDigitalOceanProjectResources() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
+				Description:  "project ID",
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
-			"resource": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+			"resources": {
+				Type:        schema.TypeSet,
+				Required:    true,
+				Description: "the resources associated with the project",
+				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 		},
 	}
 }
 
-func resourceDigitalOceanProjectResourcesCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectResourcesUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId := d.Get("project").(string)
-	urn := d.Get("resource").(string)
 
-	project, resp, err := client.Projects.Get(context.Background(), projectId)
+	_, resp, err := client.Projects.Get(context.Background(), projectId)
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
-			return fmt.Errorf("Project ID %s does not exist", projectId)
+			// Project does not exist. Mark this resource as not existing.
+			d.SetId("")
+			return nil
 		}
 
-		return fmt.Errorf("Error while retrieving project: %v", err)
+		return fmt.Errorf("Error while retrieving project %s: %v", projectId, err)
 	}
 
-	_, _, err = client.Projects.AssignResources(context.Background(), project.ID, urn)
-	if err != nil {
-		return fmt.Errorf("Error assigning resource %s to project %s: %s", urn, project.ID, err)
+	if d.HasChange("resources") {
+		oldURNs, newURNs := d.GetChange("resources")
+
+		if oldURNs.(*schema.Set).Len() > 0 {
+			_, err = assignResourcesToDefaultProject(client, oldURNs.(*schema.Set))
+			if err != nil {
+				return fmt.Errorf("Error assigning resources to default project: %s", err)
+			}
+		}
+
+		var urns *[]interface{}
+
+		if newURNs.(*schema.Set).Len() > 0 {
+			urns, err = assignResourcesToProject(client, projectId, newURNs.(*schema.Set))
+			if err != nil {
+				return fmt.Errorf("Error assigning resources to project %s: %s", projectId, err)
+			}
+		}
+
+		if err = d.Set("resources", urns); err != nil {
+			return err
+		}
 	}
 
-	d.SetId(fmt.Sprintf("%s:%s", project.ID, urn))
+	d.SetId(projectId)
+
 	return resourceDigitalOceanProjectResourcesRead(d, meta)
-}
-
-func decodeProjectResourceId(id string) (string, string, error) {
-	parts := strings.SplitN(id, ":", 2)
-	if len(parts) == 2 {
-		return parts[0], parts[1], nil
-	} else {
-		return "", "", fmt.Errorf("Expected ID for digitalocean_project_resource as PROJECT_ID:RESOURCE_URN, got: %s", id)
-	}
 }
 
 func resourceDigitalOceanProjectResourcesRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
-	projectId, urn, err := decodeProjectResourceId(d.Id())
-	if err != nil {
-		return err
-	}
+	projectId := d.Get("project").(string)
 
-	project, resp, err := client.Projects.Get(context.Background(), projectId)
+	_, resp, err := client.Projects.Get(context.Background(), projectId)
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
 			// Project does not exist. Mark this resource as not existing.
@@ -84,29 +94,30 @@ func resourceDigitalOceanProjectResourcesRead(d *schema.ResourceData, meta inter
 		return fmt.Errorf("Error while retrieving project: %v", err)
 	}
 
-	resourceUrns, err := loadResourceURNs(client, project.ID)
+	apiURNs, err := loadResourceURNs(client, projectId)
 	if err != nil {
-		return err
+		return fmt.Errorf("Error while retrieving project resources: %s", err)
 	}
 
-	foundUrn := false
-	for _, resourceUrn := range *resourceUrns {
-		if urn == resourceUrn {
-			foundUrn = true
+	var newURNs []string
+
+	configuredURNs := d.Get("resources").(*schema.Set).List()
+	for _, rawConfiguredURN := range configuredURNs {
+		configuredURN := rawConfiguredURN.(string)
+
+		found := false
+		for _, apiURN := range *apiURNs {
+			if configuredURN == apiURN {
+				found = true
+			}
+		}
+
+		if found {
+			newURNs = append(newURNs, configuredURN)
 		}
 	}
 
-	if !foundUrn {
-		// If the resource is no longer assigned to this project,
-		d.SetId("")
-		return nil
-	}
-
-	if err := d.Set("project", project.ID); err != nil {
-		return err
-	}
-
-	if err := d.Set("resource", urn); err != nil {
+	if err = d.Set("resources", newURNs); err != nil {
 		return err
 	}
 
@@ -117,7 +128,7 @@ func resourceDigitalOceanProjectResourcesDelete(d *schema.ResourceData, meta int
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId := d.Get("project").(string)
-	urn := d.Get("resource").(string)
+	urns := d.Get("resources").(*schema.Set)
 
 	_, resp, err := client.Projects.Get(context.Background(), projectId)
 	if err != nil {
@@ -130,14 +141,10 @@ func resourceDigitalOceanProjectResourcesDelete(d *schema.ResourceData, meta int
 		return fmt.Errorf("Error while retrieving project: %s", err)
 	}
 
-	defaultProject, _, err := client.Projects.GetDefault(context.Background())
-	if err != nil {
-		return fmt.Errorf("Error locating default project: %s", err)
-	}
-
-	_, _, err = client.Projects.AssignResources(context.Background(), defaultProject.ID, urn)
-	if err != nil {
-		return fmt.Errorf("Error assigning resource %s to default project: %s", urn, err)
+	if urns.Len() > 0 {
+		if _, err = assignResourcesToDefaultProject(client, urns); err != nil {
+			return fmt.Errorf("Error assigning resources to default project: %s", err)
+		}
 	}
 
 	d.SetId("")
