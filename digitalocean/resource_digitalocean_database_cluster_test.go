@@ -202,27 +202,8 @@ func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "name", databaseName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_cluster.foobar", "engine", "redis"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_cluster.foobar", "host"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_cluster.foobar", "port"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_cluster.foobar", "user"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_cluster.foobar", "password"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_cluster.foobar", "urn"),
 				),
-			},
-			// Add eviction policy when not initially set
-			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicyUpdate, databaseName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
-					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
-					resource.TestCheckResourceAttr(
-						"digitalocean_database_cluster.foobar", "eviction_policy", "allkeys_lru"),
-				),
+				ExpectError: regexp.MustCompile(`The argument "version" is required, but no definition was found.`),
 			},
 		},
 	})
@@ -259,7 +240,7 @@ func TestAccDigitalOceanDatabaseCluster_RedisWithEvictionPolicy(t *testing.T) {
 			},
 			// Remove eviction policy
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterRedisNoVersion, databaseName),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterRedis, databaseName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
@@ -459,6 +440,17 @@ const testAccCheckDigitalOceanDatabaseClusterRedisNoVersion = `
 resource "digitalocean_database_cluster" "foobar" {
 	name       = "%s"
 	engine     = "redis"
+	size       = "db-s-1vcpu-1gb"
+	region     = "nyc1"
+    node_count = 1
+	tags       = ["production"]
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterRedis = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "redis"
+	version    = "5"
 	size       = "db-s-1vcpu-1gb"
 	region     = "nyc1"
     node_count = 1
