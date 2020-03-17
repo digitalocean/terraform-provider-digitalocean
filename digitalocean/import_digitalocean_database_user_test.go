@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccDigitalOceanDatabaseUser_importBasic(t *testing.T) {
 	resourceName := "digitalocean_database_user.foobar_user"
-	databaseClusterName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
-	databaseUserName := fmt.Sprintf("foobar-test-user-terraform-%s", acctest.RandString(10))
+	databaseClusterName := randomTestName()
+	databaseUserName := randomTestName()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },

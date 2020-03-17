@@ -15,6 +15,7 @@ func resourceDigitalOceanDatabaseUser() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceDigitalOceanDatabaseUserCreate,
 		Read:   resourceDigitalOceanDatabaseUserRead,
+		Update: resourceDigitalOceanDatabaseUserUpdate,
 		Delete: resourceDigitalOceanDatabaseUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDatabaseUserImport,
@@ -32,6 +33,18 @@ func resourceDigitalOceanDatabaseUser() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
+			},
+			"mysql_auth_plugin": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					godo.SQLAuthPluginNative,
+					godo.SQLAuthPluginCachingSHA2,
+				}, false),
+				// Prevent diffs when default is used and not specificed in the config.
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return old == godo.SQLAuthPluginCachingSHA2 && new == ""
+				},
 			},
 
 			// Computed Properties
@@ -54,6 +67,12 @@ func resourceDigitalOceanDatabaseUserCreate(d *schema.ResourceData, meta interfa
 
 	opts := &godo.DatabaseCreateUserRequest{
 		Name: d.Get("name").(string),
+	}
+
+	if v, ok := d.GetOk("mysql_auth_plugin"); ok {
+		opts.MySQLSettings = &godo.DatabaseMySQLUserSettings{
+			AuthPlugin: v.(string),
+		}
 	}
 
 	log.Printf("[DEBUG] Database User create configuration: %#v", opts)
@@ -88,8 +107,36 @@ func resourceDigitalOceanDatabaseUserRead(d *schema.ResourceData, meta interface
 
 	d.Set("role", user.Role)
 	d.Set("password", user.Password)
+	if user.MySQLSettings != nil {
+		d.Set("mysql_auth_plugin", user.MySQLSettings.AuthPlugin)
+	}
 
 	return nil
+}
+
+func resourceDigitalOceanDatabaseUserUpdate(d *schema.ResourceData, meta interface{}) error {
+	client := meta.(*CombinedConfig).godoClient()
+
+	if d.HasChange("mysql_auth_plugin") {
+		authReq := &godo.DatabaseResetUserAuthRequest{}
+		if d.Get("mysql_auth_plugin").(string) != "" {
+			authReq.MySQLSettings = &godo.DatabaseMySQLUserSettings{
+				AuthPlugin: d.Get("mysql_auth_plugin").(string),
+			}
+		} else {
+			// If blank, restore default value.
+			authReq.MySQLSettings = &godo.DatabaseMySQLUserSettings{
+				AuthPlugin: godo.SQLAuthPluginCachingSHA2,
+			}
+		}
+
+		_, _, err := client.Databases.ResetUserAuth(context.Background(), d.Get("cluster_id").(string), d.Get("name").(string), authReq)
+		if err != nil {
+			return fmt.Errorf("Error updating mysql_auth_plugin for DatabaseUser: %s", err)
+		}
+	}
+
+	return resourceDigitalOceanDatabaseUserRead(d, meta)
 }
 
 func resourceDigitalOceanDatabaseUserDelete(d *schema.ResourceData, meta interface{}) error {
