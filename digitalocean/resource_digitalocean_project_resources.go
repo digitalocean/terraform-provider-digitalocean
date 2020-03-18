@@ -109,15 +109,10 @@ func resourceDigitalOceanProjectResourcesRead(d *schema.ResourceData, meta inter
 	for _, rawConfiguredURN := range configuredURNs {
 		configuredURN := rawConfiguredURN.(string)
 
-		found := false
 		for _, apiURN := range *apiURNs {
 			if configuredURN == apiURN {
-				found = true
+				newURNs = append(newURNs, configuredURN)
 			}
-		}
-
-		if found {
-			newURNs = append(newURNs, configuredURN)
 		}
 	}
 
