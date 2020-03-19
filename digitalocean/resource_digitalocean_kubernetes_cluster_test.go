@@ -553,13 +553,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 
 provider "kubernetes" {
   host = digitalocean_kubernetes_cluster.foobar.endpoint
-
-  client_certificate = base64decode(
-    digitalocean_kubernetes_cluster.foobar.kube_config[0].client_certificate
-  )
-  client_key = base64decode(
-    digitalocean_kubernetes_cluster.foobar.kube_config[0].client_key
-  )
+  load_config_file = false
   cluster_ca_certificate = base64decode(
     digitalocean_kubernetes_cluster.foobar.kube_config[0].cluster_ca_certificate
   )
