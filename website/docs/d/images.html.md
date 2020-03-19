@@ -3,21 +3,20 @@ layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_images"
 sidebar_current: "docs-do-datasource-images"
 description: |-
-  Retrieve metadata about DigitalOcean images (public and private).
+  Retrieve information about DigitalOcean images (public and private).
 ---
 
 # digitalocean_images
 
 Get information on images for use in other resources (e.g. creating a Droplet
-based on snapshot), with the ability to filter and sort the results. If no filters are specified,
+based on a snapshot), with the ability to filter and sort the results. If no filters are specified,
 all images will be returned.
 
-This data source provides all of the image properties as configured on your DigitalOcean account.
-This is useful if the image in question is not managed by Terraform or you need to utilize any
+This data source is useful if the image in question is not managed by Terraform or you need to utilize any
 of the image's data.
 
-Note: You can use the `digitalocean_image` data source to obtain metadata about a single
-image if you already know the `slug`, unique `name`, or `id` to retrieve.
+Note: You can use the [`digitalocean_image`](/docs/providers/do/d/image.html) data source to obtain metadata
+about a single image if you already know the `slug`, unique `name`, or `id` to retrieve.
 
 ## Example Usage
 
@@ -57,10 +56,12 @@ data "digitalocean_images" "available" {
 
 * `filter` - (Optional) Filter the results.
   The `filter` block is documented below.
+
 * `sort` - (Optional) Sort the results.
   The `sort` block is documented below.
 
-`filter` supports the following:
+`filter` supports the following arguments:
+
 * `key` - (Required) Filter the images by this key. This may be one of `distribution`, `error_message`,
   `id`, `image`, `min_disk_size`, `name`, `private`, `regions`, `size_gigabytes`, `slug`, `status`,
   `tags`, or `type`.
@@ -68,7 +69,7 @@ data "digitalocean_images" "available" {
 * `values` - (Required) A list of values to match against the `key` field. Only retrieves images
   where the `key` field takes on one or more of the values provided here.
 
-`sort` supports the following:
+`sort` supports the following arguments:
 
 * `key` - (Required) Sort the images by this key. This may be one of `distribution`, `error_message`, `id`,
    `image`, `min_disk_size`, `name`, `private`, `size_gigabytes`, `slug`, `status`, or `type`.

@@ -32,5 +32,5 @@ output "region_name" {
 * `slug` - A human-readable string that is used as a unique identifier for each region.
 * `name` - The display name of the region.
 * `available` -	A boolean value that represents whether new Droplets can be created in this region.
-* `sizes` - A list of identifying slugs for the Droplet sizes available in this region.
-* `features` - A list of features available in this region.
+* `sizes` - A set of identifying slugs for the Droplet sizes available in this region.
+* `features` - A set of features available in this region.

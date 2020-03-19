@@ -3,12 +3,12 @@ layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_image"
 sidebar_current: "docs-do-datasource-image"
 description: |-
-  Get information on an snapshot.
+  Get information on a DigitalOcean image.
 ---
 
 # digitalocean_image
 
-Get information on an images for use in other resources (e.g. creating a Droplet
+Get information on an image for use in other resources (e.g. creating a Droplet
 based on snapshot). This data source provides all of the image properties as
 configured on your DigitalOcean account. This is useful if the image in question
 is not managed by Terraform or you need to utilize any of the image's data.
