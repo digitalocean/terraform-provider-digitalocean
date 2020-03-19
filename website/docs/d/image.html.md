@@ -9,7 +9,7 @@ description: |-
 # digitalocean_image
 
 Get information on an image for use in other resources (e.g. creating a Droplet
-based on snapshot). This datasource provides all of the image properties as
+based on snapshot). This data source provides all of the image properties as
 configured on your DigitalOcean account. This is useful if the image in question
 is not managed by Terraform or you need to utilize any of the image's data.
 

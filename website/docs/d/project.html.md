@@ -9,7 +9,7 @@ description: |-
 # digitalocean_project
 
 Get information on a single DigitalOcean project. If neither the `id` nor `name` attributes are provided,
-then this datasource returns the default project.
+then this data source returns the default project.
 
 ## Example Usage
 
@@ -25,7 +25,7 @@ data "digitalocean_project" "staging" {
 ## Argument Reference
 
 * `id` - (Optional) the ID of the project to retrieve
-* `name` - (Optional) the name of the project to retrieve. The datasource will raise an error if more than
+* `name` - (Optional) the name of the project to retrieve. The data source will raise an error if more than
   one project has the provided name or if no project has that name.
 
 ## Attributes Reference
