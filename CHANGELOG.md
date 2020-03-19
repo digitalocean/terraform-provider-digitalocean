@@ -1,4 +1,11 @@
-## 1.16.0 (Unreleased)
+## 1.15.1 (Unreleased)
+
+BUG FIXES:
+
+* resource/digitalocean_volume: Fix validation on volume names ([#400](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/400)). Thanks to @Nevon!
+* datasource/digitalocean_kubernetes_cluster: Don't error when `terraform:default-node-pool` tag is not found ([#399](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/399)).
+* resource/digitalocean_kubernetes_cluster: Fix local failure for Kubernetes interoperablity acceptance test when local kubeconfig file is present ([#402](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/402)).
+
 ## 1.15.0 (March 18, 2020)
 
 FEATURES:
