@@ -250,7 +250,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 		for _, t := range p.Tags {
 			if t == digitaloceanKubernetesDefaultNodePoolTag {
 				if foundDefaultNodePool {
-					return fmt.Errorf("Multiple node pools are marked as the default; only one node pool may have the `%s` tag", digitaloceanKubernetesDefaultNodePoolTag)
+					log.Printf("[WARN] Multiple node pools are marked as the default; only one node pool may have the `%s` tag", digitaloceanKubernetesDefaultNodePoolTag)
 				}
 
 				keyPrefix := fmt.Sprintf("node_pool.%d.", i)
@@ -263,7 +263,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 		}
 	}
 	if !foundDefaultNodePool {
-		return fmt.Errorf("No default node pool was found; the default node pool must have the `%s` tag", digitaloceanKubernetesDefaultNodePoolTag)
+		log.Printf("[WARN] No default node pool was found. The default node pool must have the `%s` tag if created with Terraform.", digitaloceanKubernetesDefaultNodePoolTag)
 	}
 
 	// fetch cluster credentials and update the resource if the credentials are expired.
