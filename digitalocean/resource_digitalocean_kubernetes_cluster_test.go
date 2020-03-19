@@ -13,8 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-const testClusterVersion15 = "1.15.5-do.1"
-const testClusterVersion16 = "1.16.6-do.0"
+const testClusterVersion15 = "1.15.9-do.2"
+const testClusterVersion16 = "1.16.6-do.2"
 
 func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	t.Parallel()
@@ -553,13 +553,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 
 provider "kubernetes" {
   host = digitalocean_kubernetes_cluster.foobar.endpoint
-
-  client_certificate = base64decode(
-    digitalocean_kubernetes_cluster.foobar.kube_config[0].client_certificate
-  )
-  client_key = base64decode(
-    digitalocean_kubernetes_cluster.foobar.kube_config[0].client_key
-  )
+  load_config_file = false
   cluster_ca_certificate = base64decode(
     digitalocean_kubernetes_cluster.foobar.kube_config[0].cluster_ca_certificate
   )
