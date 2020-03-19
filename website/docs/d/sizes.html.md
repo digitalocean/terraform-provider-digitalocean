@@ -3,12 +3,14 @@ layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_sizes"
 sidebar_current: "docs-do-datasource-sizes"
 description: |-
-  Retrieve information  DigitalOcean Cloud Firewall resource. This can be used to create, modify, and delete Firewalls.
+  Retrieve information on supported Droplet sizes.
 ---
 
 # digitalocean_sizes
 
-Retrieves information about droplet sizes that DigitalOcean supports. This data source provides all of droplet size properties, with the ability to filter and sort the results.
+Retrieves information about the Droplet sizes that DigitalOcean supports, with
+the ability to filter and sort the results. If no filters are specified, all sizes
+will be returned.
 
 ## Example Usage
 
@@ -85,7 +87,7 @@ The following arguments are supported:
 * `sort` - (Optional) Sort the results.
   The `sort` block is documented below.
 
-`filter` supports the following:
+`filter` supports the following arguments:
 
 * `key` - (Required) Filter the sizes by this key. This may be one of `slug`,
   `regions`, `memory`, `vcpus`, `disk`, `transfer`, `price_monthly`,
@@ -93,7 +95,7 @@ The following arguments are supported:
 * `values` - (Required) Only retrieves images which keys has value that matches
   one of the values provided here.
 
-`sort` supports the following:
+`sort` supports the following arguments:
 
 * `key` - (Required) Sort the sizes by this key. This may be one of `slug`,
   `memory`, `vcpus`, `disk`, `transfer`, `price_monthly`, or `price_hourly`.
