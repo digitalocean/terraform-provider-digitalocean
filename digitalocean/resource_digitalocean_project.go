@@ -3,11 +3,12 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
+
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"log"
-	"strings"
 )
 
 func resourceDigitalOceanProject() *schema.Resource {
@@ -34,7 +35,7 @@ func resourceDigitalOceanProject() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "",
-				Description:  "the descirption of the project",
+				Description:  "the description of the project",
 				ValidateFunc: validation.StringLenBetween(0, 255),
 			},
 			"purpose": {
