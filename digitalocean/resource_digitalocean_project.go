@@ -35,7 +35,7 @@ func resourceDigitalOceanProject() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "",
-				Description:  "the descirption of the project",
+				Description:  "the description of the project",
 				ValidateFunc: validation.StringLenBetween(0, 255),
 			},
 			"purpose": {
