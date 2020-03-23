@@ -90,6 +90,7 @@ func Provider() terraform.ResourceProvider {
 			"digitalocean_volume":                   resourceDigitalOceanVolume(),
 			"digitalocean_volume_attachment":        resourceDigitalOceanVolumeAttachment(),
 			"digitalocean_volume_snapshot":          resourceDigitalOceanVolumeSnapshot(),
+			"digitalocean_vpc":                      resourceDigitalOceanVPC(),
 		},
 	}
 
