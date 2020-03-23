@@ -32,7 +32,7 @@ func resourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validation.StringLenBetween(3, 63),
 			},
 
 			"user": {
