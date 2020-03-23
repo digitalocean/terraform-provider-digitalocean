@@ -61,6 +61,7 @@ func Provider() terraform.ResourceProvider {
 			"digitalocean_tag":                 dataSourceDigitalOceanTag(),
 			"digitalocean_volume_snapshot":     dataSourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_volume":              dataSourceDigitalOceanVolume(),
+			"digitalocean_vpc":                 dataSourceDigitalOceanVPC(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{

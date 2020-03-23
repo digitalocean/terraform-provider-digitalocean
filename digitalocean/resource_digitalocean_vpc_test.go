@@ -27,8 +27,8 @@ func TestAccDigitalOceanVPC_Basic(t *testing.T) {
 					testAccCheckDigitalOceanVPCExists("digitalocean_vpc.foobar"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpc.foobar", "name", vpcName),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_vpc.foobar", "default"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_vpc.foobar", "default", "false"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpc.foobar", "created_at"),
 				),

@@ -119,6 +119,7 @@ func resourceDigitalOceanVPCRead(d *schema.ResourceData, meta interface{}) error
 	//d.Set("urn", vpc.URN)
 	d.Set("default", vpc.Default)
 	d.Set("created_at", vpc.CreatedAt.UTC().String())
+
 	return err
 }
 
