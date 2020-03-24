@@ -12,7 +12,7 @@ import (
 func TestAccDigitalOceanVPC_importBasic(t *testing.T) {
 	resourceName := "digitalocean_vpc.foobar"
 	vpcName := randomTestName()
-	vpcCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCConfig_Basic, vpcName)
+	vpcCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCConfig_Basic, vpcName, "A description for the VPC")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -26,6 +26,8 @@ func TestAccDigitalOceanVPC_importBasic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
+				// TODO: fix when godo is updated
+				ImportStateVerifyIgnore: []string{"description"},
 			},
 			// Test importing non-existent resource provides expected error.
 			{

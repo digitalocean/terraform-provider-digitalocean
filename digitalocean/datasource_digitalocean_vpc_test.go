@@ -10,7 +10,8 @@ import (
 
 func TestAccDataSourceDigitalOceanVPC_ByName(t *testing.T) {
 	vpcName := randomTestName()
-	vpcConfigByName := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_Basic, vpcName)
+	vpcDesc := "A description for the VPC"
+	vpcConfigByName := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_Basic, vpcName, vpcDesc)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
@@ -22,6 +23,8 @@ func TestAccDataSourceDigitalOceanVPC_ByName(t *testing.T) {
 					testAccCheckDigitalOceanVPCExists("data.digitalocean_vpc.foobar"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_vpc.foobar", "name", vpcName),
+					// resource.TestCheckResourceAttr(
+					// 	"data.digitalocean_vpc.foobar", "description", vpcDesc),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_vpc.foobar", "default"),
 					resource.TestCheckResourceAttrSet(
@@ -78,8 +81,9 @@ func TestAccDataSourceDigitalOceanVPC_ExpectErrors(t *testing.T) {
 
 const testAccCheckDataSourceDigitalOceanVPCConfig_Basic = `
 resource "digitalocean_vpc" "foobar" {
-	name = "%s"
-	region = "s2r1"
+	name        = "%s"
+	description = "%s"
+	region      = "s2r1" # "nyc3"
 }
 
 data "digitalocean_vpc" "foobar" {
@@ -92,13 +96,13 @@ const testAccCheckDataSourceDigitalOceanVPCConfig_RegionDefault = `
 resource "digitalocean_droplet" "foo" {
 	image  = "ubuntu-18-04-x64"
 	name   = "%s"
-	region = "s2r1"
+	region = "s2r1" # "nyc3"
 	size   = "s-1vcpu-1gb"
 	private_networking = "true"
 }
 
 data "digitalocean_vpc" "foobar" {
-	region = "s2r1"
+	region = "s2r1" # "nyc3"
 }
 `
 
