@@ -352,7 +352,7 @@ func TestAccDigitalOceanDroplet_UpdateTags(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanDroplet_PrivateNetworkingIpv6(t *testing.T) {
+func TestAccDigitalOceanDroplet_VPCAndIpv6(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
 
@@ -362,12 +362,12 @@ func TestAccDigitalOceanDroplet_PrivateNetworkingIpv6(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_VPCAndIpv6(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletAttributes_PrivateNetworkingIpv6(&droplet),
-					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "private_networking", "true"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_droplet.foobar", "vpc_uuid"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "ipv6", "true"),
 				),
@@ -394,7 +394,8 @@ func TestAccDigitalOceanDroplet_UpdatePrivateNetworkingIpv6(t *testing.T) {
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 				),
 			},
-
+			// For "private_networking," this is now a effectively a no-opt only updating state.
+			// All Droplets are assigned to a VPC by default. The API should still respond successfully.
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(rInt),
 				Check: resource.ComposeTestCheckFunc(
@@ -611,21 +612,20 @@ func testAccCheckDigitalOceanDropletAttributes_PrivateNetworkingIpv6(droplet *go
 			return fmt.Errorf("Bad image_slug: %s", droplet.Image.Slug)
 		}
 
-		if droplet.Size.Slug != "512mb" {
+		if droplet.Size.Slug != "s-1vcpu-1gb" {
 			return fmt.Errorf("Bad size_slug: %s", droplet.Size.Slug)
 		}
 
 		if droplet.Region.Slug != "nyc3" {
-			return fmt.Errorf("Bad region_slug: %s", droplet.Region.Slug)
+			// TODO: Remove s2r1 conditional
+			if droplet.Region.Slug != "s2r1" {
+				return fmt.Errorf("Bad region_slug: %s", droplet.Region.Slug)
+			}
 		}
 
 		if findIPv4AddrByType(droplet, "private") == "" {
 			return fmt.Errorf("No ipv4 private: %s", findIPv4AddrByType(droplet, "private"))
 		}
-
-		// if droplet.IPV6Address("private") == "" {
-		// 	return fmt.Errorf("No ipv6 private: %s", droplet.IPV6Address("private"))
-		// }
 
 		if findIPv4AddrByType(droplet, "public") == "" {
 			return fmt.Errorf("No ipv4 public: %s", findIPv4AddrByType(droplet, "public"))
@@ -807,13 +807,31 @@ func testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(rInt int) strin
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name               = "foo-%d"
-  size               = "512mb"
+  size               = "s-1vcpu-1gb"
   image              = "centos-7-x64"
   region             = "nyc3"
   ipv6               = true
   private_networking = true
 }
 `, rInt)
+}
+
+func testAccCheckDigitalOceanDropletConfig_VPCAndIpv6(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_vpc" "foobar" {
+  name        = "%s"
+  region      = "s2r1" # "nyc3"
+}
+
+resource "digitalocean_droplet" "foobar" {
+  name     = "foo-%d"
+  size     = "s-1vcpu-1gb"
+  image    = "centos-7-x64"
+  region   = "s2r1" # "nyc3"
+  ipv6     = true
+  vpc_uuid = digitalocean_vpc.foobar.id
+}
+`, randomTestName(), rInt)
 }
 
 func testAccCheckDigitalOceanDropletConfig_Monitoring(rInt int) string {
