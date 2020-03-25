@@ -68,7 +68,7 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
+						"digitalocean_loadbalancer.foobar", "region", "s2r1"), //"nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -87,7 +87,10 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "tcp"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "droplet_ids.#", "1"),
-					resource.TestMatchResourceAttr("digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_loadbalancer.foobar", "vpc_uuid"),
+					resource.TestMatchResourceAttr(
+						"digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
 				),
 			},
 		},
@@ -336,6 +339,31 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanLoadbalancer_WithVPC(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	lbName := randomTestName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_WithVPC(lbName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "name", lbName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_loadbalancer.foobar", "vpc_uuid"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "droplet_ids.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanLoadbalancerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -391,12 +419,12 @@ resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "512mb"
   image     = "centos-7-x64"
-  region    = "nyc3"
+  region    = "s2r1" # "nyc3"
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
   name = "loadbalancer-%d"
-  region = "nyc3"
+  region = "s2r1" # "nyc3"
 
   forwarding_rule {
     entry_port = 80
@@ -576,4 +604,36 @@ resource "digitalocean_loadbalancer" "foobar" {
     certificate_id  = "${digitalocean_certificate.foobar.id}"
   }
 }`, rInt, privateKeyMaterial, leafCert, certChain, rInt)
+}
+
+func testAccCheckDigitalOceanLoadbalancerConfig_WithVPC(name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_vpc" "foobar" {
+  name        = "%s"
+  region      = "s2r1" # "nyc3"
+}
+
+resource "digitalocean_droplet" "foobar" {
+  name      = "%s"
+  size      = "s-1vcpu-1gb"
+  image     = "centos-7-x64"
+  region   = "s2r1" # "nyc3"
+  vpc_uuid = digitalocean_vpc.foobar.id
+}
+
+resource "digitalocean_loadbalancer" "foobar" {
+  name = "%s"
+  region = "s2r1" # "nyc3"
+
+  forwarding_rule {
+    entry_port = 80
+    entry_protocol = "http"
+
+    target_port = 80
+    target_protocol = "http"
+  }
+
+  vpc_uuid = digitalocean_vpc.foobar.id
+  droplet_ids = [digitalocean_droplet.foobar.id]
+}`, randomTestName(), randomTestName(), name)
 }
