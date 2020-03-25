@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -146,13 +148,21 @@ func resourceDigitalOceanVPCDelete(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*CombinedConfig).godoClient()
 	vpcID := d.Id()
 
-	_, err := client.VPCs.Delete(context.Background(), vpcID)
-	if err != nil {
-		return fmt.Errorf("Error deleting VPC: %s", err)
-	}
+	return resource.Retry(1*time.Minute, func() *resource.RetryError {
+		resp, err := client.VPCs.Delete(context.Background(), vpcID)
+		if err != nil {
+			// Retry if VPC still contains member resources to prevent race condition
+			// with database cluster deletion.
+			if resp.StatusCode == 403 {
+				return resource.RetryableError(err)
+			} else {
+				return resource.NonRetryableError(fmt.Errorf("Error deleting VPC: %s", err))
+			}
+		}
 
-	d.SetId("")
-	log.Printf("[INFO] VPC deleted, ID: %s", vpcID)
+		d.SetId("")
+		log.Printf("[INFO] VPC deleted, ID: %s", vpcID)
 
-	return nil
+		return nil
+	})
 }
