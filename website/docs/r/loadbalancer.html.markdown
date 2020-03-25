@@ -110,6 +110,7 @@ Default value is `false`.
 * `enable_proxy_protocol` - (Optional) A boolean value indicating whether PROXY
 Protocol should be used to pass information from connecting client requests to
 the backend service. Default value is `false`.
+* `vpc_uuid` - (Optional) The ID of the VPC where the load balancer will be located.
 * `droplet_ids` (Optional) - A list of the IDs of each droplet to be attached to the Load Balancer.
 * `droplet_tag` (Optional) - The name of a Droplet tag corresponding to Droplets to be assigned to the Load Balancer.
 

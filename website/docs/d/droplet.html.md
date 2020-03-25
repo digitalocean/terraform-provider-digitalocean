@@ -80,3 +80,4 @@ The following attributes are exported:
 * `monitoring` - Whether monitoring agent is installed.
 * `volume_ids` - List of the IDs of each volumes attached to the Droplet.
 * `tags` - A list of the tags associated to the Droplet.
+* `vpc_uuid` - The ID of the VPC where the Droplet is located.
