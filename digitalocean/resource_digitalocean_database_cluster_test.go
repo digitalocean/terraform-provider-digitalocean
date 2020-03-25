@@ -43,6 +43,8 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "urn"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_cluster.foobar", "tags.#", "1"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "private_network_uuid"),
 				),
 			},
 		},
@@ -297,6 +299,29 @@ func TestAccDigitalOceanDatabaseCluster_TagUpdate(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_WithVPC(t *testing.T) {
+	var database godo.Database
+	vpcName := randomTestName()
+	databaseName := randomTestName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithVPC, vpcName, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "private_network_uuid"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDatabaseClusterDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -501,4 +526,21 @@ resource "digitalocean_database_cluster" "foobar" {
 	region     = "nyc1"
     node_count = 1
 	tags       = ["production", "foo"]
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithVPC = `
+resource "digitalocean_vpc" "foobar" {
+  name        = "%s"
+  region      = "nyc1"
+}
+
+resource "digitalocean_database_cluster" "foobar" {
+	name                 = "%s"
+	engine               = "pg"
+	version              = "11"
+	size                 = "db-s-1vcpu-1gb"
+	region               = "nyc1"
+	node_count           = 1
+	tags                 = ["production"]
+	private_network_uuid = digitalocean_vpc.foobar.id
 }`
