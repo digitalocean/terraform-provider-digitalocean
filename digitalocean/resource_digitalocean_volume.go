@@ -37,7 +37,7 @@ func resourceDigitalOceanVolume() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9\-]+$`), "Names must be lowercase and be composed only of numbers, letters and \"-\"."),
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9\-_]+$`), "Names must be lowercase and be composed only of numbers, letters and \"-\"."),
 			},
 			"urn": {
 				Type:        schema.TypeString,
