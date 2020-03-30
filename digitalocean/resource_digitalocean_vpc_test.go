@@ -124,13 +124,13 @@ const testAccCheckDigitalOceanVPCConfig_Basic = `
 resource "digitalocean_vpc" "foobar" {
 	name        = "%s"
 	description = "%s"
-	region      = "s2r1" # "nyc3"
+	region      = "nyc3"
 }
 `
 const testAccCheckDigitalOceanVPCConfig_IPRange = `
 resource "digitalocean_vpc" "foobar" {
 	name     = "%s"
-	region   = "s2r1" # "nyc3"
+	region   = "nyc3"
 	ip_range = "10.00.10.0/24"
 }
 `

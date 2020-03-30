@@ -13,9 +13,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-// TODO revert change to stage versions
-const testClusterVersion15 = "1.15.9-do.0"
-const testClusterVersion16 = "1.16.6-do.0"
+const testClusterVersion15 = "1.15.9-do.2"
+const testClusterVersion16 = "1.16.6-do.2"
 
 func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	t.Parallel()
@@ -32,7 +31,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "s2r1"), // "lon1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "version", testClusterVersion16),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "ipv4_address"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_subnet"),
@@ -464,7 +463,7 @@ func testAccDigitalOceanKubernetesConfigBasic(rName string, testClusterVersion s
 	return fmt.Sprintf(`
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
-	region  = "s2r1" # "lon1"
+	region  = "lon1"
 	version = "%s"
 	tags    = ["foo","bar", "one"]
 

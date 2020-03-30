@@ -29,7 +29,7 @@ func TestAccDataSourceDigitalOceanDroplet_BasicByName(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet.foobar", "image", "centos-7-x64"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet.foobar", "region", "s2r1"), // "nyc3"),
+						"data.digitalocean_droplet.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet.foobar", "ipv6", "true"),
 					resource.TestCheckResourceAttr(
@@ -151,14 +151,14 @@ func testAccCheckDataSourceDigitalOceanDropletConfig_basicByName(name string) st
 	return fmt.Sprintf(`
 resource "digitalocean_vpc" "foobar" {
   name        = "%s"
-  region      = "s2r1" # "nyc3"
+  region      = "nyc3"
 }
 
 resource "digitalocean_droplet" "foo" {
   name     = "%s"
   size     = "s-1vcpu-1gb"
   image    = "centos-7-x64"
-  region   = "s2r1" # "nyc3"
+  region   = "nyc3"
   ipv6     = true
   vpc_uuid = digitalocean_vpc.foobar.id
 }

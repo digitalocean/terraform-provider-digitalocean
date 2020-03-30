@@ -68,7 +68,7 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "region", "s2r1"), //"nyc3"),
+						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -419,12 +419,12 @@ resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "512mb"
   image     = "centos-7-x64"
-  region    = "s2r1" # "nyc3"
+  region    = "nyc3"
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
   name = "loadbalancer-%d"
-  region = "s2r1" # "nyc3"
+  region = "nyc3"
 
   forwarding_rule {
     entry_port = 80
@@ -610,20 +610,20 @@ func testAccCheckDigitalOceanLoadbalancerConfig_WithVPC(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_vpc" "foobar" {
   name        = "%s"
-  region      = "s2r1" # "nyc3"
+  region      = "nyc3"
 }
 
 resource "digitalocean_droplet" "foobar" {
   name      = "%s"
   size      = "s-1vcpu-1gb"
   image     = "centos-7-x64"
-  region   = "s2r1" # "nyc3"
+  region   = "nyc3"
   vpc_uuid = digitalocean_vpc.foobar.id
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
   name = "%s"
-  region = "s2r1" # "nyc3"
+  region = "nyc3"
 
   forwarding_rule {
     entry_port = 80

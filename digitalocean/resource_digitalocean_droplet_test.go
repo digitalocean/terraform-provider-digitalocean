@@ -617,10 +617,7 @@ func testAccCheckDigitalOceanDropletAttributes_PrivateNetworkingIpv6(droplet *go
 		}
 
 		if droplet.Region.Slug != "nyc3" {
-			// TODO: Remove s2r1 conditional
-			if droplet.Region.Slug != "s2r1" {
-				return fmt.Errorf("Bad region_slug: %s", droplet.Region.Slug)
-			}
+			return fmt.Errorf("Bad region_slug: %s", droplet.Region.Slug)
 		}
 
 		if findIPv4AddrByType(droplet, "private") == "" {
@@ -820,14 +817,14 @@ func testAccCheckDigitalOceanDropletConfig_VPCAndIpv6(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_vpc" "foobar" {
   name        = "%s"
-  region      = "s2r1" # "nyc3"
+  region      = "nyc3"
 }
 
 resource "digitalocean_droplet" "foobar" {
   name     = "foo-%d"
   size     = "s-1vcpu-1gb"
   image    = "centos-7-x64"
-  region   = "s2r1" # "nyc3"
+  region   = "nyc3"
   ipv6     = true
   vpc_uuid = digitalocean_vpc.foobar.id
 }

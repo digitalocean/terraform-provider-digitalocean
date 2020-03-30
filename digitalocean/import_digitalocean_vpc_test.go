@@ -26,8 +26,6 @@ func TestAccDigitalOceanVPC_importBasic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: true,
-				// TODO: fix when godo is updated
-				ImportStateVerifyIgnore: []string{"description"},
 			},
 			// Test importing non-existent resource provides expected error.
 			{
