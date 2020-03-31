@@ -79,13 +79,13 @@ func resourceDigitalOceanVPCCreate(d *schema.ResourceData, meta interface{}) err
 		RegionSlug: d.Get("region").(string),
 	}
 
-	// if v, ok := d.GetOk("description"); ok {
-	// 	vpcRequest.Description = v.(string)
-	// }
+	if v, ok := d.GetOk("description"); ok {
+		vpcRequest.Description = v.(string)
+	}
 
-	// if v, ok := d.GetOk("ip_range"); ok {
-	// 	vpcRequest.IPRange = v.(string)
-	// }
+	if v, ok := d.GetOk("ip_range"); ok {
+		vpcRequest.IPRange = v.(string)
+	}
 
 	log.Printf("[DEBUG] VPC create request: %#v", vpcRequest)
 	vpc, _, err := client.VPCs.Create(context.Background(), vpcRequest)
@@ -116,9 +116,9 @@ func resourceDigitalOceanVPCRead(d *schema.ResourceData, meta interface{}) error
 	d.SetId(vpc.ID)
 	d.Set("name", vpc.Name)
 	d.Set("region", vpc.RegionSlug)
-	//d.Set("description", vpc.Description)
-	//d.Set("ip_range", vpc.IPRange)
-	//d.Set("urn", vpc.URN)
+	d.Set("description", vpc.Description)
+	d.Set("ip_range", vpc.IPRange)
+	d.Set("urn", vpc.URN)
 	d.Set("default", vpc.Default)
 	d.Set("created_at", vpc.CreatedAt.UTC().String())
 
@@ -128,10 +128,10 @@ func resourceDigitalOceanVPCRead(d *schema.ResourceData, meta interface{}) error
 func resourceDigitalOceanVPCUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
-	if d.HasChange("name") { // || d.HasChange("description")
+	if d.HasChange("name") || d.HasChange("description") {
 		vpcUpdateRequest := &godo.VPCUpdateRequest{
-			Name: d.Get("name").(string),
-			//Description: d.Get("description").(string),
+			Name:        d.Get("name").(string),
+			Description: d.Get("description").(string),
 		}
 		_, _, err := client.VPCs.Update(context.Background(), d.Id(), vpcUpdateRequest)
 

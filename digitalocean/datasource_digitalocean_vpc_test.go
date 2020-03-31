@@ -23,12 +23,16 @@ func TestAccDataSourceDigitalOceanVPC_ByName(t *testing.T) {
 					testAccCheckDigitalOceanVPCExists("data.digitalocean_vpc.foobar"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_vpc.foobar", "name", vpcName),
-					// resource.TestCheckResourceAttr(
-					// 	"data.digitalocean_vpc.foobar", "description", vpcDesc),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_vpc.foobar", "description", vpcDesc),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_vpc.foobar", "default"),
 					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_vpc.foobar", "ip_range"),
+					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_vpc.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_vpc.foobar", "urn"),
 				),
 			},
 		},

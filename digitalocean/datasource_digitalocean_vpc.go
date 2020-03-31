@@ -98,9 +98,9 @@ func dataSourceDigitalOceanVPCRead(d *schema.ResourceData, meta interface{}) err
 	d.SetId(foundVPC.ID)
 	d.Set("name", foundVPC.Name)
 	d.Set("region", foundVPC.RegionSlug)
-	//d.Set("description", foundVPC.Description)
-	//d.Set("ip_range", foundVPC.IPRange)
-	//d.Set("urn", foundVPC.URN)
+	d.Set("description", foundVPC.Description)
+	d.Set("ip_range", foundVPC.IPRange)
+	d.Set("urn", foundVPC.URN)
 	d.Set("default", foundVPC.Default)
 	d.Set("created_at", foundVPC.CreatedAt.UTC().String())
 

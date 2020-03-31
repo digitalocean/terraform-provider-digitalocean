@@ -15,8 +15,8 @@ func TestAccDigitalOceanVPC_Basic(t *testing.T) {
 	vpcCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCConfig_Basic, vpcName, vpcDesc)
 
 	updatedVPCName := randomTestName()
-	// updatedVPVDesc := "A brand new updated description for the VPC"
-	vpcUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCConfig_Basic, updatedVPCName, vpcDesc) //updatedVPVDesc)
+	updatedVPVDesc := "A brand new updated description for the VPC"
+	vpcUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCConfig_Basic, updatedVPCName, updatedVPVDesc)
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -35,6 +35,10 @@ func TestAccDigitalOceanVPC_Basic(t *testing.T) {
 						"digitalocean_vpc.foobar", "created_at"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpc.foobar", "description", vpcDesc),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_vpc.foobar", "ip_range"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_vpc.foobar", "urn"),
 				),
 			},
 			{
@@ -44,7 +48,7 @@ func TestAccDigitalOceanVPC_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpc.foobar", "name", updatedVPCName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_vpc.foobar", "description", vpcDesc), //updatedVPVDesc),
+						"digitalocean_vpc.foobar", "description", updatedVPVDesc),
 				),
 			},
 		},
@@ -67,7 +71,7 @@ func TestAccDigitalOceanVPC_IPRange(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpc.foobar", "name", vpcName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_vpc.foobar", "ip_range", "10.00.10.0/24"),
+						"digitalocean_vpc.foobar", "ip_range", "10.10.10.0/24"),
 				),
 			},
 		},
@@ -131,6 +135,6 @@ const testAccCheckDigitalOceanVPCConfig_IPRange = `
 resource "digitalocean_vpc" "foobar" {
 	name     = "%s"
 	region   = "nyc3"
-	ip_range = "10.00.10.0/24"
+	ip_range = "10.10.10.0/24"
 }
 `
