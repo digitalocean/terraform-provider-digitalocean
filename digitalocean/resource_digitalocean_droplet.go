@@ -140,10 +140,9 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"private_networking": {
-				Type:       schema.TypeBool,
-				Optional:   true,
-				Computed:   true,
-				Deprecated: "All Droplets created after April 7th, 2020 will be provisioned inside of the default VPC for the region. Use the `vpc_uuid` attribute to specify a different VPC.",
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
 			},
 
 			"ipv4_address": {

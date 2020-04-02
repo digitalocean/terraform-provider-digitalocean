@@ -38,8 +38,9 @@ The following arguments are supported:
    Defaults to false.
 * `ipv6` - (Optional) Boolean controlling if IPv6 is enabled. Defaults to false.
 * `vpc_uuid` - (Optional) The ID of the VPC where the Droplet will be located.
-* `private_networking` - (Deprecated) All Droplets created after April 7th,
-  2020 will be provisioned inside of the default VPC for the region. Use the
+* `private_networking` - (Optional)  Boolean controlling if private networking
+  is enabled. When VPC is enabled on an account, this will provision the
+  Droplet inside of your account's default VPC for the region. Use the
   `vpc_uuid` attribute to specify a different VPC.
 * `ssh_keys` - (Optional) A list of SSH IDs or fingerprints to enable in
    the format `[12345, 123456]`. To retrieve this info, use a tool such
