@@ -4,17 +4,13 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"reflect"
 	"regexp"
 	"sort"
-	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
@@ -24,86 +20,6 @@ import (
 const (
 	testAccDigitalOceanSpacesBucketObject_TestRegion = "nyc3"
 )
-
-func init() {
-	resource.AddTestSweepers("digitalocean_spaces_bucket_object", &resource.Sweeper{
-		Name: "digitalocean_spaces_bucket_object",
-		F:    testSweepS3BucketObjects,
-	})
-}
-
-func testSweepS3BucketObjects(region string) error {
-	sesh, err := session.NewSession(&aws.Config{
-		Region:      aws.String(region),
-		Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
-	)
-
-	conn := s3.New(sesh, &aws.Config{
-		Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", region))},
-	)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	input := &s3.ListBucketsInput{}
-
-	output, err := conn.ListBuckets(input)
-
-	if testSweepSkipSweepError(err) {
-		log.Printf("[WARN] Skipping S3 Bucket Objects sweep for %s: %s", region, err)
-		return nil
-	}
-
-	if err != nil {
-		return fmt.Errorf("error listing S3 Bucket Objects: %s", err)
-	}
-
-	if len(output.Buckets) == 0 {
-		log.Print("[DEBUG] No S3 Bucket Objects to sweep")
-		return nil
-	}
-
-	for _, bucket := range output.Buckets {
-		bucketName := aws.StringValue(bucket.Name)
-
-		hasPrefix := false
-		prefixes := []string{"mybucket.", "mylogs.", "tf-acc", "tf-object-test", "tf-test", "tf-emr-bootstrap"}
-
-		for _, prefix := range prefixes {
-			if strings.HasPrefix(bucketName, prefix) {
-				hasPrefix = true
-				break
-			}
-		}
-
-		if !hasPrefix {
-			log.Printf("[INFO] Skipping S3 Bucket: %s", bucketName)
-			continue
-		}
-
-		bucketRegion, err := testS3BucketRegion(conn, bucketName)
-
-		if err != nil {
-			log.Printf("[ERROR] Error getting S3 Bucket (%s) Location: %s", bucketName, err)
-			continue
-		}
-
-		if bucketRegion != region {
-			log.Printf("[INFO] Skipping S3 Bucket (%s) in different region: %s", bucketName, bucketRegion)
-			continue
-		}
-
-		// Delete everything including locked objects. Ignore any object errors.
-		err = deleteAllS3ObjectVersions(conn, bucketName, "", false, true)
-
-		if err != nil {
-			return fmt.Errorf("error listing S3 Bucket (%s) Objects: %s", bucketName, err)
-		}
-	}
-
-	return nil
-}
 
 func TestAccDigitalOceanSpacesBucketObject_noNameNoKey(t *testing.T) {
 	bucketError := regexp.MustCompile(`bucket must not be empty`)
