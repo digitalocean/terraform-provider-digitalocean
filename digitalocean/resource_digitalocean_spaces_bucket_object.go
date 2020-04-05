@@ -3,21 +3,19 @@ package digitalocean
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/service/kms"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/mitchellh/go-homedir"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
 func resourceDigitalOceanSpacesBucketObject() *schema.Resource {
@@ -30,6 +28,13 @@ func resourceDigitalOceanSpacesBucketObject() *schema.Resource {
 		CustomizeDiff: resourceDigitalOceanSpacesBucketObjectCustomizeDiff,
 
 		Schema: map[string]*schema.Schema{
+			"region": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
 			"bucket": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -51,11 +56,6 @@ func resourceDigitalOceanSpacesBucketObject() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					s3.ObjectCannedACLPrivate,
 					s3.ObjectCannedACLPublicRead,
-					s3.ObjectCannedACLPublicReadWrite,
-					s3.ObjectCannedACLAuthenticatedRead,
-					s3.ObjectCannedACLAwsExecRead,
-					s3.ObjectCannedACLBucketOwnerRead,
-					s3.ObjectCannedACLBucketOwnerFullControl,
 				}, false),
 			},
 
@@ -116,29 +116,7 @@ func resourceDigitalOceanSpacesBucketObject() *schema.Resource {
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					s3.ObjectStorageClassStandard,
-					s3.ObjectStorageClassReducedRedundancy,
-					s3.ObjectStorageClassGlacier,
-					s3.ObjectStorageClassStandardIa,
-					s3.ObjectStorageClassOnezoneIa,
-					s3.ObjectStorageClassIntelligentTiering,
-					s3.ObjectStorageClassDeepArchive,
 				}, false),
-			},
-
-			"server_side_encryption": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					s3.ServerSideEncryptionAes256,
-					s3.ServerSideEncryptionAwsKms,
-				}, false),
-				Computed: true,
-			},
-
-			"kms_key_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validateArn,
 			},
 
 			"etag": {
@@ -146,17 +124,14 @@ func resourceDigitalOceanSpacesBucketObject() *schema.Resource {
 				// This will conflict with SSE-C and SSE-KMS encryption and multi-part upload
 				// if/when it's actually implemented. The Etag then won't match raw-file MD5.
 				// See http://docs.aws.amazon.com/AmazonS3/latest/API/RESTCommonResponseHeaders.html
-				Optional:      true,
-				Computed:      true,
-				ConflictsWith: []string{"kms_key_id"},
+				Optional: true,
+				Computed: true,
 			},
 
 			"version_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"tags": tagsSchema(),
 
 			"website_redirect": {
 				Type:     schema.TypeString,
@@ -168,36 +143,27 @@ func resourceDigitalOceanSpacesBucketObject() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
-
-			"object_lock_legal_hold_status": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					s3.ObjectLockLegalHoldStatusOn,
-					s3.ObjectLockLegalHoldStatusOff,
-				}, false),
-			},
-
-			"object_lock_mode": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					s3.ObjectLockModeGovernance,
-					s3.ObjectLockModeCompliance,
-				}, false),
-			},
-
-			"object_lock_retain_until_date": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.IsRFC3339Time,
-			},
 		},
 	}
 }
 
+func s3connFromResourceData(d *schema.ResourceData, meta interface{}) (*s3.S3, error) {
+	region := d.Get("region").(string)
+
+	client, err := meta.(*CombinedConfig).spacesClient(region)
+	if err != nil {
+		return nil, err
+	}
+
+	svc := s3.New(client)
+	return svc, nil
+}
+
 func resourceDigitalOceanSpacesBucketObjectPut(d *schema.ResourceData, meta interface{}) error {
-	s3conn := meta.(*AWSClient).s3conn
+	s3conn, err := s3connFromResourceData(d, meta)
+	if err != nil {
+		return err
+	}
 
 	var body io.ReadSeeker
 
@@ -271,34 +237,8 @@ func resourceDigitalOceanSpacesBucketObjectPut(d *schema.ResourceData, meta inte
 		putInput.ContentDisposition = aws.String(v.(string))
 	}
 
-	if v, ok := d.GetOk("server_side_encryption"); ok {
-		putInput.ServerSideEncryption = aws.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("kms_key_id"); ok {
-		putInput.SSEKMSKeyId = aws.String(v.(string))
-		putInput.ServerSideEncryption = aws.String(s3.ServerSideEncryptionAwsKms)
-	}
-
-	if v := d.Get("tags").(map[string]interface{}); len(v) > 0 {
-		// The tag-set must be encoded as URL Query parameters.
-		putInput.Tagging = aws.String(keyvaluetags.New(v).IgnoreAws().UrlEncode())
-	}
-
 	if v, ok := d.GetOk("website_redirect"); ok {
 		putInput.WebsiteRedirectLocation = aws.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("object_lock_legal_hold_status"); ok {
-		putInput.ObjectLockLegalHoldStatus = aws.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("object_lock_mode"); ok {
-		putInput.ObjectLockMode = aws.String(v.(string))
-	}
-
-	if v, ok := d.GetOk("object_lock_retain_until_date"); ok {
-		putInput.ObjectLockRetainUntilDate = expandS3ObjectLockRetainUntilDate(v.(string))
 	}
 
 	if _, err := s3conn.PutObject(putInput); err != nil {
@@ -306,7 +246,7 @@ func resourceDigitalOceanSpacesBucketObjectPut(d *schema.ResourceData, meta inte
 	}
 
 	d.SetId(key)
-	return resourceAwsS3BucketObjectRead(d, meta)
+	return resourceDigitalOceanSpacesBucketObjectRead(d, meta)
 }
 
 func resourceDigitalOceanSpacesBucketObjectCreate(d *schema.ResourceData, meta interface{}) error {
@@ -314,7 +254,10 @@ func resourceDigitalOceanSpacesBucketObjectCreate(d *schema.ResourceData, meta i
 }
 
 func resourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta interface{}) error {
-	s3conn := meta.(*AWSClient).s3conn
+	s3conn, err := s3connFromResourceData(d, meta)
+	if err != nil {
+		return err
+	}
 
 	bucket := d.Get("bucket").(string)
 	key := d.Get("key").(string)
@@ -353,28 +296,8 @@ func resourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta int
 		return fmt.Errorf("error setting metadata: %s", err)
 	}
 	d.Set("version_id", resp.VersionId)
-	d.Set("server_side_encryption", resp.ServerSideEncryption)
 	d.Set("website_redirect", resp.WebsiteRedirectLocation)
-	d.Set("object_lock_legal_hold_status", resp.ObjectLockLegalHoldStatus)
-	d.Set("object_lock_mode", resp.ObjectLockMode)
-	d.Set("object_lock_retain_until_date", flattenS3ObjectLockRetainUntilDate(resp.ObjectLockRetainUntilDate))
 
-	// Only set non-default KMS key ID (one that doesn't match default)
-	if resp.SSEKMSKeyId != nil {
-		// retrieve S3 KMS Default Master Key
-		kmsconn := meta.(*AWSClient).kmsconn
-		kmsresp, err := kmsconn.DescribeKey(&kms.DescribeKeyInput{
-			KeyId: aws.String("alias/aws/s3"),
-		})
-		if err != nil {
-			return fmt.Errorf("Failed to describe default S3 KMS key (alias/aws/s3): %s", err)
-		}
-
-		if *resp.SSEKMSKeyId != *kmsresp.KeyMetadata.Arn {
-			log.Printf("[DEBUG] S3 object is encrypted using a non-default KMS Key ID: %s", *resp.SSEKMSKeyId)
-			d.Set("kms_key_id", resp.SSEKMSKeyId)
-		}
-	}
 	// See https://forums.aws.amazon.com/thread.jspa?threadID=44003
 	d.Set("etag", strings.Trim(aws.StringValue(resp.ETag), `"`))
 
@@ -383,19 +306,6 @@ func resourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta int
 	d.Set("storage_class", s3.StorageClassStandard)
 	if resp.StorageClass != nil {
 		d.Set("storage_class", resp.StorageClass)
-	}
-
-	// Retry due to S3 eventual consistency
-	tags, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
-		return keyvaluetags.S3ObjectListTags(s3conn, bucket, key)
-	})
-
-	if err != nil {
-		return fmt.Errorf("error listing tags for S3 Bucket (%s) Object (%s): %s", bucket, key, err)
-	}
-
-	if err := d.Set("tags", tags.(keyvaluetags.KeyValueTags).IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil
@@ -420,11 +330,14 @@ func resourceDigitalOceanSpacesBucketObjectUpdate(d *schema.ResourceData, meta i
 		"website_redirect",
 	} {
 		if d.HasChange(key) {
-			return resourceAwsS3BucketObjectPut(d, meta)
+			return resourceDigitalOceanSpacesBucketObjectPut(d, meta)
 		}
 	}
 
-	conn := meta.(*AWSClient).s3conn
+	conn, err := s3connFromResourceData(d, meta)
+	if err != nil {
+		return err
+	}
 
 	bucket := d.Get("bucket").(string)
 	key := d.Get("key").(string)
@@ -440,65 +353,20 @@ func resourceDigitalOceanSpacesBucketObjectUpdate(d *schema.ResourceData, meta i
 		}
 	}
 
-	if d.HasChange("object_lock_legal_hold_status") {
-		_, err := conn.PutObjectLegalHold(&s3.PutObjectLegalHoldInput{
-			Bucket: aws.String(bucket),
-			Key:    aws.String(key),
-			LegalHold: &s3.ObjectLockLegalHold{
-				Status: aws.String(d.Get("object_lock_legal_hold_status").(string)),
-			},
-		})
-		if err != nil {
-			return fmt.Errorf("error putting S3 object lock legal hold: %s", err)
-		}
-	}
-
-	if d.HasChange("object_lock_mode") || d.HasChange("object_lock_retain_until_date") {
-		req := &s3.PutObjectRetentionInput{
-			Bucket: aws.String(bucket),
-			Key:    aws.String(key),
-			Retention: &s3.ObjectLockRetention{
-				Mode:            aws.String(d.Get("object_lock_mode").(string)),
-				RetainUntilDate: expandS3ObjectLockRetainUntilDate(d.Get("object_lock_retain_until_date").(string)),
-			},
-		}
-
-		// Bypass required to lower or clear retain-until date.
-		if d.HasChange("object_lock_retain_until_date") {
-			oraw, nraw := d.GetChange("object_lock_retain_until_date")
-			o := expandS3ObjectLockRetainUntilDate(oraw.(string))
-			n := expandS3ObjectLockRetainUntilDate(nraw.(string))
-			if n == nil || (o != nil && n.Before(*o)) {
-				req.BypassGovernanceRetention = aws.Bool(true)
-			}
-		}
-
-		_, err := conn.PutObjectRetention(req)
-		if err != nil {
-			return fmt.Errorf("error putting S3 object lock retention: %s", err)
-		}
-	}
-
-	if d.HasChange("tags") {
-		o, n := d.GetChange("tags")
-
-		if err := keyvaluetags.S3ObjectUpdateTags(conn, bucket, key, o, n); err != nil {
-			return fmt.Errorf("error updating tags: %s", err)
-		}
-	}
-
-	return resourceAwsS3BucketObjectRead(d, meta)
+	return resourceDigitalOceanSpacesBucketObjectRead(d, meta)
 }
 
 func resourceDigitalOceanSpacesBucketObjectDelete(d *schema.ResourceData, meta interface{}) error {
-	s3conn := meta.(*AWSClient).s3conn
+	s3conn, err := s3connFromResourceData(d, meta)
+	if err != nil {
+		return err
+	}
 
 	bucket := d.Get("bucket").(string)
 	key := d.Get("key").(string)
 	// We are effectively ignoring any leading '/' in the key name as aws.Config.DisableRestProtocolURICleaning is false
 	key = strings.TrimPrefix(key, "/")
 
-	var err error
 	if _, ok := d.GetOk("version_id"); ok {
 		err = deleteAllS3ObjectVersions(s3conn, bucket, key, d.Get("force_destroy").(bool), false)
 	} else {
@@ -700,19 +568,30 @@ func deleteS3ObjectVersion(conn *s3.S3, b, k, v string, force bool) error {
 	return err
 }
 
-func expandS3ObjectLockRetainUntilDate(v string) *time.Time {
-	t, err := time.Parse(time.RFC3339, v)
-	if err != nil {
-		return nil
+// Returns true if the error matches all these conditions:
+//  * err is of type awserr.Error
+//  * Error.Code() matches code
+//  * Error.Message() contains message
+func isAWSErr(err error, code string, message string) bool {
+	var awsErr awserr.Error
+	if errors.As(err, &awsErr) {
+		return awsErr.Code() == code && strings.Contains(awsErr.Message(), message)
 	}
-
-	return aws.Time(t)
+	return false
 }
 
-func flattenS3ObjectLockRetainUntilDate(t *time.Time) string {
-	if t == nil {
-		return ""
+func stringMapToPointers(m map[string]interface{}) map[string]*string {
+	list := make(map[string]*string, len(m))
+	for i, v := range m {
+		list[i] = aws.String(v.(string))
 	}
+	return list
+}
 
-	return t.Format(time.RFC3339)
+func pointersMapToStringList(pointers map[string]*string) map[string]interface{} {
+	list := make(map[string]interface{}, len(pointers))
+	for i, v := range pointers {
+		list[i] = *v
+	}
+	return list
 }
