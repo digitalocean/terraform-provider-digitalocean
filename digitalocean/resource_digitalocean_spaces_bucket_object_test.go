@@ -444,7 +444,7 @@ func TestAccDigitalOceanSpacesBucketObject_storageClass(t *testing.T) {
 }
 
 func testAccGetS3Conn() (*s3.S3, error) {
-	client, err := testAccProvider.Meta().(*CombinedConfig).spacesClient("nyc3")
+	client, err := testAccProvider.Meta().(*CombinedConfig).spacesClient(testAccDigitalOceanSpacesBucketObject_TestRegion)
 	if err != nil {
 		return nil, err
 	}
