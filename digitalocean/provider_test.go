@@ -79,6 +79,59 @@ func TestURLDefault(t *testing.T) {
 	}
 }
 
+func TestSpaceAPIDefaultEndpoint(t *testing.T) {
+	rawProvider := Provider()
+	raw := map[string]interface{}{
+		"token":             "12345",
+		"spaces_access_id":  "abcdef",
+		"spaces_secret_key": "xyzzy",
+	}
+
+	err := rawProvider.Configure(terraform.NewResourceConfigRaw(raw))
+	meta := rawProvider.(*schema.Provider).Meta()
+	if meta == nil {
+		t.Fatalf("Expected metadata, got nil: err: %s", err)
+	}
+
+	client, err := meta.(*CombinedConfig).spacesClient("sfo2")
+	if err != nil {
+		t.Fatalf("Failed to create Spaces client: %s", err)
+	}
+
+	expectedEndpoint := "https://sfo2.digitaloceanspaces.com"
+	if *client.Config.Endpoint != expectedEndpoint {
+		t.Fatalf("Expected %s, got %s", expectedEndpoint, *client.Config.Endpoint)
+	}
+}
+
+func TestSpaceAPIEndpointOverride(t *testing.T) {
+	customSpacesEndpoint := "https://{{.Region}}.not-digitalocean-domain.com"
+
+	rawProvider := Provider()
+	raw := map[string]interface{}{
+		"token":             "12345",
+		"spaces_endpoint":   customSpacesEndpoint,
+		"spaces_access_id":  "abcdef",
+		"spaces_secret_key": "xyzzy",
+	}
+
+	err := rawProvider.Configure(terraform.NewResourceConfigRaw(raw))
+	meta := rawProvider.(*schema.Provider).Meta()
+	if meta == nil {
+		t.Fatalf("Expected metadata, got nil: err: %s", err)
+	}
+
+	client, err := meta.(*CombinedConfig).spacesClient("sfo2")
+	if err != nil {
+		t.Fatalf("Failed to create Spaces client: %s", err)
+	}
+
+	expectedEndpoint := "https://sfo2.not-digitalocean-domain.com"
+	if *client.Config.Endpoint != expectedEndpoint {
+		t.Fatalf("Expected %s, got %s", expectedEndpoint, *client.Config.Endpoint)
+	}
+}
+
 func randomTestName() string {
 	return randomName(testNamePrefix, 10)
 }
