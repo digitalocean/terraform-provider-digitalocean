@@ -656,12 +656,12 @@ func testAccDigitalOceanSpacesBucketObjectConfigEmpty(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
-  bucket = "tf-object-test-bucket-%d"
+  name   = "tf-object-test-bucket-%d"
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
   region = digitalocean_spaces_bucket.object_bucket.region
-  bucket = "${digitalocean_spaces_bucket.object_bucket.bucket}"
+  bucket = digitalocean_spaces_bucket.object_bucket.name
   key = "test-key"
 }
 `, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt)
@@ -671,12 +671,12 @@ func testAccDigitalOceanSpacesBucketObjectConfigSource(randInt int, source strin
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
-  bucket = "tf-object-test-bucket-%d"
+  name   = "tf-object-test-bucket-%d"
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
   region       = digitalocean_spaces_bucket.object_bucket.region
-  bucket       = "${digitalocean_spaces_bucket.object_bucket.bucket}"
+  bucket       = digitalocean_spaces_bucket.object_bucket.name
   key          = "test-key"
   source       = "%s"
   content_type = "binary/octet-stream"
@@ -688,12 +688,12 @@ func testAccDigitalOceanSpacesBucketObjectConfig_withContentCharacteristics(rand
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
-  bucket = "tf-object-test-bucket-%d"
+  name   = "tf-object-test-bucket-%d"
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
   region           = digitalocean_spaces_bucket.object_bucket.region
-  bucket           = "${digitalocean_spaces_bucket.object_bucket.bucket}"
+  bucket           = digitalocean_spaces_bucket.object_bucket.name
   key              = "test-key"
   source           = "%s"
   content_language = "en"
@@ -707,12 +707,12 @@ func testAccDigitalOceanSpacesBucketObjectConfigContent(randInt int, content str
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
-  bucket = "tf-object-test-bucket-%d"
+  name   = "tf-object-test-bucket-%d"
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
   region  = digitalocean_spaces_bucket.object_bucket.region
-  bucket  = "${digitalocean_spaces_bucket.object_bucket.bucket}"
+  bucket  = digitalocean_spaces_bucket.object_bucket.name
   key     = "test-key"
   content = "%s"
 }
@@ -723,12 +723,12 @@ func testAccDigitalOceanSpacesBucketObjectConfigContentBase64(randInt int, conte
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
-  bucket = "tf-object-test-bucket-%d"
+  name   = "tf-object-test-bucket-%d"
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
   region         = digitalocean_spaces_bucket.object_bucket.region
-  bucket         = "${digitalocean_spaces_bucket.object_bucket.bucket}"
+  bucket         = digitalocean_spaces_bucket.object_bucket.name
   key            = "test-key"
   content_base64 = "%s"
 }
@@ -739,7 +739,7 @@ func testAccDigitalOceanSpacesBucketObjectConfig_updateable(randInt int, bucketV
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket_3" {
   region = "%s"
-  bucket = "tf-object-test-bucket-%d"
+  name   = "tf-object-test-bucket-%d"
 
   versioning {
     enabled = %t
@@ -748,7 +748,7 @@ resource "digitalocean_spaces_bucket" "object_bucket_3" {
 
 resource "digitalocean_spaces_bucket_object" "object" {
   region = digitalocean_spaces_bucket.object_bucket.region
-  bucket = "${digitalocean_spaces_bucket.object_bucket_3.bucket}"
+  bucket = digitalocean_spaces_bucket.object_bucket_3.name
   key    = "updateable-key"
   source = "%s"
   etag   = "${filemd5("%s")}"
@@ -760,7 +760,7 @@ func testAccDigitalOceanSpacesBucketObjectConfig_acl(randInt int, content, acl s
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
-  bucket = "tf-object-test-bucket-%d"
+  name   = "tf-object-test-bucket-%d"
 
   versioning {
     enabled = true
@@ -769,7 +769,7 @@ resource "digitalocean_spaces_bucket" "object_bucket" {
 
 resource "digitalocean_spaces_bucket_object" "object" {
   region  = digitalocean_spaces_bucket.object_bucket.region
-  bucket  = "${digitalocean_spaces_bucket.object_bucket.bucket}"
+  bucket  = digitalocean_spaces_bucket.object_bucket.name
   key     = "test-key"
   content = "%s"
   acl     = "%s"
@@ -781,12 +781,12 @@ func testAccDigitalOceanSpacesBucketObjectConfig_storageClass(randInt int, stora
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
-  bucket = "tf-object-test-bucket-%d"
+  name   = "tf-object-test-bucket-%d"
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
   region        = digitalocean_spaces_bucket.object_bucket.region
-  bucket        = "${digitalocean_spaces_bucket.object_bucket.bucket}"
+  bucket        = digitalocean_spaces_bucket.object_bucket.name
   key           = "test-key"
   content       = "some_bucket_content"
   storage_class = "%s"
@@ -798,12 +798,12 @@ func testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(randInt int, metad
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
-  bucket = "tf-object-test-bucket-%d"
+  name   = "tf-object-test-bucket-%d"
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
   region = digitalocean_spaces_bucket.object_bucket.region
-  bucket  = "${digitalocean_spaces_bucket.object_bucket.bucket}"
+  bucket  = digitalocean_spaces_bucket.object_bucket.name
   key     = "test-key"
 
   metadata = {
@@ -818,12 +818,12 @@ func testAccDigitalOceanSpacesBucketObjectConfig_NonVersioned(randInt int, sourc
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket_3" {
   region = "%s"
-  bucket = "tf-object-test-bucket-%d"
+  name   = "tf-object-test-bucket-%d"
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
   region = digitalocean_spaces_bucket.object_bucket.region
-  bucket = "${digitalocean_spaces_bucket.object_bucket_3.bucket}"
+  bucket = digitalocean_spaces_bucket.object_bucket_3.name
   key    = "updateable-key"
   source = "%s"
   etag   = "${filemd5("%s")}"
