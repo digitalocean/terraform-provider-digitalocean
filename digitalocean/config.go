@@ -85,7 +85,7 @@ func (c *Config) Client() (*CombinedConfig, error) {
 
 	spacesEndpointTemplate, err := template.New("spaces").Parse(c.SpacesAPIEndpoint)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse spacesEndpoint '%s' as template: %s", c.SpacesAPIEndpoint, err)
+		return nil, fmt.Errorf("unable to parse spaces_endpoint '%s' as template: %s", c.SpacesAPIEndpoint, err)
 	}
 
 	log.Printf("[INFO] DigitalOcean Client configured for URL: %s", godoClient.BaseURL.String())
