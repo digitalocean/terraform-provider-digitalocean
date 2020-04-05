@@ -1,4 +1,4 @@
-package aws
+package digitalocean
 
 import (
 	"bytes"
@@ -20,14 +20,14 @@ import (
 	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
-func resourceAwsS3BucketObject() *schema.Resource {
+func resourceDigitalOceanSpacesBucketObject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceAwsS3BucketObjectCreate,
-		Read:   resourceAwsS3BucketObjectRead,
-		Update: resourceAwsS3BucketObjectUpdate,
-		Delete: resourceAwsS3BucketObjectDelete,
+		Create: resourceDigitalOceanSpacesBucketObjectCreate,
+		Read:   resourceDigitalOceanSpacesBucketObjectRead,
+		Update: resourceDigitalOceanSpacesBucketObjectUpdate,
+		Delete: resourceDigitalOceanSpacesBucketObjectDelete,
 
-		CustomizeDiff: resourceAwsS3BucketObjectCustomizeDiff,
+		CustomizeDiff: resourceDigitalOceanSpacesBucketObjectCustomizeDiff,
 
 		Schema: map[string]*schema.Schema{
 			"bucket": {
@@ -196,7 +196,7 @@ func resourceAwsS3BucketObject() *schema.Resource {
 	}
 }
 
-func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectPut(d *schema.ResourceData, meta interface{}) error {
 	s3conn := meta.(*AWSClient).s3conn
 
 	var body io.ReadSeeker
@@ -309,11 +309,11 @@ func resourceAwsS3BucketObjectPut(d *schema.ResourceData, meta interface{}) erro
 	return resourceAwsS3BucketObjectRead(d, meta)
 }
 
-func resourceAwsS3BucketObjectCreate(d *schema.ResourceData, meta interface{}) error {
-	return resourceAwsS3BucketObjectPut(d, meta)
+func resourceDigitalOceanSpacesBucketObjectCreate(d *schema.ResourceData, meta interface{}) error {
+	return resourceDigitalOceanSpacesBucketObjectPut(d, meta)
 }
 
-func resourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta interface{}) error {
 	s3conn := meta.(*AWSClient).s3conn
 
 	bucket := d.Get("bucket").(string)
@@ -401,7 +401,7 @@ func resourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) err
 	return nil
 }
 
-func resourceAwsS3BucketObjectUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Changes to any of these attributes requires creation of a new object version (if bucket is versioned):
 	for _, key := range []string{
 		"cache_control",
@@ -490,7 +490,7 @@ func resourceAwsS3BucketObjectUpdate(d *schema.ResourceData, meta interface{}) e
 	return resourceAwsS3BucketObjectRead(d, meta)
 }
 
-func resourceAwsS3BucketObjectDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectDelete(d *schema.ResourceData, meta interface{}) error {
 	s3conn := meta.(*AWSClient).s3conn
 
 	bucket := d.Get("bucket").(string)
@@ -524,7 +524,7 @@ func validateMetadataIsLowerCase(v interface{}, k string) (ws []string, errors [
 	return
 }
 
-func resourceAwsS3BucketObjectCustomizeDiff(d *schema.ResourceDiff, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectCustomizeDiff(d *schema.ResourceDiff, meta interface{}) error {
 	if d.HasChange("etag") {
 		d.SetNewComputed("version_id")
 	}
