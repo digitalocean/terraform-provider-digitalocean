@@ -81,6 +81,24 @@ func resourceDigitalOceanBucket() *schema.Resource {
 					},
 				},
 			},
+			// This is structured as a subobject in case Spaces supports more of s3.VersioningConfiguration
+			// than just enabling bucket versioning.
+			"versioning": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
 			"bucket_domain_name": {
 				Type:        schema.TypeString,
 				Description: "The FQDN of the bucket",
@@ -160,11 +178,18 @@ func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
+	if d.HasChange("versioning") {
+		if err := resourceDigitalOceanSpacesBucketVersioningUpdate(svc, d); err != nil {
+			return err
+		}
+	}
+
 	return resourceDigitalOceanBucketRead(d, meta)
 }
 
 func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
+	log.Printf("[DEBUG] region = %v", region)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 
 	if err != nil {
@@ -186,7 +211,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 		} else {
 			// some of the AWS SDK's errors can be empty strings, so let's add
 			// some additional context.
-			return fmt.Errorf("error reading Spaces bucket \"%s\": %s", d.Id(), err)
+			return fmt.Errorf("error reading Spaces bucket \"%s\" (region %v): %s", d.Id(), region, err)
 		}
 	}
 
@@ -198,7 +223,6 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 	d.Set("bucket_domain_name", bucketDomainName(d.Get("name").(string), d.Get("region").(string)))
 
 	// Add the region as an attribute
-
 	locationResponse, err := retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
 		return svc.GetBucketLocation(
 			&s3.GetBucketLocationInput{
@@ -218,8 +242,33 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 		return err
 	}
 
+	// Read the versioning configuration
+	versioningResponse, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
+		return svc.GetBucketVersioning(&s3.GetBucketVersioningInput{
+			Bucket: aws.String(d.Id()),
+		})
+	})
+	if err != nil {
+		return err
+	}
+	vcl := make([]map[string]interface{}, 0, 1)
+	if versioning, ok := versioningResponse.(*s3.GetBucketVersioningOutput); ok {
+		vc := make(map[string]interface{})
+		if versioning.Status != nil && *versioning.Status == s3.BucketVersioningStatusEnabled {
+			vc["enabled"] = true
+		} else {
+			vc["enabled"] = false
+		}
+		vcl = append(vcl, vc)
+	}
+	if err := d.Set("versioning", vcl); err != nil {
+		return fmt.Errorf("error setting versioning: %s", err)
+	}
+
+	// Set the bucket's name.
 	d.Set("name", d.Get("name").(string))
 
+	// Set the URN attribute.
 	urn := fmt.Sprintf("do:space:%s", d.Get("name"))
 	d.Set("urn", urn)
 
@@ -376,6 +425,39 @@ func resourceDigitalOceanBucketCorsUpdate(svc *s3.S3, d *schema.ResourceData) er
 		if err != nil {
 			return fmt.Errorf("Error putting Spaces CORS: %s", err)
 		}
+	}
+
+	return nil
+}
+
+func resourceDigitalOceanSpacesBucketVersioningUpdate(s3conn *s3.S3, d *schema.ResourceData) error {
+	v := d.Get("versioning").([]interface{})
+	bucket := d.Get("name").(string)
+	vc := &s3.VersioningConfiguration{}
+
+	if len(v) > 0 {
+		c := v[0].(map[string]interface{})
+
+		if c["enabled"].(bool) {
+			vc.Status = aws.String(s3.BucketVersioningStatusEnabled)
+		} else {
+			vc.Status = aws.String(s3.BucketVersioningStatusSuspended)
+		}
+	} else {
+		vc.Status = aws.String(s3.BucketVersioningStatusSuspended)
+	}
+
+	i := &s3.PutBucketVersioningInput{
+		Bucket:                  aws.String(bucket),
+		VersioningConfiguration: vc,
+	}
+	log.Printf("[DEBUG] Spaces PUT bucket versioning: %#v", i)
+
+	_, err := retryOnAwsCode(s3.ErrCodeNoSuchBucket, func() (interface{}, error) {
+		return s3conn.PutBucketVersioning(i)
+	})
+	if err != nil {
+		return fmt.Errorf("Error putting Spaces versioning: %s", err)
 	}
 
 	return nil
