@@ -119,7 +119,7 @@ func resourceDigitalOceanSpacesBucketObject() *schema.Resource {
 			},
 
 			"etag": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
 			},

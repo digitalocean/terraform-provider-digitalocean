@@ -28,7 +28,7 @@ func TestAccDigitalOceanSpacesBucketObject_noNameNoKey(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				PreConfig:   func() {},
@@ -51,14 +51,14 @@ func TestAccDigitalOceanSpacesBucketObject_empty(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {},
 				Config:    testAccDigitalOceanSpacesBucketObjectConfigEmpty(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
-					testAccCheckAWSS3BucketObjectBody(&obj, ""),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj, ""),
 				),
 			},
 		},
@@ -76,13 +76,13 @@ func TestAccDigitalOceanSpacesBucketObject_source(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfigSource(rInt, source),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
-					testAccCheckAWSS3BucketObjectBody(&obj, "{anything will do }"),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj, "{anything will do }"),
 				),
 			},
 		},
@@ -97,14 +97,14 @@ func TestAccDigitalOceanSpacesBucketObject_content(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {},
 				Config:    testAccDigitalOceanSpacesBucketObjectConfigContent(rInt, "some_bucket_content"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
-					testAccCheckAWSS3BucketObjectBody(&obj, "some_bucket_content"),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj, "some_bucket_content"),
 				),
 			},
 		},
@@ -119,14 +119,14 @@ func TestAccDigitalOceanSpacesBucketObject_contentBase64(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {},
 				Config:    testAccDigitalOceanSpacesBucketObjectConfigContentBase64(rInt, base64.StdEncoding.EncodeToString([]byte("some_bucket_content"))),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
-					testAccCheckAWSS3BucketObjectBody(&obj, "some_bucket_content"),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj, "some_bucket_content"),
 				),
 			},
 		},
@@ -144,13 +144,13 @@ func TestAccDigitalOceanSpacesBucketObject_withContentCharacteristics(t *testing
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_withContentCharacteristics(rInt, source),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
-					testAccCheckAWSS3BucketObjectBody(&obj, "{anything will do }"),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj, "{anything will do }"),
 					resource.TestCheckResourceAttr(resourceName, "content_type", "binary/octet-stream"),
 					resource.TestCheckResourceAttr(resourceName, "website_redirect", "http://google.com"),
 				),
@@ -169,13 +169,13 @@ func TestAccDigitalOceanSpacesBucketObject_NonVersioned(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_NonVersioned(acctest.RandInt(), sourceInitial),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &originalObj),
-					testAccCheckAWSS3BucketObjectBody(&originalObj, "initial object state"),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &originalObj),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&originalObj, "initial object state"),
 					resource.TestCheckResourceAttr(resourceName, "version_id", ""),
 				),
 			},
@@ -196,13 +196,13 @@ func TestAccDigitalOceanSpacesBucketObject_updates(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, false, sourceInitial),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &originalObj),
-					testAccCheckAWSS3BucketObjectBody(&originalObj, "initial object state"),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &originalObj),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&originalObj, "initial object state"),
 					resource.TestCheckResourceAttr(resourceName, "etag", "647d1d58e1011c743ec67d5e8af87b53"),
 					resource.TestCheckResourceAttr(resourceName, "object_lock_legal_hold_status", ""),
 					resource.TestCheckResourceAttr(resourceName, "object_lock_mode", ""),
@@ -212,8 +212,8 @@ func TestAccDigitalOceanSpacesBucketObject_updates(t *testing.T) {
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, false, sourceModified),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &modifiedObj),
-					testAccCheckAWSS3BucketObjectBody(&modifiedObj, "modified object"),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &modifiedObj),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&modifiedObj, "modified object"),
 					resource.TestCheckResourceAttr(resourceName, "etag", "1c7fd13df1515c2a13ad9eb068931f09"),
 					resource.TestCheckResourceAttr(resourceName, "object_lock_legal_hold_status", ""),
 					resource.TestCheckResourceAttr(resourceName, "object_lock_mode", ""),
@@ -246,13 +246,13 @@ func TestAccDigitalOceanSpacesBucketObject_updateSameFile(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, false, filename),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &originalObj),
-					testAccCheckAWSS3BucketObjectBody(&originalObj, startingData),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &originalObj),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&originalObj, startingData),
 					resource.TestCheckResourceAttr(resourceName, "etag", "aa48b42f36a2652cbee40c30a5df7d25"),
 					rewriteFile,
 				),
@@ -261,8 +261,8 @@ func TestAccDigitalOceanSpacesBucketObject_updateSameFile(t *testing.T) {
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, false, filename),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &modifiedObj),
-					testAccCheckAWSS3BucketObjectBody(&modifiedObj, changingData),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &modifiedObj),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&modifiedObj, changingData),
 					resource.TestCheckResourceAttr(resourceName, "etag", "fafc05f8c4da0266a99154681ab86e8c"),
 				),
 			},
@@ -283,23 +283,23 @@ func TestAccDigitalOceanSpacesBucketObject_updatesWithVersioning(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, true, sourceInitial),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &originalObj),
-					testAccCheckAWSS3BucketObjectBody(&originalObj, "initial versioned object state"),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &originalObj),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&originalObj, "initial versioned object state"),
 					resource.TestCheckResourceAttr(resourceName, "etag", "cee4407fa91906284e2a5e5e03e86b1b"),
 				),
 			},
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, true, sourceModified),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &modifiedObj),
-					testAccCheckAWSS3BucketObjectBody(&modifiedObj, "modified versioned object"),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &modifiedObj),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&modifiedObj, "modified versioned object"),
 					resource.TestCheckResourceAttr(resourceName, "etag", "00b8c73b1b50e7cc932362c7225b8e29"),
-					testAccCheckAWSS3BucketObjectVersionIdDiffers(&modifiedObj, &originalObj),
+					testAccCheckDigitalOceanSpacesBucketObjectVersionIdDiffers(&modifiedObj, &originalObj),
 				),
 			},
 		},
@@ -314,35 +314,35 @@ func TestAccDigitalOceanSpacesBucketObject_acl(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_acl(rInt, "some_bucket_content", "private"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj1),
-					testAccCheckAWSS3BucketObjectBody(&obj1, "some_bucket_content"),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj1),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj1, "some_bucket_content"),
 					resource.TestCheckResourceAttr(resourceName, "acl", "private"),
-					testAccCheckAWSS3BucketObjectAcl(resourceName, []string{"FULL_CONTROL"}),
+					testAccCheckDigitalOceanSpacesBucketObjectAcl(resourceName, []string{"FULL_CONTROL"}),
 				),
 			},
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_acl(rInt, "some_bucket_content", "public-read"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj2),
-					testAccCheckAWSS3BucketObjectVersionIdEquals(&obj2, &obj1),
-					testAccCheckAWSS3BucketObjectBody(&obj2, "some_bucket_content"),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj2),
+					testAccCheckDigitalOceanSpacesBucketObjectVersionIdEquals(&obj2, &obj1),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj2, "some_bucket_content"),
 					resource.TestCheckResourceAttr(resourceName, "acl", "public-read"),
-					testAccCheckAWSS3BucketObjectAcl(resourceName, []string{"FULL_CONTROL", "READ"}),
+					testAccCheckDigitalOceanSpacesBucketObjectAcl(resourceName, []string{"FULL_CONTROL", "READ"}),
 				),
 			},
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_acl(rInt, "changed_some_bucket_content", "private"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj3),
-					testAccCheckAWSS3BucketObjectVersionIdDiffers(&obj3, &obj2),
-					testAccCheckAWSS3BucketObjectBody(&obj3, "changed_some_bucket_content"),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj3),
+					testAccCheckDigitalOceanSpacesBucketObjectVersionIdDiffers(&obj3, &obj2),
+					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj3, "changed_some_bucket_content"),
 					resource.TestCheckResourceAttr(resourceName, "acl", "private"),
-					testAccCheckAWSS3BucketObjectAcl(resourceName, []string{"FULL_CONTROL"}),
+					testAccCheckDigitalOceanSpacesBucketObjectAcl(resourceName, []string{"FULL_CONTROL"}),
 				),
 			},
 		},
@@ -357,12 +357,12 @@ func TestAccDigitalOceanSpacesBucketObject_metadata(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(rInt, "key1", "value1", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					resource.TestCheckResourceAttr(resourceName, "metadata.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "metadata.key1", "value1"),
 					resource.TestCheckResourceAttr(resourceName, "metadata.key2", "value2"),
@@ -371,7 +371,7 @@ func TestAccDigitalOceanSpacesBucketObject_metadata(t *testing.T) {
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(rInt, "key1", "value1updated", "key3", "value3"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					resource.TestCheckResourceAttr(resourceName, "metadata.%", "2"),
 					resource.TestCheckResourceAttr(resourceName, "metadata.key1", "value1updated"),
 					resource.TestCheckResourceAttr(resourceName, "metadata.key3", "value3"),
@@ -380,7 +380,7 @@ func TestAccDigitalOceanSpacesBucketObject_metadata(t *testing.T) {
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfigEmpty(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					resource.TestCheckResourceAttr(resourceName, "metadata.%", "0"),
 				),
 			},
@@ -396,23 +396,23 @@ func TestAccDigitalOceanSpacesBucketObject_storageClass(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketObjectDestroy,
+		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {},
 				Config:    testAccDigitalOceanSpacesBucketObjectConfigContent(rInt, "some_bucket_content"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					resource.TestCheckResourceAttr(resourceName, "storage_class", "STANDARD"),
-					testAccCheckAWSS3BucketObjectStorageClass(resourceName, "STANDARD"),
+					testAccCheckDigitalOceanSpacesBucketObjectStorageClass(resourceName, "STANDARD"),
 				),
 			},
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_storageClass(rInt, "REDUCED_REDUNDANCY"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					resource.TestCheckResourceAttr(resourceName, "storage_class", "REDUCED_REDUNDANCY"),
-					testAccCheckAWSS3BucketObjectStorageClass(resourceName, "REDUCED_REDUNDANCY"),
+					testAccCheckDigitalOceanSpacesBucketObjectStorageClass(resourceName, "REDUCED_REDUNDANCY"),
 				),
 			},
 			{
@@ -420,15 +420,15 @@ func TestAccDigitalOceanSpacesBucketObject_storageClass(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					// Can't GetObject on an object in Glacier without restoring it.
 					resource.TestCheckResourceAttr(resourceName, "storage_class", "GLACIER"),
-					testAccCheckAWSS3BucketObjectStorageClass(resourceName, "GLACIER"),
+					testAccCheckDigitalOceanSpacesBucketObjectStorageClass(resourceName, "GLACIER"),
 				),
 			},
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_storageClass(rInt, "INTELLIGENT_TIERING"),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &obj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					resource.TestCheckResourceAttr(resourceName, "storage_class", "INTELLIGENT_TIERING"),
-					testAccCheckAWSS3BucketObjectStorageClass(resourceName, "INTELLIGENT_TIERING"),
+					testAccCheckDigitalOceanSpacesBucketObjectStorageClass(resourceName, "INTELLIGENT_TIERING"),
 				),
 			},
 			{
@@ -436,7 +436,7 @@ func TestAccDigitalOceanSpacesBucketObject_storageClass(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					// 	Can't GetObject on an object in DEEP_ARCHIVE without restoring it.
 					resource.TestCheckResourceAttr(resourceName, "storage_class", "DEEP_ARCHIVE"),
-					testAccCheckAWSS3BucketObjectStorageClass(resourceName, "DEEP_ARCHIVE"),
+					testAccCheckDigitalOceanSpacesBucketObjectStorageClass(resourceName, "DEEP_ARCHIVE"),
 				),
 			},
 		},
@@ -454,7 +454,7 @@ func testAccGetS3Conn() (*s3.S3, error) {
 	return s3conn, nil
 }
 
-func testAccCheckAWSS3BucketObjectVersionIdDiffers(first, second *s3.GetObjectOutput) resource.TestCheckFunc {
+func testAccCheckDigitalOceanSpacesBucketObjectVersionIdDiffers(first, second *s3.GetObjectOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if first.VersionId == nil {
 			return fmt.Errorf("Expected first object to have VersionId: %s", first)
@@ -471,7 +471,7 @@ func testAccCheckAWSS3BucketObjectVersionIdDiffers(first, second *s3.GetObjectOu
 	}
 }
 
-func testAccCheckAWSS3BucketObjectVersionIdEquals(first, second *s3.GetObjectOutput) resource.TestCheckFunc {
+func testAccCheckDigitalOceanSpacesBucketObjectVersionIdEquals(first, second *s3.GetObjectOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if first.VersionId == nil {
 			return fmt.Errorf("Expected first object to have VersionId: %s", first)
@@ -488,7 +488,7 @@ func testAccCheckAWSS3BucketObjectVersionIdEquals(first, second *s3.GetObjectOut
 	}
 }
 
-func testAccCheckAWSS3BucketObjectDestroy(s *terraform.State) error {
+func testAccCheckDigitalOceanSpacesBucketObjectDestroy(s *terraform.State) error {
 	s3conn, err := testAccGetS3Conn()
 	if err != nil {
 		return err
@@ -512,7 +512,7 @@ func testAccCheckAWSS3BucketObjectDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckAWSS3BucketObjectExists(n string, obj *s3.GetObjectOutput) resource.TestCheckFunc {
+func testAccCheckDigitalOceanSpacesBucketObjectExists(n string, obj *s3.GetObjectOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 		if !ok {
@@ -544,7 +544,7 @@ func testAccCheckAWSS3BucketObjectExists(n string, obj *s3.GetObjectOutput) reso
 	}
 }
 
-func testAccCheckAWSS3BucketObjectBody(obj *s3.GetObjectOutput, want string) resource.TestCheckFunc {
+func testAccCheckDigitalOceanSpacesBucketObjectBody(obj *s3.GetObjectOutput, want string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		body, err := ioutil.ReadAll(obj.Body)
 		if err != nil {
@@ -560,7 +560,7 @@ func testAccCheckAWSS3BucketObjectBody(obj *s3.GetObjectOutput, want string) res
 	}
 }
 
-func testAccCheckAWSS3BucketObjectAcl(n string, expectedPerms []string) resource.TestCheckFunc {
+func testAccCheckDigitalOceanSpacesBucketObjectAcl(n string, expectedPerms []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs := s.RootModule().Resources[n]
 
@@ -592,7 +592,7 @@ func testAccCheckAWSS3BucketObjectAcl(n string, expectedPerms []string) resource
 	}
 }
 
-func testAccCheckAWSS3BucketObjectStorageClass(n, expectedClass string) resource.TestCheckFunc {
+func testAccCheckDigitalOceanSpacesBucketObjectStorageClass(n, expectedClass string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs := s.RootModule().Resources[n]
 
