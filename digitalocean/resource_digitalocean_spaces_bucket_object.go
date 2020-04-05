@@ -3,7 +3,6 @@ package digitalocean
 import (
 	"bytes"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -573,9 +572,8 @@ func deleteS3ObjectVersion(conn *s3.S3, b, k, v string, force bool) error {
 //  * Error.Code() matches code
 //  * Error.Message() contains message
 func isAWSErr(err error, code string, message string) bool {
-	var awsErr awserr.Error
-	if errors.As(err, &awsErr) {
-		return awsErr.Code() == code && strings.Contains(awsErr.Message(), message)
+	if err, ok := err.(awserr.Error); ok {
+		return err.Code() == code && strings.Contains(err.Message(), message)
 	}
 	return false
 }
