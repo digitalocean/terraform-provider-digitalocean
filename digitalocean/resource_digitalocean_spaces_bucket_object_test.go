@@ -407,38 +407,6 @@ func TestAccDigitalOceanSpacesBucketObject_storageClass(t *testing.T) {
 					testAccCheckDigitalOceanSpacesBucketObjectStorageClass(resourceName, "STANDARD"),
 				),
 			},
-			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_storageClass(rInt, "REDUCED_REDUNDANCY"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
-					resource.TestCheckResourceAttr(resourceName, "storage_class", "REDUCED_REDUNDANCY"),
-					testAccCheckDigitalOceanSpacesBucketObjectStorageClass(resourceName, "REDUCED_REDUNDANCY"),
-				),
-			},
-			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_storageClass(rInt, "GLACIER"),
-				Check: resource.ComposeTestCheckFunc(
-					// Can't GetObject on an object in Glacier without restoring it.
-					resource.TestCheckResourceAttr(resourceName, "storage_class", "GLACIER"),
-					testAccCheckDigitalOceanSpacesBucketObjectStorageClass(resourceName, "GLACIER"),
-				),
-			},
-			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_storageClass(rInt, "INTELLIGENT_TIERING"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
-					resource.TestCheckResourceAttr(resourceName, "storage_class", "INTELLIGENT_TIERING"),
-					testAccCheckDigitalOceanSpacesBucketObjectStorageClass(resourceName, "INTELLIGENT_TIERING"),
-				),
-			},
-			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_storageClass(rInt, "DEEP_ARCHIVE"),
-				Check: resource.ComposeTestCheckFunc(
-					// 	Can't GetObject on an object in DEEP_ARCHIVE without restoring it.
-					resource.TestCheckResourceAttr(resourceName, "storage_class", "DEEP_ARCHIVE"),
-					testAccCheckDigitalOceanSpacesBucketObjectStorageClass(resourceName, "DEEP_ARCHIVE"),
-				),
-			},
 		},
 	})
 }
@@ -508,8 +476,8 @@ func testAccCheckDigitalOceanSpacesBucketObjectDestroy(s *terraform.State) error
 			}
 
 		case "digitalocean_spaces_bucket":
-			_, err = svc.HeadBucket(&s3.HeadBucketInput{
-				Bucket: aws.String(d.Id()),
+			_, err = s3conn.HeadBucket(&s3.HeadBucketInput{
+				Bucket: aws.String(rs.Primary.ID),
 			})
 			if err == nil {
 				return fmt.Errorf("Spaces Bucket still exists: %s", rs.Primary.ID)
