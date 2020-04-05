@@ -171,14 +171,14 @@ func resourceDigitalOceanSpacesBucketObjectPut(d *schema.ResourceData, meta inte
 		}
 		file, err := os.Open(path)
 		if err != nil {
-			return fmt.Errorf("Error opening S3 bucket object source (%s): %s", path, err)
+			return fmt.Errorf("Error opening Spaces bucket object source (%s): %s", path, err)
 		}
 
 		body = file
 		defer func() {
 			err := file.Close()
 			if err != nil {
-				log.Printf("[WARN] Error closing S3 bucket object source (%s): %s", path, err)
+				log.Printf("[WARN] Error closing Spaces bucket object source (%s): %s", path, err)
 			}
 		}()
 	} else if v, ok := d.GetOk("content"); ok {
@@ -238,7 +238,7 @@ func resourceDigitalOceanSpacesBucketObjectPut(d *schema.ResourceData, meta inte
 	}
 
 	if _, err := s3conn.PutObject(putInput); err != nil {
-		return fmt.Errorf("Error putting object in S3 bucket (%s): %s", bucket, err)
+		return fmt.Errorf("Error putting object in Spaces bucket (%s): %s", bucket, err)
 	}
 
 	d.SetId(key)
@@ -273,7 +273,7 @@ func resourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta int
 		}
 		return err
 	}
-	log.Printf("[DEBUG] Reading S3 Bucket Object meta: %s", resp)
+	log.Printf("[DEBUG] Reading Spaces Bucket Object meta: %s", resp)
 
 	d.Set("cache_control", resp.CacheControl)
 	d.Set("content_disposition", resp.ContentDisposition)
@@ -345,7 +345,7 @@ func resourceDigitalOceanSpacesBucketObjectUpdate(d *schema.ResourceData, meta i
 			ACL:    aws.String(d.Get("acl").(string)),
 		})
 		if err != nil {
-			return fmt.Errorf("error putting S3 object ACL: %s", err)
+			return fmt.Errorf("error putting Spaces object ACL: %s", err)
 		}
 	}
 
@@ -370,7 +370,7 @@ func resourceDigitalOceanSpacesBucketObjectDelete(d *schema.ResourceData, meta i
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting S3 Bucket (%s) Object (%s): %s", bucket, key, err)
+		return fmt.Errorf("error deleting Spaces Bucket (%s) Object (%s): %s", bucket, key, err)
 	}
 
 	return nil
@@ -431,7 +431,7 @@ func deleteAllS3ObjectVersions(conn *s3.S3, bucketName, key string, force, ignor
 				})
 
 				if err != nil {
-					log.Printf("[ERROR] Error getting S3 Bucket (%s) Object (%s) Version (%s) metadata: %s", bucketName, objectKey, objectVersionID, err)
+					log.Printf("[ERROR] Error getting Spaces Bucket (%s) Object (%s) Version (%s) metadata: %s", bucketName, objectKey, objectVersionID, err)
 					lastErr = err
 					continue
 				}
@@ -447,7 +447,7 @@ func deleteAllS3ObjectVersions(conn *s3.S3, bucketName, key string, force, ignor
 					})
 
 					if err != nil {
-						log.Printf("[ERROR] Error putting S3 Bucket (%s) Object (%s) Version(%s) legal hold: %s", bucketName, objectKey, objectVersionID, err)
+						log.Printf("[ERROR] Error putting Spaces Bucket (%s) Object (%s) Version(%s) legal hold: %s", bucketName, objectKey, objectVersionID, err)
 						lastErr = err
 						continue
 					}
@@ -463,7 +463,7 @@ func deleteAllS3ObjectVersions(conn *s3.S3, bucketName, key string, force, ignor
 				}
 
 				// AccessDenied for another reason.
-				lastErr = fmt.Errorf("AccessDenied deleting S3 Bucket (%s) Object (%s) Version: %s", bucketName, objectKey, objectVersionID)
+				lastErr = fmt.Errorf("AccessDenied deleting Spaces Bucket (%s) Object (%s) Version: %s", bucketName, objectKey, objectVersionID)
 				continue
 			}
 
@@ -550,11 +550,11 @@ func deleteS3ObjectVersion(conn *s3.S3, b, k, v string, force bool) error {
 		input.BypassGovernanceRetention = aws.Bool(true)
 	}
 
-	log.Printf("[INFO] Deleting S3 Bucket (%s) Object (%s) Version: %s", b, k, v)
+	log.Printf("[INFO] Deleting Spaces Bucket (%s) Object (%s) Version: %s", b, k, v)
 	_, err := conn.DeleteObject(input)
 
 	if err != nil {
-		log.Printf("[WARN] Error deleting S3 Bucket (%s) Object (%s) Version (%s): %s", b, k, v, err)
+		log.Printf("[WARN] Error deleting Spaces Bucket (%s) Object (%s) Version (%s): %s", b, k, v, err)
 	}
 
 	if isAWSErr(err, s3.ErrCodeNoSuchBucket, "") || isAWSErr(err, s3.ErrCodeNoSuchKey, "") {
