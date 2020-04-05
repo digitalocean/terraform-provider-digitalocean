@@ -299,6 +299,220 @@ resource "digitalocean_spaces_bucket" "bucket" {
 	})
 }
 
+func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
+	rInt := acctest.RandInt()
+	resourceName := "aws_s3_bucket.bucket"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketConfigWithLifecycle(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists(resourceName),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.id", "id1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.prefix", "path1/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.expiration.2613713285.days", "365"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.expiration.2613713285.date", ""),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.expiration.2613713285.expired_object_delete_marker", "false"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.2000431762.date", ""),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.2000431762.days", "30"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.2000431762.storage_class", "STANDARD_IA"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.3601168188.date", ""),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.3601168188.days", "60"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.3601168188.storage_class", "INTELLIGENT_TIERING"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.3854926587.date", ""),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.3854926587.days", "90"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.3854926587.storage_class", "ONEZONE_IA"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.962205413.date", ""),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.962205413.days", "120"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.962205413.storage_class", "GLACIER"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.1571523406.date", ""),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.1571523406.days", "210"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.transition.1571523406.storage_class", "DEEP_ARCHIVE"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.id", "id2"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.prefix", "path2/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.expiration.2855832418.date", "2016-01-12"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.expiration.2855832418.days", "0"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.expiration.2855832418.expired_object_delete_marker", "false"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.id", "id3"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.prefix", "path3/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.transition.460947558.days", "0"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.3.id", "id4"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.3.prefix", "path4/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.3.tags.tagKey", "tagValue"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.3.tags.terraform", "hashicorp"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.4.id", "id5"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.4.tags.tagKey", "tagValue"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.4.tags.terraform", "hashicorp"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.4.transition.460947558.days", "0"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.4.transition.460947558.storage_class", "GLACIER"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.5.id", "id6"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.5.tags.tagKey", "tagValue"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.5.transition.460947558.days", "0"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.5.transition.460947558.storage_class", "GLACIER"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_destroy", "acl"},
+			},
+			{
+				Config: testAccAWSS3BucketConfigWithVersioningLifecycle(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists(resourceName),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.id", "id1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.prefix", "path1/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.enabled", "true"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.noncurrent_version_expiration.80908210.days", "365"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.noncurrent_version_transition.1377917700.days", "30"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.noncurrent_version_transition.1377917700.storage_class", "STANDARD_IA"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.noncurrent_version_transition.2528035817.days", "60"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.noncurrent_version_transition.2528035817.storage_class", "GLACIER"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.id", "id2"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.prefix", "path2/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.enabled", "false"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.noncurrent_version_expiration.80908210.days", "365"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.id", "id3"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.prefix", "path3/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.noncurrent_version_transition.3732708140.days", "0"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.noncurrent_version_transition.3732708140.storage_class", "GLACIER"),
+				),
+			},
+			{
+				Config: testAccAWSS3BucketConfig(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
+	rInt := acctest.RandInt()
+	resourceName := "aws_s3_bucket.bucket"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketConfigWithLifecycleExpireMarker(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists(resourceName),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.id", "id1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.prefix", "path1/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.expiration.3591068768.days", "0"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.expiration.3591068768.date", ""),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.expiration.3591068768.expired_object_delete_marker", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_destroy", "acl"},
+			},
+			{
+				Config: testAccAWSS3BucketConfig(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/11420
+func TestAccDigitalOceanSpacesBucket_LifecycleRule_Expiration_EmptyConfigurationBlock(t *testing.T) {
+	rName := acctest.RandomWithPrefix("tf-acc-test")
+	resourceName := "aws_s3_bucket.bucket"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccAWSS3BucketConfigLifecycleRuleExpirationEmptyConfigurationBlock(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckAWSS3BucketExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanBucketDestroy(s *terraform.State) error {
 	return testAccCheckDigitalOceanBucketDestroyWithProvider(s, testAccProvider)
 }
@@ -577,3 +791,198 @@ resource "digitalocean_spaces_bucket" "bucket" {
 	}
 }
 `
+
+func testAccAWSS3BucketConfigWithLifecycle(randInt int) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+  bucket = "tf-test-bucket-%d"
+  acl    = "private"
+
+  lifecycle_rule {
+    id      = "id1"
+    prefix  = "path1/"
+    enabled = true
+
+    expiration {
+      days = 365
+    }
+
+    transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 60
+      storage_class = "INTELLIGENT_TIERING"
+    }
+
+    transition {
+      days          = 90
+      storage_class = "ONEZONE_IA"
+    }
+
+    transition {
+      days          = 120
+      storage_class = "GLACIER"
+    }
+
+    transition {
+      days          = 210
+      storage_class = "DEEP_ARCHIVE"
+    }
+  }
+
+  lifecycle_rule {
+    id      = "id2"
+    prefix  = "path2/"
+    enabled = true
+
+    expiration {
+      date = "2016-01-12"
+    }
+  }
+
+  lifecycle_rule {
+    id      = "id3"
+    prefix  = "path3/"
+    enabled = true
+
+    transition {
+      days          = 0
+      storage_class = "GLACIER"
+    }
+  }
+
+  lifecycle_rule {
+    id      = "id4"
+    prefix  = "path4/"
+    enabled = true
+
+    tags = {
+      "tagKey"    = "tagValue"
+      "terraform" = "hashicorp"
+    }
+
+    expiration {
+      date = "2016-01-12"
+    }
+  }
+	lifecycle_rule {
+		id = "id5"
+		enabled = true
+
+		tags = {
+			"tagKey" = "tagValue"
+			"terraform" = "hashicorp"
+		}
+
+		transition {
+			days = 0
+			storage_class = "GLACIER"
+		}
+	}
+	lifecycle_rule {
+		id = "id6"
+		enabled = true
+
+		tags = {
+			"tagKey" = "tagValue"
+		}
+
+		transition {
+			days = 0
+			storage_class = "GLACIER"
+		}
+	}
+}
+`, randInt)
+}
+
+func testAccAWSS3BucketConfigWithLifecycleExpireMarker(randInt int) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+  bucket = "tf-test-bucket-%d"
+  acl    = "private"
+
+  lifecycle_rule {
+    id      = "id1"
+    prefix  = "path1/"
+    enabled = true
+
+    expiration {
+      expired_object_delete_marker = "true"
+    }
+  }
+}
+`, randInt)
+}
+
+func testAccAWSS3BucketConfigWithVersioningLifecycle(randInt int) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+  bucket = "tf-test-bucket-%d"
+  acl    = "private"
+
+  versioning {
+    enabled = false
+  }
+
+  lifecycle_rule {
+    id      = "id1"
+    prefix  = "path1/"
+    enabled = true
+
+    noncurrent_version_expiration {
+      days = 365
+    }
+
+    noncurrent_version_transition {
+      days          = 30
+      storage_class = "STANDARD_IA"
+    }
+
+    noncurrent_version_transition {
+      days          = 60
+      storage_class = "GLACIER"
+    }
+  }
+
+  lifecycle_rule {
+    id      = "id2"
+    prefix  = "path2/"
+    enabled = false
+
+    noncurrent_version_expiration {
+      days = 365
+    }
+  }
+
+  lifecycle_rule {
+    id      = "id3"
+    prefix  = "path3/"
+    enabled = true
+
+    noncurrent_version_transition {
+      days          = 0
+      storage_class = "GLACIER"
+    }
+  }
+}
+`, randInt)
+}
+
+func testAccAWSS3BucketConfigLifecycleRuleExpirationEmptyConfigurationBlock(rName string) string {
+	return fmt.Sprintf(`
+resource "aws_s3_bucket" "bucket" {
+  bucket = %[1]q
+
+  lifecycle_rule {
+    enabled = true
+    id      = "id1"
+
+    expiration {}
+  }
+}
+`, rName)
+}
