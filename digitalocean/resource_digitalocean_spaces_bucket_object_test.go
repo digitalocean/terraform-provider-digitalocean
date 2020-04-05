@@ -495,20 +495,31 @@ func testAccCheckDigitalOceanSpacesBucketObjectDestroy(s *terraform.State) error
 	}
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "digitalocean_spaces_bucket_object" {
+		switch rs.Type {
+		case "digitalocean_spaces_bucket_object":
+			_, err := s3conn.HeadObject(
+				&s3.HeadObjectInput{
+					Bucket:  aws.String(rs.Primary.Attributes["bucket"]),
+					Key:     aws.String(rs.Primary.Attributes["key"]),
+					IfMatch: aws.String(rs.Primary.Attributes["etag"]),
+				})
+			if err == nil {
+				return fmt.Errorf("Spaces Bucket Object still exists: %s", rs.Primary.ID)
+			}
+
+		case "digitalocean_spaces_bucket":
+			_, err = svc.HeadBucket(&s3.HeadBucketInput{
+				Bucket: aws.String(d.Id()),
+			})
+			if err == nil {
+				return fmt.Errorf("Spaces Bucket still exists: %s", rs.Primary.ID)
+			}
+
+		default:
 			continue
 		}
-
-		_, err := s3conn.HeadObject(
-			&s3.HeadObjectInput{
-				Bucket:  aws.String(rs.Primary.Attributes["bucket"]),
-				Key:     aws.String(rs.Primary.Attributes["key"]),
-				IfMatch: aws.String(rs.Primary.Attributes["etag"]),
-			})
-		if err == nil {
-			return fmt.Errorf("AWS S3 Object still exists: %s", rs.Primary.ID)
-		}
 	}
+
 	return nil
 }
 
