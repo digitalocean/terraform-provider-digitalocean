@@ -189,7 +189,6 @@ func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) 
 
 func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
-	log.Printf("[DEBUG] region = %v", region)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 
 	if err != nil {
@@ -211,7 +210,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 		} else {
 			// some of the AWS SDK's errors can be empty strings, so let's add
 			// some additional context.
-			return fmt.Errorf("error reading Spaces bucket \"%s\" (region %v): %s", d.Id(), region, err)
+			return fmt.Errorf("error reading Spaces bucket \"%s\": %s", d.Id(), err)
 		}
 	}
 
