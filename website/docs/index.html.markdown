@@ -49,3 +49,8 @@ The following arguments are supported:
 * `api_endpoint` - (Optional) This can be used to override the base URL for
   DigitalOcean API requests (Defaults to the value of the `DIGITALOCEAN_API_URL`
   environment variable or `https://api.digitalocean.com` if unset).
+* `spaces_endpoint` - (Optional) This can be used to override the endpoint URL
+  used for DigitalOcean Spaces requests. (It defaults to the value of the
+  `SPACES_ENDPOINT_URL` environment variable or `https://{{.Region}}.digitaloceanspaces.com`
+  if unset.) The provider will replace `{{.Region}}` (via Go's templating engine) with the slug
+  of the applicable Spaces region. 

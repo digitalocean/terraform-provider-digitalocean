@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -18,17 +19,19 @@ import (
 )
 
 type Config struct {
-	Token            string
-	APIEndpoint      string
-	AccessID         string
-	SecretKey        string
-	TerraformVersion string
+	Token             string
+	APIEndpoint       string
+	SpacesAPIEndpoint string
+	AccessID          string
+	SecretKey         string
+	TerraformVersion  string
 }
 
 type CombinedConfig struct {
-	client    *godo.Client
-	accessID  string
-	secretKey string
+	client                 *godo.Client
+	spacesEndpointTemplate *template.Template
+	accessID               string
+	secretKey              string
 }
 
 func (c *CombinedConfig) godoClient() *godo.Client { return c.client }
@@ -39,7 +42,13 @@ func (c *CombinedConfig) spacesClient(region string) (*session.Session, error) {
 		return &session.Session{}, err
 	}
 
-	endpoint := fmt.Sprintf("https://%s.digitaloceanspaces.com", region)
+	endpointWriter := strings.Builder{}
+	err := c.spacesEndpointTemplate.Execute(&endpointWriter, map[string]string{"Region": region})
+	if err != nil {
+		return &session.Session{}, err
+	}
+	endpoint := endpointWriter.String()
+
 	client, err := session.NewSession(&aws.Config{
 		Region:      aws.String("us-east-1"),
 		Credentials: credentials.NewStaticCredentials(c.accessID, c.secretKey, ""),
@@ -74,12 +83,18 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	}
 	godoClient.BaseURL = apiURL
 
+	spacesEndpointTemplate, err := template.New("spaces").Parse(c.SpacesAPIEndpoint)
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse spaces_endpoint '%s' as template: %s", c.SpacesAPIEndpoint, err)
+	}
+
 	log.Printf("[INFO] DigitalOcean Client configured for URL: %s", godoClient.BaseURL.String())
 
 	return &CombinedConfig{
-		client:    godoClient,
-		accessID:  c.AccessID,
-		secretKey: c.SecretKey,
+		client:                 godoClient,
+		spacesEndpointTemplate: spacesEndpointTemplate,
+		accessID:               c.AccessID,
+		secretKey:              c.SecretKey,
 	}, nil
 }
 
