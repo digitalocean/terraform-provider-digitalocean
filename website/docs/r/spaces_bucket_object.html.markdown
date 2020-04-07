@@ -9,7 +9,7 @@ description: |-
 # digitalocean\_spaces\_bucket_object
 
 Provides a bucket object resource for Spaces, DigitalOcean's object storage product.
-The `digitalocean_spaces_bucket_object` resources allows Terraform to upload content
+The `digitalocean_spaces_bucket_object` resource allows Terraform to upload content
 to Spaces.
 
 The [Spaces API](https://developers.digitalocean.com/documentation/spaces/) was
