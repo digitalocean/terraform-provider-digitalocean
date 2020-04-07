@@ -726,7 +726,7 @@ resource "digitalocean_spaces_bucket" "object_bucket_3" {
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
-  region = digitalocean_spaces_bucket.object_bucket.region
+  region = digitalocean_spaces_bucket.object_bucket_3.region
   bucket = digitalocean_spaces_bucket.object_bucket_3.name
   key    = "updateable-key"
   source = "%s"
