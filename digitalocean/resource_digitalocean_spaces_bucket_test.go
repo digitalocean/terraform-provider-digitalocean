@@ -253,6 +253,7 @@ resource "digitalocean_spaces_bucket" "bucket" {
 		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
+				// No versioning configured.
 				Config: makeConfig(false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists(resourceName),
@@ -261,6 +262,7 @@ resource "digitalocean_spaces_bucket" "bucket" {
 				),
 			},
 			{
+				// Enable versioning
 				Config: makeConfig(true, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists(resourceName),
@@ -269,7 +271,26 @@ resource "digitalocean_spaces_bucket" "bucket" {
 				),
 			},
 			{
+				// Explicitly disable versioning
 				Config: makeConfig(true, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					testAccCheckDigitalOceanBucketVersioning(
+						resourceName, s3.BucketVersioningStatusSuspended),
+				),
+			},
+			{
+				// Re-enable versioning
+				Config: makeConfig(true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					testAccCheckDigitalOceanBucketVersioning(
+						resourceName, s3.BucketVersioningStatusEnabled),
+				),
+			},
+			{
+				// Remove the clause completely. Should disable versioning.
+				Config: makeConfig(false, false),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists(resourceName),
 					testAccCheckDigitalOceanBucketVersioning(
