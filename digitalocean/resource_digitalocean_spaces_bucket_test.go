@@ -225,6 +225,82 @@ func TestAccDigitalOceanBucket_shouldFailNotFound(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanBucket_Versioning(t *testing.T) {
+	rInt := acctest.RandInt()
+	resourceName := "digitalocean_spaces_bucket.bucket"
+
+	makeConfig := func(includeClause, versioning bool) string {
+		versioningClause := ""
+		if includeClause {
+			versioningClause = fmt.Sprintf(`
+  versioning {
+    enabled = %v
+  }
+`, versioning)
+		}
+		return fmt.Sprintf(`
+resource "digitalocean_spaces_bucket" "bucket" {
+  name = "tf-test-bucket-%d"
+  region = "ams3"
+%s
+}
+`, rInt, versioningClause)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				// No versioning configured.
+				Config: makeConfig(false, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					testAccCheckDigitalOceanBucketVersioning(
+						resourceName, ""),
+				),
+			},
+			{
+				// Enable versioning
+				Config: makeConfig(true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					testAccCheckDigitalOceanBucketVersioning(
+						resourceName, s3.BucketVersioningStatusEnabled),
+				),
+			},
+			{
+				// Explicitly disable versioning
+				Config: makeConfig(true, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					testAccCheckDigitalOceanBucketVersioning(
+						resourceName, s3.BucketVersioningStatusSuspended),
+				),
+			},
+			{
+				// Re-enable versioning
+				Config: makeConfig(true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					testAccCheckDigitalOceanBucketVersioning(
+						resourceName, s3.BucketVersioningStatusEnabled),
+				),
+			},
+			{
+				// Remove the clause completely. Should disable versioning.
+				Config: makeConfig(false, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					testAccCheckDigitalOceanBucketVersioning(
+						resourceName, s3.BucketVersioningStatusSuspended),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanBucketDestroy(s *terraform.State) error {
 	return testAccCheckDigitalOceanBucketDestroyWithProvider(s, testAccProvider)
 }
@@ -366,6 +442,44 @@ func testAccCheckDigitalOceanBucketCors(n string, corsRules []*s3.CORSRule) reso
 
 		if !reflect.DeepEqual(out.CORSRules, corsRules) {
 			return fmt.Errorf("bad error cors rule, expected: %v, got %v", corsRules, out.CORSRules)
+		}
+
+		return nil
+	}
+}
+
+func testAccCheckDigitalOceanBucketVersioning(n string, versioningStatus string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs := s.RootModule().Resources[n]
+
+		sesh, err := session.NewSession(&aws.Config{
+			Region:      aws.String(rs.Primary.Attributes["region"]),
+			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
+		)
+		svc := s3.New(sesh, &aws.Config{
+			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
+		)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		out, err := svc.GetBucketVersioning(&s3.GetBucketVersioningInput{
+			Bucket: aws.String(rs.Primary.ID),
+		})
+
+		if err != nil {
+			return fmt.Errorf("GetBucketVersioning error: %v", err)
+		}
+
+		if v := out.Status; v == nil {
+			if versioningStatus != "" {
+				return fmt.Errorf("bad error versioning status, found nil, expected: %s", versioningStatus)
+			}
+		} else {
+			if *v != versioningStatus {
+				return fmt.Errorf("bad error versioning status, expected: %s, got %s", versioningStatus, *v)
+			}
 		}
 
 		return nil

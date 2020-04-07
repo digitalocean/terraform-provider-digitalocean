@@ -78,6 +78,8 @@ The following arguments are supported:
 * `name` - (Required) The name of the bucket
 * `region` - The region where the bucket resides (Defaults to `nyc3`)
 * `acl` - Canned ACL applied on bucket creation (`private` or `public-read`)
+* `cors_rule` - (Optional) A rule of Cross-Origin Resource Sharing (documented below).
+* `versioning` - (Optional) A state of versioning (documented below)
 * `force_destroy` - Unless `true`, the bucket will only be destroyed if empty (Defaults to `false`)
 
 The `cors_rule` object supports the following:
@@ -86,6 +88,11 @@ The `cors_rule` object supports the following:
 * `allowed_methods` - (Required) A list of HTTP methods (e.g. `GET`) which are allowed from the specified origin.
 * `allowed_origins` - (Required) A list of hosts from which requests using the specified methods are allowed. A host may contain one wildcard (e.g. http://*.example.com).
 * `max_age_seconds` - (Optional) The time in seconds that browser can cache the response for a preflight request.
+
+The `versioning` object supports the following:
+
+* `enabled` - (Optional) Enable versioning. Once you version-enable a bucket, it can never return to an unversioned
+state. You can, however, suspend versioning on that bucket.
 
 ## Attributes Reference
 
