@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 
 	"github.com/digitalocean/godo"
@@ -34,14 +33,10 @@ func resourceDigitalOceanVolume() *schema.Resource {
 			},
 
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
-				// Underscores (_) and dots (.) are allowed for backwards compatibility.
-				// See:
-				//   * https://github.com/terraform-providers/terraform-provider-digitalocean/pull/404
-				//   * https://github.com/terraform-providers/terraform-provider-digitalocean/pull/406
-				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-z0-9\-_.]+$`), "Names must be lowercase and be composed only of numbers, letters and \"-\"."),
+				Type:         schema.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 			"urn": {
 				Type:        schema.TypeString,
