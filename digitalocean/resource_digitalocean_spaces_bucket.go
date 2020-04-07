@@ -86,7 +86,6 @@ func resourceDigitalOceanBucket() *schema.Resource {
 			"versioning": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -96,6 +95,9 @@ func resourceDigitalOceanBucket() *schema.Resource {
 							Default:  false,
 						},
 					},
+				},
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return old == "1" && new == "0"
 				},
 			},
 
