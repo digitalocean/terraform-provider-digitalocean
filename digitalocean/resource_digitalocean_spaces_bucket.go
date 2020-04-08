@@ -126,7 +126,6 @@ func resourceDigitalOceanBucket() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						//"tags": tagsSchema(),
 						"enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
@@ -416,10 +415,10 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 					if filter.And.Prefix != nil && *filter.And.Prefix != "" {
 						rule["prefix"] = *filter.And.Prefix
 					}
-					//// Tag
-					//if len(filter.And.Tags) > 0 {
-					//	rule["tags"] = keyvaluetags.S3KeyValueTags(filter.And.Tags).IgnoreAws().Map()
-					//}
+					// Tag
+					if len(filter.And.Tags) > 0 {
+						return fmt.Errorf("unsupported tag found on lifecycle_rule")
+					}
 				} else {
 					// Prefix
 					if filter.Prefix != nil && *filter.Prefix != "" {

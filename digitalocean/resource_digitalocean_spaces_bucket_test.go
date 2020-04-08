@@ -301,17 +301,17 @@ resource "digitalocean_spaces_bucket" "bucket" {
 
 func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 	rInt := acctest.RandInt()
-	resourceName := "aws_s3_bucket.bucket"
+	resourceName := "digitalocean_spaces_bucket.bucket"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSS3BucketConfigWithLifecycle(rInt),
+				Config: testAccDigitalOceanSpacesBucketConfigWithLifecycle(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketExists(resourceName),
+					testAccCheckDigitalOceanBucketExists(resourceName),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.0.id", "id1"),
 					resource.TestCheckResourceAttr(
@@ -404,9 +404,9 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 					"force_destroy", "acl"},
 			},
 			{
-				Config: testAccAWSS3BucketConfigWithVersioningLifecycle(rInt),
+				Config: testAccDigitalOceanSpacesBucketConfigWithVersioningLifecycle(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketExists(resourceName),
+					testAccCheckDigitalOceanBucketExists(resourceName),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.0.id", "id1"),
 					resource.TestCheckResourceAttr(
@@ -442,9 +442,9 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccAWSS3BucketConfig(rInt),
+				Config: testAccDigitalOceanBucketConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketExists(resourceName),
+					testAccCheckDigitalOceanBucketExists(resourceName),
 				),
 			},
 		},
@@ -453,17 +453,17 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 
 func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 	rInt := acctest.RandInt()
-	resourceName := "aws_s3_bucket.bucket"
+	resourceName := "digitalocean_spaces_bucket.bucket"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSS3BucketConfigWithLifecycleExpireMarker(rInt),
+				Config: testAccDigitalOceanSpacesBucketConfigWithLifecycleExpireMarker(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketExists(resourceName),
+					testAccCheckDigitalOceanBucketExists(resourceName),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.0.id", "id1"),
 					resource.TestCheckResourceAttr(
@@ -484,9 +484,9 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 					"force_destroy", "acl"},
 			},
 			{
-				Config: testAccAWSS3BucketConfig(rInt),
+				Config: testAccDigitalOceanBucketConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketExists(resourceName),
+					testAccCheckDigitalOceanBucketExists(resourceName),
 				),
 			},
 		},
@@ -496,17 +496,17 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 // Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/11420
 func TestAccDigitalOceanSpacesBucket_LifecycleRule_Expiration_EmptyConfigurationBlock(t *testing.T) {
 	rName := acctest.RandomWithPrefix("tf-acc-test")
-	resourceName := "aws_s3_bucket.bucket"
+	resourceName := "digitalocean_spaces_bucket.bucket"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckAWSS3BucketDestroy,
+		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSS3BucketConfigLifecycleRuleExpirationEmptyConfigurationBlock(rName),
+				Config: testAccDigitalOceanSpacesBucketConfigLifecycleRuleExpirationEmptyConfigurationBlock(rName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketExists(resourceName),
+					testAccCheckDigitalOceanBucketExists(resourceName),
 				),
 			},
 		},
@@ -792,11 +792,11 @@ resource "digitalocean_spaces_bucket" "bucket" {
 }
 `
 
-func testAccAWSS3BucketConfigWithLifecycle(randInt int) string {
+func testAccDigitalOceanSpacesBucketConfigWithLifecycle(randInt int) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "bucket" {
-  bucket = "tf-test-bucket-%d"
-  acl    = "private"
+resource "digitalocean_spaces_bucket" "bucket" {
+  name = "tf-test-bucket-%d"
+  acl  = "private"
 
   lifecycle_rule {
     id      = "id1"
@@ -899,11 +899,11 @@ resource "aws_s3_bucket" "bucket" {
 `, randInt)
 }
 
-func testAccAWSS3BucketConfigWithLifecycleExpireMarker(randInt int) string {
+func testAccDigitalOceanSpacesBucketConfigWithLifecycleExpireMarker(randInt int) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "bucket" {
-  bucket = "tf-test-bucket-%d"
-  acl    = "private"
+resource "digitalocean_spaces_bucket" "bucket" {
+  name = "tf-test-bucket-%d"
+  acl  = "private"
 
   lifecycle_rule {
     id      = "id1"
@@ -918,11 +918,11 @@ resource "aws_s3_bucket" "bucket" {
 `, randInt)
 }
 
-func testAccAWSS3BucketConfigWithVersioningLifecycle(randInt int) string {
+func testAccDigitalOceanSpacesBucketConfigWithVersioningLifecycle(randInt int) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "bucket" {
-  bucket = "tf-test-bucket-%d"
-  acl    = "private"
+resource "digitalocean_spaces_bucket" "bucket" {
+  name = "tf-test-bucket-%d"
+  acl  = "private"
 
   versioning {
     enabled = false
@@ -972,10 +972,10 @@ resource "aws_s3_bucket" "bucket" {
 `, randInt)
 }
 
-func testAccAWSS3BucketConfigLifecycleRuleExpirationEmptyConfigurationBlock(rName string) string {
+func testAccDigitalOceanSpacesBucketConfigLifecycleRuleExpirationEmptyConfigurationBlock(rName string) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "bucket" {
-  bucket = %[1]q
+resource "digitalocean_spaces_bucket" "bucket" {
+  name = %[1]q
 
   lifecycle_rule {
     enabled = true
