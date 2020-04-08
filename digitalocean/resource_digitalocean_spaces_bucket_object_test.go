@@ -630,6 +630,7 @@ func testAccDigitalOceanSpacesBucketObjectConfigEmpty(randInt int) string {
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
   name   = "tf-object-test-bucket-%d"
+  force_destroy = true
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
@@ -645,6 +646,7 @@ func testAccDigitalOceanSpacesBucketObjectConfigSource(randInt int, source strin
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
   name   = "tf-object-test-bucket-%d"
+  force_destroy = true
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
@@ -662,6 +664,7 @@ func testAccDigitalOceanSpacesBucketObjectConfig_withContentCharacteristics(rand
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
   name   = "tf-object-test-bucket-%d"
+  force_destroy = true
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
@@ -681,6 +684,7 @@ func testAccDigitalOceanSpacesBucketObjectConfigContent(randInt int, content str
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
   name   = "tf-object-test-bucket-%d"
+  force_destroy = true
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
@@ -697,6 +701,7 @@ func testAccDigitalOceanSpacesBucketObjectConfigContentBase64(randInt int, conte
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
   name   = "tf-object-test-bucket-%d"
+  force_destroy = true
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
@@ -713,6 +718,7 @@ func testAccDigitalOceanSpacesBucketObjectConfig_updateable(randInt int, bucketV
 resource "digitalocean_spaces_bucket" "object_bucket_3" {
   region = "%s"
   name   = "tf-object-test-bucket-%d"
+  force_destroy = true
 
   versioning {
     enabled = %t
@@ -734,6 +740,7 @@ func testAccDigitalOceanSpacesBucketObjectConfig_acl(randInt int, content, acl s
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
   name   = "tf-object-test-bucket-%d"
+  force_destroy = true
 
   versioning {
     enabled = true
@@ -755,6 +762,7 @@ func testAccDigitalOceanSpacesBucketObjectConfig_storageClass(randInt int, stora
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
   name   = "tf-object-test-bucket-%d"
+  force_destroy = true
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
@@ -772,6 +780,7 @@ func testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(randInt int, metad
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region = "%s"
   name   = "tf-object-test-bucket-%d"
+  force_destroy = true
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
@@ -792,6 +801,7 @@ func testAccDigitalOceanSpacesBucketObjectConfig_NonVersioned(randInt int, sourc
 resource "digitalocean_spaces_bucket" "object_bucket_3" {
   region = "%s"
   name   = "tf-object-test-bucket-%d"
+  force_destroy = true
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
