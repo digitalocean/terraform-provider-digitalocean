@@ -329,30 +329,6 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.0.transition.2000431762.storage_class", "STANDARD_IA"),
 					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.3601168188.date", ""),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.3601168188.days", "60"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.3601168188.storage_class", "INTELLIGENT_TIERING"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.3854926587.date", ""),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.3854926587.days", "90"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.3854926587.storage_class", "ONEZONE_IA"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.962205413.date", ""),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.962205413.days", "120"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.962205413.storage_class", "GLACIER"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.1571523406.date", ""),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.1571523406.days", "210"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.1571523406.storage_class", "DEEP_ARCHIVE"),
-					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.id", "id2"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.prefix", "path2/"),
@@ -362,28 +338,6 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 						resourceName, "lifecycle_rule.1.expiration.2855832418.days", "0"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.expiration.2855832418.expired_object_delete_marker", "false"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.2.id", "id3"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.2.prefix", "path3/"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.2.transition.460947558.days", "0"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.3.id", "id4"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.3.prefix", "path4/"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.4.id", "id5"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.4.transition.460947558.days", "0"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.4.transition.460947558.storage_class", "GLACIER"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.5.id", "id6"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.5.transition.460947558.days", "0"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.5.transition.460947558.storage_class", "GLACIER"),
 				),
 			},
 			{
@@ -410,10 +364,6 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.0.noncurrent_version_transition.1377917700.storage_class", "STANDARD_IA"),
 					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.noncurrent_version_transition.2528035817.days", "60"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.noncurrent_version_transition.2528035817.storage_class", "GLACIER"),
-					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.id", "id2"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.prefix", "path2/"),
@@ -421,14 +371,6 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 						resourceName, "lifecycle_rule.1.enabled", "false"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.noncurrent_version_expiration.80908210.days", "365"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.2.id", "id3"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.2.prefix", "path3/"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.2.noncurrent_version_transition.3732708140.days", "0"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.2.noncurrent_version_transition.3732708140.storage_class", "GLACIER"),
 				),
 			},
 			{
@@ -801,26 +743,6 @@ resource "digitalocean_spaces_bucket" "bucket" {
       days          = 30
       storage_class = "STANDARD_IA"
     }
-
-    transition {
-      days          = 60
-      storage_class = "INTELLIGENT_TIERING"
-    }
-
-    transition {
-      days          = 90
-      storage_class = "ONEZONE_IA"
-    }
-
-    transition {
-      days          = 120
-      storage_class = "GLACIER"
-    }
-
-    transition {
-      days          = 210
-      storage_class = "DEEP_ARCHIVE"
-    }
   }
 
   lifecycle_rule {
@@ -832,45 +754,6 @@ resource "digitalocean_spaces_bucket" "bucket" {
       date = "2016-01-12"
     }
   }
-
-  lifecycle_rule {
-    id      = "id3"
-    prefix  = "path3/"
-    enabled = true
-
-    transition {
-      days          = 0
-      storage_class = "GLACIER"
-    }
-  }
-
-  lifecycle_rule {
-    id      = "id4"
-    prefix  = "path4/"
-    enabled = true
-
-    expiration {
-      date = "2016-01-12"
-    }
-  }
-	lifecycle_rule {
-		id = "id5"
-		enabled = true
-
-		transition {
-			days = 0
-			storage_class = "GLACIER"
-		}
-	}
-	lifecycle_rule {
-		id = "id6"
-		enabled = true
-
-		transition {
-			days = 0
-			storage_class = "GLACIER"
-		}
-	}
 }
 `, randInt)
 }
@@ -917,12 +800,7 @@ resource "digitalocean_spaces_bucket" "bucket" {
       days          = 30
       storage_class = "STANDARD_IA"
     }
-
-    noncurrent_version_transition {
-      days          = 60
-      storage_class = "GLACIER"
-    }
-  }
+ }
 
   lifecycle_rule {
     id      = "id2"
@@ -931,17 +809,6 @@ resource "digitalocean_spaces_bucket" "bucket" {
 
     noncurrent_version_expiration {
       days = 365
-    }
-  }
-
-  lifecycle_rule {
-    id      = "id3"
-    prefix  = "path3/"
-    enabled = true
-
-    noncurrent_version_transition {
-      days          = 0
-      storage_class = "GLACIER"
     }
   }
 }
