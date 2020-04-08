@@ -373,23 +373,13 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.3.prefix", "path4/"),
 					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.3.tags.tagKey", "tagValue"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.3.tags.terraform", "hashicorp"),
-					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.4.id", "id5"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.4.tags.tagKey", "tagValue"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.4.tags.terraform", "hashicorp"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.4.transition.460947558.days", "0"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.4.transition.460947558.storage_class", "GLACIER"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.5.id", "id6"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.5.tags.tagKey", "tagValue"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.5.transition.460947558.days", "0"),
 					resource.TestCheckResourceAttr(
@@ -859,11 +849,6 @@ resource "digitalocean_spaces_bucket" "bucket" {
     prefix  = "path4/"
     enabled = true
 
-    tags = {
-      "tagKey"    = "tagValue"
-      "terraform" = "hashicorp"
-    }
-
     expiration {
       date = "2016-01-12"
     }
@@ -871,11 +856,6 @@ resource "digitalocean_spaces_bucket" "bucket" {
 	lifecycle_rule {
 		id = "id5"
 		enabled = true
-
-		tags = {
-			"tagKey" = "tagValue"
-			"terraform" = "hashicorp"
-		}
 
 		transition {
 			days = 0
@@ -885,10 +865,6 @@ resource "digitalocean_spaces_bucket" "bucket" {
 	lifecycle_rule {
 		id = "id6"
 		enabled = true
-
-		tags = {
-			"tagKey" = "tagValue"
-		}
 
 		transition {
 			days = 0
