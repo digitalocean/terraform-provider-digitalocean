@@ -295,13 +295,14 @@ func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) 
 		}
 	}
 
-<<<<<<< HEAD
 	if d.HasChange("versioning") {
 		if err := resourceDigitalOceanSpacesBucketVersioningUpdate(svc, d); err != nil {
-=======
+			return err
+		}
+	}
+
 	if d.HasChange("lifecycle_rule") {
 		if err := resourceDigitalOceanBucketLifecycleUpdate(svc, d); err != nil {
->>>>>>> adapt lifecycle_rule code from aws_s3_bucket
 			return err
 		}
 	}
@@ -859,10 +860,10 @@ func resourceDigitalOceanBucketLifecycleUpdate(s3conn *s3.S3, d *schema.Resource
 	})
 	if err != nil {
 		return fmt.Errorf("Error putting S3 lifecycle: %s", err)
-		}
+	}
 
-			return nil
-		}
+	return nil
+}
 
 func resourceDigitalOceanBucketImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	if strings.Contains(d.Id(), ",") {
