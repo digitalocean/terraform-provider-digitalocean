@@ -323,12 +323,6 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.0.expiration.2613713285.expired_object_delete_marker", "false"),
 					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.2000431762.date", ""),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.2000431762.days", "30"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.transition.2000431762.storage_class", "STANDARD_IA"),
-					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.id", "id2"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.prefix", "path2/"),
@@ -343,6 +337,7 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
+				ImportStateId:     fmt.Sprintf("nyc3,tf-test-bucket-%d", rInt),
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"force_destroy", "acl"},
@@ -357,12 +352,6 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 						resourceName, "lifecycle_rule.0.prefix", "path1/"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.0.enabled", "true"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.noncurrent_version_expiration.80908210.days", "365"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.noncurrent_version_transition.1377917700.days", "30"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.noncurrent_version_transition.1377917700.storage_class", "STANDARD_IA"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.id", "id2"),
 					resource.TestCheckResourceAttr(
@@ -739,11 +728,6 @@ resource "digitalocean_spaces_bucket" "bucket" {
     expiration {
       days = 365
     }
-
-    transition {
-      days          = 30
-      storage_class = "STANDARD_IA"
-    }
   }
 
   lifecycle_rule {
@@ -795,11 +779,6 @@ resource "digitalocean_spaces_bucket" "bucket" {
 
     noncurrent_version_expiration {
       days = 365
-    }
-
-    noncurrent_version_transition {
-      days          = 30
-      storage_class = "STANDARD_IA"
     }
  }
 
