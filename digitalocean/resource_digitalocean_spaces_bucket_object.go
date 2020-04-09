@@ -298,9 +298,7 @@ func resourceDigitalOceanSpacesBucketObjectUpdate(d *schema.ResourceData, meta i
 		"content_type",
 		"content",
 		"etag",
-		"kms_key_id",
 		"metadata",
-		"server_side_encryption",
 		"source",
 		"website_redirect",
 	} {
