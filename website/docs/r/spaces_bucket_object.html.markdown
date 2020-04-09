@@ -77,7 +77,6 @@ The following arguments are supported:
 * `content_language` - (Optional) The language the content is in e.g. en-US or en-GB.
 * `content_type` - (Optional) A standard MIME type describing the format of the object data, e.g. application/octet-stream. All Valid MIME Types are valid for this input.
 * `website_redirect` - (Optional) Specifies a target URL for [website redirect](http://docs.aws.amazon.com/AmazonS3/latest/dev/how-to-page-redirect.html).
-* `storage_class` - (Optional) Provided for compatibility purposes. The value will always be "`STANDARD`".
 * `etag` - (Optional) Used to trigger updates. The only meaningful value is `${filemd5("path/to/file")}` (Terraform 0.11.12 or later) or `${md5(file("path/to/file"))}` (Terraform 0.11.11 or earlier).
 * `metadata` - (Optional) A mapping of keys/values to provision metadata (will be automatically prefixed by `x-amz-meta-`, note that only lowercase label are currently supported by the AWS Go API).
 * `force_destroy` - (Optional) Allow the object to be deleted by removing any legal hold on any object version.

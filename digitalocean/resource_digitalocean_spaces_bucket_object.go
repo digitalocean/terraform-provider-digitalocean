@@ -109,15 +109,6 @@ func resourceDigitalOceanSpacesBucketObject() *schema.Resource {
 				ConflictsWith: []string{"source", "content"},
 			},
 
-			"storage_class": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					s3.ObjectStorageClassStandard,
-				}, false),
-			},
-
 			"etag": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -203,10 +194,6 @@ func resourceDigitalOceanSpacesBucketObjectPut(d *schema.ResourceData, meta inte
 		Key:    aws.String(key),
 		ACL:    aws.String(d.Get("acl").(string)),
 		Body:   body,
-	}
-
-	if v, ok := d.GetOk("storage_class"); ok {
-		putInput.StorageClass = aws.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("cache_control"); ok {
@@ -297,13 +284,6 @@ func resourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta int
 	// See https://forums.aws.amazon.com/thread.jspa?threadID=44003
 	d.Set("etag", strings.Trim(aws.StringValue(resp.ETag), `"`))
 
-	// The "STANDARD" (which is also the default) storage
-	// class when set would not be included in the results.
-	d.Set("storage_class", s3.StorageClassStandard)
-	if resp.StorageClass != nil {
-		d.Set("storage_class", resp.StorageClass)
-	}
-
 	return nil
 }
 
@@ -322,7 +302,6 @@ func resourceDigitalOceanSpacesBucketObjectUpdate(d *schema.ResourceData, meta i
 		"metadata",
 		"server_side_encryption",
 		"source",
-		"storage_class",
 		"website_redirect",
 	} {
 		if d.HasChange(key) {

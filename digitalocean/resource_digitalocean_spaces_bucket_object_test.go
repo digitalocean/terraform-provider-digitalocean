@@ -382,29 +382,6 @@ func TestAccDigitalOceanSpacesBucketObject_metadata(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanSpacesBucketObject_storageClass(t *testing.T) {
-	var obj s3.GetObjectOutput
-	resourceName := "digitalocean_spaces_bucket_object.object"
-	rInt := acctest.RandInt()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
-		Steps: []resource.TestStep{
-			{
-				PreConfig: func() {},
-				Config:    testAccDigitalOceanSpacesBucketObjectConfigContent(rInt, "some_bucket_content"),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
-					resource.TestCheckResourceAttr(resourceName, "storage_class", "STANDARD"),
-					testAccCheckDigitalOceanSpacesBucketObjectStorageClass(resourceName, "STANDARD"),
-				),
-			},
-		},
-	})
-}
-
 func testAccGetS3Conn() (*s3.S3, error) {
 	client, err := testAccProvider.Meta().(*CombinedConfig).spacesClient(testAccDigitalOceanSpacesBucketObject_TestRegion)
 	if err != nil {
@@ -559,40 +536,6 @@ func testAccCheckDigitalOceanSpacesBucketObjectAcl(n string, expectedPerms []str
 
 		if !reflect.DeepEqual(perms, expectedPerms) {
 			return fmt.Errorf("Expected ACL permissions to be %v, got %v", expectedPerms, perms)
-		}
-
-		return nil
-	}
-}
-
-func testAccCheckDigitalOceanSpacesBucketObjectStorageClass(n, expectedClass string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs := s.RootModule().Resources[n]
-
-		s3conn, err := testAccGetS3Conn()
-		if err != nil {
-			return err
-		}
-
-		out, err := s3conn.HeadObject(&s3.HeadObjectInput{
-			Bucket: aws.String(rs.Primary.Attributes["bucket"]),
-			Key:    aws.String(rs.Primary.Attributes["key"]),
-		})
-
-		if err != nil {
-			return fmt.Errorf("HeadObject error: %v", err)
-		}
-
-		// The "STANDARD" (which is also the default) storage
-		// class when set would not be included in the results.
-		storageClass := s3.StorageClassStandard
-		if out.StorageClass != nil {
-			storageClass = *out.StorageClass
-		}
-
-		if storageClass != expectedClass {
-			return fmt.Errorf("Expected Storage Class to be %v, got %v",
-				expectedClass, storageClass)
 		}
 
 		return nil
@@ -755,24 +698,6 @@ resource "digitalocean_spaces_bucket_object" "object" {
   acl     = "%s"
 }
 `, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt, content, acl)
-}
-
-func testAccDigitalOceanSpacesBucketObjectConfig_storageClass(randInt int, storage_class string) string {
-	return fmt.Sprintf(`
-resource "digitalocean_spaces_bucket" "object_bucket" {
-  region = "%s"
-  name   = "tf-object-test-bucket-%d"
-  force_destroy = true
-}
-
-resource "digitalocean_spaces_bucket_object" "object" {
-  region        = digitalocean_spaces_bucket.object_bucket.region
-  bucket        = digitalocean_spaces_bucket.object_bucket.name
-  key           = "test-key"
-  content       = "some_bucket_content"
-  storage_class = "%s"
-}
-`, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt, storage_class)
 }
 
 func testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(randInt int, metadataKey1, metadataValue1, metadataKey2, metadataValue2 string) string {
