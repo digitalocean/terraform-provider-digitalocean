@@ -125,6 +125,12 @@ func resourceDigitalOceanBucket() *schema.Resource {
 						"prefix": {
 							Type:     schema.TypeString,
 							Optional: true,
+							ValidateFunc: func(v interface{}, k string) (ws []string, es []error) {
+								if strings.HasPrefix(v.(string), "/") {
+									ws = append(ws, "prefix begins with `/`. In most cases, this should be excluded.")
+								}
+								return
+							},
 						},
 						"enabled": {
 							Type:     schema.TypeBool,
