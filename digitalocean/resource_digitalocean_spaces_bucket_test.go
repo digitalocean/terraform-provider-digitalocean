@@ -2,7 +2,6 @@ package digitalocean
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"reflect"
 	"testing"
@@ -442,14 +441,11 @@ func TestAccDigitalOceanSpacesBucket_LifecycleRule_Expiration_EmptyConfiguration
 }
 
 func testAccGetS3ConnForSpacesBucket(rs *terraform.ResourceState) (*s3.S3, error) {
-	log.Printf("rs = %v", rs)
 	rawRegion := ""
 	if actualRegion, ok := rs.Primary.Attributes["region"]; ok {
 		rawRegion = actualRegion
 	}
-	log.Printf("region1 = %s", rawRegion)
 	region := normalizeRegion(rawRegion)
-	log.Printf("region2 = %s", region)
 
 	spacesAccessKeyId := os.Getenv("SPACES_ACCESS_KEY_ID")
 	if spacesAccessKeyId == "" {
