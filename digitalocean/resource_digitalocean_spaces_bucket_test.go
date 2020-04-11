@@ -332,6 +332,12 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 						resourceName, "lifecycle_rule.1.expiration.2855832418.days", "0"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.expiration.2855832418.expired_object_delete_marker", "false"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.id", "id3"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.prefix", "path3/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.abort_incomplete_multipart_upload_days", "30"),
 				),
 			},
 			{
@@ -397,14 +403,14 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 						resourceName, "lifecycle_rule.0.expiration.3591068768.expired_object_delete_marker", "true"),
 				),
 			},
-			// TODO: Importing did not work due to region not being set during imports.
-			//{
-			//	ResourceName:      resourceName,
-			//	ImportState:       true,
-			//	ImportStateVerify: true,
-			//	ImportStateVerifyIgnore: []string{
-			//		"force_destroy", "acl"},
-			//},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateId:     fmt.Sprintf("nyc3,tf-test-bucket-%d", rInt),
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_destroy", "acl"},
+			},
 			{
 				Config: testAccDigitalOceanBucketConfig(rInt),
 				Check: resource.ComposeTestCheckFunc(
@@ -738,6 +744,14 @@ resource "digitalocean_spaces_bucket" "bucket" {
     expiration {
       date = "2016-01-12"
     }
+  }
+
+  lifecycle_rule {
+    id     = "id3"
+    prefix = "path3/"
+    enabled = true
+
+    abort_incomplete_multipart_upload_days = 30
   }
 }
 `, randInt)
