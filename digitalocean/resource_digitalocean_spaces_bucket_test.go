@@ -343,7 +343,7 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateId:     fmt.Sprintf("nyc3,tf-test-bucket-%d", rInt),
+				ImportStateId:     fmt.Sprintf("ams3,tf-test-bucket-%d", rInt),
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"force_destroy", "acl"},
@@ -406,7 +406,7 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateId:     fmt.Sprintf("nyc3,tf-test-bucket-%d", rInt),
+				ImportStateId:     fmt.Sprintf("ams3,tf-test-bucket-%d", rInt),
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"force_destroy", "acl"},
@@ -441,29 +441,56 @@ func TestAccDigitalOceanSpacesBucket_LifecycleRule_Expiration_EmptyConfiguration
 	})
 }
 
+func testAccGetS3ConnForSpacesBucket(rs *terraform.ResourceState) (*s3.S3, error) {
+	log.Printf("rs = %v", rs)
+	rawRegion := ""
+	if actualRegion, ok := rs.Primary.Attributes["region"]; ok {
+		rawRegion = actualRegion
+	}
+	log.Printf("region1 = %s", rawRegion)
+	region := normalizeRegion(rawRegion)
+	log.Printf("region2 = %s", region)
+
+	spacesAccessKeyId := os.Getenv("SPACES_ACCESS_KEY_ID")
+	if spacesAccessKeyId == "" {
+		return nil, fmt.Errorf("SPACES_ACCESS_KEY_ID must be set")
+	}
+
+	spacesSecretAccessKey := os.Getenv("SPACES_SECRET_ACCESS_KEY")
+	if spacesSecretAccessKey == "" {
+		return nil, fmt.Errorf("SPACES_SECRET_ACCESS_KEY must be set")
+	}
+
+	sesh, err := session.NewSession(&aws.Config{
+		Region:      aws.String(region),
+		Credentials: credentials.NewStaticCredentials(spacesAccessKeyId, spacesSecretAccessKey, "")},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to create S3 session (region=%s): %v", region, err)
+	}
+
+	svc := s3.New(sesh, &aws.Config{
+		Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", region))},
+	)
+
+	return svc, nil
+}
+
 func testAccCheckDigitalOceanBucketDestroy(s *terraform.State) error {
 	return testAccCheckDigitalOceanBucketDestroyWithProvider(s, testAccProvider)
 }
 
 func testAccCheckDigitalOceanBucketDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-
 	for _, rs := range s.RootModule().Resources {
-		sesh, err := session.NewSession(&aws.Config{
-			Region:      aws.String(rs.Primary.Attributes["region"]),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
-		)
-
-		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
-		)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		if rs.Type != "digitalocean_spaces_bucket" {
 			continue
 		}
+
+		svc, err := testAccGetS3ConnForSpacesBucket(rs)
+		if err != nil {
+			return fmt.Errorf("Unable to create S3 client: %v", err)
+		}
+
 		_, err = svc.DeleteBucket(&s3.DeleteBucketInput{
 			Bucket: aws.String(rs.Primary.ID),
 		})
@@ -492,16 +519,9 @@ func testAccCheckDigitalOceanBucketExistsWithProvider(n string, providerF func()
 			return fmt.Errorf("No ID is set")
 		}
 
-		sesh, err := session.NewSession(&aws.Config{
-			Region:      aws.String(rs.Primary.Attributes["region"]),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
-		)
-		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
-		)
-
+		svc, err := testAccGetS3ConnForSpacesBucket(rs)
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("Unable to create S3 client: %v", err)
 		}
 
 		_, err = svc.HeadBucket(&s3.HeadBucketInput{
@@ -530,16 +550,9 @@ func testAccCheckDigitalOceanDestroyBucket(n string) resource.TestCheckFunc {
 			return fmt.Errorf("No Spaces Bucket ID is set")
 		}
 
-		sesh, err := session.NewSession(&aws.Config{
-			Region:      aws.String(rs.Primary.Attributes["region"]),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
-		)
-		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
-		)
-
+		svc, err := testAccGetS3ConnForSpacesBucket(rs)
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("Unable to create S3 client: %v", err)
 		}
 
 		_, err = svc.DeleteBucket(&s3.DeleteBucketInput{
@@ -564,13 +577,10 @@ func testAccCheckDigitalOceanBucketCors(n string, corsRules []*s3.CORSRule) reso
 			return fmt.Errorf("No Spaces Bucket ID is set")
 		}
 
-		sesh, err := session.NewSession(&aws.Config{
-			Region:      aws.String(rs.Primary.Attributes["region"]),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
-		)
-		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
-		)
+		svc, err := testAccGetS3ConnForSpacesBucket(rs)
+		if err != nil {
+			return fmt.Errorf("Unable to create S3 client: %v", err)
+		}
 
 		out, err := svc.GetBucketCors(&s3.GetBucketCorsInput{
 			Bucket: aws.String(rs.Primary.ID),
@@ -592,16 +602,9 @@ func testAccCheckDigitalOceanBucketVersioning(n string, versioningStatus string)
 	return func(s *terraform.State) error {
 		rs := s.RootModule().Resources[n]
 
-		sesh, err := session.NewSession(&aws.Config{
-			Region:      aws.String(rs.Primary.Attributes["region"]),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
-		)
-		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
-		)
-
+		svc, err := testAccGetS3ConnForSpacesBucket(rs)
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("Unable to create S3 client: %v", err)
 		}
 
 		out, err := svc.GetBucketVersioning(&s3.GetBucketVersioningInput{
@@ -725,6 +728,7 @@ func testAccDigitalOceanSpacesBucketConfigWithLifecycle(randInt int) string {
 resource "digitalocean_spaces_bucket" "bucket" {
   name = "tf-test-bucket-%d"
   acl  = "private"
+  region = "ams3"
 
   lifecycle_rule {
     id      = "id1"
@@ -762,6 +766,7 @@ func testAccDigitalOceanSpacesBucketConfigWithLifecycleExpireMarker(randInt int)
 resource "digitalocean_spaces_bucket" "bucket" {
   name = "tf-test-bucket-%d"
   acl  = "private"
+  region = "ams3"
 
   lifecycle_rule {
     id      = "id1"
