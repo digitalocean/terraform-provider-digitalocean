@@ -786,6 +786,7 @@ func testAccDigitalOceanSpacesBucketConfigWithVersioningLifecycle(randInt int) s
 resource "digitalocean_spaces_bucket" "bucket" {
   name = "tf-test-bucket-%d"
   acl  = "private"
+  region = "ams3"
 
   versioning {
     enabled = false
