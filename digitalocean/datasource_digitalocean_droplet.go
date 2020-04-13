@@ -18,21 +18,21 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 			"id": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Description:  "id of the droplet",
+				Description:  "id of the Droplet",
 				ValidateFunc: validation.NoZeroValues,
 				ExactlyOneOf: []string{"id", "tag", "name"},
 			},
 			"tag": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Description:  "unique tag of the droplet",
+				Description:  "unique tag of the Droplet",
 				ValidateFunc: validation.NoZeroValues,
 				ExactlyOneOf: []string{"id", "tag", "name"},
 			},
 			"name": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Description:  "name of the droplet",
+				Description:  "name of the Droplet",
 				ValidateFunc: validation.NoZeroValues,
 				ExactlyOneOf: []string{"id", "tag", "name"},
 			},
@@ -50,7 +50,7 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 			"region": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "the region that the droplet instance is deployed in",
+				Description: "the region that the Droplet instance is deployed in",
 			},
 			"image": {
 				Type:        schema.TypeString,
@@ -65,7 +65,7 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 			"disk": {
 				Type:        schema.TypeInt,
 				Computed:    true,
-				Description: "the size of the droplets disk in gigabytes",
+				Description: "the size of the Droplets disk in gigabytes",
 			},
 			"vcpus": {
 				Type:        schema.TypeInt,
@@ -75,76 +75,80 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 			"memory": {
 				Type:        schema.TypeInt,
 				Computed:    true,
-				Description: "memory of the droplet in megabytes",
+				Description: "memory of the Droplet in megabytes",
 			},
 			"price_hourly": {
 				Type:        schema.TypeFloat,
 				Computed:    true,
-				Description: "the droplets hourly price",
+				Description: "the Droplets hourly price",
 			},
 			"price_monthly": {
 				Type:        schema.TypeFloat,
 				Computed:    true,
-				Description: "the droplets monthly price",
+				Description: "the Droplets monthly price",
 			},
 			"status": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "state of the droplet instance",
+				Description: "state of the Droplet instance",
 			},
 			"locked": {
 				Type:        schema.TypeBool,
 				Computed:    true,
-				Description: "whether the droplet has been locked",
+				Description: "whether the Droplet has been locked",
 			},
 			"ipv4_address": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "the droplets public ipv4 address",
+				Description: "the Droplets public ipv4 address",
 			},
 			"ipv4_address_private": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "the droplets private ipv4 address",
+				Description: "the Droplets private ipv4 address",
 			},
 			"ipv6_address": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "the droplets public ipv6 address",
+				Description: "the Droplets public ipv6 address",
 			},
 			"ipv6_address_private": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "the droplets private ipv4 address",
+				Description: "the Droplets private ipv4 address",
 			},
 			"backups": {
 				Type:        schema.TypeBool,
 				Computed:    true,
-				Description: "whether the droplet has backups enabled",
+				Description: "whether the Droplet has backups enabled",
 			},
 			"ipv6": {
 				Type:        schema.TypeBool,
 				Computed:    true,
-				Description: "whether the droplet has ipv6 enabled",
+				Description: "whether the Droplet has ipv6 enabled",
 			},
 			"private_networking": {
 				Type:        schema.TypeBool,
 				Computed:    true,
-				Description: "whether the droplet has private networking enabled",
+				Description: "whether the Droplet has private networking enabled",
 			},
 			"monitoring": {
 				Type:        schema.TypeBool,
 				Computed:    true,
-				Description: "whether the droplet has monitoring enabled",
+				Description: "whether the Droplet has monitoring enabled",
 			},
 			"volume_ids": {
 				Type:        schema.TypeSet,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Computed:    true,
-				Description: "list of volumes attached to the droplet",
+				Description: "list of volumes attached to the Droplet",
 			},
-
 			"tags": tagsDataSourceSchema(),
+			"vpc_uuid": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "UUID of the VPC in which the Droplet is located",
+			},
 		},
 	}
 }
@@ -262,6 +266,7 @@ func exportDropletProperties(d *schema.ResourceData, droplet *godo.Droplet) erro
 	d.Set("status", droplet.Status)
 	d.Set("locked", droplet.Locked)
 	d.Set("created_at", droplet.Created)
+	d.Set("vpc_uuid", droplet.VPCUUID)
 
 	if droplet.Image.Slug == "" {
 		d.Set("image", droplet.Image.ID)

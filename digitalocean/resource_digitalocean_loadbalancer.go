@@ -214,10 +214,19 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 				Default:  false,
 			},
 
+			"vpc_uuid": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
 			"ip": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -297,6 +306,10 @@ func buildLoadBalancerRequest(d *schema.ResourceData) (*godo.LoadBalancerRequest
 		opts.StickySessions = expandStickySessions(v.([]interface{}))
 	}
 
+	if v, ok := d.GetOk("vpc_uuid"); ok {
+		opts.VPCUUID = v.(string)
+	}
+
 	return opts, nil
 }
 
@@ -356,6 +369,7 @@ func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface
 	d.Set("redirect_http_to_https", loadbalancer.RedirectHttpToHttps)
 	d.Set("enable_proxy_protocol", loadbalancer.EnableProxyProtocol)
 	d.Set("droplet_tag", loadbalancer.Tag)
+	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)

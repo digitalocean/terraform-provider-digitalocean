@@ -177,6 +177,11 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Computed:    true,
 				Description: "whether PROXY Protocol should be used to pass information from connecting client requests to the backend service",
 			},
+			"vpc_uuid": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "UUID of the VPC in which the load balancer is located",
+			},
 		},
 	}
 }
@@ -232,6 +237,7 @@ func dataSourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interfa
 	d.Set("droplet_tag", loadbalancer.Tag)
 	d.Set("redirect_http_to_https", loadbalancer.RedirectHttpToHttps)
 	d.Set("enable_proxy_protocol", loadbalancer.EnableProxyProtocol)
+	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)

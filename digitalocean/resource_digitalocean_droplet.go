@@ -142,7 +142,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			"private_networking": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
 			},
 
 			"ipv4_address": {
@@ -191,6 +191,14 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"tags": tagsSchema(),
+
+			"vpc_uuid": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
 		},
 	}
 }
@@ -251,6 +259,10 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 
 	if attr, ok := d.GetOk("monitoring"); ok {
 		opts.Monitoring = attr.(bool)
+	}
+
+	if attr, ok := d.GetOk("vpc_uuid"); ok {
+		opts.VPCUUID = attr.(string)
 	}
 
 	// Get configured ssh_keys
@@ -320,6 +332,7 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("status", droplet.Status)
 	d.Set("locked", droplet.Locked)
 	d.Set("created_at", droplet.Created)
+	d.Set("vpc_uuid", droplet.VPCUUID)
 
 	d.Set("ipv4_address", findIPv4AddrByType(droplet, "public"))
 	d.Set("ipv4_address_private", findIPv4AddrByType(droplet, "private"))

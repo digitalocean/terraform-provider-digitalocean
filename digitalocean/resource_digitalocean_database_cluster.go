@@ -99,6 +99,14 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Optional: true,
 			},
 
+			"private_network_uuid": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
 			"host": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -204,6 +212,10 @@ func resourceDigitalOceanDatabaseClusterCreate(d *schema.ResourceData, meta inte
 		Region:     d.Get("region").(string),
 		NumNodes:   d.Get("node_count").(int),
 		Tags:       expandTags(d.Get("tags").(*schema.Set).List()),
+	}
+
+	if v, ok := d.GetOk("private_network_uuid"); ok {
+		opts.PrivateNetworkUUID = v.(string)
 	}
 
 	log.Printf("[DEBUG] DatabaseCluster create configuration: %#v", opts)
@@ -408,6 +420,7 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 	d.Set("user", database.Connection.User)
 	d.Set("password", database.Connection.Password)
 	d.Set("urn", database.URN())
+	d.Set("private_network_uuid", database.PrivateNetworkUUID)
 
 	return nil
 }

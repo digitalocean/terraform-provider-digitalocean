@@ -41,7 +41,7 @@ The following attributes are exported:
 * `region` - DigitalOcean region where the cluster will reside.
 * `node_count` - Number of nodes that will be included in the cluster.
 * `maintenance_window` - Defines when the automatic maintenance should be performed for the database cluster.
-
+* `private_network_uuid` - The ID of the VPC where the database cluster is located.
 * `host` - Database cluster's hostname.
 * `private_host` - Same as `host`, but only accessible from resources within the account and in the same region.
 * `port` - Network port that the database cluster is listening on.

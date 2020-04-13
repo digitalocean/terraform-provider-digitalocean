@@ -48,7 +48,10 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 						"data.digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "tcp"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "droplet_ids.#", "2"),
-					resource.TestMatchResourceAttr("data.digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
+					resource.TestMatchResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_loadbalancer.foobar", "vpc_uuid"),
 				),
 			},
 		},
@@ -98,7 +101,7 @@ resource "digitalocean_droplet" "foo" {
   region             = "nyc3"
   size               = "512mb"
   private_networking = true
-  tags               = ["${digitalocean_tag.foo.id}"]
+  tags               = [digitalocean_tag.foo.id]
 }
 
 resource "digitalocean_loadbalancer" "foo" {
@@ -118,11 +121,11 @@ resource "digitalocean_loadbalancer" "foo" {
     protocol = "tcp"
   }
 
-  droplet_tag = "${digitalocean_tag.foo.id}"
+  droplet_tag = digitalocean_tag.foo.id
   depends_on  = ["digitalocean_droplet.foo"]
 }
 
 data "digitalocean_loadbalancer" "foobar" {
-  name = "${digitalocean_loadbalancer.foo.name}"
+  name = digitalocean_loadbalancer.foo.name
 }`, rInt, rInt)
 }
