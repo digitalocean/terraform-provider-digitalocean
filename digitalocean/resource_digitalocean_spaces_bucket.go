@@ -41,6 +41,7 @@ func resourceDigitalOceanBucket() *schema.Resource {
 			"region": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				ForceNew:    true,
 				Description: "Bucket region",
 				Default:     "nyc3",
 				StateFunc: func(val interface{}) string {
