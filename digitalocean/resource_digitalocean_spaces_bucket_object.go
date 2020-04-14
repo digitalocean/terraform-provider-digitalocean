@@ -541,17 +541,6 @@ func deleteS3ObjectVersion(conn *s3.S3, b, k, v string, force bool) error {
 	return err
 }
 
-// Returns true if the error matches all these conditions:
-//  * err is of type awserr.Error
-//  * Error.Code() matches code
-//  * Error.Message() contains message
-func isAWSErr(err error, code string, message string) bool {
-	if err, ok := err.(awserr.Error); ok {
-		return err.Code() == code && strings.Contains(err.Message(), message)
-	}
-	return false
-}
-
 func stringMapToPointers(m map[string]interface{}) map[string]*string {
 	list := make(map[string]*string, len(m))
 	for i, v := range m {
