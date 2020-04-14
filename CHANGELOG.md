@@ -1,4 +1,22 @@
 ## 1.16.0 (Unreleased)
+
+FEATURES:
+
+* **New Resource**: digitalocean_vpc ([#410](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/410))
+* **New Data Source**: digitalocean_vpc ([#410](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/410))
+* **New Resource**: digitalocean_spaces_bucket_object ([#408](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/408)) Thanks to @tdyas!
+* resource/digitalocean_spaces_bucket: Support for bucket versioning ([#409](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/409)). Thanks to @tdyas!
+* resource/digitalocean_spaces_bucket: Support for lifecycle rules ([#411](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/411)). Thanks to @tdyas!
+
+IMPROVEMENTS:
+
+* provider: Support overriding the Spaces API endpoint using the `spaces_endpoint` attribute or `SPACES_ENDPOINT_URL` environment variable. ([#384]( https://github.com/terraform-providers/terraform-provider-digitalocean/issues/384)). Thanks to @tdyas!
+
+BUG FIXES:
+
+* resource/digitalocean_volume: Revert local name validation to support volumes created before DigitalOcean API change ([#406](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/406)). Thanks to @Amygos & @BrianHicks!
+* resource/digitalocean_spaces_bucket: Region attribute should be ForceNew ([#413](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/413)).
+
 ## 1.15.1 (March 19, 2020)
 
 BUG FIXES:
