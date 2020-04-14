@@ -420,26 +420,6 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 	})
 }
 
-// Reference: https://github.com/terraform-providers/terraform-provider-aws/issues/11420
-func TestAccDigitalOceanSpacesBucket_LifecycleRule_Expiration_EmptyConfigurationBlock(t *testing.T) {
-	rName := acctest.RandomWithPrefix("tf-acc-test")
-	resourceName := "digitalocean_spaces_bucket.bucket"
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDigitalOceanSpacesBucketConfigLifecycleRuleExpirationEmptyConfigurationBlock(rName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanBucketExists(resourceName),
-				),
-			},
-		},
-	})
-}
-
 func testAccGetS3ConnForSpacesBucket(rs *terraform.ResourceState) (*s3.S3, error) {
 	rawRegion := ""
 	if actualRegion, ok := rs.Primary.Attributes["region"]; ok {
@@ -809,19 +789,4 @@ resource "digitalocean_spaces_bucket" "bucket" {
   }
 }
 `, randInt)
-}
-
-func testAccDigitalOceanSpacesBucketConfigLifecycleRuleExpirationEmptyConfigurationBlock(rName string) string {
-	return fmt.Sprintf(`
-resource "digitalocean_spaces_bucket" "bucket" {
-  name = %[1]q
-
-  lifecycle_rule {
-    enabled = true
-    id      = "id1"
-
-    expiration {}
-  }
-}
-`, rName)
 }
