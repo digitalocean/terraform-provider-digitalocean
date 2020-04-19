@@ -2,13 +2,9 @@ package digitalocean
 
 import (
 	"fmt"
-	"log"
-	"strings"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -43,14 +39,13 @@ func dataSourceDigitalOceanSpacesBucketRead(d *schema.ResourceData, meta interfa
 
 	_, err = retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
 		return svc.HeadBucket(&s3.HeadBucketInput{
-			Bucket: aws.String(d.Id()),
+			Bucket: aws.String(name),
 		})
 	})
 	if err != nil {
 		if awsError, ok := err.(awserr.RequestFailure); ok && awsError.StatusCode() == 404 {
-			log.Printf("[WARN] Spaces Bucket (%s) not found, error code (404)", d.Id())
 			d.SetId("")
-			return nil
+			return fmt.Errorf("Spaces Bucket (%s) not found", name)
 		} else {
 			// some of the AWS SDK's errors can be empty strings, so let's add
 			// some additional context.
@@ -58,13 +53,16 @@ func dataSourceDigitalOceanSpacesBucketRead(d *schema.ResourceData, meta interfa
 		}
 	}
 
+	// Set the ID since the read was successful.
+	d.SetId(name)
+
 	d.Set("bucket_domain_name", bucketDomainName(d.Get("name").(string), d.Get("region").(string)))
 
 	// Add the region as an attribute
 	locationResponse, err := retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
 		return svc.GetBucketLocation(
 			&s3.GetBucketLocationInput{
-				Bucket: aws.String(d.Id()),
+				Bucket: aws.String(name),
 			},
 		)
 	})
@@ -80,21 +78,7 @@ func dataSourceDigitalOceanSpacesBucketRead(d *schema.ResourceData, meta interfa
 		return err
 	}
 
-	// Get the bucket's ACLs.
-	aclResponse, err := svc.GetBucketAcl(
-			&s3.GetBucketAclInput{
-				Bucket: aws.String(d.Id()),
-			})
-	if err != nil {
-		return err
-	}
-	if err = d.Set("acl", aclResponse.); err != nil {
-		return err
-	}
-
-
-
-	urn := fmt.Sprintf("do:space:%s", d.Get("name"))
+	urn := fmt.Sprintf("do:space:%s", name)
 	d.Set("urn", urn)
 
 	return nil
