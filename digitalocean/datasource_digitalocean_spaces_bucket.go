@@ -53,33 +53,20 @@ func dataSourceDigitalOceanSpacesBucketRead(d *schema.ResourceData, meta interfa
 		}
 	}
 
-	// Set the ID since the read was successful.
-	d.SetId(name)
+	metadata := bucketMetadataStruct{
+		name:   name,
+		region: region,
+	}
 
-	d.Set("bucket_domain_name", bucketDomainName(d.Get("name").(string), d.Get("region").(string)))
-
-	// Add the region as an attribute
-	locationResponse, err := retryOnAwsCode("NoSuchBucket", func() (interface{}, error) {
-		return svc.GetBucketLocation(
-			&s3.GetBucketLocationInput{
-				Bucket: aws.String(name),
-			},
-		)
-	})
+	flattenedBucket, err := flattenSpacesBucket(&metadata, meta)
 	if err != nil {
 		return err
 	}
-	location := locationResponse.(*s3.GetBucketLocationOutput)
-	if location.LocationConstraint != nil {
-		region = *location.LocationConstraint
-	}
-	region = normalizeRegion(region)
-	if err := d.Set("region", region); err != nil {
+
+	if err := setResourceDataFromMap(d, flattenedBucket); err != nil {
 		return err
 	}
 
-	urn := fmt.Sprintf("do:space:%s", name)
-	d.Set("urn", urn)
-
+	d.SetId(name)
 	return nil
 }

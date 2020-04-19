@@ -9,7 +9,7 @@ import (
 )
 
 type bucketMetadataStruct struct {
-	bucket *s3.Bucket
+	name   string
 	region string
 }
 
@@ -114,7 +114,7 @@ func getDigitalOceanBuckets(meta interface{}) ([]interface{}, error) {
 
 		for _, bucketInRegion := range bucketsInRegion {
 			metadata := &bucketMetadataStruct{
-				bucket: bucketInRegion,
+				name:   *bucketInRegion.Name,
 				region: region,
 			}
 			buckets = append(buckets, metadata)
@@ -128,7 +128,7 @@ func getDigitalOceanBuckets(meta interface{}) ([]interface{}, error) {
 func flattenSpacesBucket(rawBucketMetadata, meta interface{}) (map[string]interface{}, error) {
 	bucketMetadata := rawBucketMetadata.(*bucketMetadataStruct)
 
-	name := *bucketMetadata.bucket.Name
+	name := bucketMetadata.name
 	region := bucketMetadata.region
 
 	flattenedBucket := map[string]interface{}{}
