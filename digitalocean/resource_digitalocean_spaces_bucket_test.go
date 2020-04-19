@@ -462,6 +462,10 @@ func testAccCheckDigitalOceanBucketDestroyWithProvider(s *terraform.State, provi
 			continue
 		}
 
+		if rs.Primary.ID == "" {
+			continue
+		}
+
 		svc, err := testAccGetS3ConnForSpacesBucket(rs)
 		if err != nil {
 			return fmt.Errorf("Unable to create S3 client: %v", err)
