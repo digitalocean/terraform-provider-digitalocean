@@ -26,4 +26,6 @@ replace github.com/terraform-providers/terraform-provider-google v2.17.0+incompa
 
 replace github.com/terraform-providers/terraform-provider-aws v2.32.0+incompatible => github.com/terraform-providers/terraform-provider-aws v1.60.1-0.20191010190908-1261a98537f2
 
+replace github.com/terraform-providers/terraform-provider-random v2.2.1+incompatible => github.com/terraform-providers/terraform-provider-random v0.0.0-20190925210718-83518d96ae4f
+
 go 1.13

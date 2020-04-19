@@ -707,6 +707,7 @@ github.com/terraform-providers/terraform-provider-kubernetes v1.9.1-0.2019101817
 github.com/terraform-providers/terraform-provider-openstack v1.15.0 h1:adpjqej+F8BAX9dHmuPF47sUIkgifeqBu6p7iCsyj0Y=
 github.com/terraform-providers/terraform-provider-openstack v1.15.0/go.mod h1:2aQ6n/BtChAl1y2S60vebhyJyZXBsuAI5G4+lHrT1Ew=
 github.com/terraform-providers/terraform-provider-random v0.0.0-20190925200408-30dac3233094/go.mod h1:F4KE9YftuJyMiBth4W1kCrsyOHndtTjAmZ+ZzjqWY+4=
+github.com/terraform-providers/terraform-provider-random v0.0.0-20190925210718-83518d96ae4f/go.mod h1:F4KE9YftuJyMiBth4W1kCrsyOHndtTjAmZ+ZzjqWY+4=
 github.com/terraform-providers/terraform-provider-random v2.0.0+incompatible h1:4wuExSWk/NHYS95P2H4KGv22bsabuDjGk5cFikIYzuU=
 github.com/terraform-providers/terraform-provider-random v2.0.0+incompatible/go.mod h1:1U2balY0mfjMnO5iotT60EuFqDJxqP433wJcybviCTw=
 github.com/terraform-providers/terraform-provider-random v2.2.1+incompatible/go.mod h1:F4KE9YftuJyMiBth4W1kCrsyOHndtTjAmZ+ZzjqWY+4=
