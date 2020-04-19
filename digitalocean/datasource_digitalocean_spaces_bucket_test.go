@@ -49,6 +49,9 @@ data "digitalocean_spaces_bucket" "bucket" {
 				),
 			},
 			{
+				// Remove the datasource from the config so Terraform trying to refresh it does not race with
+				// deleting the bucket resource. By removing the datasource from the config here, this ensures
+				// that the bucket will be deleted after the datasource has been removed from the state.
 				Config: config1,
 			},
 		},
