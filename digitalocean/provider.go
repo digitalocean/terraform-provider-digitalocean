@@ -64,6 +64,7 @@ func Provider() terraform.ResourceProvider {
 			"digitalocean_regions":             dataSourceDigitalOceanRegions(),
 			"digitalocean_sizes":               dataSourceDigitalOceanSizes(),
 			"digitalocean_spaces_bucket":       dataSourceDigitalOceanSpacesBucket(),
+			"digitalocean_spaces_buckets":      dataSourceDigitalOceanSpacesBuckets(),
 			"digitalocean_ssh_key":             dataSourceDigitalOceanSSHKey(),
 			"digitalocean_tag":                 dataSourceDigitalOceanTag(),
 			"digitalocean_volume_snapshot":     dataSourceDigitalOceanVolumeSnapshot(),

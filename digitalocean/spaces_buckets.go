@@ -1,11 +1,10 @@
 package digitalocean
 
 import (
-	"context"
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -35,50 +34,47 @@ func spacesBucketSchema() map[string]*schema.Schema {
 	}
 }
 
-func getSpacesRegions(meta interface{}) ([]godo.Region, error) {
-	client := meta.(*CombinedConfig).godoClient()
-
-	var spacesRegions []godo.Region
-
-	opts := &godo.ListOptions{
-		Page:    1,
-		PerPage: 200,
-	}
-
-	for {
-		regions, resp, err := client.Regions.List(context.Background(), opts)
-
-		if err != nil {
-			return nil, fmt.Errorf("Error retrieving regions: %s", err)
-		}
-
-		for _, region := range regions {
-			supportsSpaces := false
-			for _, feature := range region.Features {
-				if feature == "spaces" {
-					supportsSpaces = true
-				}
-			}
-
-			if supportsSpaces {
-				spacesRegions = append(spacesRegions, region)
-			}
-		}
-
-		if resp.Links == nil || resp.Links.IsLastPage() {
-			break
-		}
-
-		page, err := resp.Links.CurrentPage()
-		if err != nil {
-			return nil, fmt.Errorf("Error retrieving regions: %s", err)
-		}
-
-		opts.Page = page + 1
-	}
-
-	return spacesRegions, nil
-}
+// TODO: Hard-coding the Spaces regions for now given no way to filter out regions like nyc1
+// which do not have spaces.
+//
+//func getSpacesRegions(meta interface{}) ([]string, error) {
+//	client := meta.(*CombinedConfig).godoClient()
+//
+//	var spacesRegions []string
+//
+//	opts := &godo.ListOptions{
+//		Page:    1,
+//		PerPage: 200,
+//	}
+//
+//	for {
+//		regions, resp, err := client.Regions.List(context.Background(), opts)
+//
+//		if err != nil {
+//			return nil, fmt.Errorf("Error retrieving regions: %s", err)
+//		}
+//
+//		// TODO: Filter out regions without Spaces. It is unclear what feature is set
+//		// to indicate Spaces is available in a region because, for example, both
+//		// nyc1 and nyc3 have "storage" as a feature even though nyc3 is the Spaces region in NY.
+//		for _, region := range regions {
+//			spacesRegions = append(spacesRegions, region.Slug)
+//		}
+//
+//		if resp.Links == nil || resp.Links.IsLastPage() {
+//			break
+//		}
+//
+//		page, err := resp.Links.CurrentPage()
+//		if err != nil {
+//			return nil, fmt.Errorf("Error retrieving regions: %s", err)
+//		}
+//
+//		opts.Page = page + 1
+//	}
+//
+//	return spacesRegions, nil
+//}
 
 func getSpacesBucketsInRegion(meta interface{}, region string) ([]*s3.Bucket, error) {
 	client, err := meta.(*CombinedConfig).spacesClient(region)
@@ -99,28 +95,33 @@ func getSpacesBucketsInRegion(meta interface{}, region string) ([]*s3.Bucket, er
 
 func getDigitalOceanBuckets(meta interface{}) ([]interface{}, error) {
 	// Retrieve the regions with Spaces enabled.
-	spacesRegions, err := getSpacesRegions(meta)
-	if err != nil {
-		return nil, err
-	}
+	//spacesRegions, err := getSpacesRegions(meta)
+	//if err != nil {
+	//	return nil, err
+	//}
+	spacesRegions := []string{"ams3", "fra1", "nyc3", "sfo2", "sgp1"}
+	log.Printf("[DEBUG] spacesRegions = %v", spacesRegions)
 
 	var buckets []interface{}
 
 	for _, region := range spacesRegions {
-		bucketsInRegion, err := getSpacesBucketsInRegion(meta, region.Slug)
+		bucketsInRegion, err := getSpacesBucketsInRegion(meta, region)
 		if err != nil {
 			return nil, err
 		}
 
+		log.Printf("[DEBUG] bucketsInRegion(%s) = %v", region, bucketsInRegion)
+
 		for _, bucketInRegion := range bucketsInRegion {
 			metadata := &bucketMetadataStruct{
 				bucket: bucketInRegion,
-				region: region.Slug,
+				region: region,
 			}
 			buckets = append(buckets, metadata)
 		}
 	}
 
+	log.Printf("buckets = %v", buckets)
 	return buckets, nil
 }
 
