@@ -55,7 +55,7 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 			},
 
 			"forwarding_rule": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				MinItems: 1,
 				Elem: &schema.Resource{
@@ -102,6 +102,7 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 						},
 					},
 				},
+				Set: hashForwardingRules,
 			},
 
 			"healthcheck": {
@@ -284,7 +285,7 @@ func buildLoadBalancerRequest(d *schema.ResourceData) (*godo.LoadBalancerRequest
 		Algorithm:           d.Get("algorithm").(string),
 		RedirectHttpToHttps: d.Get("redirect_http_to_https").(bool),
 		EnableProxyProtocol: d.Get("enable_proxy_protocol").(bool),
-		ForwardingRules:     expandForwardingRules(d.Get("forwarding_rule").([]interface{})),
+		ForwardingRules:     expandForwardingRules(d.Get("forwarding_rule").(*schema.Set).List()),
 	}
 
 	if v, ok := d.GetOk("droplet_tag"); ok {

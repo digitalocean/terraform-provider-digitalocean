@@ -13,6 +13,7 @@ import (
 )
 
 func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
+	t.Parallel()
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 
@@ -33,13 +34,13 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.0.entry_port", "80"),
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.0.entry_protocol", "http"),
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.0.target_port", "80"),
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.0.target_protocol", "http"),
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(

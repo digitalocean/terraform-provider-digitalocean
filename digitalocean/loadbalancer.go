@@ -1,10 +1,14 @@
 package digitalocean
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"log"
+	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
@@ -80,6 +84,27 @@ func expandForwardingRules(config []interface{}) []godo.ForwardingRule {
 	}
 
 	return forwardingRules
+}
+
+func hashForwardingRules(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+	buf.WriteString(fmt.Sprintf("%d-", m["entry_port"].(int)))
+	buf.WriteString(fmt.Sprintf("%s-",
+		strings.ToLower(m["entry_protocol"].(string))))
+	buf.WriteString(fmt.Sprintf("%d-", m["target_port"].(int)))
+	buf.WriteString(fmt.Sprintf("%s-",
+		strings.ToLower(m["target_protocol"].(string))))
+
+	if v, ok := m["certificate_id"]; ok {
+		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+	}
+
+	if v, ok := m["tls_passthrough"]; ok {
+		buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+	}
+	log.Printf("[DEBUG] HASH: %v", hashcode.String(buf.String()))
+	return hashcode.String(buf.String())
 }
 
 func flattenDropletIds(list []int) *schema.Set {
