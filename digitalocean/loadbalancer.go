@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/digitalocean/godo"
@@ -103,7 +102,7 @@ func hashForwardingRules(v interface{}) int {
 	if v, ok := m["tls_passthrough"]; ok {
 		buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
 	}
-	log.Printf("[DEBUG] HASH: %v", hashcode.String(buf.String()))
+
 	return hashcode.String(buf.String())
 }
 
