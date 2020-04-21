@@ -59,6 +59,48 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceDigitalOceanLoadBalancer_multipleRules(t *testing.T) {
+	t.Parallel()
+	var loadbalancer godo.LoadBalancer
+	rName := randomTestName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_multipleRules(rName) + testAccCheckDataSourceDigitalOceanLoadBalancerConfig_multipleRules,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "name", rName),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "2"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.entry_port", "443"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.entry_protocol", "https"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.target_port", "443"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.target_protocol", "https"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDataSourceDigitalOceanLoadBalancerExists(n string, loadbalancer *godo.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -130,3 +172,10 @@ data "digitalocean_loadbalancer" "foobar" {
   name = digitalocean_loadbalancer.foo.name
 }`, rInt, rInt)
 }
+
+const (
+	testAccCheckDataSourceDigitalOceanLoadBalancerConfig_multipleRules = `
+data "digitalocean_loadbalancer" "foobar" {
+  name = digitalocean_loadbalancer.foobar.name
+}`
+)
