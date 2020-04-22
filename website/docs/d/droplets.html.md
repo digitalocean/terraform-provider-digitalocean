@@ -45,7 +45,7 @@ data "digitalocean_droplets" "small-with-backups" {
     values = ["true"]
   }
   sort {
-    key = "created"
+    key = "created_at"
     direction = "desc"
   }
 }
