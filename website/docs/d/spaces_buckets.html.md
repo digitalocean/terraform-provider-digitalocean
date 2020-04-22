@@ -37,7 +37,7 @@ data "digitalocean_spaces_buckets" "nyc3" {
     values = ["nyc3"]
   }
   sort {
-    key = "created"
+    key = "name"
     direction = "desc"
   }
 }
