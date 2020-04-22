@@ -15,7 +15,7 @@ This data source is useful if the Droplets in question are not managed by Terraf
 utilize any of the Droplets' data.
 
 Note: You can use the [`digitalocean_droplet`](/docs/providers/do/d/droplet.html) data source to obtain metadata
-about a single image if you already know the `id`, unique `name`, or unique `tag` to retrieve.
+about a single Droplet if you already know the `id`, unique `name`, or unique `tag` to retrieve.
 
 ## Example Usage
 
