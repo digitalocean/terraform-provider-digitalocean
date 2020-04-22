@@ -168,7 +168,7 @@ func flattenDigitalOceanDroplet(rawDroplet, meta interface{}) (map[string]interf
 	}
 
 	if droplet.Image.Slug == "" {
-		flattenedDroplet["image"] = droplet.Image.ID
+		flattenedDroplet["image"] = strconv.Itoa(droplet.Image.ID)
 	} else {
 		flattenedDroplet["image"] = droplet.Image.Slug
 	}
