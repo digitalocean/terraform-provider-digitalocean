@@ -34,48 +34,6 @@ func spacesBucketSchema() map[string]*schema.Schema {
 	}
 }
 
-// TODO: Hard-coding the Spaces regions for now given no way to filter out regions like nyc1
-// which do not have spaces.
-//
-//func getSpacesRegions(meta interface{}) ([]string, error) {
-//	client := meta.(*CombinedConfig).godoClient()
-//
-//	var spacesRegions []string
-//
-//	opts := &godo.ListOptions{
-//		Page:    1,
-//		PerPage: 200,
-//	}
-//
-//	for {
-//		regions, resp, err := client.Regions.List(context.Background(), opts)
-//
-//		if err != nil {
-//			return nil, fmt.Errorf("Error retrieving regions: %s", err)
-//		}
-//
-//		// TODO: Filter out regions without Spaces. It is unclear what feature is set
-//		// to indicate Spaces is available in a region because, for example, both
-//		// nyc1 and nyc3 have "storage" as a feature even though nyc3 is the Spaces region in NY.
-//		for _, region := range regions {
-//			spacesRegions = append(spacesRegions, region.Slug)
-//		}
-//
-//		if resp.Links == nil || resp.Links.IsLastPage() {
-//			break
-//		}
-//
-//		page, err := resp.Links.CurrentPage()
-//		if err != nil {
-//			return nil, fmt.Errorf("Error retrieving regions: %s", err)
-//		}
-//
-//		opts.Page = page + 1
-//	}
-//
-//	return spacesRegions, nil
-//}
-
 func getSpacesBucketsInRegion(meta interface{}, region string) ([]*s3.Bucket, error) {
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 	if err != nil {
@@ -94,13 +52,12 @@ func getSpacesBucketsInRegion(meta interface{}, region string) ([]*s3.Bucket, er
 }
 
 func getDigitalOceanBuckets(meta interface{}) ([]interface{}, error) {
-	// Retrieve the regions with Spaces enabled.
-	//spacesRegions, err := getSpacesRegions(meta)
-	//if err != nil {
-	//	return nil, err
-	//}
+	// The DigitalOcean API does not currently return what regions have Spaces available. Thus, this
+	// function hard-codes the regions in which Spaces operates.
+	//
+	// This list is current as of April 20, 2020 and is from:
+	// https://www.digitalocean.com/docs/platform/availability-matrix/#other-product-availability
 	spacesRegions := []string{"ams3", "fra1", "nyc3", "sfo2", "sgp1"}
-	log.Printf("[DEBUG] spacesRegions = %v", spacesRegions)
 
 	var buckets []interface{}
 
@@ -109,8 +66,6 @@ func getDigitalOceanBuckets(meta interface{}) ([]interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-
-		log.Printf("[DEBUG] bucketsInRegion(%s) = %v", region, bucketsInRegion)
 
 		for _, bucketInRegion := range bucketsInRegion {
 			metadata := &bucketMetadataStruct{
