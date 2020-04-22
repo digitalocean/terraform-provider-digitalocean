@@ -111,6 +111,11 @@ func dataListResourceRead(config *ResourceConfig) schema.ReadFunc {
 
 // Validate a ResourceConfig to ensure it conforms to this package's assumptions.
 func validateResourceConfig(config *ResourceConfig) error {
+	// Ensure that ResultAttributeName exists.
+	if config.ResultAttributeName == "" {
+		return fmt.Errorf("ResultAttributeName must be specified")
+	}
+
 	// Ensure that all of the filter keys exist in the schema and are of a supported type.
 	for _, filterKey := range config.FilterKeys {
 		if s, ok := config.RecordSchema[filterKey]; ok {
