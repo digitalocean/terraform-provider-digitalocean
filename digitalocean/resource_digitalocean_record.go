@@ -197,7 +197,7 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if t := rec.Type; t == "CNAME" || t == "MX" || t == "NS" || t == "SRV" || t == "CAA" {
-		if rec.Data != "@" {
+		if rec.Data != "@" && rec.Tag != "iodef" {
 			rec.Data += "."
 		}
 	}
