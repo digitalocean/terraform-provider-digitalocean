@@ -20,6 +20,11 @@ func dataSourceDigitalOceanSpacesBucketObjects() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"region": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+
 			"prefix": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -45,6 +50,9 @@ func dataSourceDigitalOceanSpacesBucketObjects() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+
+			// computed attributes
+
 			"keys": {
 				Type:     schema.TypeList,
 				Computed: true,
