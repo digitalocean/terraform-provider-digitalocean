@@ -27,7 +27,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_basic(t *testing.T) {
 			{
 				Config: resourceOnlyConf,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists("aws_s3_bucket_object.object", &rObj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists("aws_s3_bucket_object.object", &rObj),
 				),
 			},
 			{
@@ -64,7 +64,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_readableBody(t *testing.T) 
 			{
 				Config: resourceOnlyConf,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists("aws_s3_bucket_object.object", &rObj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists("aws_s3_bucket_object.object", &rObj),
 				),
 			},
 			{
@@ -101,7 +101,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_allParams(t *testing.T) {
 			{
 				Config: resourceOnlyConf,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists("aws_s3_bucket_object.object", &rObj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists("aws_s3_bucket_object.object", &rObj),
 				),
 			},
 			{
@@ -157,7 +157,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_LeadingSlash(t *testing.T) 
 			{
 				Config: resourceOnlyConf,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName, &rObj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &rObj),
 				),
 			},
 			{
@@ -209,8 +209,8 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_MultipleSlashes(t *testing.
 			{
 				Config: resourceOnlyConf,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAWSS3BucketObjectExists(resourceName1, &rObj1),
-					testAccCheckAWSS3BucketObjectExists(resourceName2, &rObj2),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName1, &rObj1),
+					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName2, &rObj2),
 				),
 			},
 			{
@@ -245,7 +245,11 @@ func testAccCheckDigitalOceanSpacesObjectDataSourceExists(n string, obj *s3.GetO
 			return fmt.Errorf("S3 object data source ID not set")
 		}
 
-		s3conn := testAccProvider.Meta().(*AWSClient).s3conn
+		s3conn, err := testAccGetS3ConnForSpacesBucket(rs)
+		if err != nil {
+			return err
+		}
+
 		out, err := s3conn.GetObject(
 			&s3.GetObjectInput{
 				Bucket: aws.String(rs.Primary.Attributes["bucket"]),
