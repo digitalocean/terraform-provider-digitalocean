@@ -18,40 +18,21 @@ downloading large amount of data which would be thrown away in favor of metadata
 ## Example Usage
 
 The following example retrieves a text object (which must have a `Content-Type`
-value starting with `text/`) and uses it as the `user_data` for an EC2 instance:
+value starting with `text/`) and uses it as the `user_data` for a Droplet:
 
 ```hcl
-data "aws_s3_bucket_object" "bootstrap_script" {
+data "digitalocean_spaces_bucket_object" "bootstrap_script" {
   bucket = "ourcorp-deploy-config"
-  key    = "ec2-bootstrap-script.sh"
+  region = "nyc3"
+  key    = "droplet-bootstrap-script.sh"
 }
 
-resource "aws_instance" "example" {
-  instance_type = "t2.micro"
-  ami           = "ami-2757f631"
-  user_data     = "${data.aws_s3_bucket_object.bootstrap_script.body}"
-}
-```
-
-The following, more-complex example retrieves only the metadata for a zip
-file stored in S3, which is then used to pass the most recent `version_id`
-to AWS Lambda for use as a function implementation. More information about
-Lambda functions is available in the documentation for
-[`aws_lambda_function`](/docs/providers/aws/r/lambda_function.html).
-
-```hcl
-data "aws_s3_bucket_object" "lambda" {
-  bucket = "ourcorp-lambda-functions"
-  key    = "hello-world.zip"
-}
-
-resource "aws_lambda_function" "test_lambda" {
-  s3_bucket         = "${data.aws_s3_bucket_object.lambda.bucket}"
-  s3_key            = "${data.aws_s3_bucket_object.lambda.key}"
-  s3_object_version = "${data.aws_s3_bucket_object.lambda.version_id}"
-  function_name     = "lambda_function_name"
-  role              = "${aws_iam_role.iam_for_lambda.arn}" # (not shown)
-  handler           = "exports.test"
+resource "digitalocean_droplet" "web" {
+  image     = "ubuntu-18-04-x64"
+  name      = "web-1"
+  region    = "nyc2"
+  size      = "s-1vcpu-1gb"
+  user_data = data.digitalocean_spaces_bucket_object.bootstrap_script.body
 }
 ```
 
