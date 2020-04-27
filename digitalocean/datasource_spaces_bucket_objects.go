@@ -1,4 +1,4 @@
-package aws
+package digitalocean
 
 import (
 	"fmt"
@@ -11,9 +11,9 @@ import (
 
 const keyRequestPageSize = 1000
 
-func dataSourceAwsS3BucketObjects() *schema.Resource {
+func dataSourceDigitalOceanSpacesBucketObjects() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAwsS3BucketObjectsRead,
+		Read: dataSourceDigitalOceanSpacesBucketObjectsRead,
 
 		Schema: map[string]*schema.Schema{
 			"bucket": {
@@ -64,7 +64,7 @@ func dataSourceAwsS3BucketObjects() *schema.Resource {
 	}
 }
 
-func dataSourceAwsS3BucketObjectsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanSpacesBucketObjectsRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).s3conn
 
 	bucket := d.Get("bucket").(string)

@@ -1,4 +1,4 @@
-package aws
+package digitalocean
 
 import (
 	"bytes"
@@ -11,21 +11,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-aws/aws/internal/keyvaluetags"
 )
 
-func dataSourceAwsS3BucketObject() *schema.Resource {
+func dataSourceDigitalOceanSpacesBucketObject() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceAwsS3BucketObjectRead,
+		Read: dataSourceDigitalOceanSpacesBucketObjectRead,
 
 		Schema: map[string]*schema.Schema{
 			"body": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"bucket": {
-				Type:     schema.TypeString,
-				Required: true,
 			},
 			"cache_control": {
 				Type:     schema.TypeString,
@@ -75,33 +70,9 @@ func dataSourceAwsS3BucketObject() *schema.Resource {
 				Type:     schema.TypeMap,
 				Computed: true,
 			},
-			"object_lock_legal_hold_status": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"object_lock_mode": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"object_lock_retain_until_date": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 			"range": {
 				Type:     schema.TypeString,
 				Optional: true,
-			},
-			"server_side_encryption": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"sse_kms_key_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
-			"storage_class": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 			"version_id": {
 				Type:     schema.TypeString,
@@ -112,13 +83,11 @@ func dataSourceAwsS3BucketObject() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"tags": tagsSchemaComputed(),
 		},
 	}
 }
 
-func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta interface{}) error {
 	conn := meta.(*AWSClient).s3conn
 
 	bucket := d.Get("bucket").(string)
@@ -168,20 +137,8 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 	d.Set("expires", out.Expires)
 	d.Set("last_modified", out.LastModified.Format(time.RFC1123))
 	d.Set("metadata", pointersMapToStringList(out.Metadata))
-	d.Set("object_lock_legal_hold_status", out.ObjectLockLegalHoldStatus)
-	d.Set("object_lock_mode", out.ObjectLockMode)
-	d.Set("object_lock_retain_until_date", flattenS3ObjectLockRetainUntilDate(out.ObjectLockRetainUntilDate))
-	d.Set("server_side_encryption", out.ServerSideEncryption)
-	d.Set("sse_kms_key_id", out.SSEKMSKeyId)
 	d.Set("version_id", out.VersionId)
 	d.Set("website_redirect_location", out.WebsiteRedirectLocation)
-
-	// The "STANDARD" (which is also the default) storage
-	// class when set would not be included in the results.
-	d.Set("storage_class", s3.StorageClassStandard)
-	if out.StorageClass != nil {
-		d.Set("storage_class", out.StorageClass)
-	}
 
 	if isContentTypeAllowed(out.ContentType) {
 		input := s3.GetObjectInput{
@@ -217,16 +174,6 @@ func dataSourceAwsS3BucketObjectRead(d *schema.ResourceData, meta interface{}) e
 
 		log.Printf("[INFO] Ignoring body of S3 object %s with Content-Type %q",
 			uniqueId, contentType)
-	}
-
-	tags, err := keyvaluetags.S3ObjectListTags(conn, bucket, key)
-
-	if err != nil {
-		return fmt.Errorf("error listing tags for S3 Bucket (%s) Object (%s): %s", bucket, key, err)
-	}
-
-	if err := d.Set("tags", tags.IgnoreAws().Map()); err != nil {
-		return fmt.Errorf("error setting tags: %s", err)
 	}
 
 	return nil

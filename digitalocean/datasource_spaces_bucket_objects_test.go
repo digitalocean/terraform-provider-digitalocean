@@ -1,4 +1,4 @@
-package aws
+package digitalocean
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
-func TestAccDataSourceAWSS3BucketObjects_basic(t *testing.T) {
+func TestAccDataSourceDigitalOceanSpacesBucketObjects_basic(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -18,13 +18,13 @@ func TestAccDataSourceAWSS3BucketObjects_basic(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigResources(rInt), // NOTE: contains no data source
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(rInt), // NOTE: contains no data source
 				// Does not need Check
 			},
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigBasic(rInt),
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigBasic(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsS3ObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
+					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.#", "2"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.0", "arch/navajo/north_window"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.1", "arch/navajo/sand_dune"),
@@ -34,7 +34,7 @@ func TestAccDataSourceAWSS3BucketObjects_basic(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAWSS3BucketObjects_basicViaAccessPoint(t *testing.T) {
+func TestAccDataSourceDigitalOceanSpacesBucketObjects_all(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -43,38 +43,13 @@ func TestAccDataSourceAWSS3BucketObjects_basicViaAccessPoint(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigResourcesPlusAccessPoint(rInt), // NOTE: contains no data source
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(rInt), // NOTE: contains no data source
 				// Does not need Check
 			},
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigBasicViaAccessPoint(rInt),
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigAll(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsS3ObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.#", "2"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.0", "arch/navajo/north_window"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.1", "arch/navajo/sand_dune"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccDataSourceAWSS3BucketObjects_all(t *testing.T) {
-	rInt := acctest.RandInt()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                  func() { testAccPreCheck(t) },
-		Providers:                 testAccProviders,
-		PreventPostDestroyRefresh: true,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccAWSDataSourceS3ObjectsConfigResources(rInt), // NOTE: contains no data source
-				// Does not need Check
-			},
-			{
-				Config: testAccAWSDataSourceS3ObjectsConfigAll(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsS3ObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
+					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.#", "7"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.0", "arch/courthouse_towers/landscape"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.1", "arch/navajo/north_window"),
@@ -89,7 +64,7 @@ func TestAccDataSourceAWSS3BucketObjects_all(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAWSS3BucketObjects_prefixes(t *testing.T) {
+func TestAccDataSourceDigitalOceanSpacesBucketObjects_prefixes(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -98,13 +73,13 @@ func TestAccDataSourceAWSS3BucketObjects_prefixes(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigResources(rInt), // NOTE: contains no data source
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(rInt), // NOTE: contains no data source
 				// Does not need Check
 			},
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigPrefixes(rInt),
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigPrefixes(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsS3ObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
+					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.#", "1"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.0", "arch/rubicon"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "common_prefixes.#", "4"),
@@ -118,7 +93,7 @@ func TestAccDataSourceAWSS3BucketObjects_prefixes(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAWSS3BucketObjects_encoded(t *testing.T) {
+func TestAccDataSourceDigitalOceanSpacesBucketObjects_encoded(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -127,13 +102,13 @@ func TestAccDataSourceAWSS3BucketObjects_encoded(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigExtraResource(rInt), // NOTE: contains no data source
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigExtraResource(rInt), // NOTE: contains no data source
 				// Does not need Check
 			},
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigEncoded(rInt),
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigEncoded(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsS3ObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
+					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.#", "2"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.0", "arch/ru+b+ic+on"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.1", "arch/rubicon"),
@@ -143,7 +118,7 @@ func TestAccDataSourceAWSS3BucketObjects_encoded(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAWSS3BucketObjects_maxKeys(t *testing.T) {
+func TestAccDataSourceDigitalOceanSpacesBucketObjects_maxKeys(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -152,13 +127,13 @@ func TestAccDataSourceAWSS3BucketObjects_maxKeys(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigResources(rInt), // NOTE: contains no data source
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(rInt), // NOTE: contains no data source
 				// Does not need Check
 			},
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigMaxKeys(rInt),
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigMaxKeys(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsS3ObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
+					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.#", "2"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.0", "arch/courthouse_towers/landscape"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.1", "arch/navajo/north_window"),
@@ -168,7 +143,7 @@ func TestAccDataSourceAWSS3BucketObjects_maxKeys(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAWSS3BucketObjects_startAfter(t *testing.T) {
+func TestAccDataSourceDigitalOceanSpacesBucketObjects_startAfter(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -177,13 +152,13 @@ func TestAccDataSourceAWSS3BucketObjects_startAfter(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigResources(rInt), // NOTE: contains no data source
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(rInt), // NOTE: contains no data source
 				// Does not need Check
 			},
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigStartAfter(rInt),
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigStartAfter(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsS3ObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
+					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.#", "1"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.0", "arch/three_gossips/turret"),
 				),
@@ -192,7 +167,7 @@ func TestAccDataSourceAWSS3BucketObjects_startAfter(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceAWSS3BucketObjects_fetchOwner(t *testing.T) {
+func TestAccDataSourceDigitalOceanSpacesBucketObjects_fetchOwner(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -201,13 +176,13 @@ func TestAccDataSourceAWSS3BucketObjects_fetchOwner(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigResources(rInt), // NOTE: contains no data source
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(rInt), // NOTE: contains no data source
 				// Does not need Check
 			},
 			{
-				Config: testAccAWSDataSourceS3ObjectsConfigOwners(rInt),
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigOwners(rInt),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckAwsS3ObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
+					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.aws_s3_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "keys.#", "2"),
 					resource.TestCheckResourceAttr("data.aws_s3_bucket_objects.yesh", "owners.#", "2"),
 				),
@@ -216,7 +191,7 @@ func TestAccDataSourceAWSS3BucketObjects_fetchOwner(t *testing.T) {
 	})
 }
 
-func testAccCheckAwsS3ObjectsDataSourceExists(addr string) resource.TestCheckFunc {
+func testAccCheckDigitalOceanSpacesObjectsDataSourceExists(addr string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[addr]
 		if !ok {
@@ -231,7 +206,7 @@ func testAccCheckAwsS3ObjectsDataSourceExists(addr string) resource.TestCheckFun
 	}
 }
 
-func testAccAWSDataSourceS3ObjectsConfigResources(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt int) string {
 	return fmt.Sprintf(`
 resource "aws_s3_bucket" "objects_bucket" {
   bucket = "tf-acc-objects-test-bucket-%d"
@@ -281,16 +256,7 @@ resource "aws_s3_bucket_object" "object7" {
 `, randInt)
 }
 
-func testAccAWSDataSourceS3ObjectsConfigResourcesPlusAccessPoint(randInt int) string {
-	return testAccAWSDataSourceS3ObjectsConfigResources(randInt) + fmt.Sprintf(`
-resource "aws_s3_access_point" "test" {
-  bucket = "${aws_s3_bucket.objects_bucket.bucket}"
-  name   = "tf-objects-test-access-point-%[1]d"
-}
-`, randInt)
-}
-
-func testAccAWSDataSourceS3ObjectsConfigBasic(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigBasic(randInt int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -299,30 +265,20 @@ data "aws_s3_bucket_objects" "yesh" {
   prefix    = "arch/navajo/"
   delimiter = "/"
 }
-`, testAccAWSDataSourceS3ObjectsConfigResources(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
 }
 
-func testAccAWSDataSourceS3ObjectsConfigBasicViaAccessPoint(randInt int) string {
-	return testAccAWSDataSourceS3ObjectsConfigResourcesPlusAccessPoint(randInt) + fmt.Sprintf(`
-data "aws_s3_bucket_objects" "yesh" {
-  bucket    = "${aws_s3_access_point.test.arn}"
-  prefix    = "arch/navajo/"
-  delimiter = "/"
-}
-`)
-}
-
-func testAccAWSDataSourceS3ObjectsConfigAll(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigAll(randInt int) string {
 	return fmt.Sprintf(`
 %s
 
 data "aws_s3_bucket_objects" "yesh" {
   bucket    = "${aws_s3_bucket.objects_bucket.id}"
 }
-`, testAccAWSDataSourceS3ObjectsConfigResources(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
 }
 
-func testAccAWSDataSourceS3ObjectsConfigPrefixes(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigPrefixes(randInt int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -331,10 +287,10 @@ data "aws_s3_bucket_objects" "yesh" {
   prefix    = "arch/"
   delimiter = "/"
 }
-`, testAccAWSDataSourceS3ObjectsConfigResources(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
 }
 
-func testAccAWSDataSourceS3ObjectsConfigExtraResource(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigExtraResource(randInt int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -343,10 +299,10 @@ resource "aws_s3_bucket_object" "object8" {
   key     = "arch/ru b ic on"
   content = "Goose Island"
 }
-`, testAccAWSDataSourceS3ObjectsConfigResources(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
 }
 
-func testAccAWSDataSourceS3ObjectsConfigEncoded(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigEncoded(randInt int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -355,10 +311,10 @@ data "aws_s3_bucket_objects" "yesh" {
   encoding_type = "url"
   prefix        = "arch/ru"
 }
-`, testAccAWSDataSourceS3ObjectsConfigExtraResource(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigExtraResource(randInt))
 }
 
-func testAccAWSDataSourceS3ObjectsConfigMaxKeys(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigMaxKeys(randInt int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -366,10 +322,10 @@ data "aws_s3_bucket_objects" "yesh" {
   bucket   = "${aws_s3_bucket.objects_bucket.id}"
   max_keys = 2
 }
-`, testAccAWSDataSourceS3ObjectsConfigResources(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
 }
 
-func testAccAWSDataSourceS3ObjectsConfigStartAfter(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigStartAfter(randInt int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -377,10 +333,10 @@ data "aws_s3_bucket_objects" "yesh" {
   bucket      = "${aws_s3_bucket.objects_bucket.id}"
   start_after = "arch/three_gossips/broken"
 }
-`, testAccAWSDataSourceS3ObjectsConfigResources(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
 }
 
-func testAccAWSDataSourceS3ObjectsConfigOwners(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigOwners(randInt int) string {
 	return fmt.Sprintf(`
 %s
 
@@ -389,5 +345,5 @@ data "aws_s3_bucket_objects" "yesh" {
   prefix      = "arch/three_gossips/"
   fetch_owner = true
 }
-`, testAccAWSDataSourceS3ObjectsConfigResources(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
 }
