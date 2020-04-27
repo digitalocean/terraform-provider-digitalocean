@@ -27,22 +27,22 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_basic(t *testing.T) {
 			{
 				Config: resourceOnlyConf,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanSpacesBucketObjectExists("aws_s3_bucket_object.object", &rObj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists("digitalocean_spaces_bucket_object.object", &rObj),
 				),
 			},
 			{
 				Config: conf,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanSpacesObjectDataSourceExists("data.aws_s3_bucket_object.obj", &dsObj),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "content_length", "11"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "content_type", "binary/octet-stream"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "etag", "b10a8db164e0754105b7a99be72e3fe5"),
-					resource.TestMatchResourceAttr("data.aws_s3_bucket_object.obj", "last_modified",
+					testAccCheckDigitalOceanSpacesObjectDataSourceExists("data.digitalocean_spaces_bucket_object.obj", &dsObj),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "content_length", "11"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "content_type", "binary/octet-stream"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "etag", "b10a8db164e0754105b7a99be72e3fe5"),
+					resource.TestMatchResourceAttr("data.digitalocean_spaces_bucket_object.obj", "last_modified",
 						regexp.MustCompile("^[a-zA-Z]{3}, [0-9]+ [a-zA-Z]+ [0-9]{4} [0-9:]+ [A-Z]+$")),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "object_lock_legal_hold_status", ""),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "object_lock_mode", ""),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "object_lock_retain_until_date", ""),
-					resource.TestCheckNoResourceAttr("data.aws_s3_bucket_object.obj", "body"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_legal_hold_status", ""),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_mode", ""),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_retain_until_date", ""),
+					resource.TestCheckNoResourceAttr("data.digitalocean_spaces_bucket_object.obj", "body"),
 				),
 			},
 		},
@@ -64,22 +64,22 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_readableBody(t *testing.T) 
 			{
 				Config: resourceOnlyConf,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanSpacesBucketObjectExists("aws_s3_bucket_object.object", &rObj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists("digitalocean_spaces_bucket_object.object", &rObj),
 				),
 			},
 			{
 				Config: conf,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanSpacesObjectDataSourceExists("data.aws_s3_bucket_object.obj", &dsObj),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "content_length", "3"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "content_type", "text/plain"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "etag", "a6105c0a611b41b08f1209506350279e"),
-					resource.TestMatchResourceAttr("data.aws_s3_bucket_object.obj", "last_modified",
+					testAccCheckDigitalOceanSpacesObjectDataSourceExists("data.digitalocean_spaces_bucket_object.obj", &dsObj),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "content_length", "3"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "content_type", "text/plain"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "etag", "a6105c0a611b41b08f1209506350279e"),
+					resource.TestMatchResourceAttr("data.digitalocean_spaces_bucket_object.obj", "last_modified",
 						regexp.MustCompile("^[a-zA-Z]{3}, [0-9]+ [a-zA-Z]+ [0-9]{4} [0-9:]+ [A-Z]+$")),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "object_lock_legal_hold_status", ""),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "object_lock_mode", ""),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "object_lock_retain_until_date", ""),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "body", "yes"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_legal_hold_status", ""),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_mode", ""),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_retain_until_date", ""),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "body", "yes"),
 				),
 			},
 		},
@@ -101,38 +101,38 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_allParams(t *testing.T) {
 			{
 				Config: resourceOnlyConf,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanSpacesBucketObjectExists("aws_s3_bucket_object.object", &rObj),
+					testAccCheckDigitalOceanSpacesBucketObjectExists("digitalocean_spaces_bucket_object.object", &rObj),
 				),
 			},
 			{
 				Config: conf,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanSpacesObjectDataSourceExists("data.aws_s3_bucket_object.obj", &dsObj),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "content_length", "21"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "content_type", "application/unknown"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "etag", "723f7a6ac0c57b445790914668f98640"),
-					resource.TestMatchResourceAttr("data.aws_s3_bucket_object.obj", "last_modified",
+					testAccCheckDigitalOceanSpacesObjectDataSourceExists("data.digitalocean_spaces_bucket_object.obj", &dsObj),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "content_length", "21"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "content_type", "application/unknown"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "etag", "723f7a6ac0c57b445790914668f98640"),
+					resource.TestMatchResourceAttr("data.digitalocean_spaces_bucket_object.obj", "last_modified",
 						regexp.MustCompile("^[a-zA-Z]{3}, [0-9]+ [a-zA-Z]+ [0-9]{4} [0-9:]+ [A-Z]+$")),
-					resource.TestMatchResourceAttr("data.aws_s3_bucket_object.obj", "version_id", regexp.MustCompile("^.{32}$")),
-					resource.TestCheckNoResourceAttr("data.aws_s3_bucket_object.obj", "body"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "cache_control", "no-cache"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "content_disposition", "attachment"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "content_encoding", "identity"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "content_language", "en-GB"),
+					resource.TestMatchResourceAttr("data.digitalocean_spaces_bucket_object.obj", "version_id", regexp.MustCompile("^.{32}$")),
+					resource.TestCheckNoResourceAttr("data.digitalocean_spaces_bucket_object.obj", "body"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "cache_control", "no-cache"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "content_disposition", "attachment"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "content_encoding", "identity"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "content_language", "en-GB"),
 					// Encryption is off
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "server_side_encryption", ""),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "sse_kms_key_id", ""),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "server_side_encryption", ""),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "sse_kms_key_id", ""),
 					// Supported, but difficult to reproduce in short testing time
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "storage_class", "STANDARD"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "expiration", ""),
-					// Currently unsupported in aws_s3_bucket_object resource
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "expires", ""),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "website_redirect_location", ""),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "metadata.%", "0"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "tags.%", "1"),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "object_lock_legal_hold_status", ""),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "object_lock_mode", ""),
-					resource.TestCheckResourceAttr("data.aws_s3_bucket_object.obj", "object_lock_retain_until_date", ""),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "storage_class", "STANDARD"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "expiration", ""),
+					// Currently unsupported in digitalocean_spaces_bucket_object resource
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "expires", ""),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "website_redirect_location", ""),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "metadata.%", "0"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "tags.%", "1"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_legal_hold_status", ""),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_mode", ""),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_retain_until_date", ""),
 				),
 			},
 		},
@@ -142,10 +142,10 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_allParams(t *testing.T) {
 func TestAccDataSourceDigitalOceanSpacesBucketObject_LeadingSlash(t *testing.T) {
 	var rObj s3.GetObjectOutput
 	var dsObj1, dsObj2, dsObj3 s3.GetObjectOutput
-	resourceName := "aws_s3_bucket_object.object"
-	dataSourceName1 := "data.aws_s3_bucket_object.obj1"
-	dataSourceName2 := "data.aws_s3_bucket_object.obj2"
-	dataSourceName3 := "data.aws_s3_bucket_object.obj3"
+	resourceName := "digitalocean_spaces_bucket_object.object"
+	dataSourceName1 := "data.digitalocean_spaces_bucket_object.obj1"
+	dataSourceName2 := "data.digitalocean_spaces_bucket_object.obj2"
+	dataSourceName3 := "data.digitalocean_spaces_bucket_object.obj3"
 	rInt := acctest.RandInt()
 	resourceOnlyConf, conf := testAccDataSourceDigitalOceanSpacesObjectConfig_leadingSlash(rInt)
 
@@ -193,11 +193,11 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_LeadingSlash(t *testing.T) 
 func TestAccDataSourceDigitalOceanSpacesBucketObject_MultipleSlashes(t *testing.T) {
 	var rObj1, rObj2 s3.GetObjectOutput
 	var dsObj1, dsObj2, dsObj3 s3.GetObjectOutput
-	resourceName1 := "aws_s3_bucket_object.object1"
-	resourceName2 := "aws_s3_bucket_object.object2"
-	dataSourceName1 := "data.aws_s3_bucket_object.obj1"
-	dataSourceName2 := "data.aws_s3_bucket_object.obj2"
-	dataSourceName3 := "data.aws_s3_bucket_object.obj3"
+	resourceName1 := "digitalocean_spaces_bucket_object.object1"
+	resourceName2 := "digitalocean_spaces_bucket_object.object2"
+	dataSourceName1 := "data.digitalocean_spaces_bucket_object.obj1"
+	dataSourceName2 := "data.digitalocean_spaces_bucket_object.obj2"
+	dataSourceName3 := "data.digitalocean_spaces_bucket_object.obj3"
 	rInt := acctest.RandInt()
 	resourceOnlyConf, conf := testAccDataSourceDigitalOceanSpacesObjectConfig_multipleSlashes(rInt)
 
@@ -271,7 +271,7 @@ func testAccDataSourceDigitalOceanSpacesObjectConfig_basic(randInt int) (string,
 resource "aws_s3_bucket" "object_bucket" {
 	bucket = "tf-object-test-bucket-%d"
 }
-resource "aws_s3_bucket_object" "object" {
+resource "digitalocean_spaces_bucket_object" "object" {
 	bucket = "${aws_s3_bucket.object_bucket.bucket}"
 	key = "tf-testing-obj-%d"
 	content = "Hello World"
@@ -279,7 +279,7 @@ resource "aws_s3_bucket_object" "object" {
 `, randInt, randInt)
 
 	both := fmt.Sprintf(`%s
-data "aws_s3_bucket_object" "obj" {
+data "digitalocean_spaces_bucket_object" "obj" {
 	bucket = "tf-object-test-bucket-%d"
 	key = "tf-testing-obj-%d"
 }
@@ -293,7 +293,7 @@ func testAccDataSourceDigitalOceanSpacesObjectConfig_readableBody(randInt int) (
 resource "aws_s3_bucket" "object_bucket" {
 	bucket = "tf-object-test-bucket-%d"
 }
-resource "aws_s3_bucket_object" "object" {
+resource "digitalocean_spaces_bucket_object" "object" {
 	bucket = "${aws_s3_bucket.object_bucket.bucket}"
 	key = "tf-testing-obj-%d-readable"
 	content = "yes"
@@ -302,7 +302,7 @@ resource "aws_s3_bucket_object" "object" {
 `, randInt, randInt)
 
 	both := fmt.Sprintf(`%s
-data "aws_s3_bucket_object" "obj" {
+data "digitalocean_spaces_bucket_object" "obj" {
 	bucket = "tf-object-test-bucket-%d"
 	key = "tf-testing-obj-%d-readable"
 }
@@ -320,7 +320,7 @@ resource "aws_s3_bucket" "object_bucket" {
 	}
 }
 
-resource "aws_s3_bucket_object" "object" {
+resource "digitalocean_spaces_bucket_object" "object" {
 	bucket = "${aws_s3_bucket.object_bucket.bucket}"
 	key = "tf-testing-obj-%d-all-params"
 	content = <<CONTENT
@@ -338,7 +338,7 @@ CONTENT
 `, randInt, randInt)
 
 	both := fmt.Sprintf(`%s
-data "aws_s3_bucket_object" "obj" {
+data "digitalocean_spaces_bucket_object" "obj" {
 	bucket = "tf-object-test-bucket-%d"
 	key = "tf-testing-obj-%d-all-params"
 }
@@ -352,7 +352,7 @@ func testAccDataSourceDigitalOceanSpacesObjectConfig_leadingSlash(randInt int) (
 resource "aws_s3_bucket" "object_bucket" {
   bucket = "tf-object-test-bucket-%d"
 }
-resource "aws_s3_bucket_object" "object" {
+resource "digitalocean_spaces_bucket_object" "object" {
   bucket = "${aws_s3_bucket.object_bucket.bucket}"
   key = "//tf-testing-obj-%d-readable"
   content = "yes"
@@ -361,15 +361,15 @@ resource "aws_s3_bucket_object" "object" {
 `, randInt, randInt)
 
 	both := fmt.Sprintf(`%s
-data "aws_s3_bucket_object" "obj1" {
+data "digitalocean_spaces_bucket_object" "obj1" {
   bucket = "tf-object-test-bucket-%d"
   key = "tf-testing-obj-%d-readable"
 }
-data "aws_s3_bucket_object" "obj2" {
+data "digitalocean_spaces_bucket_object" "obj2" {
   bucket = "tf-object-test-bucket-%d"
   key = "/tf-testing-obj-%d-readable"
 }
-data "aws_s3_bucket_object" "obj3" {
+data "digitalocean_spaces_bucket_object" "obj3" {
   bucket = "tf-object-test-bucket-%d"
   key = "//tf-testing-obj-%d-readable"
 }
@@ -383,14 +383,14 @@ func testAccDataSourceDigitalOceanSpacesObjectConfig_multipleSlashes(randInt int
 resource "aws_s3_bucket" "object_bucket" {
   bucket = "tf-object-test-bucket-%d"
 }
-resource "aws_s3_bucket_object" "object1" {
+resource "digitalocean_spaces_bucket_object" "object1" {
   bucket = "${aws_s3_bucket.object_bucket.bucket}"
   key = "first//second///third//"
   content = "yes"
   content_type = "text/plain"
 }
 # Without a trailing slash.
-resource "aws_s3_bucket_object" "object2" {
+resource "digitalocean_spaces_bucket_object" "object2" {
   bucket = "${aws_s3_bucket.object_bucket.bucket}"
   key = "/first////second/third"
   content = "no"
@@ -399,15 +399,15 @@ resource "aws_s3_bucket_object" "object2" {
 `, randInt)
 
 	both := fmt.Sprintf(`%s
-data "aws_s3_bucket_object" "obj1" {
+data "digitalocean_spaces_bucket_object" "obj1" {
   bucket = "tf-object-test-bucket-%d"
   key = "first/second/third/"
 }
-data "aws_s3_bucket_object" "obj2" {
+data "digitalocean_spaces_bucket_object" "obj2" {
   bucket = "tf-object-test-bucket-%d"
   key = "first//second///third//"
 }
-data "aws_s3_bucket_object" "obj3" {
+data "digitalocean_spaces_bucket_object" "obj3" {
   bucket = "tf-object-test-bucket-%d"
   key = "first/second/third"
 }
