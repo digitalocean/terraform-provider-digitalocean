@@ -326,9 +326,6 @@ CONTENT
 	content_disposition = "attachment"
 	content_encoding = "identity"
 	content_language = "en-GB"
-	tags = {
-		Key1 = "Value 1"
-	}
 }
 `, randInt, randInt)
 
