@@ -208,48 +208,56 @@ func testAccCheckDigitalOceanSpacesObjectsDataSourceExists(addr string) resource
 
 func testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt int) string {
 	return fmt.Sprintf(`
-resource "aws_s3_bucket" "objects_bucket" {
-  bucket = "tf-acc-objects-test-bucket-%d"
+resource "digitalocean_spaces_bucket" "objects_bucket" {
+  name = "tf-acc-objects-test-bucket-%d"
+  region = "nyc3"
 }
 
 resource "digitalocean_spaces_bucket_object" "object1" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = digitalocean_spaces_bucket.objects_bucket.name
+  region  = digitalocean_spaces_bucket.objects_bucket.region
   key     = "arch/three_gossips/turret"
   content = "Delicate"
 }
 
 resource "digitalocean_spaces_bucket_object" "object2" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = digitalocean_spaces_bucket.objects_bucket.name
+  region  = digitalocean_spaces_bucket.objects_bucket.region
   key     = "arch/three_gossips/broken"
   content = "Dark Angel"
 }
 
 resource "digitalocean_spaces_bucket_object" "object3" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = digitalocean_spaces_bucket.objects_bucket.name
+  region  = digitalocean_spaces_bucket.objects_bucket.region
   key     = "arch/navajo/north_window"
   content = "Balanced Rock"
 }
 
 resource "digitalocean_spaces_bucket_object" "object4" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = digitalocean_spaces_bucket.objects_bucket.name
+  region  = digitalocean_spaces_bucket.objects_bucket.region
   key     = "arch/navajo/sand_dune"
   content = "Queen Victoria Rock"
 }
 
 resource "digitalocean_spaces_bucket_object" "object5" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = digitalocean_spaces_bucket.objects_bucket.name
+  region  = digitalocean_spaces_bucket.objects_bucket.region
   key     = "arch/partition/park_avenue"
   content = "Double-O"
 }
 
 resource "digitalocean_spaces_bucket_object" "object6" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = digitalocean_spaces_bucket.objects_bucket.name
+  region  = digitalocean_spaces_bucket.objects_bucket.region
   key     = "arch/courthouse_towers/landscape"
   content = "Fiery Furnace"
 }
 
 resource "digitalocean_spaces_bucket_object" "object7" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = digitalocean_spaces_bucket.objects_bucket.name
+  region  = digitalocean_spaces_bucket.objects_bucket.region
   key     = "arch/rubicon"
   content = "Devils Garden"
 }
@@ -261,7 +269,8 @@ func testAccDataSourceDigitalOceanSpacesObjectsConfigBasic(randInt int) string {
 %s
 
 data "digitalocean_spaces_bucket_objects" "yesh" {
-  bucket    = "${aws_s3_bucket.objects_bucket.id}"
+  bucket    = digitalocean_spaces_bucket.objects_bucket.name
+  region    = digitalocean_spaces_bucket.objects_bucket.region
   prefix    = "arch/navajo/"
   delimiter = "/"
 }
@@ -273,7 +282,8 @@ func testAccDataSourceDigitalOceanSpacesObjectsConfigAll(randInt int) string {
 %s
 
 data "digitalocean_spaces_bucket_objects" "yesh" {
-  bucket    = "${aws_s3_bucket.objects_bucket.id}"
+  bucket = digitalocean_spaces_bucket.objects_bucket.name
+  region = digitalocean_spaces_bucket.objects_bucket.region
 }
 `, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
 }
@@ -283,7 +293,8 @@ func testAccDataSourceDigitalOceanSpacesObjectsConfigPrefixes(randInt int) strin
 %s
 
 data "digitalocean_spaces_bucket_objects" "yesh" {
-  bucket    = "${aws_s3_bucket.objects_bucket.id}"
+  bucket    = digitalocean_spaces_bucket.objects_bucket.name
+  region    = digitalocean_spaces_bucket.objects_bucket.region
   prefix    = "arch/"
   delimiter = "/"
 }
@@ -295,7 +306,8 @@ func testAccDataSourceDigitalOceanSpacesObjectsConfigExtraResource(randInt int) 
 %s
 
 resource "digitalocean_spaces_bucket_object" "object8" {
-  bucket  = "${aws_s3_bucket.objects_bucket.id}"
+  bucket  = digitalocean_spaces_bucket.objects_bucket.name
+  region  = digitalocean_spaces_bucket.objects_bucket.region
   key     = "arch/ru b ic on"
   content = "Goose Island"
 }
@@ -307,7 +319,8 @@ func testAccDataSourceDigitalOceanSpacesObjectsConfigEncoded(randInt int) string
 %s
 
 data "digitalocean_spaces_bucket_objects" "yesh" {
-  bucket        = "${aws_s3_bucket.objects_bucket.id}"
+  bucket        = digitalocean_spaces_bucket.objects_bucket.name
+  region        = digitalocean_spaces_bucket.objects_bucket.region
   encoding_type = "url"
   prefix        = "arch/ru"
 }
@@ -319,7 +332,8 @@ func testAccDataSourceDigitalOceanSpacesObjectsConfigMaxKeys(randInt int) string
 %s
 
 data "digitalocean_spaces_bucket_objects" "yesh" {
-  bucket   = "${aws_s3_bucket.objects_bucket.id}"
+  bucket   = digitalocean_spaces_bucket.objects_bucket.name
+  region   = digitalocean_spaces_bucket.objects_bucket.region
   max_keys = 2
 }
 `, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
@@ -330,7 +344,8 @@ func testAccDataSourceDigitalOceanSpacesObjectsConfigStartAfter(randInt int) str
 %s
 
 data "digitalocean_spaces_bucket_objects" "yesh" {
-  bucket      = "${aws_s3_bucket.objects_bucket.id}"
+  bucket      = digitalocean_spaces_bucket.objects_bucket.name
+  region      = digitalocean_spaces_bucket.objects_bucket.region
   start_after = "arch/three_gossips/broken"
 }
 `, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
@@ -341,7 +356,8 @@ func testAccDataSourceDigitalOceanSpacesObjectsConfigOwners(randInt int) string 
 %s
 
 data "digitalocean_spaces_bucket_objects" "yesh" {
-  bucket      = "${aws_s3_bucket.objects_bucket.id}"
+  bucket      = digitalocean_spaces_bucket.objects_bucket.name
+  region      = digitalocean_spaces_bucket.objects_bucket.region
   prefix      = "arch/three_gossips/"
   fetch_owner = true
 }
