@@ -108,7 +108,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_allParams(t *testing.T) {
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "etag", "723f7a6ac0c57b445790914668f98640"),
 					resource.TestMatchResourceAttr("data.digitalocean_spaces_bucket_object.obj", "last_modified",
 						regexp.MustCompile("^[a-zA-Z]{3}, [0-9]+ [a-zA-Z]+ [0-9]{4} [0-9:]+ [A-Z]+$")),
-					resource.TestMatchResourceAttr("data.digitalocean_spaces_bucket_object.obj", "version_id", regexp.MustCompile("^.{32}$")),
+					resource.TestCheckResourceAttrSet("data.digitalocean_spaces_bucket_object.obj", "version_id"),
 					resource.TestCheckNoResourceAttr("data.digitalocean_spaces_bucket_object.obj", "body"),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "cache_control", "no-cache"),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "content_disposition", "attachment"),
