@@ -40,9 +40,6 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "etag", "b10a8db164e0754105b7a99be72e3fe5"),
 					resource.TestMatchResourceAttr("data.digitalocean_spaces_bucket_object.obj", "last_modified",
 						regexp.MustCompile("^[a-zA-Z]{3}, [0-9]+ [a-zA-Z]+ [0-9]{4} [0-9:]+ [A-Z]+$")),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_legal_hold_status", ""),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_mode", ""),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_retain_until_date", ""),
 					resource.TestCheckNoResourceAttr("data.digitalocean_spaces_bucket_object.obj", "body"),
 				),
 			},
@@ -77,9 +74,6 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_readableBody(t *testing.T) 
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "etag", "a6105c0a611b41b08f1209506350279e"),
 					resource.TestMatchResourceAttr("data.digitalocean_spaces_bucket_object.obj", "last_modified",
 						regexp.MustCompile("^[a-zA-Z]{3}, [0-9]+ [a-zA-Z]+ [0-9]{4} [0-9:]+ [A-Z]+$")),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_legal_hold_status", ""),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_mode", ""),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_retain_until_date", ""),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "body", "yes"),
 				),
 			},
@@ -121,19 +115,11 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_allParams(t *testing.T) {
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "content_encoding", "identity"),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "content_language", "en-GB"),
 					// Encryption is off
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "server_side_encryption", ""),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "sse_kms_key_id", ""),
-					// Supported, but difficult to reproduce in short testing time
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "storage_class", "STANDARD"),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "expiration", ""),
 					// Currently unsupported in digitalocean_spaces_bucket_object resource
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "expires", ""),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "website_redirect_location", ""),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "metadata.%", "0"),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "tags.%", "1"),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_legal_hold_status", ""),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_mode", ""),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_object.obj", "object_lock_retain_until_date", ""),
 				),
 			},
 		},
@@ -321,7 +307,7 @@ data "digitalocean_spaces_bucket_object" "obj" {
 func testAccDataSourceDigitalOceanSpacesObjectConfig_allParams(randInt int) (string, string) {
 	resources := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-	bucket = "tf-object-test-bucket-%d"
+	name   = "tf-object-test-bucket-%d"
 	region = "nyc3"
 	versioning {
 		enabled = true
