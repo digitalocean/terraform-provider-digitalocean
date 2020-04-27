@@ -1,30 +1,33 @@
 ---
-subcategory: "S3"
-layout: "aws"
-page_title: "AWS: aws_s3_bucket_objects"
+layout: "digitalocean"
+page_title: "DigitalOcean: digitalocean_spaces_bucket_objects"
+sidebar_current: "docs-do-datasource-spaces-bucket-objects"
 description: |-
-    Returns keys and metadata of S3 objects
+  Returns keys and metadata of Spaces objects
 ---
 
-# Data Source: aws_s3_bucket_objects
+# digitalocean_spaces_bucket_objects
 
 ~> **NOTE on `max_keys`:** Retrieving very large numbers of keys can adversely affect Terraform's performance.
 
-The bucket-objects data source returns keys (i.e., file names) and other metadata about objects in an S3 bucket.
+The bucket-objects data source returns keys (i.e., file names) and other metadata about objects in a Spaces bucket.
 
 ## Example Usage
 
-The following example retrieves a list of all object keys in an S3 bucket and creates corresponding Terraform object data sources:
+The following example retrieves a list of all object keys in an S3 bucket and creates corresponding Terraform object
+data sources:
 
 ```hcl
-data "aws_s3_bucket_objects" "my_objects" {
+data "digitalocean_spaces_bucket_objects" "my_objects" {
   bucket = "ourcorp"
+  region = "nyc3"
 }
 
-data "aws_s3_bucket_object" "object_info" {
-  count  = "${length(data.aws_s3_bucket_objects.my_objects.keys)}"
-  key    = "${element(data.aws_s3_bucket_objects.my_objects.keys, count.index)}"
-  bucket = "${data.aws_s3_bucket_objects.my_objects.bucket}"
+data "digitalocean_spaces_bucket_object" "object_info" {
+  count  = length(data.digitalocean_spaces_bucket_objects.my_objects.keys)
+  key    = element(data.digitalocean_spaces_bucket_objects.my_objects.keys, count.index)
+  bucket = data.digitalocean_spaces_bucket_objects.my_objects.bucket
+  region = data.digitalocean_spaces_bucket_objects.my_objects.region
 }
 ```
 
@@ -32,7 +35,8 @@ data "aws_s3_bucket_object" "object_info" {
 
 The following arguments are supported:
 
-* `bucket` - (Required) Lists object keys in this S3 bucket. Alternatively, an [S3 access point](https://docs.aws.amazon.com/AmazonS3/latest/dev/using-access-points.html) ARN can be specified
+* `bucket` - (Required) Lists object keys in this S3 bucket
+* `region` - (Required) The slug of the region where the bucket is stored.
 * `prefix` - (Optional) Limits results to object keys with this prefix (Default: none)
 * `delimiter` - (Optional) A character used to group keys (Default: none)
 * `encoding_type` - (Optional) Encodes keys using this method (Default: none; besides none, only "url" can be used)
