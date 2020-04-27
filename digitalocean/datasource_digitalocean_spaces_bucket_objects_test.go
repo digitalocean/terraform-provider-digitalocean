@@ -209,8 +209,9 @@ func testAccCheckDigitalOceanSpacesObjectsDataSourceExists(addr string) resource
 func testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "objects_bucket" {
-  name = "tf-acc-objects-test-bucket-%d"
-  region = "nyc3"
+  name          = "tf-acc-objects-test-bucket-%d"
+  region        = "nyc3"
+  force_destroy = true
 }
 
 resource "digitalocean_spaces_bucket_object" "object1" {
