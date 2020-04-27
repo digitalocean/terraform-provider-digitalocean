@@ -65,7 +65,13 @@ func dataSourceDigitalOceanSpacesBucketObjects() *schema.Resource {
 }
 
 func dataSourceDigitalOceanSpacesBucketObjectsRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).s3conn
+	region := d.Get("region").(string)
+	client, err := meta.(*CombinedConfig).spacesClient(region)
+	if err != nil {
+		return err
+	}
+
+	conn := s3.New(client)
 
 	bucket := d.Get("bucket").(string)
 	prefix := d.Get("prefix").(string)
@@ -108,7 +114,7 @@ func dataSourceDigitalOceanSpacesBucketObjectsRead(d *schema.ResourceData, meta 
 	var keys []string
 	var owners []string
 
-	err := conn.ListObjectsV2Pages(&listInput, func(page *s3.ListObjectsV2Output, lastPage bool) bool {
+	err = conn.ListObjectsV2Pages(&listInput, func(page *s3.ListObjectsV2Output, lastPage bool) bool {
 		for _, commonPrefix := range page.CommonPrefixes {
 			commonPrefixes = append(commonPrefixes, aws.StringValue(commonPrefix.Prefix))
 		}

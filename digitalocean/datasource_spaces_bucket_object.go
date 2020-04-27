@@ -18,6 +18,17 @@ func dataSourceDigitalOceanSpacesBucketObject() *schema.Resource {
 		Read: dataSourceDigitalOceanSpacesBucketObjectRead,
 
 		Schema: map[string]*schema.Schema{
+			"bucket": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"region": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+
+			// computed attributes
+
 			"body": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -88,7 +99,13 @@ func dataSourceDigitalOceanSpacesBucketObject() *schema.Resource {
 }
 
 func dataSourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*AWSClient).s3conn
+	region := d.Get("region").(string)
+	client, err := meta.(*CombinedConfig).spacesClient(region)
+	if err != nil {
+		return err
+	}
+
+	conn := s3.New(client)
 
 	bucket := d.Get("bucket").(string)
 	key := d.Get("key").(string)
