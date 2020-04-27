@@ -60,10 +60,10 @@ In addition to all arguments above, the following attributes are exported:
 * `expiration` - If the object expiration is configured (see [object lifecycle management](http://docs.aws.amazon.com/AmazonS3/latest/dev/object-lifecycle-mgmt.html)), the field includes this header. It includes the expiry-date and rule-id key value pairs providing object expiration information. The value of the rule-id is URL encoded.
 * `expires` - The date and time at which the object is no longer cacheable.
 * `last_modified` - Last modified date of the object in RFC1123 format (e.g. `Mon, 02 Jan 2006 15:04:05 MST`)
-* `metadata` - A map of metadata stored with the object in S3
+* `metadata` - A map of metadata stored with the object in Spaces
 * `version_id` - The latest version ID of the object returned.
 * `website_redirect_location` - If the bucket is configured as a website, redirects requests for this object to another object in the same bucket or to an external URL. Amazon S3 stores the value of this header in the object metadata.
 
 -> **Note:** Terraform ignores all leading `/`s in the object's `key` and treats multiple `/`s in the rest of the
-object's `key` as a single `/`, so values of `/index.html` and `index.html` correspond to the same S3 object
+object's `key` as a single `/`, so values of `/index.html` and `index.html` correspond to the same Spaces object
 as do `first//second///third//` and `first/second/third/`.

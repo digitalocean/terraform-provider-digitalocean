@@ -14,7 +14,7 @@ The bucket-objects data source returns keys (i.e., file names) and other metadat
 
 ## Example Usage
 
-The following example retrieves a list of all object keys in an S3 bucket and creates corresponding Terraform object
+The following example retrieves a list of all object keys in a Spaces3 bucket and creates corresponding Terraform object
 data sources:
 
 ```hcl
@@ -35,13 +35,13 @@ data "digitalocean_spaces_bucket_object" "object_info" {
 
 The following arguments are supported:
 
-* `bucket` - (Required) Lists object keys in this S3 bucket
+* `bucket` - (Required) Lists object keys in this Spaces bucket
 * `region` - (Required) The slug of the region where the bucket is stored.
 * `prefix` - (Optional) Limits results to object keys with this prefix (Default: none)
 * `delimiter` - (Optional) A character used to group keys (Default: none)
 * `encoding_type` - (Optional) Encodes keys using this method (Default: none; besides none, only "url" can be used)
 * `max_keys` - (Optional) Maximum object keys to return (Default: 1000)
-* `start_after` - (Optional) Returns key names lexicographically after a specific object key in your bucket (Default: none; S3 lists object keys in UTF-8 character encoding in lexicographical order)
+* `start_after` - (Optional) Returns key names lexicographically after a specific object key in your bucket (Default: none; otherwise lists object keys in UTF-8 character encoding in lexicographical order)
 * `fetch_owner` - (Optional) Boolean specifying whether to populate the owner list (Default: false)
 
 ## Attributes Reference
