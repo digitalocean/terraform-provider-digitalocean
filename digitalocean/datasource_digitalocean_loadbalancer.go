@@ -47,7 +47,7 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Description: "current state of the Load Balancer",
 			},
 			"forwarding_rule": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -84,6 +84,7 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 					},
 				},
 				Description: "list of forwarding rules of the load balancer",
+				Set:         hashForwardingRules,
 			},
 			"healthcheck": {
 				Type:     schema.TypeList,
