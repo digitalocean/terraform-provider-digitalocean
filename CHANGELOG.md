@@ -1,4 +1,16 @@
 ## 1.17.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Sources**: `digitalocean_spaces_bucket` and `digitalocean_spaces_buckets` ([#416](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/416)) Thanks to @tdyas!
+* **New Data Sources**: `digitalocean_spaces_bucket_object` and `digitalocean_spaces_bucket_objects` ([#423](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/423)) Thanks to @tdyas!
+* **New Data Sources**: `digitalocean_droplets` ([#418](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/418)) Thanks to @tdyas!
+
+BUG FIXES:
+
+* resource/digitalocean_record: Fix handling of CAA records with iodef tag ([#421](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/421)).
+* resource/digitalocean_loadbalancer: Fix support for multiple forwarding rules ([#414](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/414)).
+
 ## 1.16.0 (April 14, 2020)
 
 FEATURES:
