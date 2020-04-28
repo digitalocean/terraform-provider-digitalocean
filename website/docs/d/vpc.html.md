@@ -39,7 +39,7 @@ resource "digitalocean_droplet" "example" {
   size     = "s-1vcpu-1gb"
   image    = "ubuntu-18-04-x64"
   region   = "nyc3"
-  vpc_uuid = digitalocean_vpc.example.id
+  vpc_uuid = data.digitalocean_vpc.example.id
 }
 ```
 
