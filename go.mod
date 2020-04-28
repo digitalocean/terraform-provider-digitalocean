@@ -7,6 +7,7 @@ require (
 	github.com/hashicorp/go-version v1.2.0
 	github.com/hashicorp/terraform-plugin-sdk v1.6.0
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/terraform-providers/terraform-provider-aws v2.32.0+incompatible
 	github.com/terraform-providers/terraform-provider-kubernetes v1.9.1-0.20191018170806-2c80accb5635
 	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
