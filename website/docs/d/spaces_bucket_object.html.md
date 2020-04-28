@@ -62,7 +62,7 @@ In addition to all arguments above, the following attributes are exported:
 * `last_modified` - Last modified date of the object in RFC1123 format (e.g. `Mon, 02 Jan 2006 15:04:05 MST`)
 * `metadata` - A map of metadata stored with the object in Spaces
 * `version_id` - The latest version ID of the object returned.
-* `website_redirect_location` - If the bucket is configured as a website, redirects requests for this object to another object in the same bucket or to an external URL. Amazon S3 stores the value of this header in the object metadata.
+* `website_redirect_location` - If the bucket is configured as a website, redirects requests for this object to another object in the same bucket or to an external URL. Spaces stores the value of this header in the object metadata.
 
 -> **Note:** Terraform ignores all leading `/`s in the object's `key` and treats multiple `/`s in the rest of the
 object's `key` as a single `/`, so values of `/index.html` and `index.html` correspond to the same Spaces object
