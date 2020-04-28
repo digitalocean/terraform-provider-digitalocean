@@ -110,8 +110,8 @@ func TestAccDataSourceDigitalOceanSpacesBucketObjects_encoded(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.digitalocean_spaces_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.#", "2"),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.0", "arch/ru+b+ic+on"),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.1", "arch/rubicon"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.0", "arch%2Fru%20b%20ic%20on"),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.1", "arch%2Frubicon"),
 				),
 			},
 		},
