@@ -45,14 +45,6 @@ func dataSourceDigitalOceanSpacesBucketObjects() *schema.Resource {
 				Optional: true,
 				Default:  1000,
 			},
-			"start_after": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"fetch_owner": {
-				Type:     schema.TypeBool,
-				Optional: true,
-			},
 
 			// computed attributes
 
@@ -89,7 +81,7 @@ func dataSourceDigitalOceanSpacesBucketObjectsRead(d *schema.ResourceData, meta 
 
 	d.SetId(resource.UniqueId())
 
-	listInput := s3.ListObjectsV2Input{
+	listInput := s3.ListObjectsInput{
 		Bucket: aws.String(bucket),
 	}
 
@@ -113,19 +105,11 @@ func dataSourceDigitalOceanSpacesBucketObjectsRead(d *schema.ResourceData, meta 
 		listInput.MaxKeys = aws.Int64(maxKeys)
 	}
 
-	if s, ok := d.GetOk("start_after"); ok {
-		listInput.StartAfter = aws.String(s.(string))
-	}
-
-	if b, ok := d.GetOk("fetch_owner"); ok {
-		listInput.FetchOwner = aws.Bool(b.(bool))
-	}
-
 	var commonPrefixes []string
 	var keys []string
 	var owners []string
 
-	err = conn.ListObjectsV2Pages(&listInput, func(page *s3.ListObjectsV2Output, lastPage bool) bool {
+	err = conn.ListObjectsPages(&listInput, func(page *s3.ListObjectsOutput, lastPage bool) bool {
 		for _, commonPrefix := range page.CommonPrefixes {
 			commonPrefixes = append(commonPrefixes, aws.StringValue(commonPrefix.Prefix))
 		}
@@ -138,7 +122,7 @@ func dataSourceDigitalOceanSpacesBucketObjectsRead(d *schema.ResourceData, meta 
 			}
 		}
 
-		maxKeys = maxKeys - aws.Int64Value(page.KeyCount)
+		maxKeys = maxKeys - int64(len(page.Contents))
 
 		if maxKeys <= keyRequestPageSize {
 			listInput.MaxKeys = aws.Int64(maxKeys)
@@ -148,7 +132,7 @@ func dataSourceDigitalOceanSpacesBucketObjectsRead(d *schema.ResourceData, meta 
 	})
 
 	if err != nil {
-		return fmt.Errorf("error listing S3 Bucket (%s) Objects: %s", bucket, err)
+		return fmt.Errorf("error listing Spaces Bucket (%s) Objects: %s", bucket, err)
 	}
 
 	if err := d.Set("common_prefixes", commonPrefixes); err != nil {

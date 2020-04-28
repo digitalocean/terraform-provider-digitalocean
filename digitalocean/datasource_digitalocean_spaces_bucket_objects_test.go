@@ -143,63 +143,15 @@ func TestAccDataSourceDigitalOceanSpacesBucketObjects_maxKeys(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceDigitalOceanSpacesBucketObjects_startAfter(t *testing.T) {
-	rInt := acctest.RandInt()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                  func() { testAccPreCheck(t) },
-		Providers:                 testAccProviders,
-		PreventPostDestroyRefresh: true,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(rInt), // NOTE: contains no data source
-				// Does not need Check
-			},
-			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigStartAfter(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.digitalocean_spaces_bucket_objects.yesh"),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.#", "1"),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.0", "arch/three_gossips/turret"),
-				),
-			},
-		},
-	})
-}
-
-func TestAccDataSourceDigitalOceanSpacesBucketObjects_fetchOwner(t *testing.T) {
-	rInt := acctest.RandInt()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                  func() { testAccPreCheck(t) },
-		Providers:                 testAccProviders,
-		PreventPostDestroyRefresh: true,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(rInt), // NOTE: contains no data source
-				// Does not need Check
-			},
-			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigOwners(rInt),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.digitalocean_spaces_bucket_objects.yesh"),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.#", "2"),
-					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "owners.#", "2"),
-				),
-			},
-		},
-	})
-}
-
 func testAccCheckDigitalOceanSpacesObjectsDataSourceExists(addr string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[addr]
 		if !ok {
-			return fmt.Errorf("Can't find S3 objects data source: %s", addr)
+			return fmt.Errorf("Can't find Spaces objects data source: %s", addr)
 		}
 
 		if rs.Primary.ID == "" {
-			return fmt.Errorf("S3 objects data source ID not set")
+			return fmt.Errorf("Spaces objects data source ID not set")
 		}
 
 		return nil
@@ -336,31 +288,6 @@ data "digitalocean_spaces_bucket_objects" "yesh" {
   bucket   = digitalocean_spaces_bucket.objects_bucket.name
   region   = digitalocean_spaces_bucket.objects_bucket.region
   max_keys = 2
-}
-`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
-}
-
-func testAccDataSourceDigitalOceanSpacesObjectsConfigStartAfter(randInt int) string {
-	return fmt.Sprintf(`
-%s
-
-data "digitalocean_spaces_bucket_objects" "yesh" {
-  bucket      = digitalocean_spaces_bucket.objects_bucket.name
-  region      = digitalocean_spaces_bucket.objects_bucket.region
-  start_after = "arch/three_gossips/broken"
-}
-`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
-}
-
-func testAccDataSourceDigitalOceanSpacesObjectsConfigOwners(randInt int) string {
-	return fmt.Sprintf(`
-%s
-
-data "digitalocean_spaces_bucket_objects" "yesh" {
-  bucket      = digitalocean_spaces_bucket.objects_bucket.name
-  region      = digitalocean_spaces_bucket.objects_bucket.region
-  prefix      = "arch/three_gossips/"
-  fetch_owner = true
 }
 `, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
 }
