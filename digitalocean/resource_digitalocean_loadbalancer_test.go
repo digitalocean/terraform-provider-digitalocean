@@ -92,6 +92,10 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "vpc_uuid"),
 					resource.TestMatchResourceAttr(
 						"digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "true"),
 				),
 			},
 		},
@@ -134,6 +138,10 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "tcp"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "droplet_ids.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "true"),
 				),
 			},
 			{
@@ -162,6 +170,10 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "tcp"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "droplet_ids.#", "2"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "false"),
 				),
 			},
 		},
@@ -250,6 +262,10 @@ func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "sticky_sessions.0.type", "none"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "droplet_ids.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "false"),
 				),
 			},
 		},
@@ -458,7 +474,7 @@ func testAccCheckDigitalOceanLoadbalancerConfig_basic(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
-  size      = "512mb"
+  size      = "s-1vcpu-1gb"
   image     = "centos-7-x64"
   region    = "nyc3"
 }
@@ -480,7 +496,10 @@ resource "digitalocean_loadbalancer" "foobar" {
     protocol = "tcp"
   }
 
-  droplet_ids = ["${digitalocean_droplet.foobar.id}"]
+  enable_proxy_protocol    = true
+  enable_backend_keepalive = true
+
+  droplet_ids = [digitalocean_droplet.foobar.id]
 }`, rInt, rInt)
 }
 
@@ -488,14 +507,14 @@ func testAccCheckDigitalOceanLoadbalancerConfig_updated(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
-  size      = "512mb"
+  size      = "s-1vcpu-1gb"
   image     = "centos-7-x64"
   region    = "nyc3"
 }
 
 resource "digitalocean_droplet" "foo" {
   name      = "foo-%d"
-  size      = "512mb"
+  size      = "s-1vcpu-1gb"
   image     = "centos-7-x64"
   region    = "nyc3"
 }
@@ -517,7 +536,10 @@ resource "digitalocean_loadbalancer" "foobar" {
     protocol = "tcp"
   }
 
-  droplet_ids = ["${digitalocean_droplet.foobar.id}","${digitalocean_droplet.foo.id}"]
+  enable_proxy_protocol    = false
+  enable_backend_keepalive = false
+
+  droplet_ids = [digitalocean_droplet.foobar.id, digitalocean_droplet.foo.id]
 }`, rInt, rInt, rInt)
 }
 

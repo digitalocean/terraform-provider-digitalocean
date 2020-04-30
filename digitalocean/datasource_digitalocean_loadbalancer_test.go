@@ -53,6 +53,10 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 						"data.digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_loadbalancer.foobar", "vpc_uuid"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "false"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "false"),
 				),
 			},
 		},

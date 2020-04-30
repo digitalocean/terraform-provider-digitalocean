@@ -178,6 +178,11 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Computed:    true,
 				Description: "whether PROXY Protocol should be used to pass information from connecting client requests to the backend service",
 			},
+			"enable_backend_keepalive": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "whether whether HTTP keepalive connections are maintained to target Droplets",
+			},
 			"vpc_uuid": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -238,6 +243,7 @@ func dataSourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interfa
 	d.Set("droplet_tag", loadbalancer.Tag)
 	d.Set("redirect_http_to_https", loadbalancer.RedirectHttpToHttps)
 	d.Set("enable_proxy_protocol", loadbalancer.EnableProxyProtocol)
+	d.Set("enable_backend_keepalive", loadbalancer.EnableBackendKeepalive)
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {

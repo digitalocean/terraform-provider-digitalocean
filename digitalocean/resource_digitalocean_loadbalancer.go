@@ -215,6 +215,12 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 				Default:  false,
 			},
 
+			"enable_backend_keepalive": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"vpc_uuid": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -280,12 +286,13 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 
 func buildLoadBalancerRequest(d *schema.ResourceData) (*godo.LoadBalancerRequest, error) {
 	opts := &godo.LoadBalancerRequest{
-		Name:                d.Get("name").(string),
-		Region:              d.Get("region").(string),
-		Algorithm:           d.Get("algorithm").(string),
-		RedirectHttpToHttps: d.Get("redirect_http_to_https").(bool),
-		EnableProxyProtocol: d.Get("enable_proxy_protocol").(bool),
-		ForwardingRules:     expandForwardingRules(d.Get("forwarding_rule").(*schema.Set).List()),
+		Name:                   d.Get("name").(string),
+		Region:                 d.Get("region").(string),
+		Algorithm:              d.Get("algorithm").(string),
+		RedirectHttpToHttps:    d.Get("redirect_http_to_https").(bool),
+		EnableProxyProtocol:    d.Get("enable_proxy_protocol").(bool),
+		EnableBackendKeepalive: d.Get("enable_backend_keepalive").(bool),
+		ForwardingRules:        expandForwardingRules(d.Get("forwarding_rule").(*schema.Set).List()),
 	}
 
 	if v, ok := d.GetOk("droplet_tag"); ok {
@@ -369,6 +376,7 @@ func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface
 	d.Set("region", loadbalancer.Region.Slug)
 	d.Set("redirect_http_to_https", loadbalancer.RedirectHttpToHttps)
 	d.Set("enable_proxy_protocol", loadbalancer.EnableProxyProtocol)
+	d.Set("enable_backend_keepalive", loadbalancer.EnableBackendKeepalive)
 	d.Set("droplet_tag", loadbalancer.Tag)
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 
