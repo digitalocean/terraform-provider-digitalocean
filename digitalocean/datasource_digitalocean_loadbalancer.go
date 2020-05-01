@@ -181,7 +181,7 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 			"enable_backend_keepalive": {
 				Type:        schema.TypeBool,
 				Computed:    true,
-				Description: "whether whether HTTP keepalive connections are maintained to target Droplets",
+				Description: "whether HTTP keepalive connections are maintained to target Droplets",
 			},
 			"vpc_uuid": {
 				Type:        schema.TypeString,
