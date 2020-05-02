@@ -2,7 +2,6 @@ package digitalocean
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -76,7 +75,6 @@ func getDigitalOceanBuckets(meta interface{}) ([]interface{}, error) {
 		}
 	}
 
-	log.Printf("buckets = %v", buckets)
 	return buckets, nil
 }
 
