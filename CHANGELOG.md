@@ -1,4 +1,4 @@
-## 1.18.0 (Unreleased)
+## 1.18.0 (May 05, 2020)
 
 FEATURES:
 
