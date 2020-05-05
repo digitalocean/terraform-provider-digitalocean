@@ -1,4 +1,13 @@
 ## 1.18.0 (Unreleased)
+
+FEATURES:
+
+* resource/digitalocean_loadbalancer, datasource/digitalocean_loadbalancer: Add support for the backend keepalive option ([#427](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/427)).
+
+BUG FIXES:
+
+* provider: Spaces API Endpoint setting is optional ([#431](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/431)).
+
 ## 1.17.0 (April 28, 2020)
 
 FEATURES:
