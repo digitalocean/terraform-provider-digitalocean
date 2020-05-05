@@ -26,7 +26,7 @@ func Provider() terraform.ResourceProvider {
 			},
 			"spaces_endpoint": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("SPACES_ENDPOINT_URL", "https://{{.Region}}.digitaloceanspaces.com"),
 				Description: "The URL to use for the DigitalOcean Spaces API.",
 			},
@@ -122,12 +122,15 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData, terraformVersion string) (interface{}, error) {
 	config := Config{
-		Token:             d.Get("token").(string),
-		APIEndpoint:       d.Get("api_endpoint").(string),
-		SpacesAPIEndpoint: d.Get("spaces_endpoint").(string),
-		AccessID:          d.Get("spaces_access_id").(string),
-		SecretKey:         d.Get("spaces_secret_key").(string),
-		TerraformVersion:  terraformVersion,
+		Token:            d.Get("token").(string),
+		APIEndpoint:      d.Get("api_endpoint").(string),
+		AccessID:         d.Get("spaces_access_id").(string),
+		SecretKey:        d.Get("spaces_secret_key").(string),
+		TerraformVersion: terraformVersion,
+	}
+
+	if endpoint, ok := d.GetOk("spaces_endpoint"); ok {
+		config.SpacesAPIEndpoint = endpoint.(string)
 	}
 
 	return config.Client()
