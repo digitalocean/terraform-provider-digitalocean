@@ -13,6 +13,7 @@ import (
 )
 
 func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
+	t.Parallel()
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 
@@ -33,13 +34,13 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.0.entry_port", "80"),
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.0.entry_protocol", "http"),
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.0.target_port", "80"),
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.0.target_protocol", "http"),
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -48,7 +49,56 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 						"data.digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "tcp"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "droplet_ids.#", "2"),
-					resource.TestMatchResourceAttr("data.digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
+					resource.TestMatchResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_loadbalancer.foobar", "vpc_uuid"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "false"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceDigitalOceanLoadBalancer_multipleRules(t *testing.T) {
+	t.Parallel()
+	var loadbalancer godo.LoadBalancer
+	rName := randomTestName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_multipleRules(rName) + testAccCheckDataSourceDigitalOceanLoadBalancerConfig_multipleRules,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "name", rName),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "2"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.entry_port", "443"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.entry_protocol", "https"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.target_port", "443"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.target_protocol", "https"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
 				),
 			},
 		},
@@ -98,7 +148,7 @@ resource "digitalocean_droplet" "foo" {
   region             = "nyc3"
   size               = "512mb"
   private_networking = true
-  tags               = ["${digitalocean_tag.foo.id}"]
+  tags               = [digitalocean_tag.foo.id]
 }
 
 resource "digitalocean_loadbalancer" "foo" {
@@ -118,11 +168,18 @@ resource "digitalocean_loadbalancer" "foo" {
     protocol = "tcp"
   }
 
-  droplet_tag = "${digitalocean_tag.foo.id}"
+  droplet_tag = digitalocean_tag.foo.id
   depends_on  = ["digitalocean_droplet.foo"]
 }
 
 data "digitalocean_loadbalancer" "foobar" {
-  name = "${digitalocean_loadbalancer.foo.name}"
+  name = digitalocean_loadbalancer.foo.name
 }`, rInt, rInt)
 }
+
+const (
+	testAccCheckDataSourceDigitalOceanLoadBalancerConfig_multipleRules = `
+data "digitalocean_loadbalancer" "foobar" {
+  name = digitalocean_loadbalancer.foobar.name
+}`
+)

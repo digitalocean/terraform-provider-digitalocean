@@ -3,12 +3,12 @@ layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_image"
 sidebar_current: "docs-do-datasource-image"
 description: |-
-  Get information on an snapshot.
+  Get information on a DigitalOcean image.
 ---
 
 # digitalocean_image
 
-Get information on an images for use in other resources (e.g. creating a Droplet
+Get information on an image for use in other resources (e.g. creating a Droplet
 based on snapshot). This data source provides all of the image properties as
 configured on your DigitalOcean account. This is useful if the image in question
 is not managed by Terraform or you need to utilize any of the image's data.
@@ -50,22 +50,38 @@ data "digitalocean_image" "example2" {
 
 ## Argument Reference
 
-The following arguments are supported:
+One of the following arguments must be provided:
 
-* `name` - (Optional) The name of the private image.
-* `slug` - (Optional) The slug of the official image.
+* `id` - The id of the image
+* `name` - The name of the image.
+* `slug` - The slug of the official image.
+
+If `name` is specified, you may also specify:
+
+* `source` - (Optional) Restrict the search to one of the following categories of images:
+  - `all` - All images (whether public or private)
+  - `applications` - One-click applications
+  - `distributions` - Distributions
+  - `user` - (Default) User (private) images
 
 ## Attributes Reference
 
 The following attributes are exported:
 
+* `slug`: Unique text identifier of the image.
 * `id`: The ID of the image.
-* `image` - The id of the image.
+* `name`: The name of the image.
+* `type`: Type of the image.
 * `distribution` - The name of the distribution of the OS of the image.
 * `min_disk_size`: The minimum 'disk' required for the image.
+* `size_gigabytes`: The size of the image in GB.
 * `private` - Is image a public image or not. Public images represent
   Linux distributions or One-Click Applications, while non-public images represent
   snapshots and backups and are only available within your account.
-* `regions`: The regions that the image is available in.
-* `type`: Type of the image.
+* `regions`: A set of the regions that the image is available in.
+* `tags`: A set of tags applied to the image 
+* `created`: When the image was created
+* `status`: Current status of the image
+* `error_message`: Any applicable error message pertaining to the image
+* `image` - The id of the image (legacy parameter).
 

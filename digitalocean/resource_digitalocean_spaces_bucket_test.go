@@ -2,10 +2,8 @@ package digitalocean
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"reflect"
-	"strings"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
@@ -13,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -225,29 +222,255 @@ func TestAccDigitalOceanBucket_shouldFailNotFound(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanBucket_Versioning(t *testing.T) {
+	rInt := acctest.RandInt()
+	resourceName := "digitalocean_spaces_bucket.bucket"
+
+	makeConfig := func(includeClause, versioning bool) string {
+		versioningClause := ""
+		if includeClause {
+			versioningClause = fmt.Sprintf(`
+  versioning {
+    enabled = %v
+  }
+`, versioning)
+		}
+		return fmt.Sprintf(`
+resource "digitalocean_spaces_bucket" "bucket" {
+  name = "tf-test-bucket-%d"
+  region = "ams3"
+%s
+}
+`, rInt, versioningClause)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				// No versioning configured.
+				Config: makeConfig(false, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					testAccCheckDigitalOceanBucketVersioning(
+						resourceName, ""),
+				),
+			},
+			{
+				// Enable versioning
+				Config: makeConfig(true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					testAccCheckDigitalOceanBucketVersioning(
+						resourceName, s3.BucketVersioningStatusEnabled),
+				),
+			},
+			{
+				// Explicitly disable versioning
+				Config: makeConfig(true, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					testAccCheckDigitalOceanBucketVersioning(
+						resourceName, s3.BucketVersioningStatusSuspended),
+				),
+			},
+			{
+				// Re-enable versioning
+				Config: makeConfig(true, true),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					testAccCheckDigitalOceanBucketVersioning(
+						resourceName, s3.BucketVersioningStatusEnabled),
+				),
+			},
+			{
+				// Remove the clause completely. Should disable versioning.
+				Config: makeConfig(false, false),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					testAccCheckDigitalOceanBucketVersioning(
+						resourceName, s3.BucketVersioningStatusSuspended),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
+	rInt := acctest.RandInt()
+	resourceName := "digitalocean_spaces_bucket.bucket"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanSpacesBucketConfigWithLifecycle(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.id", "id1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.prefix", "path1/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.expiration.2613713285.days", "365"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.expiration.2613713285.date", ""),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.expiration.2613713285.expired_object_delete_marker", "false"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.id", "id2"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.prefix", "path2/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.expiration.2855832418.date", "2016-01-12"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.expiration.2855832418.days", "0"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.expiration.2855832418.expired_object_delete_marker", "false"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.id", "id3"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.prefix", "path3/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.2.abort_incomplete_multipart_upload_days", "30"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateId:     fmt.Sprintf("ams3,tf-test-bucket-%d", rInt),
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_destroy", "acl"},
+			},
+			{
+				Config: testAccDigitalOceanSpacesBucketConfigWithVersioningLifecycle(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.id", "id1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.prefix", "path1/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.enabled", "true"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.id", "id2"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.prefix", "path2/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.enabled", "false"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.1.noncurrent_version_expiration.80908210.days", "365"),
+				),
+			},
+			{
+				Config: testAccDigitalOceanBucketConfig(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
+	rInt := acctest.RandInt()
+	resourceName := "digitalocean_spaces_bucket.bucket"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanSpacesBucketConfigWithLifecycleExpireMarker(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.id", "id1"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.prefix", "path1/"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.expiration.3591068768.days", "0"),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.expiration.3591068768.date", ""),
+					resource.TestCheckResourceAttr(
+						resourceName, "lifecycle_rule.0.expiration.3591068768.expired_object_delete_marker", "true"),
+				),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateId:     fmt.Sprintf("ams3,tf-test-bucket-%d", rInt),
+				ImportStateVerify: true,
+				ImportStateVerifyIgnore: []string{
+					"force_destroy", "acl"},
+			},
+			{
+				Config: testAccDigitalOceanBucketConfig(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanBucketExists(resourceName),
+				),
+			},
+		},
+	})
+}
+
+func testAccGetS3ConnForSpacesBucket(rs *terraform.ResourceState) (*s3.S3, error) {
+	rawRegion := ""
+	if actualRegion, ok := rs.Primary.Attributes["region"]; ok {
+		rawRegion = actualRegion
+	}
+	region := normalizeRegion(rawRegion)
+
+	spacesAccessKeyId := os.Getenv("SPACES_ACCESS_KEY_ID")
+	if spacesAccessKeyId == "" {
+		return nil, fmt.Errorf("SPACES_ACCESS_KEY_ID must be set")
+	}
+
+	spacesSecretAccessKey := os.Getenv("SPACES_SECRET_ACCESS_KEY")
+	if spacesSecretAccessKey == "" {
+		return nil, fmt.Errorf("SPACES_SECRET_ACCESS_KEY must be set")
+	}
+
+	sesh, err := session.NewSession(&aws.Config{
+		Region:      aws.String(region),
+		Credentials: credentials.NewStaticCredentials(spacesAccessKeyId, spacesSecretAccessKey, "")},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to create S3 session (region=%s): %v", region, err)
+	}
+
+	svc := s3.New(sesh, &aws.Config{
+		Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", region))},
+	)
+
+	return svc, nil
+}
+
 func testAccCheckDigitalOceanBucketDestroy(s *terraform.State) error {
 	return testAccCheckDigitalOceanBucketDestroyWithProvider(s, testAccProvider)
 }
 
 func testAccCheckDigitalOceanBucketDestroyWithProvider(s *terraform.State, provider *schema.Provider) error {
-
 	for _, rs := range s.RootModule().Resources {
-		sesh, err := session.NewSession(&aws.Config{
-			Region:      aws.String(rs.Primary.Attributes["region"]),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
-		)
-
-		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
-		)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
 		if rs.Type != "digitalocean_spaces_bucket" {
 			continue
 		}
+
+		if rs.Primary.ID == "" {
+			continue
+		}
+
+		svc, err := testAccGetS3ConnForSpacesBucket(rs)
+		if err != nil {
+			return fmt.Errorf("Unable to create S3 client: %v", err)
+		}
+
 		_, err = svc.DeleteBucket(&s3.DeleteBucketInput{
 			Bucket: aws.String(rs.Primary.ID),
 		})
@@ -276,16 +499,9 @@ func testAccCheckDigitalOceanBucketExistsWithProvider(n string, providerF func()
 			return fmt.Errorf("No ID is set")
 		}
 
-		sesh, err := session.NewSession(&aws.Config{
-			Region:      aws.String(rs.Primary.Attributes["region"]),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
-		)
-		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
-		)
-
+		svc, err := testAccGetS3ConnForSpacesBucket(rs)
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("Unable to create S3 client: %v", err)
 		}
 
 		_, err = svc.HeadBucket(&s3.HeadBucketInput{
@@ -314,16 +530,9 @@ func testAccCheckDigitalOceanDestroyBucket(n string) resource.TestCheckFunc {
 			return fmt.Errorf("No Spaces Bucket ID is set")
 		}
 
-		sesh, err := session.NewSession(&aws.Config{
-			Region:      aws.String(rs.Primary.Attributes["region"]),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
-		)
-		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
-		)
-
+		svc, err := testAccGetS3ConnForSpacesBucket(rs)
 		if err != nil {
-			log.Fatal(err)
+			return fmt.Errorf("Unable to create S3 client: %v", err)
 		}
 
 		_, err = svc.DeleteBucket(&s3.DeleteBucketInput{
@@ -348,13 +557,10 @@ func testAccCheckDigitalOceanBucketCors(n string, corsRules []*s3.CORSRule) reso
 			return fmt.Errorf("No Spaces Bucket ID is set")
 		}
 
-		sesh, err := session.NewSession(&aws.Config{
-			Region:      aws.String(rs.Primary.Attributes["region"]),
-			Credentials: credentials.NewStaticCredentials(os.Getenv("SPACES_ACCESS_KEY_ID"), os.Getenv("SPACES_SECRET_ACCESS_KEY"), "")},
-		)
-		svc := s3.New(sesh, &aws.Config{
-			Endpoint: aws.String(fmt.Sprintf("https://%s.digitaloceanspaces.com", rs.Primary.Attributes["region"]))},
-		)
+		svc, err := testAccGetS3ConnForSpacesBucket(rs)
+		if err != nil {
+			return fmt.Errorf("Unable to create S3 client: %v", err)
+		}
 
 		out, err := svc.GetBucketCors(&s3.GetBucketCorsInput{
 			Bucket: aws.String(rs.Primary.ID),
@@ -372,11 +578,35 @@ func testAccCheckDigitalOceanBucketCors(n string, corsRules []*s3.CORSRule) reso
 	}
 }
 
-func isAWSErr(err error, code string, message string) bool {
-	if err, ok := err.(awserr.Error); ok {
-		return err.Code() == code && strings.Contains(err.Message(), message)
+func testAccCheckDigitalOceanBucketVersioning(n string, versioningStatus string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs := s.RootModule().Resources[n]
+
+		svc, err := testAccGetS3ConnForSpacesBucket(rs)
+		if err != nil {
+			return fmt.Errorf("Unable to create S3 client: %v", err)
+		}
+
+		out, err := svc.GetBucketVersioning(&s3.GetBucketVersioningInput{
+			Bucket: aws.String(rs.Primary.ID),
+		})
+
+		if err != nil {
+			return fmt.Errorf("GetBucketVersioning error: %v", err)
+		}
+
+		if v := out.Status; v == nil {
+			if versioningStatus != "" {
+				return fmt.Errorf("bad error versioning status, found nil, expected: %s", versioningStatus)
+			}
+		} else {
+			if *v != versioningStatus {
+				return fmt.Errorf("bad error versioning status, expected: %s, got %s", versioningStatus, *v)
+			}
+		}
+
+		return nil
 	}
-	return false
 }
 
 // These need a bit of randomness as the name can only be used once globally
@@ -472,3 +702,95 @@ resource "digitalocean_spaces_bucket" "bucket" {
 	}
 }
 `
+
+func testAccDigitalOceanSpacesBucketConfigWithLifecycle(randInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_spaces_bucket" "bucket" {
+  name = "tf-test-bucket-%d"
+  acl  = "private"
+  region = "ams3"
+
+  lifecycle_rule {
+    id      = "id1"
+    prefix  = "path1/"
+    enabled = true
+
+    expiration {
+      days = 365
+    }
+  }
+
+  lifecycle_rule {
+    id      = "id2"
+    prefix  = "path2/"
+    enabled = true
+
+    expiration {
+      date = "2016-01-12"
+    }
+  }
+
+  lifecycle_rule {
+    id     = "id3"
+    prefix = "path3/"
+    enabled = true
+
+    abort_incomplete_multipart_upload_days = 30
+  }
+}
+`, randInt)
+}
+
+func testAccDigitalOceanSpacesBucketConfigWithLifecycleExpireMarker(randInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_spaces_bucket" "bucket" {
+  name = "tf-test-bucket-%d"
+  acl  = "private"
+  region = "ams3"
+
+  lifecycle_rule {
+    id      = "id1"
+    prefix  = "path1/"
+    enabled = true
+
+    expiration {
+      expired_object_delete_marker = "true"
+    }
+  }
+}
+`, randInt)
+}
+
+func testAccDigitalOceanSpacesBucketConfigWithVersioningLifecycle(randInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_spaces_bucket" "bucket" {
+  name = "tf-test-bucket-%d"
+  acl  = "private"
+  region = "ams3"
+
+  versioning {
+    enabled = false
+  }
+
+  lifecycle_rule {
+    id      = "id1"
+    prefix  = "path1/"
+    enabled = true
+
+    noncurrent_version_expiration {
+      days = 365
+    }
+ }
+
+  lifecycle_rule {
+    id      = "id2"
+    prefix  = "path2/"
+    enabled = false
+
+    noncurrent_version_expiration {
+      days = 365
+    }
+  }
+}
+`, randInt)
+}

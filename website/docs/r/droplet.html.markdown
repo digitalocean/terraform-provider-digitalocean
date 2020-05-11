@@ -37,8 +37,11 @@ The following arguments are supported:
 * `monitoring` - (Optional) Boolean controlling whether monitoring agent is installed.
    Defaults to false.
 * `ipv6` - (Optional) Boolean controlling if IPv6 is enabled. Defaults to false.
-* `private_networking` - (Optional) Boolean controlling if private networks are
-   enabled. Defaults to false.
+* `vpc_uuid` - (Optional) The ID of the VPC where the Droplet will be located.
+* `private_networking` - (Optional)  Boolean controlling if private networking
+  is enabled. When VPC is enabled on an account, this will provision the
+  Droplet inside of your account's default VPC for the region. Use the
+  `vpc_uuid` attribute to specify a different VPC.
 * `ssh_keys` - (Optional) A list of SSH IDs or fingerprints to enable in
    the format `[12345, 123456]`. To retrieve this info, use a tool such
    as `curl` with the [DigitalOcean API](https://developers.digitalocean.com/documentation/v2/#ssh-keys),

@@ -37,6 +37,7 @@ The following arguments are supported:
 
 * `cluster_id` - (Required) The ID of the original source database cluster.
 * `name` - (Required) The name for the database user.
+* `mysql_auth_plugin` - (Optional) The authentication method to use for connections to the MySQL user account. The valid values are `mysql_native_password` or `caching_sha2_password` (this is the default).
 
 ## Attributes Reference
 

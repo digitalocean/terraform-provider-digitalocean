@@ -45,12 +45,12 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 			},
 			{
 				Config:      testAccCheckDigitalOceanImageConfig_basic(rInt, 0),
-				ExpectError: regexp.MustCompile(`.*too many user images found with name snap-.*\ .found 2, expected 1.`),
+				ExpectError: regexp.MustCompile(`.*too many images found with name snap-.*\ .found 2, expected 1.`),
 			},
 			{
 				Config:      testAccCheckDigitalOceanImageConfig_nonexisting(rInt),
 				Destroy:     false,
-				ExpectError: regexp.MustCompile(`.*no user image found with name snap-.*-nonexisting`),
+				ExpectError: regexp.MustCompile(`.*no image found with name snap-.*-nonexisting`),
 			},
 			{
 				Config: " ",

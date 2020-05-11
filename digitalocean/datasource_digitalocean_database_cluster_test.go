@@ -41,6 +41,8 @@ func TestAccDataSourceDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"data.digitalocean_database_cluster.foobar", "user"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_database_cluster.foobar", "password"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_database_cluster.foobar", "private_network_uuid"),
 				),
 			},
 		},

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -38,7 +39,11 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 			},
 
 			"version": {
-				Type:     schema.TypeString,
+				Type: schema.TypeString,
+				// TODO: Finalize transition to being required.
+				// In practice, this is already required. The transitionVersionToRequired
+				// CustomizeDiffFunc is used to provide users with a better hint in the error message.
+				// Required: true,
 				Optional: true,
 				ForceNew: true,
 			},
@@ -94,6 +99,14 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Optional: true,
 			},
 
+			"private_network_uuid": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
 			"host": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -145,22 +158,47 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 			"tags": tagsSchema(),
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-			engine := diff.Get("engine")
-			_, hasEvictionPolicy := diff.GetOk("eviction_policy")
-			_, hasSqlMode := diff.GetOk("sql_mode")
-
-			if hasSqlMode && engine != "mysql" {
-				return fmt.Errorf("sql_mode is only supported for MySQL Database Clusters")
-			}
-
-			if hasEvictionPolicy && engine != "redis" {
-				return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
-			}
-
-			return nil
-		},
+		CustomizeDiff: customdiff.All(
+			transitionVersionToRequired(),
+			validateExclusiveAttributes(),
+		),
 	}
+}
+
+func transitionVersionToRequired() schema.CustomizeDiffFunc {
+	return schema.CustomizeDiffFunc(func(diff *schema.ResourceDiff, v interface{}) error {
+		engine := diff.Get("engine")
+		_, hasVersion := diff.GetOk("version")
+		old, _ := diff.GetChange("version")
+
+		if !hasVersion {
+			if old != "" {
+				return fmt.Errorf(`The argument "version" is now required. Set the %v version to the value saved to state: %v`, engine, old)
+			}
+
+			return fmt.Errorf(`The argument "version" is required, but no definition was found.`)
+		}
+
+		return nil
+	})
+}
+
+func validateExclusiveAttributes() schema.CustomizeDiffFunc {
+	return schema.CustomizeDiffFunc(func(diff *schema.ResourceDiff, v interface{}) error {
+		engine := diff.Get("engine")
+		_, hasEvictionPolicy := diff.GetOk("eviction_policy")
+		_, hasSqlMode := diff.GetOk("sql_mode")
+
+		if hasSqlMode && engine != "mysql" {
+			return fmt.Errorf("sql_mode is only supported for MySQL Database Clusters")
+		}
+
+		if hasEvictionPolicy && engine != "redis" {
+			return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
+		}
+
+		return nil
+	})
 }
 
 func resourceDigitalOceanDatabaseClusterCreate(d *schema.ResourceData, meta interface{}) error {
@@ -174,6 +212,10 @@ func resourceDigitalOceanDatabaseClusterCreate(d *schema.ResourceData, meta inte
 		Region:     d.Get("region").(string),
 		NumNodes:   d.Get("node_count").(int),
 		Tags:       expandTags(d.Get("tags").(*schema.Set).List()),
+	}
+
+	if v, ok := d.GetOk("private_network_uuid"); ok {
+		opts.PrivateNetworkUUID = v.(string)
 	}
 
 	log.Printf("[DEBUG] DatabaseCluster create configuration: %#v", opts)
@@ -378,6 +420,7 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 	d.Set("user", database.Connection.User)
 	d.Set("password", database.Connection.Password)
 	d.Set("urn", database.URN())
+	d.Set("private_network_uuid", database.PrivateNetworkUUID)
 
 	return nil
 }

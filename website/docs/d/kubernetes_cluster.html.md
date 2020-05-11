@@ -41,6 +41,7 @@ The following attributes are exported:
 * `region` - The slug identifier for the region where the Kubernetes cluster is located.
 * `version` - The slug identifier for the version of Kubernetes used for the cluster.
 * `tags` - A list of tag names to be applied to the Kubernetes cluster.
+* `vpc_uuid` - The ID of the VPC where the Kubernetes cluster is located.
 * `cluster_subnet` - The range of IP addresses in the overlay network of the Kubernetes cluster.
 * `service_subnet` - The range of assignable IP addresses for services running in the Kubernetes cluster.
 * `ipv4_address` - The public IPv4 address of the Kubernetes master node.

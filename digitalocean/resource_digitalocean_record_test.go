@@ -525,6 +525,38 @@ func TestAccDigitalOceanRecord_CaaUpdated(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanRecord_iodefCAA(t *testing.T) {
+	var record godo.DomainRecord
+	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(
+					testAccCheckDigitalOceanRecordConfig_iodef, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.CAA_iodef", &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.CAA_iodef", "name", "@"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.CAA_iodef", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.CAA_iodef", "value", "mailto:caa-failures@example.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.CAA_iodef", "type", "CAA"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.CAA_iodef", "flags", "0"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.CAA_iodef", "tag", "iodef"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanRecordDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -812,4 +844,17 @@ resource "digitalocean_record" "foo_record" {
   value = "letsencrypt.org."
   flags = "%s"
   tag   = "%s"
+}`
+
+const testAccCheckDigitalOceanRecordConfig_iodef = `
+resource "digitalocean_domain" "foobar" {
+  name       = "%s"
+}
+resource "digitalocean_record" "CAA_iodef" {
+  domain = digitalocean_domain.foobar.name
+  type  = "CAA"
+  tag   = "iodef"
+  flags = "0"
+  name  = "@"
+  value = "mailto:caa-failures@example.com"
 }`

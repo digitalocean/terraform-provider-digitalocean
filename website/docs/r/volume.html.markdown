@@ -66,11 +66,18 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id` - The unique identifier for the block storage volume.
-* `urn`: The uniform resource name for the storage volume.
+* `id` - The unique identifier for the volume.
+* `urn` - The uniform resource name for the volume.
+* `name` - Name of the volume.
+* `description` - Description of the volume.
+* `tags` - List of applied tags to the volume. 
+* `region` - The region that the volume is created in.
+* `droplet_ids` - A list of associated droplet ids.
+* `snapshot_id` - The ID of the existing volume snapshot from which this volume was created from.
 * `filesystem_type` - Filesystem type (`xfs` or `ext4`) for the block storage volume.
 * `filesystem_label` - Filesystem label for the block storage volume.
-* `droplet_ids` - A list of associated droplet ids.
+* `initial_filesystem_type` - Filesystem type (`xfs` or `ext4`) for the block storage volume when it was first created.
+* `initial_filesystem_label` - Filesystem label for the block storage volume when it was first created.
 
 
 ## Import

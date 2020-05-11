@@ -1,4 +1,77 @@
-## 1.15.0 (Unreleased)
+## 1.19.0 (Unreleased)
+## 1.18.0 (May 05, 2020)
+
+FEATURES:
+
+* resource/digitalocean_loadbalancer, datasource/digitalocean_loadbalancer: Add support for the backend keepalive option ([#427](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/427)).
+
+BUG FIXES:
+
+* provider: Spaces API Endpoint setting is optional ([#431](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/431)).
+
+## 1.17.0 (April 28, 2020)
+
+FEATURES:
+
+* **New Data Sources**: `digitalocean_spaces_bucket` and `digitalocean_spaces_buckets` ([#416](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/416)) Thanks to @tdyas!
+* **New Data Sources**: `digitalocean_spaces_bucket_object` and `digitalocean_spaces_bucket_objects` ([#423](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/423)) Thanks to @tdyas!
+* **New Data Sources**: `digitalocean_droplets` ([#418](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/418)) Thanks to @tdyas!
+
+BUG FIXES:
+
+* resource/digitalocean_record: Fix handling of CAA records with iodef tag ([#421](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/421)).
+* resource/digitalocean_loadbalancer: Fix support for multiple forwarding rules ([#414](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/414)).
+
+## 1.16.0 (April 14, 2020)
+
+FEATURES:
+
+* **New Resource**: digitalocean_vpc ([#410](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/410))
+* **New Data Source**: digitalocean_vpc ([#410](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/410))
+* **New Resource**: digitalocean_spaces_bucket_object ([#408](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/408)) Thanks to @tdyas!
+* resource/digitalocean_spaces_bucket: Support for bucket versioning ([#409](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/409)). Thanks to @tdyas!
+* resource/digitalocean_spaces_bucket: Support for lifecycle rules ([#411](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/411)). Thanks to @tdyas!
+
+IMPROVEMENTS:
+
+* provider: Support overriding the Spaces API endpoint using the `spaces_endpoint` attribute or `SPACES_ENDPOINT_URL` environment variable. ([#384]( https://github.com/terraform-providers/terraform-provider-digitalocean/issues/384)). Thanks to @tdyas!
+
+BUG FIXES:
+
+* resource/digitalocean_volume: Revert local name validation to support volumes created before DigitalOcean API change ([#406](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/406)). Thanks to @Amygos & @BrianHicks!
+* resource/digitalocean_spaces_bucket: Region attribute should be ForceNew ([#413](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/413)).
+
+## 1.15.1 (March 19, 2020)
+
+BUG FIXES:
+
+* resource/digitalocean_volume: Fix validation on volume names ([#400](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/400)). Thanks to @Nevon!
+* datasource/digitalocean_kubernetes_cluster: Don't error when `terraform:default-node-pool` tag is not found ([#399](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/399)).
+* resource/digitalocean_kubernetes_cluster: Fix local failure for Kubernetes interoperablity acceptance test when local kubeconfig file is present ([#402](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/402)).
+
+## 1.15.0 (March 18, 2020)
+
+FEATURES:
+
+* **New Data Sources**: digitalocean_regions and digitalocean_region ([#380](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/380)) Thanks to @tdyas!
+* **New Data Sources**: digitalocean_projects and digitalocean_project ([#391](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/391)) Thanks to @tdyas!
+* **New Data Source**: digitalocean_images ([#394](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/394)) Thanks to @tdyas!
+* **New Resource**: digitalocean_project_resources ([#396](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/396))
+* resource/digitalocean_kubernetes_cluster, resource/digitalocean_kubernetes_node_pool: Add support for importing existing resources ([#365](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/365)). Thanks to @tdyas!
+
+IMPROVEMENTS:
+
+* datasource/digitalocean_droplet_snapshot, datasource/digitalocean_volume_snapshot resource/digitalocean_floating_ip, resource/digitalocean_floating_ip_assignment: Update for deprecated terraform-plugin-sdk helper/validation methods ([#376](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/376)).
+* resource/digitalocean_kubernetes_cluster, resource/digitalocean_kubernetes_node_pool: Add support for Kubernetes node pool labels ([#379](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/379)). Thanks to @tdyas!
+* internal/datalist: Add a generic filter/sort framework for datasources ([#385](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/385)). Thanks to @tdyas!
+* resource/digitalocean_database_user: Add support for MySQL user authentication management ([#393](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/393)).
+
+BUG FIXES:
+
+* datasource/digitalocean_droplet: Validate only one of "id", "tag", or "name" are provided as an argument ([#375](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/375)). Thanks to @tdyas!
+* resource/digitalocean_volume: Validate that volume names are lowercase and alphanumeric ([#386](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/386)). Thanks to @danrabinowitz!
+* resource/digitalocean_database_cluster: "version" is now a required argument ([#382](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/382)).
+
 ## 1.14.0 (February 05, 2020)
 
 IMPROVEMENTS:

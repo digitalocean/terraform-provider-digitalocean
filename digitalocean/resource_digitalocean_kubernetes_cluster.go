@@ -51,6 +51,12 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"vpc_uuid": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
 			"cluster_subnet": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -197,6 +203,10 @@ func resourceDigitalOceanKubernetesClusterCreate(d *schema.ResourceData, meta in
 		NodePools:   poolCreateRequests,
 	}
 
+	if vpc, ok := d.GetOk("vpc_uuid"); ok {
+		opts.VPCUUID = vpc.(string)
+	}
+
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
 	if err != nil {
 		return fmt.Errorf("Error creating Kubernetes cluster: %s", err)
@@ -242,6 +252,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 	d.Set("status", cluster.Status.State)
 	d.Set("created_at", cluster.CreatedAt.UTC().String())
 	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
+	d.Set("vpc_uuid", cluster.VPCUUID)
 
 	// find the default node pool from all the pools in the cluster
 	// the default node pool has a custom tag terraform:default-node-pool
@@ -250,7 +261,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 		for _, t := range p.Tags {
 			if t == digitaloceanKubernetesDefaultNodePoolTag {
 				if foundDefaultNodePool {
-					return fmt.Errorf("Multiple node pools are marked as the default; only one node pool may have the `%s` tag", digitaloceanKubernetesDefaultNodePoolTag)
+					log.Printf("[WARN] Multiple node pools are marked as the default; only one node pool may have the `%s` tag", digitaloceanKubernetesDefaultNodePoolTag)
 				}
 
 				keyPrefix := fmt.Sprintf("node_pool.%d.", i)
@@ -263,7 +274,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 		}
 	}
 	if !foundDefaultNodePool {
-		return fmt.Errorf("No default node pool was found; the default node pool must have the `%s` tag", digitaloceanKubernetesDefaultNodePoolTag)
+		log.Printf("[WARN] No default node pool was found. The default node pool must have the `%s` tag if created with Terraform.", digitaloceanKubernetesDefaultNodePoolTag)
 	}
 
 	// fetch cluster credentials and update the resource if the credentials are expired.
