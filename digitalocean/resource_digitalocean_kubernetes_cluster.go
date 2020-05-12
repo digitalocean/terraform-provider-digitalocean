@@ -352,7 +352,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 
 		_, err := client.Kubernetes.Upgrade(context.Background(), d.Id(), opts)
 		if err != nil {
-			return fmt.Errorf("Unable to upgrade cluster verion: %s", err)
+			return fmt.Errorf("Unable to upgrade cluster version: %s", err)
 		}
 	}
 
