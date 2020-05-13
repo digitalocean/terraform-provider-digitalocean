@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -32,6 +33,11 @@ func resourceDigitalOceanContainerRegistry() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
+			"expiry_seconds": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  3600,
+			},
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -44,6 +50,10 @@ func resourceDigitalOceanContainerRegistry() *schema.Resource {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
+			},
+			"credential_expiration_time": {
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
@@ -89,11 +99,35 @@ func resourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta inte
 	d.Set("name", reg.Name)
 	d.Set("write", write)
 	d.Set("endpoint", fmt.Sprintf("%s/%s", RegistryHostname, reg.Name))
-	dockerConfigJSON, err := generateDockerCredentials(write, client)
-	if err != nil {
-		return err
+
+	expirySeconds := d.Get("expiry_seconds").(int)
+	d.Set("expiry_seconds", expirySeconds)
+
+	expirationTime := d.Get("credential_expiration_time").(string)
+	currentTime := time.Now().UTC()
+	if expirationTime != "" {
+		expirationTime, err := time.Parse(time.RFC3339, expirationTime)
+		if err != nil {
+			return err
+		}
+
+		if expirationTime.Before(currentTime) {
+			dockerConfigJSON, err := generateDockerCredentials(write, client)
+			if err != nil {
+				return err
+			}
+			d.Set("docker_credentials", dockerConfigJSON)
+		}
+	} else {
+		expirationTime := currentTime.Add(time.Second * time.Duration(expirySeconds))
+		d.Set("credential_expiration_time", expirationTime.Format(time.RFC3339))
+		dockerConfigJSON, err := generateDockerCredentials(write, client)
+		if err != nil {
+			return err
+		}
+		d.Set("docker_credentials", dockerConfigJSON)
 	}
-	d.Set("docker_credentials", dockerConfigJSON)
+
 	d.Set("server_url", RegistryHostname)
 
 	return nil

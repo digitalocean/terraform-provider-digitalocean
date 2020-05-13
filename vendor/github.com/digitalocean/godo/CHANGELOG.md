@@ -1,6 +1,18 @@
 # Change Log
 
-## unreleased
+## [v1.36.0] - 2020-05-12
+
+- #331 Expose expiry_seconds for Registry.DockerCredentials. @andrewsomething
+
+## [v1.35.1] - 2020-04-21
+
+- #328 Update vulnerable x/crypto dependency - @bentranter
+
+## [v1.35.0] - 2020-04-20
+
+- #326 Add TagCount field to registry/Repository - @nicktate
+- #325 Add DOCR EA routes - @nicktate
+- #324 Upgrade godo to Go 1.14 - @bentranter
 
 ## [v1.34.0] - 2020-03-30
 
