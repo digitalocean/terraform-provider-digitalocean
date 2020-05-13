@@ -352,7 +352,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 
 		_, err := client.Kubernetes.Upgrade(context.Background(), d.Id(), opts)
 		if err != nil {
-			return fmt.Errorf("Unable to upgrade cluster verion: %s", err)
+			return fmt.Errorf("Unable to upgrade cluster version: %s", err)
 		}
 	}
 
@@ -483,6 +483,11 @@ func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.Kuber
 		if cluster.Status.State == "running" {
 			ticker.Stop()
 			return cluster, nil
+		}
+
+		if cluster.Status.State == "error" {
+			ticker.Stop()
+			return nil, fmt.Errorf(cluster.Status.Message)
 		}
 
 		if n > timeout {
