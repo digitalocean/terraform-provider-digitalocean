@@ -485,6 +485,11 @@ func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.Kuber
 			return cluster, nil
 		}
 
+		if cluster.Status.State == "error" {
+			ticker.Stop()
+			return nil, fmt.Errorf(cluster.Status.Message)
+		}
+
 		if n > timeout {
 			ticker.Stop()
 			break
