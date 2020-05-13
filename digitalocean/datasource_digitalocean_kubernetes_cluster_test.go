@@ -21,26 +21,27 @@ func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigWithDataSource(rName, testClusterVersion16),
+				Config: testAccDigitalOceanKubernetesConfigWithDataSource(testClusterVersion16, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanKubernetesClusterExists("data.digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
-					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "version", testClusterVersion16),
+					resource.TestCheckResourceAttrPair("data.digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "node_pool.0.labels.priority", "high"),
-					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "vpc_uuid"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "vpc_uuid"),
 				),
 			},
 		},
 	})
 }
 
-func testAccDigitalOceanKubernetesConfigWithDataSource(rName string, version string) string {
-	return fmt.Sprintf(`
+func testAccDigitalOceanKubernetesConfigWithDataSource(version string, rName string) string {
+	return fmt.Sprintf(`%s
+
 resource "digitalocean_kubernetes_cluster" "foo" {
 	name    = "%s"
 	region  = "lon1"
-	version = "%s"
+	version = data.digitalocean_kubernetes_versions.test.latest_version
 	tags    = ["foo","bar"]
 
 	node_pool {
@@ -57,7 +58,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 data "digitalocean_kubernetes_cluster" "foobar" {
 	name = "${digitalocean_kubernetes_cluster.foo.name}"
 }
-`, rName, version)
+`, version, rName)
 }
 
 func testAccCheckDataSourceDigitalOceanKubernetesClusterExists(n string, cluster *godo.KubernetesCluster) resource.TestCheckFunc {

@@ -12,11 +12,12 @@ func TestAccDigitalOceanKubernetesNodePool_Import(t *testing.T) {
 	testName1 := randomTestName()
 	testName2 := randomTestName()
 
-	config := fmt.Sprintf(`
+	config := fmt.Sprintf(`%s
+
 resource "digitalocean_kubernetes_cluster" "foobar" {
   name = "%s"
   region = "lon1"
-  version = "%s"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
 
   node_pool {
     name = "default"
@@ -31,7 +32,7 @@ resource "digitalocean_kubernetes_node_pool" "barfoo" {
   size = "s-1vcpu-2gb"
   node_count = 1
 }
-`, testName1, testClusterVersion16, testName2)
+`, testClusterVersion16, testName1, testName2)
 	resourceName := "digitalocean_kubernetes_node_pool.barfoo"
 
 	resource.Test(t, resource.TestCase{
