@@ -48,6 +48,14 @@ func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"private_network_uuid": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+
 			"host": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -116,6 +124,10 @@ func resourceDigitalOceanDatabaseReplicaCreate(d *schema.ResourceData, meta inte
 		Tags:   expandTags(d.Get("tags").(*schema.Set).List()),
 	}
 
+	if v, ok := d.GetOk("private_network_uuid"); ok {
+		opts.PrivateNetworkUUID = v.(string)
+	}
+
 	log.Printf("[DEBUG] DatabaseReplica create configuration: %#v", opts)
 	replica, _, err := client.Databases.CreateReplica(context.Background(), clusterId, opts)
 	if err != nil {
@@ -161,6 +173,7 @@ func resourceDigitalOceanDatabaseReplicaRead(d *schema.ResourceData, meta interf
 	d.Set("database", replica.Connection.Database)
 	d.Set("user", replica.Connection.User)
 	d.Set("password", replica.Connection.Password)
+	d.Set("private_network_uuid", replica.PrivateNetworkUUID)
 
 	return nil
 }
