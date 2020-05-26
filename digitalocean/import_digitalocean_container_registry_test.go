@@ -12,7 +12,7 @@ func TestAccDigitalOceanContainerRegistry_importBasic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanTagDestroy,
+		CheckDestroy: testAccCheckDigitalOceanContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanContainerRegistryConfig_basic,
@@ -22,7 +22,7 @@ func TestAccDigitalOceanContainerRegistry_importBasic(t *testing.T) {
 				ResourceName:            resourceName,
 				ImportState:             true,
 				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"docker_credentials", "credential_expiration_time"},
+				ImportStateVerifyIgnore: []string{"docker_credentials", "credential_expiration_time", "expiry_seconds"},
 			},
 		},
 	})

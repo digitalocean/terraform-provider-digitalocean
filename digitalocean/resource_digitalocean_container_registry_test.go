@@ -29,6 +29,8 @@ func TestAccDigitalOceanContainerRegistry_Basic(t *testing.T) {
 						"digitalocean_container_registry.foobar", "write", "false"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_container_registry.foobar", "docker_credentials"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry.foobar", "credential_expiration_time"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/foobar"),
 				),
@@ -42,6 +44,12 @@ func TestAccDigitalOceanContainerRegistry_Basic(t *testing.T) {
 						"digitalocean_container_registry.foobar", "name", "foobar"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry.foobar", "write", "true"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry.foobar", "docker_credentials"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry.foobar", "credential_expiration_time"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/foobar"),
 				),
 			},
 		},

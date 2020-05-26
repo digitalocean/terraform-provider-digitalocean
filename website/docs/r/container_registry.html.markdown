@@ -8,9 +8,6 @@ description: |-
 
 # digitalocean\_container_registry
 
--> **Note**: DigitalOcean Container Registry is currently in private beta.
-This feature will become available to the general public soon.
-
 Provides a DigitalOcean Container Registry resource. A Container Registry is
 a secure, private location to store your containers for rapid deployment. 
 
@@ -29,6 +26,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the container_registry
 * `write` - (Optional) Boolean  to retrieve read/write credentials, suitable for use with the Docker client or in a CI system. Defaults to false.
+* `expiry_seconds` - (Optional) The number of seconds to pass before expiring the access token. Defaults to 7889238000, which is roughly 250 years.
 
 ## Attributes Reference
 
@@ -39,6 +37,8 @@ The following attributes are exported:
 * `endpoint`: The URL endpoint of the container registry. Ex: `registry.digitalocean.com/my_registry`
 * `server_url`: The domain of the container registry. Ex: `registry.digitalocean.com`
 * `docker_credentials`: Credentials for the container registry.
+* `expiry_seconds`: Number of seconds after creation for token to expire.
+* `credential_expiration_time`: The date and time the registry access token will expire.
 
 
 ## Import

@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
+const expirySecondsDefault = 3600 //7889238000 //250 Years
+
 func resourceDigitalOceanContainerRegistry() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceDigitalOceanContainerRegistryCreate,
@@ -36,7 +38,7 @@ func resourceDigitalOceanContainerRegistry() *schema.Resource {
 			"expiry_seconds": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  3600,
+				Default:  expirySecondsDefault, // Relatively close to max value of Duration
 			},
 			"endpoint": {
 				Type:     schema.TypeString,
@@ -101,6 +103,20 @@ func resourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta inte
 	d.Set("endpoint", fmt.Sprintf("%s/%s", RegistryHostname, reg.Name))
 
 	expirySeconds := d.Get("expiry_seconds").(int)
+
+	// This works, but I have to manually set the default
+	if expirySeconds == 0 {
+		expirySeconds = expirySecondsDefault
+	} else if expirySeconds > expirySecondsDefault {
+		return fmt.Errorf("expiry_seconds outside acceptable range %d", expirySeconds)
+	}
+
+	/* This no worky. The expirySeconds comes through as 0 and not the default set
+	in the schema
+	if (expirySeconds > expirySecondsDefault) || (expirySeconds <= 0) {
+		return fmt.Errorf("expiry_seconds outside acceptable range %r", expirySeconds)
+	} */
+
 	d.Set("expiry_seconds", expirySeconds)
 
 	expirationTime := d.Get("credential_expiration_time").(string)
@@ -112,16 +128,19 @@ func resourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta inte
 		}
 
 		if expirationTime.Before(currentTime) {
-			dockerConfigJSON, err := generateDockerCredentials(write, client)
+			dockerConfigJSON, err := generateDockerCredentials(write, expirySeconds, client)
 			if err != nil {
 				return err
 			}
 			d.Set("docker_credentials", dockerConfigJSON)
+			expirationTime := currentTime.Add(time.Second * time.Duration(expirySeconds))
+			d.Set("credential_expiration_time", expirationTime.Format(time.RFC3339))
 		}
+
 	} else {
 		expirationTime := currentTime.Add(time.Second * time.Duration(expirySeconds))
 		d.Set("credential_expiration_time", expirationTime.Format(time.RFC3339))
-		dockerConfigJSON, err := generateDockerCredentials(write, client)
+		dockerConfigJSON, err := generateDockerCredentials(write, expirySeconds, client)
 		if err != nil {
 			return err
 		}
@@ -134,16 +153,33 @@ func resourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta inte
 }
 
 func resourceDigitalOceanContainerRegistryUpdate(d *schema.ResourceData, meta interface{}) error {
-	if d.HasChange("write") {
+	if d.HasChange("expiry_seconds") {
 		write := d.Get("write").(bool)
+		expirySeconds := d.Get("expiry_seconds").(int)
 		client := meta.(*CombinedConfig).godoClient()
-		dockerConfigJSON, err := generateDockerCredentials(write, client)
+		currentTime := time.Now().UTC()
+		expirationTime := currentTime.Add(time.Second * time.Duration(expirySeconds))
+		d.Set("credential_expiration_time", expirationTime.Format(time.RFC3339))
+		dockerConfigJSON, err := generateDockerCredentials(write, expirySeconds, client)
 		if err != nil {
 			return err
 		}
 		d.Set("write", write)
 		d.Set("docker_credentials", dockerConfigJSON)
+	} else {
+		if d.HasChange("write") {
+			write := d.Get("write").(bool)
+			expirySeconds := d.Get("expiry_seconds").(int)
+			client := meta.(*CombinedConfig).godoClient()
+			dockerConfigJSON, err := generateDockerCredentials(write, expirySeconds, client)
+			if err != nil {
+				return err
+			}
+			d.Set("write", write)
+			d.Set("docker_credentials", dockerConfigJSON)
+		}
 	}
+
 	return nil
 }
 
@@ -160,8 +196,8 @@ func resourceDigitalOceanContainerRegistryDelete(d *schema.ResourceData, meta in
 	return nil
 }
 
-func generateDockerCredentials(readWrite bool, client *godo.Client) (string, error) {
-	dockerCreds, response, err := client.Registry.DockerCredentials(context.Background(), &godo.RegistryDockerCredentialsRequest{ReadWrite: readWrite})
+func generateDockerCredentials(readWrite bool, expirySeconds int, client *godo.Client) (string, error) {
+	dockerCreds, response, err := client.Registry.DockerCredentials(context.Background(), &godo.RegistryDockerCredentialsRequest{ReadWrite: readWrite, ExpirySeconds: &expirySeconds})
 	if err != nil {
 		if response != nil && response.StatusCode == 404 {
 			return "", fmt.Errorf("docker credentials not found: %s", err)
