@@ -26,7 +26,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the container_registry
 * `write` - (Optional) Boolean  to retrieve read/write credentials, suitable for use with the Docker client or in a CI system. Defaults to false.
-* `expiry_seconds` - (Optional) The number of seconds to pass before expiring the access token. Defaults to 7889238000, which is roughly 250 years.
+* `expiry_seconds` - (Optional) The number of seconds to pass before expiring the access token. Defaults to 2147483647, which is roughly 68 years.
 
 ## Attributes Reference
 

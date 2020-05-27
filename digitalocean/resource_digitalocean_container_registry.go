@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-const expirySecondsDefault = 3600 //7889238000 //250 Years
+const expirySecondsDefault = 2147483647 // Max value of signed 32 bit integer
 
 func resourceDigitalOceanContainerRegistry() *schema.Resource {
 	return &schema.Resource{
@@ -20,7 +20,7 @@ func resourceDigitalOceanContainerRegistry() *schema.Resource {
 		Update: resourceDigitalOceanContainerRegistryUpdate,
 		Delete: resourceDigitalOceanContainerRegistryDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			State: resourceDigitalOceanContainerRegistryImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -104,18 +104,9 @@ func resourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta inte
 
 	expirySeconds := d.Get("expiry_seconds").(int)
 
-	// This works, but I have to manually set the default
-	if expirySeconds == 0 {
-		expirySeconds = expirySecondsDefault
-	} else if expirySeconds > expirySecondsDefault {
-		return fmt.Errorf("expiry_seconds outside acceptable range %d", expirySeconds)
-	}
-
-	/* This no worky. The expirySeconds comes through as 0 and not the default set
-	in the schema
 	if (expirySeconds > expirySecondsDefault) || (expirySeconds <= 0) {
-		return fmt.Errorf("expiry_seconds outside acceptable range %r", expirySeconds)
-	} */
+		return fmt.Errorf("expiry_seconds outside acceptable range")
+	}
 
 	d.Set("expiry_seconds", expirySeconds)
 
@@ -206,4 +197,14 @@ func generateDockerCredentials(readWrite bool, expirySeconds int, client *godo.C
 	}
 	dockerConfigJSON := string(dockerCreds.DockerConfigJSON)
 	return dockerConfigJSON, nil
+}
+
+func resourceDigitalOceanContainerRegistryImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if v, ok := d.GetOk("expiry_seconds"); ok {
+		d.Set("expiry_seconds", v.(int))
+	} else {
+		d.Set("expiry_seconds", expirySecondsDefault)
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
