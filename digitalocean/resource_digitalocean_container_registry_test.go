@@ -26,30 +26,9 @@ func TestAccDigitalOceanContainerRegistry_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry.foobar", "name", "foobar"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_container_registry.foobar", "write", "false"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_container_registry.foobar", "docker_credentials"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_container_registry.foobar", "credential_expiration_time"),
-					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/foobar"),
-				),
-			},
-			{
-				Config: testAccCheckDigitalOceanContainerRegistryConfig_write,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanContainerRegistryExists("digitalocean_container_registry.foobar", &reg),
-					testAccCheckDigitalOceanContainerRegistryAttributes(&reg),
 					resource.TestCheckResourceAttr(
-						"digitalocean_container_registry.foobar", "name", "foobar"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_container_registry.foobar", "write", "true"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_container_registry.foobar", "docker_credentials"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_container_registry.foobar", "credential_expiration_time"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/foobar"),
+						"digitalocean_container_registry.foobar", "server_url", "registry.digitalocean.com"),
 				),
 			},
 		},
@@ -116,10 +95,4 @@ func testAccCheckDigitalOceanContainerRegistryExists(n string, reg *godo.Registr
 var testAccCheckDigitalOceanContainerRegistryConfig_basic = `
 resource "digitalocean_container_registry" "foobar" {
     name = "foobar"
-}`
-
-var testAccCheckDigitalOceanContainerRegistryConfig_write = `
-resource "digitalocean_container_registry" "foobar" {
-    name  = "foobar"
-    write = true
 }`

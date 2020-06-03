@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
@@ -21,11 +20,6 @@ func dataSourceDigitalOceanContainerRegistry() *schema.Resource {
 				Description:  "name of the container registry",
 				ValidateFunc: validation.NoZeroValues,
 			},
-			"write": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -33,11 +27,6 @@ func dataSourceDigitalOceanContainerRegistry() *schema.Resource {
 			"server_url": {
 				Type:     schema.TypeString,
 				Computed: true,
-			},
-			"docker_credentials": {
-				Type:      schema.TypeString,
-				Computed:  true,
-				Sensitive: true,
 			},
 		},
 	}
@@ -55,23 +44,9 @@ func dataSourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta in
 		return fmt.Errorf("Error retrieving registry: %s", err)
 	}
 
-	write := d.Get("write").(bool)
 	d.SetId(reg.Name)
 	d.Set("name", reg.Name)
-	d.Set("write", write)
 	d.Set("endpoint", fmt.Sprintf("%s/%s", RegistryHostname, reg.Name))
-	dockerCreds, response, err := client.Registry.DockerCredentials(context.Background(), &godo.RegistryDockerCredentialsRequest{ReadWrite: write})
-	if err != nil {
-		if response != nil && response.StatusCode == 404 {
-			return fmt.Errorf("docker credentials not found: %s", err)
-		}
-		return fmt.Errorf("Error retrieving docker credentials: %s", err)
-	}
-	dockerConfigJSON := string(dockerCreds.DockerConfigJSON)
-	if dockerConfigJSON == "" {
-		return fmt.Errorf("Empty docker credentials")
-	}
-	d.Set("docker_credentials", string(dockerCreds.DockerConfigJSON))
 	d.Set("server_url", RegistryHostname)
 	return nil
 }
