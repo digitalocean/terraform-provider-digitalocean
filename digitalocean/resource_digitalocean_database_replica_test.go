@@ -6,15 +6,16 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func TestAccDigitalOceanDatabaseReplica_Basic(t *testing.T) {
+	t.Parallel()
+
 	var databaseReplica godo.DatabaseReplica
-	databaseName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
-	databaseReplicaName := fmt.Sprintf("read-01-test-terraform-%s", acctest.RandString(10))
+	databaseName := randomTestName()
+	databaseReplicaName := randomTestName()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -48,6 +49,37 @@ func TestAccDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 						"digitalocean_database_replica.read-01", "password"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_replica.read-01", "tags.#", "1"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_replica.read-01", "private_network_uuid"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDatabaseReplica_WithVPC(t *testing.T) {
+	t.Parallel()
+
+	var database godo.Database
+	vpcName := randomTestName()
+	databaseName := randomTestName()
+	databaseReplicaName := randomTestName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithVPC, vpcName, databaseName) +
+					fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigWithVPC, databaseReplicaName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_database_cluster.foobar", "private_network_uuid", "digitalocean_vpc.foobar", "id"),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_database_replica.read-01", "private_network_uuid", "digitalocean_vpc.foobar", "id"),
 				),
 			},
 		},
@@ -138,4 +170,15 @@ resource "digitalocean_database_replica" "read-01" {
   region     = "nyc3"
   size       = "db-s-2vcpu-4gb"
   tags       =	["staging"]
+}`
+
+const testAccCheckDigitalOceanDatabaseReplicaConfigWithVPC = `
+
+resource "digitalocean_database_replica" "read-01" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
+  region     = "nyc1"
+  size       = "db-s-2vcpu-4gb"
+  tags       =	["staging"]
+  private_network_uuid = digitalocean_vpc.foobar.id
 }`
