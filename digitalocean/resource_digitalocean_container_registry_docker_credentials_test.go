@@ -24,7 +24,7 @@ func TestAccDigitalOceanContainerRegistryDockerCredentials_Basic(t *testing.T) {
 					testAccCheckDigitalOceanContainerRegistryDockerCredentialsExists("digitalocean_container_registry.foobar", &reg),
 					testAccCheckDigitalOceanContainerRegistryDockerCredentialsAttributes(&reg),
 					resource.TestCheckResourceAttr(
-						"digitalocean_container_registry_docker_credentials.foobar", "name", "foobar"),
+						"digitalocean_container_registry_docker_credentials.foobar", "registry_name", "foobar"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry_docker_credentials.foobar", "write", "true"),
 					resource.TestCheckResourceAttr(
@@ -102,7 +102,7 @@ resource "digitalocean_container_registry" "foobar" {
 }
 
 resource "digitalocean_container_registry_docker_credentials" "foobar" {
-	name = digitalocean_container_registry.foobar.name
+	registry_name = digitalocean_container_registry.foobar.name
 	write = true
 	expiry_seconds = 3600
 }`

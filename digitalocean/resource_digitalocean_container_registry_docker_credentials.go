@@ -23,7 +23,7 @@ func resourceDigitalOceanContainerRegistryDockerCredentials() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
+			"registry_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -70,7 +70,7 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsRead(d *schema.Resour
 
 	write := d.Get("write").(bool)
 	d.SetId(reg.Name)
-	d.Set("name", reg.Name)
+	d.Set("registry_name", reg.Name)
 	d.Set("write", write)
 
 	updateExpiredDockerCredentials(d, write, client)

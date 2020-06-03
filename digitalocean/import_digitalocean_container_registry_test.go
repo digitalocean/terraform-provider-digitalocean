@@ -19,10 +19,9 @@ func TestAccDigitalOceanContainerRegistry_importBasic(t *testing.T) {
 			},
 
 			{
-				ResourceName:            resourceName,
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: []string{"docker_credentials", "credential_expiration_time", "expiry_seconds"},
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
 			},
 		},
 	})

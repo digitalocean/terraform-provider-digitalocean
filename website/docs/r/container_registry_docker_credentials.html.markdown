@@ -20,7 +20,7 @@ Get the container registry:
 
 ```hcl
 resource "digitalocean_container_registry_docker_credentials" "example" {
-  name = "example"
+  registry_name = "example"
 }
 ```
 
@@ -34,11 +34,11 @@ data "digitalocean_container_registry" "example" {
 }
 
 resource "digitalocean_container_registry_docker_credentials" "example" {
-  name = "example"
+  registry_name = "example"
 }
 
 provider "docker" {
-  host = "tcp:localhost:2376"
+  host = "unix://var/run/docker.sock"
 
   registry_auth {
     address = data.digitalocean_container_registry.example.server_url
@@ -54,7 +54,7 @@ access the registry from inside your cluster:
 
 ```
 resource "digitalocean_container_registry_docker_credentials" "example" {
-  name = "example"
+  registry_name = "example"
 }
 
 resource "digitalocean_kubernetes_cluster" "example" {
@@ -96,7 +96,7 @@ resource "kubernetes_secret" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the container registry.
+* `registry_name` - (Required) The name of the container registry.
 * `write` - (Optional) Allow for write access to the container registry. Defaults to false.
 * `expiry_seconds` - (Optional) The amount of time to pass before the Docker credentials expire in seconds. Defaults to 2147483647, or roughly 68 years. Must be greater than 0 and less than 2147483647.
 
@@ -105,7 +105,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id`: The ID of the tag. This is the same as the name.
-* `name` - The name of the container registry
+* `registry_name` - The name of the container registry
 * `docker_credentials`: Credentials for the container registry.
 * `expiry_seconds`: Number of seconds after creation for token to expire.
 * `credential_expiration_time`: The date and time the registry access token will expire.
