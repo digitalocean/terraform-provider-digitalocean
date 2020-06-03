@@ -8,7 +8,7 @@ description: |-
 
 # digitalocean_container_registry_docker_credentials
 
-Get docker credentials for your DigitalOcean container registry.
+Get Docker credentials for your DigitalOcean container registry.
 
 An error is triggered if the provided container registry name does not exist.
 
