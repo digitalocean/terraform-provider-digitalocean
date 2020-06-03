@@ -3,14 +3,13 @@ module github.com/terraform-providers/terraform-provider-digitalocean
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.6.0 // indirect
 	github.com/aws/aws-sdk-go v1.25.4
-	github.com/digitalocean/godo v1.34.0
+	github.com/digitalocean/godo v1.36.0
 	github.com/hashicorp/go-version v1.2.0
 	github.com/hashicorp/terraform-plugin-sdk v1.6.0
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/terraform-providers/terraform-provider-aws v2.32.0+incompatible
 	github.com/terraform-providers/terraform-provider-kubernetes v1.9.1-0.20191018170806-2c80accb5635
 	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	gopkg.in/yaml.v2 v2.2.4
 )
 
