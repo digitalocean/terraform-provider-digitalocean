@@ -1,4 +1,19 @@
 ## 1.19.0 (Unreleased)
+
+FEATURES:
+
+* **New Resources**: `digitalocean_container_registry`, `digitalocean_container_registry_docker_credentials` ([#335](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/335)). Thanks to Zelgius!
+* **New Data Source**: `digitalocean_container_registry` ([#335](https://github.com/terraform-providers/terraform-provider-digitalocean/issues/335)). Thanks to Zelgius!
+
+IMPROVEMENTS:
+
+* resource/digitalocean_database_replica: Add support for specifying a VPC for read-only replicas ([#440](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/440)).
+
+BUG FIXES:
+
+* resource/digitalocean_kubernetes_cluster: Add forcenew to vpc_uuid field ([#443](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/443)). Thanks to KadenLNelson!
+* resource/digitalocean_kubernetes_cluster: Fail faster on cluster create error [#435](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/435)). 
+
 ## 1.18.0 (May 05, 2020)
 
 FEATURES:
