@@ -102,7 +102,7 @@ resource "digitalocean_container_registry" "foobar" {
 }
 
 resource "digitalocean_container_registry_docker_credentials" "foobar" {
-	name = "foobar"	
+	name = digitalocean_container_registry.foobar.name
 	write = true
 	expiry_seconds = 3600
 }`
