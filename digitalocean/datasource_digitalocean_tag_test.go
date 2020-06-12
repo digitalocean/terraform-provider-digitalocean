@@ -25,6 +25,18 @@ func TestAccDataSourceDigitalOceanTag_Basic(t *testing.T) {
 					testAccCheckDataSourceDigitalOceanTagExists("data.digitalocean_tag.foobar", &tag),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_tag.foobar", "name", tagName),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_tag.foobar", "total_resource_count"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_tag.foobar", "droplets_count"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_tag.foobar", "images_count"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_tag.foobar", "volumes_count"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_tag.foobar", "volume_snapshots_count"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_tag.foobar", "databases_count"),
 				),
 			},
 		},
