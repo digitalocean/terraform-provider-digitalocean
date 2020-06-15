@@ -48,6 +48,7 @@ data "digitalocean_droplets" "result" {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.digitalocean_droplets.result", "droplets.#", "1"),
 					resource.TestCheckResourceAttr("data.digitalocean_droplets.result", "droplets.0.name", name1),
+					resource.TestCheckResourceAttrPair("data.digitalocean_droplets.result", "droplets.0.id", "digitalocean_droplet.foo", "id"),
 				),
 			},
 			{

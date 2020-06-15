@@ -153,6 +153,7 @@ func flattenDigitalOceanDroplet(rawDroplet, meta interface{}) (map[string]interf
 	droplet := rawDroplet.(godo.Droplet)
 
 	flattenedDroplet := map[string]interface{}{
+		"id":            droplet.ID,
 		"name":          droplet.Name,
 		"urn":           droplet.URN(),
 		"region":        droplet.Region.Slug,
