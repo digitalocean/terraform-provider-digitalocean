@@ -25,6 +25,30 @@ func resourceDigitalOceanTag() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validateTag,
 			},
+			"total_resource_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"droplets_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"images_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"volumes_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"volume_snapshots_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"databases_count": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -65,6 +89,12 @@ func resourceDigitalOceanTagRead(d *schema.ResourceData, meta interface{}) error
 	}
 
 	d.Set("name", tag.Name)
+	d.Set("total_resource_count", tag.Resources.Count)
+	d.Set("droplets_count", tag.Resources.Droplets.Count)
+	d.Set("images_count", tag.Resources.Images.Count)
+	d.Set("volumes_count", tag.Resources.Volumes.Count)
+	d.Set("volume_snapshots_count", tag.Resources.VolumeSnapshots.Count)
+	d.Set("databases_count", tag.Resources.Databases.Count)
 
 	return nil
 }

@@ -70,6 +70,7 @@ func Provider() terraform.ResourceProvider {
 			"digitalocean_spaces_bucket_objects": dataSourceDigitalOceanSpacesBucketObjects(),
 			"digitalocean_ssh_key":               dataSourceDigitalOceanSSHKey(),
 			"digitalocean_tag":                   dataSourceDigitalOceanTag(),
+			"digitalocean_tags":                  dataSourceDigitalOceanTags(),
 			"digitalocean_volume_snapshot":       dataSourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_volume":                dataSourceDigitalOceanVolume(),
 			"digitalocean_vpc":                   dataSourceDigitalOceanVPC(),

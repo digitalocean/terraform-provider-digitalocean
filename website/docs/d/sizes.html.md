@@ -14,7 +14,7 @@ will be returned.
 
 ## Example Usage
 
-Most common usage will probably be to supply a size to droplet:
+Most common usage will probably be to supply a size to Droplet:
 
 ```hcl
 data "digitalocean_sizes" "main" {
