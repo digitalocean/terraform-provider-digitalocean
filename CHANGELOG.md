@@ -1,4 +1,17 @@
 ## 1.20.0 (Unreleased)
+
+FEATURES:
+
+* **New Data Source**: `digitalocean_tags` ([#451](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/451)).
+
+IMPROVEMENTS:
+
+* resource/digitalocean_tag, datasource/digitalocean_tag: Export the counts of tagged resources as a computed attribute ([#451](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/451)).
+
+BUG FIXES:
+
+* datasource/digitalocean_droplets: Set ID in `flattenDigitalOceanDroplet` to ensure the individual Droplets have their ID exported in the list data source. [#450](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/450)). 
+
 ## 1.19.0 (June 03, 2020)
 
 FEATURES:
