@@ -68,6 +68,10 @@ func resourceDigitalOceanVPC() *schema.Resource {
 				Description: "The date and time of when the VPC was created",
 			},
 		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(2 * time.Minute),
+		},
 	}
 }
 
@@ -148,7 +152,7 @@ func resourceDigitalOceanVPCDelete(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*CombinedConfig).godoClient()
 	vpcID := d.Id()
 
-	return resource.Retry(1*time.Minute, func() *resource.RetryError {
+	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		resp, err := client.VPCs.Delete(context.Background(), vpcID)
 		if err != nil {
 			// Retry if VPC still contains member resources to prevent race condition
