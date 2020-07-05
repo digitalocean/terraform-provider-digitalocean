@@ -69,6 +69,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.token"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.expires_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "vpc_uuid"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "auto_upgrade"),
 				),
 			},
 		},
@@ -198,9 +199,10 @@ func TestAccDigitalOceanKubernetesCluster_CreatePoolWithAutoScale(t *testing.T) 
 				Config: fmt.Sprintf(`%s
 
 					resource "digitalocean_kubernetes_cluster" "foobar" {
-						name    = "%s"
-						region  = "lon1"
-						version = data.digitalocean_kubernetes_versions.test.latest_version
+						name    	 = "%s"
+						region  	 = "lon1"
+						version 	 = data.digitalocean_kubernetes_versions.test.latest_version
+						auto_upgrade = true
 
 						node_pool {
 							name = "default"
@@ -222,6 +224,7 @@ func TestAccDigitalOceanKubernetesCluster_CreatePoolWithAutoScale(t *testing.T) 
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.auto_scale", "true"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.min_nodes", "1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.max_nodes", "3"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "auto_upgrade", "true"),
 				),
 			},
 			// Remove node_count, keep auto-scaling.
@@ -544,6 +547,26 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	region  = "lon1"
 	version = data.digitalocean_kubernetes_versions.test.latest_version
 	tags    = ["one","two"]
+
+	node_pool {
+	  name = "default"
+		size  = "s-2vcpu-4gb"
+		node_count = 1
+		tags  = ["foo","bar"]
+	}
+}
+`, testClusterVersion, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigBasic5(testClusterVersion string, rName string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+	name    = "%s"
+	region  = "lon1"
+	version = data.digitalocean_kubernetes_versions.test.latest_version
+	tags    = ["one","two"]
+	version = true
 
 	node_pool {
 	  name = "default"

@@ -106,6 +106,11 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			"kube_config": kubernetesConfigSchema(),
+
+			"auto_upgrade": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 		},
 
 		CustomizeDiff: customdiff.All(
@@ -208,6 +213,10 @@ func resourceDigitalOceanKubernetesClusterCreate(d *schema.ResourceData, meta in
 		opts.VPCUUID = vpc.(string)
 	}
 
+	if autoUpgrade, ok := d.GetOk("auto_upgrade"); ok {
+		opts.AutoUpgrade = autoUpgrade.(bool)
+	}
+
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
 	if err != nil {
 		return fmt.Errorf("Error creating Kubernetes cluster: %s", err)
@@ -254,6 +263,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 	d.Set("created_at", cluster.CreatedAt.UTC().String())
 	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
 	d.Set("vpc_uuid", cluster.VPCUUID)
+	d.Set("auto_upgrade", cluster.AutoUpgrade)
 
 	// find the default node pool from all the pools in the cluster
 	// the default node pool has a custom tag terraform:default-node-pool
@@ -308,11 +318,12 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChange("name") || d.HasChange("tags") {
+	if d.HasChange("name") || d.HasChange("tags") || d.HasChange("auto_upgrade") {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
-			Name: d.Get("name").(string),
-			Tags: expandTags(d.Get("tags").(*schema.Set).List()),
+			Name:        d.Get("name").(string),
+			Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
+			AutoUpgrade: d.Get("auto_upgrade").(*bool),
 		}
 
 		_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)

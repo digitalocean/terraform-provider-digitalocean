@@ -132,6 +132,11 @@ func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			"kube_config": kubernetesConfigSchema(),
+
+			"auto_upgrade": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 		},
 	}
 }
