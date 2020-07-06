@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"log"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,6 +23,41 @@ const (
   version_prefix = "1.16."
 }`
 )
+
+func init() {
+	resource.AddTestSweepers("digitalocean_kubernetes_cluster", &resource.Sweeper{
+		Name: "digitalocean_kubernetes_cluster",
+		F:    testSweepKubernetesClusters,
+	})
+
+}
+
+func testSweepKubernetesClusters(region string) error {
+	meta, err := sharedConfigForRegion(region)
+	if err != nil {
+		return err
+	}
+
+	client := meta.(*CombinedConfig).godoClient()
+
+	opt := &godo.ListOptions{PerPage: 200}
+	clusters, _, err := client.Kubernetes.List(context.Background(), opt)
+	if err != nil {
+		return err
+	}
+	log.Printf("[DEBUG] Found %d Kubernetes clusters to sweep", len(clusters))
+
+	for _, c := range clusters {
+		if strings.HasPrefix(c.Name, testNamePrefix) {
+			log.Printf("Destroying Kubernetes cluster %s", c.Name)
+			if _, err := client.Kubernetes.Delete(context.Background(), c.ID); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
 
 func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	t.Parallel()
