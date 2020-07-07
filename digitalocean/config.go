@@ -77,10 +77,6 @@ func (c *Config) Client() (*CombinedConfig, error) {
 		return nil, err
 	}
 
-	if c.APIEndpoint == "" {
-		c.APIEndpoint = "https://api.digitalocean.com"
-	}
-
 	apiURL, err := url.Parse(c.APIEndpoint)
 	if err != nil {
 		return nil, err

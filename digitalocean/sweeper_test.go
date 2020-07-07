@@ -17,8 +17,20 @@ func sharedConfigForRegion(region string) (interface{}, error) {
 		return nil, fmt.Errorf("empty DIGITALOCEAN_TOKEN")
 	}
 
+	apiEndpoint := os.Getenv("DIGITALOCEAN_API_URL")
+	if apiEndpoint == "" {
+		apiEndpoint = "https://api.digitalocean.com"
+	}
+
+	spacesEndpoint := os.Getenv("SPACES_ENDPOINT_URL")
+	if spacesEndpoint == "" {
+		spacesEndpoint = "https://{{.Region}}.digitaloceanspaces.com"
+	}
+
 	config := Config{
-		Token: os.Getenv("DIGITALOCEAN_TOKEN"),
+		Token:             os.Getenv("DIGITALOCEAN_TOKEN"),
+		APIEndpoint:       apiEndpoint,
+		SpacesAPIEndpoint: spacesEndpoint,
 	}
 
 	// configures a default client for the region, using the above env vars
