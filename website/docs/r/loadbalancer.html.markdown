@@ -133,7 +133,7 @@ the backend service. Default value is `false`.
 
 `healthcheck` supports the following:
 
-* `protocol` - (Required) The protocol used for health checks sent to the backend Droplets. The possible values are `http` or `tcp`.
+* `protocol` - (Required) The protocol used for health checks sent to the backend Droplets. The possible values are `http`, `https` or `tcp`.
 * `port` - (Optional) An integer representing the port on the backend Droplets on which the health check will attempt a connection.
 * `path` - (Optional) The path on the backend Droplets to which the Load Balancer instance will send a request.
 * `check_interval_seconds` - (Optional) The number of seconds between between two consecutive health checks. If not specified, the default value is `10`.

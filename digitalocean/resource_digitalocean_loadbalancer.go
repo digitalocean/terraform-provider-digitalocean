@@ -117,6 +117,7 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								"http",
+								"https",
 								"tcp",
 							}, false),
 						},
@@ -249,6 +250,10 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 				if healthCheckProtocol == "http" {
 					if !hasPath {
 						return fmt.Errorf("health check `path` is required for when protocol is `http`")
+					}
+				} else if healthCheckProtocol == "https" {
+					if !hasPath {
+						return fmt.Errorf("health check `path` is required for when protocol is `https`")
 					}
 				} else {
 					if hasPath {
