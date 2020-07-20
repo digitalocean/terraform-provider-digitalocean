@@ -1,4 +1,14 @@
-## 1.21.0 (Unreleased)
+## 1.21.0 (July 20, 2020)
+
+IMPROVEMENTS:
+
+* resource/digitalocean_loadbalancer: Adds 'https' to list of acceptable healthcheck protocols ([#460](https://github.com/digitalocean/terraform-provider-digitalocean/pull/460)). Thanks to @gcox!
+* provider: Update module and import paths for repository transfer ([#463](https://github.com/digitalocean/terraform-provider-digitalocean/pull/463)).
+
+BUG FIXES:
+
+* resource/digitalocean_vpc: Increase timeout on VPC deletion retry ([#455](https://github.com/digitalocean/terraform-provider-digitalocean/pull/455)).
+
 ## 1.20.0 (June 15, 2020)
 
 FEATURES:
