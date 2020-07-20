@@ -1,4 +1,4 @@
-module github.com/terraform-providers/terraform-provider-digitalocean
+module github.com/digitalocean/terraform-provider-digitalocean
 
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.6.0 // indirect

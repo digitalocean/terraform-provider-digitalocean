@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/digitalocean/godo"
+	"github.com/digitalocean/terraform-provider-digitalocean/internal/datalist"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-digitalocean/internal/datalist"
 )
 
 func dataSourceDigitalOceanTags() *schema.Resource {

@@ -318,7 +318,7 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 
 	// Image can drift once the image is build if a remote drift is detected
 	// as can cause issues with slug changes due image patch that shoudn't be sync.
-	// See: https://github.com/terraform-providers/terraform-provider-digitalocean/issues/152
+	// See: https://github.com/digitalocean/terraform-provider-digitalocean/issues/152
 
 	d.Set("name", droplet.Name)
 	d.Set("urn", droplet.URN())

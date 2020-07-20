@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean"
 	"github.com/hashicorp/terraform-plugin-sdk/plugin"
-	"github.com/terraform-providers/terraform-provider-digitalocean/digitalocean"
 )
 
 func main() {

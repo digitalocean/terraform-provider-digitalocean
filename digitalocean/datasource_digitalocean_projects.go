@@ -1,8 +1,8 @@
 package digitalocean
 
 import (
+	"github.com/digitalocean/terraform-provider-digitalocean/internal/datalist"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/terraform-providers/terraform-provider-digitalocean/internal/datalist"
 )
 
 func dataSourceDigitalOceanProjects() *schema.Resource {
