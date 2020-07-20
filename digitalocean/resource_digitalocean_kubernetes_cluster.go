@@ -25,7 +25,7 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanKubernetesClusterImportState,
 		},
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -43,6 +43,11 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 					return strings.ToLower(val.(string))
 				},
 				ValidateFunc: validation.NoZeroValues,
+			},
+
+			"surge_upgrade": {
+				Type:     schema.TypeBool,
+				Optional: true,
 			},
 
 			"version": {
@@ -197,11 +202,12 @@ func resourceDigitalOceanKubernetesClusterCreate(d *schema.ResourceData, meta in
 	}
 
 	opts := &godo.KubernetesClusterCreateRequest{
-		Name:        d.Get("name").(string),
-		RegionSlug:  d.Get("region").(string),
-		VersionSlug: d.Get("version").(string),
-		Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
-		NodePools:   poolCreateRequests,
+		Name:         d.Get("name").(string),
+		RegionSlug:   d.Get("region").(string),
+		VersionSlug:  d.Get("version").(string),
+		SurgeUpgrade: d.Get("surge_upgrade").(bool),
+		Tags:         expandTags(d.Get("tags").(*schema.Set).List()),
+		NodePools:    poolCreateRequests,
 	}
 
 	if vpc, ok := d.GetOk("vpc_uuid"); ok {
@@ -245,6 +251,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 	d.Set("name", cluster.Name)
 	d.Set("region", cluster.RegionSlug)
 	d.Set("version", cluster.VersionSlug)
+	d.Set("surge_upgrade", cluster.SurgeUpgrade)
 	d.Set("cluster_subnet", cluster.ClusterSubnet)
 	d.Set("service_subnet", cluster.ServiceSubnet)
 	d.Set("ipv4_address", cluster.IPv4)
@@ -308,11 +315,12 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChange("name") || d.HasChange("tags") {
+	if d.HasChange("name") || d.HasChange("tags") || d.HasChange("surge_upgrade") {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
-			Name: d.Get("name").(string),
-			Tags: expandTags(d.Get("tags").(*schema.Set).List()),
+			Name:         d.Get("name").(string),
+			Tags:         expandTags(d.Get("tags").(*schema.Set).List()),
+			SurgeUpgrade: d.Get("surge_upgrade").(bool),
 		}
 
 		_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)
