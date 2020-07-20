@@ -16,17 +16,17 @@ Requirements
 Building The Provider
 ---------------------
 
-Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-digitalocean`
+Clone repository to: `$GOPATH/src/github.com/digitalocean/terraform-provider-digitalocean`
 
 ```sh
-$ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
-$ git clone git@github.com:terraform-providers/terraform-provider-digitalocean
+$ mkdir -p $GOPATH/src/github.com/digitalocean; cd $GOPATH/src/github.com/digitalocean
+$ git clone git@github.com:digitalocean/terraform-provider-digitalocean
 ```
 
 Enter the provider directory and build the provider
 
 ```sh
-$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-digitalocean
+$ cd $GOPATH/src/github.com/digitalocean/terraform-provider-digitalocean
 $ make build
 ```
 
