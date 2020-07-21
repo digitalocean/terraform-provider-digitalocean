@@ -27,6 +27,33 @@ func TestAccDigitalOceanContainerRegistryDockerCredentials_Basic(t *testing.T) {
 						"digitalocean_container_registry_docker_credentials.foobar", "registry_name", "foobar"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry_docker_credentials.foobar", "write", "true"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry_docker_credentials.foobar", "docker_credentials"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry_docker_credentials.foobar", "credential_expiration_time"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanContainerRegistryDockerCredentials_withExpiry(t *testing.T) {
+	var reg godo.Registry
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanContainerRegistryDockerCredentialsDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_withExpiry,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanContainerRegistryDockerCredentialsExists("digitalocean_container_registry.foobar", &reg),
+					testAccCheckDigitalOceanContainerRegistryDockerCredentialsAttributes(&reg),
+					resource.TestCheckResourceAttr(
+						"digitalocean_container_registry_docker_credentials.foobar", "registry_name", "foobar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_container_registry_docker_credentials.foobar", "write", "true"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry_docker_credentials.foobar", "expiry_seconds", "3600"),
 					resource.TestCheckResourceAttrSet(
@@ -97,6 +124,16 @@ func testAccCheckDigitalOceanContainerRegistryDockerCredentialsExists(n string, 
 }
 
 var testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_basic = `
+resource "digitalocean_container_registry" "foobar" {
+	name = "foobar"
+}
+
+resource "digitalocean_container_registry_docker_credentials" "foobar" {
+	registry_name = digitalocean_container_registry.foobar.name
+	write = true
+}`
+
+var testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_withExpiry = `
 resource "digitalocean_container_registry" "foobar" {
 	name = "foobar"
 }
