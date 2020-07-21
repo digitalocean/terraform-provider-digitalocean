@@ -38,6 +38,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "surge_upgrade", "true"),
 					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "ipv4_address"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_subnet"),
@@ -101,6 +102,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.2053932785", "one"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.298486374", "two"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.labels.%", "0"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "surge_upgrade", "true"),
 				),
 			},
 		},
@@ -479,6 +481,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
 	version = data.digitalocean_kubernetes_versions.test.latest_version
+	surge_upgrade = true
 	tags    = ["foo","bar", "one"]
 
 	node_pool {
@@ -501,6 +504,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
 	version = data.digitalocean_kubernetes_versions.test.latest_version
+	surge_upgrade = true
 	tags    = ["foo","bar"]
 
 	node_pool {
@@ -542,6 +546,7 @@ func testAccDigitalOceanKubernetesConfigBasic4(testClusterVersion string, rName 
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
+    surge_upgrade = true
 	version = data.digitalocean_kubernetes_versions.test.latest_version
 	tags    = ["one","two"]
 
