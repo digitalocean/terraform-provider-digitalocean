@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 )
 
-const expirySecondsDefault = 2147483647 // Max value of signed 32 bit integer
+const expirySecondsDefault = 1576800000 // Max allowed by the API, roughly 50 years
 
 func resourceDigitalOceanContainerRegistryDockerCredentials() *schema.Resource {
 	return &schema.Resource{
@@ -37,7 +37,7 @@ func resourceDigitalOceanContainerRegistryDockerCredentials() *schema.Resource {
 			"expiry_seconds": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  expirySecondsDefault, // Relatively close to max value of Duration
+				Default:  expirySecondsDefault,
 			},
 			"docker_credentials": {
 				Type:      schema.TypeString,

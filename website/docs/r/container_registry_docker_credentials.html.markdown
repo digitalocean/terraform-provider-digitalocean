@@ -49,10 +49,10 @@ provider "docker" {
 
 ### Kubernetes Example
 
-Combined with the Kubernetes Provider's `kubernetes_secret` resource, you can 
+Combined with the Kubernetes Provider's `kubernetes_secret` resource, you can
 access the registry from inside your cluster:
 
-```
+```hcl
 resource "digitalocean_container_registry_docker_credentials" "example" {
   registry_name = "example"
 }
