@@ -73,7 +73,10 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsRead(d *schema.Resour
 	d.Set("registry_name", reg.Name)
 	d.Set("write", write)
 
-	updateExpiredDockerCredentials(d, write, client)
+	err = updateExpiredDockerCredentials(d, write, client)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
