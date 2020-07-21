@@ -481,6 +481,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
 	version = data.digitalocean_kubernetes_versions.test.latest_version
+	surge_upgrade = true
 	tags    = ["foo","bar", "one"]
 
 	node_pool {
@@ -503,6 +504,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
 	version = data.digitalocean_kubernetes_versions.test.latest_version
+	surge_upgrade = true
 	tags    = ["foo","bar"]
 
 	node_pool {
@@ -544,6 +546,7 @@ func testAccDigitalOceanKubernetesConfigBasic4(testClusterVersion string, rName 
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
+    surge_upgrade = true
 	version = data.digitalocean_kubernetes_versions.test.latest_version
 	tags    = ["one","two"]
 

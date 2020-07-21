@@ -89,6 +89,7 @@ The following arguments are supported:
 * `region` - (Required) The slug identifier for the region where the Kubernetes cluster will be created.
 * `version` - (Required) The slug identifier for the version of Kubernetes used for the cluster. Use [doctl](https://github.com/digitalocean/doctl) to find the available versions `doctl kubernetes options versions`. (**Note:** A cluster may only be upgraded to newer versions in-place. If the version is decreased, a new resource will be created.)
 * `vpc_uuid` - (Optional) The ID of the VPC where the Kubernetes cluster will be located.
+* `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: false
 * `node_pool` - (Required) A block representing the cluster's default node pool. Additional node pools may be added to the cluster using the `digitalocean_kubernetes_node_pool` resource. The following arguments may be specified:
   - `name` - (Required) A name for the node pool.
   - `size` - (Required) The slug identifier for the type of Droplet to be used as workers in the node pool.
