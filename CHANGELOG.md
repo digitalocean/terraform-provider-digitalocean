@@ -1,3 +1,14 @@
+## 1.22.0 (July 22, 2020)
+
+IMPROVEMENTS:
+
+* resource/digitalocean_kubernetes_cluster: Enable auto_upgrade on Kubernetes clusters ([#237](https://github.com/digitalocean/terraform-provider-digitalocean/issues/237)). Thanks to @lfarnell!
+* resource/digitalocean_kubernetes_cluster: Add support for surge upgrades ([#465](https://github.com/digitalocean/terraform-provider-digitalocean/pull/465)). Thanks to @varshavaradarajan!
+
+BUG FIXES:
+
+* resource/digitalocean_container_registry_docker_credentials: Update default expiry and don't ignore error ([#467](https://github.com/digitalocean/terraform-provider-digitalocean/pull/467)).
+
 ## 1.21.0 (July 20, 2020)
 
 IMPROVEMENTS:
