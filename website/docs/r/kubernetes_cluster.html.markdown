@@ -81,6 +81,32 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 
 Note that, while individual node pools may scale to 0, a cluster must always include at least one node.
 
+### Auto Upgrade Example
+
+DigitalOcean Kubernetes clusters may also be configured to [auto upgrade](https://www.digitalocean.com/docs/kubernetes/how-to/upgrade-cluster/#automatically) patch versions.
+For example:
+
+```
+data "digitalocean_kubernetes_versions" "example" {
+  version_prefix = "1.18."
+}
+
+resource "digitalocean_kubernetes_cluster" "foo" {
+  name         = "foo"
+  region       = "nyc1"
+  auto_upgrade = true
+  version      = data.digitalocean_kubernetes_versions.example.latest_version
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 3
+  }
+}
+```
+
+Note that a data source is used to supply the version. This is needed to prevent configuration diff whenever a cluster is upgraded.
+
 ## Argument Reference
 
 The following arguments are supported:
