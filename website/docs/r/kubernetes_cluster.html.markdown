@@ -90,6 +90,7 @@ The following arguments are supported:
 * `version` - (Required) The slug identifier for the version of Kubernetes used for the cluster. Use [doctl](https://github.com/digitalocean/doctl) to find the available versions `doctl kubernetes options versions`. (**Note:** A cluster may only be upgraded to newer versions in-place. If the version is decreased, a new resource will be created.)
 * `vpc_uuid` - (Optional) The ID of the VPC where the Kubernetes cluster will be located.
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: false
+* `auto_upgrade` - (Optional) A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `node_pool` - (Required) A block representing the cluster's default node pool. Additional node pools may be added to the cluster using the `digitalocean_kubernetes_node_pool` resource. The following arguments may be specified:
   - `name` - (Required) A name for the node pool.
   - `size` - (Required) The slug identifier for the type of Droplet to be used as workers in the node pool.
@@ -113,6 +114,7 @@ In addition to the arguments listed above, the following additional attributes a
 * `status` -  A string indicating the current status of the cluster. Potential values include running, provisioning, and errored.
 * `created_at` - The date and time when the Kubernetes cluster was created.
 * `updated_at` - The date and time when the Kubernetes cluster was last updated.
+* `auto_upgrade` - A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `kube_config.0` - A representation of the Kubernetes cluster's kubeconfig with the following attributes:
   - `raw_config` - The full contents of the Kubernetes cluster's kubeconfig file.
   - `host` - The URL of the API server on the Kubernetes master node.

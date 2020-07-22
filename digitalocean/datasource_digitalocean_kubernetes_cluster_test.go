@@ -29,6 +29,7 @@ func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair("data.digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "node_pool.0.labels.priority", "high"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "vpc_uuid"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "auto_upgrade"),
 				),
 			},
 		},
@@ -39,10 +40,11 @@ func testAccDigitalOceanKubernetesConfigWithDataSource(version string, rName str
 	return fmt.Sprintf(`%s
 
 resource "digitalocean_kubernetes_cluster" "foo" {
-	name    = "%s"
-	region  = "lon1"
-	version = data.digitalocean_kubernetes_versions.test.latest_version
-	tags    = ["foo","bar"]
+	name    	 = "%s"
+	region  	 = "lon1"
+	version 	 = data.digitalocean_kubernetes_versions.test.latest_version
+	tags    	 = ["foo","bar"]
+	auto_upgrade = true
 
 	node_pool {
 	    name = "default"

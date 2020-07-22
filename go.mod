@@ -6,10 +6,13 @@ require (
 	github.com/digitalocean/godo v1.41.0
 	github.com/hashicorp/go-version v1.2.0
 	github.com/hashicorp/terraform-plugin-sdk v1.6.0
+	github.com/kisielk/errcheck v1.3.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/terraform-providers/terraform-provider-kubernetes v1.9.1-0.20191018170806-2c80accb5635
-	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
+	golang.org/x/mod v0.3.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	golang.org/x/tools v0.0.0-20200702044944-0cc1aa72b347 // indirect
 	gopkg.in/yaml.v2 v2.2.4
 )
 

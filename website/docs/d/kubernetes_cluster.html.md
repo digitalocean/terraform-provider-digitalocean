@@ -49,6 +49,7 @@ The following attributes are exported:
 * `status` -  A string indicating the current status of the cluster. Potential values include running, provisioning, and errored.
 * `created_at` - The date and time when the Kubernetes cluster was created.
 * `updated_at` - The date and time when the Kubernetes cluster was last updated.
+* `auto_upgrade` - A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `kube_config.0` - A representation of the Kubernetes cluster's kubeconfig with the following attributes:
   - `raw_config` - The full contents of the Kubernetes cluster's kubeconfig file.
   - `host` - The URL of the API server on the Kubernetes master node.
