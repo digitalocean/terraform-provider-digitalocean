@@ -81,6 +81,32 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 
 Note that, while individual node pools may scale to 0, a cluster must always include at least one node.
 
+### Auto Upgrade Example
+
+DigitalOcean Kubernetes clusters may also be configured to [auto upgrade](https://www.digitalocean.com/docs/kubernetes/how-to/upgrade-cluster/#automatically) patch versions.
+For example:
+
+```
+data "digitalocean_kubernetes_versions" "example" {
+  version_prefix = "1.18."
+}
+
+resource "digitalocean_kubernetes_cluster" "foo" {
+  name         = "foo"
+  region       = "nyc1"
+  auto_upgrade = true
+  version      = data.digitalocean_kubernetes_versions.example.latest_version
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 3
+  }
+}
+```
+
+Note that a data source is used to supply the version. This is needed to prevent configuration diff whenever a cluster is upgraded.
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -89,6 +115,7 @@ The following arguments are supported:
 * `region` - (Required) The slug identifier for the region where the Kubernetes cluster will be created.
 * `version` - (Required) The slug identifier for the version of Kubernetes used for the cluster. Use [doctl](https://github.com/digitalocean/doctl) to find the available versions `doctl kubernetes options versions`. (**Note:** A cluster may only be upgraded to newer versions in-place. If the version is decreased, a new resource will be created.)
 * `vpc_uuid` - (Optional) The ID of the VPC where the Kubernetes cluster will be located.
+* `auto_upgrade` - (Optional) A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: false
 * `node_pool` - (Required) A block representing the cluster's default node pool. Additional node pools may be added to the cluster using the `digitalocean_kubernetes_node_pool` resource. The following arguments may be specified:
   - `name` - (Required) A name for the node pool.
@@ -113,6 +140,7 @@ In addition to the arguments listed above, the following additional attributes a
 * `status` -  A string indicating the current status of the cluster. Potential values include running, provisioning, and errored.
 * `created_at` - The date and time when the Kubernetes cluster was created.
 * `updated_at` - The date and time when the Kubernetes cluster was last updated.
+* `auto_upgrade` - A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `kube_config.0` - A representation of the Kubernetes cluster's kubeconfig with the following attributes:
   - `raw_config` - The full contents of the Kubernetes cluster's kubeconfig file.
   - `host` - The URL of the API server on the Kubernetes master node.
