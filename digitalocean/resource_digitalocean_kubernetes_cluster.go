@@ -325,13 +325,13 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChange("name") || d.HasChange("tags") || d.HasChange("surge_upgrade") || d.HasChange("auto_upgrade"){
+	if d.HasChange("name") || d.HasChange("tags") || d.HasChange("surge_upgrade") || d.HasChange("auto_upgrade") {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
 			Name:         d.Get("name").(string),
 			Tags:         expandTags(d.Get("tags").(*schema.Set).List()),
 			SurgeUpgrade: d.Get("surge_upgrade").(bool),
-			AutoUpgrade: d.Get("auto_upgrade").(*bool),
+			AutoUpgrade:  d.Get("auto_upgrade").(*bool),
 		}
 
 		_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)
