@@ -52,7 +52,7 @@ The following arguments are supported:
 * `type` - (Required) The type of record. Must be one of `A`, `AAAA`, `CAA`, `CNAME`, `MX`, `NS`, `TXT`, or `SRV`.
 * `domain` - (Required) The domain to add the record to.
 * `value` - (Required) The value of the record.
-* `name` - (Required) The name of the record. Use `@` for records on domain's name itself.
+* `name` - (Required) The hostname of the record. Use `@` for records on domain's name itself.
 * `port` - (Optional) The port of the record. Only valid when type is `SRV`.  Must be between 1 and 65535.
 * `priority` - (Optional) The priority of the record. Only valid when type is `MX` or `SRV`. Must be between 0 and 65535.
 * `weight` - (Optional) The weight of the record. Only valid when type is `SRV`.  Must be between 0 and 65535.
