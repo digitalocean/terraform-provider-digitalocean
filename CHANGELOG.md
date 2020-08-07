@@ -1,3 +1,9 @@
+## 1.22.1 (August 7, 2020)
+
+BUG FIXES:
+
+* resource/digitalocean_record: Allow for SRV records with port 0 ([#475](https://github.com/digitalocean/terraform-provider-digitalocean/issues/475)).
+
 ## 1.22.0 (July 22, 2020)
 
 IMPROVEMENTS:
