@@ -288,7 +288,7 @@ func TestAccDigitalOceanRecord_MX_at(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanRecord_SRV_zero_weight(t *testing.T) {
+func TestAccDigitalOceanRecord_SRV_zero_weight_port(t *testing.T) {
 	var record godo.DomainRecord
 	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
 
@@ -299,7 +299,7 @@ func TestAccDigitalOceanRecord_SRV_zero_weight(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(
-					testAccCheckDigitalOceanRecordConfig_srv_zero_weight, domain),
+					testAccCheckDigitalOceanRecordConfig_srv_zero_weight_port, domain),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanRecordExists("digitalocean_record.foo_record", &record),
 					testAccCheckDigitalOceanRecordAttributesHostname("foobar."+domain, &record),
@@ -312,9 +312,9 @@ func TestAccDigitalOceanRecord_SRV_zero_weight(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_record.foo_record", "type", "SRV"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_record.foo_record", "port", "443"),
-					resource.TestCheckResourceAttr(
 						"digitalocean_record.foo_record", "weight", "0"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.foo_record", "port", "0"),
 				),
 			},
 		},
@@ -766,7 +766,7 @@ resource "digitalocean_record" "foobar" {
   tag   = "issue"
 }`
 
-const testAccCheckDigitalOceanRecordConfig_srv_zero_weight = `
+const testAccCheckDigitalOceanRecordConfig_srv_zero_weight_port = `
 resource "digitalocean_domain" "foobar" {
   name       = "%s"
   ip_address = "192.168.0.10"
@@ -778,9 +778,9 @@ resource "digitalocean_record" "foo_record" {
   name     = "_service._protocol"
   value    = "foobar.${digitalocean_domain.foobar.name}."
   type     = "SRV"
-  priority = "10"
-  port     = "443"
-  weight   = "0"
+  priority = 10
+  port     = 0
+  weight   = 0
 }`
 
 const testAccCheckDigitalOceanRecordConfig_updated_basic = `

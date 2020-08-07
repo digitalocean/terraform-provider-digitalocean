@@ -60,7 +60,7 @@ func resourceDigitalOceanRecord() *schema.Resource {
 			"port": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(1, 65535),
+				ValidateFunc: validation.IntBetween(0, 65535),
 			},
 
 			"priority": {
@@ -124,7 +124,7 @@ func resourceDigitalOceanRecord() *schema.Resource {
 				}
 			}
 
-			_, hasPort := diff.GetOk("port")
+			_, hasPort := diff.GetOkExists("port")
 			_, hasWeight := diff.GetOkExists("weight")
 			if recordType == "SRV" {
 				if !hasPriority {
@@ -289,7 +289,7 @@ func expandDigitalOceanRecordResource(d *schema.ResourceData) (*godo.DomainRecor
 		Data: d.Get("value").(string),
 	}
 
-	if v, ok := d.GetOk("port"); ok {
+	if v, ok := d.GetOkExists("port"); ok {
 		record.Port = v.(int)
 	}
 	if v, ok := d.GetOkExists("priority"); ok {
