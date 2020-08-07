@@ -1,5 +1,14 @@
 # Change Log
 
+## [v1.42.1] - 2020-08-06
+
+- #360 domains: Allow for SRV records with port 0. - @andrewsomething
+
+## [v1.42.0] - 2020-07-22
+
+- #357 invoices: add category to InvoiceItem - @rbutler
+- #358 apps: add support for following logs - @nanzhong
+
 ## [v1.41.0] - 2020-07-17
 
 - #355 kubernetes: Add support for surge upgrades - @varshavaradarajan
