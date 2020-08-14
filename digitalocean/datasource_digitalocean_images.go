@@ -35,6 +35,7 @@ func dataSourceDigitalOceanImages() *schema.Resource {
 			"size_gigabytes",
 			"status",
 			"error_message",
+			"created",
 		},
 		ResultAttributeName: "images",
 		FlattenRecord:       flattenDigitalOceanImage,
