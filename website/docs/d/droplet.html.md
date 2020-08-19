@@ -48,7 +48,7 @@ data "digitalocean_droplet" "example" {
 
 ## Argument Reference
 
-One of following the arguments must be provided:
+One of the following arguments must be provided:
 
 * `id` - (Optional) The ID of the Droplet
 * `name` - (Optional) The name of the Droplet.
