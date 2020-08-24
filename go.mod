@@ -5,7 +5,7 @@ require (
 	github.com/aws/aws-sdk-go v1.25.4
 	github.com/digitalocean/godo v1.42.1
 	github.com/hashicorp/go-version v1.2.0
-	github.com/hashicorp/terraform-plugin-sdk v1.6.0
+	github.com/hashicorp/terraform-plugin-sdk v1.15.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/terraform-providers/terraform-provider-kubernetes v1.9.1-0.20191018170806-2c80accb5635
 	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392
