@@ -26,18 +26,6 @@ func dataSourceDigitalOceanRegions() *schema.Resource {
 				Type: schema.TypeBool,
 			},
 		},
-		FilterKeys: []string{
-			"slug",
-			"name",
-			"available",
-			"features",
-			"sizes",
-		},
-		SortKeys: []string{
-			"slug",
-			"name",
-			"available",
-		},
 		ResultAttributeName: "regions",
 		FlattenRecord:       flattenRegion,
 		GetRecords:          getDigitalOceanRegions,

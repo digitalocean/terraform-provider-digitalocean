@@ -7,20 +7,7 @@ import (
 
 func dataSourceDigitalOceanProjects() *schema.Resource {
 	dataListConfig := &datalist.ResourceConfig{
-		RecordSchema: projectSchema(),
-		FilterKeys: []string{
-			"name",
-			"purpose",
-			"description",
-			"environment",
-			"is_default",
-		},
-		SortKeys: []string{
-			"name",
-			"purpose",
-			"description",
-			"environment",
-		},
+		RecordSchema:        projectSchema(),
 		ResultAttributeName: "projects",
 		FlattenRecord:       flattenDigitalOceanProject,
 		GetRecords:          getDigitalOceanProjects,
