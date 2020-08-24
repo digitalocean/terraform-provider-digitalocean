@@ -14,15 +14,6 @@ type ResourceConfig struct {
 	// The schema for a single instance of the resource.
 	RecordSchema map[string]*schema.Schema
 
-	// A string slice with the attribute keys on which the filter attribute can operate.
-	// The filter attribute operates on all field types except for schema.TypeMap.
-	FilterKeys []string
-
-	// A string slice with the attribute keys on which the sort attribute can operate.
-	// The sort attribute only operates on the schema.TypeString, schema.TypeBool,
-	// schema.TypeInt, and schema.TypeFloat field types.
-	SortKeys []string
-
 	// The name of the attribute in the resource through which to expose results.
 	ResultAttributeName string
 
@@ -57,11 +48,14 @@ func NewResource(config *ResourceConfig) *schema.Resource {
 		recordSchema[attributeName] = newAttributeSchema
 	}
 
+	filterKeys := computeFilterKeys(recordSchema)
+	sortKeys := computeSortKeys(recordSchema)
+
 	return &schema.Resource{
 		Read: dataListResourceRead(config),
 		Schema: map[string]*schema.Schema{
-			"filter": filterSchema(config.FilterKeys),
-			"sort":   sortSchema(config.SortKeys),
+			"filter": filterSchema(filterKeys),
+			"sort":   sortSchema(sortKeys),
 			config.ResultAttributeName: {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -109,39 +103,44 @@ func dataListResourceRead(config *ResourceConfig) schema.ReadFunc {
 	}
 }
 
+// Compute the set of filter keys for the resource.
+func computeFilterKeys(recordSchema map[string]*schema.Schema) []string {
+	var filterKeys []string
+
+	for key, schemaForKey := range recordSchema {
+		if schemaForKey.Type != schema.TypeMap {
+			filterKeys = append(filterKeys, key)
+		}
+	}
+
+	return filterKeys
+}
+
+// Compute the set of sort keys for the source.
+func computeSortKeys(recordSchema map[string]*schema.Schema) []string {
+	var sortKeys []string
+
+	for key, schemaForKey := range recordSchema {
+		supported := false
+		switch schemaForKey.Type {
+		case schema.TypeString, schema.TypeBool, schema.TypeInt, schema.TypeFloat:
+			supported = true
+		}
+
+		if supported {
+			sortKeys = append(sortKeys, key)
+		}
+	}
+
+	return sortKeys
+
+}
+
 // Validate a ResourceConfig to ensure it conforms to this package's assumptions.
 func validateResourceConfig(config *ResourceConfig) error {
 	// Ensure that ResultAttributeName exists.
 	if config.ResultAttributeName == "" {
 		return fmt.Errorf("ResultAttributeName must be specified")
-	}
-
-	// Ensure that all of the filter keys exist in the schema and are of a supported type.
-	for _, filterKey := range config.FilterKeys {
-		if s, ok := config.RecordSchema[filterKey]; ok {
-			if s.Type == schema.TypeMap {
-				return fmt.Errorf("filtering is not supported for map types: %s", filterKey)
-			}
-		} else {
-			return fmt.Errorf("filter attribute '%s' does not exist in schema", filterKey)
-		}
-	}
-
-	// Ensure that all of the sort keys exist in the schema and are of a supported type.
-	for _, sortKey := range config.SortKeys {
-		if s, ok := config.RecordSchema[sortKey]; ok {
-			supported := false
-			switch s.Type {
-			case schema.TypeString, schema.TypeBool, schema.TypeInt, schema.TypeFloat:
-				supported = true
-			}
-
-			if !supported {
-				return fmt.Errorf("sorting is only supported for string, bool, int, and float types: %s", sortKey)
-			}
-		} else {
-			return fmt.Errorf("sort key '%s' does not exist in schema", sortKey)
-		}
 	}
 
 	return nil
