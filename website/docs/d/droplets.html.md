@@ -14,7 +14,7 @@ If no filters are specified, all Droplets will be returned.
 This data source is useful if the Droplets in question are not managed by Terraform or you need to
 utilize any of the Droplets' data.
 
-Note: You can use the [`digitalocean_droplet`](/docs/providers/do/d/droplet.html) data source to obtain metadata
+Note: You can use the [`digitalocean_droplet`](droplet) data source to obtain metadata
 about a single Droplet if you already know the `id`, unique `name`, or unique `tag` to retrieve.
 
 ## Example Usage
@@ -61,10 +61,10 @@ data "digitalocean_droplets" "small-with-backups" {
 
 `filter` supports the following arguments:
 
-* `key` - (Required) Filter the Droplets by this key. This may be one of '`backups`, `created_at`, `disk`, `id`,
+* `key` - (Required) Filter the Droplets by this key. This may be one of `backups`, `created_at`, `disk`, `id`,
   `image`, `ipv4_address`, `ipv4_address_private`, `ipv6`, `ipv6_address`, `ipv6_address_private`, `locked`,
   `memory`, `monitoring`, `name`, `price_hourly`, `price_monthly`, `private_networking`, `region`, `size`,
-  `status`, `tags`, `urn`, `vcpus`, `volume_ids`, or `vpc_uuid`'.
+  `status`, `tags`, `urn`, `vcpus`, `volume_ids`, or `vpc_uuid`.
 
 * `values` - (Required) A list of values to match against the `key` field. Only retrieves Droplets
   where the `key` field takes on one or more of the values provided here.
