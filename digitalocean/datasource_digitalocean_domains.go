@@ -7,17 +7,7 @@ import (
 
 func dataSourceDigitalOceanDomains() *schema.Resource {
 	dataListConfig := &datalist.ResourceConfig{
-		RecordSchema: domainSchema(),
-		FilterKeys: []string{
-			"name",
-			"urn",
-			"ttl",
-		},
-		SortKeys: []string{
-			"name",
-			"urn",
-			"ttl",
-		},
+		RecordSchema:        domainSchema(),
 		ResultAttributeName: "domains",
 		GetRecords:          getDigitalOceanDomains,
 		FlattenRecord:       flattenDigitalOceanDomain,
