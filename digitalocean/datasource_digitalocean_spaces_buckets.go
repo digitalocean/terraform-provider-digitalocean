@@ -7,19 +7,7 @@ import (
 
 func dataSourceDigitalOceanSpacesBuckets() *schema.Resource {
 	dataListConfig := &datalist.ResourceConfig{
-		RecordSchema: spacesBucketSchema(),
-		FilterKeys: []string{
-			"bucket_domain_name",
-			"name",
-			"region",
-			"urn",
-		},
-		SortKeys: []string{
-			"bucket_domain_name",
-			"name",
-			"region",
-			"urn",
-		},
+		RecordSchema:        spacesBucketSchema(),
 		ResultAttributeName: "buckets",
 		FlattenRecord:       flattenSpacesBucket,
 		GetRecords:          getDigitalOceanBuckets,
