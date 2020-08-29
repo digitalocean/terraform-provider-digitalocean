@@ -2,7 +2,50 @@ package datalist
 
 import (
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
+
+func sizesTestDataForSorts() []map[string]interface{} {
+	return []map[string]interface{}{
+		{
+			"slug":          "s-1vcpu-1gb",
+			"memory":        1024,
+			"vcpus":         1,
+			"disk":          25,
+			"transfer":      1.0,
+			"price_monthly": 5.0,
+			"price_hourly":  0.007439999841153622,
+			"regions":       []interface{}{"sgp1", "sgp2"},
+			"regions_set":   schema.NewSet(schema.HashString, []interface{}{"sgp1", "sgp2"}),
+			"available":     true,
+		},
+		{
+			"slug":          "s-2vcpu-2gb",
+			"memory":        2048,
+			"vcpus":         2,
+			"disk":          60,
+			"transfer":      3.0,
+			"price_monthly": 15.0,
+			"price_hourly":  0.02232000045478344,
+			"regions":       []interface{}{"nyc1", "nyc2"},
+			"regions_set":   schema.NewSet(schema.HashString, []interface{}{"nyc1", "nyc2"}),
+			"available":     false,
+		},
+		{
+			"slug":          "s-4vcpu-8gb",
+			"memory":        8192,
+			"vcpus":         4,
+			"disk":          160,
+			"transfer":      5.0,
+			"price_monthly": 40.0,
+			"price_hourly":  0.05951999872922897,
+			"regions":       []interface{}{"ams1", "ams2"},
+			"regions_set":   schema.NewSet(schema.HashString, []interface{}{"ams1", "ams2"}),
+			"available":     true,
+		},
+	}
+}
 
 func TestExpandSorts(t *testing.T) {
 	rawSorts := []interface{}{
@@ -49,7 +92,7 @@ func TestApplySorts(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			// Test ascending order
-			sizes := applySorts(sizesTestSchema(), sizesTestData(), []commonSort{{testCase.key, "asc"}})
+			sizes := applySorts(sizesTestSchema(), sizesTestDataForSorts(), []commonSort{{testCase.key, "asc"}})
 			if len(sizes) != len(testCase.expectedAsc) {
 				t.Fatalf("Expecting %d size results, found %d size results instead", len(testCase.expectedAsc), len(sizes))
 			}
@@ -60,7 +103,7 @@ func TestApplySorts(t *testing.T) {
 			}
 
 			// Test descending order
-			sizes = applySorts(sizesTestSchema(), sizesTestData(), []commonSort{{testCase.key, "desc"}})
+			sizes = applySorts(sizesTestSchema(), sizesTestDataForSorts(), []commonSort{{testCase.key, "desc"}})
 			if len(sizes) != len(testCase.expectedAsc) {
 				t.Fatalf("Expecting %d size results, found %d size results instead", len(testCase.expectedAsc), len(sizes))
 			}
