@@ -111,6 +111,18 @@ func sizesTestData() []map[string]interface{} {
 			"regions_set":   schema.NewSet(schema.HashString, []interface{}{"ams1", "ams2"}),
 			"available":     true,
 		},
+		{
+			"slug":          "m-1vcpu-8gb",
+			"memory":        8192,
+			"vcpus":         1,
+			"disk":          40,
+			"transfer":      3.0,
+			"price_monthly": 50.0,
+			"price_hourly":  0.05952,
+			"regions":       []interface{}{"nyc1", "ams1"},
+			"regions_set":   schema.NewSet(schema.HashString, []interface{}{"nyc1", "ams1"}),
+			"available":     false,
+		},
 	}
 }
 
@@ -120,16 +132,18 @@ func TestApplyFilters(t *testing.T) {
 		filter       commonFilter
 		expectations []string // Expectations are filled with the expected size slugs in order
 	}{
-		{"BySlug", commonFilter{"slug", []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByMemory", commonFilter{"memory", []string{"1024", "8192"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByCPU", commonFilter{"vcpus", []string{"1", "4"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByDisk", commonFilter{"disk", []string{"25", "160"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByTransfer", commonFilter{"transfer", []string{"1.0", "5.0"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByPriceMonthly", commonFilter{"price_monthly", []string{"5.0", "40.0"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByPriceHourly", commonFilter{"price_hourly", []string{"0.00744", "0.05952"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByRegions", commonFilter{"regions", []string{"sgp1", "ams2"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByRegionsSet", commonFilter{"regions_set", []string{"sgp1", "ams2"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByAvailable", commonFilter{"available", []string{"true"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
+		{"BySlug", commonFilter{"slug", []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}, false}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
+		{"ByMemory", commonFilter{"memory", []string{"1024", "8192"}, false}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb", "m-1vcpu-8gb"}},
+		{"ByCPU", commonFilter{"vcpus", []string{"1", "4"}, false}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb", "m-1vcpu-8gb"}},
+		{"ByDisk", commonFilter{"disk", []string{"25", "160"}, false}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
+		{"ByTransfer", commonFilter{"transfer", []string{"1.0", "5.0"}, false}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
+		{"ByPriceMonthly", commonFilter{"price_monthly", []string{"5.0", "40.0"}, false}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
+		{"ByPriceHourly", commonFilter{"price_hourly", []string{"0.00744", "0.05952"}, false}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb", "m-1vcpu-8gb"}},
+		{"ByRegions", commonFilter{"regions", []string{"sgp1", "ams2"}, false}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
+		{"ByRegionsSet", commonFilter{"regions_set", []string{"sgp1", "ams2"}, false}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
+		{"ByAvailable", commonFilter{"available", []string{"true"}, false}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
+		{"AllByRegionsSet", commonFilter{"regions_set", []string{"nyc1", "ams1"}, true}, []string{"m-1vcpu-8gb"}},
+		{"AllBySlug", commonFilter{"slug", []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}, true}, nil},
 	}
 
 	for _, testCase := range testCases {

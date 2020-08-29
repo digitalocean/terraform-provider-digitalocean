@@ -8,6 +8,7 @@ import (
 type commonFilter struct {
 	key    string
 	values []string
+	all    bool
 }
 
 func filterSchema(allowedKeys []string) *schema.Schema {
@@ -25,6 +26,11 @@ func filterSchema(allowedKeys []string) *schema.Schema {
 					Required: true,
 					Elem:     &schema.Schema{Type: schema.TypeString},
 				},
+				"all": {
+					Type:     schema.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
 			},
 		},
 		Optional:    true,
@@ -40,6 +46,7 @@ func expandFilters(rawFilters []interface{}) []commonFilter {
 		expandedFilter := commonFilter{
 			key:    f["key"].(string),
 			values: expandFilterValues(f["values"].([]interface{})),
+			all:    f["all"].(bool),
 		}
 
 		expandedFilters[i] = expandedFilter
@@ -62,10 +69,15 @@ func applyFilters(recordSchema map[string]*schema.Schema, records []map[string]i
 		var filteredRecords []map[string]interface{}
 
 		filterFunc := func(record map[string]interface{}) bool {
-			result := false
+			result := f.all
 
 			for _, filterValue := range f.values {
-				result = result || valueMatches(recordSchema[f.key], record[f.key], filterValue)
+				thisValueMatches := valueMatches(recordSchema[f.key], record[f.key], filterValue)
+				if f.all {
+					result = result && thisValueMatches
+				} else {
+					result = result || thisValueMatches
+				}
 			}
 
 			return result
