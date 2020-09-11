@@ -57,6 +57,7 @@ type Deployment struct {
 	Services    []*DeploymentService    `json:"services,omitempty"`
 	Workers     []*DeploymentWorker     `json:"workers,omitempty"`
 	StaticSites []*DeploymentStaticSite `json:"static_sites,omitempty"`
+	Jobs        []*DeploymentJob        `json:"jobs,omitempty"`
 
 	Cause    string              `json:"cause"`
 	Progress *DeploymentProgress `json:"progress"`
@@ -79,6 +80,12 @@ type DeploymentWorker struct {
 
 // DeploymentStaticSite represents a static site component in a deployment.
 type DeploymentStaticSite struct {
+	Name             string `json:"name,omitempty"`
+	SourceCommitHash string `json:"source_commit_hash"`
+}
+
+// DeploymentJob represents a job component in a deployment.
+type DeploymentJob struct {
 	Name             string `json:"name,omitempty"`
 	SourceCommitHash string `json:"source_commit_hash"`
 }
@@ -141,7 +148,7 @@ type AppsServiceOp struct {
 	client *Client
 }
 
-// Creates an app.
+// Create an app.
 func (s *AppsServiceOp) Create(ctx context.Context, create *AppCreateRequest) (*App, *Response, error) {
 	path := appsBasePath
 	req, err := s.client.NewRequest(ctx, http.MethodPost, path, create)
@@ -264,7 +271,11 @@ func (s *AppsServiceOp) CreateDeployment(ctx context.Context, appID string) (*De
 
 // GetLogs retrieves app logs.
 func (s *AppsServiceOp) GetLogs(ctx context.Context, appID, deploymentID, component string, logType AppLogType, follow bool) (*AppLogs, *Response, error) {
-	url := fmt.Sprintf("%s/%s/deployments/%s/components/%s/logs?type=%s&follow=%t", appsBasePath, appID, deploymentID, component, logType, follow)
+	url := fmt.Sprintf("%s/%s/deployments/%s/logs?type=%s&follow=%t", appsBasePath, appID, deploymentID, logType, follow)
+	if component != "" {
+		url = fmt.Sprintf("%s&component_name=%s", url, component)
+	}
+
 	req, err := s.client.NewRequest(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, nil, err
