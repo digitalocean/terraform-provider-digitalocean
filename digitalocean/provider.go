@@ -77,6 +77,7 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
+			"digitalocean_app":                                   resourceDigitalOceanApp(),
 			"digitalocean_certificate":                           resourceDigitalOceanCertificate(),
 			"digitalocean_container_registry":                    resourceDigitalOceanContainerRegistry(),
 			"digitalocean_container_registry_docker_credentials": resourceDigitalOceanContainerRegistryDockerCredentials(),
