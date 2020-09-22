@@ -1,9 +1,11 @@
 package datalist
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestExpandFilters(t *testing.T) {
@@ -245,7 +247,7 @@ func TestApplyFilters(t *testing.T) {
 			[]string{"s-1vcpu-1gb", "s-4vcpu-8gb"},
 		},
 		{
-			"AllByRegionsSet",
+			"ByRegionsSetWithAllValues",
 			commonFilter{
 				"regions_set",
 				[]interface{}{"nyc1", "ams1"},
@@ -264,19 +266,36 @@ func TestApplyFilters(t *testing.T) {
 			},
 			nil,
 		},
+		{
+			"BySlugWithRegularExpression",
+			commonFilter{
+				"slug",
+				[]interface{}{regexp.MustCompile("8gb$")},
+				false,
+				"re",
+			},
+			[]string{"s-4vcpu-8gb", "m-1vcpu-8gb"},
+		},
+		{
+			"ByRegionSetWithSubstring",
+			commonFilter{
+				"regions_set",
+				[]interface{}{"nyc"},
+				false,
+				"substring",
+			},
+			[]string{"s-2vcpu-2gb", "m-1vcpu-8gb"},
+		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			sizes := applyFilters(sizesTestSchema(), sizesTestData(), []commonFilter{testCase.filter})
-			if len(sizes) != len(testCase.expectations) {
-				t.Fatalf("Expecting %d size results, found %d size results instead", len(testCase.expectations), len(sizes))
+			var slugs []string
+			for _, size := range sizes {
+				slugs = append(slugs, size["slug"].(string))
 			}
-			for i, expectedSlug := range testCase.expectations {
-				if sizes[i]["slug"] != expectedSlug {
-					t.Fatalf("Expecting size index %d to be %s, found %s instead", i, expectedSlug, sizes[i]["slug"])
-				}
-			}
+			assert.Equal(t, testCase.expectations, slugs)
 		})
 	}
 }
