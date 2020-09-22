@@ -94,6 +94,13 @@ The following arguments are supported:
   `price_hourly`, or `available`.
 * `values` - (Required) Only retrieves images which keys has value that matches
   one of the values provided here.
+* `match_by` - (Optional) One of `exact` (default), `re`, or `substring`. For string-typed fields, specify `re` to
+  match by using the `values` as regular expressions, or specify `substring` to match by treating the `values` as
+  substrings to find within the string field.
+  
+* `all` - (Optional) Set to `true` to require that a field match all of the `values` instead of just one or more of
+  them. This is useful when matching against multi-valued fields such as lists or sets where you want to ensure
+  that all of the `values` are present in the list or set.
 
 `sort` supports the following arguments:
 
