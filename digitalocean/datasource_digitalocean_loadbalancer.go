@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
@@ -89,7 +89,6 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 			"healthcheck": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"protocol": {
@@ -135,7 +134,6 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 			"sticky_sessions": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"type": {

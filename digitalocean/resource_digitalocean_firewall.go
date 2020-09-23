@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanFirewall() *schema.Resource {
@@ -158,7 +158,7 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 			"tags": tagsSchema(),
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 
 			inboundRules, hasInbound := diff.GetOk("inbound_rule")
 			outboundRules, hasOutbound := diff.GetOk("outbound_rule")

@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -53,9 +53,9 @@ func TestAccDigitalOceanFirewall_AllowOnlyInbound(t *testing.T) {
 	var firewall godo.Firewall
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanFirewallDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanFirewallConfig_OnlyInbound(rName),
@@ -73,9 +73,9 @@ func TestAccDigitalOceanFirewall_AllowMultipleInbound(t *testing.T) {
 	var firewall godo.Firewall
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanFirewallDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanFirewallConfig_OnlyMultipleInbound(rName),
@@ -93,9 +93,9 @@ func TestAccDigitalOceanFirewall_AllowOnlyOutbound(t *testing.T) {
 	var firewall godo.Firewall
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanFirewallDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanFirewallConfig_OnlyOutbound(rName),
@@ -113,9 +113,9 @@ func TestAccDigitalOceanFirewall_AllowMultipleOutbound(t *testing.T) {
 	var firewall godo.Firewall
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanFirewallDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanFirewallConfig_OnlyMultipleOutbound(rName),
@@ -134,9 +134,9 @@ func TestAccDigitalOceanFirewall_MultipleInboundAndOutbound(t *testing.T) {
 	var firewall godo.Firewall
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanFirewallDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(tagName, rName),
@@ -155,9 +155,9 @@ func TestAccDigitalOceanFirewall_fullPortRange(t *testing.T) {
 	var firewall godo.Firewall
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanFirewallDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanFirewallConfig_fullPortRange(rName),
@@ -176,9 +176,9 @@ func TestAccDigitalOceanFirewall_icmp(t *testing.T) {
 	var firewall godo.Firewall
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanFirewallDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanFirewallConfig_icmp(rName),
@@ -197,9 +197,9 @@ func TestAccDigitalOceanFirewall_ImportMultipleRules(t *testing.T) {
 	rName := acctest.RandString(10)
 	tagName := "tag-" + rName
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanFirewallDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(tagName, rName),

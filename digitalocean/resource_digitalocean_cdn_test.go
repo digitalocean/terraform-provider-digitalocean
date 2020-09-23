@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 const originSuffix = ".ams3.digitaloceanspaces.com"
@@ -21,9 +21,9 @@ func TestAccDigitalOceanCDN_Create(t *testing.T) {
 	expectedTTL := "3600"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanCDNDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanCDNDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cdnCreateConfig,
@@ -48,9 +48,9 @@ func TestAccDigitalOceanCDN_Create_with_TTL(t *testing.T) {
 	expectedTTL := "1800"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanCDNDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanCDNDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cdnCreateConfig,
@@ -77,9 +77,9 @@ func TestAccDigitalOceanCDN_Create_and_Update(t *testing.T) {
 	expectedTTL := "1800"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanCDNDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanCDNDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: cdnCreateConfig,

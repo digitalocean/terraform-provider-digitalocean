@@ -3,11 +3,10 @@ package digitalocean
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanRegions_Basic(t *testing.T) {
@@ -53,8 +52,8 @@ data "digitalocean_regions" "filtered" {
 }
 `
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: configNoFilter,
@@ -68,10 +67,9 @@ data "digitalocean_regions" "filtered" {
 						}
 
 						for i := 0; i < n; i++ {
-							key := fmt.Sprintf("regions.%d.available", i)
-							v, ok := is.Attributes[key]
-							if !ok || !strings.EqualFold(v, "true") {
-								return fmt.Errorf("`available` != true for %s in %s", key, "data.digitalocean_regions.all")
+							key := fmt.Sprintf("regions.%d.slug", i)
+							if _, ok := is.Attributes[key]; !ok {
+								return fmt.Errorf("missing key in instance state for %s in %s", key, "data.digitalocean_regions.all")
 							}
 						}
 

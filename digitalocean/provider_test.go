@@ -1,44 +1,55 @@
 package digitalocean
 
 import (
+	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"os"
+	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	"github.com/terraform-providers/terraform-provider-kubernetes/kubernetes"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 const testNamePrefix = "tf-acc-test-"
 
-var (
-	testAccProviders map[string]terraform.ResourceProvider
-	testAccProvider  *schema.Provider
-)
+var testAccProvider *schema.Provider
+var testAccProviders map[string]*schema.Provider
+var testAccProviderFactories map[string]func() (*schema.Provider, error)
 
 func init() {
-	testAccProvider = Provider().(*schema.Provider)
-	testAccProviders = map[string]terraform.ResourceProvider{
+	testAccProvider = Provider()
+	testAccProviders = map[string]*schema.Provider{
 		"digitalocean": testAccProvider,
-		"kubernetes":   kubernetes.Provider(),
+	}
+	testAccProviderFactories = map[string]func() (*schema.Provider, error){
+		"digitalocean": func() (*schema.Provider, error) {
+			return testAccProvider, nil
+		},
 	}
 }
 
 func TestProvider(t *testing.T) {
-	if err := Provider().(*schema.Provider).InternalValidate(); err != nil {
+	if err := Provider().InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }
 
 func TestProvider_impl(t *testing.T) {
-	var _ terraform.ResourceProvider = Provider()
+	var _ *schema.Provider = Provider()
 }
 
 func testAccPreCheck(t *testing.T) {
 	if v := os.Getenv("DIGITALOCEAN_TOKEN"); v == "" {
 		t.Fatal("DIGITALOCEAN_TOKEN must be set for acceptance tests")
+	}
+
+	err := testAccProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil))
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -51,11 +62,16 @@ func TestURLOverride(t *testing.T) {
 		"api_endpoint": customEndpoint,
 	}
 
-	err := rawProvider.Configure(terraform.NewResourceConfigRaw(raw))
-	meta := rawProvider.(*schema.Provider).Meta()
-	if meta == nil {
-		t.Fatalf("Expected metadata, got nil: err: %s", err)
+	diags := rawProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(raw))
+	if diags.HasError() {
+		t.Fatalf("provider configure failed: %s", diagnosticsToString(diags))
 	}
+
+	meta := rawProvider.Meta()
+	if meta == nil {
+		t.Fatalf("Expected metadata, got nil")
+	}
+
 	client := meta.(*CombinedConfig).godoClient()
 	if client.BaseURL.String() != customEndpoint {
 		t.Fatalf("Expected %s, got %s", customEndpoint, client.BaseURL.String())
@@ -68,15 +84,29 @@ func TestURLDefault(t *testing.T) {
 		"token": "12345",
 	}
 
-	err := rawProvider.Configure(terraform.NewResourceConfigRaw(raw))
-	meta := rawProvider.(*schema.Provider).Meta()
-	if meta == nil {
-		t.Fatalf("Expected metadata, got nil: err: %s", err)
+	diags := rawProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(raw))
+	if diags.HasError() {
+		t.Fatalf("provider configure failed: %s", diagnosticsToString(diags))
 	}
+
+	meta := rawProvider.Meta()
+	if meta == nil {
+		t.Fatal("Expected metadata, got nil")
+	}
+
 	client := meta.(*CombinedConfig).godoClient()
 	if client.BaseURL.String() != "https://api.digitalocean.com" {
 		t.Fatalf("Expected %s, got %s", "https://api.digitalocean.com", client.BaseURL.String())
 	}
+}
+
+func diagnosticsToString(diags diag.Diagnostics) string {
+	diagsAsStrings := make([]string, len(diags))
+	for i, diag := range diags {
+		diagsAsStrings[i] = diag.Summary
+	}
+
+	return strings.Join(diagsAsStrings, "; ")
 }
 
 func TestSpaceAPIDefaultEndpoint(t *testing.T) {
@@ -87,13 +117,19 @@ func TestSpaceAPIDefaultEndpoint(t *testing.T) {
 		"spaces_secret_key": "xyzzy",
 	}
 
-	err := rawProvider.Configure(terraform.NewResourceConfigRaw(raw))
-	meta := rawProvider.(*schema.Provider).Meta()
-	if meta == nil {
-		t.Fatalf("Expected metadata, got nil: err: %s", err)
+	diags := rawProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(raw))
+	if diags.HasError() {
+		t.Fatalf("provider configure failed: %s", diagnosticsToString(diags))
 	}
 
-	client, err := meta.(*CombinedConfig).spacesClient("sfo2")
+	meta := rawProvider.Meta()
+	if meta == nil {
+		t.Fatalf("Expected metadata, got nil")
+	}
+
+	var client *session.Session
+	var err error
+	client, err = meta.(*CombinedConfig).spacesClient("sfo2")
 	if err != nil {
 		t.Fatalf("Failed to create Spaces client: %s", err)
 	}
@@ -115,13 +151,19 @@ func TestSpaceAPIEndpointOverride(t *testing.T) {
 		"spaces_secret_key": "xyzzy",
 	}
 
-	err := rawProvider.Configure(terraform.NewResourceConfigRaw(raw))
-	meta := rawProvider.(*schema.Provider).Meta()
-	if meta == nil {
-		t.Fatalf("Expected metadata, got nil: err: %s", err)
+	diags := rawProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(raw))
+	if diags.HasError() {
+		t.Fatalf("provider configure failed: %s", diagnosticsToString(diags))
 	}
 
-	client, err := meta.(*CombinedConfig).spacesClient("sfo2")
+	meta := rawProvider.Meta()
+	if meta == nil {
+		t.Fatal("Expected metadata, got nil")
+	}
+
+	var client *session.Session
+	var err error
+	client, err = meta.(*CombinedConfig).spacesClient("sfo2")
 	if err != nil {
 		t.Fatalf("Failed to create Spaces client: %s", err)
 	}

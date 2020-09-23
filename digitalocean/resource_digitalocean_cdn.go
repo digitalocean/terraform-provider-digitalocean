@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanCDN() *schema.Resource {
@@ -230,7 +230,6 @@ func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error updating CDN TTL: %s", err)
 		}
 		log.Printf("[INFO] Updated TTL on CDN")
-		d.SetPartial("ttl")
 	}
 
 	if d.HasChange("certificate_id") || d.HasChange("custom_domain") {
@@ -245,7 +244,6 @@ func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error updating CDN custom domain: %s", err)
 		}
 		log.Printf("[INFO] Updated custom domain/certificate on CDN")
-		d.SetPartial("custom_domain_and_certificate_id")
 	}
 
 	d.Partial(false)

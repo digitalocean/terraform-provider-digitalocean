@@ -3,17 +3,17 @@ package digitalocean
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDigitalOceanFloatingIP_importBasicRegion(t *testing.T) {
 	resourceName := "digitalocean_floating_ip.foobar"
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanFloatingIPDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanFloatingIPConfig_region,
@@ -33,9 +33,9 @@ func TestAccDigitalOceanFloatingIP_importBasicDroplet(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanFloatingIPDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanFloatingIPConfig_droplet(rInt),

@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanProject() *schema.Resource {
@@ -184,8 +184,6 @@ func resourceDigitalOceanProjectUpdate(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("Error updating Project: %s", err)
 	}
 
-	d.SetPartial("project_updated")
-
 	// The API requires project resources to be reassigned to another project if the association needs to be deleted.
 	// a diff of the resource could be implemented instead of removing all, (bulk) and adding the back again.
 	if d.HasChange("resources") {
@@ -203,7 +201,6 @@ func resourceDigitalOceanProjectUpdate(d *schema.ResourceData, meta interface{})
 		}
 
 		d.Set("resources", urns)
-		d.SetPartial("project_resources_updated")
 	}
 
 	log.Printf("[INFO] Updated Project, ID: %s", projectId)

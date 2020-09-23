@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanVolumeAttachment_Basic(t *testing.T) {
@@ -20,9 +20,9 @@ func TestAccDigitalOceanVolumeAttachment_Basic(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanVolumeAttachmentDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_basic(rInt, volume.Name),
@@ -51,9 +51,9 @@ func TestAccDigitalOceanVolumeAttachment_Update(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanVolumeAttachmentDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_basic(rInt, firstVolume.Name),
@@ -96,9 +96,9 @@ func TestAccDigitalOceanVolumeAttachment_UpdateToSecondVolume(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanVolumeAttachmentDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_multiple_volumes(rInt, firstVolume.Name, secondVolume.Name, "foobar"),
@@ -143,9 +143,9 @@ func TestAccDigitalOceanVolumeAttachment_Multiple(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanVolumeAttachmentDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_multiple(rInt, firstVolume.Name, secondVolume.Name),

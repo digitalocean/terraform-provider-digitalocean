@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanKubernetesNodePool_Basic(t *testing.T) {
@@ -17,9 +17,9 @@ func TestAccDigitalOceanKubernetesNodePool_Basic(t *testing.T) {
 	var k8sPool godo.KubernetesNodePool
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasicWithNodePool(rName),
@@ -41,9 +41,9 @@ func TestAccDigitalOceanKubernetesNodePool_Update(t *testing.T) {
 	var k8sPool godo.KubernetesNodePool
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasicWithNodePool(rName),
@@ -86,9 +86,9 @@ func TestAccDigitalOceanKubernetesNodePool_CreateWithAutoScale(t *testing.T) {
 	var k8sPool godo.KubernetesNodePool
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			// Create without auto-scaling.
 			{
@@ -253,9 +253,9 @@ func TestAccDigitalOceanKubernetesNodePool_UpdateWithAutoScale(t *testing.T) {
 	var k8sPool godo.KubernetesNodePool
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			// Create without auto-scaling.
 			{
@@ -381,9 +381,9 @@ func TestAccDigitalOceanKubernetesNodePool_WithEmptyNodePool(t *testing.T) {
 	var k8sPool godo.KubernetesNodePool
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigWithEmptyNodePool(rName),

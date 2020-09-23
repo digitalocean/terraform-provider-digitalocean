@@ -8,9 +8,8 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/hashcode"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func loadbalancerStateRefreshFunc(client *godo.Client, loadbalancerId string) resource.StateRefreshFunc {
@@ -141,7 +140,7 @@ func hashForwardingRules(v interface{}) int {
 		buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
 	}
 
-	return hashcode.String(buf.String())
+	return SDKHashString(buf.String())
 }
 
 func flattenDropletIds(list []int) *schema.Set {

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceDigitalOceanTags_Basic(t *testing.T) {
@@ -13,8 +13,8 @@ func TestAccDataSourceDigitalOceanTags_Basic(t *testing.T) {
 	tagName := randomTestName()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanTagsConfig_basic, tagName),

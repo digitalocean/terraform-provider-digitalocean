@@ -3,9 +3,9 @@ package digitalocean
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"testing"
 )
 
@@ -15,9 +15,9 @@ func TestAccDigitalOceanProject_CreateWithDefaults(t *testing.T) {
 	createConfig := fixtureCreateWithDefaults(expectedName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: createConfig,
@@ -53,9 +53,9 @@ func TestAccDigitalOceanProject_CreateWithInitialValues(t *testing.T) {
 		expectedPurpose, expectedEnvironment)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: createConfig,
@@ -94,9 +94,9 @@ func TestAccDigitalOceanProject_UpdateWithInitialValues(t *testing.T) {
 		expectedUpdatePurpose, expectedUpdateEnv)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: createConfig,
@@ -138,9 +138,9 @@ func TestAccDigitalOceanProject_CreateWithDropletResource(t *testing.T) {
 	createConfig := fixtureCreateWithDropletResource(expectedDropletName, expectedName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: createConfig,
@@ -165,9 +165,9 @@ func TestAccDigitalOceanProject_UpdateWithDropletResource(t *testing.T) {
 	updateConfig := fixtureCreateWithDefaults(expectedName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: createConfig,
@@ -202,9 +202,9 @@ func TestAccDigitalOceanProject_UpdateFromDropletToSpacesResource(t *testing.T) 
 	updateConfig := fixtureCreateWithSpacesResource(expectedSpacesName, expectedName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: createConfig,
@@ -240,9 +240,9 @@ func TestAccDigitalOceanProject_WithManyResources(t *testing.T) {
 	destroyConfig := fixtureCreateWithDefaults(projectName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: createConfig,

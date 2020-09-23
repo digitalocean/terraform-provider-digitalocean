@@ -12,9 +12,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 const (
@@ -26,9 +26,9 @@ func TestAccDigitalOceanSpacesBucketObject_noNameNoKey(t *testing.T) {
 	keyError := regexp.MustCompile(`key must not be empty`)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				PreConfig:   func() {},
@@ -49,9 +49,9 @@ func TestAccDigitalOceanSpacesBucketObject_empty(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {},
@@ -74,9 +74,9 @@ func TestAccDigitalOceanSpacesBucketObject_source(t *testing.T) {
 	defer os.Remove(source)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfigSource(rInt, source),
@@ -95,9 +95,9 @@ func TestAccDigitalOceanSpacesBucketObject_content(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {},
@@ -117,9 +117,9 @@ func TestAccDigitalOceanSpacesBucketObject_contentBase64(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {},
@@ -142,9 +142,9 @@ func TestAccDigitalOceanSpacesBucketObject_withContentCharacteristics(t *testing
 	defer os.Remove(source)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_withContentCharacteristics(rInt, source),
@@ -167,9 +167,9 @@ func TestAccDigitalOceanSpacesBucketObject_NonVersioned(t *testing.T) {
 	resourceName := "digitalocean_spaces_bucket_object.object"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_NonVersioned(acctest.RandInt(), sourceInitial),
@@ -194,9 +194,9 @@ func TestAccDigitalOceanSpacesBucketObject_updates(t *testing.T) {
 	defer os.Remove(sourceInitial)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, false, sourceInitial),
@@ -238,9 +238,9 @@ func TestAccDigitalOceanSpacesBucketObject_updateSameFile(t *testing.T) {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, false, filename),
@@ -275,9 +275,9 @@ func TestAccDigitalOceanSpacesBucketObject_updatesWithVersioning(t *testing.T) {
 	defer os.Remove(sourceInitial)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, true, sourceInitial),
@@ -306,9 +306,9 @@ func TestAccDigitalOceanSpacesBucketObject_acl(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_acl(rInt, "some_bucket_content", "private"),
@@ -349,9 +349,9 @@ func TestAccDigitalOceanSpacesBucketObject_metadata(t *testing.T) {
 	resourceName := "digitalocean_spaces_bucket_object.object"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSpacesBucketObjectDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(rInt, "key1", "value1", "key2", "value2"),

@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 const (
@@ -65,9 +65,9 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion16, rName),
@@ -120,9 +120,9 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion16, rName),
@@ -153,9 +153,9 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion16, rName),
@@ -193,9 +193,9 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion16, rName),
@@ -229,9 +229,9 @@ func TestAccDigitalOceanKubernetesCluster_CreatePoolWithAutoScale(t *testing.T) 
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			// Create with auto-scaling and explicit node_count.
 			{
@@ -365,9 +365,9 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolWithAutoScale(t *testing.T) 
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			// Create with auto-scaling disabled.
 			{
@@ -468,9 +468,9 @@ func TestAccDigitalOceanKubernetesCluster_KubernetesProviderInteroperability(t *
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfig_KubernetesProviderInteroperability(testClusterVersion16, rName),
@@ -491,9 +491,9 @@ func TestAccDigitalOceanKubernetesCluster_UpgradeVersion(t *testing.T) {
 	var k8s godo.KubernetesCluster
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion15, rName),

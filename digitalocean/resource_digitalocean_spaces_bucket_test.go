@@ -6,15 +6,15 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func TestAccDigitalOceanBucket_basic(t *testing.T) {
@@ -25,12 +25,12 @@ func TestAccDigitalOceanBucket_basic(t *testing.T) {
 	expectBucketURN := fmt.Sprintf("do:space:%s", expectedBucketName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		/*
 			IDRefreshName:   "digitalocean_spaces_bucket.bucket",
 			IDRefreshIgnore: []string{"force_destroy"},
 		*/
-		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -52,9 +52,9 @@ func TestAccDigitalOceanBucket_region(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanBucketConfigWithRegion(rInt),
@@ -73,9 +73,9 @@ func TestAccDigitalOceanBucket_UpdateAcl(t *testing.T) {
 	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithACLUpdate, ri)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
@@ -103,9 +103,9 @@ func TestAccDigitalOceanBucket_UpdateCors(t *testing.T) {
 	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORSUpdate, ri)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
@@ -140,9 +140,9 @@ func TestAccDigitalOceanBucket_WithCors(t *testing.T) {
 	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORSUpdate, ri),
@@ -169,9 +169,9 @@ func TestAccDigitalOceanBucket_WithMultipleCorsRules(t *testing.T) {
 	ri := acctest.RandInt()
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccDigitalOceanBucketConfigWithMultiCORS, ri),
@@ -206,9 +206,9 @@ func TestAccDigitalOceanBucket_WithMultipleCorsRules(t *testing.T) {
 func TestAccDigitalOceanBucket_shouldFailNotFound(t *testing.T) {
 	rInt := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanBucketDestroyedConfig(rInt),
@@ -245,9 +245,9 @@ resource "digitalocean_spaces_bucket" "bucket" {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				// No versioning configured.
@@ -303,9 +303,9 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 	resourceName := "digitalocean_spaces_bucket.bucket"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketConfigWithLifecycle(rInt),
@@ -382,9 +382,9 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 	resourceName := "digitalocean_spaces_bucket.bucket"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketConfigWithLifecycleExpireMarker(rInt),

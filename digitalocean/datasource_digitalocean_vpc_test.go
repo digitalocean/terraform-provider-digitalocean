@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceDigitalOceanVPC_ByName(t *testing.T) {
@@ -14,8 +14,8 @@ func TestAccDataSourceDigitalOceanVPC_ByName(t *testing.T) {
 	vpcConfigByName := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_Basic, vpcName, vpcDesc)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: vpcConfigByName,
@@ -44,8 +44,7 @@ func TestAccDataSourceDigitalOceanVPC_RegionDefault(t *testing.T) {
 	vpcConfigRegionDefault := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_RegionDefault, vpcDropletName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck: func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
 				Config: vpcConfigRegionDefault,
@@ -68,8 +67,7 @@ func TestAccDataSourceDigitalOceanVPC_ExpectErrors(t *testing.T) {
 	vpcNotExist := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_DoesNotExist, vpcName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+		PreCheck: func() { testAccPreCheck(t) },
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckDataSourceDigitalOceanVPCConfig_MissingRegionDefault,

@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanDroplet() *schema.Resource {
@@ -128,15 +128,6 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			"ipv6_address": {
 				Type:     schema.TypeString,
 				Computed: true,
-				StateFunc: func(val interface{}) string {
-					return strings.ToLower(val.(string))
-				},
-			},
-
-			"ipv6_address_private": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Removed:  "DigitalOcean does not provide private IPv6 networking",
 			},
 
 			"private_networking": {
@@ -336,7 +327,7 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 
 	d.Set("ipv4_address", findIPv4AddrByType(droplet, "public"))
 	d.Set("ipv4_address_private", findIPv4AddrByType(droplet, "private"))
-	d.Set("ipv6_address", findIPv6AddrByType(droplet, "public"))
+	d.Set("ipv6_address", strings.ToLower(findIPv6AddrByType(droplet, "public")))
 
 	if features := droplet.Features; features != nil {
 		d.Set("backups", containsDigitalOceanDropletFeature(features, "backups"))
