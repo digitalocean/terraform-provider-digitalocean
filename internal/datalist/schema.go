@@ -27,6 +27,15 @@ type ResourceConfig struct {
 	// The `meta` argument is the same meta argument passed into the resource's Read
 	// function.
 	GetRecords func(meta interface{}) ([]interface{}, error)
+
+	// Extra parameters to expose on the datasource alongside `filter` and `sort`.
+	ExtraQuerySchema map[string]*schema.Schema
+
+	// Same as `FlattenRecord` plus has access to any extra query data.
+	FlattenRecordWithExtraQuery func(record, meta interface{}, d *schema.ResourceData) (map[string]interface{}, error)
+
+	// Same as `GetRecords` plus has access to any extra query data.
+	GetRecordsWithExtraQuery func(meta interface{}, d *schema.ResourceData) ([]interface{}, error)
 }
 
 // Returns a new "data list" resource given the specified configuration. This
@@ -53,36 +62,60 @@ func NewResource(config *ResourceConfig) *schema.Resource {
 	filterKeys := computeFilterKeys(recordSchema)
 	sortKeys := computeSortKeys(recordSchema)
 
-	return &schema.Resource{
-		ReadContext: dataListResourceRead(config),
-		Schema: map[string]*schema.Schema{
-			"filter": filterSchema(filterKeys),
-			"sort":   sortSchema(sortKeys),
-			config.ResultAttributeName: {
-				Type:     schema.TypeList,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: recordSchema,
-				},
+	datasourceSchema := map[string]*schema.Schema{
+		"filter": filterSchema(filterKeys),
+		"sort":   sortSchema(sortKeys),
+		config.ResultAttributeName: {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: recordSchema,
 			},
 		},
+	}
+
+	for key, value := range config.ExtraQuerySchema {
+		datasourceSchema[key] = value
+	}
+
+	return &schema.Resource{
+		ReadContext: dataListResourceRead(config),
+		Schema: datasourceSchema,
 	}
 }
 
 func dataListResourceRead(config *ResourceConfig) schema.ReadContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-		records, err := config.GetRecords(meta)
-		if err != nil {
-			return diag.Errorf("Unable to load records: %s", err)
+		var records []interface{}
+		if config.GetRecordsWithExtraQuery != nil {
+			records2, err := config.GetRecordsWithExtraQuery(meta, d)
+			if err != nil {
+				return diag.Errorf("Unable to load records: %s", err)
+			}
+			records = records2
+		} else {
+			records2, err := config.GetRecords(meta)
+			if err != nil {
+				return diag.Errorf("Unable to load records: %s", err)
+			}
+			records = records2
 		}
 
 		flattenedRecords := make([]map[string]interface{}, len(records))
 		for i, record := range records {
-			flattenedRecord, err := config.FlattenRecord(record, meta)
-			if err != nil {
-				return diag.FromErr(err)
+			if config.FlattenRecordWithExtraQuery != nil {
+				flattenedRecord, err := config.FlattenRecordWithExtraQuery(record, meta, d)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				flattenedRecords[i] = flattenedRecord
+			} else {
+				flattenedRecord, err := config.FlattenRecord(record, meta)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				flattenedRecords[i] = flattenedRecord
 			}
-			flattenedRecords[i] = flattenedRecord
 		}
 
 		if v, ok := d.GetOk("filter"); ok {
