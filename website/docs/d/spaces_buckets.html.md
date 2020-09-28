@@ -55,7 +55,7 @@ data "digitalocean_spaces_buckets" "nyc3" {
 
 * `key` - (Required) Filter the images by this key. This may be one of `bucket_domain_name`, `name`, `region`, or `urn`.
 
-* `values` - (Required) A list of values to match against the `key` field. Only retrieves images
+* `values` - (Required) A list of values to match against the `key` field. Only retrieves Spaces buckets
   where the `key` field takes on one or more of the values provided here.
 
 * `match_by` - (Optional) One of `exact` (default), `re`, or `substring`. For string-typed fields, specify `re` to
