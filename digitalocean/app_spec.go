@@ -62,19 +62,11 @@ func appSpecSchema() map[string]*schema.Schema {
 
 func appSpecGitSourceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"repo": {
+		"repo_clone_url": {
 			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"requires_auth": {
-			Type:     schema.TypeBool,
 			Optional: true,
 		},
 		"branch": {
-			Type:     schema.TypeString,
-			Optional: true,
-		},
-		"repo_clone_url": {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
@@ -332,9 +324,7 @@ func expandAppGitSourceSpec(config []interface{}) *godo.GitSourceSpec {
 	gitSourceConfig := config[0].(map[string]interface{})
 
 	gitSource := &godo.GitSourceSpec{
-		Repo:         gitSourceConfig["repo"].(string),
 		Branch:       gitSourceConfig["branch"].(string),
-		RequiresAuth: gitSourceConfig["requires_auth"].(bool),
 		RepoCloneURL: gitSourceConfig["repo_clone_url"].(string),
 	}
 
@@ -347,9 +337,7 @@ func flattenAppGitSourceSpec(spec *godo.GitSourceSpec) []interface{} {
 	if spec != nil {
 
 		r := make(map[string]interface{})
-		r["repo"] = (*spec).Repo
 		r["branch"] = (*spec).Branch
-		r["requires_auth"] = (*spec).RequiresAuth
 		r["repo_clone_url"] = (*spec).RepoCloneURL
 
 		result = append(result, r)
@@ -366,9 +354,9 @@ func expandAppEnvs(config []interface{}) []*godo.AppVariableDefinition {
 
 		e := &godo.AppVariableDefinition{
 			Value: env["value"].(string),
-			Scope: godo.VariableScope(env["scope"].(string)),
+			Scope: godo.AppVariableScope(env["scope"].(string)),
 			Key:   env["key"].(string),
-			Type:  godo.VariableType(env["type"].(string)),
+			Type:  godo.AppVariableType(env["type"].(string)),
 		}
 
 		appEnvs = append(appEnvs, e)
