@@ -92,7 +92,7 @@ The following arguments are supported:
 * `key` - (Required) Filter the sizes by this key. This may be one of `slug`,
   `regions`, `memory`, `vcpus`, `disk`, `transfer`, `price_monthly`,
   `price_hourly`, or `available`.
-* `values` - (Required) Only retrieves images which keys has value that matches
+* `values` - (Required) Only retrieves sizes which keys has value that matches
   one of the values provided here.
 * `match_by` - (Optional) One of `exact` (default), `re`, or `substring`. For string-typed fields, specify `re` to
   match by using the `values` as regular expressions, or specify `substring` to match by treating the `values` as
