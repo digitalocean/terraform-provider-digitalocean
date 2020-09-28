@@ -1,12 +1,23 @@
 package datalist
 
 import (
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestExpandFilters(t *testing.T) {
+	recordSchema := map[string]*schema.Schema{
+		"fieldA": {
+			Type: schema.TypeString,
+		},
+		"fieldB": {
+			Type: schema.TypeString,
+		},
+	}
+
 	rawFilters := []interface{}{
 		map[string]interface{}{
 			"key":    "fieldA",
@@ -18,7 +29,10 @@ func TestExpandFilters(t *testing.T) {
 		},
 	}
 
-	expandedFilters := expandFilters(rawFilters)
+	expandedFilters, err := expandFilters(recordSchema, rawFilters)
+	if err != nil {
+		t.Fatalf("expandFilters returned error: %s", err)
+	}
 
 	if len(rawFilters) != len(expandedFilters) {
 		t.Fatalf("incorrect expected length of expanded filters")
@@ -111,6 +125,18 @@ func sizesTestData() []map[string]interface{} {
 			"regions_set":   schema.NewSet(schema.HashString, []interface{}{"ams1", "ams2"}),
 			"available":     true,
 		},
+		{
+			"slug":          "m-1vcpu-8gb",
+			"memory":        8192,
+			"vcpus":         1,
+			"disk":          40,
+			"transfer":      3.0,
+			"price_monthly": 50.0,
+			"price_hourly":  0.05952,
+			"regions":       []interface{}{"nyc1", "ams1"},
+			"regions_set":   schema.NewSet(schema.HashString, []interface{}{"nyc1", "ams1"}),
+			"available":     false,
+		},
 	}
 }
 
@@ -120,29 +146,156 @@ func TestApplyFilters(t *testing.T) {
 		filter       commonFilter
 		expectations []string // Expectations are filled with the expected size slugs in order
 	}{
-		{"BySlug", commonFilter{"slug", []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByMemory", commonFilter{"memory", []string{"1024", "8192"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByCPU", commonFilter{"vcpus", []string{"1", "4"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByDisk", commonFilter{"disk", []string{"25", "160"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByTransfer", commonFilter{"transfer", []string{"1.0", "5.0"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByPriceMonthly", commonFilter{"price_monthly", []string{"5.0", "40.0"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByPriceHourly", commonFilter{"price_hourly", []string{"0.00744", "0.05952"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByRegions", commonFilter{"regions", []string{"sgp1", "ams2"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByRegionsSet", commonFilter{"regions_set", []string{"sgp1", "ams2"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
-		{"ByAvailable", commonFilter{"available", []string{"true"}}, []string{"s-1vcpu-1gb", "s-4vcpu-8gb"}},
+		{
+			"BySlug",
+			commonFilter{
+				"slug",
+				[]interface{}{"s-1vcpu-1gb", "s-4vcpu-8gb"},
+				false,
+				"exact",
+			},
+			[]string{"s-1vcpu-1gb", "s-4vcpu-8gb"},
+		},
+		{
+			"ByMemory",
+			commonFilter{
+				"memory",
+				[]interface{}{1024, 8192},
+				false,
+				"exact",
+			},
+			[]string{"s-1vcpu-1gb", "s-4vcpu-8gb", "m-1vcpu-8gb"},
+		},
+		{
+			"ByCPU",
+			commonFilter{
+				"vcpus",
+				[]interface{}{1, 4},
+				false,
+				"exact",
+			},
+			[]string{"s-1vcpu-1gb", "s-4vcpu-8gb", "m-1vcpu-8gb"},
+		},
+		{
+			"ByDisk",
+			commonFilter{
+				"disk",
+				[]interface{}{25, 160},
+				false,
+				"exact",
+			},
+			[]string{"s-1vcpu-1gb", "s-4vcpu-8gb"},
+		},
+		{
+			"ByTransfer",
+			commonFilter{
+				"transfer",
+				[]interface{}{1.0, 5.0},
+				false,
+				"exact",
+			},
+			[]string{"s-1vcpu-1gb", "s-4vcpu-8gb"},
+		},
+		{
+			"ByPriceMonthly",
+			commonFilter{
+				"price_monthly",
+				[]interface{}{5.0, 40.0},
+				false,
+				"exact",
+			},
+			[]string{"s-1vcpu-1gb", "s-4vcpu-8gb"},
+		},
+		{
+			"ByPriceHourly",
+			commonFilter{
+				"price_hourly",
+				[]interface{}{0.00744, 0.05952},
+				false,
+				"exact",
+			},
+			[]string{"s-1vcpu-1gb", "s-4vcpu-8gb", "m-1vcpu-8gb"},
+		},
+		{
+			"ByRegions",
+			commonFilter{
+				"regions",
+				[]interface{}{"sgp1", "ams2"},
+				false,
+				"exact",
+			},
+			[]string{"s-1vcpu-1gb", "s-4vcpu-8gb"},
+		},
+		{
+			"ByRegionsSet",
+			commonFilter{
+				"regions_set",
+				[]interface{}{"sgp1", "ams2"},
+				false,
+				"exact",
+			},
+			[]string{"s-1vcpu-1gb", "s-4vcpu-8gb"},
+		},
+		{
+			"ByAvailable",
+			commonFilter{
+				"available",
+				[]interface{}{true},
+				false,
+				"exact",
+			},
+			[]string{"s-1vcpu-1gb", "s-4vcpu-8gb"},
+		},
+		{
+			"ByRegionsSetWithAllValues",
+			commonFilter{
+				"regions_set",
+				[]interface{}{"nyc1", "ams1"},
+				true,
+				"exact",
+			},
+			[]string{"m-1vcpu-8gb"},
+		},
+		{
+			"AllBySlug",
+			commonFilter{
+				"slug",
+				[]interface{}{"s-1vcpu-1gb", "s-4vcpu-8gb"},
+				true,
+				"exact",
+			},
+			nil,
+		},
+		{
+			"BySlugWithRegularExpression",
+			commonFilter{
+				"slug",
+				[]interface{}{regexp.MustCompile("8gb$")},
+				false,
+				"re",
+			},
+			[]string{"s-4vcpu-8gb", "m-1vcpu-8gb"},
+		},
+		{
+			"ByRegionSetWithSubstring",
+			commonFilter{
+				"regions_set",
+				[]interface{}{"nyc"},
+				false,
+				"substring",
+			},
+			[]string{"s-2vcpu-2gb", "m-1vcpu-8gb"},
+		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
 			sizes := applyFilters(sizesTestSchema(), sizesTestData(), []commonFilter{testCase.filter})
-			if len(sizes) != len(testCase.expectations) {
-				t.Fatalf("Expecting %d size results, found %d size results instead", len(testCase.expectations), len(sizes))
+			var slugs []string
+			for _, size := range sizes {
+				slugs = append(slugs, size["slug"].(string))
 			}
-			for i, expectedSlug := range testCase.expectations {
-				if sizes[i]["slug"] != expectedSlug {
-					t.Fatalf("Expecting size index %d to be %s, found %s instead", i, expectedSlug, sizes[i]["slug"])
-				}
-			}
+			assert.Equal(t, testCase.expectations, slugs)
 		})
 	}
 }

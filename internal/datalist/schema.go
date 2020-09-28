@@ -84,7 +84,10 @@ func dataListResourceRead(config *ResourceConfig) schema.ReadFunc {
 		}
 
 		if v, ok := d.GetOk("filter"); ok {
-			filters := expandFilters(v.(*schema.Set).List())
+			filters, err := expandFilters(config.RecordSchema, v.(*schema.Set).List())
+			if err != nil {
+				return err
+			}
 			flattenedRecords = applyFilters(config.RecordSchema, flattenedRecords, filters)
 		}
 
