@@ -39,13 +39,11 @@ func appSpecSchema() map[string]*schema.Schema {
 			Optional: true,
 			Elem:     appSpecWorkerSchema(),
 		},
-		// "database": {
-		// 	Type:     schema.TypeList,
-		// 	Optional: true,
-		// 	Elem: &schema.Resource{
-		// 		Schema: map[string]*schema.Schema{},
-		// 	},
-		// },
+		"database": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     appSpecDatabaseSchema(),
+		},
 	}
 }
 
@@ -278,6 +276,47 @@ func appSpecWorkerSchema() *schema.Resource {
 	}
 }
 
+func appSpecDatabaseSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"engine": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"UNSET",
+					"MYSQL",
+					"PG",
+					"REDIS",
+				}, false),
+			},
+			"version": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"production": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+			"cluster_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"db_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"db_user": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+		},
+	}
+}
+
 func expandAppSpec(config []interface{}) *godo.AppSpec {
 	if len(config) == 0 || config[0] == nil {
 		return &godo.AppSpec{}
@@ -291,6 +330,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		Services:    expandAppSpecServices(appSpecConfig["service"].([]interface{})),
 		StaticSites: expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
 		Workers:     expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
+		Databases:   expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
 	}
 
 	return appSpec
@@ -316,6 +356,10 @@ func flattenAppSpec(spec *godo.AppSpec) []map[string]interface{} {
 
 		if len((*spec).Workers) > 0 {
 			r["worker"] = flattenAppSpecWorkers((*spec).Workers)
+		}
+
+		if len((*spec).Databases) > 0 {
+			r["database"] = flattenAppSpecDatabases((*spec).Databases)
 		}
 
 		result = append(result, r)
@@ -683,6 +727,48 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["instance_count"] = int(w.InstanceCount)
 		r["source_dir"] = w.SourceDir
 		r["environment_slug"] = w.EnvironmentSlug
+
+		result[i] = r
+	}
+
+	return result
+}
+
+func expandAppSpecDatabases(config []interface{}) []*godo.AppDatabaseSpec {
+	appDatabases := make([]*godo.AppDatabaseSpec, 0, len(config))
+
+	for _, rawDatabase := range config {
+		db := rawDatabase.(map[string]interface{})
+
+		s := &godo.AppDatabaseSpec{
+			Name:        db["name"].(string),
+			Engine:      godo.AppDatabaseSpecEngine(db["engine"].(string)),
+			Version:     db["version"].(string),
+			Production:  db["production"].(bool),
+			ClusterName: db["cluster_name"].(string),
+			DBName:      db["db_name"].(string),
+			DBUser:      db["db_user"].(string),
+		}
+
+		appDatabases = append(appDatabases, s)
+	}
+
+	return appDatabases
+}
+
+func flattenAppSpecDatabases(databases []*godo.AppDatabaseSpec) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(databases))
+
+	for i, db := range databases {
+		r := make(map[string]interface{})
+
+		r["name"] = db.Name
+		r["engine"] = db.Engine
+		r["version"] = db.Version
+		r["production"] = db.Production
+		r["cluster_name"] = db.ClusterName
+		r["db_name"] = db.DBName
+		r["db_user"] = db.DBUser
 
 		result[i] = r
 	}
