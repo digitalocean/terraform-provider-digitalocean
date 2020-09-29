@@ -34,6 +34,11 @@ func appSpecSchema() map[string]*schema.Schema {
 			Optional: true,
 			Elem:     appSpecStaticSiteSchema(),
 		},
+		"worker": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     appSpecWorkerSchema(),
+		},
 		// "database": {
 		// 	Type:     schema.TypeList,
 		// 	Optional: true,
@@ -248,6 +253,31 @@ func appSpecStaticSiteSchema() *schema.Resource {
 	}
 }
 
+func appSpecWorkerSchema() *schema.Resource {
+	workerSchema := map[string]*schema.Schema{
+		"run_command": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"instance_size_slug": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"instance_count": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+	}
+
+	for k, v := range appSpecComponentBase() {
+		workerSchema[k] = v
+	}
+
+	return &schema.Resource{
+		Schema: workerSchema,
+	}
+}
+
 func expandAppSpec(config []interface{}) *godo.AppSpec {
 	if len(config) == 0 || config[0] == nil {
 		return &godo.AppSpec{}
@@ -260,6 +290,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		Domains:     expandAppDomainSpec(appSpecConfig["domains"].(*schema.Set).List()),
 		Services:    expandAppSpecServices(appSpecConfig["service"].([]interface{})),
 		StaticSites: expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
+		Workers:     expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
 	}
 
 	return appSpec
@@ -281,6 +312,10 @@ func flattenAppSpec(spec *godo.AppSpec) []map[string]interface{} {
 
 		if len((*spec).StaticSites) > 0 {
 			r["static_site"] = flattenAppSpecStaticSites((*spec).StaticSites)
+		}
+
+		if len((*spec).Workers) > 0 {
+			r["worker"] = flattenAppSpecWorkers((*spec).Workers)
 		}
 
 		result = append(result, r)
@@ -592,6 +627,64 @@ func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec) []map[string]int
 		r["index_document"] = s.IndexDocument
 		r["error_document"] = s.ErrorDocument
 		r["environment_slug"] = s.EnvironmentSlug
+
+		result[i] = r
+	}
+
+	return result
+}
+
+func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
+	appWorkers := make([]*godo.AppWorkerSpec, 0, len(config))
+
+	for _, rawWorker := range config {
+		worker := rawWorker.(map[string]interface{})
+
+		s := &godo.AppWorkerSpec{
+			Name:             worker["name"].(string),
+			RunCommand:       worker["run_command"].(string),
+			BuildCommand:     worker["build_command"].(string),
+			DockerfilePath:   worker["dockerfile_path"].(string),
+			Envs:             expandAppEnvs(worker["env"].(*schema.Set).List()),
+			InstanceSizeSlug: worker["instance_size_slug"].(string),
+			InstanceCount:    int64(worker["instance_count"].(int)),
+			SourceDir:        worker["source_dir"].(string),
+			EnvironmentSlug:  worker["environment_slug"].(string),
+		}
+
+		github := worker["github"].([]interface{})
+		if len(github) > 0 {
+			s.GitHub = expandAppGitHubSourceSpec(github)
+		}
+
+		git := worker["git"].([]interface{})
+		if len(git) > 0 {
+			s.Git = expandAppGitSourceSpec(git)
+		}
+
+		appWorkers = append(appWorkers, s)
+	}
+
+	return appWorkers
+}
+
+func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(workers))
+
+	for i, w := range workers {
+		r := make(map[string]interface{})
+
+		r["name"] = w.Name
+		r["run_command"] = w.RunCommand
+		r["build_command"] = w.BuildCommand
+		r["github"] = flattenAppGitHubSourceSpec(w.GitHub)
+		r["git"] = flattenAppGitSourceSpec(w.Git)
+		r["dockerfile_path"] = w.DockerfilePath
+		r["env"] = flattenAppEnvs(w.Envs)
+		r["instance_size_slug"] = w.InstanceSizeSlug
+		r["instance_count"] = int(w.InstanceCount)
+		r["source_dir"] = w.SourceDir
+		r["environment_slug"] = w.EnvironmentSlug
 
 		result[i] = r
 	}
