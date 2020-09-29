@@ -29,13 +29,11 @@ func appSpecSchema() map[string]*schema.Schema {
 			MinItems: 1,
 			Elem:     appSpecServicesSchema(),
 		},
-		// "static_site": {
-		// 	Type:     schema.TypeList,
-		// 	Optional: true,
-		// 	Elem: &schema.Resource{
-		// 		Schema: map[string]*schema.Schema{},
-		// 	},
-		// },
+		"static_site": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     appSpecStaticSiteSchema(),
+		},
 		// "database": {
 		// 	Type:     schema.TypeList,
 		// 	Optional: true,
@@ -98,9 +96,8 @@ func appSpecEnvSchema() *schema.Resource {
 				Optional: true,
 			},
 			"value": {
-				Type:      schema.TypeString,
-				Optional:  true,
-				Sensitive: true,
+				Type:     schema.TypeString,
+				Optional: true,
 			},
 			"scope": {
 				Type:     schema.TypeString,
@@ -152,7 +149,7 @@ func appSpecServicesSchema() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The name of the app",
+				Description: "The name of the service",
 			},
 			"run_command": {
 				Type:     schema.TypeString,
@@ -228,6 +225,77 @@ func appSpecServicesSchema() *schema.Resource {
 	}
 }
 
+func appSpecStaticSiteSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The name of the static site",
+			},
+			"build_command": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"output_dir": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "An optional path to where the built assets will be located, relative to the build context. If not set, App Platform will automatically scan for these directory names: `_static`, `dist`, `public`.",
+			},
+			"index_document": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"error_document": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"dockerfile_path": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"git": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: appSpecGitSourceSchema(),
+				},
+			},
+			"github": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: appSpecGitHubSourceSchema(),
+				},
+			},
+			"env": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem:     appSpecEnvSchema(),
+				Set:      schema.HashResource(appSpecEnvSchema()),
+			},
+			"routes": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: appSpecRouteSchema(),
+				},
+			},
+			"source_dir": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"environment_slug": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+		},
+	}
+}
+
 func expandAppSpec(config []interface{}) *godo.AppSpec {
 	if len(config) == 0 || config[0] == nil {
 		return &godo.AppSpec{}
@@ -235,10 +303,11 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 	appSpecConfig := config[0].(map[string]interface{})
 
 	appSpec := &godo.AppSpec{
-		Name:     appSpecConfig["name"].(string),
-		Region:   appSpecConfig["region"].(string),
-		Domains:  expandAppDomainSpec(appSpecConfig["domains"].(*schema.Set).List()),
-		Services: expandAppSpecServices(appSpecConfig["service"].([]interface{})),
+		Name:        appSpecConfig["name"].(string),
+		Region:      appSpecConfig["region"].(string),
+		Domains:     expandAppDomainSpec(appSpecConfig["domains"].(*schema.Set).List()),
+		Services:    expandAppSpecServices(appSpecConfig["service"].([]interface{})),
+		StaticSites: expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
 	}
 
 	return appSpec
@@ -256,6 +325,10 @@ func flattenAppSpec(spec *godo.AppSpec) []map[string]interface{} {
 
 		if len((*spec).Services) > 0 {
 			r["service"] = flattenAppSpecServices((*spec).Services)
+		}
+
+		if len((*spec).StaticSites) > 0 {
+			r["static_site"] = flattenAppSpecStaticSites((*spec).StaticSites)
 		}
 
 		result = append(result, r)
@@ -502,6 +575,70 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["instance_size_slug"] = s.InstanceSizeSlug
 		r["instance_count"] = int(s.InstanceCount)
 		r["source_dir"] = s.SourceDir
+		r["environment_slug"] = s.EnvironmentSlug
+
+		result[i] = r
+	}
+
+	return result
+}
+
+func expandAppSpecStaticSites(config []interface{}) []*godo.AppStaticSiteSpec {
+	appSites := make([]*godo.AppStaticSiteSpec, 0, len(config))
+
+	for _, rawSite := range config {
+		site := rawSite.(map[string]interface{})
+
+		s := &godo.AppStaticSiteSpec{
+			Name:            site["name"].(string),
+			BuildCommand:    site["build_command"].(string),
+			DockerfilePath:  site["dockerfile_path"].(string),
+			Envs:            expandAppEnvs(site["env"].(*schema.Set).List()),
+			SourceDir:       site["source_dir"].(string),
+			OutputDir:       site["output_dir"].(string),
+			IndexDocument:   site["index_document"].(string),
+			ErrorDocument:   site["error_document"].(string),
+			EnvironmentSlug: site["environment_slug"].(string),
+		}
+
+		github := site["github"].([]interface{})
+		if len(github) > 0 {
+			s.GitHub = expandAppGitHubSourceSpec(github)
+		}
+
+		git := site["git"].([]interface{})
+		if len(git) > 0 {
+			s.Git = expandAppGitSourceSpec(git)
+		}
+
+		routes := site["routes"].([]interface{})
+		if len(routes) > 0 {
+			s.Routes = expandAppRoutes(routes)
+		}
+
+		appSites = append(appSites, s)
+	}
+
+	return appSites
+}
+
+func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(sites))
+
+	for i, s := range sites {
+		r := make(map[string]interface{})
+
+		r["name"] = s.Name
+		r["build_command"] = s.BuildCommand
+		r["github"] = flattenAppGitHubSourceSpec(s.GitHub)
+		r["git"] = flattenAppGitSourceSpec(s.Git)
+		r["routes"] = flattenAppRoutes(s.Routes)
+		r["dockerfile_path"] = s.DockerfilePath
+		r["env"] = flattenAppEnvs(s.Envs)
+		r["source_dir"] = s.SourceDir
+		r["output_dir"] = s.OutputDir
+		r["index_document"] = s.IndexDocument
+		r["error_document"] = s.ErrorDocument
 		r["environment_slug"] = s.EnvironmentSlug
 
 		result[i] = r
