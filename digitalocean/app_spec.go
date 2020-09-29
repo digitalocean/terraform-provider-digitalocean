@@ -41,20 +41,6 @@ func appSpecSchema() map[string]*schema.Schema {
 		// 		Schema: map[string]*schema.Schema{},
 		// 	},
 		// },
-		// "worker": {
-		// 	Type:     schema.TypeList,
-		// 	Optional: true,
-		// 	Elem: &schema.Resource{
-		// 		Schema: map[string]*schema.Schema{},
-		// 	},
-		// },
-		// "job": {
-		// 	Type:     schema.TypeList,
-		// 	Optional: true,
-		// 	Elem: &schema.Resource{
-		// 		Schema: map[string]*schema.Schema{},
-		// 	},
-		// },
 	}
 }
 
@@ -143,156 +129,122 @@ func appSpecHealthCheckSchema() map[string]*schema.Schema {
 	}
 }
 
-func appSpecServicesSchema() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The name of the service",
+func appSpecComponentBase() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "The name of the component",
+		},
+		"git": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecGitSourceSchema(),
 			},
-			"run_command": {
-				Type:     schema.TypeString,
-				Optional: true,
+		},
+		"github": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecGitHubSourceSchema(),
 			},
-			"build_command": {
-				Type:     schema.TypeString,
-				Optional: true,
+		},
+		"dockerfile_path": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"build_command": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"env": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     appSpecEnvSchema(),
+			Set:      schema.HashResource(appSpecEnvSchema()),
+		},
+		"routes": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecRouteSchema(),
 			},
-			"http_port": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"dockerfile_path": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"git": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: appSpecGitSourceSchema(),
-				},
-			},
-			"github": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: appSpecGitHubSourceSchema(),
-				},
-			},
-			"env": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem:     appSpecEnvSchema(),
-				Set:      schema.HashResource(appSpecEnvSchema()),
-			},
-			"instance_size_slug": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"instance_count": {
-				Type:     schema.TypeInt,
-				Optional: true,
-			},
-			"routes": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: appSpecRouteSchema(),
-				},
-			},
-			"source_dir": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"environment_slug": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"health_check": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: appSpecHealthCheckSchema(),
-				},
-			},
+		},
+		"source_dir": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"environment_slug": {
+			Type:     schema.TypeString,
+			Optional: true,
 		},
 	}
 }
 
-func appSpecStaticSiteSchema() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The name of the static site",
-			},
-			"build_command": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"output_dir": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "An optional path to where the built assets will be located, relative to the build context. If not set, App Platform will automatically scan for these directory names: `_static`, `dist`, `public`.",
-			},
-			"index_document": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"error_document": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"dockerfile_path": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"git": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: appSpecGitSourceSchema(),
-				},
-			},
-			"github": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: appSpecGitHubSourceSchema(),
-				},
-			},
-			"env": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem:     appSpecEnvSchema(),
-				Set:      schema.HashResource(appSpecEnvSchema()),
-			},
-			"routes": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &schema.Resource{
-					Schema: appSpecRouteSchema(),
-				},
-			},
-			"source_dir": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"environment_slug": {
-				Type:     schema.TypeString,
-				Optional: true,
+func appSpecServicesSchema() *schema.Resource {
+	serviceSchema := map[string]*schema.Schema{
+		"run_command": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"http_port": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+		"instance_size_slug": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"instance_count": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+		"health_check": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecHealthCheckSchema(),
 			},
 		},
+	}
+
+	for k, v := range appSpecComponentBase() {
+		serviceSchema[k] = v
+	}
+
+	return &schema.Resource{
+		Schema: serviceSchema,
+	}
+}
+
+func appSpecStaticSiteSchema() *schema.Resource {
+	staticSiteSchema := map[string]*schema.Schema{
+		"output_dir": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "An optional path to where the built assets will be located, relative to the build context. If not set, App Platform will automatically scan for these directory names: `_static`, `dist`, `public`.",
+		},
+		"index_document": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+		"error_document": {
+			Type:     schema.TypeString,
+			Optional: true,
+		},
+	}
+
+	for k, v := range appSpecComponentBase() {
+		staticSiteSchema[k] = v
+	}
+
+	return &schema.Resource{
+		Schema: staticSiteSchema,
 	}
 }
 
