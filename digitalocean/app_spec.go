@@ -328,13 +328,11 @@ func expandAppDomainSpec(config []interface{}) []*godo.AppDomainSpec {
 	appDomains := make([]*godo.AppDomainSpec, 0, len(config))
 
 	for _, rawDomain := range config {
-		domain := rawDomain.(map[string]interface{})
-
-		d := &godo.AppDomainSpec{
-			Domain: domain["domain"].(string),
+		domain := &godo.AppDomainSpec{
+			Domain: rawDomain.(string),
 		}
 
-		appDomains = append(appDomains, d)
+		appDomains = append(appDomains, domain)
 	}
 
 	return appDomains
