@@ -1,6 +1,8 @@
 package digitalocean
 
 import (
+	"log"
+
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -102,7 +104,7 @@ func appSpecEnvSchema() *schema.Resource {
 			"type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "GENERAL",
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"GENERAL",
 					"SECRET",
@@ -480,6 +482,9 @@ func flattenAppEnvs(appEnvs []*godo.AppVariableDefinition) *schema.Set {
 			r["type"] = string(env.Type)
 
 			result.Add(r)
+
+			setFunc := schema.HashResource(appSpecEnvSchema())
+			log.Printf("[DEBUG] App env hash for %s: %d", r["key"], setFunc(r))
 		}
 	}
 

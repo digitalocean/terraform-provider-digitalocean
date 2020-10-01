@@ -190,7 +190,7 @@ func waitForAppDeployment(client *godo.Client, id string) error {
 			break
 		}
 
-		log.Printf("[DEBUG] Waiting for app (%s) deployment (%s) to become active (%d/%d)", app.ID, app.InProgressDeployment.ID, deployment.Progress.SuccessSteps, deployment.Progress.TotalSteps)
+		log.Printf("[DEBUG] Waiting for app (%s) deployment (%s) to become active. Phase: %s (%d/%d)", app.ID, app.InProgressDeployment.ID, deployment.Phase, deployment.Progress.SuccessSteps, deployment.Progress.TotalSteps)
 
 		n++
 	}

@@ -96,6 +96,101 @@ func TestAccDigitalOceanApp_StaticSite(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_Envs(t *testing.T) {
+	var app godo.App
+	appName := randomTestName()
+
+	oneEnv := `
+      env {
+        key   = "FOO"
+        value = "bar"
+      }
+`
+
+	twoEnvs := `
+      env {
+        key   = "FOO"
+        value = "bar"
+      }
+
+      env {
+        key   = "FIZZ"
+        value = "pop"
+        scope = "BUILD_TIME"
+      }
+`
+
+	oneEnvUpdated := `
+      env {
+        key   = "FOO"
+        value = "baz"
+        scope = "RUN_TIME"
+      }
+`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, oneEnv),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.3118534296.key", "FOO"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.3118534296.value", "bar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.3118534296.scope", "RUN_AND_BUILD_TIME"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, twoEnvs),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.#", "2"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.3118534296.key", "FOO"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.3118534296.value", "bar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.3118534296.scope", "RUN_AND_BUILD_TIME"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.1776096292.key", "FIZZ"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.1776096292.value", "pop"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.1776096292.scope", "BUILD_TIME"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, oneEnvUpdated),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.1277866902.key", "FOO"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.1277866902.value", "baz"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.1277866902.scope", "RUN_TIME"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanAppDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -249,6 +344,28 @@ resource "digitalocean_app" "foobar" {
       routes {
         path = "/"
       }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_Envs = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name = "%s"
+    region = "ams"
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "professional-xs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+
+%s
     }
   }
 }`
