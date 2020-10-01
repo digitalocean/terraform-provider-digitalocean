@@ -31,7 +31,16 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.instance_count", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "professional-xs"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.git.0.repo_clone_url",
+						"https://github.com/digitalocean/sample-golang.git"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.git.0.branch", "main"),
 				),
 			},
 			{
@@ -90,6 +99,11 @@ func TestAccDigitalOceanApp_StaticSite(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.static_site.0.build_command", "bundle exec jekyll build -d ./public"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.static_site.0.output_dir", "/public"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.static_site.0.git.0.repo_clone_url",
+						"https://github.com/digitalocean/sample-jekyll.git"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.static_site.0.git.0.branch", "main"),
 				),
 			},
 		},
@@ -185,6 +199,39 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.env.1277866902.value", "baz"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.env.1277866902.scope", "RUN_TIME"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanApp_Worker(t *testing.T) {
+	var app godo.App
+	appName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_worker, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "active_deployment_id"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.instance_count", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.instance_size_slug", "professional-xs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.git.0.repo_clone_url",
+						"https://github.com/digitalocean/sample-sleeper.git"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.git.0.branch", "main"),
 				),
 			},
 		},
@@ -366,6 +413,26 @@ resource "digitalocean_app" "foobar" {
       }
 
 %s
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_worker = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name = "%s"
+    region = "ams"
+
+    worker {
+      name               = "go-worker"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "professional-xs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
+        branch         = "main"
+      }
     }
   }
 }`
