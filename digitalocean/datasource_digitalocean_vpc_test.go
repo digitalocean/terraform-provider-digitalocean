@@ -69,6 +69,7 @@ func TestAccDataSourceDigitalOceanVPC_ExpectErrors(t *testing.T) {
 
 	resource.Test(t, resource.TestCase{
 		PreCheck: func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckDataSourceDigitalOceanVPCConfig_MissingRegionDefault,
