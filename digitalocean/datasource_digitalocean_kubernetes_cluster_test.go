@@ -18,6 +18,12 @@ func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"kubernetes": {
+				Source:            "hashicorp/kubernetes",
+				VersionConstraint: "1.13.2",
+			},
+		},
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
