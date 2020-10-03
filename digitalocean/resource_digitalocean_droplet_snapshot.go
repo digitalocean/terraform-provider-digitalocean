@@ -76,11 +76,21 @@ func resourceDigitalOceanDropletSnapshotCreate(d *schema.ResourceData, meta inte
 	}
 
 	d.SetId(strconv.Itoa(snapshot.ID))
-	d.Set("name", snapshot.Name)
-	d.Set("droplet_id", snapshot.ID)
-	d.Set("regions", snapshot.Regions)
-	d.Set("created_at", snapshot.Created)
-	d.Set("min_disk_size", snapshot.MinDiskSize)
+	if err = d.Set("name", snapshot.Name); err != nil {
+		return err
+	}
+	if err = d.Set("droplet_id", fmt.Sprintf("%d", snapshot.ID)); err != nil {
+		return err
+	}
+	if err = d.Set("regions", snapshot.Regions); err != nil {
+		return err
+	}
+	if err = d.Set("created_at", snapshot.Created); err != nil {
+		return err
+	}
+	if err = d.Set("min_disk_size", snapshot.MinDiskSize); err != nil {
+		return err
+	}
 
 	return resourceDigitalOceanDropletSnapshotRead(d, meta)
 }
