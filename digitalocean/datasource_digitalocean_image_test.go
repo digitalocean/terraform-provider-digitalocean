@@ -65,6 +65,7 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 func TestAccDigitalOceanImage_PublicSlug(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
