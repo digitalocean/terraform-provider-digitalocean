@@ -21,7 +21,10 @@ func TestAccDataSourceDigitalOceanCertificate_Basic(t *testing.T) {
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDataSourceDigitalOceanCertificateConfig_basic(name, privateKeyMaterial, leafCertMaterial, certChainMaterial),
+				Config: testAccCheckDataSourceDigitalOceanCertificateConfig_basic(name, privateKeyMaterial, leafCertMaterial, certChainMaterial, false),
+			},
+			{
+				Config: testAccCheckDataSourceDigitalOceanCertificateConfig_basic(name, privateKeyMaterial, leafCertMaterial, certChainMaterial, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanCertificateExists("data.digitalocean_certificate.foobar", &certificate),
 					resource.TestCheckResourceAttr(
@@ -61,8 +64,11 @@ func testAccCheckDataSourceDigitalOceanCertificateExists(n string, certificate *
 	}
 }
 
-func testAccCheckDataSourceDigitalOceanCertificateConfig_basic(name, privateKeyMaterial, leafCert, certChain string) string {
-	return fmt.Sprintf(`
+func testAccCheckDataSourceDigitalOceanCertificateConfig_basic(
+	name, privateKeyMaterial, leafCert, certChain string,
+	includeDataSource bool,
+) string {
+	config := fmt.Sprintf(`
 resource "digitalocean_certificate" "foo" {
   name = "%s"
   private_key = <<EOF
@@ -75,9 +81,15 @@ EOF
 %s
 EOF
 }
-
-data "digitalocean_certificate" "foobar" {
-  name = "${digitalocean_certificate.foo.name}"
-}
 `, name, privateKeyMaterial, leafCert, certChain)
+
+	if includeDataSource {
+		config += `
+data "digitalocean_certificate" "foobar" {
+  name = digitalocean_certificate.foo.name
+}
+`
+	}
+
+	return config
 }
