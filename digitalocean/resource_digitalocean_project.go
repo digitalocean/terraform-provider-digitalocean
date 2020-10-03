@@ -143,25 +143,45 @@ func resourceDigitalOceanProjectRead(d *schema.ResourceData, meta interface{}) e
 		return fmt.Errorf("Error reading Project: %s", err)
 	}
 
-	d.Set("id", project.ID)
-	d.Set("name", project.Name)
-	d.Set("purpose", strings.TrimPrefix(project.Purpose, "Other: "))
-	d.Set("description", project.Description)
-	d.Set("environment", project.Environment)
-	d.Set("is_default", project.IsDefault)
-	d.Set("owner_uuid", project.OwnerUUID)
-	d.Set("owner_id", project.OwnerID)
-	d.Set("created_at", project.CreatedAt)
-	d.Set("updated_at", project.UpdatedAt)
+	d.SetId(project.ID)
+	if err = d.Set("name", project.Name); err != nil {
+		return err
+	}
+	if err = d.Set("purpose", strings.TrimPrefix(project.Purpose, "Other: ")); err != nil {
+		return err
+	}
+	if err = d.Set("description", project.Description); err != nil {
+		return err
+	}
+	if err = d.Set("environment", project.Environment); err != nil {
+		return err
+	}
+	if err = d.Set("is_default", project.IsDefault); err != nil {
+		return err
+	}
+	if err = d.Set("owner_uuid", project.OwnerUUID); err != nil {
+		return err
+	}
+	if err = d.Set("owner_id", project.OwnerID); err != nil {
+		return err
+	}
+	if err = d.Set("created_at", project.CreatedAt); err != nil {
+		return err
+	}
+	if err = d.Set("updated_at", project.UpdatedAt); err != nil {
+		return err
+	}
 
 	urns, err := loadResourceURNs(client, project.ID)
 	if err != nil {
 		return fmt.Errorf("Error reading Project: %s", err)
 	}
 
-	d.Set("resources", urns)
+	if err = d.Set("resources", urns); err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
 func resourceDigitalOceanProjectUpdate(d *schema.ResourceData, meta interface{}) error {
