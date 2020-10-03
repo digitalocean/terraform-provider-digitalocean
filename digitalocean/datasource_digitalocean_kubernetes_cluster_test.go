@@ -24,7 +24,7 @@ func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 				VersionConstraint: "1.13.2",
 			},
 		},
-		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfigWithDataSource(testClusterVersion16, rName),

@@ -64,9 +64,9 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 
 func TestAccDigitalOceanImage_PublicSlug(t *testing.T) {
 	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanImageConfig_slug("ubuntu-18-04-x64"),

@@ -44,7 +44,7 @@ func TestAccDataSourceDigitalOceanVPC_RegionDefault(t *testing.T) {
 	vpcConfigRegionDefault := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_RegionDefault, vpcDropletName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
@@ -68,7 +68,7 @@ func TestAccDataSourceDigitalOceanVPC_ExpectErrors(t *testing.T) {
 	vpcNotExist := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_DoesNotExist, vpcName)
 
 	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheck(t) },
+		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
