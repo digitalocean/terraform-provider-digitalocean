@@ -11,9 +11,10 @@ import (
 func appSpecSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "The name of the app",
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringLenBetween(2, 32),
+			Description:  "The name of the app. Must be unique across all apps in the same account.",
 		},
 		"region": {
 			Type:        schema.TypeString,
@@ -52,12 +53,14 @@ func appSpecSchema() map[string]*schema.Schema {
 func appSpecGitSourceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"repo_clone_url": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The clone URL of the repo.",
 		},
 		"branch": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The name of the branch to use.",
 		},
 	}
 }
@@ -65,16 +68,19 @@ func appSpecGitSourceSchema() map[string]*schema.Schema {
 func appSpecGitHubSourceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"repo": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The name of the repo in the format `owner/repo`.",
 		},
 		"branch": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The name of the branch to use.",
 		},
 		"deploy_on_push": {
-			Type:     schema.TypeBool,
-			Optional: true,
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Whether to automatically deploy new commits made to the repo",
 		},
 	}
 }
@@ -83,12 +89,14 @@ func appSpecEnvSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"key": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The name of the environment variable.",
 			},
 			"value": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The value of the environment variable.",
 			},
 			"scope": {
 				Type:     schema.TypeString,
@@ -100,6 +108,7 @@ func appSpecEnvSchema() *schema.Resource {
 					"BUILD_TIME",
 					"RUN_AND_BUILD_TIME",
 				}, false),
+				Description: "The visibility scope of the environment variable.",
 			},
 			"type": {
 				Type:     schema.TypeString,
@@ -109,6 +118,7 @@ func appSpecEnvSchema() *schema.Resource {
 					"GENERAL",
 					"SECRET",
 				}, false),
+				Description: "The type of the environment variable.",
 			},
 		},
 	}
@@ -158,12 +168,14 @@ func appSpecComponentBase() map[string]*schema.Schema {
 			},
 		},
 		"dockerfile_path": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The path to a Dockerfile relative to the root of the repo. If set, overrides usage of buildpacks.",
 		},
 		"build_command": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "An optional build command to run while building this component from source.",
 		},
 		"env": {
 			Type:     schema.TypeSet,
@@ -181,12 +193,14 @@ func appSpecComponentBase() map[string]*schema.Schema {
 			},
 		},
 		"source_dir": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "An optional path to the working directory to use for the build.",
 		},
 		"environment_slug": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "An environment slug describing the type of this app.",
 		},
 	}
 }
@@ -194,20 +208,27 @@ func appSpecComponentBase() map[string]*schema.Schema {
 func appSpecServicesSchema() *schema.Resource {
 	serviceSchema := map[string]*schema.Schema{
 		"run_command": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Computed:    true,
+			Description: "An optional run command to override the component's default.",
 		},
 		"http_port": {
-			Type:     schema.TypeInt,
-			Optional: true,
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Computed:    true,
+			Description: "The internal port on which this service's run command will listen.",
 		},
 		"instance_size_slug": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The instance size to use for this component.",
 		},
 		"instance_count": {
-			Type:     schema.TypeInt,
-			Optional: true,
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     1,
+			Description: "The amount of instances that this component should be scaled to.",
 		},
 		"health_check": {
 			Type:     schema.TypeList,
@@ -236,12 +257,14 @@ func appSpecStaticSiteSchema() *schema.Resource {
 			Description: "An optional path to where the built assets will be located, relative to the build context. If not set, App Platform will automatically scan for these directory names: `_static`, `dist`, `public`.",
 		},
 		"index_document": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The name of the index document to use when serving this static site.",
 		},
 		"error_document": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The name of the error document to use when serving this static site.",
 		},
 	}
 
@@ -257,16 +280,20 @@ func appSpecStaticSiteSchema() *schema.Resource {
 func appSpecWorkerSchema() *schema.Resource {
 	workerSchema := map[string]*schema.Schema{
 		"run_command": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "An optional run command to override the component's default.",
 		},
 		"instance_size_slug": {
-			Type:     schema.TypeString,
-			Optional: true,
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The instance size to use for this component.",
 		},
 		"instance_count": {
-			Type:     schema.TypeInt,
-			Optional: true,
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     1,
+			Description: "The amount of instances that this component should be scaled to.",
 		},
 	}
 
@@ -283,8 +310,9 @@ func appSpecDatabaseSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The name of the component",
 			},
 			"engine": {
 				Type:     schema.TypeString,
@@ -295,26 +323,32 @@ func appSpecDatabaseSchema() *schema.Resource {
 					"PG",
 					"REDIS",
 				}, false),
+				Description: "The database engine to use.",
 			},
 			"version": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The version of the database engine.",
 			},
 			"production": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether this is a production or dev database.",
 			},
 			"cluster_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The name of the underlying DigitalOcean DBaaS cluster. This is required for production databases. For dev databases, if cluster_name is not set, a new cluster will be provisioned.",
 			},
 			"db_name": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The name of the MySQL or PostgreSQL database to configure.",
 			},
 			"db_user": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The name of the MySQL or PostgreSQL user to configure.",
 			},
 		},
 	}

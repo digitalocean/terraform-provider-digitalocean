@@ -462,7 +462,6 @@ resource "digitalocean_app" "foobar" {
 
     worker {
       name               = "go-worker"
-      environment_slug   = "go"
       instance_count     = 1
       instance_size_slug = "professional-xs"
 
