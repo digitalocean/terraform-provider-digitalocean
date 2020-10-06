@@ -249,6 +249,8 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 func TestAccDigitalOceanApp_Worker(t *testing.T) {
 	var app godo.App
 	appName := randomTestName()
+	workerConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_worker, appName, "basic-xxs")
+	upgradedWorkerConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_worker, appName, "professional-xs")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -256,7 +258,7 @@ func TestAccDigitalOceanApp_Worker(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_worker, appName),
+				Config: workerConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
@@ -273,6 +275,13 @@ func TestAccDigitalOceanApp_Worker(t *testing.T) {
 						"https://github.com/digitalocean/sample-sleeper.git"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.worker.0.git.0.branch", "main"),
+				),
+			},
+			{
+				Config: upgradedWorkerConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.instance_size_slug", "professional-xs"),
 				),
 			},
 		},
@@ -472,7 +481,7 @@ resource "digitalocean_app" "foobar" {
     worker {
       name               = "go-worker"
       instance_count     = 1
-      instance_size_slug = "basic-xxs"
+      instance_size_slug = "%s"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
