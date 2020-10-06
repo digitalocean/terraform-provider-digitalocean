@@ -70,7 +70,7 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.instance_count", "1"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "professional-xs"),
+						"digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "basic-xxs"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
 					resource.TestCheckResourceAttr(
@@ -267,7 +267,7 @@ func TestAccDigitalOceanApp_Worker(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.worker.0.instance_count", "1"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.worker.0.instance_size_slug", "professional-xs"),
+						"digitalocean_app.foobar", "spec.0.worker.0.instance_size_slug", "basic-xxs"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.worker.0.git.0.repo_clone_url",
 						"https://github.com/digitalocean/sample-sleeper.git"),
@@ -332,7 +332,7 @@ resource "digitalocean_app" "foobar" {
       name               = "go-service"
       environment_slug   = "go"
       instance_count     = 1
-      instance_size_slug = "professional-xs"
+      instance_size_slug = "basic-xxs"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
@@ -357,7 +357,7 @@ resource "digitalocean_app" "foobar" {
       name               = "go-service"
       environment_slug   = "go"
       instance_count     = 1
-      instance_size_slug = "professional-xs"
+      instance_size_slug = "basic-xxs"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
@@ -373,7 +373,7 @@ resource "digitalocean_app" "foobar" {
       name               = "python-service"
       environment_slug   = "python"
       instance_count     = 1
-      instance_size_slug = "professional-xs"
+      instance_size_slug = "basic-xxs"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-python.git"
@@ -397,7 +397,7 @@ resource "digitalocean_app" "foobar" {
       name               = "go-service"
       environment_slug   = "go"
       instance_count     = 1
-      instance_size_slug = "professional-xs"
+      instance_size_slug = "basic-xxs"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
@@ -451,7 +451,7 @@ resource "digitalocean_app" "foobar" {
       name               = "go-service"
       environment_slug   = "go"
       instance_count     = 1
-      instance_size_slug = "professional-xs"
+      instance_size_slug = "basic-xxs"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
@@ -472,7 +472,7 @@ resource "digitalocean_app" "foobar" {
     worker {
       name               = "go-worker"
       instance_count     = 1
-      instance_size_slug = "professional-xs"
+      instance_size_slug = "basic-xxs"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
