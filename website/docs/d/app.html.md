@@ -67,7 +67,12 @@ A `service` can contain:
 * `route` - An HTTP paths that should be routed to this component.
   - `path` - Paths must start with `/` and must be unique within the app.
 * `health_check` - A health check to determine the availability of this component.
-  - `path` - The route path used for the HTTP health check ping.
+  - `http_path` - The route path used for the HTTP health check ping.
+  - `initial_delay_seconds` - The number of seconds to wait before beginning health checks.
+  - `period_seconds` - The number of seconds to wait between health checks.
+  - `timeout_seconds` - The number of seconds after which the check times out.
+  - `success_threshold` - The number of successful health checks before considered healthy.
+  - `failure_threshold` - The number of failed health checks before considered unhealthy.
 
 A `worker` can contain:
 

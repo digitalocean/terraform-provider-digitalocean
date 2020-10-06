@@ -78,6 +78,10 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"https://github.com/digitalocean/sample-golang.git"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.git.0.branch", "main"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.http_path", "/"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.timeout_seconds", "10"),
 				),
 			},
 			{
@@ -333,6 +337,11 @@ resource "digitalocean_app" "foobar" {
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
         branch         = "main"
+      }
+
+      health_check {
+        http_path       = "/"
+        timeout_seconds = 10
       }
     }
   }

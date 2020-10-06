@@ -136,10 +136,35 @@ func appSpecRouteSchema() map[string]*schema.Schema {
 
 func appSpecHealthCheckSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"path": {
+		"http_path": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "Path is the route path used for the HTTP health check ping.",
+			Description: "The route path used for the HTTP health check ping.",
+		},
+		"initial_delay_seconds": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "The number of seconds to wait before beginning health checks.",
+		},
+		"period_seconds": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "The number of seconds to wait between health checks.",
+		},
+		"timeout_seconds": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "The number of seconds after which the check times out.",
+		},
+		"success_threshold": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "The number of successful health checks before considered healthy.",
+		},
+		"failure_threshold": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "The number of failed health checks before considered unhealthy.",
 		},
 	}
 }
@@ -529,7 +554,12 @@ func expandAppHealthCheck(config []interface{}) *godo.AppServiceSpecHealthCheck 
 	healthCheckConfig := config[0].(map[string]interface{})
 
 	healthCheck := &godo.AppServiceSpecHealthCheck{
-		Path: healthCheckConfig["path"].(string),
+		HTTPPath:            healthCheckConfig["http_path"].(string),
+		InitialDelaySeconds: int32(healthCheckConfig["initial_delay_seconds"].(int)),
+		PeriodSeconds:       int32(healthCheckConfig["period_seconds"].(int)),
+		TimeoutSeconds:      int32(healthCheckConfig["timeout_seconds"].(int)),
+		SuccessThreshold:    int32(healthCheckConfig["success_threshold"].(int)),
+		FailureThreshold:    int32(healthCheckConfig["failure_threshold"].(int)),
 	}
 
 	return healthCheck
@@ -541,7 +571,12 @@ func flattenAppHealthCheck(check *godo.AppServiceSpecHealthCheck) []interface{} 
 	if check != nil {
 
 		r := make(map[string]interface{})
-		r["path"] = check.Path
+		r["http_path"] = check.HTTPPath
+		r["initial_delay_seconds"] = check.InitialDelaySeconds
+		r["period_seconds"] = check.PeriodSeconds
+		r["timeout_seconds"] = check.TimeoutSeconds
+		r["success_threshold"] = check.SuccessThreshold
+		r["failure_threshold"] = check.FailureThreshold
 
 		result = append(result, r)
 	}
