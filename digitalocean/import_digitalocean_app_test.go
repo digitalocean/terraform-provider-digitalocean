@@ -10,7 +10,7 @@ import (
 func TestAccDigitalOceanApp_importBasic(t *testing.T) {
 	resourceName := "digitalocean_app.foobar"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanCertificateDestroy,

@@ -159,41 +159,48 @@ func waitForAppDeployment(client *godo.Client, id string) error {
 	timeout := 1800      //1800s, 30min
 	n := 0
 
-	// No deployment seems to be available right way, sleep 10 seconds
-	time.Sleep(10 * time.Second)
-	app, _, err := client.Apps.Get(context.Background(), id)
-	if err != nil {
-		return fmt.Errorf("Error trying to read app deployment state: %s", err)
-	}
-
+	var deploymentID string
 	ticker := time.NewTicker(time.Duration(tickerInterval) * time.Second)
 	for range ticker.C {
-		deployment, _, err := client.Apps.GetDeployment(context.Background(), id, app.InProgressDeployment.ID)
-		if err != nil {
-			ticker.Stop()
-			return fmt.Errorf("Error trying to read app deployment state: %s", err)
-		}
-
-		allSuccessful := deployment.Progress.SuccessSteps == deployment.Progress.TotalSteps
-		if allSuccessful {
-			ticker.Stop()
-			return nil
-		}
-
-		if deployment.Progress.ErrorSteps > 0 {
-			ticker.Stop()
-			return fmt.Errorf("error deploying app (%s) (deployment ID: %s):\n%s", id, app.InProgressDeployment.ID, godo.Stringify(deployment.Progress))
-		}
-
 		if n*tickerInterval > timeout {
 			ticker.Stop()
 			break
 		}
 
-		log.Printf("[DEBUG] Waiting for app (%s) deployment (%s) to become active. Phase: %s (%d/%d)", app.ID, app.InProgressDeployment.ID, deployment.Phase, deployment.Progress.SuccessSteps, deployment.Progress.TotalSteps)
+		if deploymentID == "" {
+			app, _, err := client.Apps.Get(context.Background(), id)
+			if err != nil {
+				return fmt.Errorf("Error trying to read app deployment state: %s", err)
+			}
+
+			if app.InProgressDeployment != nil {
+				deploymentID = app.InProgressDeployment.ID
+			}
+
+		} else {
+			deployment, _, err := client.Apps.GetDeployment(context.Background(), id, deploymentID)
+			if err != nil {
+				ticker.Stop()
+				return fmt.Errorf("Error trying to read app deployment state: %s", err)
+			}
+
+			allSuccessful := deployment.Progress.SuccessSteps == deployment.Progress.TotalSteps
+			if allSuccessful {
+				ticker.Stop()
+				return nil
+			}
+
+			if deployment.Progress.ErrorSteps > 0 {
+				ticker.Stop()
+				return fmt.Errorf("error deploying app (%s) (deployment ID: %s):\n%s", id, deployment.ID, godo.Stringify(deployment.Progress))
+			}
+
+			log.Printf("[DEBUG] Waiting for app (%s) deployment (%s) to become active. Phase: %s (%d/%d)",
+				id, deployment.ID, deployment.Phase, deployment.Progress.SuccessSteps, deployment.Progress.TotalSteps)
+		}
 
 		n++
 	}
 
-	return fmt.Errorf("timeout waiting to app (%s) deployment", app.ID)
+	return fmt.Errorf("timeout waiting to app (%s) deployment", id)
 }
