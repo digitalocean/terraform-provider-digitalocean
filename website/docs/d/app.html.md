@@ -62,7 +62,7 @@ A `service` can contain:
 * `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
-  -   - (default).
+  - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `route` - An HTTP paths that should be routed to this component.
   - `path` - Paths must start with `/` and must be unique within the app.
@@ -94,7 +94,7 @@ A `worker` can contain:
 * `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
-  -   - (default).
+  - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 
 A `static_site` can contain:
@@ -117,7 +117,7 @@ A `static_site` can contain:
 * `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
-  -   - (default).
+  - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `route` - An HTTP paths that should be routed to this component.
   - `path` - Paths must start with `/` and must be unique within the app.
