@@ -51,13 +51,12 @@ func testSweepLoadbalancer(region string) error {
 }
 
 func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
-	t.Parallel()
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 
 	expectedURNRegEx, _ := regexp.Compile(`do:loadbalancer:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
@@ -103,11 +102,10 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
-	t.Parallel()
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
@@ -181,11 +179,10 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 }
 
 func TestAccDigitalOceanLoadbalancer_dropletTag(t *testing.T) {
-	t.Parallel()
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
@@ -223,11 +220,10 @@ func TestAccDigitalOceanLoadbalancer_dropletTag(t *testing.T) {
 }
 
 func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
-	t.Parallel()
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
@@ -273,11 +269,10 @@ func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
 }
 
 func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
-	t.Parallel()
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
@@ -323,12 +318,11 @@ func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 }
 
 func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
-	t.Parallel()
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
@@ -354,11 +348,10 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 }
 
 func TestAccDigitalOceanLoadbalancer_multipleRules(t *testing.T) {
-	t.Parallel()
 	var loadbalancer godo.LoadBalancer
 	rName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
@@ -396,11 +389,10 @@ func TestAccDigitalOceanLoadbalancer_multipleRules(t *testing.T) {
 }
 
 func TestAccDigitalOceanLoadbalancer_WithVPC(t *testing.T) {
-	t.Parallel()
 	var loadbalancer godo.LoadBalancer
 	lbName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
