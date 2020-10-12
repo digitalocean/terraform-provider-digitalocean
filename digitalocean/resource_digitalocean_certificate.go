@@ -10,10 +10,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func resourceDigitalOceanCertificate() *schema.Resource {
+	certificateV1Schema := map[string]*schema.Schema{
+		// Note that this UUID will change on auto-renewal of a
+		// lets_encrypt certificate.
+		"uuid": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+	}
+
+	for k, v := range resourceDigitalOceanCertificateV0().Schema {
+		certificateV1Schema[k] = v
+	}
+
 	return &schema.Resource{
 		Create: resourceDigitalOceanCertificateCreate,
 		Read:   resourceDigitalOceanCertificateRead,
@@ -22,22 +34,27 @@ func resourceDigitalOceanCertificate() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
-		SchemaVersion: 1,
-		MigrateState:  resourceCertificateMigrateState,
+		Schema: certificateV1Schema,
 
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceDigitalOceanCertificateV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: migrateCertificateStateV0toV1,
+				Version: 0,
+			},
+		},
+	}
+}
+
+func resourceDigitalOceanCertificateV0() *schema.Resource {
+	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
-			},
-
-			// Note that this UUID will change on auto-renewal of a
-			// lets_encrypt certificate.
-			"uuid": {
-				Type:     schema.TypeString,
-				Computed: true,
 			},
 
 			"private_key": {
@@ -121,29 +138,20 @@ func resourceDigitalOceanCertificate() *schema.Resource {
 	}
 }
 
-func resourceCertificateMigrateState(v int, instance *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
-	switch v {
-	case 0:
-		log.Println("[INFO] Found Certificate State v0; migrating to v1")
-		return migrateCertificateStateV0toV1(instance)
-	default:
-		return instance, fmt.Errorf("Unexpected schema version: %d", v)
+func migrateCertificateStateV0toV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	if len(rawState) == 0 {
+		log.Println("[DEBUG] Empty state; nothing to migrate.")
+		return rawState, nil
 	}
-}
-
-func migrateCertificateStateV0toV1(instance *terraform.InstanceState) (*terraform.InstanceState, error) {
-	if instance.Empty() {
-		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
-		return instance, nil
-	}
+	log.Println("[DEBUG] Migrating certificate schema from v0 to v1.")
 
 	// When the certificate type is lets_encrypt, the certificate
 	// ID will change when it's renewed, so we have to rely on the
 	// certificate name as the primary identifier instead.
-	instance.Attributes["uuid"] = instance.Attributes["id"]
-	instance.Attributes["id"] = instance.Attributes["name"]
+	rawState["uuid"] = rawState["id"]
+	rawState["id"] = rawState["name"]
 
-	return instance, nil
+	return rawState, nil
 }
 
 func buildCertificateRequest(d *schema.ResourceData) (*godo.CertificateRequest, error) {

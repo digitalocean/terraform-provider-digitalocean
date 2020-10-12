@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"reflect"
 	"regexp"
 	"strings"
 	"testing"
@@ -55,6 +56,34 @@ func testSweepCertificate(region string) error {
 	}
 
 	return nil
+}
+
+func testCertificateStateDataV0() map[string]interface{} {
+	return map[string]interface{}{
+		"name": "test",
+		"id":   "aaa-bbb-123-ccc",
+	}
+}
+
+func testCertificateStateDataV1() map[string]interface{} {
+	v0 := testCertificateStateDataV0()
+	return map[string]interface{}{
+		"name": v0["name"],
+		"uuid": v0["id"],
+		"id":   v0["name"],
+	}
+}
+
+func TestResourceExampleInstanceStateUpgradeV0(t *testing.T) {
+	expected := testCertificateStateDataV1()
+	actual, err := migrateCertificateStateV0toV1(testCertificateStateDataV0(), nil)
+	if err != nil {
+		t.Fatalf("error migrating state: %s", err)
+	}
+
+	if !reflect.DeepEqual(actual, expected) {
+		t.Fatalf("\n\nexpected:\n\n%#v\n\ngot:\n\n%#v\n\n", actual, expected)
+	}
 }
 
 func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
