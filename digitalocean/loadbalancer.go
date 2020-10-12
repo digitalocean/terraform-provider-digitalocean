@@ -75,11 +75,23 @@ func expandForwardingRules(client *godo.Client, config []interface{}) ([]godo.Fo
 			TlsPassthrough: rule["tls_passthrough"].(bool),
 		}
 
-		if v, ok := rule["certificate_id"]; ok {
+		if name, nameOk := rule["certificate_name"]; nameOk {
+			certName := name.(string)
+			if certName != "" {
+				cert, err := findCertificateByName(client, certName)
+				if err != nil {
+					return nil, err
+				}
+
+				r.CertificateID = cert.ID
+			}
+		}
+
+		if id, idOk := rule["certificate_id"]; idOk && r.CertificateID == "" {
 			// When the certificate type is lets_encrypt, the certificate
 			// ID will change when it's renewed, so we have to rely on the
 			// certificate name as the primary identifier instead.
-			certName := v.(string)
+			certName := id.(string)
 			if certName != "" {
 				cert, err := findCertificateByName(client, certName)
 				if err != nil {
@@ -116,7 +128,13 @@ func hashForwardingRules(v interface{}) int {
 		strings.ToLower(m["target_protocol"].(string))))
 
 	if v, ok := m["certificate_id"]; ok {
-		buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		if v.(string) == "" {
+			if name, nameOk := m["certificate_name"]; nameOk {
+				buf.WriteString(fmt.Sprintf("%s-", name.(string)))
+			}
+		} else {
+			buf.WriteString(fmt.Sprintf("%s-", v.(string)))
+		}
 	}
 
 	if v, ok := m["tls_passthrough"]; ok {
@@ -192,6 +210,7 @@ func flattenForwardingRules(client *godo.Client, rules []godo.ForwardingRule) ([
 					return nil, err
 				}
 				r["certificate_id"] = cert.Name
+				r["certificate_name"] = cert.Name
 			}
 
 			result = append(result, r)

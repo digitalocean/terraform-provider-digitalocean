@@ -328,7 +328,8 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial),
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(
+					"tf-acc-test-certificate-01", rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_id"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
@@ -337,6 +338,41 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.884589504.certificate_id", "tf-acc-test-certificate-01"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "redirect_http_to_https", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	rInt := acctest.RandInt()
+	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(
+					"tf-acc-test-certificate-02", rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_name"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.3124151331.certificate_name", "tf-acc-test-certificate-02"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "redirect_http_to_https", "true"),
 					resource.TestCheckResourceAttr(
@@ -628,10 +664,10 @@ resource "digitalocean_loadbalancer" "foobar" {
 }`, rInt, rInt)
 }
 
-func testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(rInt int, privateKeyMaterial, leafCert, certChain string) string {
+func testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(certName string, rInt int, privateKeyMaterial, leafCert, certChain, certAttribute string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_certificate" "foobar" {
-  name = "certificate-%d"
+  name = "%s"
   private_key = <<EOF
 %s
 EOF
@@ -656,9 +692,9 @@ resource "digitalocean_loadbalancer" "foobar" {
     target_port     = 80
     target_protocol = "http"
 
-    certificate_id  = "${digitalocean_certificate.foobar.id}"
+    %s = digitalocean_certificate.foobar.id
   }
-}`, rInt, privateKeyMaterial, leafCert, certChain, rInt)
+}`, certName, privateKeyMaterial, leafCert, certChain, rInt, certAttribute)
 }
 
 func testAccCheckDigitalOceanLoadbalancerConfig_multipleRules(rName string) string {

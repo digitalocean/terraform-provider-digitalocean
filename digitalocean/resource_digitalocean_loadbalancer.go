@@ -94,9 +94,16 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 							Required:     true,
 							ValidateFunc: validation.IntBetween(1, 65535),
 						},
+						"certificate_name": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.NoZeroValues,
+						},
 						"certificate_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							Computed:     true,
+							Deprecated:   "Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead.",
 							ValidateFunc: validation.NoZeroValues,
 						},
 						"tls_passthrough": {
@@ -330,7 +337,9 @@ func migrateLoadBalancerStateV0toV1(instance *terraform.InstanceState, meta inte
 		}
 
 		certIDKey := fmt.Sprintf("forwarding_rule.%d.certificate_id", i)
+		certNameKey := fmt.Sprintf("forwarding_rule.%d.certificate_name", i)
 		instance.Attributes[certIDKey] = cert.Name
+		instance.Attributes[certNameKey] = cert.Name
 	}
 
 	return instance, nil
