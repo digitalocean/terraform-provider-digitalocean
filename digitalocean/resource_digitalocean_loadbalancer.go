@@ -11,10 +11,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func resourceDigitalOceanLoadbalancer() *schema.Resource {
+	loadBalancerV1Schema := resourceDigitalOceanLoadBalancerV0().Schema
+
+	// Add updates to forwarding_rules to v0 schema to produce v1 schema
+	forwardingRuleSchema := loadBalancerV1Schema["forwarding_rule"].Elem.(*schema.Resource).Schema
+	forwardingRuleSchema["certificate_name"].Type = schema.TypeString
+	forwardingRuleSchema["certificate_name"].Optional = true
+	forwardingRuleSchema["certificate_name"].ValidateFunc = validation.NoZeroValues
+	forwardingRuleSchema["certificate_id"].Computed = true
+	forwardingRuleSchema["certificate_id"].Deprecated = "Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead."
+
 	return &schema.Resource{
 		Create: resourceDigitalOceanLoadbalancerCreate,
 		Read:   resourceDigitalOceanLoadbalancerRead,
@@ -25,8 +34,66 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 		},
 
 		SchemaVersion: 1,
-		MigrateState:  resourceLoadBalancerMigrateState,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceDigitalOceanLoadBalancerV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: migrateLoadBalancerStateV0toV1,
+				Version: 0,
+			},
+		},
 
+		Schema: loadBalancerV1Schema,
+
+		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+
+			if _, hasHealthCheck := diff.GetOk("healthcheck"); hasHealthCheck {
+
+				healthCheckProtocol := diff.Get("healthcheck.0.protocol").(string)
+				_, hasPath := diff.GetOk("healthcheck.0.path")
+				if healthCheckProtocol == "http" {
+					if !hasPath {
+						return fmt.Errorf("health check `path` is required for when protocol is `http`")
+					}
+				} else if healthCheckProtocol == "https" {
+					if !hasPath {
+						return fmt.Errorf("health check `path` is required for when protocol is `https`")
+					}
+				} else {
+					if hasPath {
+						return fmt.Errorf("health check `path` is not allowed for when protocol is `tcp`")
+					}
+				}
+			}
+
+			if _, hasStickySession := diff.GetOk("sticky_sessions.#"); hasStickySession {
+
+				sessionType := diff.Get("sticky_sessions.0.type").(string)
+				_, hasCookieName := diff.GetOk("sticky_sessions.0.cookie_name")
+				_, hasTtlSeconds := diff.GetOk("sticky_sessions.0.cookie_ttl_seconds")
+				if sessionType == "cookies" {
+					if !hasCookieName {
+						return fmt.Errorf("sticky sessions `cookie_name` is required for when type is `cookie`")
+					}
+					if !hasTtlSeconds {
+						return fmt.Errorf("sticky sessions `cookie_ttl_seconds` is required for when type is `cookie`")
+					}
+				} else {
+					if hasCookieName {
+						return fmt.Errorf("sticky sessions `cookie_name` is not allowed for when type is `none`")
+					}
+					if hasTtlSeconds {
+						return fmt.Errorf("sticky sessions `cookie_ttl_seconds` is not allowed for when type is `none`")
+					}
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
+	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"region": {
 				Type:     schema.TypeString,
@@ -102,8 +169,6 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 						"certificate_id": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Computed:     true,
-							Deprecated:   "Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead.",
 							ValidateFunc: validation.NoZeroValues,
 						},
 						"tls_passthrough": {
@@ -251,98 +316,36 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 				Computed: true,
 			},
 		},
-
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
-
-			if _, hasHealthCheck := diff.GetOk("healthcheck"); hasHealthCheck {
-
-				healthCheckProtocol := diff.Get("healthcheck.0.protocol").(string)
-				_, hasPath := diff.GetOk("healthcheck.0.path")
-				if healthCheckProtocol == "http" {
-					if !hasPath {
-						return fmt.Errorf("health check `path` is required for when protocol is `http`")
-					}
-				} else if healthCheckProtocol == "https" {
-					if !hasPath {
-						return fmt.Errorf("health check `path` is required for when protocol is `https`")
-					}
-				} else {
-					if hasPath {
-						return fmt.Errorf("health check `path` is not allowed for when protocol is `tcp`")
-					}
-				}
-			}
-
-			if _, hasStickySession := diff.GetOk("sticky_sessions.#"); hasStickySession {
-
-				sessionType := diff.Get("sticky_sessions.0.type").(string)
-				_, hasCookieName := diff.GetOk("sticky_sessions.0.cookie_name")
-				_, hasTtlSeconds := diff.GetOk("sticky_sessions.0.cookie_ttl_seconds")
-				if sessionType == "cookies" {
-					if !hasCookieName {
-						return fmt.Errorf("sticky sessions `cookie_name` is required for when type is `cookie`")
-					}
-					if !hasTtlSeconds {
-						return fmt.Errorf("sticky sessions `cookie_ttl_seconds` is required for when type is `cookie`")
-					}
-				} else {
-					if hasCookieName {
-						return fmt.Errorf("sticky sessions `cookie_name` is not allowed for when type is `none`")
-					}
-					if hasTtlSeconds {
-						return fmt.Errorf("sticky sessions `cookie_ttl_seconds` is not allowed for when type is `none`")
-					}
-				}
-			}
-
-			return nil
-		},
 	}
 }
 
-func resourceLoadBalancerMigrateState(v int, instance *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
-	switch v {
-	case 0:
-		log.Println("[INFO] Found LoadBalancer State v0; migrating to v1")
-		return migrateLoadBalancerStateV0toV1(instance, meta)
-	default:
-		return instance, fmt.Errorf("Unexpected schema version: %d", v)
+func migrateLoadBalancerStateV0toV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	if len(rawState) == 0 {
+		log.Println("[DEBUG] Empty state; nothing to migrate.")
+		return rawState, nil
 	}
-}
-
-func migrateLoadBalancerStateV0toV1(instance *terraform.InstanceState, meta interface{}) (*terraform.InstanceState, error) {
-	if instance.Empty() {
-		log.Println("[DEBUG] Empty InstanceState; nothing to migrate.")
-		return instance, nil
-	}
-
+	log.Println("[DEBUG] Migrating load balancer schema from v0 to v1.")
 	client := meta.(*CombinedConfig).godoClient()
-
-	loadBalancer, _, err := client.LoadBalancers.Get(context.Background(), instance.ID)
-	if err != nil {
-		return instance, err
-	}
 
 	// When the certificate type is lets_encrypt, the certificate
 	// ID will change when it's renewed, so we have to rely on the
 	// certificate name as the primary identifier instead.
-	for i, forwardingRule := range loadBalancer.ForwardingRules {
-		if forwardingRule.CertificateID == "" {
+	for _, forwardingRule := range rawState["forwarding_rule"].([]interface{}) {
+		fw := forwardingRule.(map[string]interface{})
+		if fw["certificate_id"].(string) == "" {
 			continue
 		}
 
-		cert, _, err := client.Certificates.Get(context.Background(), forwardingRule.CertificateID)
+		cert, _, err := client.Certificates.Get(context.Background(), fw["certificate_id"].(string))
 		if err != nil {
-			return instance, err
+			return rawState, err
 		}
 
-		certIDKey := fmt.Sprintf("forwarding_rule.%d.certificate_id", i)
-		certNameKey := fmt.Sprintf("forwarding_rule.%d.certificate_name", i)
-		instance.Attributes[certIDKey] = cert.Name
-		instance.Attributes[certNameKey] = cert.Name
+		fw["certificate_id"] = cert.Name
+		fw["certificate_name"] = cert.Name
 	}
 
-	return instance, nil
+	return rawState, nil
 }
 
 func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*godo.LoadBalancerRequest, error) {
