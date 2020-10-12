@@ -102,7 +102,7 @@ func findCertificateByName(client *godo.Client, name string) (*godo.Certificate,
 			return nil, nil
 		}
 		if err != nil {
-			return nil, fmt.Errorf("Error retrieving ssh keys: %s", err)
+			return nil, fmt.Errorf("Error retrieving certificates: %s", err)
 		}
 
 		for _, cert := range certs {
@@ -117,7 +117,7 @@ func findCertificateByName(client *godo.Client, name string) (*godo.Certificate,
 
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return nil, fmt.Errorf("Error retrieving ssh keys: %s", err)
+			return nil, fmt.Errorf("Error retrieving certificates: %s", err)
 		}
 
 		opts.Page = page + 1
