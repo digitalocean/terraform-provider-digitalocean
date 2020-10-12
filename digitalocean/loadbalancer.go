@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/digitalocean/godo"
@@ -82,8 +83,17 @@ func expandForwardingRules(client *godo.Client, config []interface{}) ([]godo.Fo
 			if certName != "" {
 				cert, err := findCertificateByName(client, certName)
 				if err != nil {
-					return nil, err
+					if strings.Contains(err.Error(), "not found") {
+						log.Println("[DEBUG] Certificate not found looking up by name. Falling back to lookup by ID.")
+						cert, _, err = client.Certificates.Get(context.Background(), certName)
+						if err != nil {
+							return nil, err
+						}
+					} else {
+						return nil, err
+					}
 				}
+
 				r.CertificateID = cert.ID
 			}
 		}
