@@ -337,7 +337,7 @@ func migrateLoadBalancerStateV0toV1(instance *terraform.InstanceState, meta inte
 }
 
 func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*godo.LoadBalancerRequest, error) {
-	forwardingRules, err := expandForwardingRules(client, d.Get("forwarding_rule").([]interface{}))
+	forwardingRules, err := expandForwardingRules(client, d.Get("forwarding_rule").(*schema.Set).List())
 	if err != nil {
 		return nil, err
 	}
