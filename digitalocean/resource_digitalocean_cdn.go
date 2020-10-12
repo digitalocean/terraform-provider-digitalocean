@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -11,6 +12,20 @@ import (
 )
 
 func resourceDigitalOceanCDN() *schema.Resource {
+	cdnV1Schema := map[string]*schema.Schema{
+		"certificate_name": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+	}
+	for k, v := range resourceDigitalOceanCDNv0().Schema {
+		cdnV1Schema[k] = v
+	}
+
+	cdnV1Schema["certificate_id"].Computed = true
+	cdnV1Schema["certificate_id"].Deprecated = "Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead."
+
 	return &schema.Resource{
 		Create: resourceDigitalOceanCDNCreate,
 		Read:   resourceDigitalOceanCDNRead,
@@ -20,6 +35,21 @@ func resourceDigitalOceanCDN() *schema.Resource {
 			State: schema.ImportStatePassthrough,
 		},
 
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceDigitalOceanCDNv0().CoreConfigSchema().ImpliedType(),
+				Upgrade: migrateCDNStateV0toV1,
+				Version: 0,
+			},
+		},
+
+		Schema: cdnV1Schema,
+	}
+}
+
+func resourceDigitalOceanCDNv0() *schema.Resource {
+	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"origin": {
 				Type:         schema.TypeString,
@@ -59,6 +89,31 @@ func resourceDigitalOceanCDN() *schema.Resource {
 	}
 }
 
+func migrateCDNStateV0toV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+	if len(rawState) == 0 {
+		log.Println("[DEBUG] Empty state; nothing to migrate.")
+		return rawState, nil
+	}
+
+	// When the certificate type is lets_encrypt, the certificate
+	// ID will change when it's renewed, so we have to rely on the
+	// certificate name as the primary identifier instead.
+	certID := rawState["certificate_id"].(string)
+	if certID != "" {
+		log.Println("[DEBUG] Migrating CDN schema from v0 to v1.")
+		client := meta.(*CombinedConfig).godoClient()
+		cert, _, err := client.Certificates.Get(context.Background(), certID)
+		if err != nil {
+			return rawState, err
+		}
+
+		rawState["certificate_id"] = cert.Name
+		rawState["certificate_name"] = cert.Name
+	}
+
+	return rawState, nil
+}
+
 func resourceDigitalOceanCDNCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
@@ -74,8 +129,39 @@ func resourceDigitalOceanCDNCreate(d *schema.ResourceData, meta interface{}) err
 		cdnRequest.CustomDomain = v.(string)
 	}
 
-	if v, ok := d.GetOk("certificate_id"); ok {
-		cdnRequest.CertificateID = v.(string)
+	if name, nameOk := d.GetOk("certificate_name"); nameOk {
+		certName := name.(string)
+		if certName != "" {
+			cert, err := findCertificateByName(client, certName)
+			if err != nil {
+				return err
+			}
+
+			cdnRequest.CertificateID = cert.ID
+		}
+	}
+
+	if id, idOk := d.GetOk("certificate_id"); idOk && cdnRequest.CertificateID == "" {
+		// When the certificate type is lets_encrypt, the certificate
+		// ID will change when it's renewed, so we have to rely on the
+		// certificate name as the primary identifier instead.
+		certName := id.(string)
+		if certName != "" {
+			cert, err := findCertificateByName(client, certName)
+			if err != nil {
+				if strings.Contains(err.Error(), "not found") {
+					log.Println("[DEBUG] Certificate not found looking up by name. Falling back to lookup by ID.")
+					cert, _, err = client.Certificates.Get(context.Background(), certName)
+					if err != nil {
+						return err
+					}
+				} else {
+					return err
+				}
+			}
+
+			cdnRequest.CertificateID = cert.ID
+		}
 	}
 
 	log.Printf("[DEBUG] CDN create request: %#v", cdnRequest)
@@ -109,7 +195,19 @@ func resourceDigitalOceanCDNRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("endpoint", cdn.Endpoint)
 	d.Set("created_at", cdn.CreatedAt)
 	d.Set("custom_domain", cdn.CustomDomain)
-	d.Set("certificate_id", cdn.CertificateID)
+
+	if cdn.CertificateID != "" {
+		// When the certificate type is lets_encrypt, the certificate
+		// ID will change when it's renewed, so we have to rely on the
+		// certificate name as the primary identifier instead.
+		cert, _, err := client.Certificates.Get(context.Background(), cdn.CertificateID)
+		if err != nil {
+			return err
+		}
+		d.Set("certificate_id", cert.Name)
+		d.Set("certificate_name", cert.Name)
+	}
+
 	return err
 }
 
