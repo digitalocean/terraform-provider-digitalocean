@@ -36,7 +36,7 @@ func testSweepApp(region string) error {
 
 	for _, app := range apps {
 		if strings.HasPrefix(app.Spec.Name, testNamePrefix) {
-			log.Printf("Destroying database cluster %s", app.Spec.Name)
+			log.Printf("Destroying app %s", app.Spec.Name)
 
 			if _, err := client.Apps.Delete(context.Background(), app.ID); err != nil {
 				return err
