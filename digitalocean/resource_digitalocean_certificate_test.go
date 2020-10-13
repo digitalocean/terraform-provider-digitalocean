@@ -76,7 +76,7 @@ func testCertificateStateDataV1() map[string]interface{} {
 
 func TestResourceExampleInstanceStateUpgradeV0(t *testing.T) {
 	expected := testCertificateStateDataV1()
-	actual, err := migrateCertificateStateV0toV1(testCertificateStateDataV0(), nil)
+	actual, err := migrateCertificateStateV0toV1(context.Background(), testCertificateStateDataV0(), nil)
 	if err != nil {
 		t.Fatalf("error migrating state: %s", err)
 	}
