@@ -447,10 +447,8 @@ func expandAppDomainSpec(config []interface{}) []*godo.AppDomainSpec {
 func flattenAppDomainSpec(spec []*godo.AppDomainSpec) *schema.Set {
 	result := schema.NewSet(schema.HashString, []interface{}{})
 
-	if spec != nil {
-		for _, domain := range spec {
-			result.Add(domain.Domain)
-		}
+	for _, domain := range spec {
+		result.Add(domain.Domain)
 	}
 
 	return result
@@ -532,19 +530,17 @@ func expandAppEnvs(config []interface{}) []*godo.AppVariableDefinition {
 func flattenAppEnvs(appEnvs []*godo.AppVariableDefinition) *schema.Set {
 	result := schema.NewSet(schema.HashResource(appSpecEnvSchema()), []interface{}{})
 
-	if appEnvs != nil {
-		for _, env := range appEnvs {
-			r := make(map[string]interface{})
-			r["value"] = env.Value
-			r["scope"] = string(env.Scope)
-			r["key"] = env.Key
-			r["type"] = string(env.Type)
+	for _, env := range appEnvs {
+		r := make(map[string]interface{})
+		r["value"] = env.Value
+		r["scope"] = string(env.Scope)
+		r["key"] = env.Key
+		r["type"] = string(env.Type)
 
-			result.Add(r)
+		result.Add(r)
 
-			setFunc := schema.HashResource(appSpecEnvSchema())
-			log.Printf("[DEBUG] App env hash for %s: %d", r["key"], setFunc(r))
-		}
+		setFunc := schema.HashResource(appSpecEnvSchema())
+		log.Printf("[DEBUG] App env hash for %s: %d", r["key"], setFunc(r))
 	}
 
 	return result
@@ -603,13 +599,11 @@ func expandAppRoutes(config []interface{}) []*godo.AppRouteSpec {
 func flattenAppRoutes(routes []*godo.AppRouteSpec) []interface{} {
 	result := make([]interface{}, 0)
 
-	if routes != nil {
-		for _, route := range routes {
-			r := make(map[string]interface{})
-			r["path"] = route.Path
+	for _, route := range routes {
+		r := make(map[string]interface{})
+		r["path"] = route.Path
 
-			result = append(result, r)
-		}
+		result = append(result, r)
 	}
 
 	return result
