@@ -11,11 +11,10 @@ import (
 )
 
 func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		ExternalProviders: map[string]resource.ExternalProvider{

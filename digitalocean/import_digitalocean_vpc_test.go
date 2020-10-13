@@ -14,7 +14,7 @@ func TestAccDigitalOceanVPC_importBasic(t *testing.T) {
 	vpcName := randomTestName()
 	vpcCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCConfig_Basic, vpcName, "A description for the VPC")
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVPCDestroy,

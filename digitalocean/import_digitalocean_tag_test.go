@@ -9,7 +9,7 @@ import (
 func TestAccDigitalOceanTag_importBasic(t *testing.T) {
 	resourceName := "digitalocean_tag.foobar"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanTagDestroy,

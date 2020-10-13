@@ -15,7 +15,7 @@ import (
 func TestAccDigitalOceanFloatingIPAssignment(t *testing.T) {
 	var floatingIP godo.FloatingIP
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanFloatingIPDestroy,
@@ -53,7 +53,7 @@ func TestAccDigitalOceanFloatingIPAssignment(t *testing.T) {
 }
 
 func TestAccDigitalOceanFloatingIPAssignment_createBeforeDestroy(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanFloatingIPDestroy,

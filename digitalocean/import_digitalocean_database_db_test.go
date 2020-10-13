@@ -16,7 +16,7 @@ func TestAccDigitalOceanDatabaseDB_importBasic(t *testing.T) {
 	databaseClusterName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
 	databaseDBName := fmt.Sprintf("foobar-test-db-terraform-%s", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseDBDestroy,

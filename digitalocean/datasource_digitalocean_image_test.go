@@ -18,7 +18,7 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 	var snapshotsId []int
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
@@ -63,7 +63,7 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanImage_PublicSlug(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,

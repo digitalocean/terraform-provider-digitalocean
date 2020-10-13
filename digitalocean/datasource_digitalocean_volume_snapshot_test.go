@@ -15,7 +15,7 @@ func TestAccDataSourceDigitalOceanVolumeSnapshot_basic(t *testing.T) {
 	var snapshot godo.Snapshot
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
@@ -39,7 +39,7 @@ func TestAccDataSourceDigitalOceanVolumeSnapshot_regex(t *testing.T) {
 	var snapshot godo.Snapshot
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
@@ -63,7 +63,7 @@ func TestAccDataSourceDigitalOceanVolumeSnapshot_region(t *testing.T) {
 	var snapshot godo.Snapshot
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{

@@ -35,7 +35,7 @@ resource "digitalocean_kubernetes_node_pool" "barfoo" {
 `, testClusterVersion16, testName1, testName2)
 	resourceName := "digitalocean_kubernetes_node_pool.barfoo"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,

@@ -11,13 +11,12 @@ import (
 )
 
 func TestAccDigitalOceanDatabaseReplica_Basic(t *testing.T) {
-	t.Parallel()
 
 	var databaseReplica godo.DatabaseReplica
 	databaseName := randomTestName()
 	databaseReplicaName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseReplicaDestroy,
@@ -58,14 +57,13 @@ func TestAccDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanDatabaseReplica_WithVPC(t *testing.T) {
-	t.Parallel()
 
 	var database godo.Database
 	vpcName := randomTestName()
 	databaseName := randomTestName()
 	databaseReplicaName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,

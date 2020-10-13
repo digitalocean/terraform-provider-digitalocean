@@ -13,7 +13,7 @@ func TestAccDigitalOceanDomain_importBasic(t *testing.T) {
 	resourceName := "digitalocean_domain.foobar"
 	domainName := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDomainDestroy,

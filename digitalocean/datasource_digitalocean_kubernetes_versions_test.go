@@ -9,8 +9,7 @@ import (
 )
 
 func TestAccDataSourceDigitalOceanKubernetesVersions_Basic(t *testing.T) {
-	t.Parallel()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
@@ -26,8 +25,7 @@ func TestAccDataSourceDigitalOceanKubernetesVersions_Basic(t *testing.T) {
 }
 
 func TestAccDataSourceDigitalOceanKubernetesVersions_Filtered(t *testing.T) {
-	t.Parallel()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
@@ -43,11 +41,10 @@ func TestAccDataSourceDigitalOceanKubernetesVersions_Filtered(t *testing.T) {
 }
 
 func TestAccDataSourceDigitalOceanKubernetesVersions_CreateCluster(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,

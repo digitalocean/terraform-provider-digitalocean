@@ -12,7 +12,7 @@ func TestAccDataSourceDigitalOceanTags_Basic(t *testing.T) {
 	var tag godo.Tag
 	tagName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{

@@ -17,7 +17,7 @@ func TestAccDigitalOceanDatabaseUser_Basic(t *testing.T) {
 	databaseUserName := randomTestName()
 	databaseUserNameUpdated := databaseUserName + "-up"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseUserDestroy,
@@ -54,7 +54,7 @@ func TestAccDigitalOceanDatabaseUser_MySQLAuth(t *testing.T) {
 	databaseClusterName := randomTestName()
 	databaseUserName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseUserDestroy,

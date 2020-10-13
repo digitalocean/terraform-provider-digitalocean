@@ -53,7 +53,7 @@ func TestAccDigitalOceanDropletSnapshot_Basic(t *testing.T) {
 	rInt1 := acctest.RandInt()
 	rInt2 := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDropletSnapshotDestroy,

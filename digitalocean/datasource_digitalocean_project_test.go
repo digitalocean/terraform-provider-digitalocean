@@ -12,7 +12,7 @@ func TestAccDataSourceDigitalOceanProject_DefaultProject(t *testing.T) {
 data "digitalocean_project" "default" {
 }
 `
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
@@ -44,7 +44,7 @@ data "digitalocean_project" "barfoo" {
 }
 `, nonDefaultProjectName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,

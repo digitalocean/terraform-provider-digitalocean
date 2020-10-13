@@ -10,7 +10,7 @@ import (
 func TestAccDigitalOceanFloatingIP_importBasicRegion(t *testing.T) {
 	resourceName := "digitalocean_floating_ip.foobar"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanFloatingIPDestroy,
@@ -32,7 +32,7 @@ func TestAccDigitalOceanFloatingIP_importBasicDroplet(t *testing.T) {
 	resourceName := "digitalocean_floating_ip.foobar"
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanFloatingIPDestroy,

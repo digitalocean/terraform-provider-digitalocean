@@ -42,7 +42,7 @@ resource "digitalocean_project_resources" "barfoo" {
 }
 `
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanProjectResourcesDestroy,

@@ -16,7 +16,7 @@ func TestAccDataSourceDigitalOceanDroplet_BasicByName(t *testing.T) {
 	var droplet godo.Droplet
 	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
@@ -47,7 +47,7 @@ func TestAccDataSourceDigitalOceanDroplet_BasicById(t *testing.T) {
 	var droplet godo.Droplet
 	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
@@ -78,7 +78,7 @@ func TestAccDataSourceDigitalOceanDroplet_BasicByTag(t *testing.T) {
 	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
 	tagName := fmt.Sprintf("tf-acc-test-tag-%s", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{

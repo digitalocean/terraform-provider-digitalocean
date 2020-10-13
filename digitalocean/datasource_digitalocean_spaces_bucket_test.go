@@ -31,7 +31,7 @@ data "digitalocean_spaces_bucket" "bucket" {
 	config1 := resourceConfig
 	config2 := config1 + datasourceConfig
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
@@ -66,7 +66,7 @@ data "digitalocean_spaces_bucket" "bucket" {
 }
 `
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,

@@ -16,7 +16,7 @@ func TestAccDigitalOceanDroplet_importBasic(t *testing.T) {
 	resourceName := "digitalocean_droplet.foobar"
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
@@ -49,7 +49,7 @@ func TestAccDigitalOceanDroplet_ImportWithNoImageSlug(t *testing.T) {
 	var droplet godo.Droplet
 	var snapshotId []int
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,

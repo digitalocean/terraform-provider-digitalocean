@@ -13,7 +13,7 @@ data "digitalocean_region" "lon1" {
 	slug = "lon1"
 }
 `
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
@@ -37,7 +37,7 @@ data "digitalocean_region" "xyz5" {
 	slug = "xyz5"
 }
 `
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{

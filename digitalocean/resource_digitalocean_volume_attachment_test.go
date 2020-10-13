@@ -19,7 +19,7 @@ func TestAccDigitalOceanVolumeAttachment_Basic(t *testing.T) {
 	)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVolumeAttachmentDestroy,
@@ -50,7 +50,7 @@ func TestAccDigitalOceanVolumeAttachment_Update(t *testing.T) {
 	)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVolumeAttachmentDestroy,
@@ -95,7 +95,7 @@ func TestAccDigitalOceanVolumeAttachment_UpdateToSecondVolume(t *testing.T) {
 	)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVolumeAttachmentDestroy,
@@ -142,7 +142,7 @@ func TestAccDigitalOceanVolumeAttachment_Multiple(t *testing.T) {
 	)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVolumeAttachmentDestroy,

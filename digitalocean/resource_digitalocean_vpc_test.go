@@ -18,7 +18,7 @@ func TestAccDigitalOceanVPC_Basic(t *testing.T) {
 	updatedVPVDesc := "A brand new updated description for the VPC"
 	vpcUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCConfig_Basic, updatedVPCName, updatedVPVDesc)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVPCDestroy,
@@ -59,7 +59,7 @@ func TestAccDigitalOceanVPC_IPRange(t *testing.T) {
 	vpcName := randomTestName()
 	vpcCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCConfig_IPRange, vpcName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVPCDestroy,

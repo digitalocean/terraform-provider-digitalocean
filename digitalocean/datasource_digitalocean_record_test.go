@@ -18,7 +18,7 @@ func TestAccDataSourceDigitalOceanRecord_Basic(t *testing.T) {
 	recordDomain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
 	recordType := "A"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{

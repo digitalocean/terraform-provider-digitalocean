@@ -36,7 +36,7 @@ data "digitalocean_spaces_buckets" "result" {
 }
 `, bucketName1)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,

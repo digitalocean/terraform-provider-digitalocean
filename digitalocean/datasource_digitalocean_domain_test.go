@@ -17,7 +17,7 @@ func TestAccDataSourceDigitalOceanDomain_Basic(t *testing.T) {
 
 	expectedURN := fmt.Sprintf("do:domain:%s", domainName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{

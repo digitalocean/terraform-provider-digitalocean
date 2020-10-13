@@ -13,7 +13,7 @@ func TestAccDigitalOceanBucket_importBasic(t *testing.T) {
 	resourceName := "digitalocean_spaces_bucket.bucket"
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,

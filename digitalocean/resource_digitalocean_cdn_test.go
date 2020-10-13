@@ -20,7 +20,7 @@ func TestAccDigitalOceanCDN_Create(t *testing.T) {
 	expectedOrigin := bucketName + originSuffix
 	expectedTTL := "3600"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanCDNDestroy,
@@ -47,7 +47,7 @@ func TestAccDigitalOceanCDN_Create_with_TTL(t *testing.T) {
 	expectedOrigin := bucketName + originSuffix
 	expectedTTL := "1800"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanCDNDestroy,
@@ -76,7 +76,7 @@ func TestAccDigitalOceanCDN_Create_and_Update(t *testing.T) {
 	expectedOrigin := bucketName + originSuffix
 	expectedTTL := "1800"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanCDNDestroy,

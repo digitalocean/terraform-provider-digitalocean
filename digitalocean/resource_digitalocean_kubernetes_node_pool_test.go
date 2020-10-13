@@ -11,12 +11,11 @@ import (
 )
 
 func TestAccDigitalOceanKubernetesNodePool_Basic(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 	var k8sPool godo.KubernetesNodePool
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -35,12 +34,11 @@ func TestAccDigitalOceanKubernetesNodePool_Basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesNodePool_Update(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 	var k8sPool godo.KubernetesNodePool
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -80,12 +78,11 @@ func TestAccDigitalOceanKubernetesNodePool_Update(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesNodePool_CreateWithAutoScale(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 	var k8sPool godo.KubernetesNodePool
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -247,12 +244,11 @@ func TestAccDigitalOceanKubernetesNodePool_CreateWithAutoScale(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesNodePool_UpdateWithAutoScale(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 	var k8sPool godo.KubernetesNodePool
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -375,12 +371,11 @@ func TestAccDigitalOceanKubernetesNodePool_UpdateWithAutoScale(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesNodePool_WithEmptyNodePool(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 	var k8sPool godo.KubernetesNodePool
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,

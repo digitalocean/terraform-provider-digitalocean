@@ -16,7 +16,7 @@ func TestAccDigitalOceanDatabaseConnectionPool_Basic(t *testing.T) {
 	databaseName := randomTestName()
 	databaseConnectionPoolName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseConnectionPoolDestroy,
@@ -69,7 +69,7 @@ func TestAccDigitalOceanDatabaseConnectionPool_BadModeName(t *testing.T) {
 	databaseName := randomTestName()
 	databaseConnectionPoolName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseConnectionPoolDestroy,

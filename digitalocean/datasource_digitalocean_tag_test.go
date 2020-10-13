@@ -15,7 +15,7 @@ func TestAccDataSourceDigitalOceanTag_Basic(t *testing.T) {
 	var tag godo.Tag
 	tagName := fmt.Sprintf("foo-%s", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{

@@ -76,7 +76,7 @@ func TestAccDigitalOceanVolume_Basic(t *testing.T) {
 		Name: name,
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVolumeDestroy,
@@ -162,7 +162,7 @@ func TestAccDigitalOceanVolume_Droplet(t *testing.T) {
 	)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVolumeDestroy,
@@ -208,7 +208,7 @@ func TestAccDigitalOceanVolume_LegacyFilesystemType(t *testing.T) {
 		Name: name,
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVolumeDestroy,
@@ -249,7 +249,7 @@ func TestAccDigitalOceanVolume_FilesystemType(t *testing.T) {
 		Name: name,
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVolumeDestroy,
@@ -297,7 +297,7 @@ func TestAccDigitalOceanVolume_Resize(t *testing.T) {
 	)
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVolumeDestroy,
@@ -353,7 +353,7 @@ func TestAccDigitalOceanVolume_CreateFromSnapshot(t *testing.T) {
 		Name: fmt.Sprintf("volume-snap-%d", rInt),
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVolumeDestroy,
@@ -400,7 +400,7 @@ func TestAccDigitalOceanVolume_UpdateTags(t *testing.T) {
 		Name: name,
 	}
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVolumeDestroy,

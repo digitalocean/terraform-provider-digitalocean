@@ -18,7 +18,7 @@ func TestAccDigitalOceanDatabaseDB_Basic(t *testing.T) {
 	databaseDBName := fmt.Sprintf("foobar-test-db-terraform-%s", acctest.RandString(10))
 	databaseDBNameUpdated := databaseDBName + "-up"
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseDBDestroy,

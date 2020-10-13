@@ -16,7 +16,7 @@ func TestAccDigitalOceanDatabaseReplica_importBasic(t *testing.T) {
 	databaseName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
 	databaseReplicaName := fmt.Sprintf("read-01-test-terraform-%s", acctest.RandString(10))
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseReplicaDestroy,

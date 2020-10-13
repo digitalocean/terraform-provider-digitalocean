@@ -12,7 +12,7 @@ import (
 func TestAccDigitalOceanDatabaseFirewall_Basic(t *testing.T) {
 	databaseClusterName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseFirewallDestroy,
@@ -49,7 +49,7 @@ func TestAccDigitalOceanDatabaseFirewall_MultipleResourceTypes(t *testing.T) {
 	dropletName := randomTestName()
 	tagName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseFirewallDestroy,

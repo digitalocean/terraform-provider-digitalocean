@@ -11,7 +11,7 @@ func TestAccDigitalOceanLoadBalancer_importBasic(t *testing.T) {
 	resourceName := "digitalocean_loadbalancer.foobar"
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,

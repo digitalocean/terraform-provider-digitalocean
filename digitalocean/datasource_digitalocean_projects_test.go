@@ -57,7 +57,7 @@ data "digitalocean_projects" "both" {
     }
 }
 `, stagingProjectName, stagingProjectName)
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,

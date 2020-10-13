@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccDataSourceDigitalOceanSizes_Basic(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
@@ -25,7 +25,7 @@ func TestAccDataSourceDigitalOceanSizes_Basic(t *testing.T) {
 }
 
 func TestAccDataSourceDigitalOceanSizes_WithFilterAndSort(t *testing.T) {
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{

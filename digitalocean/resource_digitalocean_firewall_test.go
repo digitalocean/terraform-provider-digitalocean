@@ -52,7 +52,7 @@ func TestAccDigitalOceanFirewall_AllowOnlyInbound(t *testing.T) {
 	rName := acctest.RandString(10)
 	var firewall godo.Firewall
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
@@ -72,7 +72,7 @@ func TestAccDigitalOceanFirewall_AllowMultipleInbound(t *testing.T) {
 	rName := acctest.RandString(10)
 	var firewall godo.Firewall
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
@@ -92,7 +92,7 @@ func TestAccDigitalOceanFirewall_AllowOnlyOutbound(t *testing.T) {
 	rName := acctest.RandString(10)
 	var firewall godo.Firewall
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
@@ -112,7 +112,7 @@ func TestAccDigitalOceanFirewall_AllowMultipleOutbound(t *testing.T) {
 	rName := acctest.RandString(10)
 	var firewall godo.Firewall
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
@@ -133,7 +133,7 @@ func TestAccDigitalOceanFirewall_MultipleInboundAndOutbound(t *testing.T) {
 	tagName := "tag-" + rName
 	var firewall godo.Firewall
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
@@ -154,7 +154,7 @@ func TestAccDigitalOceanFirewall_fullPortRange(t *testing.T) {
 	rName := acctest.RandString(10)
 	var firewall godo.Firewall
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
@@ -175,7 +175,7 @@ func TestAccDigitalOceanFirewall_icmp(t *testing.T) {
 	rName := acctest.RandString(10)
 	var firewall godo.Firewall
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
@@ -196,7 +196,7 @@ func TestAccDigitalOceanFirewall_ImportMultipleRules(t *testing.T) {
 	resourceName := "digitalocean_firewall.foobar"
 	rName := acctest.RandString(10)
 	tagName := "tag-" + rName
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,

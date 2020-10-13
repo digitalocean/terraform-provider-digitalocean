@@ -15,7 +15,7 @@ import (
 func TestAccDigitalOceanKubernetesCluster_ImportBasic(t *testing.T) {
 	clusterName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -114,7 +114,7 @@ resource "digitalocean_kubernetes_node_pool" "barfoo" {
 }
 `, testClusterVersion16, testName1, testName2)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,

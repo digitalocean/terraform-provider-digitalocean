@@ -14,7 +14,7 @@ func TestAccDigitalOceanProject_CreateWithDefaults(t *testing.T) {
 	expectedName := generateProjectName()
 	createConfig := fixtureCreateWithDefaults(expectedName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
@@ -52,7 +52,7 @@ func TestAccDigitalOceanProject_CreateWithInitialValues(t *testing.T) {
 	createConfig := fixtureCreateWithInitialValues(expectedName, expectedDescription,
 		expectedPurpose, expectedEnvironment)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
@@ -93,7 +93,7 @@ func TestAccDigitalOceanProject_UpdateWithInitialValues(t *testing.T) {
 	updateConfig := fixtureUpdateWithValues(expectedUpdateName, expectedUpdateDesc,
 		expectedUpdatePurpose, expectedUpdateEnv)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
@@ -137,7 +137,7 @@ func TestAccDigitalOceanProject_CreateWithDropletResource(t *testing.T) {
 
 	createConfig := fixtureCreateWithDropletResource(expectedDropletName, expectedName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
@@ -164,7 +164,7 @@ func TestAccDigitalOceanProject_UpdateWithDropletResource(t *testing.T) {
 
 	updateConfig := fixtureCreateWithDefaults(expectedName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
@@ -201,7 +201,7 @@ func TestAccDigitalOceanProject_UpdateFromDropletToSpacesResource(t *testing.T) 
 
 	updateConfig := fixtureCreateWithSpacesResource(expectedSpacesName, expectedName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
@@ -239,7 +239,7 @@ func TestAccDigitalOceanProject_WithManyResources(t *testing.T) {
 	updateConfig := fixtureWithManyResources(domainBase, projectName)
 	destroyConfig := fixtureCreateWithDefaults(projectName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,

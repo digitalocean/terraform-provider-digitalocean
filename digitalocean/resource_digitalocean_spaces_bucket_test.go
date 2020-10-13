@@ -24,7 +24,7 @@ func TestAccDigitalOceanBucket_basic(t *testing.T) {
 	expectedBucketName := testAccBucketName(rInt)
 	expectBucketURN := fmt.Sprintf("do:space:%s", expectedBucketName)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		/*
@@ -51,7 +51,7 @@ func TestAccDigitalOceanBucket_basic(t *testing.T) {
 func TestAccDigitalOceanBucket_region(t *testing.T) {
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
@@ -72,7 +72,7 @@ func TestAccDigitalOceanBucket_UpdateAcl(t *testing.T) {
 	preConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithACL, ri)
 	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithACLUpdate, ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
@@ -102,7 +102,7 @@ func TestAccDigitalOceanBucket_UpdateCors(t *testing.T) {
 	preConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORS, ri)
 	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORSUpdate, ri)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
@@ -139,7 +139,7 @@ func TestAccDigitalOceanBucket_UpdateCors(t *testing.T) {
 func TestAccDigitalOceanBucket_WithCors(t *testing.T) {
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
@@ -168,7 +168,7 @@ func TestAccDigitalOceanBucket_WithCors(t *testing.T) {
 func TestAccDigitalOceanBucket_WithMultipleCorsRules(t *testing.T) {
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
@@ -205,7 +205,7 @@ func TestAccDigitalOceanBucket_WithMultipleCorsRules(t *testing.T) {
 // See https://github.com/hashicorp/terraform/pull/2925
 func TestAccDigitalOceanBucket_shouldFailNotFound(t *testing.T) {
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,

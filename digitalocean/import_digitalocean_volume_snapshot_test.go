@@ -13,7 +13,7 @@ func TestAccDigitalOceanVolumeSnapshot_importBasic(t *testing.T) {
 	resourceName := "digitalocean_volume_snapshot.foobar"
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanVolumeSnapshotDestroy,

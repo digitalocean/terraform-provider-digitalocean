@@ -52,7 +52,7 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 	var database godo.Database
 	databaseName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
@@ -92,7 +92,7 @@ func TestAccDigitalOceanDatabaseCluster_WithUpdate(t *testing.T) {
 	var database godo.Database
 	databaseName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
@@ -123,7 +123,7 @@ func TestAccDigitalOceanDatabaseCluster_WithMigration(t *testing.T) {
 	var database godo.Database
 	databaseName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
@@ -154,7 +154,7 @@ func TestAccDigitalOceanDatabaseCluster_WithMaintWindow(t *testing.T) {
 	var database godo.Database
 	databaseName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
@@ -178,7 +178,7 @@ func TestAccDigitalOceanDatabaseCluster_WithSQLMode(t *testing.T) {
 	var database godo.Database
 	databaseName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
@@ -210,7 +210,7 @@ func TestAccDigitalOceanDatabaseCluster_WithSQLMode(t *testing.T) {
 func TestAccDigitalOceanDatabaseCluster_CheckSQLModeSupport(t *testing.T) {
 	databaseName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
@@ -227,7 +227,7 @@ func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
 	var database godo.Database
 	databaseName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
@@ -252,7 +252,7 @@ func TestAccDigitalOceanDatabaseCluster_RedisWithEvictionPolicy(t *testing.T) {
 	var database godo.Database
 	databaseName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
@@ -292,7 +292,7 @@ func TestAccDigitalOceanDatabaseCluster_RedisWithEvictionPolicy(t *testing.T) {
 func TestAccDigitalOceanDatabaseCluster_CheckEvictionPolicySupport(t *testing.T) {
 	databaseName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
@@ -309,7 +309,7 @@ func TestAccDigitalOceanDatabaseCluster_TagUpdate(t *testing.T) {
 	var database godo.Database
 	databaseName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
@@ -341,7 +341,7 @@ func TestAccDigitalOceanDatabaseCluster_WithVPC(t *testing.T) {
 	vpcName := randomTestName()
 	databaseName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,

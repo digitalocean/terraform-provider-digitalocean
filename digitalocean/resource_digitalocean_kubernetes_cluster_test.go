@@ -60,11 +60,10 @@ func testSweepKubernetesClusters(region string) error {
 }
 
 func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -115,11 +114,10 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -148,11 +146,10 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -188,11 +185,10 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -224,11 +220,10 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
 }
 
 func TestAccDigitalOceanKubernetesCluster_CreatePoolWithAutoScale(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -360,11 +355,10 @@ func TestAccDigitalOceanKubernetesCluster_CreatePoolWithAutoScale(t *testing.T) 
 }
 
 func TestAccDigitalOceanKubernetesCluster_UpdatePoolWithAutoScale(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -463,11 +457,10 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolWithAutoScale(t *testing.T) 
 }
 
 func TestAccDigitalOceanKubernetesCluster_KubernetesProviderInteroperability(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -486,11 +479,10 @@ func TestAccDigitalOceanKubernetesCluster_KubernetesProviderInteroperability(t *
 }
 
 func TestAccDigitalOceanKubernetesCluster_UpgradeVersion(t *testing.T) {
-	t.Parallel()
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
