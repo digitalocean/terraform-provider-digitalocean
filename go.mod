@@ -3,7 +3,7 @@ module github.com/digitalocean/terraform-provider-digitalocean
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.6.0 // indirect
 	github.com/aws/aws-sdk-go v1.25.4
-	github.com/digitalocean/godo v1.42.1
+	github.com/digitalocean/godo v1.45.0
 	github.com/hashicorp/go-version v1.2.0
 	github.com/hashicorp/terraform-plugin-sdk v1.15.0
 	github.com/mitchellh/go-homedir v1.1.0
@@ -12,6 +12,7 @@ require (
 	golang.org/x/crypto v0.0.0-20190923035154-9ee001bba392
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	gopkg.in/yaml.v2 v2.2.4
+	sigs.k8s.io/yaml v1.1.0
 )
 
 replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
