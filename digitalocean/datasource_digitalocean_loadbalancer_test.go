@@ -13,13 +13,12 @@ import (
 )
 
 func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
-	t.Parallel()
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 
 	expectedURNRegEx, _ := regexp.Compile(`do:loadbalancer:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
@@ -64,11 +63,10 @@ func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 }
 
 func TestAccDataSourceDigitalOceanLoadBalancer_multipleRules(t *testing.T) {
-	t.Parallel()
 	var loadbalancer godo.LoadBalancer
 	rName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
+	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,

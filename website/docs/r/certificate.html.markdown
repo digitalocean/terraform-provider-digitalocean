@@ -64,7 +64,7 @@ resource "digitalocean_loadbalancer" "public" {
     target_port     = 80
     target_protocol = "http"
 
-    certificate_id = digitalocean_certificate.cert.id
+    certificate_name = digitalocean_certificate.cert.name
   }
 }
 ```
@@ -92,7 +92,8 @@ DigitalOcean's DNS. Only valid when type is `lets_encrypt`.
 
 The following attributes are exported:
 
-* `id` - The unique ID of the certificate
+* `id` - The unique name of the certificate
+* `uuid` - The UUID of the certificate
 * `name` - The name of the certificate
 * `not_after` - The expiration date of the certificate
 * `sha1_fingerprint` - The SHA-1 fingerprint of the certificate
@@ -100,8 +101,8 @@ The following attributes are exported:
 
 ## Import
 
-Certificates can be imported using the certificate `id`, e.g.
+Certificates can be imported using the certificate `name`, e.g.
 
 ```
-terraform import digitalocean_certificate.mycertificate 892071a0-bb95-49bc-8021-3afd67a210bf
+terraform import digitalocean_certificate.mycertificate cert-01
 ```

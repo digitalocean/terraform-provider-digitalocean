@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
@@ -21,6 +22,17 @@ func dataSourceDigitalOceanCertificate() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
+
+			// When the certificate type is lets_encrypt, the certificate
+			// ID will change when it's renewed, so we have to rely on the
+			// certificate name as the primary identifier instead.
+			// We include the UUID as another computed field for use in the
+			// short-term refresh function that waits for it to be ready.
+			"uuid": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "uuid of the certificate",
+			},
 			"type": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -54,46 +66,18 @@ func dataSourceDigitalOceanCertificate() *schema.Resource {
 func dataSourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
+	// When the certificate type is lets_encrypt, the certificate
+	// ID will change when it's renewed, so we have to rely on the
+	// certificate name as the primary identifier instead.
 	name := d.Get("name").(string)
-
-	opts := &godo.ListOptions{
-		Page:    1,
-		PerPage: 200,
-	}
-
-	certList := []godo.Certificate{}
-
-	for {
-		certs, resp, err := client.Certificates.List(context.Background(), opts)
-
-		if err != nil {
-			return fmt.Errorf("Error retrieving ssh keys: %s", err)
-		}
-
-		for _, cert := range certs {
-			certList = append(certList, cert)
-		}
-
-		if resp.Links == nil || resp.Links.IsLastPage() {
-			break
-		}
-
-		page, err := resp.Links.CurrentPage()
-		if err != nil {
-			return fmt.Errorf("Error retrieving ssh keys: %s", err)
-		}
-
-		opts.Page = page + 1
-	}
-
-	cert, err := findCertificateByName(certList, name)
-
+	cert, err := findCertificateByName(client, name)
 	if err != nil {
 		return err
 	}
 
-	d.SetId(cert.ID)
+	d.SetId(cert.Name)
 	d.Set("name", cert.Name)
+	d.Set("uuid", cert.ID)
 	d.Set("type", cert.Type)
 	d.Set("state", cert.State)
 	d.Set("not_after", cert.NotAfter)
@@ -106,18 +90,38 @@ func dataSourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interfac
 	return nil
 }
 
-func findCertificateByName(certs []godo.Certificate, name string) (*godo.Certificate, error) {
-	results := make([]godo.Certificate, 0)
-	for _, v := range certs {
-		if v.Name == name {
-			results = append(results, v)
+func findCertificateByName(client *godo.Client, name string) (*godo.Certificate, error) {
+	opts := &godo.ListOptions{
+		Page:    1,
+		PerPage: 200,
+	}
+
+	for {
+		certs, resp, err := client.Certificates.List(context.Background(), opts)
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			return nil, nil
 		}
+		if err != nil {
+			return nil, fmt.Errorf("Error retrieving certificates: %s", err)
+		}
+
+		for _, cert := range certs {
+			if cert.Name == name {
+				return &cert, nil
+			}
+		}
+
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return nil, fmt.Errorf("Error retrieving certificates: %s", err)
+		}
+
+		opts.Page = page + 1
 	}
-	if len(results) == 1 {
-		return &results[0], nil
-	}
-	if len(results) == 0 {
-		return nil, fmt.Errorf("no certificate found with name %s", name)
-	}
-	return nil, fmt.Errorf("too many certificate found with name %s (found %d, expected 1)", name, len(results))
+
+	return nil, fmt.Errorf("Certificate %s not found", name)
 }

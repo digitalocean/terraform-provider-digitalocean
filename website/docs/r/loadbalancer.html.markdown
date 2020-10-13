@@ -77,7 +77,7 @@ resource "digitalocean_loadbalancer" "public" {
     target_port = 80
     target_protocol = "http"
 
-    certificate_id = digitalocean_certificate.cert.id
+    certificate_name = digitalocean_certificate.cert.name
   }
 
   healthcheck {
@@ -121,7 +121,8 @@ the backend service. Default value is `false`.
 * `entry_port` - (Required) An integer representing the port on which the Load Balancer instance will listen.
 * `target_protocol` - (Required) The protocol used for traffic from the Load Balancer to the backend Droplets. The possible values are: `http`, `https`, `http2` or `tcp`.
 * `target_port` - (Required) An integer representing the port on the backend Droplets to which the Load Balancer will send traffic.
-* `certificate_id` - (Optional) The ID of the TLS certificate to be used for SSL termination.
+* `certificate_name` - (Optional) The unique name of the TLS certificate to be used for SSL termination.
+* `certificate_id` - (Optional) **Deprecated** The ID of the TLS certificate to be used for SSL termination.
 * `tls_passthrough` - (Optional) A boolean value indicating whether SSL encrypted traffic will be passed through to the backend Droplets. The default value is `false`.
 
 `sticky_sessions` supports the following:

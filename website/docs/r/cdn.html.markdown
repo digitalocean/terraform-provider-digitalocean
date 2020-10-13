@@ -52,9 +52,9 @@ resource "digitalocean_certificate" "cert" {
 
 # Add a CDN endpoint with a custom sub-domain to the Spaces Bucket
 resource "digitalocean_cdn" "mycdn" {
-  origin         = digitalocean_spaces_bucket.mybucket.bucket_domain_name
-  custom_domain  = "static.example.com"
-  certificate_id = digitalocean_certificate.cert.id
+  origin           = digitalocean_spaces_bucket.mybucket.bucket_domain_name
+  custom_domain    = "static.example.com"
+  certificate_name = digitalocean_certificate.cert.name
 }
 ```
 
@@ -64,7 +64,8 @@ The following arguments are supported:
 
 * `origin` - (Required) The fully qualified domain name, (FQDN) for a Space.
 * `ttl` - (Optional) The time to live for the CDN Endpoint, in seconds. Default is 3600 seconds.
-* `certificate_id`- (Optional) The ID of a DigitalOcean managed TLS certificate used for SSL when a custom subdomain is provided.
+* `certificate_name`- (Optional) The unique name of a DigitalOcean managed TLS certificate used for SSL when a custom subdomain is provided.
+* `certificate_id`- (Optional) **Deprecated** The ID of a DigitalOcean managed TLS certificate used for SSL when a custom subdomain is provided.
 * `custom_domain` - (Optional) The fully qualified domain name (FQDN) of the custom subdomain used with the CDN Endpoint.
 
 ## Attributes Reference
@@ -76,6 +77,7 @@ The following attributes are exported:
 * `endpoint` - The fully qualified domain name (FQDN) from which the CDN-backed content is served.
 * `created_at` - The date and time when the CDN Endpoint was created.
 * `ttl` - The time to live for the CDN Endpoint, in seconds.
+* `certificate_name`- The unique name of a DigitalOcean managed TLS certificate used for SSL when a custom subdomain is provided.
 * `certificate_id`- The ID of a DigitalOcean managed TLS certificate used for SSL when a custom subdomain is provided.
 * `custom_domain` - The fully qualified domain name (FQDN) of the custom subdomain used with the CDN Endpoint.
 
