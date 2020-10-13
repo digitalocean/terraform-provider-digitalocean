@@ -35,7 +35,8 @@ The following arguments are supported:
 
 The following attributes are exported:
 
-* `id`: The ID of the certificate.
+* `id`: The unique name of the certificate.
+* `uuid`: The ID of the certificate.
 * `type`: The type of the certificate.
 * `state`: the current state of the certificate.
 * `domains`: Domains for which the certificate was issued.
