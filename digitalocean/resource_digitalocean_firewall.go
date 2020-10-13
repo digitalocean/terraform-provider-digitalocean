@@ -232,7 +232,7 @@ func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	d.Set("status", firewall.Status)
-	d.Set("create_at", firewall.Created)
+	d.Set("created_at", firewall.Created)
 	d.Set("pending_changes", firewallPendingChanges(d, firewall))
 	d.Set("name", firewall.Name)
 
