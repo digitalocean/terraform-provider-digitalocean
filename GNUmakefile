@@ -1,7 +1,6 @@
 TEST?=$$(go list ./... |grep -v 'vendor')
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
 PKG_NAME=digitalocean
-SLUG=do
 
 default: build
 
@@ -25,6 +24,10 @@ vet:
 		exit 1; \
 	fi
 
+sweep:
+	@echo "WARNING: This will destroy infrastructure. Use only in development accounts."
+	go test $(TEST) -v -sweep=1
+
 fmt:
 	gofmt -w $(GOFMT_FILES)
 
@@ -33,7 +36,6 @@ fmtcheck:
 
 errcheck:
 	@sh -c "'$(CURDIR)/scripts/errcheck.sh'"
-
 
 test-compile:
 	@if [ "$(TEST)" = "./..." ]; then \
@@ -46,5 +48,4 @@ test-compile:
 website:
 	@echo "Use this site to preview markdown rendering: https://registry.terraform.io/tools/doc-preview"
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck test-compile website
-
+.PHONY: build test testacc vet fmt fmtcheck errcheck test-compile website sweep
