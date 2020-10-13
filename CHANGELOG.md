@@ -1,3 +1,17 @@
+## 1.23.0 (October 13, 2020)
+
+FEATURES:
+
+* **New Resource**: `digitalocean_app` ([#497](https://github.com/digitalocean/terraform-provider-digitalocean/pull/497))
+* **New Data Source**: `digitalocean_app` ([#497](https://github.com/digitalocean/terraform-provider-digitalocean/pull/497))
+* **New Data Source**: `digitalocean_domains` ([#484](https://github.com/digitalocean/terraform-provider-digitalocean/pull/484)) Thanks to @tdyas!
+
+IMPROVEMENTS:
+
+* All list-style data sources now support `all` and `match_by` attributes for filter blocks ([#491](https://github.com/digitalocean/terraform-provider-digitalocean/pull/491)) and other improvements ([#481](https://github.com/digitalocean/terraform-provider-digitalocean/pull/491)). Thanks to @tdyas!
+* Additional acceptance test sweepers ([#458](https://github.com/digitalocean/terraform-provider-digitalocean/pull/458)).
+* Upgrade to v1.15.0 of the terraform-plugin-sdk ([#483](https://github.com/digitalocean/terraform-provider-digitalocean/pull/458)). Thanks to @tdyas!
+
 ## 1.22.1 (August 7, 2020)
 
 BUG FIXES:
