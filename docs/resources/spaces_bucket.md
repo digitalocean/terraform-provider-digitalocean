@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_spaces_bucket"
-sidebar_current: "docs-do-resource-spaces-bucket"
-description: |-
-  Provides a DigitalOcean Spaces Bucket resource.
 ---
 
 # digitalocean\_spaces\_bucket

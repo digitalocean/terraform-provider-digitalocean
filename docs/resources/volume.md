@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_volume"
-sidebar_current: "docs-do-resource-volume"
-description: |-
-  Provides a DigitalOcean volume resource.
 ---
 
 # digitalocean\_volume

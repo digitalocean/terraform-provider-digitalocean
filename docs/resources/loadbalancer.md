@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_loadbalancer"
-sidebar_current: "docs-do-resource-loadbalancer"
-description: |-
-  Provides a DigitalOcean Load Balancer resource. This can be used to create, modify, and delete Load Balancers.
 ---
 
 # digitalocean\_loadbalancer

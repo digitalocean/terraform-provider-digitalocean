@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_spaces_bucket_objects"
-sidebar_current: "docs-do-datasource-spaces-bucket-objects"
-description: |-
-  Returns keys and metadata of Spaces objects
 ---
 
 # digitalocean_spaces_bucket_objects

@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_vpc"
-sidebar_current: "docs-do-datasource-vpc"
-description: |-
-  Get information about a VPC.
 ---
 
 # digitalocean_vpc

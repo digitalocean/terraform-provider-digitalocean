@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_region"
-sidebar_current: "docs-do-datasource-region"
-description: |-
-  Get information on a DigitalOcean region.
 ---
 
 # digitalocean_region

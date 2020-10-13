@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_droplet"
-sidebar_current: "docs-do-resource-droplet"
-description: |-
-  Provides a DigitalOcean Droplet resource. This can be used to create, modify, and delete Droplets. Droplets also support provisioning.
 ---
 
 # digitalocean\_droplet

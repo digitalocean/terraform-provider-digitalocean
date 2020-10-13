@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_spaces_buckets"
-sidebar_current: "docs-do-datasource-spaces-buckets"
-description: |-
-  Retrieve information on Spaces buckets.
 ---
 
 # digitalocean_spaces_buckets

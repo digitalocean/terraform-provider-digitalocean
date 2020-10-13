@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_database_db"
-sidebar_current: "docs-do-resource-database-db"
-description: |-
-  Provides a DigitalOcean database resource.
 ---
 
 # digitalocean\_database\_db

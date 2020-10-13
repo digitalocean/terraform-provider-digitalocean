@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_app"
-sidebar_current: "docs-do-datasource-app"
-description: |-
-  Get information on a DigitalOcean App.
 ---
 
 # digitalocean_app

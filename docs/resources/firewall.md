@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_firewall"
-sidebar_current: "docs-do-resource-firewall"
-description: |-
-  Provides a DigitalOcean Cloud Firewall resource. This can be used to create, modify, and delete Firewalls.
 ---
 
 # digitalocean\_firewall

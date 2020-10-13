@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_container_registry"
-sidebar_current: "docs-do-datasource-container-registry"
-description: |-
-  Get information on a container registry.
 ---
 
 # digitalocean_container_registry

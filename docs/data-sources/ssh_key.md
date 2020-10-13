@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_ssh_key"
-sidebar_current: "docs-do-datasource-ssh-key"
-description: |-
-  Get information on a ssh key.
 ---
 
 # digitalocean_ssh_key

@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_vpc"
-sidebar_current: "docs-do-resource-vpc"
-description: |-
-  Provides a DigitalOcean VPC resource.
 ---
 
 # digitalocean_vpc

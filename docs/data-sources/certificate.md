@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_certificate"
-sidebar_current: "docs-do-datasource-certificate"
-description: |-
-  Get information on a certificate.
 ---
 
 # digitalocean_certificate

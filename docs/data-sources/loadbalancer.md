@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_loadbalancer"
-sidebar_current: "docs-do-datasource-loadbalancer"
-description: |-
-  Get information on a loadbalancer.
 ---
 
 # digitalocean_loadbalancer

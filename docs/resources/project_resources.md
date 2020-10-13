@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_project_resources"
-sidebar_current: "docs-do-resource-project-resources"
-description: |-
-  Assign resources to a DigitalOcean Project.
 ---
 
 # digitalocean\_project\_resources

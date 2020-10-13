@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_record"
-sidebar_current: "docs-do-resource-record"
-description: |-
-  Provides a DigitalOcean DNS record resource.
 ---
 
 # digitalocean\_record

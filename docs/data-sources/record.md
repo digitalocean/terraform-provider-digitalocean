@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_record"
-sidebar_current: "docs-do-datasource-record"
-description: |-
-  Get information on a DNS record.
 ---
 
 # digitalocean_record

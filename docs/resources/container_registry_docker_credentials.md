@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_container_registry_docker_credentials"
-sidebar_current: "docs-do-resource-container-registry-docker-credentials"
-description: |-
-  Get DigitalOcean Container Registry docker credentials
 ---
 
 # digitalocean_container_registry_docker_credentials

@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_project"
-sidebar_current: "docs-do-datasource-project"
-description: |-
-  Get information on a DigitalOcean project.
 ---
 
 # digitalocean_project

@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_tag"
-sidebar_current: "docs-do-resource-tag"
-description: |-
-  Provides a DigitalOcean Tag resource.
 ---
 
 # digitalocean\_tag

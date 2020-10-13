@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_tags"
-sidebar_current: "docs-do-datasource-tags"
-description: |-
-  Retrieve information on tags.
 ---
 
 # digitalocean_tags

@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_account"
-sidebar_current: "docs-do-datasource-account"
-description: |-
-  Get information on your DigitalOcean account.
 ---
 
 # digitalocean_account

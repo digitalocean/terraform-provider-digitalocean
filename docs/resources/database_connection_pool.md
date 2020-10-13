@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_database_connection_pool"
-sidebar_current: "docs-do-resource-database-connection_pool"
-description: |-
-  Provides a DigitalOcean database connection pool resource.
 ---
 
 # digitalocean\_database\_connection\_pool

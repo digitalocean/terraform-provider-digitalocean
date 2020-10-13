@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_database_cluster"
-sidebar_current: "docs-do-resource-database-cluster"
-description: |-
-  Provides a DigitalOcean database cluster resource.
 ---
 
 # digitalocean\_database\_cluster

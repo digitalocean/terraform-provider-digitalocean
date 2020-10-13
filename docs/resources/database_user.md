@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_database_user"
-sidebar_current: "docs-do-resource-database-user"
-description: |-
-  Provides a DigitalOcean database user resource.
 ---
 
 # digitalocean\_database\_user

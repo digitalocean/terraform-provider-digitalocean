@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_domains"
-sidebar_current: "docs-do-datasource-domains"
-description: |-
-  Retrieve information on Domains.
 ---
 
 # digitalocean_droplets

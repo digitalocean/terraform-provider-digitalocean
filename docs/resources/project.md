@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_project"
-sidebar_current: "docs-do-resource-project"
-description: |-
-  Provides a DigitalOcean Project resource.
 ---
 
 # digitalocean\_project

@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_kubernetes_cluster"
-sidebar_current: "docs-do-datasource-kubernetes-cluster"
-description: |-
-  Get information on a DigitalOcean Kubernetes cluster.
 ---
 
 # digitalocean\_kubernetes\_cluster

@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_floating_ip"
-sidebar_current: "docs-do-datasource-floating-ip"
-description: |-
-  Get information on a floating IP.
 ---
 
 # digitalocean_floating_ip

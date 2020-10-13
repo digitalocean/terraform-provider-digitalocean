@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_sizes"
-sidebar_current: "docs-do-datasource-sizes"
-description: |-
-  Retrieve information on supported Droplet sizes.
 ---
 
 # digitalocean_sizes

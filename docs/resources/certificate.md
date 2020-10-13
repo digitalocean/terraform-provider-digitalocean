@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_certificate"
-sidebar_current: "docs-do-resource-certificate"
-description: |-
-  Provides a DigitalOcean Certificate resource.
 ---
 
 # digitalocean\_certificate

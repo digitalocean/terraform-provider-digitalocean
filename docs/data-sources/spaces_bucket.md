@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_spaces_bucket"
-sidebar_current: "docs-do-datasource-spaces-bucket"
-description: |-
-  Get information on a Spaces bucket.
 ---
 
 # digitalocean_spaces_bucket

@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_kubernetes_cluster"
-sidebar_current: "docs-do-resource-kubernetes-cluster"
-description: |-
-  Provides a DigitalOcean Kubernetes cluster resource.
 ---
 
 # digitalocean\_kubernetes\_cluster

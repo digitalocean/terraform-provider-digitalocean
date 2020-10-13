@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_app"
-sidebar_current: "docs-do-resource-app"
-description: |-
-  Provides a DigitalOcean App resource.
 ---
 
 # digitalocean\_app

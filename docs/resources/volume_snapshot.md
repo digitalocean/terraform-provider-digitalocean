@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_volume_snapshot"
-sidebar_current: "docs-do-resource-volume-snapshot"
-description: |-
-  Provides a DigitalOcean volume snapshot resource.
 ---
 
 # digitalocean\_volume\_snapshot

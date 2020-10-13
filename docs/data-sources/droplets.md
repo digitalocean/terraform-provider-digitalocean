@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_droplets"
-sidebar_current: "docs-do-datasource-droplets"
-description: |-
-  Retrieve information on Droplets.
 ---
 
 # digitalocean_droplets

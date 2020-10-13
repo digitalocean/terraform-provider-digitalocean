@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_kubernetes_versions"
-sidebar_current: "docs-do-datasource-kubernetes-versions"
-description: |-
-  Get available DigitalOcean Kubernetes versions.
 ---
 
 # digitalocean\_kubernetes\_versions

@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_database_replica"
-sidebar_current: "docs-do-resource-database-replica"
-description: |-
-  Provides a DigitalOcean database replica resource.
 ---
 
 # digitalocean\_database\_replica

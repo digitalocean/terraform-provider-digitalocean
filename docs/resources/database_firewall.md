@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_database_firewall"
-sidebar_current: "docs-do-resource-database-firewall"
-description: |-
-  Provides a DigitalOcean database firewall resource.
 ---
 
 # digitalocean\_database\_firewall

@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_floating_ip"
-sidebar_current: "docs-do-resource-floating-ip"
-description: |-
-  Provides a DigitalOcean Floating IP resource.
 ---
 
 # digitalocean\_floating_ip

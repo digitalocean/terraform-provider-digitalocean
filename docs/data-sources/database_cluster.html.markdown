@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_database_cluster"
-sidebar_current: "docs-do-datasource-database-cluster"
-description: |-
-  Get information on a database cluster resource.
 ---
 
 # digitalocean\_database\_cluster

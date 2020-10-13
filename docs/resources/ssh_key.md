@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_ssh_key"
-sidebar_current: "docs-do-resource-ssh-key"
-description: |-
-  Provides a DigitalOcean SSH key resource.
 ---
 
 # digitalocean\_ssh_key

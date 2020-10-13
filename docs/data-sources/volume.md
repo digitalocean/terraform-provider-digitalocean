@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_volume"
-sidebar_current: "docs-do-datasource-volume"
-description: |-
-  Get information on a volume.
 ---
 
 # digitalocean_volume

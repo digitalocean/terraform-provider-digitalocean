@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_images"
-sidebar_current: "docs-do-datasource-images"
-description: |-
-  Retrieve information about DigitalOcean images (public and private).
 ---
 
 # digitalocean_images

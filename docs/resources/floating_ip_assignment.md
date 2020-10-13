@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_floating_ip_assignment"
-sidebar_current: "docs-do-resource-floating-ip-assignment"
-description: |-
-  Provides a DigitalOcean resource for assigning an existing floating IP to a Droplet.
 ---
 
 # digitalocean\_floating_ip_assignment

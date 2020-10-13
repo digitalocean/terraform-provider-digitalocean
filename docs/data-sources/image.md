@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_image"
-sidebar_current: "docs-do-datasource-image"
-description: |-
-  Get information on a DigitalOcean image.
 ---
 
 # digitalocean_image

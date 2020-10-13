@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_droplet_snapshot"
-sidebar_current: "docs-do-datasource-droplet-snapshot"
-description: |-
-  Get information about a DigitalOcean Droplet snapshot.
 ---
 
 # digitalocean\_droplet\_snapshot

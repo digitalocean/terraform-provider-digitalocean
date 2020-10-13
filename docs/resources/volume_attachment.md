@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_volume_attachment"
-sidebar_current: "docs-do-resource-volume-attachment"
-description: |-
-  Provides a DigitalOcean volume attachment resource.
 ---
 
 # digitalocean\_volume\_attachment

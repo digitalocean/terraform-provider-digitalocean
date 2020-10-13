@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_kubernetes_node_pool"
-sidebar_current: "docs-do-resource-kubernetes-node-pool"
-description: |-
-  Provides a DigitalOcean Kubernetes node pool.
 ---
 
 # digitalocean\_kubernetes\_node\_pool

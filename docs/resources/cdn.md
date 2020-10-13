@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_cdn"
-sidebar_current: "docs-do-resource-cdn"
-description: |-
-  Provides a DigitalOcean CDN Endpoint resource.
 ---
 
 # digitalocean\_cdn

@@ -1,9 +1,5 @@
 ---
-layout: "digitalocean"
 page_title: "DigitalOcean: digitalocean_container_registry"
-sidebar_current: "docs-do-resource-container-registry"
-description: |-
-  Provides a DigitalOcean Tag resource.
 ---
 
 # digitalocean\_container_registry
