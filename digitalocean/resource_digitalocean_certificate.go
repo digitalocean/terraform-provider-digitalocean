@@ -13,6 +13,28 @@ import (
 )
 
 func resourceDigitalOceanCertificate() *schema.Resource {
+	return &schema.Resource{
+		Create: resourceDigitalOceanCertificateCreate,
+		Read:   resourceDigitalOceanCertificateRead,
+		Delete: resourceDigitalOceanCertificateDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
+
+		Schema: resourceDigitalOceanCertificateV1(),
+
+		SchemaVersion: 1,
+		StateUpgraders: []schema.StateUpgrader{
+			{
+				Type:    resourceDigitalOceanCertificateV0().CoreConfigSchema().ImpliedType(),
+				Upgrade: migrateCertificateStateV0toV1,
+				Version: 0,
+			},
+		},
+	}
+}
+
+func resourceDigitalOceanCertificateV1() map[string]*schema.Schema {
 	certificateV1Schema := map[string]*schema.Schema{
 		// Note that this UUID will change on auto-renewal of a
 		// lets_encrypt certificate.
@@ -26,25 +48,7 @@ func resourceDigitalOceanCertificate() *schema.Resource {
 		certificateV1Schema[k] = v
 	}
 
-	return &schema.Resource{
-		Create: resourceDigitalOceanCertificateCreate,
-		Read:   resourceDigitalOceanCertificateRead,
-		Delete: resourceDigitalOceanCertificateDelete,
-		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
-		},
-
-		Schema: certificateV1Schema,
-
-		SchemaVersion: 1,
-		StateUpgraders: []schema.StateUpgrader{
-			{
-				Type:    resourceDigitalOceanCertificateV0().CoreConfigSchema().ImpliedType(),
-				Upgrade: migrateCertificateStateV0toV1,
-				Version: 0,
-			},
-		},
-	}
+	return certificateV1Schema
 }
 
 func resourceDigitalOceanCertificateV0() *schema.Resource {

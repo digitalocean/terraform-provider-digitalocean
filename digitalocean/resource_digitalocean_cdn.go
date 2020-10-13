@@ -12,20 +12,6 @@ import (
 )
 
 func resourceDigitalOceanCDN() *schema.Resource {
-	cdnV1Schema := map[string]*schema.Schema{
-		"certificate_name": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Computed: true,
-		},
-	}
-	for k, v := range resourceDigitalOceanCDNv0().Schema {
-		cdnV1Schema[k] = v
-	}
-
-	cdnV1Schema["certificate_id"].Computed = true
-	cdnV1Schema["certificate_id"].Deprecated = "Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead."
-
 	return &schema.Resource{
 		Create: resourceDigitalOceanCDNCreate,
 		Read:   resourceDigitalOceanCDNRead,
@@ -44,8 +30,26 @@ func resourceDigitalOceanCDN() *schema.Resource {
 			},
 		},
 
-		Schema: cdnV1Schema,
+		Schema: resourceDigitalOceanCDNv1(),
 	}
+}
+
+func resourceDigitalOceanCDNv1() map[string]*schema.Schema {
+	cdnV1Schema := map[string]*schema.Schema{
+		"certificate_name": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Computed: true,
+		},
+	}
+
+	for k, v := range resourceDigitalOceanCDNv0().Schema {
+		cdnV1Schema[k] = v
+	}
+	cdnV1Schema["certificate_id"].Computed = true
+	cdnV1Schema["certificate_id"].Deprecated = "Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead."
+
+	return cdnV1Schema
 }
 
 func resourceDigitalOceanCDNv0() *schema.Resource {

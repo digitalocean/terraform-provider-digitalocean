@@ -14,16 +14,6 @@ import (
 )
 
 func resourceDigitalOceanLoadbalancer() *schema.Resource {
-	loadBalancerV1Schema := resourceDigitalOceanLoadBalancerV0().Schema
-
-	// Add updates to forwarding_rules to v0 schema to produce v1 schema
-	forwardingRuleSchema := loadBalancerV1Schema["forwarding_rule"].Elem.(*schema.Resource).Schema
-	forwardingRuleSchema["certificate_name"].Type = schema.TypeString
-	forwardingRuleSchema["certificate_name"].Optional = true
-	forwardingRuleSchema["certificate_name"].ValidateFunc = validation.NoZeroValues
-	forwardingRuleSchema["certificate_id"].Computed = true
-	forwardingRuleSchema["certificate_id"].Deprecated = "Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead."
-
 	return &schema.Resource{
 		Create: resourceDigitalOceanLoadbalancerCreate,
 		Read:   resourceDigitalOceanLoadbalancerRead,
@@ -42,7 +32,7 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 			},
 		},
 
-		Schema: loadBalancerV1Schema,
+		Schema: resourceDigitalOceanLoadBalancerV1(),
 
 		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
 
@@ -90,6 +80,33 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 			return nil
 		},
 	}
+}
+
+func resourceDigitalOceanLoadBalancerV1() map[string]*schema.Schema {
+	loadBalancerV0Schema := resourceDigitalOceanLoadBalancerV0().Schema
+	loadBalancerV1Schema := map[string]*schema.Schema{}
+
+	forwardingRuleSchema := map[string]*schema.Schema{
+		"certificate_name": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.NoZeroValues,
+		},
+	}
+
+	for k, v := range loadBalancerV0Schema["forwarding_rule"].Elem.(*schema.Resource).Schema {
+		forwardingRuleSchema[k] = v
+	}
+	forwardingRuleSchema["certificate_id"].Computed = true
+	forwardingRuleSchema["certificate_id"].Deprecated = "Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead."
+
+	for k, v := range loadBalancerV0Schema {
+		loadBalancerV1Schema[k] = v
+	}
+	loadBalancerV1Schema["forwarding_rule"].Elem.(*schema.Resource).Schema = forwardingRuleSchema
+
+	return loadBalancerV1Schema
 }
 
 func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
@@ -160,11 +177,6 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 							Type:         schema.TypeInt,
 							Required:     true,
 							ValidateFunc: validation.IntBetween(1, 65535),
-						},
-						"certificate_name": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.NoZeroValues,
 						},
 						"certificate_id": {
 							Type:         schema.TypeString,
