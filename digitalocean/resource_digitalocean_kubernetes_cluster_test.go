@@ -463,7 +463,13 @@ func TestAccDigitalOceanKubernetesCluster_KubernetesProviderInteroperability(t *
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"kubernetes": {
+				Source:            "hashicorp/kubernetes",
+				VersionConstraint: "1.13.2",
+			},
+		},
+		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanKubernetesConfig_KubernetesProviderInteroperability(testClusterVersion16, rName),
