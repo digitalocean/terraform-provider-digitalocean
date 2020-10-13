@@ -22,7 +22,7 @@ For example to find all Droplets with size `s-1vcpu-1gb`:
 ```hcl
 data "digitalocean_droplets" "small" {
   filter {
-    key = "size"
+    key    = "size"
     values = ["s-1vcpu-1gb"]
   }
 }
@@ -33,15 +33,15 @@ You can filter on multiple fields and sort the results as well:
 ```hcl
 data "digitalocean_droplets" "small-with-backups" {
   filter {
-    key = "size"
+    key    = "size"
     values = ["s-1vcpu-1gb"]
   }
   filter {
-    key = "backups"
+    key    = "backups"
     values = ["true"]
   }
   sort {
-    key = "created_at"
+    key       = "created_at"
     direction = "desc"
   }
 }

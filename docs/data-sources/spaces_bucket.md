@@ -13,7 +13,7 @@ Get the bucket by name:
 
 ```hcl
 data "digitalocean_spaces_bucket" "example" {
-  name = "my-spaces-bucket"
+  name   = "my-spaces-bucket"
   region = "nyc3"
 }
 

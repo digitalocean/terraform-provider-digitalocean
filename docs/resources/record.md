@@ -32,12 +32,12 @@ resource "digitalocean_record" "mx" {
 
 # Output the FQDN for the www A record.
 output "www_fqdn" {
-  value = digitalocean_record.www.fqdn  # => www.example.com
+  value = digitalocean_record.www.fqdn # => www.example.com
 }
 
 # Output the FQDN for the MX record.
 output "mx_fqdn" {
-  value = digitalocean_record.mx.fqdn  # => example.com
+  value = digitalocean_record.mx.fqdn # => example.com
 }
 ```
 

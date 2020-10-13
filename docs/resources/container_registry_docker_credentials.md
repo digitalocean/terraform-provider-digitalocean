@@ -37,7 +37,7 @@ provider "docker" {
   host = "unix://var/run/docker.sock"
 
   registry_auth {
-    address = data.digitalocean_container_registry.example.server_url
+    address             = data.digitalocean_container_registry.example.server_url
     config_file_content = digitalocean_container_registry_docker_credentials.example.docker_credentials
   }
 }
@@ -54,8 +54,8 @@ resource "digitalocean_container_registry_docker_credentials" "example" {
 }
 
 resource "digitalocean_kubernetes_cluster" "example" {
-  name    = "example"
-  region  = "nyc1"
+  name   = "example"
+  region = "nyc1"
   # Grab the latest version slug from `doctl kubernetes options versions`
   version = "1.16.6-do.0"
 
@@ -68,8 +68,8 @@ resource "digitalocean_kubernetes_cluster" "example" {
 
 provider "kubernetes" {
   load_config_file = false
-  host  = digitalocean_kubernetes_cluster.example.endpoint
-  token = digitalocean_kubernetes_cluster.example.kube_config[0].token
+  host             = digitalocean_kubernetes_cluster.example.endpoint
+  token            = digitalocean_kubernetes_cluster.example.kube_config[0].token
   cluster_ca_certificate = base64decode(
     digitalocean_kubernetes_cluster.example.kube_config[0].cluster_ca_certificate
   )

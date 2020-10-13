@@ -29,8 +29,8 @@ resource "digitalocean_kubernetes_cluster" "example-cluster" {
   version = data.digitalocean_kubernetes_versions.example.latest_version
 
   node_pool {
-    name = "default"
-    size  = "s-1vcpu-2gb"
+    name       = "default"
+    size       = "s-1vcpu-2gb"
     node_count = 3
   }
 }
@@ -49,8 +49,8 @@ resource "digitalocean_kubernetes_cluster" "example-cluster" {
   version = data.digitalocean_kubernetes_versions.example.latest_version
 
   node_pool {
-    name = "default"
-    size  = "s-1vcpu-2gb"
+    name       = "default"
+    size       = "s-1vcpu-2gb"
     node_count = 3
   }
 }

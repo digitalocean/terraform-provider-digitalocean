@@ -49,7 +49,7 @@ resource "digitalocean_spaces_bucket_object" "index" {
   region       = digitalocean_spaces_bucket.foobar.region
   bucket       = digitalocean_spaces_bucket.foobar.name
   key          = "index.html"
-  content      = "<html><body><p>This page is empty.</p></body></html>" 
+  content      = "<html><body><p>This page is empty.</p></body></html>"
   content_type = "text/html"
 }
 ```

@@ -20,7 +20,7 @@ Use the `filter` block with a `key` string and `values` list to filter domains.
 ```hcl
 data "digitalocean_domains" "ttl300" {
   filter {
-    key = "ttl"
+    key    = "ttl"
     values = ["300"]
   }
 }

@@ -17,8 +17,8 @@ Get data from a DNS record:
 
 ```hcl
 data "digitalocean_record" "example" {
-  domain  = "example.com"
-  name    = "test"
+  domain = "example.com"
+  name   = "test"
 }
 
 output "record_type" {

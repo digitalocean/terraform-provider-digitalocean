@@ -19,10 +19,10 @@ For example to find all available regions:
 ```hcl
 data "digitalocean_regions" "available" {
   filter {
-    key = "available"
+    key    = "available"
     values = ["true"]
   }
-} 
+}
 ```
 
 You can filter on multiple fields and sort the results as well:
@@ -30,15 +30,15 @@ You can filter on multiple fields and sort the results as well:
 ```hcl
 data "digitalocean_regions" "available" {
   filter {
-    key = "available"
+    key    = "available"
     values = ["true"]
   }
   filter {
-    key = "features"
+    key    = "features"
     values = ["private_networking"]
   }
   sort {
-    key = "name"
+    key       = "name"
     direction = "desc"
   }
 }

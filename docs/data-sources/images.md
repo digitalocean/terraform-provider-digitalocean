@@ -23,10 +23,10 @@ For example to find all Ubuntu images:
 ```hcl
 data "digitalocean_images" "ubuntu" {
   filter {
-    key = "distribution"
+    key    = "distribution"
     values = ["Ubuntu"]
   }
-} 
+}
 ```
 
 You can filter on multiple fields and sort the results as well:
@@ -34,15 +34,15 @@ You can filter on multiple fields and sort the results as well:
 ```hcl
 data "digitalocean_images" "available" {
   filter {
-    key = "distribution"
+    key    = "distribution"
     values = ["Ubuntu"]
   }
   filter {
-    key = "regions"
+    key    = "regions"
     values = ["nyc3"]
   }
   sort {
-    key = "created"
+    key       = "created"
     direction = "desc"
   }
 }

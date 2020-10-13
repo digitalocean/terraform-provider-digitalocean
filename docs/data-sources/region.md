@@ -12,7 +12,7 @@ what Droplet sizes and features are supported within a region.
 ```hcl
 data "digitalocean_region" "sfo2" {
   slug = "sfo2"
-} 
+}
 
 output "region_name" {
   value = data.digitalocean_region.sfo2.name

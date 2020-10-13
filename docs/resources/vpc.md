@@ -27,8 +27,8 @@ may be assigned to a VPC by referencing its `id`. For example:
 
 ```hcl
 resource "digitalocean_vpc" "example" {
-  name     = "example-project-network"
-  region   = "nyc3"
+  name   = "example-project-network"
+  region = "nyc3"
 }
 
 resource "digitalocean_droplet" "example" {

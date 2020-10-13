@@ -11,7 +11,7 @@ then this data source returns the default project.
 
 ```hcl
 data "digitalocean_project" "default" {
-} 
+}
 
 data "digitalocean_project" "staging" {
   name = "My Staging Project"

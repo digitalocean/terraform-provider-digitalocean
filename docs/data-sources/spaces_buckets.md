@@ -19,7 +19,7 @@ Get all buckets in a region:
 ```hcl
 data "digitalocean_spaces_buckets" "nyc3" {
   filter {
-    key = "region"
+    key    = "region"
     values = ["nyc3"]
   }
 }
@@ -29,11 +29,11 @@ You can sort the results as well:
 ```hcl
 data "digitalocean_spaces_buckets" "nyc3" {
   filter {
-    key = "region"
+    key    = "region"
     values = ["nyc3"]
   }
   sort {
-    key = "name"
+    key       = "name"
     direction = "desc"
   }
 }

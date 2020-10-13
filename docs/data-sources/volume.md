@@ -31,10 +31,10 @@ data "digitalocean_volume" "example" {
 }
 
 resource "digitalocean_droplet" "example" {
-  name       = "foo"
-  size       = "s-1vcpu-1gb"
-  image      = "ubuntu-18-04-x64"
-  region     = "nyc3"
+  name   = "foo"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-18-04-x64"
+  region = "nyc3"
 }
 
 resource "digitalocean_volume_attachment" "foobar" {

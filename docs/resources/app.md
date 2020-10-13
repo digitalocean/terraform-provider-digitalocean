@@ -15,7 +15,7 @@ To create an app, provide a [DigitalOcean app spec](https://www.digitalocean.com
 ```hcl
 resource "digitalocean_app" "golang-sample" {
   spec {
-    name = "golang-sample"
+    name   = "golang-sample"
     region = "ams"
 
     service {
@@ -38,13 +38,13 @@ resource "digitalocean_app" "golang-sample" {
 ```hcl
 resource "digitalocean_app" "static-ste-example" {
   spec {
-    name = "static-ste-example"
+    name   = "static-ste-example"
     region = "ams"
 
     static_site {
-      name             = "sample-jekyll"
-      build_command    = "bundle exec jekyll build -d ./public"
-	  output_dir       = "/public"
+      name          = "sample-jekyll"
+      build_command = "bundle exec jekyll build -d ./public"
+      output_dir    = "/public"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-jekyll.git"
@@ -60,8 +60,8 @@ resource "digitalocean_app" "static-ste-example" {
 ```hcl
 resource "digitalocean_app" "mono-repo-example" {
   spec {
-    name = "mono-repo-example"
-    region = "ams"
+    name    = "mono-repo-example"
+    region  = "ams"
     domains = ["foo.example.com"]
 
     # Build a Go project in the api/ directory that listens on port 3000
@@ -73,9 +73,9 @@ resource "digitalocean_app" "mono-repo-example" {
       instance_size_slug = "professional-xs"
 
       github {
-        branch          = "main"
-        deploy_on_push  = true
-        repo            = "username/repo"
+        branch         = "main"
+        deploy_on_push = true
+        repo           = "username/repo"
       }
 
       source_dir = "api/"
@@ -91,13 +91,13 @@ resource "digitalocean_app" "mono-repo-example" {
     # Builds a static site in the project's root directory
     # and serves it at https://foo.example.com/
     static_site {
-      name             = "web"
-      build_command    = "npm run build"
+      name          = "web"
+      build_command = "npm run build"
 
       github {
-        branch          = "main"
-        deploy_on_push  = true
-        repo            = "username/repo"
+        branch         = "main"
+        deploy_on_push = true
+        repo           = "username/repo"
       }
 
       routes {

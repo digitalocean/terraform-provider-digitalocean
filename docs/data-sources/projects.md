@@ -21,10 +21,10 @@ For example to find all staging environment projects:
 ```hcl
 data "digitalocean_projects" "staging" {
   filter {
-    key = "environment"
+    key    = "environment"
     values = ["Staging"]
   }
-} 
+}
 ```
 
 You can filter on multiple fields and sort the results as well:
@@ -32,15 +32,15 @@ You can filter on multiple fields and sort the results as well:
 ```hcl
 data "digitalocean_projects" "non-default-production" {
   filter {
-    key = "environment"
+    key    = "environment"
     values = ["Production"]
   }
   filter {
-    key = "is_default"
+    key    = "is_default"
     values = ["false"]
   }
   sort {
-    key = "name"
+    key       = "name"
     direction = "asc"
   }
 }

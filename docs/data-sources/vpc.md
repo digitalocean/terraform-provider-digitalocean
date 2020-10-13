@@ -19,7 +19,7 @@ return that that region's default VPC.
 
 ```hcl
 data "digitalocean_vpc" "example" {
-  name   = "example-network"
+  name = "example-network"
 }
 ```
 
@@ -27,7 +27,7 @@ Reuse the data about a VPC to assign a Droplet to it:
 
 ```hcl
 data "digitalocean_vpc" "example" {
-  name   = "example-network"
+  name = "example-network"
 }
 
 resource "digitalocean_droplet" "example" {

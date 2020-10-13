@@ -12,8 +12,8 @@ Provides a DigitalOcean Kubernetes cluster resource. This can be used to create,
 
 ```hcl
 resource "digitalocean_kubernetes_cluster" "foo" {
-  name    = "foo"
-  region  = "nyc1"
+  name   = "foo"
+  region = "nyc1"
   # Grab the latest version slug from `doctl kubernetes options versions`
   version = "1.15.5-do.1"
 
@@ -31,8 +31,8 @@ The cluster's kubeconfig is exported as an attribute allowing you to use it with
 
 ```hcl
 resource "digitalocean_kubernetes_cluster" "foo" {
-  name    = "foo"
-  region  = "nyc1"
+  name   = "foo"
+  region = "nyc1"
   # Grab the latest version slug from `doctl kubernetes options versions`
   version = "1.15.5-do.1"
   tags    = ["staging"]
@@ -46,8 +46,8 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 
 provider "kubernetes" {
   load_config_file = false
-  host  = digitalocean_kubernetes_cluster.foo.endpoint
-  token = digitalocean_kubernetes_cluster.foo.kube_config[0].token
+  host             = digitalocean_kubernetes_cluster.foo.endpoint
+  token            = digitalocean_kubernetes_cluster.foo.kube_config[0].token
   cluster_ca_certificate = base64decode(
     digitalocean_kubernetes_cluster.foo.kube_config[0].cluster_ca_certificate
   )
