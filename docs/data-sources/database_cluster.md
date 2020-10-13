@@ -51,4 +51,3 @@ The following attributes are exported:
 
 * `day` - The day of the week on which to apply maintenance updates.
 * `hour` - The hour in UTC at which maintenance updates will be applied in 24 hour format.
-
