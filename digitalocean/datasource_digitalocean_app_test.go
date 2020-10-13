@@ -28,7 +28,7 @@ func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(appDataConfig),
+				Config: appDataConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_app.foobar", "spec.0.name", appName),
