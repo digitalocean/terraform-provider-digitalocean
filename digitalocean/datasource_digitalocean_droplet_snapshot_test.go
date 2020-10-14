@@ -6,25 +6,33 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanDropletSnapshot_basic(t *testing.T) {
 	var snapshot godo.Snapshot
-	rInt := acctest.RandInt()
+	testName := randomTestName()
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanDropletSnapshot_basic, testName, testName)
+	dataSourceConfig := `
+data "digitalocean_droplet_snapshot" "foobar" {
+  most_recent = true
+  name = digitalocean_droplet_snapshot.foo.name
+}`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanDropletSnapshot_basic, rInt, rInt),
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanDropletSnapshotExists("data.digitalocean_droplet_snapshot.foobar", &snapshot),
-					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
-					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "min_disk_size", "20"),
+					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("%s-snapshot", testName)),
+					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "min_disk_size", "25"),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "regions.#", "1"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet_snapshot.foobar", "droplet_id"),
 				),
@@ -35,18 +43,27 @@ func TestAccDataSourceDigitalOceanDropletSnapshot_basic(t *testing.T) {
 
 func TestAccDataSourceDigitalOceanDropletSnapshot_regex(t *testing.T) {
 	var snapshot godo.Snapshot
-	rInt := acctest.RandInt()
+	testName := randomTestName()
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanDropletSnapshot_basic, testName, testName)
+	dataSourceConfig := fmt.Sprintf(`
+data "digitalocean_droplet_snapshot" "foobar" {
+  most_recent = true
+  name_regex = "^%s"
+}`, testName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanDropletSnapshot_regex, rInt, rInt),
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanDropletSnapshotExists("data.digitalocean_droplet_snapshot.foobar", &snapshot),
-					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
-					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "min_disk_size", "20"),
+					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("%s-snapshot", testName)),
+					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "min_disk_size", "25"),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "regions.#", "1"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet_snapshot.foobar", "droplet_id"),
 				),
@@ -57,18 +74,39 @@ func TestAccDataSourceDigitalOceanDropletSnapshot_regex(t *testing.T) {
 
 func TestAccDataSourceDigitalOceanDropletSnapshot_region(t *testing.T) {
 	var snapshot godo.Snapshot
-	rInt := acctest.RandInt()
+	testName := randomTestName()
+	nycResourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanDropletSnapshot_basic, testName, testName)
+	lonResourceConfig := fmt.Sprintf(`
+resource "digitalocean_droplet" "bar" {
+  region = "lon1"
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
+  image  = "centos-7-x64"
+}
+
+resource "digitalocean_droplet_snapshot" "bar" {
+  name = "%s-snapshot"
+  droplet_id = "${digitalocean_droplet.bar.id}"
+}`, testName, testName)
+	dataSourceConfig := `
+data "digitalocean_droplet_snapshot" "foobar" {
+  name = digitalocean_droplet_snapshot.bar.name
+  region = "lon1"
+}`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanDropletSnapshot_region, rInt, rInt, rInt, rInt),
+				Config: nycResourceConfig + lonResourceConfig,
+			},
+			{
+				Config: nycResourceConfig + lonResourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanDropletSnapshotExists("data.digitalocean_droplet_snapshot.foobar", &snapshot),
-					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
-					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "min_disk_size", "20"),
+					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("%s-snapshot", testName)),
+					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "min_disk_size", "25"),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "regions.#", "1"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet_snapshot.foobar", "droplet_id"),
 				),
@@ -108,70 +146,14 @@ func testAccCheckDataSourceDigitalOceanDropletSnapshotExists(n string, snapshot 
 
 const testAccCheckDataSourceDigitalOceanDropletSnapshot_basic = `
 resource "digitalocean_droplet" "foo" {
-  name   = "foo-%d"
-  size   = "512mb"
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
   image  = "centos-7-x64"
   region = "nyc3"
-  ipv6   = true
 }
 
 resource "digitalocean_droplet_snapshot" "foo" {
-  name = "snapshot-%d"
-  droplet_id = "${digitalocean_droplet.foo.id}"
+  name = "%s-snapshot"
+  droplet_id = digitalocean_droplet.foo.id
 }
-
-data "digitalocean_droplet_snapshot" "foobar" {
-  most_recent = true
-  name = "${digitalocean_droplet_snapshot.foo.name}"
-}`
-
-const testAccCheckDataSourceDigitalOceanDropletSnapshot_regex = `
-resource "digitalocean_droplet" "foo" {
-  region      = "nyc1"
-  name        = "foo-%d"
-  size        = "512mb"
-  image  			= "centos-7-x64"
-  ipv6   			= true
-}
-
-resource "digitalocean_droplet_snapshot" "foo" {
-  name = "snapshot-%d"
-  droplet_id = "${digitalocean_droplet.foo.id}"
-}
-
-data "digitalocean_droplet_snapshot" "foobar" {
-  most_recent = true
-  name_regex = "^${digitalocean_droplet_snapshot.foo.name}"
-}`
-
-const testAccCheckDataSourceDigitalOceanDropletSnapshot_region = `
-resource "digitalocean_droplet" "foo" {
-  region      = "nyc1"
-  name        = "foo-nyc-%d"
-  size        = "512mb"
-  image  			= "centos-7-x64"
-  ipv6   			= true
-}
-
-resource "digitalocean_droplet" "bar" {
-  region      = "lon1"
-  name        = "bar-lon-%d"
-  size        = "512mb"
-  image  			= "centos-7-x64"
-  ipv6   			= true
-}
-
-resource "digitalocean_droplet_snapshot" "foo" {
-  name = "snapshot-%d"
-  droplet_id = "${digitalocean_droplet.foo.id}"
-}
-
-resource "digitalocean_droplet_snapshot" "bar" {
-  name = "snapshot-%d"
-  droplet_id = "${digitalocean_droplet.bar.id}"
-}
-
-data "digitalocean_droplet_snapshot" "foobar" {
-  name = "${digitalocean_droplet_snapshot.bar.name}"
-  region = "lon1"
-}`
+`
