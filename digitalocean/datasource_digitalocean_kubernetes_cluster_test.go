@@ -13,6 +13,11 @@ import (
 func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
+	resourceConfig := testAccDigitalOceanKubernetesConfigForDataSource(testClusterVersion16, rName)
+	dataSourceConfig := `
+data "digitalocean_kubernetes_cluster" "foobar" {
+	name = digitalocean_kubernetes_cluster.foo.name
+}`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -26,7 +31,10 @@ func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigWithDataSource(testClusterVersion16, rName),
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanKubernetesClusterExists("data.digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -41,7 +49,7 @@ func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	})
 }
 
-func testAccDigitalOceanKubernetesConfigWithDataSource(version string, rName string) string {
+func testAccDigitalOceanKubernetesConfigForDataSource(version string, rName string) string {
 	return fmt.Sprintf(`%s
 
 resource "digitalocean_kubernetes_cluster" "foo" {
@@ -60,12 +68,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
           priority = "high"
         }
 	}
-}
-
-data "digitalocean_kubernetes_cluster" "foobar" {
-	name = "${digitalocean_kubernetes_cluster.foo.name}"
-}
-`, version, rName)
+}`, version, rName)
 }
 
 func testAccCheckDataSourceDigitalOceanKubernetesClusterExists(n string, cluster *godo.KubernetesCluster) resource.TestCheckFunc {
