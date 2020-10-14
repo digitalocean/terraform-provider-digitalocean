@@ -472,6 +472,7 @@ const testAccCheckDigitalOceanDatabaseClusterConfigWithSQLMode = `
 resource "digitalocean_database_cluster" "foobar" {
 	name       = "%s"
 	engine     = "mysql"
+	version    = "8"
 	size       = "db-s-1vcpu-1gb"
 	region     = "lon1"
     node_count = 1
@@ -482,6 +483,7 @@ const testAccCheckDigitalOceanDatabaseClusterConfigWithSQLModeUpdate = `
 resource "digitalocean_database_cluster" "foobar" {
 	name       = "%s"
 	engine     = "mysql"
+	version    = "8"
 	size       = "db-s-1vcpu-1gb"
 	region     = "lon1"
     node_count = 1
@@ -523,6 +525,7 @@ const testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicy = `
 resource "digitalocean_database_cluster" "foobar" {
 	name            = "%s"
 	engine          = "redis"
+	version         = "5"
 	size            = "db-s-1vcpu-1gb"
 	region          = "nyc1"
     node_count      = 1
@@ -535,6 +538,7 @@ const testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicyUpdate = `
 resource "digitalocean_database_cluster" "foobar" {
 	name            = "%s"
 	engine          = "redis"
+	version         = "5"
 	size            = "db-s-1vcpu-1gb"
 	region          = "nyc1"
     node_count      = 1
@@ -546,7 +550,8 @@ resource "digitalocean_database_cluster" "foobar" {
 const testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicyError = `
 resource "digitalocean_database_cluster" "foobar" {
 	name            = "%s"
-	engine          = "psql"
+	engine          = "pg"
+	version         = "11"
 	size            = "db-s-1vcpu-1gb"
 	region          = "nyc1"
     node_count      = 1
