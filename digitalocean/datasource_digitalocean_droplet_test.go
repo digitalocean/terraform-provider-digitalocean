@@ -14,14 +14,22 @@ import (
 
 func TestAccDataSourceDigitalOceanDroplet_BasicByName(t *testing.T) {
 	var droplet godo.Droplet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
+	name := randomTestName()
+	resourceConfig := testAccCheckDataSourceDigitalOceanDropletConfig_basicByName(name)
+	dataSourceConfig := `
+data "digitalocean_droplet" "foobar" {
+  name = digitalocean_droplet.foo.name
+}`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDataSourceDigitalOceanDropletConfig_basicByName(name),
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanDropletExists("data.digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -64,7 +72,7 @@ func TestAccDataSourceDigitalOceanDroplet_BasicById(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet.foobar", "ipv6", "true"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet.foobar", "private_networking", "false"),
+						"data.digitalocean_droplet.foobar", "private_networking", "true"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet.foobar", "urn"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet.foobar", "created_at"),
 				),
@@ -101,7 +109,7 @@ func TestAccDataSourceDigitalOceanDroplet_BasicByTag(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet.foobar", "ipv6", "true"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet.foobar", "private_networking", "false"),
+						"data.digitalocean_droplet.foobar", "private_networking", "true"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet.foobar", "tags.#", "1"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet.foobar", "urn"),
@@ -161,12 +169,7 @@ resource "digitalocean_droplet" "foo" {
   region   = "nyc3"
   ipv6     = true
   vpc_uuid = digitalocean_vpc.foobar.id
-}
-
-data "digitalocean_droplet" "foobar" {
-  name = digitalocean_droplet.foo.name
-}
-`, randomTestName(), name)
+}`, randomTestName(), name)
 }
 
 func testAccCheckDataSourceDigitalOceanDropletConfig_basicById(name string) string {
@@ -180,7 +183,7 @@ resource "digitalocean_droplet" "foo" {
 }
 
 data "digitalocean_droplet" "foobar" {
-  id = "${digitalocean_droplet.foo.id}"
+  id = digitalocean_droplet.foo.id
 }
 `, name)
 }
@@ -197,7 +200,7 @@ resource "digitalocean_droplet" "foo" {
   image  = "centos-7-x64"
   region = "nyc3"
   ipv6   = true
-  tags   = ["${digitalocean_tag.foo.id}"]
+  tags   = [digitalocean_tag.foo.id]
 }
 `, tagName, name)
 }
@@ -214,11 +217,11 @@ resource "digitalocean_droplet" "foo" {
   image  = "centos-7-x64"
   region = "nyc3"
   ipv6   = true
-  tags   = ["${digitalocean_tag.foo.id}"]
+  tags   = [digitalocean_tag.foo.id]
 }
 
 data "digitalocean_droplet" "foobar" {
-  tag = "${digitalocean_tag.foo.id}"
+  tag = digitalocean_tag.foo.id
 }
 `, tagName, name)
 }
