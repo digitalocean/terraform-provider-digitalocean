@@ -11,14 +11,21 @@ import (
 func TestAccDataSourceDigitalOceanVPC_ByName(t *testing.T) {
 	vpcName := randomTestName()
 	vpcDesc := "A description for the VPC"
-	vpcConfigByName := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_Basic, vpcName, vpcDesc)
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_Basic, vpcName, vpcDesc)
+	dataSourceConfig := `
+data "digitalocean_vpc" "foobar" {
+  name = digitalocean_vpc.foobar.name
+}`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: vpcConfigByName,
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVPCExists("data.digitalocean_vpc.foobar"),
 					resource.TestCheckResourceAttr(
@@ -88,12 +95,7 @@ resource "digitalocean_vpc" "foobar" {
 	name        = "%s"
 	description = "%s"
 	region      = "nyc3"
-}
-
-data "digitalocean_vpc" "foobar" {
-	name = digitalocean_vpc.foobar.name
-}
-`
+}`
 
 const testAccCheckDataSourceDigitalOceanVPCConfig_RegionDefault = `
 // Create Droplet to ensure default VPC exists
