@@ -11,45 +11,45 @@ import (
 func TestAccDataSourceDigitalOceanTags_Basic(t *testing.T) {
 	var tag godo.Tag
 	tagName := randomTestName()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanTagsConfig_basic, tagName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceDigitalOceanTagExists("digitalocean_tag.foo", &tag),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_tags.foobar", "tags.0.name", tagName),
-					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_tags.foobar", "tags.0.resource_count"),
-					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_tag.foobar", "total_resource_count"),
-					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_tag.foobar", "droplets_count"),
-					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_tag.foobar", "images_count"),
-					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_tag.foobar", "volumes_count"),
-					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_tag.foobar", "volume_snapshots_count"),
-					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_tag.foobar", "databases_count"),
-				),
-			},
-		},
-	})
-}
-
-const testAccCheckDataSourceDigitalOceanTagsConfig_basic = `
+	resourceConfig := fmt.Sprintf(`
 resource "digitalocean_tag" "foo" {
   name = "%s"
-}
-
+}`, tagName)
+	dataSourceConfig := `
 data "digitalocean_tags" "foobar" {
   filter {
     key    = "name"
     values = [digitalocean_tag.foo.name]
   }
 }`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceDigitalOceanTagExists("digitalocean_tag.foo", &tag),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_tags.foobar", "tags.0.name", tagName),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_tags.foobar", "tags.0.total_resource_count"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_tags.foobar", "tags.0.droplets_count"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_tags.foobar", "tags.0.images_count"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_tags.foobar", "tags.0.volumes_count"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_tags.foobar", "tags.0.volume_snapshots_count"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_tags.foobar", "tags.0.databases_count"),
+				),
+			},
+		},
+	})
+}
