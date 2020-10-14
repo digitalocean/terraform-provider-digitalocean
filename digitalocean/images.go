@@ -70,6 +70,10 @@ func imageSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Description: "error message associated with the image",
 		},
+		"description": {
+			Type:        schema.TypeString,
+			Description: "a description of the image",
+		},
 	}
 }
 
@@ -138,6 +142,7 @@ func flattenDigitalOceanImage(rawImage interface{}, meta interface{}) (map[strin
 		"tags":           flattenedTags,
 		"status":         image.Status,
 		"error_message":  image.ErrorMessage,
+		"description":    image.Description,
 
 		// Legacy attributes
 		"image": strconv.Itoa(image.ID),
