@@ -74,7 +74,7 @@ func TestAccDigitalOceanImage_PublicSlug(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_image.foobar", "slug", "ubuntu-18-04-x64"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_image.foobar", "min_disk_size", "20"),
+						"data.digitalocean_image.foobar", "min_disk_size", "15"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_image.foobar", "private", "false"),
 					resource.TestCheckResourceAttr(
