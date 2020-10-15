@@ -396,12 +396,13 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 						resourceName, "lifecycle_rule.0.id", "id1"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.0.prefix", "path1/"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.expiration.3591068768.days", "0"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.expiration.3591068768.date", ""),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.expiration.3591068768.expired_object_delete_marker", "true"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						resourceName, "lifecycle_rule.0.expiration.*",
+						map[string]string{
+							"days":                         "0",
+							"date":                         "",
+							"expired_object_delete_marker": "true",
+						}),
 				),
 			},
 			{

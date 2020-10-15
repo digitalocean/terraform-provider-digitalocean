@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
+
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -39,14 +41,16 @@ data "digitalocean_loadbalancer" "foobar" {
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"data.digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+						},
+					),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -96,22 +100,26 @@ data "digitalocean_loadbalancer" "foobar" {
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "2"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.entry_port", "443"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.entry_protocol", "https"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.target_port", "443"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.target_protocol", "https"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"data.digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "443",
+							"entry_protocol":  "https",
+							"target_port":     "443",
+							"target_protocol": "https",
+						},
+					),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"data.digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+						},
+					),
 				),
 			},
 		},
