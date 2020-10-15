@@ -3,10 +3,11 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"testing"
 )
 
 func TestAccDigitalOceanProject_CreateWithDefaults(t *testing.T) {
@@ -255,6 +256,9 @@ func TestAccDigitalOceanProject_WithManyResources(t *testing.T) {
 						"digitalocean_project.myproj", "name", projectName),
 					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "30"),
 				),
+			},
+			{
+				Config: destroyConfig,
 			},
 			{
 				Config: destroyConfig,
