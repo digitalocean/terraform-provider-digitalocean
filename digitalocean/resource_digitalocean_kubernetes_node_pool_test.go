@@ -370,34 +370,6 @@ func TestAccDigitalOceanKubernetesNodePool_UpdateWithAutoScale(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanKubernetesNodePool_WithEmptyNodePool(t *testing.T) {
-	rName := randomTestName()
-	var k8s godo.KubernetesCluster
-	var k8sPool godo.KubernetesNodePool
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
-		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDigitalOceanKubernetesConfigWithEmptyNodePool(rName),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
-					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "name", fmt.Sprintf("%s-pool", rName)),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "actual_node_count", "0"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.#", "0"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "auto_scale", "true"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "min_nodes", "0"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "max_nodes", "3"),
-				),
-			},
-		},
-	})
-}
-
 func testAccDigitalOceanKubernetesConfigBasicWithNodePool(rName string) string {
 	return fmt.Sprintf(`%s
 
@@ -453,33 +425,6 @@ resource digitalocean_kubernetes_node_pool "barfoo" {
 	labels = {
       priority = "high"
 	}
-}
-`, testClusterVersion16, rName, rName)
-}
-
-func testAccDigitalOceanKubernetesConfigWithEmptyNodePool(rName string) string {
-	return fmt.Sprintf(`%s
-
-resource "digitalocean_kubernetes_cluster" "foobar" {
-	name    = "%s"
-	region  = "lon1"
-	version = data.digitalocean_kubernetes_versions.test.latest_version
-
-	node_pool {
-		name       = "default"
-		size       = "s-1vcpu-2gb"
-		node_count = 1
-	}
-}
-
-resource digitalocean_kubernetes_node_pool "barfoo" {
-  cluster_id = "${digitalocean_kubernetes_cluster.foobar.id}"
-
-	name       = "%s-pool"
-	size       = "s-1vcpu-2gb"
-	auto_scale = true
-	min_nodes  = 0
-	max_nodes  = 3
 }
 `, testClusterVersion16, rName, rName)
 }
