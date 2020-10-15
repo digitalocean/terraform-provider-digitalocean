@@ -197,7 +197,7 @@ func resourceDigitalOceanCDNRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("origin", cdn.Origin)
 	d.Set("ttl", cdn.TTL)
 	d.Set("endpoint", cdn.Endpoint)
-	d.Set("created_at", cdn.CreatedAt)
+	d.Set("created_at", cdn.CreatedAt.UTC().String())
 	d.Set("custom_domain", cdn.CustomDomain)
 
 	if cdn.CertificateID != "" {
