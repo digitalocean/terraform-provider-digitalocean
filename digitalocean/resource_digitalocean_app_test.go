@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
+	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -196,12 +197,12 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.name", appName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.env.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.3118534296.key", "FOO"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.3118534296.value", "bar"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.3118534296.scope", "RUN_AND_BUILD_TIME"),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_app.foobar", "spec.0.service.0.env.*",
+						map[string]string{
+							"key":   "FOO",
+							"value": "bar",
+							"scope": "RUN_AND_BUILD_TIME",
+						}),
 				),
 			},
 			{
@@ -212,18 +213,18 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.name", appName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.env.#", "2"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.3118534296.key", "FOO"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.3118534296.value", "bar"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.3118534296.scope", "RUN_AND_BUILD_TIME"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.1776096292.key", "FIZZ"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.1776096292.value", "pop"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.1776096292.scope", "BUILD_TIME"),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_app.foobar", "spec.0.service.0.env.*",
+						map[string]string{
+							"key":   "FOO",
+							"value": "bar",
+							"scope": "RUN_AND_BUILD_TIME",
+						}),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_app.foobar", "spec.0.service.0.env.*",
+						map[string]string{
+							"key":   "FIZZ",
+							"value": "pop",
+							"scope": "BUILD_TIME",
+						}),
 				),
 			},
 			{
@@ -234,12 +235,12 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.name", appName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.env.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.1277866902.key", "FOO"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.1277866902.value", "baz"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.1277866902.scope", "RUN_TIME"),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_app.foobar", "spec.0.service.0.env.*",
+						map[string]string{
+							"key":   "FOO",
+							"value": "baz",
+							"scope": "RUN_TIME",
+						}),
 				),
 			},
 		},
