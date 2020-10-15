@@ -91,7 +91,7 @@ func TestAccDigitalOceanFloatingIP_Droplet(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanFloatingIPConfig_Unassign,
+				Config: testAccCheckDigitalOceanFloatingIPConfig_Unassign(rInt),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip.foobar", &floatingIP),
 					resource.TestCheckResourceAttr(
@@ -191,7 +191,18 @@ resource "digitalocean_floating_ip" "foobar" {
 }`, rInt)
 }
 
-const testAccCheckDigitalOceanFloatingIPConfig_Unassign = `
+func testAccCheckDigitalOceanFloatingIPConfig_Unassign(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "baz" {
+  name               = "baz-%d"
+  size               = "1gb"
+  image              = "centos-7-x64"
+  region             = "nyc3"
+  ipv6               = true
+  private_networking = true
+}
+
 resource "digitalocean_floating_ip" "foobar" {
   region     = "nyc3"
-}`
+}`, rInt)
+}
