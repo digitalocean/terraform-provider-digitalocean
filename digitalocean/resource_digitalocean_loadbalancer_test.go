@@ -1,6 +1,8 @@
 package digitalocean
 
 import (
+	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
+
 	"context"
 	"fmt"
 	"regexp"
@@ -71,14 +73,14 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_loadbalancer.foobar", "forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						}),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -120,14 +122,14 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_loadbalancer.foobar", "forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						}),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -152,14 +154,14 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.2170174198.entry_port", "81"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.2170174198.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.2170174198.target_port", "81"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.2170174198.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_loadbalancer.foobar", "forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "81",
+							"entry_protocol":  "http",
+							"target_port":     "81",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						}),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -197,14 +199,14 @@ func TestAccDigitalOceanLoadbalancer_dropletTag(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_loadbalancer.foobar", "forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						}),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -238,14 +240,14 @@ func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_loadbalancer.foobar", "forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						}),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -287,14 +289,14 @@ func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_loadbalancer.foobar", "forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						}),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -338,8 +340,15 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.884589504.certificate_id", "tf-acc-test-certificate-01"),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_loadbalancer.foobar", "forwarding_rule.*",
+						map[string]string{
+							"entry_port":       "443",
+							"entry_protocol":   "https",
+							"target_port":      "80",
+							"target_protocol":  "http",
+							"certificate_name": "tf-acc-test-certificate-01",
+							"tls_passthrough":  "false",
+						}),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "redirect_http_to_https", "true"),
 					resource.TestCheckResourceAttr(
@@ -369,10 +378,15 @@ func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.3124151331.certificate_name", "tf-acc-test-certificate-02"),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_loadbalancer.foobar", "forwarding_rule.*",
+						map[string]string{
+							"entry_port":       "443",
+							"entry_protocol":   "https",
+							"target_port":      "80",
+							"target_protocol":  "http",
+							"certificate_name": "tf-acc-test-certificate-02",
+							"tls_passthrough":  "false",
+						}),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "redirect_http_to_https", "true"),
 					resource.TestCheckResourceAttr(
@@ -402,22 +416,26 @@ func TestAccDigitalOceanLoadbalancer_multipleRules(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "2"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.entry_port", "443"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.entry_protocol", "https"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.target_port", "443"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.target_protocol", "https"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_loadbalancer.foobar", "forwarding_rule.*",
+						map[string]string{
+							"entry_port":       "80",
+							"entry_protocol":   "http",
+							"target_port":      "80",
+							"target_protocol":  "http",
+							"certificate_id":   "",
+							"certificate_name": "",
+							"tls_passthrough":  "false",
+						}),
+					setutil.TestCheckTypeSetElemNestedAttrs("digitalocean_loadbalancer.foobar", "forwarding_rule.*",
+						map[string]string{
+							"entry_port":       "443",
+							"entry_protocol":   "https",
+							"target_port":      "443",
+							"target_protocol":  "https",
+							"certificate_id":   "",
+							"certificate_name": "",
+							"tls_passthrough":  "true",
+						}),
 				),
 			},
 		},
