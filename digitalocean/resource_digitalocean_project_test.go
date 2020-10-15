@@ -219,6 +219,9 @@ func TestAccDigitalOceanProject_UpdateFromDropletToSpacesResource(t *testing.T) 
 			},
 			{
 				Config: updateConfig,
+			},
+			{
+				Config: updateConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
 					testAccCheckDigitalOceanProjectResourceURNIsPresent("digitalocean_project.myproj", "do:spaces:"+generateSpacesName()),
