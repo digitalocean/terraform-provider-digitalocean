@@ -3,8 +3,8 @@ package digitalocean
 import (
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDigitalOceanSSHKey_importBasic(t *testing.T) {
@@ -15,10 +15,10 @@ func TestAccDigitalOceanSSHKey_importBasic(t *testing.T) {
 		t.Fatalf("Cannot generate test SSH key pair: %s", err)
 	}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanSSHKeyDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSSHKeyDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanSSHKeyConfig_basic(rInt, publicKeyMaterial),

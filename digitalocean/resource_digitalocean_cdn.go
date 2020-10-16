@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanCDN() *schema.Resource {
@@ -93,7 +93,7 @@ func resourceDigitalOceanCDNv0() *schema.Resource {
 	}
 }
 
-func migrateCDNStateV0toV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func migrateCDNStateV0toV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	if len(rawState) == 0 {
 		log.Println("[DEBUG] Empty state; nothing to migrate.")
 		return rawState, nil
@@ -197,7 +197,7 @@ func resourceDigitalOceanCDNRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("origin", cdn.Origin)
 	d.Set("ttl", cdn.TTL)
 	d.Set("endpoint", cdn.Endpoint)
-	d.Set("created_at", cdn.CreatedAt)
+	d.Set("created_at", cdn.CreatedAt.UTC().String())
 	d.Set("custom_domain", cdn.CustomDomain)
 
 	if cdn.CertificateID != "" {
@@ -230,7 +230,6 @@ func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error updating CDN TTL: %s", err)
 		}
 		log.Printf("[INFO] Updated TTL on CDN")
-		d.SetPartial("ttl")
 	}
 
 	if d.HasChange("certificate_id") || d.HasChange("custom_domain") {
@@ -245,7 +244,6 @@ func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) err
 			return fmt.Errorf("Error updating CDN custom domain: %s", err)
 		}
 		log.Printf("[INFO] Updated custom domain/certificate on CDN")
-		d.SetPartial("custom_domain_and_certificate_id")
 	}
 
 	d.Partial(false)

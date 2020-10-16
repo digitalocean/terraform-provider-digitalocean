@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanRecord() *schema.Resource {
@@ -114,7 +114,7 @@ func resourceDigitalOceanRecord() *schema.Resource {
 			},
 		},
 
-		CustomizeDiff: func(diff *schema.ResourceDiff, v interface{}) error {
+		CustomizeDiff: func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 			recordType := diff.Get("type").(string)
 
 			_, hasPriority := diff.GetOkExists("priority")

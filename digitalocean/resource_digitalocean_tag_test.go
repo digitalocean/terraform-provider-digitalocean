@@ -6,17 +6,17 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanTag_Basic(t *testing.T) {
 	var tag godo.Tag
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanTagDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanTagDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanTagConfig_basic,

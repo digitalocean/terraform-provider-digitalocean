@@ -18,9 +18,9 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -76,7 +76,7 @@ func testCertificateStateDataV1() map[string]interface{} {
 
 func TestResourceExampleInstanceStateUpgradeV0(t *testing.T) {
 	expected := testCertificateStateDataV1()
-	actual, err := migrateCertificateStateV0toV1(testCertificateStateDataV0(), nil)
+	actual, err := migrateCertificateStateV0toV1(context.Background(), testCertificateStateDataV0(), nil)
 	if err != nil {
 		t.Fatalf("error migrating state: %s", err)
 	}
@@ -93,9 +93,9 @@ func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanCertificateDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanCertificateConfig_basic(rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial),
@@ -122,9 +122,9 @@ func TestAccDigitalOceanCertificate_ExpectedErrors(t *testing.T) {
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanCertificateDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckDigitalOceanCertificateConfig_customNoLeaf(rInt, privateKeyMaterial, certChainMaterial),

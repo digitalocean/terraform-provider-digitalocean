@@ -6,24 +6,33 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanDatabaseReplica_Basic(t *testing.T) {
-	t.Parallel()
-
 	var databaseReplica godo.DatabaseReplica
+	var database godo.Database
+
 	databaseName := randomTestName()
 	databaseReplicaName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDatabaseReplicaDestroy,
+	databaseConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, databaseName)
+	replicaConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigBasic, databaseReplicaName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseReplicaDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigBasic, databaseName, databaseReplicaName),
+				Config: databaseConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+				),
+			},
+			{
+				Config: databaseConfig + replicaConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDatabaseReplicaExists("digitalocean_database_replica.read-01", &databaseReplica),
 					testAccCheckDigitalOceanDatabaseReplicaAttributes(&databaseReplica, databaseReplicaName),
@@ -58,26 +67,32 @@ func TestAccDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanDatabaseReplica_WithVPC(t *testing.T) {
-	t.Parallel()
-
 	var database godo.Database
+	var databaseReplica godo.DatabaseReplica
+
 	vpcName := randomTestName()
 	databaseName := randomTestName()
 	databaseReplicaName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDatabaseClusterDestroy,
+	databaseConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithVPC, vpcName, databaseName)
+	replicaConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigWithVPC, databaseReplicaName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithVPC, vpcName, databaseName) +
-					fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigWithVPC, databaseReplicaName),
+				Config: databaseConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+				),
+			},
+			{
+				Config: databaseConfig + replicaConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseReplicaExists("digitalocean_database_replica.read-01", &databaseReplica),
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
-					resource.TestCheckResourceAttrPair(
-						"digitalocean_database_cluster.foobar", "private_network_uuid", "digitalocean_vpc.foobar", "id"),
 					resource.TestCheckResourceAttrPair(
 						"digitalocean_database_replica.read-01", "private_network_uuid", "digitalocean_vpc.foobar", "id"),
 				),
@@ -150,22 +165,8 @@ func testAccCheckDigitalOceanDatabaseReplicaAttributes(databaseReplica *godo.Dat
 }
 
 const testAccCheckDigitalOceanDatabaseReplicaConfigBasic = `
-resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
-
-	maintenance_window {
-        day  = "friday"
-        hour = "13:00:00"
-	}
-}
-
 resource "digitalocean_database_replica" "read-01" {
-  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"
   region     = "nyc3"
   size       = "db-s-2vcpu-4gb"

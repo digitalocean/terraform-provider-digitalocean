@@ -10,9 +10,9 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/go-version"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -119,7 +119,7 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 		},
 
 		CustomizeDiff: customdiff.All(
-			customdiff.ForceNewIfChange("version", func(old, new, meta interface{}) bool {
+			customdiff.ForceNewIfChange("version", func(ctx context.Context, old, new, meta interface{}) bool {
 				// "version" can only be upgraded to newer versions, so we must create a new resource
 				// if it is decreased.
 				newVer, err := version.NewVersion(new.(string))

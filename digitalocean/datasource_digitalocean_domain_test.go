@@ -6,23 +6,37 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanDomain_Basic(t *testing.T) {
 	var domain godo.Domain
 	domainName := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
-
 	expectedURN := fmt.Sprintf("do:domain:%s", domainName)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resourceConfig := fmt.Sprintf(`
+resource "digitalocean_domain" "foo" {
+  name       = "%s"
+  ip_address = "192.168.0.10"
+}
+`, domainName)
+
+	dataSourceConfig := `
+data "digitalocean_domain" "foobar" {
+  name       = "${digitalocean_domain.foo.name}"
+}`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanDomainConfig_basic, domainName),
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanDomainExists("data.digitalocean_domain.foobar", &domain),
 					testAccCheckDataSourceDigitalOceanDomainAttributes(&domain, domainName),
@@ -76,13 +90,3 @@ func testAccCheckDataSourceDigitalOceanDomainExists(n string, domain *godo.Domai
 		return nil
 	}
 }
-
-const testAccCheckDataSourceDigitalOceanDomainConfig_basic = `
-resource "digitalocean_domain" "foo" {
-  name       = "%s"
-  ip_address = "192.168.0.10"
-}
-
-data "digitalocean_domain" "foobar" {
-  name       = "${digitalocean_domain.foo.name}"
-}`

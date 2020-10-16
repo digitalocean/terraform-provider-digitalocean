@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanCertificate_Basic(t *testing.T) {
@@ -16,12 +16,15 @@ func TestAccDataSourceDigitalOceanCertificate_Basic(t *testing.T) {
 
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDataSourceDigitalOceanCertificateConfig_basic(name, privateKeyMaterial, leafCertMaterial, certChainMaterial),
+				Config: testAccCheckDataSourceDigitalOceanCertificateConfig_basic(name, privateKeyMaterial, leafCertMaterial, certChainMaterial, false),
+			},
+			{
+				Config: testAccCheckDataSourceDigitalOceanCertificateConfig_basic(name, privateKeyMaterial, leafCertMaterial, certChainMaterial, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanCertificateExists("data.digitalocean_certificate.foobar", &certificate),
 					resource.TestCheckResourceAttr(
@@ -61,8 +64,11 @@ func testAccCheckDataSourceDigitalOceanCertificateExists(n string, certificate *
 	}
 }
 
-func testAccCheckDataSourceDigitalOceanCertificateConfig_basic(name, privateKeyMaterial, leafCert, certChain string) string {
-	return fmt.Sprintf(`
+func testAccCheckDataSourceDigitalOceanCertificateConfig_basic(
+	name, privateKeyMaterial, leafCert, certChain string,
+	includeDataSource bool,
+) string {
+	config := fmt.Sprintf(`
 resource "digitalocean_certificate" "foo" {
   name = "%s"
   private_key = <<EOF
@@ -75,9 +81,15 @@ EOF
 %s
 EOF
 }
-
-data "digitalocean_certificate" "foobar" {
-  name = "${digitalocean_certificate.foo.name}"
-}
 `, name, privateKeyMaterial, leafCert, certChain)
+
+	if includeDataSource {
+		config += `
+data "digitalocean_certificate" "foobar" {
+  name = digitalocean_certificate.foo.name
+}
+`
+	}
+
+	return config
 }

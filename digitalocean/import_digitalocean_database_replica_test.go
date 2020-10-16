@@ -6,25 +6,34 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanDatabaseReplica_importBasic(t *testing.T) {
+	var database godo.Database
 	resourceName := "digitalocean_database_replica.read-01"
-	databaseName := fmt.Sprintf("foobar-test-terraform-%s", acctest.RandString(10))
-	databaseReplicaName := fmt.Sprintf("read-01-test-terraform-%s", acctest.RandString(10))
+	databaseName := randomTestName()
+	databaseReplicaName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDatabaseReplicaDestroy,
+	databaseConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, databaseName)
+	replicaConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigBasic, databaseReplicaName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseReplicaDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigBasic, databaseName, databaseReplicaName),
+				Config: databaseConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+				),
 			},
-
+			{
+				Config: databaseConfig + replicaConfig,
+			},
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,

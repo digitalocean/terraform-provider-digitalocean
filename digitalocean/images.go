@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type imageListFunc func(ctx context.Context, opt *godo.ListOptions) ([]godo.Image, *godo.Response, error)
@@ -69,6 +69,10 @@ func imageSchema() map[string]*schema.Schema {
 		"error_message": {
 			Type:        schema.TypeString,
 			Description: "error message associated with the image",
+		},
+		"description": {
+			Type:        schema.TypeString,
+			Description: "a description of the image",
 		},
 	}
 }
@@ -138,6 +142,7 @@ func flattenDigitalOceanImage(rawImage interface{}, meta interface{}) (map[strin
 		"tags":           flattenedTags,
 		"status":         image.Status,
 		"error_message":  image.ErrorMessage,
+		"description":    image.Description,
 
 		// Legacy attributes
 		"image": strconv.Itoa(image.ID),

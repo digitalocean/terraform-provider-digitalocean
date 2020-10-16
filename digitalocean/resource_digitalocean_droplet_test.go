@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -54,10 +54,10 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
@@ -78,8 +78,10 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 						"digitalocean_droplet.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "user_data", HashString("foobar")),
-					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "ipv4_address_private", ""),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_droplet.foobar", "ipv4_address_private"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_droplet.foobar", "vpc_uuid"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "ipv6_address", ""),
 					resource.TestCheckResourceAttrSet("digitalocean_droplet.foobar", "urn"),
@@ -95,10 +97,10 @@ func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 	rInt := acctest.RandInt()
 	slug := "centos-7-x64"
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_withID(rInt, slug),
@@ -118,10 +120,10 @@ func TestAccDigitalOceanDroplet_withSSH(t *testing.T) {
 		t.Fatalf("Cannot generate test SSH key pair: %s", err)
 	}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_withSSH(rInt, publicKeyMaterial),
@@ -148,10 +150,10 @@ func TestAccDigitalOceanDroplet_Update(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
@@ -184,10 +186,10 @@ func TestAccDigitalOceanDroplet_ResizeWithOutDisk(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
@@ -220,10 +222,10 @@ func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
@@ -284,10 +286,10 @@ func TestAccDigitalOceanDroplet_UpdateUserData(t *testing.T) {
 	var afterCreate, afterUpdate godo.Droplet
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
@@ -321,10 +323,10 @@ func TestAccDigitalOceanDroplet_UpdateTags(t *testing.T) {
 	var afterCreate, afterUpdate godo.Droplet
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
@@ -356,10 +358,10 @@ func TestAccDigitalOceanDroplet_VPCAndIpv6(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_VPCAndIpv6(rInt),
@@ -380,10 +382,10 @@ func TestAccDigitalOceanDroplet_UpdatePrivateNetworkingIpv6(t *testing.T) {
 	var afterCreate, afterUpdate godo.Droplet
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
@@ -416,10 +418,10 @@ func TestAccDigitalOceanDroplet_Monitoring(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_Monitoring(rInt),
@@ -438,10 +440,10 @@ func TestAccDigitalOceanDroplet_conditionalVolumes(t *testing.T) {
 	var secondDroplet godo.Droplet
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_conditionalVolumes(rInt),
@@ -463,10 +465,10 @@ func TestAccDigitalOceanDroplet_EnableAndDisableBackups(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),

@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanImage_Basic(t *testing.T) {
@@ -18,10 +18,10 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 	var snapshotsId []int
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
@@ -63,10 +63,10 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanImage_PublicSlug(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanImageConfig_slug("ubuntu-18-04-x64"),
@@ -74,7 +74,7 @@ func TestAccDigitalOceanImage_PublicSlug(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_image.foobar", "slug", "ubuntu-18-04-x64"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_image.foobar", "min_disk_size", "20"),
+						"data.digitalocean_image.foobar", "min_disk_size", "15"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_image.foobar", "private", "false"),
 					resource.TestCheckResourceAttr(

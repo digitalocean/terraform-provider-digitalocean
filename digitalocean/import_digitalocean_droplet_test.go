@@ -7,19 +7,19 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanDroplet_importBasic(t *testing.T) {
 	resourceName := "digitalocean_droplet.foobar"
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
@@ -49,10 +49,10 @@ func TestAccDigitalOceanDroplet_ImportWithNoImageSlug(t *testing.T) {
 	var droplet godo.Droplet
 	var snapshotId []int
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDropletDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),

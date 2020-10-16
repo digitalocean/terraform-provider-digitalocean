@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanDatabaseUser_Basic(t *testing.T) {
@@ -17,10 +17,10 @@ func TestAccDigitalOceanDatabaseUser_Basic(t *testing.T) {
 	databaseUserName := randomTestName()
 	databaseUserNameUpdated := databaseUserName + "-up"
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDatabaseUserDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseUserConfigBasic, databaseClusterName, databaseUserName),
@@ -54,10 +54,10 @@ func TestAccDigitalOceanDatabaseUser_MySQLAuth(t *testing.T) {
 	databaseClusterName := randomTestName()
 	databaseUserName := randomTestName()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanDatabaseUserDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseUserDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseUserConfigMySQLAuth, databaseClusterName, databaseUserName),

@@ -1,7 +1,7 @@
 package digitalocean
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceDigitalOceanApp() *schema.Resource {
@@ -15,7 +15,6 @@ func dataSourceDigitalOceanApp() *schema.Resource {
 			"spec": {
 				Type:        schema.TypeList,
 				Computed:    true,
-				MaxItems:    1,
 				Description: "A DigitalOcean App Platform Spec",
 				Elem: &schema.Resource{
 					Schema: appSpecSchema(),

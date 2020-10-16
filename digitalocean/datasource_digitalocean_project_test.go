@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceDigitalOceanProject_DefaultProject(t *testing.T) {
@@ -12,9 +12,9 @@ func TestAccDataSourceDigitalOceanProject_DefaultProject(t *testing.T) {
 data "digitalocean_project" "default" {
 }
 `
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: config,
@@ -30,27 +30,30 @@ data "digitalocean_project" "default" {
 
 func TestAccDataSourceDigitalOceanProject_NonDefaultProject(t *testing.T) {
 	nonDefaultProjectName := randomName("tf-acc-project-", 6)
-	config := fmt.Sprintf(`
+	resourceConfig := fmt.Sprintf(`
 resource "digitalocean_project" "foo" {
-	name = "%s"
-}
-
+  name = "%s"
+}`, nonDefaultProjectName)
+	dataSourceConfig := `
 data "digitalocean_project" "bar" {
-  	id = digitalocean_project.foo.id
+  id = digitalocean_project.foo.id
 }
 
 data "digitalocean_project" "barfoo" {
-    name = digitalocean_project.foo.name
+  name = digitalocean_project.foo.name
 }
-`, nonDefaultProjectName)
+`
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanProjectDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: config,
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet("data.digitalocean_project.bar", "id"),
 					resource.TestCheckResourceAttr("data.digitalocean_project.bar", "is_default", "false"),

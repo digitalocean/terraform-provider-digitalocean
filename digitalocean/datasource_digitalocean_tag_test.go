@@ -6,21 +6,31 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanTag_Basic(t *testing.T) {
 	var tag godo.Tag
-	tagName := fmt.Sprintf("foo-%s", acctest.RandString(10))
+	tagName := randomTestName()
+	resourceConfig := fmt.Sprintf(`
+resource "digitalocean_tag" "foo" {
+  name = "%s"
+}`, tagName)
+	dataSourceConfig := `
+data "digitalocean_tag" "foobar" {
+  name = "${digitalocean_tag.foo.name}"
+}`
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanTagConfig_basic, tagName),
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanTagExists("data.digitalocean_tag.foobar", &tag),
 					resource.TestCheckResourceAttr(
@@ -72,12 +82,3 @@ func testAccCheckDataSourceDigitalOceanTagExists(n string, tag *godo.Tag) resour
 		return nil
 	}
 }
-
-const testAccCheckDataSourceDigitalOceanTagConfig_basic = `
-resource "digitalocean_tag" "foo" {
-  name = "%s"
-}
-
-data "digitalocean_tag" "foobar" {
-  name = "${digitalocean_tag.foo.name}"
-}`

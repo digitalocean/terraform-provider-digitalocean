@@ -7,9 +7,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanSpacesBucketObject_basic(t *testing.T) {
@@ -21,7 +21,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_basic(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
-		Providers:                 testAccProviders,
+		ProviderFactories:         testAccProviderFactories,
 		CheckDestroy:              testAccCheckDigitalOceanBucketDestroy,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
@@ -56,7 +56,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_readableBody(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
-		Providers:                 testAccProviders,
+		ProviderFactories:         testAccProviderFactories,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
@@ -90,7 +90,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_allParams(t *testing.T) {
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
-		Providers:                 testAccProviders,
+		ProviderFactories:         testAccProviderFactories,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
@@ -138,7 +138,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_LeadingSlash(t *testing.T) 
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
-		Providers:                 testAccProviders,
+		ProviderFactories:         testAccProviderFactories,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
@@ -190,7 +190,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_MultipleSlashes(t *testing.
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
-		Providers:                 testAccProviders,
+		ProviderFactories:         testAccProviderFactories,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{

@@ -7,30 +7,48 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanRecord_Basic(t *testing.T) {
 	var record godo.DomainRecord
-	recordName := fmt.Sprintf("foo-%s", acctest.RandString(10))
-	recordDomain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
-	recordType := "A"
+	recordDomain := fmt.Sprintf("%s.com", randomTestName())
+	recordName := randomTestName()
+	resourceConfig := fmt.Sprintf(`
+resource "digitalocean_domain" "foo" {
+  name       = "%s"
+  ip_address = "192.168.0.10"
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+resource "digitalocean_record" "foo" {
+  domain = digitalocean_domain.foo.name
+  type   = "A"
+  name   = "%s"
+  value  = "192.168.0.10"
+}`, recordDomain, recordName)
+	dataSourceConfig := `
+data "digitalocean_record" "foobar" {
+  name      = digitalocean_record.foo.name
+  domain    = digitalocean_domain.foo.name
+}`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanRecordConfig_basic, recordDomain, recordType, recordName),
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanRecordExists("data.digitalocean_record.foobar", &record),
-					testAccCheckDataSourceDigitalOceanRecordAttributes(&record, recordName, recordType),
+					testAccCheckDataSourceDigitalOceanRecordAttributes(&record, recordName, "A"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_record.foobar", "name", recordName),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_record.foobar", "type", recordType),
+						"data.digitalocean_record.foobar", "type", "A"),
 				),
 			},
 		},
@@ -86,21 +104,3 @@ func testAccCheckDataSourceDigitalOceanRecordExists(n string, record *godo.Domai
 		return nil
 	}
 }
-
-const testAccCheckDataSourceDigitalOceanRecordConfig_basic = `
-resource "digitalocean_domain" "foo" {
-  name       = "%s"
-  ip_address = "192.168.0.10"
-}
-
-resource "digitalocean_record" "foo" {
-  domain = "${digitalocean_domain.foo.name}"
-  type   = "%s"
-  name   = "%s"
-  value  = "192.168.0.10"
-}
-
-data "digitalocean_record" "foobar" {
-  name      = "${digitalocean_record.foo.name}"
-  domain    = "${digitalocean_domain.foo.name}"
-}`

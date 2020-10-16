@@ -6,15 +6,17 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func TestAccDigitalOceanBucket_basic(t *testing.T) {
@@ -24,13 +26,13 @@ func TestAccDigitalOceanBucket_basic(t *testing.T) {
 	expectedBucketName := testAccBucketName(rInt)
 	expectBucketURN := fmt.Sprintf("do:space:%s", expectedBucketName)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() { testAccPreCheck(t) },
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		/*
 			IDRefreshName:   "digitalocean_spaces_bucket.bucket",
 			IDRefreshIgnore: []string{"force_destroy"},
 		*/
-		Providers:    testAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
@@ -51,10 +53,10 @@ func TestAccDigitalOceanBucket_basic(t *testing.T) {
 func TestAccDigitalOceanBucket_region(t *testing.T) {
 	rInt := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanBucketConfigWithRegion(rInt),
@@ -72,10 +74,10 @@ func TestAccDigitalOceanBucket_UpdateAcl(t *testing.T) {
 	preConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithACL, ri)
 	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithACLUpdate, ri)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
@@ -102,10 +104,10 @@ func TestAccDigitalOceanBucket_UpdateCors(t *testing.T) {
 	preConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORS, ri)
 	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORSUpdate, ri)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: preConfig,
@@ -139,10 +141,10 @@ func TestAccDigitalOceanBucket_UpdateCors(t *testing.T) {
 func TestAccDigitalOceanBucket_WithCors(t *testing.T) {
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORSUpdate, ri),
@@ -168,10 +170,10 @@ func TestAccDigitalOceanBucket_WithCors(t *testing.T) {
 func TestAccDigitalOceanBucket_WithMultipleCorsRules(t *testing.T) {
 	ri := acctest.RandInt()
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccDigitalOceanBucketConfigWithMultiCORS, ri),
@@ -205,10 +207,10 @@ func TestAccDigitalOceanBucket_WithMultipleCorsRules(t *testing.T) {
 // See https://github.com/hashicorp/terraform/pull/2925
 func TestAccDigitalOceanBucket_shouldFailNotFound(t *testing.T) {
 	rInt := acctest.RandInt()
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanBucketDestroyedConfig(rInt),
@@ -245,9 +247,9 @@ resource "digitalocean_spaces_bucket" "bucket" {
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				// No versioning configured.
@@ -303,9 +305,9 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 	resourceName := "digitalocean_spaces_bucket.bucket"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketConfigWithLifecycle(rInt),
@@ -315,22 +317,22 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 						resourceName, "lifecycle_rule.0.id", "id1"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.0.prefix", "path1/"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.expiration.2613713285.days", "365"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.expiration.2613713285.date", ""),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.expiration.2613713285.expired_object_delete_marker", "false"),
+					setutil.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.expiration.*",
+						map[string]string{
+							"days":                         "365",
+							"date":                         "",
+							"expired_object_delete_marker": "false",
+						}),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.id", "id2"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.prefix", "path2/"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.1.expiration.2855832418.date", "2016-01-12"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.1.expiration.2855832418.days", "0"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.1.expiration.2855832418.expired_object_delete_marker", "false"),
+					setutil.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.1.expiration.*",
+						map[string]string{
+							"days":                         "",
+							"date":                         "2016-01-12",
+							"expired_object_delete_marker": "",
+						}),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.2.id", "id3"),
 					resource.TestCheckResourceAttr(
@@ -363,8 +365,8 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 						resourceName, "lifecycle_rule.1.prefix", "path2/"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.enabled", "false"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.1.noncurrent_version_expiration.80908210.days", "365"),
+					setutil.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.1.noncurrent_version_expiration.*",
+						map[string]string{"days": "365"}),
 				),
 			},
 			{
@@ -382,9 +384,9 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 	resourceName := "digitalocean_spaces_bucket.bucket"
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketConfigWithLifecycleExpireMarker(rInt),
@@ -394,12 +396,13 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 						resourceName, "lifecycle_rule.0.id", "id1"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.0.prefix", "path1/"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.expiration.3591068768.days", "0"),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.expiration.3591068768.date", ""),
-					resource.TestCheckResourceAttr(
-						resourceName, "lifecycle_rule.0.expiration.3591068768.expired_object_delete_marker", "true"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						resourceName, "lifecycle_rule.0.expiration.*",
+						map[string]string{
+							"days":                         "0",
+							"date":                         "",
+							"expired_object_delete_marker": "true",
+						}),
 				),
 			},
 			{

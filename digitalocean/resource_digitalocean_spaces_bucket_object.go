@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -12,8 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -365,7 +366,11 @@ func validateMetadataIsLowerCase(v interface{}, k string) (ws []string, errors [
 	return
 }
 
-func resourceDigitalOceanSpacesBucketObjectCustomizeDiff(d *schema.ResourceDiff, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectCustomizeDiff(
+	ctx context.Context,
+	d *schema.ResourceDiff,
+	meta interface{},
+) error {
 	if d.HasChange("etag") {
 		d.SetNewComputed("version_id")
 	}

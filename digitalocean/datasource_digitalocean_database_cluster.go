@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceDigitalOceanDatabaseCluster() *schema.Resource {
@@ -48,7 +48,6 @@ func dataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 			"maintenance_window": {
 				Type:     schema.TypeList,
 				Computed: true,
-				MinItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"day": {

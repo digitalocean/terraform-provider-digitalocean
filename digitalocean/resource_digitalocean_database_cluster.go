@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/customdiff"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanDatabaseCluster() *schema.Resource {
@@ -166,7 +166,7 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 }
 
 func transitionVersionToRequired() schema.CustomizeDiffFunc {
-	return schema.CustomizeDiffFunc(func(diff *schema.ResourceDiff, v interface{}) error {
+	return schema.CustomizeDiffFunc(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 		engine := diff.Get("engine")
 		_, hasVersion := diff.GetOk("version")
 		old, _ := diff.GetChange("version")
@@ -184,7 +184,7 @@ func transitionVersionToRequired() schema.CustomizeDiffFunc {
 }
 
 func validateExclusiveAttributes() schema.CustomizeDiffFunc {
-	return schema.CustomizeDiffFunc(func(diff *schema.ResourceDiff, v interface{}) error {
+	return schema.CustomizeDiffFunc(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 		engine := diff.Get("engine")
 		_, hasEvictionPolicy := diff.GetOk("eviction_policy")
 		_, hasSqlMode := diff.GetOk("sql_mode")

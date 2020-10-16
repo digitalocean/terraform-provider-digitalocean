@@ -6,24 +6,32 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanVolumeSnapshot_basic(t *testing.T) {
 	var snapshot godo.Snapshot
-	rInt := acctest.RandInt()
+	testName := randomTestName()
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVolumeSnapshot_basic, testName, testName)
+	dataSourceConfig := `
+data "digitalocean_volume_snapshot" "foobar" {
+  most_recent = true
+  name = digitalocean_volume_snapshot.foo.name
+}`
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanVolumeSnapshot_basic, rInt, rInt),
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanVolumeSnapshotExists("data.digitalocean_volume_snapshot.foobar", &snapshot),
-					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
+					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "name", fmt.Sprintf("%s-snapshot", testName)),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "size", "0"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "min_disk_size", "100"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "regions.#", "1"),
@@ -37,17 +45,26 @@ func TestAccDataSourceDigitalOceanVolumeSnapshot_basic(t *testing.T) {
 
 func TestAccDataSourceDigitalOceanVolumeSnapshot_regex(t *testing.T) {
 	var snapshot godo.Snapshot
-	rInt := acctest.RandInt()
+	testName := randomTestName()
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVolumeSnapshot_basic, testName, testName)
+	dataSourceConfig := `
+data "digitalocean_volume_snapshot" "foobar" {
+  most_recent = true
+  name_regex = "^${digitalocean_volume_snapshot.foo.name}"
+}`
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanVolumeSnapshot_regex, rInt, rInt),
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanVolumeSnapshotExists("data.digitalocean_volume_snapshot.foobar", &snapshot),
-					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
+					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "name", fmt.Sprintf("%s-snapshot", testName)),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "size", "0"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "min_disk_size", "100"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "regions.#", "1"),
@@ -61,17 +78,38 @@ func TestAccDataSourceDigitalOceanVolumeSnapshot_regex(t *testing.T) {
 
 func TestAccDataSourceDigitalOceanVolumeSnapshot_region(t *testing.T) {
 	var snapshot godo.Snapshot
-	rInt := acctest.RandInt()
+	testName := randomTestName()
+	nycResourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVolumeSnapshot_basic, testName, testName)
+	lonResourceConfig := fmt.Sprintf(`
+resource "digitalocean_volume" "bar" {
+  region      = "lon1"
+  name        = "volume-lon-%s"
+  size        = 100
+  description = "peace makes plenty"
+}
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+resource "digitalocean_volume_snapshot" "bar" {
+  name      = "%s-snapshot"
+  volume_id = digitalocean_volume.bar.id
+}`, testName, testName)
+	dataSourceConfig := `
+data "digitalocean_volume_snapshot" "foobar" {
+  name   = digitalocean_volume_snapshot.bar.name
+  region = "lon1"
+}`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanVolumeSnapshot_region, rInt, rInt, rInt, rInt),
+				Config: nycResourceConfig + lonResourceConfig,
+			},
+			{
+				Config: nycResourceConfig + lonResourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanVolumeSnapshotExists("data.digitalocean_volume_snapshot.foobar", &snapshot),
-					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
+					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "name", fmt.Sprintf("%s-snapshot", testName)),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "size", "0"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "min_disk_size", "100"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "regions.#", "1"),
@@ -115,68 +153,14 @@ func testAccCheckDataSourceDigitalOceanVolumeSnapshotExists(n string, snapshot *
 const testAccCheckDataSourceDigitalOceanVolumeSnapshot_basic = `
 resource "digitalocean_volume" "foo" {
   region      = "nyc1"
-  name        = "volume-%d"
+  name        = "%s-volume"
   size        = 100
   description = "peace makes plenty"
 }
 
 resource "digitalocean_volume_snapshot" "foo" {
-  name = "snapshot-%d"
-  volume_id = "${digitalocean_volume.foo.id}"
+  name = "%s-snapshot"
+  volume_id = digitalocean_volume.foo.id
   tags = ["foo","bar"]
 }
-
-data "digitalocean_volume_snapshot" "foobar" {
-  most_recent = true
-  name = "${digitalocean_volume_snapshot.foo.name}"
-}`
-
-const testAccCheckDataSourceDigitalOceanVolumeSnapshot_regex = `
-resource "digitalocean_volume" "foo" {
-  region      = "nyc1"
-  name        = "volume-%d"
-  size        = 100
-  description = "peace makes plenty"
-}
-
-resource "digitalocean_volume_snapshot" "foo" {
-  name = "snapshot-%d"
-  volume_id = "${digitalocean_volume.foo.id}"
-  tags = ["foo","bar"]
-}
-
-data "digitalocean_volume_snapshot" "foobar" {
-  most_recent = true
-  name_regex = "^${digitalocean_volume_snapshot.foo.name}"
-}`
-
-const testAccCheckDataSourceDigitalOceanVolumeSnapshot_region = `
-resource "digitalocean_volume" "foo" {
-  region      = "nyc1"
-  name        = "volume-nyc-%d"
-  size        = 100
-  description = "peace makes plenty"
-}
-
-resource "digitalocean_volume" "bar" {
-  region      = "lon1"
-  name        = "volume-lon-%d"
-  size        = 100
-  description = "peace makes plenty"
-}
-
-resource "digitalocean_volume_snapshot" "foo" {
-  name = "snapshot-%d"
-  volume_id = "${digitalocean_volume.foo.id}"
-  tags   = ["foo","bar"]
-}
-
-resource "digitalocean_volume_snapshot" "bar" {
-  name = "snapshot-%d"
-  volume_id = "${digitalocean_volume.bar.id}"
-}
-
-data "digitalocean_volume_snapshot" "foobar" {
-  name = "${digitalocean_volume_snapshot.bar.name}"
-  region = "lon1"
-}`
+`

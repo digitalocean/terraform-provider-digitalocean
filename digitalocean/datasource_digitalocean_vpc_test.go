@@ -5,20 +5,27 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceDigitalOceanVPC_ByName(t *testing.T) {
 	vpcName := randomTestName()
 	vpcDesc := "A description for the VPC"
-	vpcConfigByName := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_Basic, vpcName, vpcDesc)
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_Basic, vpcName, vpcDesc)
+	dataSourceConfig := `
+data "digitalocean_vpc" "foobar" {
+  name = digitalocean_vpc.foobar.name
+}`
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: vpcConfigByName,
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVPCExists("data.digitalocean_vpc.foobar"),
 					resource.TestCheckResourceAttr(
@@ -43,9 +50,9 @@ func TestAccDataSourceDigitalOceanVPC_RegionDefault(t *testing.T) {
 	vpcDropletName := randomTestName()
 	vpcConfigRegionDefault := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_RegionDefault, vpcDropletName)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config: vpcConfigRegionDefault,
@@ -67,9 +74,9 @@ func TestAccDataSourceDigitalOceanVPC_ExpectErrors(t *testing.T) {
 	vpcName := randomTestName()
 	vpcNotExist := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCConfig_DoesNotExist, vpcName)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
 				Config:      testAccCheckDataSourceDigitalOceanVPCConfig_MissingRegionDefault,
@@ -88,12 +95,7 @@ resource "digitalocean_vpc" "foobar" {
 	name        = "%s"
 	description = "%s"
 	region      = "nyc3"
-}
-
-data "digitalocean_vpc" "foobar" {
-	name = digitalocean_vpc.foobar.name
-}
-`
+}`
 
 const testAccCheckDataSourceDigitalOceanVPCConfig_RegionDefault = `
 // Create Droplet to ensure default VPC exists

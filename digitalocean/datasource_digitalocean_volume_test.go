@@ -7,27 +7,34 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanVolume_Basic(t *testing.T) {
 	var volume godo.Volume
-	rInt := acctest.RandInt()
+	testName := randomTestName()
+	resourceConfig := testAccCheckDataSourceDigitalOceanVolumeConfig_basic(testName)
+	dataSourceConfig := `
+data "digitalocean_volume" "foobar" {
+  name = digitalocean_volume.foo.name
+}`
 
 	expectedURNRegEx, _ := regexp.Compile(`do:volume:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDataSourceDigitalOceanVolumeConfig_basic(rInt),
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanVolumeExists("data.digitalocean_volume.foobar", &volume),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_volume.foobar", "name", fmt.Sprintf("volume-%d", rInt)),
+						"data.digitalocean_volume.foobar", "name", fmt.Sprintf("%s-volume", testName)),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_volume.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -45,18 +52,27 @@ func TestAccDataSourceDigitalOceanVolume_Basic(t *testing.T) {
 
 func TestAccDataSourceDigitalOceanVolume_RegionScoped(t *testing.T) {
 	var volume godo.Volume
-	rInt := acctest.RandInt()
+	testName := randomTestName()
+	resourceConfig := testAccCheckDataSourceDigitalOceanVolumeConfig_region_scoped(testName)
+	dataSourceConfig := `
+data "digitalocean_volume" "foobar" {
+  name   = digitalocean_volume.foo.name
+  region = "lon1"
+}`
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:  func() { testAccPreCheck(t) },
-		Providers: testAccProviders,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDataSourceDigitalOceanVolumeConfig_region_scoped(rInt),
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanVolumeExists("data.digitalocean_volume.foobar", &volume),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_volume.foobar", "name", fmt.Sprintf("volume-%d", rInt)),
+						"data.digitalocean_volume.foobar", "name", fmt.Sprintf("%s-volume", testName)),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_volume.foobar", "region", "lon1"),
 					resource.TestCheckResourceAttr(
@@ -101,37 +117,28 @@ func testAccCheckDataSourceDigitalOceanVolumeExists(n string, volume *godo.Volum
 	}
 }
 
-func testAccCheckDataSourceDigitalOceanVolumeConfig_basic(rInt int) string {
+func testAccCheckDataSourceDigitalOceanVolumeConfig_basic(testName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foo" {
   region = "nyc3"
-  name   = "volume-%d"
+  name   = "%s-volume"
   size   = 10
   tags   = ["foo","bar"]
+}`, testName)
 }
 
-data "digitalocean_volume" "foobar" {
-  name = "${digitalocean_volume.foo.name}"
-}`, rInt)
-}
-
-func testAccCheckDataSourceDigitalOceanVolumeConfig_region_scoped(rInt int) string {
+func testAccCheckDataSourceDigitalOceanVolumeConfig_region_scoped(testName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foo" {
   region = "nyc3"
-  name   = "volume-%d"
+  name   = "%s-volume"
   size   = 10
   tags   = ["foo","bar"]
 }
 
 resource "digitalocean_volume" "bar" {
   region = "lon1"
-  name   = "volume-%d"
+  name   = "%s-volume"
   size   = 20
-}
-
-data "digitalocean_volume" "foobar" {
-  name   = "${digitalocean_volume.foo.name}"
-  region = "lon1"
-}`, rInt, rInt)
+}`, testName, testName)
 }

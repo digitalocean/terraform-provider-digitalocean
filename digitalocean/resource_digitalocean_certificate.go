@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanCertificate() *schema.Resource {
@@ -142,7 +142,7 @@ func resourceDigitalOceanCertificateV0() *schema.Resource {
 	}
 }
 
-func migrateCertificateStateV0toV1(rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
+func migrateCertificateStateV0toV1(ctx context.Context, rawState map[string]interface{}, meta interface{}) (map[string]interface{}, error) {
 	if len(rawState) == 0 {
 		log.Println("[DEBUG] Empty state; nothing to migrate.")
 		return rawState, nil

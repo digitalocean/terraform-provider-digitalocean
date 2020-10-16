@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
@@ -45,7 +45,7 @@ func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_app.foobar", "spec.0.service.0.instance_count", "1"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "professional-xs"),
+						"data.digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "basic-xxs"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
 					resource.TestCheckResourceAttr(

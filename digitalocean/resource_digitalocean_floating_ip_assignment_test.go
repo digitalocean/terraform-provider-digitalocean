@@ -8,17 +8,17 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanFloatingIPAssignment(t *testing.T) {
 	var floatingIP godo.FloatingIP
 
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanFloatingIPDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanFloatingIPAssignmentConfig,
@@ -53,10 +53,10 @@ func TestAccDigitalOceanFloatingIPAssignment(t *testing.T) {
 }
 
 func TestAccDigitalOceanFloatingIPAssignment_createBeforeDestroy(t *testing.T) {
-	resource.Test(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanFloatingIPDestroy,
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroy,
@@ -178,7 +178,6 @@ resource "digitalocean_droplet" "foobar" {
   name = "foo-bar"
   region = "nyc3"
   size = "s-1vcpu-1gb"
-  private_networking = false
 
   lifecycle {
     create_before_destroy = true
@@ -205,7 +204,6 @@ resource "digitalocean_droplet" "foobar" {
   name = "foobar"
   region = "nyc3"
   size = "s-1vcpu-1gb"
-  private_networking = false
 
   lifecycle {
     create_before_destroy = true

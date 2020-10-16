@@ -3,16 +3,17 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"testing"
 
-	"log"
+	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func init() {
@@ -57,9 +58,9 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 	expectedURNRegEx, _ := regexp.Compile(`do:loadbalancer:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_basic(rInt),
@@ -71,14 +72,16 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+						},
+					),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -106,9 +109,9 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_basic(rInt),
@@ -120,14 +123,17 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						},
+					),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -152,14 +158,17 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.2170174198.entry_port", "81"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.2170174198.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.2170174198.target_port", "81"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.2170174198.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "81",
+							"entry_protocol":  "http",
+							"target_port":     "81",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						},
+					),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -183,9 +192,9 @@ func TestAccDigitalOceanLoadbalancer_dropletTag(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_dropletTag(rInt),
@@ -197,14 +206,17 @@ func TestAccDigitalOceanLoadbalancer_dropletTag(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						},
+					),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -224,9 +236,9 @@ func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_minimal(rInt),
@@ -238,14 +250,17 @@ func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						},
+					),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -273,9 +288,9 @@ func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_stickySessions(rInt),
@@ -287,14 +302,17 @@ func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						},
+					),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
 					resource.TestCheckResourceAttr(
@@ -323,9 +341,9 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(
@@ -338,8 +356,18 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.884589504.certificate_id", "tf-acc-test-certificate-01"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":       "443",
+							"entry_protocol":   "https",
+							"target_port":      "80",
+							"target_protocol":  "http",
+							"certificate_name": "tf-acc-test-certificate-01",
+							"tls_passthrough":  "false",
+						},
+					),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "redirect_http_to_https", "true"),
 					resource.TestCheckResourceAttr(
@@ -371,8 +399,18 @@ func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.3124151331.certificate_name", "tf-acc-test-certificate-02"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":       "443",
+							"entry_protocol":   "https",
+							"target_port":      "80",
+							"target_protocol":  "http",
+							"certificate_name": "tf-acc-test-certificate-02",
+							"tls_passthrough":  "false",
+						},
+					),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "redirect_http_to_https", "true"),
 					resource.TestCheckResourceAttr(
@@ -388,9 +426,9 @@ func TestAccDigitalOceanLoadbalancer_multipleRules(t *testing.T) {
 	rName := randomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_multipleRules(rName),
@@ -402,22 +440,28 @@ func TestAccDigitalOceanLoadbalancer_multipleRules(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "2"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.entry_port", "443"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.entry_protocol", "https"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.target_port", "443"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.236988772.target_protocol", "https"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.entry_protocol", "http"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_port", "80"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "forwarding_rule.192790336.target_protocol", "http"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "443",
+							"entry_protocol":  "https",
+							"target_port":     "443",
+							"target_protocol": "https",
+							"tls_passthrough": "true",
+						},
+					),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						},
+					),
 				),
 			},
 		},
@@ -429,9 +473,9 @@ func TestAccDigitalOceanLoadbalancer_WithVPC(t *testing.T) {
 	lbName := randomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:     func() { testAccPreCheck(t) },
-		Providers:    testAccProviders,
-		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_WithVPC(lbName),
