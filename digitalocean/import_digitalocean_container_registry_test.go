@@ -9,7 +9,7 @@ import (
 func TestAccDigitalOceanContainerRegistry_importBasic(t *testing.T) {
 	resourceName := "digitalocean_container_registry.foobar"
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanContainerRegistryDestroy,

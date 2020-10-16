@@ -131,6 +131,7 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 							"entry_protocol":  "http",
 							"target_port":     "80",
 							"target_protocol": "http",
+							"tls_passthrough": "false",
 						},
 					),
 					resource.TestCheckResourceAttr(
@@ -165,6 +166,7 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 							"entry_protocol":  "http",
 							"target_port":     "81",
 							"target_protocol": "http",
+							"tls_passthrough": "false",
 						},
 					),
 					resource.TestCheckResourceAttr(
@@ -212,6 +214,7 @@ func TestAccDigitalOceanLoadbalancer_dropletTag(t *testing.T) {
 							"entry_protocol":  "http",
 							"target_port":     "80",
 							"target_protocol": "http",
+							"tls_passthrough": "false",
 						},
 					),
 					resource.TestCheckResourceAttr(
@@ -255,6 +258,7 @@ func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
 							"entry_protocol":  "http",
 							"target_port":     "80",
 							"target_protocol": "http",
+							"tls_passthrough": "false",
 						},
 					),
 					resource.TestCheckResourceAttr(
@@ -306,6 +310,7 @@ func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 							"entry_protocol":  "http",
 							"target_port":     "80",
 							"target_protocol": "http",
+							"tls_passthrough": "false",
 						},
 					),
 					resource.TestCheckResourceAttr(
@@ -355,7 +360,12 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 						"digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
-							"certificate_id": "tf-acc-test-certificate-01",
+							"entry_port":       "443",
+							"entry_protocol":   "https",
+							"target_port":      "80",
+							"target_protocol":  "http",
+							"certificate_name": "tf-acc-test-certificate-01",
+							"tls_passthrough":  "false",
 						},
 					),
 					resource.TestCheckResourceAttr(
@@ -393,7 +403,12 @@ func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 						"digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
+							"entry_port":       "443",
+							"entry_protocol":   "https",
+							"target_port":      "80",
+							"target_protocol":  "http",
 							"certificate_name": "tf-acc-test-certificate-02",
+							"tls_passthrough":  "false",
 						},
 					),
 					resource.TestCheckResourceAttr(
@@ -433,6 +448,7 @@ func TestAccDigitalOceanLoadbalancer_multipleRules(t *testing.T) {
 							"entry_protocol":  "https",
 							"target_port":     "443",
 							"target_protocol": "https",
+							"tls_passthrough": "true",
 						},
 					),
 					setutil.TestCheckTypeSetElemNestedAttrs(
@@ -443,6 +459,7 @@ func TestAccDigitalOceanLoadbalancer_multipleRules(t *testing.T) {
 							"entry_protocol":  "http",
 							"target_port":     "80",
 							"target_protocol": "http",
+							"tls_passthrough": "false",
 						},
 					),
 				),

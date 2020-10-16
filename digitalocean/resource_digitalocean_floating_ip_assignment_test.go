@@ -178,7 +178,6 @@ resource "digitalocean_droplet" "foobar" {
   name = "foo-bar"
   region = "nyc3"
   size = "s-1vcpu-1gb"
-  private_networking = false
 
   lifecycle {
     create_before_destroy = true
@@ -205,7 +204,6 @@ resource "digitalocean_droplet" "foobar" {
   name = "foobar"
   region = "nyc3"
   size = "s-1vcpu-1gb"
-  private_networking = false
 
   lifecycle {
     create_before_destroy = true
