@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -58,38 +59,38 @@ func dataSourceDigitalOceanVPC() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanVPCRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanVPCRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	var foundVPC *godo.VPC
 
 	if id, ok := d.GetOk("id"); ok {
 		vpc, _, err := client.VPCs.Get(context.Background(), id.(string))
 		if err != nil {
-			return fmt.Errorf("Error retrieving VPC: %s", err)
+			return diag.Errorf("Error retrieving VPC: %s", err)
 		}
 
 		foundVPC = vpc
 	} else if slug, ok := d.GetOk("region"); ok {
 		vpcs, err := listVPCs(client)
 		if err != nil {
-			return fmt.Errorf("Error retrieving VPC: %s", err)
+			return diag.Errorf("Error retrieving VPC: %s", err)
 		}
 
 		vpc, err := findRegionDefaultVPC(vpcs, slug.(string))
 		if err != nil {
-			return fmt.Errorf("Error retrieving VPC: %s", err)
+			return diag.Errorf("Error retrieving VPC: %s", err)
 		}
 
 		foundVPC = vpc
 	} else if name, ok := d.GetOk("name"); ok {
 		vpcs, err := listVPCs(client)
 		if err != nil {
-			return fmt.Errorf("Error retrieving VPC: %s", err)
+			return diag.Errorf("Error retrieving VPC: %s", err)
 		}
 
 		vpc, err := findVPCByName(vpcs, name.(string))
 		if err != nil {
-			return fmt.Errorf("Error retrieving VPC: %s", err)
+			return diag.Errorf("Error retrieving VPC: %s", err)
 		}
 
 		foundVPC = vpc

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -190,7 +191,7 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)
@@ -206,7 +207,7 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 		lbs, resp, err := client.LoadBalancers.List(context.Background(), opts)
 
 		if err != nil {
-			return fmt.Errorf("Error retrieving load balancers: %s", err)
+			return diag.Errorf("Error retrieving load balancers: %s", err)
 		}
 
 		for _, lb := range lbs {
@@ -219,7 +220,7 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return fmt.Errorf("Error retrieving load balancers: %s", err)
+			return diag.Errorf("Error retrieving load balancers: %s", err)
 		}
 
 		opts.Page = page + 1
@@ -228,7 +229,7 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 	loadbalancer, err := findLoadBalancerByName(lbList, name)
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(loadbalancer.ID)
@@ -245,24 +246,24 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)
 	}
 
 	if err := d.Set("sticky_sessions", flattenStickySessions(loadbalancer.StickySessions)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Load Balancer sticky_sessions - error: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting Load Balancer sticky_sessions - error: %#v", err)
 	}
 
 	if err := d.Set("healthcheck", flattenHealthChecks(loadbalancer.HealthCheck)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Load Balancer healthcheck - error: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting Load Balancer healthcheck - error: %#v", err)
 	}
 
 	forwardingRules, err := flattenForwardingRules(client, loadbalancer.ForwardingRules)
 	if err != nil {
-		return fmt.Errorf("[DEBUG] Error building Load Balancer forwarding rules - error: %#v", err)
+		return diag.Errorf("[DEBUG] Error building Load Balancer forwarding rules - error: %#v", err)
 	}
 
 	if err := d.Set("forwarding_rule", forwardingRules); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Load Balancer forwarding_rule - error: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting Load Balancer forwarding_rule - error: %#v", err)
 	}
 
 	return nil

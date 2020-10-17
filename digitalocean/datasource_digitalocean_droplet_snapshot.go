@@ -2,11 +2,11 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -67,7 +67,7 @@ func dataSourceDigitalOceanDropletSnapshot() *schema.Resource {
 }
 
 // dataSourceDoSnapshotRead performs the Snapshot lookup.
-func dataSourceDigitalOceanDropletSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanDropletSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name, hasName := d.GetOk("name")
@@ -75,7 +75,7 @@ func dataSourceDigitalOceanDropletSnapshotRead(ctx context.Context, d *schema.Re
 	region, hasRegion := d.GetOk("region")
 
 	if !hasName && !hasNameRegex {
-		return fmt.Errorf("One of `name` or `name_regex` must be assigned")
+		return diag.Errorf("One of `name` or `name_regex` must be assigned")
 	}
 
 	opts := &godo.ListOptions{
@@ -89,7 +89,7 @@ func dataSourceDigitalOceanDropletSnapshotRead(ctx context.Context, d *schema.Re
 		snapshots, resp, err := client.Snapshots.ListDroplet(context.Background(), opts)
 
 		if err != nil {
-			return fmt.Errorf("Error retrieving Droplet snapshots: %s", err)
+			return diag.Errorf("Error retrieving Droplet snapshots: %s", err)
 		}
 
 		for _, s := range snapshots {
@@ -102,7 +102,7 @@ func dataSourceDigitalOceanDropletSnapshotRead(ctx context.Context, d *schema.Re
 
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return fmt.Errorf("Error retrieving Droplet snapshots: %s", err)
+			return diag.Errorf("Error retrieving Droplet snapshots: %s", err)
 		}
 
 		opts.Page = page + 1
@@ -121,14 +121,14 @@ func dataSourceDigitalOceanDropletSnapshotRead(ctx context.Context, d *schema.Re
 	// Get the queried snapshot or fail if it can't be determined
 	var snapshot *godo.Snapshot
 	if len(snapshotList) == 0 {
-		return fmt.Errorf("No DROPLET snapshot found with name %s", name)
+		return diag.Errorf("No DROPLET snapshot found with name %s", name)
 	}
 	if len(snapshotList) > 1 {
 		recent := d.Get("most_recent").(bool)
 		if recent {
 			snapshot = findMostRecentSnapshot(snapshotList)
 		} else {
-			return fmt.Errorf("too many Droplet snapshots found with name %s (found %d, expected 1)", name, len(snapshotList))
+			return diag.Errorf("too many Droplet snapshots found with name %s (found %d, expected 1)", name, len(snapshotList))
 		}
 	} else {
 		snapshot = &snapshotList[0]

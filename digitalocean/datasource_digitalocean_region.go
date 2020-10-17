@@ -2,9 +2,9 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -41,10 +41,10 @@ func dataSourceDigitalOceanRegion() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanRegionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanRegionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	regions, err := getDigitalOceanRegions(meta)
 	if err != nil {
-		return fmt.Errorf("Unable to load regions: %s", err)
+		return diag.Errorf("Unable to load regions: %s", err)
 	}
 
 	slug := d.Get("slug").(string)
@@ -58,7 +58,7 @@ func dataSourceDigitalOceanRegionRead(ctx context.Context, d *schema.ResourceDat
 	}
 
 	if regionForSlug == nil {
-		return fmt.Errorf("Region does not exist: %s", slug)
+		return diag.Errorf("Region does not exist: %s", slug)
 	}
 
 	flattenedRegion, err := flattenRegion(*regionForSlug, meta)
@@ -67,7 +67,7 @@ func dataSourceDigitalOceanRegionRead(ctx context.Context, d *schema.ResourceDat
 	}
 
 	if err := setResourceDataFromMap(d, flattenedRegion); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(resource.UniqueId())

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 	"strings"
 	"time"
@@ -256,7 +257,11 @@ func resourceDigitalOceanKubernetesClusterRead(ctx context.Context, d *schema.Re
 	return digitaloceanKubernetesClusterRead(client, cluster, d)
 }
 
-func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.KubernetesCluster, d *schema.ResourceData) error {
+func digitaloceanKubernetesClusterRead(
+	client *godo.Client,
+	cluster *godo.KubernetesCluster,
+	d *schema.ResourceData,
+) diag.Diagnostics {
 	d.Set("name", cluster.Name)
 	d.Set("region", cluster.RegionSlug)
 	d.Set("version", cluster.VersionSlug)
@@ -305,14 +310,14 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 		var err error
 		expiresAt, err = time.Parse(time.RFC3339, creds["expires_at"].(string))
 		if err != nil {
-			return fmt.Errorf("Unable to parse Kubernetes credentials expiry: %s", err)
+			return diag.Errorf("Unable to parse Kubernetes credentials expiry: %s", err)
 		}
 	}
 	if expiresAt.IsZero() || expiresAt.Before(time.Now()) {
 		creds, resp, err := client.Kubernetes.GetCredentials(context.Background(), cluster.ID, &godo.KubernetesClusterCredentialsGetRequest{})
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
-				return fmt.Errorf("Unable to fetch Kubernetes credentials: %s", err)
+				return diag.Errorf("Unable to fetch Kubernetes credentials: %s", err)
 			}
 		}
 		d.Set("kube_config", flattenCredentials(cluster.Name, cluster.RegionSlug, creds))

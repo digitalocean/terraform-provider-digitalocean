@@ -2,11 +2,11 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -44,7 +44,7 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanImageRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanImageRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	var foundImage *godo.Image
@@ -53,18 +53,18 @@ func dataSourceDigitalOceanImageRead(ctx context.Context, d *schema.ResourceData
 		image, resp, err := client.Images.GetByID(context.Background(), id.(int))
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
-				return fmt.Errorf("image ID %d not found: %s", id.(int), err)
+				return diag.Errorf("image ID %d not found: %s", id.(int), err)
 			}
-			return fmt.Errorf("Error retrieving image: %s", err)
+			return diag.Errorf("Error retrieving image: %s", err)
 		}
 		foundImage = image
 	} else if slug, ok := d.GetOk("slug"); ok {
 		image, resp, err := client.Images.GetBySlug(context.Background(), slug.(string))
 		if err != nil {
 			if resp != nil && resp.StatusCode == 404 {
-				return fmt.Errorf("image not found: %s", err)
+				return diag.Errorf("image not found: %s", err)
 			}
-			return fmt.Errorf("Error retrieving image: %s", err)
+			return diag.Errorf("Error retrieving image: %s", err)
 		}
 		foundImage = image
 	} else if name, ok := d.GetOk("name"); ok {
@@ -80,12 +80,12 @@ func dataSourceDigitalOceanImageRead(ctx context.Context, d *schema.ResourceData
 		} else if source == "user" {
 			listImages = client.Images.ListUser
 		} else {
-			return fmt.Errorf("Illegal state: source=%s", source)
+			return diag.Errorf("Illegal state: source=%s", source)
 		}
 
 		images, err := listDigitalOceanImages(listImages)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 
 		var results []interface{}
@@ -97,24 +97,24 @@ func dataSourceDigitalOceanImageRead(ctx context.Context, d *schema.ResourceData
 		}
 
 		if len(results) == 0 {
-			return fmt.Errorf("no image found with name %s", name)
+			return diag.Errorf("no image found with name %s", name)
 		} else if len(results) > 1 {
-			return fmt.Errorf("too many images found with name %s (found %d, expected 1)", name, len(results))
+			return diag.Errorf("too many images found with name %s (found %d, expected 1)", name, len(results))
 		}
 
 		result := results[0].(godo.Image)
 		foundImage = &result
 	} else {
-		return fmt.Errorf("Illegal state: one of id, name, or slug must be set")
+		return diag.Errorf("Illegal state: one of id, name, or slug must be set")
 	}
 
 	flattenedImage, err := flattenDigitalOceanImage(*foundImage, meta)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	if err := setResourceDataFromMap(d, flattenedImage); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(strconv.Itoa(foundImage.ID))

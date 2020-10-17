@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -50,8 +51,8 @@ func dataSourceDigitalOceanApp() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	d.SetId(d.Get("app_id").(string))
 
-	return resourceDigitalOceanAppRead(d, meta)
+	return resourceDigitalOceanAppRead(ctx, d, meta)
 }

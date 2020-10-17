@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -32,16 +33,16 @@ func dataSourceDigitalOceanContainerRegistry() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	reg, response, err := client.Registry.Get(context.Background())
 
 	if err != nil {
 		if response != nil && response.StatusCode == 404 {
-			return fmt.Errorf("registry not found: %s", err)
+			return diag.Errorf("registry not found: %s", err)
 		}
-		return fmt.Errorf("Error retrieving registry: %s", err)
+		return diag.Errorf("Error retrieving registry: %s", err)
 	}
 
 	d.SetId(reg.Name)

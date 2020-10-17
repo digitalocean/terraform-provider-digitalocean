@@ -2,8 +2,8 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -39,7 +39,7 @@ func dataSourceDigitalOceanDomain() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)
@@ -47,9 +47,9 @@ func dataSourceDigitalOceanDomainRead(ctx context.Context, d *schema.ResourceDat
 	domain, resp, err := client.Domains.Get(context.Background(), name)
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
-			return fmt.Errorf("domain not found: %s", err)
+			return diag.Errorf("domain not found: %s", err)
 		}
-		return fmt.Errorf("Error retrieving domain: %s", err)
+		return diag.Errorf("Error retrieving domain: %s", err)
 	}
 
 	d.SetId(domain.Name)

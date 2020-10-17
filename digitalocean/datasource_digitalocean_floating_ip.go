@@ -2,8 +2,8 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -39,7 +39,7 @@ func dataSourceDigitalOceanFloatingIp() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanFloatingIpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanFloatingIpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	ipAddress := d.Get("ip_address").(string)
@@ -47,9 +47,9 @@ func dataSourceDigitalOceanFloatingIpRead(ctx context.Context, d *schema.Resourc
 	floatingIp, resp, err := client.FloatingIPs.Get(context.Background(), ipAddress)
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
-			return fmt.Errorf("floating ip not found: %s", err)
+			return diag.Errorf("floating ip not found: %s", err)
 		}
-		return fmt.Errorf("Error retrieving floating ip: %s", err)
+		return diag.Errorf("Error retrieving floating ip: %s", err)
 	}
 
 	d.SetId(floatingIp.IP)

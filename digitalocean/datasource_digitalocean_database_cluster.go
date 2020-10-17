@@ -2,9 +2,9 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -120,7 +120,7 @@ func dataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)
@@ -135,7 +135,7 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 	for {
 		databases, resp, err := client.Databases.List(context.Background(), opts)
 		if err != nil {
-			return fmt.Errorf("Error retrieving DatabaseClusters: %s", err)
+			return diag.Errorf("Error retrieving DatabaseClusters: %s", err)
 		}
 
 		for _, d := range databases {
@@ -148,14 +148,14 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return fmt.Errorf("Error retrieving DatabaseClusters: %s", err)
+			return diag.Errorf("Error retrieving DatabaseClusters: %s", err)
 		}
 
 		opts.Page = page + 1
 	}
 
 	if len(databaseList) == 0 {
-		return fmt.Errorf("Unable to find any database clusters")
+		return diag.Errorf("Unable to find any database clusters")
 	}
 
 	for _, db := range databaseList {
@@ -172,7 +172,7 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 
 			if _, ok := d.GetOk("maintenance_window"); ok {
 				if err := d.Set("maintenance_window", flattenMaintWindowOpts(*db.MaintenanceWindow)); err != nil {
-					return fmt.Errorf("[DEBUG] Error setting maintenance_window - error: %#v", err)
+					return diag.Errorf("[DEBUG] Error setting maintenance_window - error: %#v", err)
 				}
 			}
 

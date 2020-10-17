@@ -2,8 +2,8 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -50,12 +50,12 @@ func dataSourceDigitalOceanAccount() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	account, _, err := client.Account.Get(context.Background())
 	if err != nil {
-		return fmt.Errorf("Error retrieving account: %s", err)
+		return diag.Errorf("Error retrieving account: %s", err)
 	}
 
 	d.SetId(account.UUID)

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -36,7 +37,7 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	var foundDroplet godo.Droplet
@@ -44,46 +45,46 @@ func dataSourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceDa
 	if id, ok := d.GetOk("id"); ok {
 		droplet, _, err := client.Droplets.Get(context.Background(), id.(int))
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 
 		foundDroplet = *droplet
 	} else if v, ok := d.GetOk("tag"); ok {
 		dropletList, err := getDigitalOceanDroplets(meta)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 
 		droplet, err := findDropletByTag(dropletList, v.(string))
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 
 		foundDroplet = *droplet
 	} else if v, ok := d.GetOk("name"); ok {
 		dropletList, err := getDigitalOceanDroplets(meta)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 
 		droplet, err := findDropletByName(dropletList, v.(string))
 
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 
 		foundDroplet = *droplet
 	} else {
-		return fmt.Errorf("Error: specify either a name, tag, or id to use to look up the droplet")
+		return diag.Errorf("Error: specify either a name, tag, or id to use to look up the droplet")
 	}
 
 	flattenedDroplet, err := flattenDigitalOceanDroplet(foundDroplet, meta)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	if err := setResourceDataFromMap(d, flattenedDroplet); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(strconv.Itoa(foundDroplet.ID))
