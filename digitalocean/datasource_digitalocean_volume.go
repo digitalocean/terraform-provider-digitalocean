@@ -12,7 +12,7 @@ import (
 
 func dataSourceDigitalOceanVolume() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanVolumeRead,
+		ReadContext: dataSourceDigitalOceanVolumeRead,
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -68,7 +68,7 @@ func dataSourceDigitalOceanVolume() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanVolumeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)

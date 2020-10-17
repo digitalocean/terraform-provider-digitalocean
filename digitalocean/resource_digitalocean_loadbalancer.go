@@ -15,10 +15,10 @@ import (
 
 func resourceDigitalOceanLoadbalancer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanLoadbalancerCreate,
-		Read:   resourceDigitalOceanLoadbalancerRead,
-		Update: resourceDigitalOceanLoadbalancerUpdate,
-		Delete: resourceDigitalOceanLoadbalancerDelete,
+		CreateContext: resourceDigitalOceanLoadbalancerCreate,
+		ReadContext:   resourceDigitalOceanLoadbalancerRead,
+		UpdateContext: resourceDigitalOceanLoadbalancerUpdate,
+		DeleteContext: resourceDigitalOceanLoadbalancerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -402,7 +402,7 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 	return opts, nil
 }
 
-func resourceDigitalOceanLoadbalancerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanLoadbalancerCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Create a Loadbalancer Request")
@@ -435,7 +435,7 @@ func resourceDigitalOceanLoadbalancerCreate(d *schema.ResourceData, meta interfa
 	return resourceDigitalOceanLoadbalancerRead(d, meta)
 }
 
-func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Reading the details of the Loadbalancer %s", d.Id())
@@ -486,7 +486,7 @@ func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface
 
 }
 
-func resourceDigitalOceanLoadbalancerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanLoadbalancerUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	lbOpts, err := buildLoadBalancerRequest(client, d)
@@ -503,7 +503,7 @@ func resourceDigitalOceanLoadbalancerUpdate(d *schema.ResourceData, meta interfa
 	return resourceDigitalOceanLoadbalancerRead(d, meta)
 }
 
-func resourceDigitalOceanLoadbalancerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanLoadbalancerDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting Load Balancer: %s", d.Id())

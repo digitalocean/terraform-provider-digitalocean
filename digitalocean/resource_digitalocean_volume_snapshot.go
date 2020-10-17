@@ -12,10 +12,10 @@ import (
 
 func resourceDigitalOceanVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanVolumeSnapshotCreate,
-		Read:   resourceDigitalOceanVolumeSnapshotRead,
-		Update: resourceDigitalOceanVolumeSnapshotUpdate,
-		Delete: resourceDigitalOceanVolumeSnapshotDelete,
+		CreateContext: resourceDigitalOceanVolumeSnapshotCreate,
+		ReadContext:   resourceDigitalOceanVolumeSnapshotRead,
+		UpdateContext: resourceDigitalOceanVolumeSnapshotUpdate,
+		DeleteContext: resourceDigitalOceanVolumeSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -61,7 +61,7 @@ func resourceDigitalOceanVolumeSnapshot() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanVolumeSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeSnapshotCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	opts := &godo.SnapshotCreateRequest{
@@ -82,7 +82,7 @@ func resourceDigitalOceanVolumeSnapshotCreate(d *schema.ResourceData, meta inter
 	return resourceDigitalOceanVolumeSnapshotRead(d, meta)
 }
 
-func resourceDigitalOceanVolumeSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeSnapshotUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("tags") {
@@ -95,7 +95,7 @@ func resourceDigitalOceanVolumeSnapshotUpdate(d *schema.ResourceData, meta inter
 	return resourceDigitalOceanVolumeSnapshotRead(d, meta)
 }
 
-func resourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	snapshot, resp, err := client.Snapshots.Get(context.Background(), d.Id())
@@ -121,7 +121,7 @@ func resourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceDigitalOceanVolumeSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting snaphot: %s", d.Id())

@@ -15,10 +15,10 @@ import (
 
 func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDatabaseClusterCreate,
-		Read:   resourceDigitalOceanDatabaseClusterRead,
-		Update: resourceDigitalOceanDatabaseClusterUpdate,
-		Delete: resourceDigitalOceanDatabaseClusterDelete,
+		CreateContext: resourceDigitalOceanDatabaseClusterCreate,
+		ReadContext:   resourceDigitalOceanDatabaseClusterRead,
+		UpdateContext: resourceDigitalOceanDatabaseClusterUpdate,
+		DeleteContext: resourceDigitalOceanDatabaseClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -201,7 +201,7 @@ func validateExclusiveAttributes() schema.CustomizeDiffFunc {
 	})
 }
 
-func resourceDigitalOceanDatabaseClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	opts := &godo.DatabaseCreateRequest{
@@ -265,7 +265,7 @@ func resourceDigitalOceanDatabaseClusterCreate(d *schema.ResourceData, meta inte
 	return resourceDigitalOceanDatabaseClusterRead(d, meta)
 }
 
-func resourceDigitalOceanDatabaseClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("size") || d.HasChange("node_count") {
@@ -363,7 +363,7 @@ func resourceDigitalOceanDatabaseClusterUpdate(d *schema.ResourceData, meta inte
 	return resourceDigitalOceanDatabaseClusterRead(d, meta)
 }
 
-func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	database, resp, err := client.Databases.Get(context.Background(), d.Id())
@@ -425,7 +425,7 @@ func resourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceDigitalOceanDatabaseClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting DatabaseCluster: %s", d.Id())

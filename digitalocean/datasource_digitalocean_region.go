@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/digitalocean/godo"
@@ -11,7 +12,7 @@ import (
 
 func dataSourceDigitalOceanRegion() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanRegionRead,
+		ReadContext: dataSourceDigitalOceanRegionRead,
 		Schema: map[string]*schema.Schema{
 			"slug": {
 				Type:         schema.TypeString,
@@ -40,7 +41,7 @@ func dataSourceDigitalOceanRegion() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanRegionRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanRegionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	regions, err := getDigitalOceanRegions(meta)
 	if err != nil {
 		return fmt.Errorf("Unable to load regions: %s", err)

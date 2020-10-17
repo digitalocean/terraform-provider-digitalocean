@@ -31,12 +31,12 @@ func dataSourceDigitalOceanDroplet() *schema.Resource {
 	}
 
 	return &schema.Resource{
-		Read:   dataSourceDigitalOceanDropletRead,
-		Schema: recordSchema,
+		ReadContext: dataSourceDigitalOceanDropletRead,
+		Schema:      recordSchema,
 	}
 }
 
-func dataSourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	var foundDroplet godo.Droplet

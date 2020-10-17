@@ -39,12 +39,12 @@ func dataSourceDigitalOceanImage() *schema.Resource {
 	}
 
 	return &schema.Resource{
-		Read:   dataSourceDigitalOceanImageRead,
-		Schema: recordSchema,
+		ReadContext: dataSourceDigitalOceanImageRead,
+		Schema:      recordSchema,
 	}
 }
 
-func dataSourceDigitalOceanImageRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanImageRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	var foundImage *godo.Image

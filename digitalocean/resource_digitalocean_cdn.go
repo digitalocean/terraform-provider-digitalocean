@@ -13,10 +13,10 @@ import (
 
 func resourceDigitalOceanCDN() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanCDNCreate,
-		Read:   resourceDigitalOceanCDNRead,
-		Update: resourceDigitalOceanCDNUpdate,
-		Delete: resourceDigitalOceanCDNDelete,
+		CreateContext: resourceDigitalOceanCDNCreate,
+		ReadContext:   resourceDigitalOceanCDNRead,
+		UpdateContext: resourceDigitalOceanCDNUpdate,
+		DeleteContext: resourceDigitalOceanCDNDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -118,7 +118,7 @@ func migrateCDNStateV0toV1(ctx context.Context, rawState map[string]interface{},
 	return rawState, nil
 }
 
-func resourceDigitalOceanCDNCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCDNCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	cdnRequest := &godo.CDNCreateRequest{
@@ -180,7 +180,7 @@ func resourceDigitalOceanCDNCreate(d *schema.ResourceData, meta interface{}) err
 	return resourceDigitalOceanCDNRead(d, meta)
 }
 
-func resourceDigitalOceanCDNRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCDNRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	cdn, resp, err := client.CDNs.Get(context.Background(), d.Id())
@@ -215,7 +215,7 @@ func resourceDigitalOceanCDNRead(d *schema.ResourceData, meta interface{}) error
 	return err
 }
 
-func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCDNUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	d.Partial(true)
@@ -250,7 +250,7 @@ func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) err
 	return resourceDigitalOceanCDNRead(d, meta)
 }
 
-func resourceDigitalOceanCDNDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCDNDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	resourceId := d.Id()
 

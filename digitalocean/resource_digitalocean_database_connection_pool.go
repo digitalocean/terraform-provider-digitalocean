@@ -13,9 +13,9 @@ import (
 
 func resourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDatabaseConnectionPoolCreate,
-		Read:   resourceDigitalOceanDatabaseConnectionPoolRead,
-		Delete: resourceDigitalOceanDatabaseConnectionPoolDelete,
+		CreateContext: resourceDigitalOceanDatabaseConnectionPoolCreate,
+		ReadContext:   resourceDigitalOceanDatabaseConnectionPoolRead,
+		DeleteContext: resourceDigitalOceanDatabaseConnectionPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDatabaseConnectionPoolImport,
 		},
@@ -102,7 +102,7 @@ func resourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDatabaseConnectionPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseConnectionPoolCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	clusterID := d.Get("cluster_id").(string)
@@ -126,7 +126,7 @@ func resourceDigitalOceanDatabaseConnectionPoolCreate(d *schema.ResourceData, me
 	return resourceDigitalOceanDatabaseConnectionPoolRead(d, meta)
 }
 
-func resourceDigitalOceanDatabaseConnectionPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseConnectionPoolRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID, poolName := splitConnectionPoolID(d.Id())
 
@@ -172,7 +172,7 @@ func resourceDigitalOceanDatabaseConnectionPoolImport(d *schema.ResourceData, me
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceDigitalOceanDatabaseConnectionPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseConnectionPoolDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID, poolName := splitConnectionPoolID(d.Id())
 

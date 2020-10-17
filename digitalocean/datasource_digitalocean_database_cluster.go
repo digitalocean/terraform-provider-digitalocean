@@ -11,7 +11,7 @@ import (
 
 func dataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanDatabaseClusterRead,
+		ReadContext: dataSourceDigitalOceanDatabaseClusterRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -120,7 +120,7 @@ func dataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanDatabaseClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)

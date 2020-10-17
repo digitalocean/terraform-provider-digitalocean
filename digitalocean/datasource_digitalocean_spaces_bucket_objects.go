@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -14,7 +15,7 @@ const keyRequestPageSize = 1000
 
 func dataSourceDigitalOceanSpacesBucketObjects() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanSpacesBucketObjectsRead,
+		ReadContext: dataSourceDigitalOceanSpacesBucketObjectsRead,
 
 		Schema: map[string]*schema.Schema{
 			"bucket": {
@@ -67,7 +68,7 @@ func dataSourceDigitalOceanSpacesBucketObjects() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanSpacesBucketObjectsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanSpacesBucketObjectsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 	if err != nil {

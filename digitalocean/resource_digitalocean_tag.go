@@ -11,9 +11,9 @@ import (
 
 func resourceDigitalOceanTag() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanTagCreate,
-		Read:   resourceDigitalOceanTagRead,
-		Delete: resourceDigitalOceanTagDelete,
+		CreateContext: resourceDigitalOceanTagCreate,
+		ReadContext:   resourceDigitalOceanTagRead,
+		DeleteContext: resourceDigitalOceanTagDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -53,7 +53,7 @@ func resourceDigitalOceanTag() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanTagCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanTagCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Build up our creation options
@@ -73,7 +73,7 @@ func resourceDigitalOceanTagCreate(d *schema.ResourceData, meta interface{}) err
 	return resourceDigitalOceanTagRead(d, meta)
 }
 
-func resourceDigitalOceanTagRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanTagRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	tag, resp, err := client.Tags.Get(context.Background(), d.Id())
@@ -99,7 +99,7 @@ func resourceDigitalOceanTagRead(d *schema.ResourceData, meta interface{}) error
 	return nil
 }
 
-func resourceDigitalOceanTagDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanTagDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting tag: %s", d.Id())

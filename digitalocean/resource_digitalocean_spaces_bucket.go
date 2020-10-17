@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -18,10 +19,10 @@ import (
 
 func resourceDigitalOceanBucket() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanBucketCreate,
-		Read:   resourceDigitalOceanBucketRead,
-		Update: resourceDigitalOceanBucketUpdate,
-		Delete: resourceDigitalOceanBucketDelete,
+		CreateContext: resourceDigitalOceanBucketCreate,
+		ReadContext:   resourceDigitalOceanBucketRead,
+		UpdateContext: resourceDigitalOceanBucketUpdate,
+		DeleteContext: resourceDigitalOceanBucketDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanBucketImport,
 		},
@@ -193,7 +194,7 @@ func resourceDigitalOceanBucket() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanBucketCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 
@@ -235,7 +236,7 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 	return resourceDigitalOceanBucketUpdate(d, meta)
 }
 
-func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanBucketUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 
@@ -272,7 +273,7 @@ func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceDigitalOceanBucketRead(d, meta)
 }
 
-func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanBucketRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 
@@ -448,7 +449,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanBucketDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 

@@ -12,7 +12,7 @@ const RegistryHostname = "registry.digitalocean.com"
 
 func dataSourceDigitalOceanContainerRegistry() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanContainerRegistryRead,
+		ReadContext: dataSourceDigitalOceanContainerRegistryRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -32,7 +32,7 @@ func dataSourceDigitalOceanContainerRegistry() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	reg, response, err := client.Registry.Get(context.Background())

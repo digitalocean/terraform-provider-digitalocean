@@ -13,7 +13,7 @@ import (
 
 func dataSourceDigitalOceanDropletSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanDropletSnapshotRead,
+		ReadContext: dataSourceDigitalOceanDropletSnapshotRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -67,7 +67,7 @@ func dataSourceDigitalOceanDropletSnapshot() *schema.Resource {
 }
 
 // dataSourceDoSnapshotRead performs the Snapshot lookup.
-func dataSourceDigitalOceanDropletSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanDropletSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name, hasName := d.GetOk("name")

@@ -13,9 +13,9 @@ import (
 
 func resourceDigitalOceanVolumeAttachment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanVolumeAttachmentCreate,
-		Read:   resourceDigitalOceanVolumeAttachmentRead,
-		Delete: resourceDigitalOceanVolumeAttachmentDelete,
+		CreateContext: resourceDigitalOceanVolumeAttachmentCreate,
+		ReadContext:   resourceDigitalOceanVolumeAttachmentRead,
+		DeleteContext: resourceDigitalOceanVolumeAttachmentDelete,
 
 		Schema: map[string]*schema.Schema{
 			"droplet_id": {
@@ -35,7 +35,7 @@ func resourceDigitalOceanVolumeAttachment() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanVolumeAttachmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeAttachmentCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	dropletId := d.Get("droplet_id").(int)
@@ -82,7 +82,7 @@ func resourceDigitalOceanVolumeAttachmentCreate(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceDigitalOceanVolumeAttachmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeAttachmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	dropletId := d.Get("droplet_id").(int)
@@ -108,7 +108,7 @@ func resourceDigitalOceanVolumeAttachmentRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceDigitalOceanVolumeAttachmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeAttachmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	dropletId := d.Get("droplet_id").(int)

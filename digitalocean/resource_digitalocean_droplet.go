@@ -17,10 +17,10 @@ import (
 
 func resourceDigitalOceanDroplet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDropletCreate,
-		Read:   resourceDigitalOceanDropletRead,
-		Update: resourceDigitalOceanDropletUpdate,
-		Delete: resourceDigitalOceanDropletDelete,
+		CreateContext: resourceDigitalOceanDropletCreate,
+		ReadContext:   resourceDigitalOceanDropletRead,
+		UpdateContext: resourceDigitalOceanDropletUpdate,
+		DeleteContext: resourceDigitalOceanDropletDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDropletImport,
 		},
@@ -194,7 +194,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	image := d.Get("image").(string)
@@ -286,7 +286,7 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 	return resourceDigitalOceanDropletRead(d, meta)
 }
 
-func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
@@ -402,7 +402,7 @@ func findIPv4AddrByType(d *godo.Droplet, addrType string) string {
 	return ""
 }
 
-func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
@@ -597,7 +597,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 	return resourceDigitalOceanDropletRead(d, meta)
 }
 
-func resourceDigitalOceanDropletDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())

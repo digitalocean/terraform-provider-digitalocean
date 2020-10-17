@@ -13,10 +13,10 @@ import (
 
 func resourceDigitalOceanProject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanProjectCreate,
-		Read:   resourceDigitalOceanProjectRead,
-		Update: resourceDigitalOceanProjectUpdate,
-		Delete: resourceDigitalOceanProjectDelete,
+		CreateContext: resourceDigitalOceanProjectCreate,
+		ReadContext:   resourceDigitalOceanProjectRead,
+		UpdateContext: resourceDigitalOceanProjectUpdate,
+		DeleteContext: resourceDigitalOceanProjectDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -90,7 +90,7 @@ func resourceDigitalOceanProject() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanProjectCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectRequest := &godo.CreateProjectRequest{
@@ -129,7 +129,7 @@ func resourceDigitalOceanProjectCreate(d *schema.ResourceData, meta interface{})
 	return resourceDigitalOceanProjectRead(d, meta)
 }
 
-func resourceDigitalOceanProjectRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	project, resp, err := client.Projects.Get(context.Background(), d.Id())
@@ -184,7 +184,7 @@ func resourceDigitalOceanProjectRead(d *schema.ResourceData, meta interface{}) e
 	return nil
 }
 
-func resourceDigitalOceanProjectUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	projectId := d.Id()
 
@@ -229,7 +229,7 @@ func resourceDigitalOceanProjectUpdate(d *schema.ResourceData, meta interface{})
 	return resourceDigitalOceanProjectRead(d, meta)
 }
 
-func resourceDigitalOceanProjectDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId := d.Id()

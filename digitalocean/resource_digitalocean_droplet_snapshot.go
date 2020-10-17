@@ -14,9 +14,9 @@ import (
 
 func resourceDigitalOceanDropletSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDropletSnapshotCreate,
-		Read:   resourceDigitalOceanDropletSnapshotRead,
-		Delete: resourceDigitalOceanDropletSnapshotDelete,
+		CreateContext: resourceDigitalOceanDropletSnapshotCreate,
+		ReadContext:   resourceDigitalOceanDropletSnapshotRead,
+		DeleteContext: resourceDigitalOceanDropletSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,7 +55,7 @@ func resourceDigitalOceanDropletSnapshot() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDropletSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletSnapshotCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	resourceId, _ := strconv.Atoi(d.Get("droplet_id").(string))
@@ -95,7 +95,7 @@ func resourceDigitalOceanDropletSnapshotCreate(d *schema.ResourceData, meta inte
 	return resourceDigitalOceanDropletSnapshotRead(d, meta)
 }
 
-func resourceDigitalOceanDropletSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	snapshot, resp, err := client.Snapshots.Get(context.Background(), d.Id())
@@ -119,7 +119,7 @@ func resourceDigitalOceanDropletSnapshotRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceDigitalOceanDropletSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting snaphot: %s", d.Id())

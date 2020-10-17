@@ -21,12 +21,12 @@ func dataSourceDigitalOceanProject() *schema.Resource {
 	recordSchema["name"].Optional = true
 
 	return &schema.Resource{
-		Read:   dataSourceDigitalOceanProjectRead,
-		Schema: recordSchema,
+		ReadContext: dataSourceDigitalOceanProjectRead,
+		Schema:      recordSchema,
 	}
 }
 
-func dataSourceDigitalOceanProjectRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanProjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Load the specified project, otherwise load the default project.

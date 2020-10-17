@@ -15,10 +15,10 @@ import (
 
 func resourceDigitalOceanFloatingIp() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanFloatingIpCreate,
-		Update: resourceDigitalOceanFloatingIpUpdate,
-		Read:   resourceDigitalOceanFloatingIpRead,
-		Delete: resourceDigitalOceanFloatingIpDelete,
+		CreateContext: resourceDigitalOceanFloatingIpCreate,
+		UpdateContext: resourceDigitalOceanFloatingIpUpdate,
+		ReadContext:   resourceDigitalOceanFloatingIpRead,
+		DeleteContext: resourceDigitalOceanFloatingIpDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanFloatingIpImport,
 		},
@@ -53,7 +53,7 @@ func resourceDigitalOceanFloatingIp() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanFloatingIpCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFloatingIpCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Create a FloatingIP In a Region")
@@ -88,7 +88,7 @@ func resourceDigitalOceanFloatingIpCreate(d *schema.ResourceData, meta interface
 	return resourceDigitalOceanFloatingIpRead(d, meta)
 }
 
-func resourceDigitalOceanFloatingIpUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFloatingIpUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("droplet_id") {
@@ -124,7 +124,7 @@ func resourceDigitalOceanFloatingIpUpdate(d *schema.ResourceData, meta interface
 	return resourceDigitalOceanFloatingIpRead(d, meta)
 }
 
-func resourceDigitalOceanFloatingIpRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFloatingIpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Reading the details of the FloatingIP %s", d.Id())
@@ -172,7 +172,7 @@ func resourceDigitalOceanFloatingIpImport(rs *schema.ResourceData, v interface{}
 	return []*schema.ResourceData{rs}, nil
 }
 
-func resourceDigitalOceanFloatingIpDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFloatingIpDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if _, ok := d.GetOk("droplet_id"); ok {

@@ -11,7 +11,7 @@ import (
 
 func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanKubernetesClusterRead,
+		ReadContext: dataSourceDigitalOceanKubernetesClusterRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -146,7 +146,7 @@ func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanKubernetesClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	clusters, resp, err := client.Kubernetes.List(context.Background(), &godo.ListOptions{})

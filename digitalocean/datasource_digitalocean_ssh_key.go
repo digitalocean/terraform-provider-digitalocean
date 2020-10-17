@@ -12,7 +12,7 @@ import (
 
 func dataSourceDigitalOceanSSHKey() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanSSHKeyRead,
+		ReadContext: dataSourceDigitalOceanSSHKeyRead,
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -36,7 +36,7 @@ func dataSourceDigitalOceanSSHKey() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanSSHKeyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)

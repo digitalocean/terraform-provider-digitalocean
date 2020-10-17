@@ -13,9 +13,9 @@ import (
 
 func resourceDigitalOceanFloatingIpAssignment() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanFloatingIpAssignmentCreate,
-		Read:   resourceDigitalOceanFloatingIpAssignmentRead,
-		Delete: resourceDigitalOceanFloatingIpAssignmentDelete,
+		CreateContext: resourceDigitalOceanFloatingIpAssignmentCreate,
+		ReadContext:   resourceDigitalOceanFloatingIpAssignmentRead,
+		DeleteContext: resourceDigitalOceanFloatingIpAssignmentDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -38,7 +38,7 @@ func resourceDigitalOceanFloatingIpAssignment() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanFloatingIpAssignmentCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFloatingIpAssignmentCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	ip_address := d.Get("ip_address").(string)
@@ -61,7 +61,7 @@ func resourceDigitalOceanFloatingIpAssignmentCreate(d *schema.ResourceData, meta
 	return resourceDigitalOceanFloatingIpAssignmentRead(d, meta)
 }
 
-func resourceDigitalOceanFloatingIpAssignmentRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFloatingIpAssignmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	ip_address := d.Get("ip_address").(string)
@@ -81,7 +81,7 @@ func resourceDigitalOceanFloatingIpAssignmentRead(d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceDigitalOceanFloatingIpAssignmentDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFloatingIpAssignmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	ip_address := d.Get("ip_address").(string)

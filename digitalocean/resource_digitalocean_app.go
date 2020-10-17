@@ -12,10 +12,10 @@ import (
 
 func resourceDigitalOceanApp() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanAppCreate,
-		Read:   resourceDigitalOceanAppRead,
-		Update: resourceDigitalOceanAppUpdate,
-		Delete: resourceDigitalOceanAppDelete,
+		CreateContext: resourceDigitalOceanAppCreate,
+		ReadContext:   resourceDigitalOceanAppRead,
+		UpdateContext: resourceDigitalOceanAppUpdate,
+		DeleteContext: resourceDigitalOceanAppDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,7 +66,7 @@ func resourceDigitalOceanApp() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanAppCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	appCreateRequest := &godo.AppCreateRequest{}
 	appCreateRequest.Spec = expandAppSpec(d.Get("spec").([]interface{}))
@@ -90,7 +90,7 @@ func resourceDigitalOceanAppCreate(d *schema.ResourceData, meta interface{}) err
 	return resourceDigitalOceanAppRead(d, meta)
 }
 
-func resourceDigitalOceanAppRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	app, resp, err := client.Apps.Get(context.Background(), d.Id())
@@ -117,7 +117,7 @@ func resourceDigitalOceanAppRead(d *schema.ResourceData, meta interface{}) error
 	return err
 }
 
-func resourceDigitalOceanAppUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("spec") {
@@ -141,7 +141,7 @@ func resourceDigitalOceanAppUpdate(d *schema.ResourceData, meta interface{}) err
 	return resourceDigitalOceanAppRead(d, meta)
 }
 
-func resourceDigitalOceanAppDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanAppDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting App: %s", d.Id())

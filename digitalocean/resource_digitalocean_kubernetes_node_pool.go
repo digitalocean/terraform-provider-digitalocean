@@ -19,10 +19,10 @@ const digitaloceanKubernetesDefaultNodePoolTag = "terraform:default-node-pool"
 func resourceDigitalOceanKubernetesNodePool() *schema.Resource {
 
 	return &schema.Resource{
-		Create: resourceDigitalOceanKubernetesNodePoolCreate,
-		Read:   resourceDigitalOceanKubernetesNodePoolRead,
-		Update: resourceDigitalOceanKubernetesNodePoolUpdate,
-		Delete: resourceDigitalOceanKubernetesNodePoolDelete,
+		CreateContext: resourceDigitalOceanKubernetesNodePoolCreate,
+		ReadContext:   resourceDigitalOceanKubernetesNodePoolRead,
+		UpdateContext: resourceDigitalOceanKubernetesNodePoolUpdate,
+		DeleteContext: resourceDigitalOceanKubernetesNodePoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanKubernetesNodePoolImportState,
 		},
@@ -175,7 +175,7 @@ func nodeSchema() *schema.Schema {
 	}
 }
 
-func resourceDigitalOceanKubernetesNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesNodePoolCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	rawPool := map[string]interface{}{
@@ -199,7 +199,7 @@ func resourceDigitalOceanKubernetesNodePoolCreate(d *schema.ResourceData, meta i
 	return resourceDigitalOceanKubernetesNodePoolRead(d, meta)
 }
 
-func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesNodePoolRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	pool, resp, err := client.Kubernetes.GetNodePool(context.Background(), d.Get("cluster_id").(string), d.Id())
@@ -232,7 +232,7 @@ func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceDigitalOceanKubernetesNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesNodePoolUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	rawPool := map[string]interface{}{
@@ -257,7 +257,7 @@ func resourceDigitalOceanKubernetesNodePoolUpdate(d *schema.ResourceData, meta i
 	return resourceDigitalOceanKubernetesNodePoolRead(d, meta)
 }
 
-func resourceDigitalOceanKubernetesNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesNodePoolDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	return digitaloceanKubernetesNodePoolDelete(client, d.Get("cluster_id").(string), d.Id())

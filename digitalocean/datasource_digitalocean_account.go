@@ -9,7 +9,7 @@ import (
 
 func dataSourceDigitalOceanAccount() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanAccountRead,
+		ReadContext: dataSourceDigitalOceanAccountRead,
 		Schema: map[string]*schema.Schema{
 			"droplet_limit": {
 				Type:        schema.TypeInt,
@@ -50,7 +50,7 @@ func dataSourceDigitalOceanAccount() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanAccountRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanAccountRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	account, _, err := client.Account.Get(context.Background())

@@ -12,9 +12,9 @@ import (
 
 func resourceDigitalOceanDomain() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDomainCreate,
-		Read:   resourceDigitalOceanDomainRead,
-		Delete: resourceDigitalOceanDomainDelete,
+		CreateContext: resourceDigitalOceanDomainCreate,
+		ReadContext:   resourceDigitalOceanDomainRead,
+		DeleteContext: resourceDigitalOceanDomainDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -40,7 +40,7 @@ func resourceDigitalOceanDomain() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDomainCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDomainCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Build up our creation options
@@ -65,7 +65,7 @@ func resourceDigitalOceanDomainCreate(d *schema.ResourceData, meta interface{}) 
 	return resourceDigitalOceanDomainRead(d, meta)
 }
 
-func resourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	domain, resp, err := client.Domains.Get(context.Background(), d.Id())
@@ -86,7 +86,7 @@ func resourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceDigitalOceanDomainDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDomainDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting Domain: %s", d.Id())

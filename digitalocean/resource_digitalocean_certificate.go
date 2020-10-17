@@ -14,9 +14,9 @@ import (
 
 func resourceDigitalOceanCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanCertificateCreate,
-		Read:   resourceDigitalOceanCertificateRead,
-		Delete: resourceDigitalOceanCertificateDelete,
+		CreateContext: resourceDigitalOceanCertificateCreate,
+		ReadContext:   resourceDigitalOceanCertificateRead,
+		DeleteContext: resourceDigitalOceanCertificateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -181,7 +181,7 @@ func buildCertificateRequest(d *schema.ResourceData) (*godo.CertificateRequest, 
 	return req, nil
 }
 
-func resourceDigitalOceanCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCertificateCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	certificateType := d.Get("type").(string)
@@ -239,7 +239,7 @@ func resourceDigitalOceanCertificateCreate(d *schema.ResourceData, meta interfac
 	return resourceDigitalOceanCertificateRead(d, meta)
 }
 
-func resourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCertificateRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// When the certificate type is lets_encrypt, the certificate
@@ -273,7 +273,7 @@ func resourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interface{
 
 }
 
-func resourceDigitalOceanCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCertificateDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting Certificate: %s", d.Id())

@@ -18,10 +18,10 @@ import (
 
 func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanKubernetesClusterCreate,
-		Read:   resourceDigitalOceanKubernetesClusterRead,
-		Update: resourceDigitalOceanKubernetesClusterUpdate,
-		Delete: resourceDigitalOceanKubernetesClusterDelete,
+		CreateContext: resourceDigitalOceanKubernetesClusterCreate,
+		ReadContext:   resourceDigitalOceanKubernetesClusterRead,
+		UpdateContext: resourceDigitalOceanKubernetesClusterUpdate,
+		DeleteContext: resourceDigitalOceanKubernetesClusterDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanKubernetesClusterImportState,
 		},
@@ -187,7 +187,7 @@ func kubernetesConfigSchema() *schema.Schema {
 	}
 }
 
-func resourceDigitalOceanKubernetesClusterCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	pools := expandNodePools(d.Get("node_pool").([]interface{}))
@@ -240,7 +240,7 @@ func resourceDigitalOceanKubernetesClusterCreate(d *schema.ResourceData, meta in
 	return resourceDigitalOceanKubernetesClusterRead(d, meta)
 }
 
-func resourceDigitalOceanKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	cluster, resp, err := client.Kubernetes.Get(context.Background(), d.Id())
@@ -321,7 +321,7 @@ func digitaloceanKubernetesClusterRead(client *godo.Client, cluster *godo.Kubern
 	return nil
 }
 
-func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Figure out the changes and then call the appropriate API methods
@@ -379,7 +379,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(d *schema.ResourceData, meta in
 	return resourceDigitalOceanKubernetesClusterRead(d, meta)
 }
 
-func resourceDigitalOceanKubernetesClusterDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	resp, err := client.Kubernetes.Delete(context.Background(), d.Id())

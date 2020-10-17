@@ -14,10 +14,10 @@ import (
 
 func resourceDigitalOceanSSHKey() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanSSHKeyCreate,
-		Read:   resourceDigitalOceanSSHKeyRead,
-		Update: resourceDigitalOceanSSHKeyUpdate,
-		Delete: resourceDigitalOceanSSHKeyDelete,
+		CreateContext: resourceDigitalOceanSSHKeyCreate,
+		ReadContext:   resourceDigitalOceanSSHKeyRead,
+		UpdateContext: resourceDigitalOceanSSHKeyUpdate,
+		DeleteContext: resourceDigitalOceanSSHKeyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +49,7 @@ func resourceDigitalOceanSSHKeyPublicKeyDiffSuppress(k, old, new string, d *sche
 	return strings.TrimSpace(old) == strings.TrimSpace(new)
 }
 
-func resourceDigitalOceanSSHKeyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSSHKeyCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Build up our creation options
@@ -70,7 +70,7 @@ func resourceDigitalOceanSSHKeyCreate(d *schema.ResourceData, meta interface{}) 
 	return resourceDigitalOceanSSHKeyRead(d, meta)
 }
 
-func resourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSSHKeyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
@@ -97,7 +97,7 @@ func resourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceDigitalOceanSSHKeyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSSHKeyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
@@ -122,7 +122,7 @@ func resourceDigitalOceanSSHKeyUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceDigitalOceanSSHKeyRead(d, meta)
 }
 
-func resourceDigitalOceanSSHKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSSHKeyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())

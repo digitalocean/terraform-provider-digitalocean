@@ -12,9 +12,9 @@ import (
 
 func resourceDigitalOceanContainerRegistry() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanContainerRegistryCreate,
-		Read:   resourceDigitalOceanContainerRegistryRead,
-		Delete: resourceDigitalOceanContainerRegistryDelete,
+		CreateContext: resourceDigitalOceanContainerRegistryCreate,
+		ReadContext:   resourceDigitalOceanContainerRegistryRead,
+		DeleteContext: resourceDigitalOceanContainerRegistryDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -38,7 +38,7 @@ func resourceDigitalOceanContainerRegistry() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanContainerRegistryCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Build up our creation options
@@ -58,7 +58,7 @@ func resourceDigitalOceanContainerRegistryCreate(d *schema.ResourceData, meta in
 	return resourceDigitalOceanContainerRegistryRead(d, meta)
 }
 
-func resourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	reg, resp, err := client.Registry.Get(context.Background())
@@ -81,7 +81,7 @@ func resourceDigitalOceanContainerRegistryRead(d *schema.ResourceData, meta inte
 	return nil
 }
 
-func resourceDigitalOceanContainerRegistryDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting container registry: %s", d.Id())

@@ -14,10 +14,10 @@ import (
 
 func resourceDigitalOceanVPC() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanVPCCreate,
-		Read:   resourceDigitalOceanVPCRead,
-		Update: resourceDigitalOceanVPCUpdate,
-		Delete: resourceDigitalOceanVPCDelete,
+		CreateContext: resourceDigitalOceanVPCCreate,
+		ReadContext:   resourceDigitalOceanVPCRead,
+		UpdateContext: resourceDigitalOceanVPCUpdate,
+		DeleteContext: resourceDigitalOceanVPCDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -75,7 +75,7 @@ func resourceDigitalOceanVPC() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanVPCCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVPCCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	vpcRequest := &godo.VPCCreateRequest{
@@ -103,7 +103,7 @@ func resourceDigitalOceanVPCCreate(d *schema.ResourceData, meta interface{}) err
 	return resourceDigitalOceanVPCRead(d, meta)
 }
 
-func resourceDigitalOceanVPCRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVPCRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	vpc, resp, err := client.VPCs.Get(context.Background(), d.Id())
@@ -129,7 +129,7 @@ func resourceDigitalOceanVPCRead(d *schema.ResourceData, meta interface{}) error
 	return err
 }
 
-func resourceDigitalOceanVPCUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVPCUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("name") || d.HasChange("description") {
@@ -148,7 +148,7 @@ func resourceDigitalOceanVPCUpdate(d *schema.ResourceData, meta interface{}) err
 	return resourceDigitalOceanVPCRead(d, meta)
 }
 
-func resourceDigitalOceanVPCDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVPCDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	vpcID := d.Id()
 

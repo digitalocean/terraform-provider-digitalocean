@@ -14,9 +14,9 @@ import (
 
 func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDatabaseReplicaCreate,
-		Read:   resourceDigitalOceanDatabaseReplicaRead,
-		Delete: resourceDigitalOceanDatabaseReplicaDelete,
+		CreateContext: resourceDigitalOceanDatabaseReplicaCreate,
+		ReadContext:   resourceDigitalOceanDatabaseReplicaRead,
+		DeleteContext: resourceDigitalOceanDatabaseReplicaDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDatabaseReplicaImport,
 		},
@@ -113,7 +113,7 @@ func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDatabaseReplicaCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseReplicaCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterId := d.Get("cluster_id").(string)
 
@@ -145,7 +145,7 @@ func resourceDigitalOceanDatabaseReplicaCreate(d *schema.ResourceData, meta inte
 	return resourceDigitalOceanDatabaseReplicaRead(d, meta)
 }
 
-func resourceDigitalOceanDatabaseReplicaRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseReplicaRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterId := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
@@ -189,7 +189,7 @@ func resourceDigitalOceanDatabaseReplicaImport(d *schema.ResourceData, meta inte
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceDigitalOceanDatabaseReplicaDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseReplicaDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterId := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)

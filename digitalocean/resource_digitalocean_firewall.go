@@ -13,10 +13,10 @@ import (
 
 func resourceDigitalOceanFirewall() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanFirewallCreate,
-		Read:   resourceDigitalOceanFirewallRead,
-		Update: resourceDigitalOceanFirewallUpdate,
-		Delete: resourceDigitalOceanFirewallDelete,
+		CreateContext: resourceDigitalOceanFirewallCreate,
+		ReadContext:   resourceDigitalOceanFirewallRead,
+		UpdateContext: resourceDigitalOceanFirewallUpdate,
+		DeleteContext: resourceDigitalOceanFirewallDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -192,7 +192,7 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanFirewallCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFirewallCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	opts, err := firewallRequest(d, client)
@@ -215,7 +215,7 @@ func resourceDigitalOceanFirewallCreate(d *schema.ResourceData, meta interface{}
 	return resourceDigitalOceanFirewallRead(d, meta)
 }
 
-func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFirewallRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Retrieve the firewall properties for updating the state
@@ -255,7 +255,7 @@ func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) 
 	return nil
 }
 
-func resourceDigitalOceanFirewallUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFirewallUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	opts, err := firewallRequest(d, client)
@@ -273,7 +273,7 @@ func resourceDigitalOceanFirewallUpdate(d *schema.ResourceData, meta interface{}
 	return resourceDigitalOceanFirewallRead(d, meta)
 }
 
-func resourceDigitalOceanFirewallDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFirewallDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting firewall: %s", d.Id())

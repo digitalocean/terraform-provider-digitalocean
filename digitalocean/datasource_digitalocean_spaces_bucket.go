@@ -1,7 +1,9 @@
 package digitalocean
 
 import (
+	"context"
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -21,12 +23,12 @@ func dataSourceDigitalOceanSpacesBucket() *schema.Resource {
 	recordSchema["name"].Computed = false
 
 	return &schema.Resource{
-		Read:   dataSourceDigitalOceanSpacesBucketRead,
-		Schema: recordSchema,
+		ReadContext: dataSourceDigitalOceanSpacesBucketRead,
+		Schema:      recordSchema,
 	}
 }
 
-func dataSourceDigitalOceanSpacesBucketRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanSpacesBucketRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
 	name := d.Get("name").(string)
 

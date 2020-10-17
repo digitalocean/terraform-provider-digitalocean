@@ -14,10 +14,10 @@ import (
 
 func resourceDigitalOceanDatabaseFirewall() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDatabaseFirewallCreate,
-		Read:   resourceDigitalOceanDatabaseFirewallRead,
-		Update: resourceDigitalOceanDatabaseFirewallUpdate,
-		Delete: resourceDigitalOceanDatabaseFirewallDelete,
+		CreateContext: resourceDigitalOceanDatabaseFirewallCreate,
+		ReadContext:   resourceDigitalOceanDatabaseFirewallRead,
+		UpdateContext: resourceDigitalOceanDatabaseFirewallUpdate,
+		DeleteContext: resourceDigitalOceanDatabaseFirewallDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDatabaseFirewallImport,
 		},
@@ -68,7 +68,7 @@ func resourceDigitalOceanDatabaseFirewall() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDatabaseFirewallCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseFirewallCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -84,7 +84,7 @@ func resourceDigitalOceanDatabaseFirewallCreate(d *schema.ResourceData, meta int
 	return resourceDigitalOceanDatabaseFirewallRead(d, meta)
 }
 
-func resourceDigitalOceanDatabaseFirewallRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseFirewallRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -96,7 +96,7 @@ func resourceDigitalOceanDatabaseFirewallRead(d *schema.ResourceData, meta inter
 	return d.Set("rule", flattenDatabaseFirewallRules(rules))
 }
 
-func resourceDigitalOceanDatabaseFirewallUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseFirewallUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -110,7 +110,7 @@ func resourceDigitalOceanDatabaseFirewallUpdate(d *schema.ResourceData, meta int
 	return resourceDigitalOceanDatabaseFirewallRead(d, meta)
 }
 
-func resourceDigitalOceanDatabaseFirewallDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseFirewallDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 

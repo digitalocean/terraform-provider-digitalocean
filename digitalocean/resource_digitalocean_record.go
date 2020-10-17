@@ -14,10 +14,10 @@ import (
 
 func resourceDigitalOceanRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanRecordCreate,
-		Read:   resourceDigitalOceanRecordRead,
-		Update: resourceDigitalOceanRecordUpdate,
-		Delete: resourceDigitalOceanRecordDelete,
+		CreateContext: resourceDigitalOceanRecordCreate,
+		ReadContext:   resourceDigitalOceanRecordRead,
+		UpdateContext: resourceDigitalOceanRecordUpdate,
+		DeleteContext: resourceDigitalOceanRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanRecordImport,
 		},
@@ -154,7 +154,7 @@ func resourceDigitalOceanRecord() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanRecordCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanRecordCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	newRecord, err := expandDigitalOceanRecordResource(d)
@@ -176,7 +176,7 @@ func resourceDigitalOceanRecordCreate(d *schema.ResourceData, meta interface{}) 
 	return resourceDigitalOceanRecordRead(d, meta)
 }
 
-func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanRecordRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	domain := d.Get("domain").(string)
 	id, err := strconv.Atoi(d.Id())
@@ -235,7 +235,7 @@ func resourceDigitalOceanRecordImport(d *schema.ResourceData, meta interface{}) 
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceDigitalOceanRecordUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanRecordUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	domain := d.Get("domain").(string)
@@ -258,7 +258,7 @@ func resourceDigitalOceanRecordUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceDigitalOceanRecordRead(d, meta)
 }
 
-func resourceDigitalOceanRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanRecordDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	domain := d.Get("domain").(string)

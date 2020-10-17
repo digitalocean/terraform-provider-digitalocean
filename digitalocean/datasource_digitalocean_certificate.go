@@ -12,7 +12,7 @@ import (
 
 func dataSourceDigitalOceanCertificate() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanCertificateRead,
+		ReadContext: dataSourceDigitalOceanCertificateRead,
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -63,7 +63,7 @@ func dataSourceDigitalOceanCertificate() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanCertificateRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// When the certificate type is lets_encrypt, the certificate

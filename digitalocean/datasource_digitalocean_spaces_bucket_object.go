@@ -16,7 +16,7 @@ import (
 
 func dataSourceDigitalOceanSpacesBucketObject() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanSpacesBucketObjectRead,
+		ReadContext: dataSourceDigitalOceanSpacesBucketObjectRead,
 
 		Schema: map[string]*schema.Schema{
 			"bucket": {
@@ -101,7 +101,7 @@ func dataSourceDigitalOceanSpacesBucketObject() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanSpacesBucketObjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 	if err != nil {

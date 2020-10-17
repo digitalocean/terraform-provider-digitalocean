@@ -9,7 +9,7 @@ import (
 
 func dataSourceDigitalOceanTag() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanTagRead,
+		ReadContext: dataSourceDigitalOceanTagRead,
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -46,7 +46,7 @@ func dataSourceDigitalOceanTag() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanTagRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanTagRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)

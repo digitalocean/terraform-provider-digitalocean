@@ -13,9 +13,9 @@ import (
 
 func resourceDigitalOceanDatabaseDB() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDatabaseDBCreate,
-		Read:   resourceDigitalOceanDatabaseDBRead,
-		Delete: resourceDigitalOceanDatabaseDBDelete,
+		CreateContext: resourceDigitalOceanDatabaseDBCreate,
+		ReadContext:   resourceDigitalOceanDatabaseDBRead,
+		DeleteContext: resourceDigitalOceanDatabaseDBDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDatabaseDBImport,
 		},
@@ -37,7 +37,7 @@ func resourceDigitalOceanDatabaseDB() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDatabaseDBCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseDBCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -57,7 +57,7 @@ func resourceDigitalOceanDatabaseDBCreate(d *schema.ResourceData, meta interface
 	return resourceDigitalOceanDatabaseDBRead(d, meta)
 }
 
-func resourceDigitalOceanDatabaseDBRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseDBRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
@@ -78,7 +78,7 @@ func resourceDigitalOceanDatabaseDBRead(d *schema.ResourceData, meta interface{}
 	return nil
 }
 
-func resourceDigitalOceanDatabaseDBDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseDBDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)

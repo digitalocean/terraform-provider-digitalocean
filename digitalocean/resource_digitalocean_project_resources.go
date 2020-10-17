@@ -10,10 +10,10 @@ import (
 
 func resourceDigitalOceanProjectResources() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanProjectResourcesUpdate,
-		Update: resourceDigitalOceanProjectResourcesUpdate,
-		Read:   resourceDigitalOceanProjectResourcesRead,
-		Delete: resourceDigitalOceanProjectResourcesDelete,
+		CreateContext: resourceDigitalOceanProjectResourcesUpdate,
+		UpdateContext: resourceDigitalOceanProjectResourcesUpdate,
+		ReadContext:   resourceDigitalOceanProjectResourcesRead,
+		DeleteContext: resourceDigitalOceanProjectResourcesDelete,
 
 		Schema: map[string]*schema.Schema{
 			"project": {
@@ -33,7 +33,7 @@ func resourceDigitalOceanProjectResources() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanProjectResourcesUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectResourcesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId := d.Get("project").(string)
@@ -78,7 +78,7 @@ func resourceDigitalOceanProjectResourcesUpdate(d *schema.ResourceData, meta int
 	return resourceDigitalOceanProjectResourcesRead(d, meta)
 }
 
-func resourceDigitalOceanProjectResourcesRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectResourcesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId := d.Id()
@@ -123,7 +123,7 @@ func resourceDigitalOceanProjectResourcesRead(d *schema.ResourceData, meta inter
 	return nil
 }
 
-func resourceDigitalOceanProjectResourcesDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectResourcesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId := d.Get("project").(string)

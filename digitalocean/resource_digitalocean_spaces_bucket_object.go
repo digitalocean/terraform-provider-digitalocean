@@ -20,10 +20,10 @@ import (
 
 func resourceDigitalOceanSpacesBucketObject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanSpacesBucketObjectCreate,
-		Read:   resourceDigitalOceanSpacesBucketObjectRead,
-		Update: resourceDigitalOceanSpacesBucketObjectUpdate,
-		Delete: resourceDigitalOceanSpacesBucketObjectDelete,
+		CreateContext: resourceDigitalOceanSpacesBucketObjectCreate,
+		ReadContext:   resourceDigitalOceanSpacesBucketObjectRead,
+		UpdateContext: resourceDigitalOceanSpacesBucketObjectUpdate,
+		DeleteContext: resourceDigitalOceanSpacesBucketObjectDelete,
 
 		CustomizeDiff: resourceDigitalOceanSpacesBucketObjectCustomizeDiff,
 
@@ -233,11 +233,11 @@ func resourceDigitalOceanSpacesBucketObjectPut(d *schema.ResourceData, meta inte
 	return resourceDigitalOceanSpacesBucketObjectRead(d, meta)
 }
 
-func resourceDigitalOceanSpacesBucketObjectCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	return resourceDigitalOceanSpacesBucketObjectPut(d, meta)
 }
 
-func resourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	s3conn, err := s3connFromResourceData(d, meta)
 	if err != nil {
 		return err
@@ -288,7 +288,7 @@ func resourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceDigitalOceanSpacesBucketObjectUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	// Changes to any of these attributes requires creation of a new object version (if bucket is versioned):
 	for _, key := range []string{
 		"cache_control",
@@ -330,7 +330,7 @@ func resourceDigitalOceanSpacesBucketObjectUpdate(d *schema.ResourceData, meta i
 	return resourceDigitalOceanSpacesBucketObjectRead(d, meta)
 }
 
-func resourceDigitalOceanSpacesBucketObjectDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	s3conn, err := s3connFromResourceData(d, meta)
 	if err != nil {
 		return err

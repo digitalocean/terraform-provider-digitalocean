@@ -13,10 +13,10 @@ import (
 
 func resourceDigitalOceanDatabaseUser() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDatabaseUserCreate,
-		Read:   resourceDigitalOceanDatabaseUserRead,
-		Update: resourceDigitalOceanDatabaseUserUpdate,
-		Delete: resourceDigitalOceanDatabaseUserDelete,
+		CreateContext: resourceDigitalOceanDatabaseUserCreate,
+		ReadContext:   resourceDigitalOceanDatabaseUserRead,
+		UpdateContext: resourceDigitalOceanDatabaseUserUpdate,
+		DeleteContext: resourceDigitalOceanDatabaseUserDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDatabaseUserImport,
 		},
@@ -61,7 +61,7 @@ func resourceDigitalOceanDatabaseUser() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDatabaseUserCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseUserCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -87,7 +87,7 @@ func resourceDigitalOceanDatabaseUserCreate(d *schema.ResourceData, meta interfa
 	return resourceDigitalOceanDatabaseUserRead(d, meta)
 }
 
-func resourceDigitalOceanDatabaseUserRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
@@ -114,7 +114,7 @@ func resourceDigitalOceanDatabaseUserRead(d *schema.ResourceData, meta interface
 	return nil
 }
 
-func resourceDigitalOceanDatabaseUserUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseUserUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("mysql_auth_plugin") {
@@ -139,7 +139,7 @@ func resourceDigitalOceanDatabaseUserUpdate(d *schema.ResourceData, meta interfa
 	return resourceDigitalOceanDatabaseUserRead(d, meta)
 }
 
-func resourceDigitalOceanDatabaseUserDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseUserDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)

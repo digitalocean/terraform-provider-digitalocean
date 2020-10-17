@@ -13,10 +13,10 @@ import (
 
 func resourceDigitalOceanVolume() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanVolumeCreate,
-		Read:   resourceDigitalOceanVolumeRead,
-		Update: resourceDigitalOceanVolumeUpdate,
-		Delete: resourceDigitalOceanVolumeDelete,
+		CreateContext: resourceDigitalOceanVolumeCreate,
+		ReadContext:   resourceDigitalOceanVolumeRead,
+		UpdateContext: resourceDigitalOceanVolumeUpdate,
+		DeleteContext: resourceDigitalOceanVolumeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -120,7 +120,7 @@ func resourceDigitalOceanVolume() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	opts := &godo.VolumeCreateRequest{
@@ -160,7 +160,7 @@ func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	return resourceDigitalOceanVolumeRead(d, meta)
 }
 
-func resourceDigitalOceanVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id := d.Id()
@@ -192,7 +192,7 @@ func resourceDigitalOceanVolumeUpdate(d *schema.ResourceData, meta interface{}) 
 	return resourceDigitalOceanVolumeRead(d, meta)
 }
 
-func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	volume, resp, err := client.Storage.GetVolume(context.Background(), d.Id())
@@ -230,7 +230,7 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceDigitalOceanVolumeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting volume: %s", d.Id())

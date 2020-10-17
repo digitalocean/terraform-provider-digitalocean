@@ -11,7 +11,7 @@ import (
 
 func dataSourceDigitalOceanVPC() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanVPCRead,
+		ReadContext: dataSourceDigitalOceanVPCRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:         schema.TypeString,
@@ -58,7 +58,7 @@ func dataSourceDigitalOceanVPC() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanVPCRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanVPCRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 	var foundVPC *godo.VPC
 

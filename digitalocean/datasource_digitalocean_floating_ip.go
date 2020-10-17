@@ -10,7 +10,7 @@ import (
 
 func dataSourceDigitalOceanFloatingIp() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanFloatingIpRead,
+		ReadContext: dataSourceDigitalOceanFloatingIpRead,
 		Schema: map[string]*schema.Schema{
 
 			"ip_address": {
@@ -39,7 +39,7 @@ func dataSourceDigitalOceanFloatingIp() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanFloatingIpRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanFloatingIpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	ipAddress := d.Get("ip_address").(string)

@@ -14,10 +14,10 @@ const expirySecondsDefault = 1576800000 // Max allowed by the API, roughly 50 ye
 
 func resourceDigitalOceanContainerRegistryDockerCredentials() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanContainerRegistryDockerCredentialsCreate,
-		Read:   resourceDigitalOceanContainerRegistryDockerCredentialsRead,
-		Update: resourceDigitalOceanContainerRegistryDockerCredentialsUpdate,
-		Delete: resourceDigitalOceanContainerRegistryDockerCredentialsDelete,
+		CreateContext: resourceDigitalOceanContainerRegistryDockerCredentialsCreate,
+		ReadContext:   resourceDigitalOceanContainerRegistryDockerCredentialsRead,
+		UpdateContext: resourceDigitalOceanContainerRegistryDockerCredentialsUpdate,
+		DeleteContext: resourceDigitalOceanContainerRegistryDockerCredentialsDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -52,11 +52,11 @@ func resourceDigitalOceanContainerRegistryDockerCredentials() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanContainerRegistryDockerCredentialsCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryDockerCredentialsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	return resourceDigitalOceanContainerRegistryDockerCredentialsRead(d, meta)
 }
 
-func resourceDigitalOceanContainerRegistryDockerCredentialsRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryDockerCredentialsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	reg, response, err := client.Registry.Get(context.Background())
@@ -81,7 +81,7 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsRead(d *schema.Resour
 	return nil
 }
 
-func resourceDigitalOceanContainerRegistryDockerCredentialsUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryDockerCredentialsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	if d.HasChange("expiry_seconds") {
 		write := d.Get("write").(bool)
 		expirySeconds := d.Get("expiry_seconds").(int)
@@ -112,7 +112,7 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsUpdate(d *schema.Reso
 	return nil
 }
 
-func resourceDigitalOceanContainerRegistryDockerCredentialsDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryDockerCredentialsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	d.SetId("")
 	return nil
 }

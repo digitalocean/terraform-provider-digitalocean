@@ -11,7 +11,7 @@ import (
 
 func dataSourceDigitalOceanKubernetesVersions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanKubernetesVersionsRead,
+		ReadContext: dataSourceDigitalOceanKubernetesVersionsRead,
 		Schema: map[string]*schema.Schema{
 			"version_prefix": {
 				Type:     schema.TypeString,
@@ -30,7 +30,7 @@ func dataSourceDigitalOceanKubernetesVersions() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanKubernetesVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanKubernetesVersionsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	k8sOptions, _, err := client.Kubernetes.GetOptions(context.Background())

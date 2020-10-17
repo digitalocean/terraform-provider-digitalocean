@@ -10,7 +10,7 @@ import (
 
 func dataSourceDigitalOceanDomain() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanDomainRead,
+		ReadContext: dataSourceDigitalOceanDomainRead,
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -39,7 +39,7 @@ func dataSourceDigitalOceanDomain() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanDomainRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)

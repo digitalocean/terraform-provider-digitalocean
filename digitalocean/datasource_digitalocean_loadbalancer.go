@@ -11,7 +11,7 @@ import (
 
 func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanLoadbalancerRead,
+		ReadContext: dataSourceDigitalOceanLoadbalancerRead,
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -190,7 +190,7 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)
