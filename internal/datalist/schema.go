@@ -1,9 +1,11 @@
 package datalist
 
 import (
+	"context"
 	"fmt"
 	"log"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -52,7 +54,7 @@ func NewResource(config *ResourceConfig) *schema.Resource {
 	sortKeys := computeSortKeys(recordSchema)
 
 	return &schema.Resource{
-		Read: dataListResourceRead(config),
+		ReadContext: dataListResourceRead(config),
 		Schema: map[string]*schema.Schema{
 			"filter": filterSchema(filterKeys),
 			"sort":   sortSchema(sortKeys),
@@ -67,18 +69,18 @@ func NewResource(config *ResourceConfig) *schema.Resource {
 	}
 }
 
-func dataListResourceRead(config *ResourceConfig) schema.ReadFunc {
-	return func(d *schema.ResourceData, meta interface{}) error {
+func dataListResourceRead(config *ResourceConfig) schema.ReadContextFunc {
+	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 		records, err := config.GetRecords(meta)
 		if err != nil {
-			return fmt.Errorf("Unable to load records: %s", err)
+			return diag.Errorf("Unable to load records: %s", err)
 		}
 
 		flattenedRecords := make([]map[string]interface{}, len(records))
 		for i, record := range records {
 			flattenedRecord, err := config.FlattenRecord(record, meta)
 			if err != nil {
-				return err
+				return diag.FromErr(err)
 			}
 			flattenedRecords[i] = flattenedRecord
 		}
@@ -86,7 +88,7 @@ func dataListResourceRead(config *ResourceConfig) schema.ReadFunc {
 		if v, ok := d.GetOk("filter"); ok {
 			filters, err := expandFilters(config.RecordSchema, v.(*schema.Set).List())
 			if err != nil {
-				return err
+				return diag.FromErr(err)
 			}
 			flattenedRecords = applyFilters(config.RecordSchema, flattenedRecords, filters)
 		}
@@ -99,7 +101,7 @@ func dataListResourceRead(config *ResourceConfig) schema.ReadFunc {
 		d.SetId(resource.UniqueId())
 
 		if err := d.Set(config.ResultAttributeName, flattenedRecords); err != nil {
-			return fmt.Errorf("unable to set `%s` attribute: %s", config.ResultAttributeName, err)
+			return diag.Errorf("unable to set `%s` attribute: %s", config.ResultAttributeName, err)
 		}
 
 		return nil
