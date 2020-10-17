@@ -53,6 +53,7 @@ data "digitalocean_records" "result" {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.digitalocean_records.result", "records.#", "1"),
 					resource.TestCheckResourceAttr("data.digitalocean_records.result", "records.0.domain", name1),
+					resource.TestCheckResourceAttrPair("data.digitalocean_records.result", "records.0.id", "digitalocean_record.www", "id"),
 					resource.TestCheckResourceAttrPair("data.digitalocean_records.result", "records.0.name", "digitalocean_record.www", "name"),
 					resource.TestCheckResourceAttrPair("data.digitalocean_records.result", "records.0.type", "digitalocean_record.www", "type"),
 					resource.TestCheckResourceAttrPair("data.digitalocean_records.result", "records.0.value", "digitalocean_record.www", "value"),

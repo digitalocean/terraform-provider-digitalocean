@@ -9,6 +9,10 @@ import (
 
 func recordsSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"id": {
+			Type:        schema.TypeInt,
+			Description: "ID of the record",
+		},
 		"domain": {
 			Type:        schema.TypeString,
 			Description: "domain of the name record",
@@ -97,6 +101,7 @@ func flattenDigitalOceanRecord(rawRecord interface{}, meta interface{}, d *schem
 	}
 
 	flattenedRecord := map[string]interface{}{
+		"id":       record.ID,
 		"domain":   domain,
 		"name":     record.Name,
 		"type":     record.Type,
