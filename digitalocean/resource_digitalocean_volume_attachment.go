@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -35,7 +36,7 @@ func resourceDigitalOceanVolumeAttachment() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanVolumeAttachmentCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeAttachmentCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	dropletId := d.Get("droplet_id").(int)
@@ -43,7 +44,7 @@ func resourceDigitalOceanVolumeAttachmentCreate(ctx context.Context, d *schema.R
 
 	volume, _, err := client.Storage.GetVolume(context.Background(), volumeId)
 	if err != nil {
-		return fmt.Errorf("Error retrieving volume: %s", err)
+		return diag.Errorf("Error retrieving volume: %s", err)
 	}
 
 	if volume.DropletIDs == nil || len(volume.DropletIDs) == 0 || volume.DropletIDs[0] != dropletId {
@@ -73,7 +74,7 @@ func resourceDigitalOceanVolumeAttachmentCreate(ctx context.Context, d *schema.R
 		})
 
 		if err != nil {
-			return fmt.Errorf("Error attaching volume to droplet after retry timeout: %s", err)
+			return diag.Errorf("Error attaching volume to droplet after retry timeout: %s", err)
 		}
 	}
 
@@ -82,7 +83,7 @@ func resourceDigitalOceanVolumeAttachmentCreate(ctx context.Context, d *schema.R
 	return nil
 }
 
-func resourceDigitalOceanVolumeAttachmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeAttachmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	dropletId := d.Get("droplet_id").(int)
@@ -97,7 +98,7 @@ func resourceDigitalOceanVolumeAttachmentRead(ctx context.Context, d *schema.Res
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving volume: %s", err)
+		return diag.Errorf("Error retrieving volume: %s", err)
 	}
 
 	if volume.DropletIDs == nil || len(volume.DropletIDs) == 0 || volume.DropletIDs[0] != dropletId {
@@ -108,7 +109,7 @@ func resourceDigitalOceanVolumeAttachmentRead(ctx context.Context, d *schema.Res
 	return nil
 }
 
-func resourceDigitalOceanVolumeAttachmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeAttachmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	dropletId := d.Get("droplet_id").(int)
@@ -139,7 +140,7 @@ func resourceDigitalOceanVolumeAttachmentDelete(ctx context.Context, d *schema.R
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error detaching volume from droplet after retry timeout: %s", err)
+		return diag.Errorf("Error detaching volume from droplet after retry timeout: %s", err)
 	}
 
 	return nil

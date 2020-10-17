@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -201,7 +202,7 @@ func validateExclusiveAttributes() schema.CustomizeDiffFunc {
 	})
 }
 
-func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	opts := &godo.DatabaseCreateRequest{
@@ -221,12 +222,12 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 	log.Printf("[DEBUG] DatabaseCluster create configuration: %#v", opts)
 	database, _, err := client.Databases.Create(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error creating DatabaseCluster: %s", err)
+		return diag.Errorf("Error creating DatabaseCluster: %s", err)
 	}
 
 	database, err = waitForDatabaseCluster(client, database.ID, "online")
 	if err != nil {
-		return fmt.Errorf("Error creating DatabaseCluster: %s", err)
+		return diag.Errorf("Error creating DatabaseCluster: %s", err)
 	}
 
 	d.SetId(database.ID)
@@ -244,28 +245,28 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 				return nil
 			}
 
-			return fmt.Errorf("Error adding maintenance window for DatabaseCluster: %s", err)
+			return diag.Errorf("Error adding maintenance window for DatabaseCluster: %s", err)
 		}
 	}
 
 	if policy, ok := d.GetOk("eviction_policy"); ok {
 		_, err := client.Databases.SetEvictionPolicy(context.Background(), d.Id(), policy.(string))
 		if err != nil {
-			return fmt.Errorf("Error adding eviction policy for DatabaseCluster: %s", err)
+			return diag.Errorf("Error adding eviction policy for DatabaseCluster: %s", err)
 		}
 	}
 
 	if mode, ok := d.GetOk("sql_mode"); ok {
 		_, err := client.Databases.SetSQLMode(context.Background(), d.Id(), mode.(string))
 		if err != nil {
-			return fmt.Errorf("Error adding SQL mode for DatabaseCluster: %s", err)
+			return diag.Errorf("Error adding SQL mode for DatabaseCluster: %s", err)
 		}
 	}
 
-	return resourceDigitalOceanDatabaseClusterRead(d, meta)
+	return resourceDigitalOceanDatabaseClusterRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("size") || d.HasChange("node_count") {
@@ -283,12 +284,12 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 				return nil
 			}
 
-			return fmt.Errorf("Error resizing DatabaseCluster: %s", err)
+			return diag.Errorf("Error resizing DatabaseCluster: %s", err)
 		}
 
 		_, err = waitForDatabaseCluster(client, d.Id(), "online")
 		if err != nil {
-			return fmt.Errorf("Error resizing DatabaseCluster: %s", err)
+			return diag.Errorf("Error resizing DatabaseCluster: %s", err)
 		}
 	}
 
@@ -306,12 +307,12 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 				return nil
 			}
 
-			return fmt.Errorf("Error migrating DatabaseCluster: %s", err)
+			return diag.Errorf("Error migrating DatabaseCluster: %s", err)
 		}
 
 		_, err = waitForDatabaseCluster(client, d.Id(), "online")
 		if err != nil {
-			return fmt.Errorf("Error migrating DatabaseCluster: %s", err)
+			return diag.Errorf("Error migrating DatabaseCluster: %s", err)
 		}
 	}
 
@@ -327,7 +328,7 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 				return nil
 			}
 
-			return fmt.Errorf("Error updating maintenance window for DatabaseCluster: %s", err)
+			return diag.Errorf("Error updating maintenance window for DatabaseCluster: %s", err)
 		}
 	}
 
@@ -335,13 +336,13 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 		if policy, ok := d.GetOk("eviction_policy"); ok {
 			_, err := client.Databases.SetEvictionPolicy(context.Background(), d.Id(), policy.(string))
 			if err != nil {
-				return fmt.Errorf("Error updating eviction policy for DatabaseCluster: %s", err)
+				return diag.Errorf("Error updating eviction policy for DatabaseCluster: %s", err)
 			}
 		} else {
 			// If the eviction policy is completely removed from the config, set to noeviction
 			_, err := client.Databases.SetEvictionPolicy(context.Background(), d.Id(), godo.EvictionPolicyNoEviction)
 			if err != nil {
-				return fmt.Errorf("Error updating eviction policy for DatabaseCluster: %s", err)
+				return diag.Errorf("Error updating eviction policy for DatabaseCluster: %s", err)
 			}
 		}
 	}
@@ -349,21 +350,21 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 	if d.HasChange("sql_mode") {
 		_, err := client.Databases.SetSQLMode(context.Background(), d.Id(), d.Get("sql_mode").(string))
 		if err != nil {
-			return fmt.Errorf("Error updating SQL mode for DatabaseCluster: %s", err)
+			return diag.Errorf("Error updating SQL mode for DatabaseCluster: %s", err)
 		}
 	}
 
 	if d.HasChange("tags") {
 		err := setTags(client, d, godo.DatabaseResourceType)
 		if err != nil {
-			return fmt.Errorf("Error updating tags: %s", err)
+			return diag.Errorf("Error updating tags: %s", err)
 		}
 	}
 
-	return resourceDigitalOceanDatabaseClusterRead(d, meta)
+	return resourceDigitalOceanDatabaseClusterRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	database, resp, err := client.Databases.Get(context.Background(), d.Id())
@@ -375,7 +376,7 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving DatabaseCluster: %s", err)
+		return diag.Errorf("Error retrieving DatabaseCluster: %s", err)
 	}
 
 	d.Set("name", database.Name)
@@ -388,14 +389,14 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 
 	if _, ok := d.GetOk("maintenance_window"); ok {
 		if err := d.Set("maintenance_window", flattenMaintWindowOpts(*database.MaintenanceWindow)); err != nil {
-			return fmt.Errorf("[DEBUG] Error setting maintenance_window - error: %#v", err)
+			return diag.Errorf("[DEBUG] Error setting maintenance_window - error: %#v", err)
 		}
 	}
 
 	if _, ok := d.GetOk("eviction_policy"); ok {
 		policy, _, err := client.Databases.GetEvictionPolicy(context.Background(), d.Id())
 		if err != nil {
-			return fmt.Errorf("Error retrieving eviction policy for DatabaseCluster: %s", err)
+			return diag.Errorf("Error retrieving eviction policy for DatabaseCluster: %s", err)
 		}
 
 		d.Set("eviction_policy", policy)
@@ -404,7 +405,7 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	if _, ok := d.GetOk("sql_mode"); ok {
 		mode, _, err := client.Databases.GetSQLMode(context.Background(), d.Id())
 		if err != nil {
-			return fmt.Errorf("Error retrieving SQL mode for DatabaseCluster: %s", err)
+			return diag.Errorf("Error retrieving SQL mode for DatabaseCluster: %s", err)
 		}
 
 		d.Set("sql_mode", mode)
@@ -425,13 +426,13 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func resourceDigitalOceanDatabaseClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting DatabaseCluster: %s", d.Id())
 	_, err := client.Databases.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting DatabaseCluster: %s", err)
+		return diag.Errorf("Error deleting DatabaseCluster: %s", err)
 	}
 
 	d.SetId("")

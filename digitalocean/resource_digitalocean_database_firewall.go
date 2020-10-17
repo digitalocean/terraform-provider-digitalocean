@@ -2,11 +2,11 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -68,7 +68,7 @@ func resourceDigitalOceanDatabaseFirewall() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDatabaseFirewallCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseFirewallCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -76,27 +76,32 @@ func resourceDigitalOceanDatabaseFirewallCreate(ctx context.Context, d *schema.R
 
 	_, err := client.Databases.UpdateFirewallRules(context.TODO(), clusterID, &rules)
 	if err != nil {
-		return fmt.Errorf("Error creating DatabaseFirewall: %s", err)
+		return diag.Errorf("Error creating DatabaseFirewall: %s", err)
 	}
 
 	d.SetId(resource.PrefixedUniqueId(clusterID + "-"))
 
-	return resourceDigitalOceanDatabaseFirewallRead(d, meta)
+	return resourceDigitalOceanDatabaseFirewallRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDatabaseFirewallRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseFirewallRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 
 	rules, _, err := client.Databases.GetFirewallRules(context.TODO(), clusterID)
 	if err != nil {
-		return fmt.Errorf("Error retrieving DatabaseFirewall: %s", err)
+		return diag.Errorf("Error retrieving DatabaseFirewall: %s", err)
 	}
 
-	return d.Set("rule", flattenDatabaseFirewallRules(rules))
+	err = d.Set("rule", flattenDatabaseFirewallRules(rules))
+	if err != nil {
+		return diag.FromErr(err)
+	} else {
+		return nil
+	}
 }
 
-func resourceDigitalOceanDatabaseFirewallUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseFirewallUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -104,13 +109,13 @@ func resourceDigitalOceanDatabaseFirewallUpdate(ctx context.Context, d *schema.R
 
 	_, err := client.Databases.UpdateFirewallRules(context.TODO(), clusterID, &rules)
 	if err != nil {
-		return fmt.Errorf("Error updating DatabaseFirewall: %s", err)
+		return diag.Errorf("Error updating DatabaseFirewall: %s", err)
 	}
 
-	return resourceDigitalOceanDatabaseFirewallRead(d, meta)
+	return resourceDigitalOceanDatabaseFirewallRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDatabaseFirewallDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseFirewallDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -121,7 +126,7 @@ func resourceDigitalOceanDatabaseFirewallDelete(ctx context.Context, d *schema.R
 
 	_, err := client.Databases.UpdateFirewallRules(context.TODO(), clusterID, &req)
 	if err != nil {
-		return fmt.Errorf("Error deleting DatabaseFirewall: %s", err)
+		return diag.Errorf("Error deleting DatabaseFirewall: %s", err)
 	}
 
 	d.SetId("")

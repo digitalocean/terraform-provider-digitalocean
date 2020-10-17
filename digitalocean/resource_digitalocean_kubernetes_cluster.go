@@ -4,13 +4,13 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -188,7 +188,7 @@ func kubernetesConfigSchema() *schema.Schema {
 	}
 }
 
-func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	pools := expandNodePools(d.Get("node_pool").([]interface{}))
@@ -226,22 +226,22 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernetes cluster: %s", err)
+		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
 	}
 
 	// wait for completion
 	cluster, err = waitForKubernetesClusterCreate(client, cluster.ID)
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernetes cluster: %s", err)
+		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
 	}
 
 	// set the cluster id
 	d.SetId(cluster.ID)
 
-	return resourceDigitalOceanKubernetesClusterRead(d, meta)
+	return resourceDigitalOceanKubernetesClusterRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanKubernetesClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	cluster, resp, err := client.Kubernetes.Get(context.Background(), d.Id())
@@ -251,7 +251,7 @@ func resourceDigitalOceanKubernetesClusterRead(ctx context.Context, d *schema.Re
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Kubernetes cluster: %s", err)
+		return diag.Errorf("Error retrieving Kubernetes cluster: %s", err)
 	}
 
 	return digitaloceanKubernetesClusterRead(client, cluster, d)
@@ -326,7 +326,7 @@ func digitaloceanKubernetesClusterRead(
 	return nil
 }
 
-func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Figure out the changes and then call the appropriate API methods
@@ -346,13 +346,13 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 				return nil
 			}
 
-			return fmt.Errorf("Unable to update cluster: %s", err)
+			return diag.Errorf("Unable to update cluster: %s", err)
 		}
 	}
 
 	// Update the node pool if necessary
 	if !d.HasChange("node_pool") {
-		return resourceDigitalOceanKubernetesClusterRead(d, meta)
+		return resourceDigitalOceanKubernetesClusterRead(ctx, d, meta)
 	}
 
 	old, new := d.GetChange("node_pool")
@@ -367,7 +367,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	// update the existing default pool
 	_, err := digitaloceanKubernetesNodePoolUpdate(client, newPool, d.Id(), oldPool["id"].(string), digitaloceanKubernetesDefaultNodePoolTag)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	if d.HasChange("version") {
@@ -377,14 +377,14 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 
 		_, err := client.Kubernetes.Upgrade(context.Background(), d.Id(), opts)
 		if err != nil {
-			return fmt.Errorf("Unable to upgrade cluster version: %s", err)
+			return diag.Errorf("Unable to upgrade cluster version: %s", err)
 		}
 	}
 
-	return resourceDigitalOceanKubernetesClusterRead(d, meta)
+	return resourceDigitalOceanKubernetesClusterRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanKubernetesClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	resp, err := client.Kubernetes.Delete(context.Background(), d.Id())
@@ -394,7 +394,7 @@ func resourceDigitalOceanKubernetesClusterDelete(ctx context.Context, d *schema.
 			return nil
 		}
 
-		return fmt.Errorf("Unable to delete cluster: %s", err)
+		return diag.Errorf("Unable to delete cluster: %s", err)
 	}
 
 	d.SetId("")

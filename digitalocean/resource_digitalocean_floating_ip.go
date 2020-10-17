@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -53,7 +54,7 @@ func resourceDigitalOceanFloatingIp() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanFloatingIpCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFloatingIpCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Create a FloatingIP In a Region")
@@ -64,7 +65,7 @@ func resourceDigitalOceanFloatingIpCreate(ctx context.Context, d *schema.Resourc
 	log.Printf("[DEBUG] FloatingIP Create: %#v", regionOpts)
 	floatingIp, _, err := client.FloatingIPs.Create(context.Background(), regionOpts)
 	if err != nil {
-		return fmt.Errorf("Error creating FloatingIP: %s", err)
+		return diag.Errorf("Error creating FloatingIP: %s", err)
 	}
 
 	d.SetId(floatingIp.IP)
@@ -74,21 +75,21 @@ func resourceDigitalOceanFloatingIpCreate(ctx context.Context, d *schema.Resourc
 		log.Printf("[INFO] Assigning the Floating IP to the Droplet %d", v.(int))
 		action, _, err := client.FloatingIPActions.Assign(context.Background(), d.Id(), v.(int))
 		if err != nil {
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error Assigning FloatingIP (%s) to the droplet: %s", d.Id(), err)
 		}
 
 		_, unassignedErr := waitForFloatingIPReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
 		if unassignedErr != nil {
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error waiting for FloatingIP (%s) to be Assigned: %s", d.Id(), unassignedErr)
 		}
 	}
 
-	return resourceDigitalOceanFloatingIpRead(d, meta)
+	return resourceDigitalOceanFloatingIpRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanFloatingIpUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFloatingIpUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("droplet_id") {
@@ -96,42 +97,42 @@ func resourceDigitalOceanFloatingIpUpdate(ctx context.Context, d *schema.Resourc
 			log.Printf("[INFO] Assigning the Floating IP %s to the Droplet %d", d.Id(), v.(int))
 			action, _, err := client.FloatingIPActions.Assign(context.Background(), d.Id(), v.(int))
 			if err != nil {
-				return fmt.Errorf(
+				return diag.Errorf(
 					"Error Assigning FloatingIP (%s) to the droplet: %s", d.Id(), err)
 			}
 
 			_, unassignedErr := waitForFloatingIPReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
 			if unassignedErr != nil {
-				return fmt.Errorf(
+				return diag.Errorf(
 					"Error waiting for FloatingIP (%s) to be Assigned: %s", d.Id(), unassignedErr)
 			}
 		} else {
 			log.Printf("[INFO] Unassigning the Floating IP %s", d.Id())
 			action, _, err := client.FloatingIPActions.Unassign(context.Background(), d.Id())
 			if err != nil {
-				return fmt.Errorf(
+				return diag.Errorf(
 					"Error unassigning FloatingIP (%s): %s", d.Id(), err)
 			}
 
 			_, unassignedErr := waitForFloatingIPReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
 			if unassignedErr != nil {
-				return fmt.Errorf(
+				return diag.Errorf(
 					"Error waiting for FloatingIP (%s) to be Unassigned: %s", d.Id(), unassignedErr)
 			}
 		}
 	}
 
-	return resourceDigitalOceanFloatingIpRead(d, meta)
+	return resourceDigitalOceanFloatingIpRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanFloatingIpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFloatingIpRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Reading the details of the FloatingIP %s", d.Id())
 	floatingIp, resp, err := client.FloatingIPs.Get(context.Background(), d.Id())
 	if resp.StatusCode != 404 {
 		if err != nil {
-			return fmt.Errorf("Error retrieving FloatingIP: %s", err)
+			return diag.Errorf("Error retrieving FloatingIP: %s", err)
 		}
 
 		if _, ok := d.GetOk("droplet_id"); ok && floatingIp.Droplet != nil {
@@ -172,7 +173,7 @@ func resourceDigitalOceanFloatingIpImport(rs *schema.ResourceData, v interface{}
 	return []*schema.ResourceData{rs}, nil
 }
 
-func resourceDigitalOceanFloatingIpDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFloatingIpDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if _, ok := d.GetOk("droplet_id"); ok {
@@ -180,13 +181,13 @@ func resourceDigitalOceanFloatingIpDelete(ctx context.Context, d *schema.Resourc
 		action, resp, err := client.FloatingIPActions.Unassign(context.Background(), d.Id())
 		if resp.StatusCode != 422 {
 			if err != nil {
-				return fmt.Errorf(
+				return diag.Errorf(
 					"Error unassigning FloatingIP (%s) from the droplet: %s", d.Id(), err)
 			}
 
 			_, unassignedErr := waitForFloatingIPReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
 			if unassignedErr != nil {
-				return fmt.Errorf(
+				return diag.Errorf(
 					"Error waiting for FloatingIP (%s) to be unassigned: %s", d.Id(), unassignedErr)
 			}
 		} else {
@@ -197,7 +198,7 @@ func resourceDigitalOceanFloatingIpDelete(ctx context.Context, d *schema.Resourc
 	log.Printf("[INFO] Deleting FloatingIP: %s", d.Id())
 	_, err := client.FloatingIPs.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting FloatingIP: %s", err)
+		return diag.Errorf("Error deleting FloatingIP: %s", err)
 	}
 
 	d.SetId("")

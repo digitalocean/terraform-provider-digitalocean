@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -90,7 +91,7 @@ func resourceDigitalOceanProject() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanProjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectRequest := &godo.CreateProjectRequest{
@@ -110,14 +111,14 @@ func resourceDigitalOceanProjectCreate(ctx context.Context, d *schema.ResourceDa
 	project, _, err := client.Projects.Create(context.Background(), projectRequest)
 
 	if err != nil {
-		return fmt.Errorf("Error creating Project: %s", err)
+		return diag.Errorf("Error creating Project: %s", err)
 	}
 
 	if v, ok := d.GetOk("resources"); ok {
 
 		resources, err := assignResourcesToProject(client, project.ID, v.(*schema.Set))
 		if err != nil {
-			return fmt.Errorf("Error creating project: %s", err)
+			return diag.Errorf("Error creating project: %s", err)
 		}
 
 		d.Set("resources", resources)
@@ -126,10 +127,10 @@ func resourceDigitalOceanProjectCreate(ctx context.Context, d *schema.ResourceDa
 	d.SetId(project.ID)
 	log.Printf("[INFO] Project created, ID: %s", d.Id())
 
-	return resourceDigitalOceanProjectRead(d, meta)
+	return resourceDigitalOceanProjectRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanProjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	project, resp, err := client.Projects.Get(context.Background(), d.Id())
@@ -140,51 +141,51 @@ func resourceDigitalOceanProjectRead(ctx context.Context, d *schema.ResourceData
 			d.SetId("")
 		}
 
-		return fmt.Errorf("Error reading Project: %s", err)
+		return diag.Errorf("Error reading Project: %s", err)
 	}
 
 	d.SetId(project.ID)
 	if err = d.Set("name", project.Name); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("purpose", strings.TrimPrefix(project.Purpose, "Other: ")); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("description", project.Description); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("environment", project.Environment); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("is_default", project.IsDefault); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("owner_uuid", project.OwnerUUID); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("owner_id", project.OwnerID); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("created_at", project.CreatedAt); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("updated_at", project.UpdatedAt); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	urns, err := loadResourceURNs(client, project.ID)
 	if err != nil {
-		return fmt.Errorf("Error reading Project: %s", err)
+		return diag.Errorf("Error reading Project: %s", err)
 	}
 
 	if err = d.Set("resources", urns); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil
 }
 
-func resourceDigitalOceanProjectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	projectId := d.Id()
 
@@ -201,7 +202,7 @@ func resourceDigitalOceanProjectUpdate(ctx context.Context, d *schema.ResourceDa
 	_, _, err := client.Projects.Update(context.Background(), projectId, projectRequest)
 
 	if err != nil {
-		return fmt.Errorf("Error updating Project: %s", err)
+		return diag.Errorf("Error updating Project: %s", err)
 	}
 
 	// The API requires project resources to be reassigned to another project if the association needs to be deleted.
@@ -216,7 +217,7 @@ func resourceDigitalOceanProjectUpdate(ctx context.Context, d *schema.ResourceDa
 		if newURNs.(*schema.Set).Len() != 0 {
 			urns, err = assignResourcesToProject(client, projectId, newURNs.(*schema.Set))
 			if err != nil {
-				return fmt.Errorf("Error Updating project: %s", err)
+				return diag.Errorf("Error Updating project: %s", err)
 			}
 		}
 
@@ -226,10 +227,10 @@ func resourceDigitalOceanProjectUpdate(ctx context.Context, d *schema.ResourceDa
 	log.Printf("[INFO] Updated Project, ID: %s", projectId)
 	d.Partial(false)
 
-	return resourceDigitalOceanProjectRead(d, meta)
+	return resourceDigitalOceanProjectRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanProjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId := d.Id()
@@ -238,7 +239,7 @@ func resourceDigitalOceanProjectDelete(ctx context.Context, d *schema.ResourceDa
 
 		_, err := assignResourcesToDefaultProject(client, v.(*schema.Set))
 		if err != nil {
-			return fmt.Errorf("Error assigning resource to default project: %s", err)
+			return diag.Errorf("Error assigning resource to default project: %s", err)
 		}
 
 		d.Set("resources", nil)
@@ -247,7 +248,7 @@ func resourceDigitalOceanProjectDelete(ctx context.Context, d *schema.ResourceDa
 
 	_, err := client.Projects.Delete(context.Background(), projectId)
 	if err != nil {
-		return fmt.Errorf("Error deleteing project %s", err)
+		return diag.Errorf("Error deleteing project %s", err)
 	}
 
 	d.SetId("")

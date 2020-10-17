@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -52,20 +53,20 @@ func resourceDigitalOceanContainerRegistryDockerCredentials() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanContainerRegistryDockerCredentialsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
-	return resourceDigitalOceanContainerRegistryDockerCredentialsRead(d, meta)
+func resourceDigitalOceanContainerRegistryDockerCredentialsCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceDigitalOceanContainerRegistryDockerCredentialsRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanContainerRegistryDockerCredentialsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryDockerCredentialsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	reg, response, err := client.Registry.Get(context.Background())
 
 	if err != nil {
 		if response != nil && response.StatusCode == 404 {
-			return fmt.Errorf("registry not found: %s", err)
+			return diag.Errorf("registry not found: %s", err)
 		}
-		return fmt.Errorf("Error retrieving registry: %s", err)
+		return diag.Errorf("Error retrieving registry: %s", err)
 	}
 
 	write := d.Get("write").(bool)
@@ -75,13 +76,13 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsRead(ctx context.Cont
 
 	err = updateExpiredDockerCredentials(d, write, client)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil
 }
 
-func resourceDigitalOceanContainerRegistryDockerCredentialsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryDockerCredentialsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	if d.HasChange("expiry_seconds") {
 		write := d.Get("write").(bool)
 		expirySeconds := d.Get("expiry_seconds").(int)
@@ -91,7 +92,7 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsUpdate(ctx context.Co
 		d.Set("credential_expiration_time", expirationTime.Format(time.RFC3339))
 		dockerConfigJSON, err := generateDockerCredentials(write, expirySeconds, client)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		d.Set("write", write)
 		d.Set("docker_credentials", dockerConfigJSON)
@@ -102,7 +103,7 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsUpdate(ctx context.Co
 			client := meta.(*CombinedConfig).godoClient()
 			dockerConfigJSON, err := generateDockerCredentials(write, expirySeconds, client)
 			if err != nil {
-				return err
+				return diag.FromErr(err)
 			}
 			d.Set("write", write)
 			d.Set("docker_credentials", dockerConfigJSON)
@@ -112,7 +113,7 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsUpdate(ctx context.Co
 	return nil
 }
 
-func resourceDigitalOceanContainerRegistryDockerCredentialsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryDockerCredentialsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	d.SetId("")
 	return nil
 }

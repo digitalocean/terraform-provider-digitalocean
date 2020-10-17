@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -38,7 +39,7 @@ func resourceDigitalOceanContainerRegistry() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanContainerRegistryCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Build up our creation options
@@ -49,16 +50,16 @@ func resourceDigitalOceanContainerRegistryCreate(ctx context.Context, d *schema.
 	log.Printf("[DEBUG] Container Registry create configuration: %#v", opts)
 	reg, _, err := client.Registry.Create(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error creating container registry: %s", err)
+		return diag.Errorf("Error creating container registry: %s", err)
 	}
 
 	d.SetId(reg.Name)
 	log.Printf("[INFO] Container Registry: %s", reg.Name)
 
-	return resourceDigitalOceanContainerRegistryRead(d, meta)
+	return resourceDigitalOceanContainerRegistryRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	reg, resp, err := client.Registry.Get(context.Background())
@@ -70,7 +71,7 @@ func resourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.Re
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving container registry: %s", err)
+		return diag.Errorf("Error retrieving container registry: %s", err)
 	}
 
 	d.SetId(reg.Name)
@@ -81,13 +82,13 @@ func resourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.Re
 	return nil
 }
 
-func resourceDigitalOceanContainerRegistryDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanContainerRegistryDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting container registry: %s", d.Id())
 	_, err := client.Registry.Delete(context.Background())
 	if err != nil {
-		return fmt.Errorf("Error deleting container registry: %s", err)
+		return diag.Errorf("Error deleting container registry: %s", err)
 	}
 	d.SetId("")
 	return nil

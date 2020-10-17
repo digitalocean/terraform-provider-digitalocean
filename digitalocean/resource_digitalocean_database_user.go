@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -61,7 +62,7 @@ func resourceDigitalOceanDatabaseUser() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDatabaseUserCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseUserCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -78,16 +79,16 @@ func resourceDigitalOceanDatabaseUserCreate(ctx context.Context, d *schema.Resou
 	log.Printf("[DEBUG] Database User create configuration: %#v", opts)
 	user, _, err := client.Databases.CreateUser(context.Background(), clusterID, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating Database User: %s", err)
+		return diag.Errorf("Error creating Database User: %s", err)
 	}
 
 	d.SetId(makeDatabaseUserID(clusterID, user.Name))
 	log.Printf("[INFO] Database User Name: %s", user.Name)
 
-	return resourceDigitalOceanDatabaseUserRead(d, meta)
+	return resourceDigitalOceanDatabaseUserRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
@@ -102,7 +103,7 @@ func resourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.Resourc
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Database User: %s", err)
+		return diag.Errorf("Error retrieving Database User: %s", err)
 	}
 
 	d.Set("role", user.Role)
@@ -114,7 +115,7 @@ func resourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.Resourc
 	return nil
 }
 
-func resourceDigitalOceanDatabaseUserUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseUserUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("mysql_auth_plugin") {
@@ -132,14 +133,14 @@ func resourceDigitalOceanDatabaseUserUpdate(ctx context.Context, d *schema.Resou
 
 		_, _, err := client.Databases.ResetUserAuth(context.Background(), d.Get("cluster_id").(string), d.Get("name").(string), authReq)
 		if err != nil {
-			return fmt.Errorf("Error updating mysql_auth_plugin for DatabaseUser: %s", err)
+			return diag.Errorf("Error updating mysql_auth_plugin for DatabaseUser: %s", err)
 		}
 	}
 
-	return resourceDigitalOceanDatabaseUserRead(d, meta)
+	return resourceDigitalOceanDatabaseUserRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDatabaseUserDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseUserDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
@@ -147,7 +148,7 @@ func resourceDigitalOceanDatabaseUserDelete(ctx context.Context, d *schema.Resou
 	log.Printf("[INFO] Deleting Database User: %s", d.Id())
 	_, err := client.Databases.DeleteUser(context.Background(), clusterID, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Database User: %s", err)
+		return diag.Errorf("Error deleting Database User: %s", err)
 	}
 
 	d.SetId("")

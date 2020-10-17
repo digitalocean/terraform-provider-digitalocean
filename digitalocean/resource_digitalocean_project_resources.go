@@ -2,8 +2,8 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -33,7 +33,7 @@ func resourceDigitalOceanProjectResources() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanProjectResourcesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectResourcesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId := d.Get("project").(string)
@@ -46,7 +46,7 @@ func resourceDigitalOceanProjectResourcesUpdate(ctx context.Context, d *schema.R
 			return nil
 		}
 
-		return fmt.Errorf("Error while retrieving project %s: %v", projectId, err)
+		return diag.Errorf("Error while retrieving project %s: %v", projectId, err)
 	}
 
 	if d.HasChange("resources") {
@@ -55,7 +55,7 @@ func resourceDigitalOceanProjectResourcesUpdate(ctx context.Context, d *schema.R
 		if oldURNs.(*schema.Set).Len() > 0 {
 			_, err = assignResourcesToDefaultProject(client, oldURNs.(*schema.Set))
 			if err != nil {
-				return fmt.Errorf("Error assigning resources to default project: %s", err)
+				return diag.Errorf("Error assigning resources to default project: %s", err)
 			}
 		}
 
@@ -64,21 +64,21 @@ func resourceDigitalOceanProjectResourcesUpdate(ctx context.Context, d *schema.R
 		if newURNs.(*schema.Set).Len() > 0 {
 			urns, err = assignResourcesToProject(client, projectId, newURNs.(*schema.Set))
 			if err != nil {
-				return fmt.Errorf("Error assigning resources to project %s: %s", projectId, err)
+				return diag.Errorf("Error assigning resources to project %s: %s", projectId, err)
 			}
 		}
 
 		if err = d.Set("resources", urns); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
 	d.SetId(projectId)
 
-	return resourceDigitalOceanProjectResourcesRead(d, meta)
+	return resourceDigitalOceanProjectResourcesRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanProjectResourcesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectResourcesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId := d.Id()
@@ -91,16 +91,16 @@ func resourceDigitalOceanProjectResourcesRead(ctx context.Context, d *schema.Res
 			return nil
 		}
 
-		return fmt.Errorf("Error while retrieving project: %v", err)
+		return diag.Errorf("Error while retrieving project: %v", err)
 	}
 
 	if err = d.Set("project", projectId); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	apiURNs, err := loadResourceURNs(client, projectId)
 	if err != nil {
-		return fmt.Errorf("Error while retrieving project resources: %s", err)
+		return diag.Errorf("Error while retrieving project resources: %s", err)
 	}
 
 	var newURNs []string
@@ -117,13 +117,13 @@ func resourceDigitalOceanProjectResourcesRead(ctx context.Context, d *schema.Res
 	}
 
 	if err = d.Set("resources", newURNs); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil
 }
 
-func resourceDigitalOceanProjectResourcesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanProjectResourcesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	projectId := d.Get("project").(string)
@@ -137,12 +137,12 @@ func resourceDigitalOceanProjectResourcesDelete(ctx context.Context, d *schema.R
 			return nil
 		}
 
-		return fmt.Errorf("Error while retrieving project: %s", err)
+		return diag.Errorf("Error while retrieving project: %s", err)
 	}
 
 	if urns.Len() > 0 {
 		if _, err = assignResourcesToDefaultProject(client, urns); err != nil {
-			return fmt.Errorf("Error assigning resources to default project: %s", err)
+			return diag.Errorf("Error assigning resources to default project: %s", err)
 		}
 	}
 

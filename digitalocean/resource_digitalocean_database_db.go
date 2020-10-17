@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -37,7 +38,7 @@ func resourceDigitalOceanDatabaseDB() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDatabaseDBCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseDBCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 
@@ -48,16 +49,16 @@ func resourceDigitalOceanDatabaseDBCreate(ctx context.Context, d *schema.Resourc
 	log.Printf("[DEBUG] Database DB create configuration: %#v", opts)
 	db, _, err := client.Databases.CreateDB(context.Background(), clusterID, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating Database DB: %s", err)
+		return diag.Errorf("Error creating Database DB: %s", err)
 	}
 
 	d.SetId(makeDatabaseDBID(clusterID, db.Name))
 	log.Printf("[INFO] Database DB Name: %s", db.Name)
 
-	return resourceDigitalOceanDatabaseDBRead(d, meta)
+	return resourceDigitalOceanDatabaseDBRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDatabaseDBRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseDBRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
@@ -72,13 +73,13 @@ func resourceDigitalOceanDatabaseDBRead(ctx context.Context, d *schema.ResourceD
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Database DB: %s", err)
+		return diag.Errorf("Error retrieving Database DB: %s", err)
 	}
 
 	return nil
 }
 
-func resourceDigitalOceanDatabaseDBDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseDBDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
@@ -86,7 +87,7 @@ func resourceDigitalOceanDatabaseDBDelete(ctx context.Context, d *schema.Resourc
 	log.Printf("[INFO] Deleting Database DB: %s", d.Id())
 	_, err := client.Databases.DeleteDB(context.Background(), clusterID, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting Database DB: %s", err)
+		return diag.Errorf("Error deleting Database DB: %s", err)
 	}
 
 	d.SetId("")

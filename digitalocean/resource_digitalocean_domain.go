@@ -2,10 +2,10 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -40,7 +40,7 @@ func resourceDigitalOceanDomain() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDomainCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDomainCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Build up our creation options
@@ -56,16 +56,16 @@ func resourceDigitalOceanDomainCreate(ctx context.Context, d *schema.ResourceDat
 	log.Printf("[DEBUG] Domain create configuration: %#v", opts)
 	domain, _, err := client.Domains.Create(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error creating Domain: %s", err)
+		return diag.Errorf("Error creating Domain: %s", err)
 	}
 
 	d.SetId(domain.Name)
 	log.Printf("[INFO] Domain Name: %s", domain.Name)
 
-	return resourceDigitalOceanDomainRead(d, meta)
+	return resourceDigitalOceanDomainRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDomainRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	domain, resp, err := client.Domains.Get(context.Background(), d.Id())
@@ -77,7 +77,7 @@ func resourceDigitalOceanDomainRead(ctx context.Context, d *schema.ResourceData,
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving domain: %s", err)
+		return diag.Errorf("Error retrieving domain: %s", err)
 	}
 
 	d.Set("name", domain.Name)
@@ -86,13 +86,13 @@ func resourceDigitalOceanDomainRead(ctx context.Context, d *schema.ResourceData,
 	return nil
 }
 
-func resourceDigitalOceanDomainDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDomainDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting Domain: %s", d.Id())
 	_, err := client.Domains.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting Domain: %s", err)
+		return diag.Errorf("Error deleting Domain: %s", err)
 	}
 
 	d.SetId("")
