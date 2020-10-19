@@ -2,22 +2,22 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strconv"
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanSSHKey() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanSSHKeyCreate,
-		Read:   resourceDigitalOceanSSHKeyRead,
-		Update: resourceDigitalOceanSSHKeyUpdate,
-		Delete: resourceDigitalOceanSSHKeyDelete,
+		CreateContext: resourceDigitalOceanSSHKeyCreate,
+		ReadContext:   resourceDigitalOceanSSHKeyRead,
+		UpdateContext: resourceDigitalOceanSSHKeyUpdate,
+		DeleteContext: resourceDigitalOceanSSHKeyDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -49,7 +49,7 @@ func resourceDigitalOceanSSHKeyPublicKeyDiffSuppress(k, old, new string, d *sche
 	return strings.TrimSpace(old) == strings.TrimSpace(new)
 }
 
-func resourceDigitalOceanSSHKeyCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSSHKeyCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Build up our creation options
@@ -61,21 +61,21 @@ func resourceDigitalOceanSSHKeyCreate(d *schema.ResourceData, meta interface{}) 
 	log.Printf("[DEBUG] SSH Key create configuration: %#v", opts)
 	key, _, err := client.Keys.Create(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error creating SSH Key: %s", err)
+		return diag.Errorf("Error creating SSH Key: %s", err)
 	}
 
 	d.SetId(strconv.Itoa(key.ID))
 	log.Printf("[INFO] SSH Key: %d", key.ID)
 
-	return resourceDigitalOceanSSHKeyRead(d, meta)
+	return resourceDigitalOceanSSHKeyRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSSHKeyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return fmt.Errorf("invalid SSH key id: %v", err)
+		return diag.Errorf("invalid SSH key id: %v", err)
 	}
 
 	key, resp, err := client.Keys.GetByID(context.Background(), id)
@@ -87,7 +87,7 @@ func resourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving SSH key: %s", err)
+		return diag.Errorf("Error retrieving SSH key: %s", err)
 	}
 
 	d.Set("name", key.Name)
@@ -97,12 +97,12 @@ func resourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceDigitalOceanSSHKeyUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSSHKeyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return fmt.Errorf("invalid SSH key id: %v", err)
+		return diag.Errorf("invalid SSH key id: %v", err)
 	}
 
 	var newName string
@@ -116,24 +116,24 @@ func resourceDigitalOceanSSHKeyUpdate(d *schema.ResourceData, meta interface{}) 
 	}
 	_, _, err = client.Keys.UpdateByID(context.Background(), id, opts)
 	if err != nil {
-		return fmt.Errorf("Failed to update SSH key: %s", err)
+		return diag.Errorf("Failed to update SSH key: %s", err)
 	}
 
-	return resourceDigitalOceanSSHKeyRead(d, meta)
+	return resourceDigitalOceanSSHKeyRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanSSHKeyDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSSHKeyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return fmt.Errorf("invalid SSH key id: %v", err)
+		return diag.Errorf("invalid SSH key id: %v", err)
 	}
 
 	log.Printf("[INFO] Deleting SSH key: %d", id)
 	_, err = client.Keys.DeleteByID(context.Background(), id)
 	if err != nil {
-		return fmt.Errorf("Error deleting SSH key: %s", err)
+		return diag.Errorf("Error deleting SSH key: %s", err)
 	}
 
 	d.SetId("")

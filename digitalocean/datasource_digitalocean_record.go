@@ -6,13 +6,14 @@ import (
 	"strconv"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceDigitalOceanRecord() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanRecordRead,
+		ReadContext: dataSourceDigitalOceanRecordRead,
 		Schema: map[string]*schema.Schema{
 
 			"domain": {
@@ -72,7 +73,7 @@ func dataSourceDigitalOceanRecord() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanRecordRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	domain := d.Get("domain").(string)
 	name := d.Get("name").(string)
@@ -82,14 +83,14 @@ func dataSourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) 
 	records, resp, err := client.Domains.Records(context.Background(), domain, opts)
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
-			return fmt.Errorf("domain not found: %s", err)
+			return diag.Errorf("domain not found: %s", err)
 		}
-		return fmt.Errorf("Error retrieving domain: %s", err)
+		return diag.Errorf("Error retrieving domain: %s", err)
 	}
 
 	record, err := findRecordByName(records, name)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(strconv.Itoa(record.ID))

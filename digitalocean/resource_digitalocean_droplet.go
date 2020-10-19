@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -17,10 +18,10 @@ import (
 
 func resourceDigitalOceanDroplet() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDropletCreate,
-		Read:   resourceDigitalOceanDropletRead,
-		Update: resourceDigitalOceanDropletUpdate,
-		Delete: resourceDigitalOceanDropletDelete,
+		CreateContext: resourceDigitalOceanDropletCreate,
+		ReadContext:   resourceDigitalOceanDropletRead,
+		UpdateContext: resourceDigitalOceanDropletUpdate,
+		DeleteContext: resourceDigitalOceanDropletDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDropletImport,
 		},
@@ -194,7 +195,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	image := d.Get("image").(string)
@@ -260,7 +261,7 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 	if v, ok := d.GetOk("ssh_keys"); ok {
 		expandedSshKeys, err := expandSshKeys(v.(*schema.Set).List())
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		opts.SSHKeys = expandedSshKeys
 	}
@@ -270,7 +271,7 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 	droplet, _, err := client.Droplets.Create(context.Background(), opts)
 
 	if err != nil {
-		return fmt.Errorf("Error creating droplet: %s", err)
+		return diag.Errorf("Error creating droplet: %s", err)
 	}
 
 	// Assign the droplets id
@@ -280,18 +281,18 @@ func resourceDigitalOceanDropletCreate(d *schema.ResourceData, meta interface{})
 
 	_, err = waitForDropletAttribute(d, "active", []string{"new"}, "status", meta)
 	if err != nil {
-		return fmt.Errorf(
+		return diag.Errorf(
 			"Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
 	}
-	return resourceDigitalOceanDropletRead(d, meta)
+	return resourceDigitalOceanDropletRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return fmt.Errorf("invalid droplet id: %v", err)
+		return diag.Errorf("invalid droplet id: %v", err)
 	}
 
 	// Retrieve the droplet properties for updating the state
@@ -304,7 +305,7 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving droplet: %s", err)
+		return diag.Errorf("Error retrieving droplet: %s", err)
 	}
 
 	// Image can drift once the image is build if a remote drift is detected
@@ -337,11 +338,11 @@ func resourceDigitalOceanDropletRead(d *schema.ResourceData, meta interface{}) e
 	}
 
 	if err := d.Set("volume_ids", flattenDigitalOceanDropletVolumeIds(droplet.VolumeIDs)); err != nil {
-		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
+		return diag.Errorf("Error setting `volume_ids`: %+v", err)
 	}
 
 	if err := d.Set("tags", flattenTags(droplet.Tags)); err != nil {
-		return fmt.Errorf("Error setting `tags`: %+v", err)
+		return diag.Errorf("Error setting `tags`: %+v", err)
 	}
 
 	// Initialize the connection info
@@ -402,12 +403,12 @@ func findIPv4AddrByType(d *godo.Droplet, addrType string) string {
 	return ""
 }
 
-func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return fmt.Errorf("invalid droplet id: %v", err)
+		return diag.Errorf("invalid droplet id: %v", err)
 	}
 
 	if d.HasChange("size") {
@@ -416,14 +417,14 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 
 		_, _, err = client.DropletActions.PowerOff(context.Background(), id)
 		if err != nil && !strings.Contains(err.Error(), "Droplet is already powered off") {
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error powering off droplet (%s): %s", d.Id(), err)
 		}
 
 		// Wait for power off
 		_, err = waitForDropletAttribute(d, "off", []string{"active"}, "status", meta)
 		if err != nil {
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error waiting for droplet (%s) to become powered off: %s", d.Id(), err)
 		}
 
@@ -433,10 +434,10 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		if err != nil {
 			newErr := powerOnAndWait(d, meta)
 			if newErr != nil {
-				return fmt.Errorf(
+				return diag.Errorf(
 					"Error powering on droplet (%s) after failed resize: %s", d.Id(), err)
 			}
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error resizing droplet (%s): %s", d.Id(), err)
 		}
 
@@ -444,24 +445,24 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		if err = waitForAction(client, action); err != nil {
 			newErr := powerOnAndWait(d, meta)
 			if newErr != nil {
-				return fmt.Errorf(
+				return diag.Errorf(
 					"Error powering on droplet (%s) after waiting for resize to finish: %s", d.Id(), err)
 			}
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error waiting for resize droplet (%s) to finish: %s", d.Id(), err)
 		}
 
 		_, _, err = client.DropletActions.PowerOn(context.Background(), id)
 
 		if err != nil {
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error powering on droplet (%s) after resize: %s", d.Id(), err)
 		}
 
 		// Wait for power off
 		_, err = waitForDropletAttribute(d, "active", []string{"off"}, "status", meta)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
@@ -472,7 +473,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		_, _, err = client.DropletActions.Rename(context.Background(), id, newName.(string))
 
 		if err != nil {
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error renaming droplet (%s): %s", d.Id(), err)
 		}
 
@@ -481,7 +482,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 			d, newName.(string), []string{"", oldName.(string)}, "name", meta)
 
 		if err != nil {
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error waiting for rename droplet (%s) to finish: %s", d.Id(), err)
 		}
 	}
@@ -491,23 +492,23 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 			// Enable backups on droplet
 			action, _, err := client.DropletActions.EnableBackups(context.Background(), id)
 			if err != nil {
-				return fmt.Errorf(
+				return diag.Errorf(
 					"Error enabling backups on droplet (%s): %s", d.Id(), err)
 			}
 
 			if err := waitForAction(client, action); err != nil {
-				return fmt.Errorf("Error waiting for backups to be enabled for droplet (%s): %s", d.Id(), err)
+				return diag.Errorf("Error waiting for backups to be enabled for droplet (%s): %s", d.Id(), err)
 			}
 		} else {
 			// Disable backups on droplet
 			action, _, err := client.DropletActions.DisableBackups(context.Background(), id)
 			if err != nil {
-				return fmt.Errorf(
+				return diag.Errorf(
 					"Error disabling backups on droplet (%s): %s", d.Id(), err)
 			}
 
 			if err := waitForAction(client, action); err != nil {
-				return fmt.Errorf("Error waiting for backups to be disabled for droplet (%s): %s", d.Id(), err)
+				return diag.Errorf("Error waiting for backups to be disabled for droplet (%s): %s", d.Id(), err)
 			}
 		}
 	}
@@ -518,7 +519,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		_, _, err = client.DropletActions.EnablePrivateNetworking(context.Background(), id)
 
 		if err != nil {
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error enabling private networking for droplet (%s): %s", d.Id(), err)
 		}
 
@@ -527,7 +528,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 			d, "true", []string{"", "false"}, "private_networking", meta)
 
 		if err != nil {
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error waiting for private networking to be enabled on for droplet (%s): %s", d.Id(), err)
 		}
 	}
@@ -537,7 +538,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		_, _, err = client.DropletActions.EnableIPv6(context.Background(), id)
 
 		if err != nil {
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error turning on ipv6 for droplet (%s): %s", d.Id(), err)
 		}
 
@@ -546,7 +547,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 			d, "true", []string{"", "false"}, "ipv6", meta)
 
 		if err != nil {
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error waiting for ipv6 to be turned on for droplet (%s): %s", d.Id(), err)
 		}
 	}
@@ -554,7 +555,7 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 	if d.HasChange("tags") {
 		err = setTags(client, d, godo.DropletResourceType)
 		if err != nil {
-			return fmt.Errorf("Error updating tags: %s", err)
+			return diag.Errorf("Error updating tags: %s", err)
 		}
 	}
 
@@ -582,11 +583,11 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		for volumeID := range leftDiff(newIDSet, oldIDSet) {
 			action, _, err := client.StorageActions.Attach(context.Background(), volumeID, id)
 			if err != nil {
-				return fmt.Errorf("Error attaching volume %q to droplet (%s): %s", volumeID, d.Id(), err)
+				return diag.Errorf("Error attaching volume %q to droplet (%s): %s", volumeID, d.Id(), err)
 			}
 			// can't fire >1 action at a time, so waiting for each is OK
 			if err := waitForAction(client, action); err != nil {
-				return fmt.Errorf("Error waiting for volume %q to attach to droplet (%s): %s", volumeID, d.Id(), err)
+				return diag.Errorf("Error waiting for volume %q to attach to droplet (%s): %s", volumeID, d.Id(), err)
 			}
 		}
 		for volumeID := range leftDiff(oldIDSet, newIDSet) {
@@ -594,29 +595,29 @@ func resourceDigitalOceanDropletUpdate(d *schema.ResourceData, meta interface{})
 		}
 	}
 
-	return resourceDigitalOceanDropletRead(d, meta)
+	return resourceDigitalOceanDropletRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDropletDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return fmt.Errorf("invalid droplet id: %v", err)
+		return diag.Errorf("invalid droplet id: %v", err)
 	}
 
 	_, err = waitForDropletAttribute(
 		d, "false", []string{"", "true"}, "locked", meta)
 
 	if err != nil {
-		return fmt.Errorf(
+		return diag.Errorf(
 			"Error waiting for droplet to be unlocked for destroy (%s): %s", d.Id(), err)
 	}
 
 	log.Printf("[INFO] Trying to Detach Storage Volumes (if any) from droplet: %s", d.Id())
 	err = detachVolumesFromDroplet(d, meta)
 	if err != nil {
-		return fmt.Errorf(
+		return diag.Errorf(
 			"Error detaching the volumes from the droplet (%s): %s", d.Id(), err)
 	}
 
@@ -634,7 +635,7 @@ func resourceDigitalOceanDropletDelete(d *schema.ResourceData, meta interface{})
 	if err != nil && strings.Contains(err.Error(), "404") {
 		return nil
 	} else if err != nil {
-		return fmt.Errorf("Error deleting droplet: %s", err)
+		return diag.Errorf("Error deleting droplet: %s", err)
 	}
 
 	return nil
@@ -691,8 +692,9 @@ func newDropletStateRefreshFunc(
 			return nil, "", err
 		}
 
-		err = resourceDigitalOceanDropletRead(d, meta)
-		if err != nil {
+		// TODO: See if context can potentially be passed in to this function?
+		diags := resourceDigitalOceanDropletRead(context.Background(), d, meta)
+		if diags.HasError() {
 			return nil, "", err
 		}
 

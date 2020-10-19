@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -14,10 +15,10 @@ import (
 
 func resourceDigitalOceanVPC() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanVPCCreate,
-		Read:   resourceDigitalOceanVPCRead,
-		Update: resourceDigitalOceanVPCUpdate,
-		Delete: resourceDigitalOceanVPCDelete,
+		CreateContext: resourceDigitalOceanVPCCreate,
+		ReadContext:   resourceDigitalOceanVPCRead,
+		UpdateContext: resourceDigitalOceanVPCUpdate,
+		DeleteContext: resourceDigitalOceanVPCDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -75,7 +76,7 @@ func resourceDigitalOceanVPC() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanVPCCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVPCCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	vpcRequest := &godo.VPCCreateRequest{
@@ -94,16 +95,16 @@ func resourceDigitalOceanVPCCreate(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[DEBUG] VPC create request: %#v", vpcRequest)
 	vpc, _, err := client.VPCs.Create(context.Background(), vpcRequest)
 	if err != nil {
-		return fmt.Errorf("Error creating VPC: %s", err)
+		return diag.Errorf("Error creating VPC: %s", err)
 	}
 
 	d.SetId(vpc.ID)
 	log.Printf("[INFO] VPC created, ID: %s", d.Id())
 
-	return resourceDigitalOceanVPCRead(d, meta)
+	return resourceDigitalOceanVPCRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanVPCRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVPCRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	vpc, resp, err := client.VPCs.Get(context.Background(), d.Id())
@@ -114,7 +115,7 @@ func resourceDigitalOceanVPCRead(d *schema.ResourceData, meta interface{}) error
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading VPC: %s", err)
+		return diag.Errorf("Error reading VPC: %s", err)
 	}
 
 	d.SetId(vpc.ID)
@@ -126,10 +127,10 @@ func resourceDigitalOceanVPCRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("default", vpc.Default)
 	d.Set("created_at", vpc.CreatedAt.UTC().String())
 
-	return err
+	return nil
 }
 
-func resourceDigitalOceanVPCUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVPCUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("name") || d.HasChange("description") {
@@ -140,19 +141,19 @@ func resourceDigitalOceanVPCUpdate(d *schema.ResourceData, meta interface{}) err
 		_, _, err := client.VPCs.Update(context.Background(), d.Id(), vpcUpdateRequest)
 
 		if err != nil {
-			return fmt.Errorf("Error updating VPC : %s", err)
+			return diag.Errorf("Error updating VPC : %s", err)
 		}
 		log.Printf("[INFO] Updated VPC")
 	}
 
-	return resourceDigitalOceanVPCRead(d, meta)
+	return resourceDigitalOceanVPCRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanVPCDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVPCDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	vpcID := d.Id()
 
-	return resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	err := resource.Retry(d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
 		resp, err := client.VPCs.Delete(context.Background(), vpcID)
 		if err != nil {
 			// Retry if VPC still contains member resources to prevent race condition
@@ -169,4 +170,10 @@ func resourceDigitalOceanVPCDelete(d *schema.ResourceData, meta interface{}) err
 
 		return nil
 	})
+
+	if err != nil {
+		return diag.FromErr(err)
+	} else {
+		return nil
+	}
 }

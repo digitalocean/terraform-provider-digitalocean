@@ -1,10 +1,11 @@
 package digitalocean
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -14,7 +15,7 @@ const keyRequestPageSize = 1000
 
 func dataSourceDigitalOceanSpacesBucketObjects() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanSpacesBucketObjectsRead,
+		ReadContext: dataSourceDigitalOceanSpacesBucketObjectsRead,
 
 		Schema: map[string]*schema.Schema{
 			"bucket": {
@@ -67,11 +68,11 @@ func dataSourceDigitalOceanSpacesBucketObjects() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanSpacesBucketObjectsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanSpacesBucketObjectsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	conn := s3.New(client)
@@ -132,19 +133,19 @@ func dataSourceDigitalOceanSpacesBucketObjectsRead(d *schema.ResourceData, meta 
 	})
 
 	if err != nil {
-		return fmt.Errorf("error listing Spaces Bucket (%s) Objects: %s", bucket, err)
+		return diag.Errorf("error listing Spaces Bucket (%s) Objects: %s", bucket, err)
 	}
 
 	if err := d.Set("common_prefixes", commonPrefixes); err != nil {
-		return fmt.Errorf("error setting common_prefixes: %s", err)
+		return diag.Errorf("error setting common_prefixes: %s", err)
 	}
 
 	if err := d.Set("keys", keys); err != nil {
-		return fmt.Errorf("error setting keys: %s", err)
+		return diag.Errorf("error setting keys: %s", err)
 	}
 
 	if err := d.Set("owners", owners); err != nil {
-		return fmt.Errorf("error setting owners: %s", err)
+		return diag.Errorf("error setting owners: %s", err)
 	}
 
 	return nil

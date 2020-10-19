@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -19,10 +20,10 @@ const digitaloceanKubernetesDefaultNodePoolTag = "terraform:default-node-pool"
 func resourceDigitalOceanKubernetesNodePool() *schema.Resource {
 
 	return &schema.Resource{
-		Create: resourceDigitalOceanKubernetesNodePoolCreate,
-		Read:   resourceDigitalOceanKubernetesNodePoolRead,
-		Update: resourceDigitalOceanKubernetesNodePoolUpdate,
-		Delete: resourceDigitalOceanKubernetesNodePoolDelete,
+		CreateContext: resourceDigitalOceanKubernetesNodePoolCreate,
+		ReadContext:   resourceDigitalOceanKubernetesNodePoolRead,
+		UpdateContext: resourceDigitalOceanKubernetesNodePoolUpdate,
+		DeleteContext: resourceDigitalOceanKubernetesNodePoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanKubernetesNodePoolImportState,
 		},
@@ -175,7 +176,7 @@ func nodeSchema() *schema.Schema {
 	}
 }
 
-func resourceDigitalOceanKubernetesNodePoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesNodePoolCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	rawPool := map[string]interface{}{
@@ -191,15 +192,15 @@ func resourceDigitalOceanKubernetesNodePoolCreate(d *schema.ResourceData, meta i
 
 	pool, err := digitaloceanKubernetesNodePoolCreate(client, rawPool, d.Get("cluster_id").(string))
 	if err != nil {
-		return fmt.Errorf("Error creating Kubernetes node pool: %s", err)
+		return diag.Errorf("Error creating Kubernetes node pool: %s", err)
 	}
 
 	d.SetId(pool.ID)
 
-	return resourceDigitalOceanKubernetesNodePoolRead(d, meta)
+	return resourceDigitalOceanKubernetesNodePoolRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesNodePoolRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	pool, resp, err := client.Kubernetes.GetNodePool(context.Background(), d.Get("cluster_id").(string), d.Id())
@@ -209,7 +210,7 @@ func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta int
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving Kubernetes node pool: %s", err)
+		return diag.Errorf("Error retrieving Kubernetes node pool: %s", err)
 	}
 
 	d.Set("name", pool.Name)
@@ -232,7 +233,7 @@ func resourceDigitalOceanKubernetesNodePoolRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceDigitalOceanKubernetesNodePoolUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesNodePoolUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	rawPool := map[string]interface{}{
@@ -251,13 +252,13 @@ func resourceDigitalOceanKubernetesNodePoolUpdate(d *schema.ResourceData, meta i
 
 	_, err := digitaloceanKubernetesNodePoolUpdate(client, rawPool, d.Get("cluster_id").(string), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error updating node pool: %s", err)
+		return diag.Errorf("Error updating node pool: %s", err)
 	}
 
-	return resourceDigitalOceanKubernetesNodePoolRead(d, meta)
+	return resourceDigitalOceanKubernetesNodePoolRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanKubernetesNodePoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanKubernetesNodePoolDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	return digitaloceanKubernetesNodePoolDelete(client, d.Get("cluster_id").(string), d.Id())
@@ -403,16 +404,16 @@ func digitaloceanKubernetesNodePoolUpdate(client *godo.Client, pool map[string]i
 	return p, nil
 }
 
-func digitaloceanKubernetesNodePoolDelete(client *godo.Client, clusterID, poolID string) error {
+func digitaloceanKubernetesNodePoolDelete(client *godo.Client, clusterID, poolID string) diag.Diagnostics {
 	// delete the old pool
 	_, err := client.Kubernetes.DeleteNodePool(context.Background(), clusterID, poolID)
 	if err != nil {
-		return fmt.Errorf("Unable to delete node pool %s", err)
+		return diag.Errorf("Unable to delete node pool %s", err)
 	}
 
 	err = waitForKubernetesNodePoolDelete(client, clusterID, poolID)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	return nil

@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 	"time"
 
@@ -12,10 +13,10 @@ import (
 
 func resourceDigitalOceanApp() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanAppCreate,
-		Read:   resourceDigitalOceanAppRead,
-		Update: resourceDigitalOceanAppUpdate,
-		Delete: resourceDigitalOceanAppDelete,
+		CreateContext: resourceDigitalOceanAppCreate,
+		ReadContext:   resourceDigitalOceanAppRead,
+		UpdateContext: resourceDigitalOceanAppUpdate,
+		DeleteContext: resourceDigitalOceanAppDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -66,7 +67,7 @@ func resourceDigitalOceanApp() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanAppCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	appCreateRequest := &godo.AppCreateRequest{}
 	appCreateRequest.Spec = expandAppSpec(d.Get("spec").([]interface{}))
@@ -74,7 +75,7 @@ func resourceDigitalOceanAppCreate(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[DEBUG] App create request: %#v", appCreateRequest)
 	app, _, err := client.Apps.Create(context.Background(), appCreateRequest)
 	if err != nil {
-		return fmt.Errorf("Error creating App: %s", err)
+		return diag.Errorf("Error creating App: %s", err)
 	}
 
 	d.SetId(app.ID)
@@ -82,15 +83,15 @@ func resourceDigitalOceanAppCreate(d *schema.ResourceData, meta interface{}) err
 
 	err = waitForAppDeployment(client, app.ID)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	log.Printf("[INFO] App created, ID: %s", d.Id())
 
-	return resourceDigitalOceanAppRead(d, meta)
+	return resourceDigitalOceanAppRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanAppRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	app, resp, err := client.Apps.Get(context.Background(), d.Id())
@@ -100,7 +101,7 @@ func resourceDigitalOceanAppRead(d *schema.ResourceData, meta interface{}) error
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error reading App: %s", err)
+		return diag.Errorf("Error reading App: %s", err)
 	}
 
 	d.SetId(app.ID)
@@ -111,13 +112,13 @@ func resourceDigitalOceanAppRead(d *schema.ResourceData, meta interface{}) error
 	d.Set("created_at", app.CreatedAt.UTC().String())
 
 	if err := d.Set("spec", flattenAppSpec(app.Spec)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting app spec: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting app spec: %#v", err)
 	}
 
-	return err
+	return diag.FromErr(err)
 }
 
-func resourceDigitalOceanAppUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("spec") {
@@ -126,28 +127,28 @@ func resourceDigitalOceanAppUpdate(d *schema.ResourceData, meta interface{}) err
 
 		app, _, err := client.Apps.Update(context.Background(), d.Id(), appUpdateRequest)
 		if err != nil {
-			return fmt.Errorf("Error updating app (%s): %s", d.Id(), err)
+			return diag.Errorf("Error updating app (%s): %s", d.Id(), err)
 		}
 
 		log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
 		err = waitForAppDeployment(client, app.ID)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 
 		log.Printf("[INFO] Updated app (%s)", app.ID)
 	}
 
-	return resourceDigitalOceanAppRead(d, meta)
+	return resourceDigitalOceanAppRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanAppDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanAppDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting App: %s", d.Id())
 	_, err := client.Apps.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deletingApp: %s", err)
+		return diag.Errorf("Error deletingApp: %s", err)
 	}
 
 	d.SetId("")

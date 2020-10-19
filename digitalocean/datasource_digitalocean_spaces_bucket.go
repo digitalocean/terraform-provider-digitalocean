@@ -1,10 +1,12 @@
 package digitalocean
 
 import (
-	"fmt"
+	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -21,18 +23,18 @@ func dataSourceDigitalOceanSpacesBucket() *schema.Resource {
 	recordSchema["name"].Computed = false
 
 	return &schema.Resource{
-		Read:   dataSourceDigitalOceanSpacesBucketRead,
-		Schema: recordSchema,
+		ReadContext: dataSourceDigitalOceanSpacesBucketRead,
+		Schema:      recordSchema,
 	}
 }
 
-func dataSourceDigitalOceanSpacesBucketRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanSpacesBucketRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	region := d.Get("region").(string)
 	name := d.Get("name").(string)
 
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 	if err != nil {
-		return fmt.Errorf("Error reading bucket: %s", err)
+		return diag.Errorf("Error reading bucket: %s", err)
 	}
 
 	svc := s3.New(client)
@@ -45,11 +47,11 @@ func dataSourceDigitalOceanSpacesBucketRead(d *schema.ResourceData, meta interfa
 	if err != nil {
 		if awsError, ok := err.(awserr.RequestFailure); ok && awsError.StatusCode() == 404 {
 			d.SetId("")
-			return fmt.Errorf("Spaces Bucket (%s) not found", name)
+			return diag.Errorf("Spaces Bucket (%s) not found", name)
 		} else {
 			// some of the AWS SDK's errors can be empty strings, so let's add
 			// some additional context.
-			return fmt.Errorf("error reading Spaces bucket \"%s\": %s", d.Id(), err)
+			return diag.Errorf("error reading Spaces bucket \"%s\": %s", d.Id(), err)
 		}
 	}
 
@@ -60,11 +62,11 @@ func dataSourceDigitalOceanSpacesBucketRead(d *schema.ResourceData, meta interfa
 
 	flattenedBucket, err := flattenSpacesBucket(&metadata, meta)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	if err := setResourceDataFromMap(d, flattenedBucket); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(name)

@@ -2,7 +2,6 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"regexp"
 	"sort"
@@ -10,13 +9,14 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceDigitalOceanVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanVolumeSnapshotRead,
+		ReadContext: dataSourceDigitalOceanVolumeSnapshotRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -71,7 +71,7 @@ func dataSourceDigitalOceanVolumeSnapshot() *schema.Resource {
 }
 
 // dataSourceDoSnapshotRead performs the Snapshot lookup.
-func dataSourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanVolumeSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name, hasName := d.GetOk("name")
@@ -79,7 +79,7 @@ func dataSourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta inter
 	region, hasRegion := d.GetOk("region")
 
 	if !hasName && !hasNameRegex {
-		return fmt.Errorf("One of `name` or `name_regex` must be assigned")
+		return diag.Errorf("One of `name` or `name_regex` must be assigned")
 	}
 
 	opts := &godo.ListOptions{
@@ -93,7 +93,7 @@ func dataSourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta inter
 		snapshots, resp, err := client.Snapshots.ListVolume(context.Background(), opts)
 
 		if err != nil {
-			return fmt.Errorf("Error retrieving volume snapshots: %s", err)
+			return diag.Errorf("Error retrieving volume snapshots: %s", err)
 		}
 
 		for _, s := range snapshots {
@@ -106,7 +106,7 @@ func dataSourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta inter
 
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return fmt.Errorf("Error retrieving volume snapshots: %s", err)
+			return diag.Errorf("Error retrieving volume snapshots: %s", err)
 		}
 
 		opts.Page = page + 1
@@ -125,14 +125,14 @@ func dataSourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta inter
 	// Get the queried snapshot or fail if it can't be determined
 	var snapshot *godo.Snapshot
 	if len(snapshotList) == 0 {
-		return fmt.Errorf("no volume snapshot found with name %s", name)
+		return diag.Errorf("no volume snapshot found with name %s", name)
 	}
 	if len(snapshotList) > 1 {
 		recent := d.Get("most_recent").(bool)
 		if recent {
 			snapshot = findMostRecentSnapshot(snapshotList)
 		} else {
-			return fmt.Errorf("too many volume snapshots found with name %s (found %d, expected 1)", name, len(snapshotList))
+			return diag.Errorf("too many volume snapshots found with name %s (found %d, expected 1)", name, len(snapshotList))
 		}
 	} else {
 		snapshot = &snapshotList[0]

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -15,10 +16,10 @@ import (
 
 func resourceDigitalOceanLoadbalancer() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanLoadbalancerCreate,
-		Read:   resourceDigitalOceanLoadbalancerRead,
-		Update: resourceDigitalOceanLoadbalancerUpdate,
-		Delete: resourceDigitalOceanLoadbalancerDelete,
+		CreateContext: resourceDigitalOceanLoadbalancerCreate,
+		ReadContext:   resourceDigitalOceanLoadbalancerRead,
+		UpdateContext: resourceDigitalOceanLoadbalancerUpdate,
+		DeleteContext: resourceDigitalOceanLoadbalancerDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -402,20 +403,20 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 	return opts, nil
 }
 
-func resourceDigitalOceanLoadbalancerCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanLoadbalancerCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Create a Loadbalancer Request")
 
 	lbOpts, err := buildLoadBalancerRequest(client, d)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	log.Printf("[DEBUG] Loadbalancer Create: %#v", lbOpts)
 	loadbalancer, _, err := client.LoadBalancers.Create(context.Background(), lbOpts)
 	if err != nil {
-		return fmt.Errorf("Error creating Load Balancer: %s", err)
+		return diag.Errorf("Error creating Load Balancer: %s", err)
 	}
 
 	d.SetId(loadbalancer.ID)
@@ -429,13 +430,13 @@ func resourceDigitalOceanLoadbalancerCreate(d *schema.ResourceData, meta interfa
 		MinTimeout: 15 * time.Second,
 	}
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for Load Balancer (%s) to become active: %s", d.Get("name"), err)
+		return diag.Errorf("Error waiting for Load Balancer (%s) to become active: %s", d.Get("name"), err)
 	}
 
-	return resourceDigitalOceanLoadbalancerRead(d, meta)
+	return resourceDigitalOceanLoadbalancerRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Reading the details of the Loadbalancer %s", d.Id())
@@ -446,7 +447,7 @@ func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Loadbalancer: %s", err)
+		return diag.Errorf("Error retrieving Loadbalancer: %s", err)
 	}
 
 	d.Set("name", loadbalancer.Name)
@@ -462,54 +463,54 @@ func resourceDigitalOceanLoadbalancerRead(d *schema.ResourceData, meta interface
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)
 	}
 
 	if err := d.Set("sticky_sessions", flattenStickySessions(loadbalancer.StickySessions)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Load Balancer sticky_sessions - error: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting Load Balancer sticky_sessions - error: %#v", err)
 	}
 
 	if err := d.Set("healthcheck", flattenHealthChecks(loadbalancer.HealthCheck)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Load Balancer healthcheck - error: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting Load Balancer healthcheck - error: %#v", err)
 	}
 
 	forwardingRules, err := flattenForwardingRules(client, loadbalancer.ForwardingRules)
 	if err != nil {
-		return fmt.Errorf("[DEBUG] Error building Load Balancer forwarding rules - error: %#v", err)
+		return diag.Errorf("[DEBUG] Error building Load Balancer forwarding rules - error: %#v", err)
 	}
 
 	if err := d.Set("forwarding_rule", forwardingRules); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Load Balancer forwarding_rule - error: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting Load Balancer forwarding_rule - error: %#v", err)
 	}
 
 	return nil
 
 }
 
-func resourceDigitalOceanLoadbalancerUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanLoadbalancerUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	lbOpts, err := buildLoadBalancerRequest(client, d)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	log.Printf("[DEBUG] Load Balancer Update: %#v", lbOpts)
 	_, _, err = client.LoadBalancers.Update(context.Background(), d.Id(), lbOpts)
 	if err != nil {
-		return fmt.Errorf("Error updating Load Balancer: %s", err)
+		return diag.Errorf("Error updating Load Balancer: %s", err)
 	}
 
-	return resourceDigitalOceanLoadbalancerRead(d, meta)
+	return resourceDigitalOceanLoadbalancerRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanLoadbalancerDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanLoadbalancerDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting Load Balancer: %s", d.Id())
 	_, err := client.LoadBalancers.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting Load Balancer: %s", err)
+		return diag.Errorf("Error deleting Load Balancer: %s", err)
 	}
 
 	d.SetId("")

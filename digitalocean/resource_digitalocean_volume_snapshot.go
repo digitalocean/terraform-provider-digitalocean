@@ -2,20 +2,20 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanVolumeSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanVolumeSnapshotCreate,
-		Read:   resourceDigitalOceanVolumeSnapshotRead,
-		Update: resourceDigitalOceanVolumeSnapshotUpdate,
-		Delete: resourceDigitalOceanVolumeSnapshotDelete,
+		CreateContext: resourceDigitalOceanVolumeSnapshotCreate,
+		ReadContext:   resourceDigitalOceanVolumeSnapshotRead,
+		UpdateContext: resourceDigitalOceanVolumeSnapshotUpdate,
+		DeleteContext: resourceDigitalOceanVolumeSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -61,7 +61,7 @@ func resourceDigitalOceanVolumeSnapshot() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanVolumeSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeSnapshotCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	opts := &godo.SnapshotCreateRequest{
@@ -73,29 +73,29 @@ func resourceDigitalOceanVolumeSnapshotCreate(d *schema.ResourceData, meta inter
 	log.Printf("[DEBUG] Volume Snapshot create configuration: %#v", opts)
 	snapshot, _, err := client.Storage.CreateSnapshot(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error creating Volume Snapshot: %s", err)
+		return diag.Errorf("Error creating Volume Snapshot: %s", err)
 	}
 
 	d.SetId(snapshot.ID)
 	log.Printf("[INFO] Volume Snapshot name: %s", snapshot.Name)
 
-	return resourceDigitalOceanVolumeSnapshotRead(d, meta)
+	return resourceDigitalOceanVolumeSnapshotRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanVolumeSnapshotUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeSnapshotUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	if d.HasChange("tags") {
 		err := setTags(client, d, godo.VolumeSnapshotResourceType)
 		if err != nil {
-			return fmt.Errorf("Error updating tags: %s", err)
+			return diag.Errorf("Error updating tags: %s", err)
 		}
 	}
 
-	return resourceDigitalOceanVolumeSnapshotRead(d, meta)
+	return resourceDigitalOceanVolumeSnapshotRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	snapshot, resp, err := client.Snapshots.Get(context.Background(), d.Id())
@@ -107,7 +107,7 @@ func resourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta interfa
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving volume snapshot: %s", err)
+		return diag.Errorf("Error retrieving volume snapshot: %s", err)
 	}
 
 	d.Set("name", snapshot.Name)
@@ -121,13 +121,13 @@ func resourceDigitalOceanVolumeSnapshotRead(d *schema.ResourceData, meta interfa
 	return nil
 }
 
-func resourceDigitalOceanVolumeSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting snaphot: %s", d.Id())
 	_, err := client.Snapshots.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting snapshot: %s", err)
+		return diag.Errorf("Error deleting snapshot: %s", err)
 	}
 
 	d.SetId("")

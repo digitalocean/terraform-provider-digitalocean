@@ -2,16 +2,16 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceDigitalOceanKubernetesVersions() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanKubernetesVersionsRead,
+		ReadContext: dataSourceDigitalOceanKubernetesVersionsRead,
 		Schema: map[string]*schema.Schema{
 			"version_prefix": {
 				Type:     schema.TypeString,
@@ -30,12 +30,12 @@ func dataSourceDigitalOceanKubernetesVersions() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanKubernetesVersionsRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanKubernetesVersionsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	k8sOptions, _, err := client.Kubernetes.GetOptions(context.Background())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Kubernetes options: %s", err)
+		return diag.Errorf("Error retrieving Kubernetes options: %s", err)
 	}
 
 	d.SetId(resource.UniqueId())

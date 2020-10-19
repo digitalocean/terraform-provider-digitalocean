@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -18,10 +20,10 @@ import (
 
 func resourceDigitalOceanBucket() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanBucketCreate,
-		Read:   resourceDigitalOceanBucketRead,
-		Update: resourceDigitalOceanBucketUpdate,
-		Delete: resourceDigitalOceanBucketDelete,
+		CreateContext: resourceDigitalOceanBucketCreate,
+		ReadContext:   resourceDigitalOceanBucketRead,
+		UpdateContext: resourceDigitalOceanBucketUpdate,
+		DeleteContext: resourceDigitalOceanBucketDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanBucketImport,
 		},
@@ -193,12 +195,12 @@ func resourceDigitalOceanBucket() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanBucketCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 
 	if err != nil {
-		return fmt.Errorf("Error creating bucket: %s", err)
+		return diag.Errorf("Error creating bucket: %s", err)
 	}
 
 	svc := s3.New(client)
@@ -227,57 +229,57 @@ func resourceDigitalOceanBucketCreate(d *schema.ResourceData, meta interface{}) 
 	})
 
 	if err != nil {
-		return fmt.Errorf("Error creating Spaces bucket: %s", err)
+		return diag.Errorf("Error creating Spaces bucket: %s", err)
 	}
 	log.Println("Bucket created")
 
 	d.SetId(d.Get("name").(string))
-	return resourceDigitalOceanBucketUpdate(d, meta)
+	return resourceDigitalOceanBucketUpdate(ctx, d, meta)
 }
 
-func resourceDigitalOceanBucketUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanBucketUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 
 	if err != nil {
-		return fmt.Errorf("Error updating bucket: %s", err)
+		return diag.Errorf("Error updating bucket: %s", err)
 	}
 
 	svc := s3.New(client)
 
 	if d.HasChange("acl") {
 		if err := resourceDigitalOceanBucketACLUpdate(svc, d); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
 	if d.HasChange("cors_rule") {
 		if err := resourceDigitalOceanBucketCorsUpdate(svc, d); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
 	if d.HasChange("versioning") {
 		if err := resourceDigitalOceanSpacesBucketVersioningUpdate(svc, d); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
 	if d.HasChange("lifecycle_rule") {
 		if err := resourceDigitalOceanBucketLifecycleUpdate(svc, d); err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 	}
 
-	return resourceDigitalOceanBucketRead(d, meta)
+	return resourceDigitalOceanBucketRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanBucketRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 
 	if err != nil {
-		return fmt.Errorf("Error reading bucket: %s", err)
+		return diag.Errorf("Error reading bucket: %s", err)
 	}
 
 	svc := s3.New(client)
@@ -295,7 +297,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 		} else {
 			// some of the AWS SDK's errors can be empty strings, so let's add
 			// some additional context.
-			return fmt.Errorf("error reading Spaces bucket \"%s\": %s", d.Id(), err)
+			return diag.Errorf("error reading Spaces bucket \"%s\": %s", d.Id(), err)
 		}
 	}
 
@@ -315,7 +317,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 		)
 	})
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	location := locationResponse.(*s3.GetBucketLocationOutput)
 	if location.LocationConstraint != nil {
@@ -323,7 +325,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 	}
 	region = normalizeRegion(region)
 	if err := d.Set("region", region); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	// Read the versioning configuration
@@ -333,7 +335,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 		})
 	})
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	vcl := make([]map[string]interface{}, 0, 1)
 	if versioning, ok := versioningResponse.(*s3.GetBucketVersioningOutput); ok {
@@ -346,7 +348,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 		vcl = append(vcl, vc)
 	}
 	if err := d.Set("versioning", vcl); err != nil {
-		return fmt.Errorf("error setting versioning: %s", err)
+		return diag.Errorf("error setting versioning: %s", err)
 	}
 
 	// Read the lifecycle configuration
@@ -356,7 +358,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 		})
 	})
 	if err != nil && !isAWSErr(err, "NoSuchLifecycleConfiguration", "") {
-		return err
+		return diag.FromErr(err)
 	}
 
 	lifecycleRules := make([]map[string]interface{}, 0)
@@ -435,7 +437,7 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 		}
 	}
 	if err := d.Set("lifecycle_rule", lifecycleRules); err != nil {
-		return fmt.Errorf("error setting lifecycle_rule: %s", err)
+		return diag.Errorf("error setting lifecycle_rule: %s", err)
 	}
 
 	// Set the bucket's name.
@@ -448,12 +450,12 @@ func resourceDigitalOceanBucketRead(d *schema.ResourceData, meta interface{}) er
 	return nil
 }
 
-func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanBucketDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	region := d.Get("region").(string)
 	client, err := meta.(*CombinedConfig).spacesClient(region)
 
 	if err != nil {
-		return fmt.Errorf("Error deleting bucket: %s", err)
+		return diag.Errorf("Error deleting bucket: %s", err)
 	}
 
 	svc := s3.New(client)
@@ -477,7 +479,7 @@ func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) 
 				)
 
 				if err != nil {
-					return fmt.Errorf("Error Spaces Bucket list Object Versions err: %s", err)
+					return diag.Errorf("Error Spaces Bucket list Object Versions err: %s", err)
 				}
 
 				objectsToDelete := make([]*s3.ObjectIdentifier, 0)
@@ -511,14 +513,14 @@ func resourceDigitalOceanBucketDelete(d *schema.ResourceData, meta interface{}) 
 				_, err = svc.DeleteObjects(params)
 
 				if err != nil {
-					return fmt.Errorf("Error Spaces Bucket force_destroy error deleting: %s", err)
+					return diag.Errorf("Error Spaces Bucket force_destroy error deleting: %s", err)
 				}
 
 				// this line recurses until all objects are deleted or an error is returned
-				return resourceDigitalOceanBucketDelete(d, meta)
+				return resourceDigitalOceanBucketDelete(ctx, d, meta)
 			}
 		}
-		return fmt.Errorf("Error deleting Spaces Bucket: %s %q", err, d.Get("name").(string))
+		return diag.Errorf("Error deleting Spaces Bucket: %s %q", err, d.Get("name").(string))
 	}
 	log.Println("Bucket destroyed")
 

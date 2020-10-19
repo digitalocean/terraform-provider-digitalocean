@@ -6,13 +6,14 @@ import (
 	"net/http"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceDigitalOceanCertificate() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanCertificateRead,
+		ReadContext: dataSourceDigitalOceanCertificateRead,
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -63,7 +64,7 @@ func dataSourceDigitalOceanCertificate() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanCertificateRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// When the certificate type is lets_encrypt, the certificate
@@ -72,7 +73,7 @@ func dataSourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interfac
 	name := d.Get("name").(string)
 	cert, err := findCertificateByName(client, name)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(cert.Name)
@@ -84,7 +85,7 @@ func dataSourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interfac
 	d.Set("sha1_fingerprint", cert.SHA1Fingerprint)
 
 	if err := d.Set("domains", flattenDigitalOceanCertificateDomains(cert.DNSNames)); err != nil {
-		return fmt.Errorf("Error setting `domain`: %+v", err)
+		return diag.Errorf("Error setting `domain`: %+v", err)
 	}
 
 	return nil

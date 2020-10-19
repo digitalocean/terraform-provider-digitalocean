@@ -2,16 +2,16 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanKubernetesClusterRead,
+		ReadContext: dataSourceDigitalOceanKubernetesClusterRead,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -146,16 +146,16 @@ func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanKubernetesClusterRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanKubernetesClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	clusters, resp, err := client.Kubernetes.List(context.Background(), &godo.ListOptions{})
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
-			return fmt.Errorf("No clusters found")
+			return diag.Errorf("No clusters found")
 		}
 
-		return fmt.Errorf("Error listing Kuberentes clusters: %s", err)
+		return diag.Errorf("Error listing Kuberentes clusters: %s", err)
 	}
 
 	// select the correct cluster
@@ -167,5 +167,5 @@ func dataSourceDigitalOceanKubernetesClusterRead(d *schema.ResourceData, meta in
 		}
 	}
 
-	return fmt.Errorf("Unable to find cluster with name: %s", d.Get("name").(string))
+	return diag.Errorf("Unable to find cluster with name: %s", d.Get("name").(string))
 }

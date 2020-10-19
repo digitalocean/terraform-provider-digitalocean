@@ -8,15 +8,16 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDatabaseReplicaCreate,
-		Read:   resourceDigitalOceanDatabaseReplicaRead,
-		Delete: resourceDigitalOceanDatabaseReplicaDelete,
+		CreateContext: resourceDigitalOceanDatabaseReplicaCreate,
+		ReadContext:   resourceDigitalOceanDatabaseReplicaRead,
+		DeleteContext: resourceDigitalOceanDatabaseReplicaDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDatabaseReplicaImport,
 		},
@@ -113,7 +114,7 @@ func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDatabaseReplicaCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseReplicaCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterId := d.Get("cluster_id").(string)
 
@@ -131,21 +132,21 @@ func resourceDigitalOceanDatabaseReplicaCreate(d *schema.ResourceData, meta inte
 	log.Printf("[DEBUG] DatabaseReplica create configuration: %#v", opts)
 	replica, _, err := client.Databases.CreateReplica(context.Background(), clusterId, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating DatabaseReplica: %s", err)
+		return diag.Errorf("Error creating DatabaseReplica: %s", err)
 	}
 
 	replica, err = waitForDatabaseReplica(client, clusterId, "online", replica.Name)
 	if err != nil {
-		return fmt.Errorf("Error creating DatabaseReplica: %s", err)
+		return diag.Errorf("Error creating DatabaseReplica: %s", err)
 	}
 
 	d.SetId(makeReplicaId(clusterId, replica.Name))
 	log.Printf("[INFO] DatabaseReplica Name: %s", replica.Name)
 
-	return resourceDigitalOceanDatabaseReplicaRead(d, meta)
+	return resourceDigitalOceanDatabaseReplicaRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDatabaseReplicaRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseReplicaRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterId := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
@@ -158,7 +159,7 @@ func resourceDigitalOceanDatabaseReplicaRead(d *schema.ResourceData, meta interf
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving DatabaseReplica: %s", err)
+		return diag.Errorf("Error retrieving DatabaseReplica: %s", err)
 	}
 
 	d.Set("region", replica.Region)
@@ -189,7 +190,7 @@ func resourceDigitalOceanDatabaseReplicaImport(d *schema.ResourceData, meta inte
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceDigitalOceanDatabaseReplicaDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseReplicaDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterId := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
@@ -197,7 +198,7 @@ func resourceDigitalOceanDatabaseReplicaDelete(d *schema.ResourceData, meta inte
 	log.Printf("[INFO] Deleting DatabaseReplica: %s", d.Id())
 	_, err := client.Databases.DeleteReplica(context.Background(), clusterId, name)
 	if err != nil {
-		return fmt.Errorf("Error deleting DatabaseReplica: %s", err)
+		return diag.Errorf("Error deleting DatabaseReplica: %s", err)
 	}
 
 	d.SetId("")

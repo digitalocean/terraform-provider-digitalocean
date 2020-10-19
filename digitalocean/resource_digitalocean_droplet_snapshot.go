@@ -8,15 +8,16 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanDropletSnapshot() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDropletSnapshotCreate,
-		Read:   resourceDigitalOceanDropletSnapshotRead,
-		Delete: resourceDigitalOceanDropletSnapshotDelete,
+		CreateContext: resourceDigitalOceanDropletSnapshotCreate,
+		ReadContext:   resourceDigitalOceanDropletSnapshotRead,
+		DeleteContext: resourceDigitalOceanDropletSnapshotDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -55,47 +56,47 @@ func resourceDigitalOceanDropletSnapshot() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDropletSnapshotCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletSnapshotCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	resourceId, _ := strconv.Atoi(d.Get("droplet_id").(string))
 	action, _, err := client.DropletActions.Snapshot(context.Background(), resourceId, d.Get("name").(string))
 	if err != nil {
-		return fmt.Errorf("Error creating Droplet Snapshot: %s", err)
+		return diag.Errorf("Error creating Droplet Snapshot: %s", err)
 	}
 
 	if err = waitForAction(client, action); err != nil {
-		return fmt.Errorf(
+		return diag.Errorf(
 			"Error waiting for Droplet snapshot (%v) to finish: %s", resourceId, err)
 	}
 
 	snapshot, err := findSnapshotInSnapshotList(context.Background(), client, *action)
 
 	if err != nil {
-		return fmt.Errorf("Error retriving Droplet Snapshot: %s", err)
+		return diag.Errorf("Error retriving Droplet Snapshot: %s", err)
 	}
 
 	d.SetId(strconv.Itoa(snapshot.ID))
 	if err = d.Set("name", snapshot.Name); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("droplet_id", fmt.Sprintf("%d", snapshot.ID)); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("regions", snapshot.Regions); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("created_at", snapshot.Created); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 	if err = d.Set("min_disk_size", snapshot.MinDiskSize); err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	return resourceDigitalOceanDropletSnapshotRead(d, meta)
+	return resourceDigitalOceanDropletSnapshotRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDropletSnapshotRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	snapshot, resp, err := client.Snapshots.Get(context.Background(), d.Id())
@@ -106,7 +107,7 @@ func resourceDigitalOceanDropletSnapshotRead(d *schema.ResourceData, meta interf
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving Droplet snapshot: %s", err)
+		return diag.Errorf("Error retrieving Droplet snapshot: %s", err)
 	}
 
 	d.Set("name", snapshot.Name)
@@ -119,13 +120,13 @@ func resourceDigitalOceanDropletSnapshotRead(d *schema.ResourceData, meta interf
 	return nil
 }
 
-func resourceDigitalOceanDropletSnapshotDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDropletSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting snaphot: %s", d.Id())
 	_, err := client.Snapshots.Delete(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting snapshot: %s", err)
+		return diag.Errorf("Error deleting snapshot: %s", err)
 	}
 
 	d.SetId("")

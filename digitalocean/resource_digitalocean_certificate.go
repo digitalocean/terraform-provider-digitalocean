@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -14,9 +15,9 @@ import (
 
 func resourceDigitalOceanCertificate() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanCertificateCreate,
-		Read:   resourceDigitalOceanCertificateRead,
-		Delete: resourceDigitalOceanCertificateDelete,
+		CreateContext: resourceDigitalOceanCertificateCreate,
+		ReadContext:   resourceDigitalOceanCertificateRead,
+		DeleteContext: resourceDigitalOceanCertificateDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -181,22 +182,22 @@ func buildCertificateRequest(d *schema.ResourceData) (*godo.CertificateRequest, 
 	return req, nil
 }
 
-func resourceDigitalOceanCertificateCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCertificateCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	certificateType := d.Get("type").(string)
 	if certificateType == "custom" {
 		if _, ok := d.GetOk("private_key"); !ok {
-			return fmt.Errorf("`private_key` is required for when type is `custom` or empty")
+			return diag.Errorf("`private_key` is required for when type is `custom` or empty")
 		}
 
 		if _, ok := d.GetOk("leaf_certificate"); !ok {
-			return fmt.Errorf("`leaf_certificate` is required for when type is `custom` or empty")
+			return diag.Errorf("`leaf_certificate` is required for when type is `custom` or empty")
 		}
 	} else if certificateType == "lets_encrypt" {
 
 		if _, ok := d.GetOk("domains"); !ok {
-			return fmt.Errorf("`domains` is required for when type is `lets_encrypt`")
+			return diag.Errorf("`domains` is required for when type is `lets_encrypt`")
 		}
 	}
 
@@ -204,13 +205,13 @@ func resourceDigitalOceanCertificateCreate(d *schema.ResourceData, meta interfac
 
 	certReq, err := buildCertificateRequest(d)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	log.Printf("[DEBUG] Certificate Create: %#v", certReq)
 	cert, _, err := client.Certificates.Create(context.Background(), certReq)
 	if err != nil {
-		return fmt.Errorf("Error creating Certificate: %s", err)
+		return diag.Errorf("Error creating Certificate: %s", err)
 	}
 
 	// When the certificate type is lets_encrypt, the certificate
@@ -233,13 +234,13 @@ func resourceDigitalOceanCertificateCreate(d *schema.ResourceData, meta interfac
 	}
 
 	if _, err := stateConf.WaitForState(); err != nil {
-		return fmt.Errorf("Error waiting for certificate (%s) to become active: %s", d.Get("name"), err)
+		return diag.Errorf("Error waiting for certificate (%s) to become active: %s", d.Get("name"), err)
 	}
 
-	return resourceDigitalOceanCertificateRead(d, meta)
+	return resourceDigitalOceanCertificateRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCertificateRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// When the certificate type is lets_encrypt, the certificate
@@ -248,7 +249,7 @@ func resourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interface{
 	log.Printf("[INFO] Reading the details of the Certificate %s", d.Id())
 	cert, err := findCertificateByName(client, d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Certificate: %s", err)
+		return diag.Errorf("Error retrieving Certificate: %s", err)
 	}
 
 	// check if the certificate no longer exists.
@@ -266,20 +267,20 @@ func resourceDigitalOceanCertificateRead(d *schema.ResourceData, meta interface{
 	d.Set("sha1_fingerprint", cert.SHA1Fingerprint)
 
 	if err := d.Set("domains", flattenDigitalOceanCertificateDomains(cert.DNSNames)); err != nil {
-		return fmt.Errorf("Error setting `domains`: %+v", err)
+		return diag.Errorf("Error setting `domains`: %+v", err)
 	}
 
 	return nil
 
 }
 
-func resourceDigitalOceanCertificateDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCertificateDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting Certificate: %s", d.Id())
 	cert, err := findCertificateByName(client, d.Id())
 	if err != nil {
-		return fmt.Errorf("Error retrieving Certificate: %s", err)
+		return diag.Errorf("Error retrieving Certificate: %s", err)
 	}
 	if cert == nil {
 		return nil
@@ -287,7 +288,7 @@ func resourceDigitalOceanCertificateDelete(d *schema.ResourceData, meta interfac
 
 	_, err = client.Certificates.Delete(context.Background(), cert.ID)
 	if err != nil {
-		return fmt.Errorf("Error deleting Certificate: %s", err)
+		return diag.Errorf("Error deleting Certificate: %s", err)
 	}
 
 	return nil

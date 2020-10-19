@@ -7,16 +7,17 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanFirewall() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanFirewallCreate,
-		Read:   resourceDigitalOceanFirewallRead,
-		Update: resourceDigitalOceanFirewallUpdate,
-		Delete: resourceDigitalOceanFirewallDelete,
+		CreateContext: resourceDigitalOceanFirewallCreate,
+		ReadContext:   resourceDigitalOceanFirewallRead,
+		UpdateContext: resourceDigitalOceanFirewallUpdate,
+		DeleteContext: resourceDigitalOceanFirewallDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -192,19 +193,19 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanFirewallCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFirewallCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	opts, err := firewallRequest(d, client)
 	if err != nil {
-		return fmt.Errorf("Error in firewall request: %s", err)
+		return diag.Errorf("Error in firewall request: %s", err)
 	}
 
 	log.Printf("[DEBUG] Firewall create configuration: %#v", opts)
 
 	firewall, _, err := client.Firewalls.Create(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error creating firewall: %s", err)
+		return diag.Errorf("Error creating firewall: %s", err)
 	}
 
 	// Assign the firewall id
@@ -212,10 +213,10 @@ func resourceDigitalOceanFirewallCreate(d *schema.ResourceData, meta interface{}
 
 	log.Printf("[INFO] Firewall ID: %s", d.Id())
 
-	return resourceDigitalOceanFirewallRead(d, meta)
+	return resourceDigitalOceanFirewallRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFirewallRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Retrieve the firewall properties for updating the state
@@ -228,7 +229,7 @@ func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving firewall: %s", err)
+		return diag.Errorf("Error retrieving firewall: %s", err)
 	}
 
 	d.Set("status", firewall.Status)
@@ -237,43 +238,43 @@ func resourceDigitalOceanFirewallRead(d *schema.ResourceData, meta interface{}) 
 	d.Set("name", firewall.Name)
 
 	if err := d.Set("droplet_ids", flattenFirewallDropletIds(firewall.DropletIDs)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting `droplet_ids`: %+v", err)
+		return diag.Errorf("[DEBUG] Error setting `droplet_ids`: %+v", err)
 	}
 
 	if err := d.Set("inbound_rule", flattenFirewallInboundRules(firewall.InboundRules)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Firewall inbound_rule error: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting Firewall inbound_rule error: %#v", err)
 	}
 
 	if err := d.Set("outbound_rule", flattenFirewallOutboundRules(firewall.OutboundRules)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting Firewall outbound_rule error: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting Firewall outbound_rule error: %#v", err)
 	}
 
 	if err := d.Set("tags", flattenTags(firewall.Tags)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting `tags`: %+v", err)
+		return diag.Errorf("[DEBUG] Error setting `tags`: %+v", err)
 	}
 
 	return nil
 }
 
-func resourceDigitalOceanFirewallUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFirewallUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	opts, err := firewallRequest(d, client)
 	if err != nil {
-		return fmt.Errorf("Error in firewall request: %s", err)
+		return diag.Errorf("Error in firewall request: %s", err)
 	}
 
 	log.Printf("[DEBUG] Firewall update configuration: %#v", opts)
 
 	_, _, err = client.Firewalls.Update(context.Background(), d.Id(), opts)
 	if err != nil {
-		return fmt.Errorf("Error updating firewall: %s", err)
+		return diag.Errorf("Error updating firewall: %s", err)
 	}
 
-	return resourceDigitalOceanFirewallRead(d, meta)
+	return resourceDigitalOceanFirewallRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanFirewallDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanFirewallDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting firewall: %s", d.Id())
@@ -287,7 +288,7 @@ func resourceDigitalOceanFirewallDelete(d *schema.ResourceData, meta interface{}
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error deleting firewall: %s", err)
+		return diag.Errorf("Error deleting firewall: %s", err)
 	}
 
 	return nil

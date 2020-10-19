@@ -2,14 +2,14 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func dataSourceDigitalOceanTag() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanTagRead,
+		ReadContext: dataSourceDigitalOceanTagRead,
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -46,7 +46,7 @@ func dataSourceDigitalOceanTag() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanTagRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanTagRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)
@@ -54,9 +54,9 @@ func dataSourceDigitalOceanTagRead(d *schema.ResourceData, meta interface{}) err
 	tag, resp, err := client.Tags.Get(context.Background(), name)
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
-			return fmt.Errorf("tag not found: %s", err)
+			return diag.Errorf("tag not found: %s", err)
 		}
-		return fmt.Errorf("Error retrieving tag: %s", err)
+		return diag.Errorf("Error retrieving tag: %s", err)
 	}
 
 	d.SetId(tag.Name)

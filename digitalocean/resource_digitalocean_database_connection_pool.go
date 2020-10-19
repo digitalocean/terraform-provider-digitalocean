@@ -7,15 +7,16 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanDatabaseConnectionPoolCreate,
-		Read:   resourceDigitalOceanDatabaseConnectionPoolRead,
-		Delete: resourceDigitalOceanDatabaseConnectionPoolDelete,
+		CreateContext: resourceDigitalOceanDatabaseConnectionPoolCreate,
+		ReadContext:   resourceDigitalOceanDatabaseConnectionPoolRead,
+		DeleteContext: resourceDigitalOceanDatabaseConnectionPoolDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDatabaseConnectionPoolImport,
 		},
@@ -102,7 +103,7 @@ func resourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDatabaseConnectionPoolCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseConnectionPoolCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	clusterID := d.Get("cluster_id").(string)
@@ -117,16 +118,16 @@ func resourceDigitalOceanDatabaseConnectionPoolCreate(d *schema.ResourceData, me
 	log.Printf("[DEBUG] DatabaseConnectionPool create configuration: %#v", opts)
 	pool, _, err := client.Databases.CreatePool(context.Background(), clusterID, opts)
 	if err != nil {
-		return fmt.Errorf("Error creating DatabaseConnectionPool: %s", err)
+		return diag.Errorf("Error creating DatabaseConnectionPool: %s", err)
 	}
 
 	d.SetId(createConnectionPoolID(clusterID, pool.Name))
 	log.Printf("[INFO] DatabaseConnectionPool Name: %s", pool.Name)
 
-	return resourceDigitalOceanDatabaseConnectionPoolRead(d, meta)
+	return resourceDigitalOceanDatabaseConnectionPoolRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDatabaseConnectionPoolRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseConnectionPoolRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID, poolName := splitConnectionPoolID(d.Id())
 
@@ -139,7 +140,7 @@ func resourceDigitalOceanDatabaseConnectionPoolRead(d *schema.ResourceData, meta
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving DatabaseConnectionPool: %s", err)
+		return diag.Errorf("Error retrieving DatabaseConnectionPool: %s", err)
 	}
 
 	d.SetId(createConnectionPoolID(clusterID, pool.Name))
@@ -172,14 +173,14 @@ func resourceDigitalOceanDatabaseConnectionPoolImport(d *schema.ResourceData, me
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceDigitalOceanDatabaseConnectionPoolDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanDatabaseConnectionPoolDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID, poolName := splitConnectionPoolID(d.Id())
 
 	log.Printf("[INFO] Deleting DatabaseConnectionPool: %s", poolName)
 	_, err := client.Databases.DeletePool(context.Background(), clusterID, poolName)
 	if err != nil {
-		return fmt.Errorf("Error deleting DatabaseConnectionPool: %s", err)
+		return diag.Errorf("Error deleting DatabaseConnectionPool: %s", err)
 	}
 
 	d.SetId("")

@@ -8,16 +8,17 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanRecord() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanRecordCreate,
-		Read:   resourceDigitalOceanRecordRead,
-		Update: resourceDigitalOceanRecordUpdate,
-		Delete: resourceDigitalOceanRecordDelete,
+		CreateContext: resourceDigitalOceanRecordCreate,
+		ReadContext:   resourceDigitalOceanRecordRead,
+		UpdateContext: resourceDigitalOceanRecordUpdate,
+		DeleteContext: resourceDigitalOceanRecordDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanRecordImport,
 		},
@@ -154,12 +155,12 @@ func resourceDigitalOceanRecord() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanRecordCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanRecordCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	newRecord, err := expandDigitalOceanRecordResource(d)
 	if err != nil {
-		return fmt.Errorf("Error in constructing record request: %s", err)
+		return diag.Errorf("Error in constructing record request: %s", err)
 	}
 
 	newRecord.Type = d.Get("type").(string)
@@ -167,21 +168,21 @@ func resourceDigitalOceanRecordCreate(d *schema.ResourceData, meta interface{}) 
 	log.Printf("[DEBUG] record create configuration: %#v", newRecord)
 	rec, _, err := client.Domains.CreateRecord(context.Background(), d.Get("domain").(string), newRecord)
 	if err != nil {
-		return fmt.Errorf("Failed to create record: %s", err)
+		return diag.Errorf("Failed to create record: %s", err)
 	}
 
 	d.SetId(strconv.Itoa(rec.ID))
 	log.Printf("[INFO] Record ID: %s", d.Id())
 
-	return resourceDigitalOceanRecordRead(d, meta)
+	return resourceDigitalOceanRecordRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanRecordRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	domain := d.Get("domain").(string)
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return fmt.Errorf("invalid record ID: %v", err)
+		return diag.Errorf("invalid record ID: %v", err)
 	}
 
 	rec, resp, err := client.Domains.Record(context.Background(), domain, id)
@@ -193,7 +194,7 @@ func resourceDigitalOceanRecordRead(d *schema.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return err
+		return diag.FromErr(err)
 	}
 
 	if t := rec.Type; t == "CNAME" || t == "MX" || t == "NS" || t == "SRV" || t == "CAA" {
@@ -235,36 +236,36 @@ func resourceDigitalOceanRecordImport(d *schema.ResourceData, meta interface{}) 
 	return []*schema.ResourceData{d}, nil
 }
 
-func resourceDigitalOceanRecordUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanRecordUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	domain := d.Get("domain").(string)
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return fmt.Errorf("invalid record ID: %v", err)
+		return diag.Errorf("invalid record ID: %v", err)
 	}
 
 	editRecord, err := expandDigitalOceanRecordResource(d)
 	if err != nil {
-		return fmt.Errorf("Error in constructing record request: %s", err)
+		return diag.Errorf("Error in constructing record request: %s", err)
 	}
 
 	log.Printf("[DEBUG] record update configuration: %#v", editRecord)
 	_, _, err = client.Domains.EditRecord(context.Background(), domain, id, editRecord)
 	if err != nil {
-		return fmt.Errorf("Failed to update record: %s", err)
+		return diag.Errorf("Failed to update record: %s", err)
 	}
 
-	return resourceDigitalOceanRecordRead(d, meta)
+	return resourceDigitalOceanRecordRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanRecordDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanRecordDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	domain := d.Get("domain").(string)
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return fmt.Errorf("invalid record ID: %v", err)
+		return diag.Errorf("invalid record ID: %v", err)
 	}
 
 	log.Printf("[INFO] Deleting record: %s, %d", domain, id)
@@ -277,7 +278,7 @@ func resourceDigitalOceanRecordDelete(d *schema.ResourceData, meta interface{}) 
 			return nil
 		}
 
-		return fmt.Errorf("Error deleting record: %s", delErr)
+		return diag.Errorf("Error deleting record: %s", delErr)
 	}
 
 	return nil

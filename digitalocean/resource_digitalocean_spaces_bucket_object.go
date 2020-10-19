@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/mitchellh/go-homedir"
@@ -20,10 +21,10 @@ import (
 
 func resourceDigitalOceanSpacesBucketObject() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanSpacesBucketObjectCreate,
-		Read:   resourceDigitalOceanSpacesBucketObjectRead,
-		Update: resourceDigitalOceanSpacesBucketObjectUpdate,
-		Delete: resourceDigitalOceanSpacesBucketObjectDelete,
+		CreateContext: resourceDigitalOceanSpacesBucketObjectCreate,
+		ReadContext:   resourceDigitalOceanSpacesBucketObjectRead,
+		UpdateContext: resourceDigitalOceanSpacesBucketObjectUpdate,
+		DeleteContext: resourceDigitalOceanSpacesBucketObjectDelete,
 
 		CustomizeDiff: resourceDigitalOceanSpacesBucketObjectCustomizeDiff,
 
@@ -147,10 +148,10 @@ func s3connFromResourceData(d *schema.ResourceData, meta interface{}) (*s3.S3, e
 	return svc, nil
 }
 
-func resourceDigitalOceanSpacesBucketObjectPut(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectPut(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	s3conn, err := s3connFromResourceData(d, meta)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	var body io.ReadSeeker
@@ -159,11 +160,11 @@ func resourceDigitalOceanSpacesBucketObjectPut(d *schema.ResourceData, meta inte
 		source := v.(string)
 		path, err := homedir.Expand(source)
 		if err != nil {
-			return fmt.Errorf("Error expanding homedir in source (%s): %s", source, err)
+			return diag.Errorf("Error expanding homedir in source (%s): %s", source, err)
 		}
 		file, err := os.Open(path)
 		if err != nil {
-			return fmt.Errorf("Error opening Spaces bucket object source (%s): %s", path, err)
+			return diag.Errorf("Error opening Spaces bucket object source (%s): %s", path, err)
 		}
 
 		body = file
@@ -182,7 +183,7 @@ func resourceDigitalOceanSpacesBucketObjectPut(d *schema.ResourceData, meta inte
 		// the AWS SDK requires an io.ReadSeeker but a base64 decoder can't seek.
 		contentRaw, err := base64.StdEncoding.DecodeString(content)
 		if err != nil {
-			return fmt.Errorf("error decoding content_base64: %s", err)
+			return diag.Errorf("error decoding content_base64: %s", err)
 		}
 		body = bytes.NewReader(contentRaw)
 	}
@@ -226,21 +227,21 @@ func resourceDigitalOceanSpacesBucketObjectPut(d *schema.ResourceData, meta inte
 	}
 
 	if _, err := s3conn.PutObject(putInput); err != nil {
-		return fmt.Errorf("Error putting object in Spaces bucket (%s): %s", bucket, err)
+		return diag.Errorf("Error putting object in Spaces bucket (%s): %s", bucket, err)
 	}
 
 	d.SetId(key)
-	return resourceDigitalOceanSpacesBucketObjectRead(d, meta)
+	return resourceDigitalOceanSpacesBucketObjectRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanSpacesBucketObjectCreate(d *schema.ResourceData, meta interface{}) error {
-	return resourceDigitalOceanSpacesBucketObjectPut(d, meta)
+func resourceDigitalOceanSpacesBucketObjectCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return resourceDigitalOceanSpacesBucketObjectPut(ctx, d, meta)
 }
 
-func resourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	s3conn, err := s3connFromResourceData(d, meta)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	bucket := d.Get("bucket").(string)
@@ -259,7 +260,7 @@ func resourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta int
 			log.Printf("[WARN] Error Reading Object (%s), object not found (HTTP status 404)", key)
 			return nil
 		}
-		return err
+		return diag.FromErr(err)
 	}
 	log.Printf("[DEBUG] Reading Spaces Bucket Object meta: %s", resp)
 
@@ -277,7 +278,7 @@ func resourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta int
 	}
 
 	if err := d.Set("metadata", metadata); err != nil {
-		return fmt.Errorf("error setting metadata: %s", err)
+		return diag.Errorf("error setting metadata: %s", err)
 	}
 	d.Set("version_id", resp.VersionId)
 	d.Set("website_redirect", resp.WebsiteRedirectLocation)
@@ -288,7 +289,7 @@ func resourceDigitalOceanSpacesBucketObjectRead(d *schema.ResourceData, meta int
 	return nil
 }
 
-func resourceDigitalOceanSpacesBucketObjectUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Changes to any of these attributes requires creation of a new object version (if bucket is versioned):
 	for _, key := range []string{
 		"cache_control",
@@ -304,13 +305,13 @@ func resourceDigitalOceanSpacesBucketObjectUpdate(d *schema.ResourceData, meta i
 		"website_redirect",
 	} {
 		if d.HasChange(key) {
-			return resourceDigitalOceanSpacesBucketObjectPut(d, meta)
+			return resourceDigitalOceanSpacesBucketObjectPut(ctx, d, meta)
 		}
 	}
 
 	conn, err := s3connFromResourceData(d, meta)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	bucket := d.Get("bucket").(string)
@@ -323,17 +324,17 @@ func resourceDigitalOceanSpacesBucketObjectUpdate(d *schema.ResourceData, meta i
 			ACL:    aws.String(d.Get("acl").(string)),
 		})
 		if err != nil {
-			return fmt.Errorf("error putting Spaces object ACL: %s", err)
+			return diag.Errorf("error putting Spaces object ACL: %s", err)
 		}
 	}
 
-	return resourceDigitalOceanSpacesBucketObjectRead(d, meta)
+	return resourceDigitalOceanSpacesBucketObjectRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanSpacesBucketObjectDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanSpacesBucketObjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	s3conn, err := s3connFromResourceData(d, meta)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	bucket := d.Get("bucket").(string)
@@ -348,7 +349,7 @@ func resourceDigitalOceanSpacesBucketObjectDelete(d *schema.ResourceData, meta i
 	}
 
 	if err != nil {
-		return fmt.Errorf("error deleting Spaces Bucket (%s) Object (%s): %s", bucket, key, err)
+		return diag.Errorf("error deleting Spaces Bucket (%s) Object (%s): %s", bucket, key, err)
 	}
 
 	return nil

@@ -6,13 +6,14 @@ import (
 	"strconv"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceDigitalOceanSSHKey() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanSSHKeyRead,
+		ReadContext: dataSourceDigitalOceanSSHKeyRead,
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -36,7 +37,7 @@ func dataSourceDigitalOceanSSHKey() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanSSHKeyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)
@@ -52,7 +53,7 @@ func dataSourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) 
 		keys, resp, err := client.Keys.List(context.Background(), opts)
 
 		if err != nil {
-			return fmt.Errorf("Error retrieving ssh keys: %s", err)
+			return diag.Errorf("Error retrieving ssh keys: %s", err)
 		}
 
 		for _, key := range keys {
@@ -65,7 +66,7 @@ func dataSourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) 
 
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return fmt.Errorf("Error retrieving ssh keys: %s", err)
+			return diag.Errorf("Error retrieving ssh keys: %s", err)
 		}
 
 		opts.Page = page + 1
@@ -74,7 +75,7 @@ func dataSourceDigitalOceanSSHKeyRead(d *schema.ResourceData, meta interface{}) 
 	key, err := findKeyByName(keyList, name)
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(strconv.Itoa(key.ID))

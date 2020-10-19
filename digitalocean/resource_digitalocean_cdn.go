@@ -2,21 +2,21 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanCDN() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanCDNCreate,
-		Read:   resourceDigitalOceanCDNRead,
-		Update: resourceDigitalOceanCDNUpdate,
-		Delete: resourceDigitalOceanCDNDelete,
+		CreateContext: resourceDigitalOceanCDNCreate,
+		ReadContext:   resourceDigitalOceanCDNRead,
+		UpdateContext: resourceDigitalOceanCDNUpdate,
+		DeleteContext: resourceDigitalOceanCDNDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -118,7 +118,7 @@ func migrateCDNStateV0toV1(ctx context.Context, rawState map[string]interface{},
 	return rawState, nil
 }
 
-func resourceDigitalOceanCDNCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCDNCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	cdnRequest := &godo.CDNCreateRequest{
@@ -138,7 +138,7 @@ func resourceDigitalOceanCDNCreate(d *schema.ResourceData, meta interface{}) err
 		if certName != "" {
 			cert, err := findCertificateByName(client, certName)
 			if err != nil {
-				return err
+				return diag.FromErr(err)
 			}
 
 			cdnRequest.CertificateID = cert.ID
@@ -157,10 +157,10 @@ func resourceDigitalOceanCDNCreate(d *schema.ResourceData, meta interface{}) err
 					log.Println("[DEBUG] Certificate not found looking up by name. Falling back to lookup by ID.")
 					cert, _, err = client.Certificates.Get(context.Background(), certName)
 					if err != nil {
-						return err
+						return diag.FromErr(err)
 					}
 				} else {
-					return err
+					return diag.FromErr(err)
 				}
 			}
 
@@ -171,16 +171,16 @@ func resourceDigitalOceanCDNCreate(d *schema.ResourceData, meta interface{}) err
 	log.Printf("[DEBUG] CDN create request: %#v", cdnRequest)
 	cdn, _, err := client.CDNs.Create(context.Background(), cdnRequest)
 	if err != nil {
-		return fmt.Errorf("Error creating CDN: %s", err)
+		return diag.Errorf("Error creating CDN: %s", err)
 	}
 
 	d.SetId(cdn.ID)
 	log.Printf("[INFO] CDN created, ID: %s", d.Id())
 
-	return resourceDigitalOceanCDNRead(d, meta)
+	return resourceDigitalOceanCDNRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanCDNRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCDNRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	cdn, resp, err := client.CDNs.Get(context.Background(), d.Id())
@@ -190,7 +190,7 @@ func resourceDigitalOceanCDNRead(d *schema.ResourceData, meta interface{}) error
 			log.Printf("[DEBUG] CDN  (%s) was not found - removing from state", d.Id())
 			d.SetId("")
 		}
-		return fmt.Errorf("Error reading CDN: %s", err)
+		return diag.Errorf("Error reading CDN: %s", err)
 	}
 
 	d.SetId(cdn.ID)
@@ -206,16 +206,16 @@ func resourceDigitalOceanCDNRead(d *schema.ResourceData, meta interface{}) error
 		// certificate name as the primary identifier instead.
 		cert, _, err := client.Certificates.Get(context.Background(), cdn.CertificateID)
 		if err != nil {
-			return err
+			return diag.FromErr(err)
 		}
 		d.Set("certificate_id", cert.Name)
 		d.Set("certificate_name", cert.Name)
 	}
 
-	return err
+	return diag.FromErr(err)
 }
 
-func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCDNUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	d.Partial(true)
@@ -227,7 +227,7 @@ func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) err
 		_, _, err := client.CDNs.UpdateTTL(context.Background(), d.Id(), ttlUpdateRequest)
 
 		if err != nil {
-			return fmt.Errorf("Error updating CDN TTL: %s", err)
+			return diag.Errorf("Error updating CDN TTL: %s", err)
 		}
 		log.Printf("[INFO] Updated TTL on CDN")
 	}
@@ -241,22 +241,22 @@ func resourceDigitalOceanCDNUpdate(d *schema.ResourceData, meta interface{}) err
 		_, _, err := client.CDNs.UpdateCustomDomain(context.Background(), d.Id(), cdnUpdateRequest)
 
 		if err != nil {
-			return fmt.Errorf("Error updating CDN custom domain: %s", err)
+			return diag.Errorf("Error updating CDN custom domain: %s", err)
 		}
 		log.Printf("[INFO] Updated custom domain/certificate on CDN")
 	}
 
 	d.Partial(false)
-	return resourceDigitalOceanCDNRead(d, meta)
+	return resourceDigitalOceanCDNRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanCDNDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanCDNDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	resourceId := d.Id()
 
 	_, err := client.CDNs.Delete(context.Background(), resourceId)
 	if err != nil {
-		return fmt.Errorf("Error deleting CDN: %s", err)
+		return diag.Errorf("Error deleting CDN: %s", err)
 	}
 
 	d.SetId("")

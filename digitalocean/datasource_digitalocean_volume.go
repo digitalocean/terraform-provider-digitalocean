@@ -6,13 +6,14 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceDigitalOceanVolume() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceDigitalOceanVolumeRead,
+		ReadContext: dataSourceDigitalOceanVolumeRead,
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -68,7 +69,7 @@ func dataSourceDigitalOceanVolume() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceDigitalOceanVolumeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	name := d.Get("name").(string)
@@ -91,7 +92,7 @@ func dataSourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) 
 		volumes, resp, err := client.Storage.ListVolumes(context.Background(), opts)
 
 		if err != nil {
-			return fmt.Errorf("Error retrieving volumes: %s", err)
+			return diag.Errorf("Error retrieving volumes: %s", err)
 		}
 
 		for _, volume := range volumes {
@@ -104,7 +105,7 @@ func dataSourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) 
 
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return fmt.Errorf("Error retrieving load balancers: %s", err)
+			return diag.Errorf("Error retrieving load balancers: %s", err)
 		}
 
 		opts.ListOptions.Page = page + 1
@@ -113,7 +114,7 @@ func dataSourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) 
 	volume, err := findVolumeByName(volumeList, name)
 
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
 	d.SetId(volume.ID)
@@ -135,7 +136,7 @@ func dataSourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) 
 	}
 
 	if err = d.Set("droplet_ids", flattenDigitalOceanVolumeDropletIds(volume.DropletIDs)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting droplet_ids: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting droplet_ids: %#v", err)
 	}
 
 	return nil

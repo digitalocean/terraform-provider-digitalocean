@@ -7,16 +7,17 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceDigitalOceanVolume() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceDigitalOceanVolumeCreate,
-		Read:   resourceDigitalOceanVolumeRead,
-		Update: resourceDigitalOceanVolumeUpdate,
-		Delete: resourceDigitalOceanVolumeDelete,
+		CreateContext: resourceDigitalOceanVolumeCreate,
+		ReadContext:   resourceDigitalOceanVolumeRead,
+		UpdateContext: resourceDigitalOceanVolumeUpdate,
+		DeleteContext: resourceDigitalOceanVolumeDelete,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
@@ -120,7 +121,7 @@ func resourceDigitalOceanVolume() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	opts := &godo.VolumeCreateRequest{
@@ -151,16 +152,16 @@ func resourceDigitalOceanVolumeCreate(d *schema.ResourceData, meta interface{}) 
 	log.Printf("[DEBUG] Volume create configuration: %#v", opts)
 	volume, _, err := client.Storage.CreateVolume(context.Background(), opts)
 	if err != nil {
-		return fmt.Errorf("Error creating Volume: %s", err)
+		return diag.Errorf("Error creating Volume: %s", err)
 	}
 
 	d.SetId(volume.ID)
 	log.Printf("[INFO] Volume name: %s", volume.Name)
 
-	return resourceDigitalOceanVolumeRead(d, meta)
+	return resourceDigitalOceanVolumeRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanVolumeUpdate(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	id := d.Id()
@@ -172,12 +173,12 @@ func resourceDigitalOceanVolumeUpdate(d *schema.ResourceData, meta interface{}) 
 		log.Printf("[DEBUG] Volume resize configuration: %v", size)
 		action, _, err := client.StorageActions.Resize(context.Background(), id, size, region)
 		if err != nil {
-			return fmt.Errorf("Error resizing volume (%s): %s", id, err)
+			return diag.Errorf("Error resizing volume (%s): %s", id, err)
 		}
 
 		log.Printf("[DEBUG] Volume resize action id: %d", action.ID)
 		if err = waitForAction(client, action); err != nil {
-			return fmt.Errorf(
+			return diag.Errorf(
 				"Error waiting for resize volume (%s) to finish: %s", id, err)
 		}
 	}
@@ -185,14 +186,14 @@ func resourceDigitalOceanVolumeUpdate(d *schema.ResourceData, meta interface{}) 
 	if d.HasChange("tags") {
 		err := setTags(client, d, godo.VolumeResourceType)
 		if err != nil {
-			return fmt.Errorf("Error updating tags: %s", err)
+			return diag.Errorf("Error updating tags: %s", err)
 		}
 	}
 
-	return resourceDigitalOceanVolumeRead(d, meta)
+	return resourceDigitalOceanVolumeRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	volume, resp, err := client.Storage.GetVolume(context.Background(), d.Id())
@@ -204,7 +205,7 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 			return nil
 		}
 
-		return fmt.Errorf("Error retrieving volume: %s", err)
+		return diag.Errorf("Error retrieving volume: %s", err)
 	}
 
 	d.Set("name", volume.Name)
@@ -224,19 +225,19 @@ func resourceDigitalOceanVolumeRead(d *schema.ResourceData, meta interface{}) er
 	}
 
 	if err = d.Set("droplet_ids", flattenDigitalOceanVolumeDropletIds(volume.DropletIDs)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting droplet_ids: %#v", err)
+		return diag.Errorf("[DEBUG] Error setting droplet_ids: %#v", err)
 	}
 
 	return nil
 }
 
-func resourceDigitalOceanVolumeDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceDigitalOceanVolumeDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	log.Printf("[INFO] Deleting volume: %s", d.Id())
 	_, err := client.Storage.DeleteVolume(context.Background(), d.Id())
 	if err != nil {
-		return fmt.Errorf("Error deleting volume: %s", err)
+		return diag.Errorf("Error deleting volume: %s", err)
 	}
 
 	d.SetId("")
