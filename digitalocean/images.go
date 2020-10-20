@@ -77,7 +77,7 @@ func imageSchema() map[string]*schema.Schema {
 	}
 }
 
-func getDigitalOceanImages(meta interface{}) ([]interface{}, error) {
+func getDigitalOceanImages(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
 	client := meta.(*CombinedConfig).godoClient()
 	return listDigitalOceanImages(client.Images.List)
 }
@@ -115,7 +115,7 @@ func listDigitalOceanImages(listImages imageListFunc) ([]interface{}, error) {
 	return allImages, nil
 }
 
-func flattenDigitalOceanImage(rawImage interface{}, meta interface{}) (map[string]interface{}, error) {
+func flattenDigitalOceanImage(rawImage interface{}, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
 	image, ok := rawImage.(godo.Image)
 	if !ok {
 		return nil, fmt.Errorf("Unable to convert to godo.Image")

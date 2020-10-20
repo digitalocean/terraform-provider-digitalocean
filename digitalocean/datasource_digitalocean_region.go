@@ -42,7 +42,7 @@ func dataSourceDigitalOceanRegion() *schema.Resource {
 }
 
 func dataSourceDigitalOceanRegionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	regions, err := getDigitalOceanRegions(meta)
+	regions, err := getDigitalOceanRegions(meta, nil)
 	if err != nil {
 		return diag.Errorf("Unable to load regions: %s", err)
 	}
@@ -61,7 +61,7 @@ func dataSourceDigitalOceanRegionRead(ctx context.Context, d *schema.ResourceDat
 		return diag.Errorf("Region does not exist: %s", slug)
 	}
 
-	flattenedRegion, err := flattenRegion(*regionForSlug, meta)
+	flattenedRegion, err := flattenRegion(*regionForSlug, meta, nil)
 	if err != nil {
 		return nil
 	}

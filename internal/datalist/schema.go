@@ -21,21 +21,15 @@ type ResourceConfig struct {
 
 	// Given a record returned from the GetRecords function, flatten the record to a
 	// map acceptable to the Set method on schema.ResourceData.
-	FlattenRecord func(record, meta interface{}) (map[string]interface{}, error)
+	FlattenRecord func(record, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error)
 
 	// Return all of the records on which the data list resource should operate.
 	// The `meta` argument is the same meta argument passed into the resource's Read
 	// function.
-	GetRecords func(meta interface{}) ([]interface{}, error)
+	GetRecords func(meta interface{}, extra map[string]interface{}) ([]interface{}, error)
 
 	// Extra parameters to expose on the datasource alongside `filter` and `sort`.
 	ExtraQuerySchema map[string]*schema.Schema
-
-	// Same as `FlattenRecord` plus has access to any extra query data.
-	FlattenRecordWithExtraQuery func(record, meta interface{}, d *schema.ResourceData) (map[string]interface{}, error)
-
-	// Same as `GetRecords` plus has access to any extra query data.
-	GetRecordsWithExtraQuery func(meta interface{}, d *schema.ResourceData) ([]interface{}, error)
 }
 
 // Returns a new "data list" resource given the specified configuration. This
@@ -86,36 +80,23 @@ func NewResource(config *ResourceConfig) *schema.Resource {
 
 func dataListResourceRead(config *ResourceConfig) schema.ReadContextFunc {
 	return func(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-		var records []interface{}
-		if config.GetRecordsWithExtraQuery != nil {
-			records2, err := config.GetRecordsWithExtraQuery(meta, d)
-			if err != nil {
-				return diag.Errorf("Unable to load records: %s", err)
-			}
-			records = records2
-		} else {
-			records2, err := config.GetRecords(meta)
-			if err != nil {
-				return diag.Errorf("Unable to load records: %s", err)
-			}
-			records = records2
+		extra := map[string]interface{}{}
+		for key, _ := range config.ExtraQuerySchema {
+			extra[key] = d.Get(key)
+		}
+
+		records, err := config.GetRecords(meta, extra)
+		if err != nil {
+			return diag.Errorf("Unable to load records: %s", err)
 		}
 
 		flattenedRecords := make([]map[string]interface{}, len(records))
 		for i, record := range records {
-			if config.FlattenRecordWithExtraQuery != nil {
-				flattenedRecord, err := config.FlattenRecordWithExtraQuery(record, meta, d)
-				if err != nil {
-					return diag.FromErr(err)
-				}
-				flattenedRecords[i] = flattenedRecord
-			} else {
-				flattenedRecord, err := config.FlattenRecord(record, meta)
-				if err != nil {
-					return diag.FromErr(err)
-				}
-				flattenedRecords[i] = flattenedRecord
+			flattenedRecord, err := config.FlattenRecord(record, meta, extra)
+			if err != nil {
+				return diag.FromErr(err)
 			}
+			flattenedRecords[i] = flattenedRecord
 		}
 
 		if v, ok := d.GetOk("filter"); ok {

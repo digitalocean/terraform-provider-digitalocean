@@ -50,7 +50,7 @@ func dataSourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceDa
 
 		foundDroplet = *droplet
 	} else if v, ok := d.GetOk("tag"); ok {
-		dropletList, err := getDigitalOceanDroplets(meta)
+		dropletList, err := getDigitalOceanDroplets(meta, nil)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -62,7 +62,7 @@ func dataSourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceDa
 
 		foundDroplet = *droplet
 	} else if v, ok := d.GetOk("name"); ok {
-		dropletList, err := getDigitalOceanDroplets(meta)
+		dropletList, err := getDigitalOceanDroplets(meta, nil)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -78,7 +78,7 @@ func dataSourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("Error: specify either a name, tag, or id to use to look up the droplet")
 	}
 
-	flattenedDroplet, err := flattenDigitalOceanDroplet(foundDroplet, meta)
+	flattenedDroplet, err := flattenDigitalOceanDroplet(foundDroplet, meta, nil)
 	if err != nil {
 		return diag.FromErr(err)
 	}

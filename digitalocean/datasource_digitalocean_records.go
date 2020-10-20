@@ -15,8 +15,8 @@ func dataSourceDigitalOceanRecords() *schema.Resource {
 				Required: true,
 			},
 		},
-		FlattenRecordWithExtraQuery: flattenDigitalOceanRecord,
-		GetRecordsWithExtraQuery:    getDigitalOceanRecords,
+		FlattenRecord: flattenDigitalOceanRecord,
+		GetRecords:    getDigitalOceanRecords,
 	}
 
 	return datalist.NewResource(dataListConfig)

@@ -60,7 +60,7 @@ func dataSourceDigitalOceanSpacesBucketRead(ctx context.Context, d *schema.Resou
 		region: region,
 	}
 
-	flattenedBucket, err := flattenSpacesBucket(&metadata, meta)
+	flattenedBucket, err := flattenSpacesBucket(&metadata, meta, nil)
 	if err != nil {
 		return diag.FromErr(err)
 	}

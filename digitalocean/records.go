@@ -56,9 +56,13 @@ func recordsSchema() map[string]*schema.Schema {
 	}
 }
 
-func getDigitalOceanRecords(meta interface{}, d *schema.ResourceData) ([]interface{}, error) {
+func getDigitalOceanRecords(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
 	client := meta.(*CombinedConfig).godoClient()
-	domain := d.Get("domain").(string)
+
+	domain, ok := extra["domain"].(string)
+	if !ok {
+		return nil, fmt.Errorf("unable to find `domain` key from query data")
+	}
 
 	var allRecords []interface{}
 
@@ -92,8 +96,11 @@ func getDigitalOceanRecords(meta interface{}, d *schema.ResourceData) ([]interfa
 	return allRecords, nil
 }
 
-func flattenDigitalOceanRecord(rawRecord interface{}, meta interface{}, d *schema.ResourceData) (map[string]interface{}, error) {
-	domain := d.Get("domain").(string)
+func flattenDigitalOceanRecord(rawRecord interface{}, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
+	domain, ok := extra["domain"].(string)
+	if !ok {
+		return nil, fmt.Errorf("unable to find `domain` key from query data")
+	}
 
 	record, ok := rawRecord.(godo.DomainRecord)
 	if !ok {

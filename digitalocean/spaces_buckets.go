@@ -50,7 +50,7 @@ func getSpacesBucketsInRegion(meta interface{}, region string) ([]*s3.Bucket, er
 	return output.Buckets, nil
 }
 
-func getDigitalOceanBuckets(meta interface{}) ([]interface{}, error) {
+func getDigitalOceanBuckets(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
 	// The DigitalOcean API does not currently return what regions have Spaces available. Thus, this
 	// function hard-codes the regions in which Spaces operates.
 	//
@@ -78,7 +78,7 @@ func getDigitalOceanBuckets(meta interface{}) ([]interface{}, error) {
 	return buckets, nil
 }
 
-func flattenSpacesBucket(rawBucketMetadata, meta interface{}) (map[string]interface{}, error) {
+func flattenSpacesBucket(rawBucketMetadata, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
 	bucketMetadata := rawBucketMetadata.(*bucketMetadataStruct)
 
 	name := bucketMetadata.name
