@@ -1,3 +1,23 @@
+## 2.0.0 (October 20, 2020)
+
+NOTES:
+
+* This release uses v2.0.3 of the Terraform Plugin SDK and now only supports Terraform v0.12 and higher.
+* The `certificate_id` attribute of the `digitalocean_cdn` and `digitalocean_loadbalancer` resources has been deprecated in favor of `certificate_name`. It will become a read-only computed attrbute in a future release.
+
+FEATURES:
+
+* **New Data Source**: `digitalocean_records` ([#502](https://github.com/digitalocean/terraform-provider-digitalocean/pull/502)) Thanks to @tdyas!
+
+IMPROVEMENTS:
+
+* provider: Upgrade to v2.0.3 of the Terraform Plugin SDK ([#492](https://github.com/digitalocean/terraform-provider-digitalocean/pull/492), [#503](https://github.com/digitalocean/terraform-provider-digitalocean/pull/503)). Thanks to @tdyas!
+* docs: Migrate documentation to new registry format ([#501](https://github.com/digitalocean/terraform-provider-digitalocean/pull/501)).
+
+BUG FIXES:
+
+* `digitalocean_certificate`, `digitalocean_cdn`, `digitalocean_loadbalancer`: Use certificate name as primary identifier instead of ID as a Let's Encrypt certificate's ID will change when it's auto-renewed ([#500](https://github.com/digitalocean/terraform-provider-digitalocean/pull/500)).
+
 ## 1.23.0 (October 13, 2020)
 
 FEATURES:
