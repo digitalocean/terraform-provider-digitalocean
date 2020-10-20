@@ -80,7 +80,7 @@ func NewResource(config *ResourceConfig) *schema.Resource {
 
 	return &schema.Resource{
 		ReadContext: dataListResourceRead(config),
-		Schema: datasourceSchema,
+		Schema:      datasourceSchema,
 	}
 }
 
