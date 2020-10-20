@@ -38,7 +38,7 @@ func dataSourceDigitalOceanProjectRead(ctx context.Context, d *schema.ResourceDa
 		}
 		foundProject = thisProject
 	} else if name, ok := d.GetOk("name"); ok {
-		projects, err := getDigitalOceanProjects(meta)
+		projects, err := getDigitalOceanProjects(meta, nil)
 		if err != nil {
 			return diag.Errorf("Unable to load projects: %s", err)
 		}
@@ -70,7 +70,7 @@ func dataSourceDigitalOceanProjectRead(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("No project found.")
 	}
 
-	flattenedProject, err := flattenDigitalOceanProject(*foundProject, meta)
+	flattenedProject, err := flattenDigitalOceanProject(*foundProject, meta, nil)
 	if err != nil {
 		return diag.FromErr(err)
 	}

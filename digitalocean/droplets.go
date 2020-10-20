@@ -113,7 +113,7 @@ func dropletSchema() map[string]*schema.Schema {
 	}
 }
 
-func getDigitalOceanDroplets(meta interface{}) ([]interface{}, error) {
+func getDigitalOceanDroplets(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
 	client := meta.(*CombinedConfig).godoClient()
 
 	opts := &godo.ListOptions{
@@ -149,7 +149,7 @@ func getDigitalOceanDroplets(meta interface{}) ([]interface{}, error) {
 	return dropletList, nil
 }
 
-func flattenDigitalOceanDroplet(rawDroplet, meta interface{}) (map[string]interface{}, error) {
+func flattenDigitalOceanDroplet(rawDroplet, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
 	droplet := rawDroplet.(godo.Droplet)
 
 	flattenedDroplet := map[string]interface{}{

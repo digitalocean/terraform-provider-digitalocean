@@ -62,6 +62,7 @@ func Provider() *schema.Provider {
 			"digitalocean_project":               dataSourceDigitalOceanProject(),
 			"digitalocean_projects":              dataSourceDigitalOceanProjects(),
 			"digitalocean_record":                dataSourceDigitalOceanRecord(),
+			"digitalocean_records":               dataSourceDigitalOceanRecords(),
 			"digitalocean_region":                dataSourceDigitalOceanRegion(),
 			"digitalocean_regions":               dataSourceDigitalOceanRegions(),
 			"digitalocean_sizes":                 dataSourceDigitalOceanSizes(),

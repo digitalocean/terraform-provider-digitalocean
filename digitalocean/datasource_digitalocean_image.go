@@ -108,7 +108,7 @@ func dataSourceDigitalOceanImageRead(ctx context.Context, d *schema.ResourceData
 		return diag.Errorf("Illegal state: one of id, name, or slug must be set")
 	}
 
-	flattenedImage, err := flattenDigitalOceanImage(*foundImage, meta)
+	flattenedImage, err := flattenDigitalOceanImage(*foundImage, meta, nil)
 	if err != nil {
 		return diag.FromErr(err)
 	}

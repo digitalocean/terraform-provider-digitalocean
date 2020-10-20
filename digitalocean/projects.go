@@ -50,7 +50,7 @@ func projectSchema() map[string]*schema.Schema {
 	}
 }
 
-func getDigitalOceanProjects(meta interface{}) ([]interface{}, error) {
+func getDigitalOceanProjects(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
 	client := meta.(*CombinedConfig).godoClient()
 
 	var allProjects []interface{}
@@ -86,7 +86,7 @@ func getDigitalOceanProjects(meta interface{}) ([]interface{}, error) {
 	return allProjects, nil
 }
 
-func flattenDigitalOceanProject(rawProject interface{}, meta interface{}) (map[string]interface{}, error) {
+func flattenDigitalOceanProject(rawProject interface{}, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
 	client := meta.(*CombinedConfig).godoClient()
 
 	project, ok := rawProject.(godo.Project)
