@@ -2,7 +2,7 @@
 page_title: "DigitalOcean: digitalocean_records"
 ---
 
-# digitalocean_record
+# digitalocean_records
 
 Retrieve information about all DNS records within a domain, with the ability to filter and sort the results.
 If no filters are specified, all records will be returned.
@@ -21,7 +21,7 @@ data "digitalocean_records" "example" {
 }
 
 output "mail_servers" {
-  value = join(",", data.digitalocean_records.example.records)
+  value = join(",", data.digitalocean_records.example.records[*].value)
 }
 ```
 
@@ -39,10 +39,10 @@ The following arguments are supported:
 
 `filter` supports the following arguments:
 
-* `key` - (Required) Filter the projects by this key. This may be one of `domain`, `flags`, `name`, `port`,
+* `key` - (Required) Filter the DNS records by this key. This may be one of `domain`, `flags`, `name`, `port`,
   `priority`, `tag`, `ttl`, `type`, `value`, or `weight`.
   
-* `values` - (Required) A list of values to match against the `key` field. Only retrieves projects
+* `values` - (Required) A list of values to match against the `key` field. Only retrieves DNS records
   where the `key` field takes on one or more of the values provided here.
 
 * `match_by` - (Optional) One of `exact` (default), `re`, or `substring`. For string-typed fields, specify `re` to
@@ -55,7 +55,7 @@ The following arguments are supported:
 
 `sort` supports the following arguments:
 
-* `key` - (Required) Sort the projects by this key. This may be one of `domain`, `flags`, `name`, `port`,
+* `key` - (Required) Sort the DNS records by this key. This may be one of `domain`, `flags`, `name`, `port`,
   `priority`, `tag`, `ttl`, `type`, `value`, or `weight`.
 * `direction` - (Required) The sort direction. This may be either `asc` or `desc`.
 

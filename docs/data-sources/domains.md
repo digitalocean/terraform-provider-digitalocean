@@ -2,7 +2,7 @@
 page_title: "DigitalOcean: digitalocean_domains"
 ---
 
-# digitalocean_droplets
+# digitalocean_domains
 
 Get information on domains for use in other resources, with the ability to filter and sort the results.
 If no filters are specified, all domains will be returned.
@@ -15,13 +15,15 @@ about a single domain if you already know the `name`.
 
 ## Example Usage
 
-Use the `filter` block with a `key` string and `values` list to filter domains.
+Use the `filter` block with a `key` string and `values` list to filter domains. (This example
+also uses the regular expression `match_by` mode in order to match domains by suffix.)
 
 ```hcl
-data "digitalocean_domains" "ttl300" {
+data "digitalocean_domains" "examples" {
   filter {
-    key    = "ttl"
-    values = ["300"]
+    key    = "name"
+    values = ["example\\.com$"]
+    match_by = "re"
   }
 }
 ```
