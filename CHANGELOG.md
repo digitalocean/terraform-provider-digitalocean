@@ -1,3 +1,9 @@
+## 2.0.1 (October 22, 2020)
+
+BUG FIXES:
+
+* `digitalocean_cdn`, `digitalocean_app`: Fix panics introduced in move from ReadFunc to ReadContextFunc ([#505](https://github.com/digitalocean/terraform-provider-digitalocean/issues/505)).
+
 ## 2.0.0 (October 20, 2020)
 
 NOTES:
