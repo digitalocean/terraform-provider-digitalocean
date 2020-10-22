@@ -3,9 +3,10 @@ package digitalocean
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"log"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -115,7 +116,7 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.Errorf("[DEBUG] Error setting app spec: %#v", err)
 	}
 
-	return diag.FromErr(err)
+	return nil
 }
 
 func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

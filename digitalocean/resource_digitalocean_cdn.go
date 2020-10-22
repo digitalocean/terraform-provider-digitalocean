@@ -212,7 +212,7 @@ func resourceDigitalOceanCDNRead(ctx context.Context, d *schema.ResourceData, me
 		d.Set("certificate_name", cert.Name)
 	}
 
-	return diag.FromErr(err)
+	return nil
 }
 
 func resourceDigitalOceanCDNUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
