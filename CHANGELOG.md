@@ -1,3 +1,10 @@
+## 2.0.2 (October 28, 2020)
+
+BUG FIXES:
+
+* `digitalocean_spaces_bucket`: Add retry logic to ensure bucket is available before proceeding ([#510](https://github.com/digitalocean/terraform-provider-digitalocean/issues/510)).
+* Docs: Fix broken link to DigitalOcean app spec ([#509](https://github.com/digitalocean/terraform-provider-digitalocean/pull/509)). Thanks to @edbedbe!
+
 ## 2.0.1 (October 22, 2020)
 
 BUG FIXES:
@@ -78,7 +85,7 @@ IMPROVEMENTS:
 
 BUG FIXES:
 
-* datasource/digitalocean_droplets: Set ID in `flattenDigitalOceanDroplet` to ensure the individual Droplets have their ID exported in the list data source. [#450](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/450)). 
+* datasource/digitalocean_droplets: Set ID in `flattenDigitalOceanDroplet` to ensure the individual Droplets have their ID exported in the list data source. [#450](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/450)).
 
 ## 1.19.0 (June 03, 2020)
 
@@ -94,7 +101,7 @@ IMPROVEMENTS:
 BUG FIXES:
 
 * resource/digitalocean_kubernetes_cluster: Add forcenew to vpc_uuid field ([#443](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/443)). Thanks to KadenLNelson!
-* resource/digitalocean_kubernetes_cluster: Fail faster on cluster create error [#435](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/435)). 
+* resource/digitalocean_kubernetes_cluster: Fail faster on cluster create error [#435](https://github.com/terraform-providers/terraform-provider-digitalocean/pull/435)).
 
 ## 1.18.0 (May 05, 2020)
 
