@@ -4,7 +4,7 @@ require (
 	github.com/aws/aws-sdk-go v1.25.4
 	github.com/digitalocean/godo v1.45.0
 	github.com/hashicorp/go-version v1.2.1
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.0.3
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.1.0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/stretchr/testify v1.6.1
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect

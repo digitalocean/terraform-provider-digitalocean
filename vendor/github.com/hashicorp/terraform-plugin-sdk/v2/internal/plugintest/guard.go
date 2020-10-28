@@ -1,4 +1,4 @@
-package tftest
+package plugintest
 
 import (
 	"fmt"

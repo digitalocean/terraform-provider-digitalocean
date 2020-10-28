@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	tfjson "github.com/hashicorp/terraform-json"
-	tftest "github.com/hashicorp/terraform-plugin-test/v2"
 	testing "github.com/mitchellh/go-testing-interface"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/plugintest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func testStepNewConfig(t testing.T, c TestCase, wd *tftest.WorkingDir, step TestStep) error {
+func testStepNewConfig(t testing.T, c TestCase, wd *plugintest.WorkingDir, step TestStep) error {
 	t.Helper()
 
 	var idRefreshCheck *terraform.ResourceState
@@ -18,8 +18,12 @@ func testStepNewConfig(t testing.T, c TestCase, wd *tftest.WorkingDir, step Test
 
 	if !step.Destroy {
 		var state *terraform.State
-		err := runProviderCommand(t, func() error {
-			state = getState(t, wd)
+		var err error
+		err = runProviderCommand(t, func() error {
+			state, err = getState(t, wd)
+			if err != nil {
+				return err
+			}
 			return nil
 		}, wd, c.ProviderFactories)
 		if err != nil {
@@ -64,7 +68,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *tftest.WorkingDir, step Test
 		// check function
 		var stateBeforeApplication *terraform.State
 		err = runProviderCommand(t, func() error {
-			stateBeforeApplication = getState(t, wd)
+			stateBeforeApplication, err = getState(t, wd)
+			if err != nil {
+				return err
+			}
 			return nil
 		}, wd, c.ProviderFactories)
 		if err != nil {
@@ -85,7 +92,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *tftest.WorkingDir, step Test
 		// Get the new state
 		var state *terraform.State
 		err = runProviderCommand(t, func() error {
-			state = getState(t, wd)
+			state, err = getState(t, wd)
+			if err != nil {
+				return err
+			}
 			return nil
 		}, wd, c.ProviderFactories)
 		if err != nil {
@@ -134,7 +144,7 @@ func testStepNewConfig(t testing.T, c TestCase, wd *tftest.WorkingDir, step Test
 		var stdout string
 		err = runProviderCommand(t, func() error {
 			var err error
-			stdout, err = wd.SavedPlanStdout()
+			stdout, err = wd.SavedPlanRawStdout()
 			return err
 		}, wd, c.ProviderFactories)
 		if err != nil {
@@ -178,7 +188,7 @@ func testStepNewConfig(t testing.T, c TestCase, wd *tftest.WorkingDir, step Test
 		var stdout string
 		err = runProviderCommand(t, func() error {
 			var err error
-			stdout, err = wd.SavedPlanStdout()
+			stdout, err = wd.SavedPlanRawStdout()
 			return err
 		}, wd, c.ProviderFactories)
 		if err != nil {
@@ -194,7 +204,10 @@ func testStepNewConfig(t testing.T, c TestCase, wd *tftest.WorkingDir, step Test
 	// empty, find the first resource and test it.
 	var state *terraform.State
 	err = runProviderCommand(t, func() error {
-		state = getState(t, wd)
+		state, err = getState(t, wd)
+		if err != nil {
+			return err
+		}
 		return nil
 	}, wd, c.ProviderFactories)
 	if err != nil {

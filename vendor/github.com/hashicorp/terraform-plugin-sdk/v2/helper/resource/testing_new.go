@@ -8,35 +8,25 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	tfjson "github.com/hashicorp/terraform-json"
-	tftest "github.com/hashicorp/terraform-plugin-test/v2"
 	testing "github.com/mitchellh/go-testing-interface"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/internal/plugintest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func runPostTestDestroy(t testing.T, c TestCase, wd *tftest.WorkingDir, factories map[string]func() (*schema.Provider, error)) error {
+func runPostTestDestroy(t testing.T, c TestCase, wd *plugintest.WorkingDir, factories map[string]func() (*schema.Provider, error), statePreDestroy *terraform.State) error {
 	t.Helper()
 
 	err := runProviderCommand(t, func() error {
-		wd.RequireDestroy(t)
-		return nil
+		return wd.Destroy()
 	}, wd, factories)
 	if err != nil {
 		return err
 	}
 
 	if c.CheckDestroy != nil {
-		var statePostDestroy *terraform.State
-		err := runProviderCommand(t, func() error {
-			statePostDestroy = getState(t, wd)
-			return nil
-		}, wd, factories)
-		if err != nil {
-			return err
-		}
-
-		if err := c.CheckDestroy(statePostDestroy); err != nil {
+		if err := c.CheckDestroy(statePreDestroy); err != nil {
 			return err
 		}
 	}
@@ -44,7 +34,7 @@ func runPostTestDestroy(t testing.T, c TestCase, wd *tftest.WorkingDir, factorie
 	return nil
 }
 
-func runNewTest(t testing.T, c TestCase, helper *tftest.Helper) {
+func runNewTest(t testing.T, c TestCase, helper *plugintest.Helper) {
 	t.Helper()
 
 	spewConf := spew.NewDefaultConfig()
@@ -53,8 +43,12 @@ func runNewTest(t testing.T, c TestCase, helper *tftest.Helper) {
 
 	defer func() {
 		var statePreDestroy *terraform.State
-		err := runProviderCommand(t, func() error {
-			statePreDestroy = getState(t, wd)
+		var err error
+		err = runProviderCommand(t, func() error {
+			statePreDestroy, err = getState(t, wd)
+			if err != nil {
+				return err
+			}
 			return nil
 		}, wd, c.ProviderFactories)
 		if err != nil {
@@ -63,7 +57,7 @@ func runNewTest(t testing.T, c TestCase, helper *tftest.Helper) {
 		}
 
 		if !stateIsEmpty(statePreDestroy) {
-			err := runPostTestDestroy(t, c, wd, c.ProviderFactories)
+			err := runPostTestDestroy(t, c, wd, c.ProviderFactories, statePreDestroy)
 			if err != nil {
 				t.Fatalf("Error running post-test destroy, there may be dangling resources: %s", err.Error())
 			}
@@ -77,10 +71,12 @@ func runNewTest(t testing.T, c TestCase, helper *tftest.Helper) {
 		t.Fatal(err)
 	}
 
-	wd.RequireSetConfig(t, providerCfg)
+	err = wd.SetConfig(providerCfg)
+	if err != nil {
+		t.Fatalf("Error setting test config: %s", err)
+	}
 	err = runProviderCommand(t, func() error {
-		wd.RequireInit(t)
-		return nil
+		return wd.Init()
 	}, wd, c.ProviderFactories)
 	if err != nil {
 		t.Fatalf("Error running init: %s", err.Error())
@@ -146,15 +142,18 @@ func runNewTest(t testing.T, c TestCase, helper *tftest.Helper) {
 	}
 }
 
-func getState(t testing.T, wd *tftest.WorkingDir) *terraform.State {
+func getState(t testing.T, wd *plugintest.WorkingDir) (*terraform.State, error) {
 	t.Helper()
 
-	jsonState := wd.RequireState(t)
+	jsonState, err := wd.State()
+	if err != nil {
+		return nil, err
+	}
 	state, err := shimStateFromJson(jsonState)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return state
+	return state, nil
 }
 
 func stateIsEmpty(state *terraform.State) bool {
@@ -163,12 +162,6 @@ func stateIsEmpty(state *terraform.State) bool {
 
 func planIsEmpty(plan *tfjson.Plan) bool {
 	for _, rc := range plan.ResourceChanges {
-		if rc.Mode == tfjson.DataResourceMode {
-			// Skip data sources as the current implementation ignores
-			// existing state and they are all re-read every time
-			continue
-		}
-
 		for _, a := range rc.Change.Actions {
 			if a != tfjson.ActionNoop {
 				return false
@@ -178,7 +171,7 @@ func planIsEmpty(plan *tfjson.Plan) bool {
 	return true
 }
 
-func testIDRefresh(c TestCase, t testing.T, wd *tftest.WorkingDir, step TestStep, r *terraform.ResourceState) error {
+func testIDRefresh(c TestCase, t testing.T, wd *plugintest.WorkingDir, step TestStep, r *terraform.ResourceState) error {
 	t.Helper()
 
 	spewConf := spew.NewDefaultConfig()
@@ -196,13 +189,27 @@ func testIDRefresh(c TestCase, t testing.T, wd *tftest.WorkingDir, step TestStep
 	if err != nil {
 		return err
 	}
-	wd.RequireSetConfig(t, cfg)
-	defer wd.RequireSetConfig(t, step.Config)
+	err = wd.SetConfig(cfg)
+	if err != nil {
+		t.Fatalf("Error setting import test config: %s", err)
+	}
+	defer func() {
+		err = wd.SetConfig(step.Config)
+		if err != nil {
+			t.Fatalf("Error resetting test config: %s", err)
+		}
+	}()
 
 	// Refresh!
 	err = runProviderCommand(t, func() error {
-		wd.RequireRefresh(t)
-		state = getState(t, wd)
+		err = wd.Refresh()
+		if err != nil {
+			t.Fatalf("Error running terraform refresh: %s", err)
+		}
+		state, err = getState(t, wd)
+		if err != nil {
+			return err
+		}
 		return nil
 	}, wd, c.ProviderFactories)
 	if err != nil {

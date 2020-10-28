@@ -1,4 +1,4 @@
-package tftest
+package plugintest
 
 import (
 	"context"
@@ -27,7 +27,7 @@ func DiscoverConfig(sourceDir string) (*Config, error) {
 	tfPath := os.Getenv("TF_ACC_TERRAFORM_PATH")
 
 	tempDir := os.Getenv("TF_ACC_TEMP_DIR")
-	tfDir, err := ioutil.TempDir(tempDir, "tftest-terraform")
+	tfDir, err := ioutil.TempDir(tempDir, "plugintest-terraform")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp dir: %w", err)
 	}

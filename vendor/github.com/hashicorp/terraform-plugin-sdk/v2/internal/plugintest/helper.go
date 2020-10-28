@@ -1,14 +1,9 @@
-package tftest
+package plugintest
 
 import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
-	"runtime"
-	"strings"
-
-	getter "github.com/hashicorp/go-getter"
 )
 
 const subprocessCurrentSigil = "4acd63807899403ca4859f5bb948d2c6"
@@ -72,7 +67,7 @@ func AutoInitHelper(sourceDir string) (*Helper, error) {
 // automatically clean those up.
 func InitHelper(config *Config) (*Helper, error) {
 	tempDir := os.Getenv("TF_ACC_TEMP_DIR")
-	baseDir, err := ioutil.TempDir(tempDir, "tftest")
+	baseDir, err := ioutil.TempDir(tempDir, "plugintest")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temporary directory for test helper: %s", err)
 	}
@@ -83,81 +78,6 @@ func InitHelper(config *Config) (*Helper, error) {
 		terraformExec: config.TerraformExec,
 		execTempDir:   config.execTempDir,
 	}, nil
-}
-
-// symlinkAuxiliaryProviders discovers auxiliary provider binaries, used in
-// multi-provider tests, and symlinks them to the plugin directory.
-//
-// Auxiliary provider binaries should be included in the provider source code
-// directory, under the path terraform.d/plugins/$GOOS_$GOARCH/provider-name.
-//
-// The environment variable TF_ACC_PROVIDER_ROOT_DIR must be set to the path of
-// the provider source code directory root in order to use this feature.
-func symlinkAuxiliaryProviders(pluginDir string) error {
-	providerRootDir := os.Getenv("TF_ACC_PROVIDER_ROOT_DIR")
-	if providerRootDir == "" {
-		// common case; assume intentional and do not log
-		return nil
-	}
-
-	_, err := os.Stat(filepath.Join(providerRootDir, "terraform.d", "plugins"))
-	if os.IsNotExist(err) {
-		fmt.Printf("No terraform.d/plugins directory found: continuing. Unset TF_ACC_PROVIDER_ROOT_DIR or supply provider binaries in terraform.d/plugins/$GOOS_$GOARCH to disable this message.")
-		return nil
-	} else if err != nil {
-		return fmt.Errorf("Unexpected error: %s", err)
-	}
-
-	auxiliaryProviderDir := filepath.Join(providerRootDir, "terraform.d", "plugins", runtime.GOOS+"_"+runtime.GOARCH)
-
-	// If we can't os.Stat() terraform.d/plugins/$GOOS_$GOARCH, however,
-	// assume the omission was unintentional, and error.
-	_, err = os.Stat(auxiliaryProviderDir)
-	if os.IsNotExist(err) {
-		return fmt.Errorf("error finding auxiliary provider dir %s: %s", auxiliaryProviderDir, err)
-	} else if err != nil {
-		return fmt.Errorf("Unexpected error: %s", err)
-	}
-
-	// now find all the providers in that dir and symlink them to the plugin dir
-	providers, err := ioutil.ReadDir(auxiliaryProviderDir)
-	if err != nil {
-		return fmt.Errorf("error reading auxiliary providers: %s", err)
-	}
-
-	zipDecompressor := new(getter.ZipDecompressor)
-
-	for _, provider := range providers {
-		filename := provider.Name()
-		filenameExt := filepath.Ext(filename)
-		name := strings.TrimSuffix(filename, filenameExt)
-		path := filepath.Join(auxiliaryProviderDir, name)
-		symlinkPath := filepath.Join(pluginDir, name)
-
-		// exit early if we have already symlinked this provider
-		_, err := os.Stat(symlinkPath)
-		if err == nil {
-			continue
-		}
-
-		// if filename ends in .zip, assume it is a zip and extract it
-		// otherwise assume it is a provider binary
-		if filenameExt == ".zip" {
-			_, err = os.Stat(path)
-			if os.IsNotExist(err) {
-				zipDecompressor.Decompress(path, filepath.Join(auxiliaryProviderDir, filename), false)
-			} else if err != nil {
-				return fmt.Errorf("Unexpected error: %s", err)
-			}
-		}
-
-		err = symlinkFile(path, symlinkPath)
-		if err != nil {
-			return fmt.Errorf("error symlinking auxiliary provider %s: %s", name, err)
-		}
-	}
-
-	return nil
 }
 
 // Close cleans up temporary files and directories created to support this
