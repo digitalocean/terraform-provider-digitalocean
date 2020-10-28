@@ -205,20 +205,20 @@ func resourceDigitalOceanBucketCreate(ctx context.Context, d *schema.ResourceDat
 
 	svc := s3.New(client)
 
+	name := d.Get("name").(string)
 	input := &s3.CreateBucketInput{
-		Bucket: aws.String(d.Get("name").(string)),
+		Bucket: aws.String(name),
 		ACL:    aws.String(d.Get("acl").(string)),
 	}
 
 	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
-		log.Printf("[DEBUG] Trying to create new Spaces bucket: %q", d.Get("name").(string))
+		log.Printf("[DEBUG] Trying to create new Spaces bucket: %q", name)
 		_, err := svc.CreateBucket(input)
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == "OperationAborted" {
-				log.Printf("[WARN] Got an error while trying to create Spaces bucket %s: %s", d.Get("name").(string), err)
+				log.Printf("[WARN] Got an error while trying to create Spaces bucket %s: %s", name, err)
 				return resource.RetryableError(
-					fmt.Errorf("[WARN] Error creating Spaces bucket %s, retrying: %s",
-						d.Get("name").(string), err))
+					fmt.Errorf("[WARN] Error creating Spaces bucket %s, retrying: %s", name, err))
 			}
 		}
 		if err != nil {
@@ -231,6 +231,21 @@ func resourceDigitalOceanBucketCreate(ctx context.Context, d *schema.ResourceDat
 	if err != nil {
 		return diag.Errorf("Error creating Spaces bucket: %s", err)
 	}
+
+	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+		_, err := svc.HeadBucket(&s3.HeadBucketInput{Bucket: aws.String(name)})
+		if awsErr, ok := err.(awserr.Error); ok {
+			if awsErr.Code() == "NotFound" {
+				log.Printf("[DEBUG] Waiting for Spaces bucket to be available: %q, retrying: %v", name, awsErr.Message())
+				return resource.RetryableError(err)
+			}
+		}
+		if err != nil {
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
 	log.Println("Bucket created")
 
 	d.SetId(d.Get("name").(string))
