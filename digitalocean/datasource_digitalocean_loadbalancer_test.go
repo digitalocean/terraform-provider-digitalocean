@@ -6,8 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
-
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -41,7 +39,7 @@ data "digitalocean_loadbalancer" "foobar" {
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"data.digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -100,7 +98,7 @@ data "digitalocean_loadbalancer" "foobar" {
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "2"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"data.digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -110,7 +108,7 @@ data "digitalocean_loadbalancer" "foobar" {
 							"target_protocol": "https",
 						},
 					),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"data.digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{

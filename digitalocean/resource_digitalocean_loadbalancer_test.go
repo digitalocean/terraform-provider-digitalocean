@@ -8,8 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
-
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -72,7 +70,7 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -123,7 +121,7 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -158,7 +156,7 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -206,7 +204,7 @@ func TestAccDigitalOceanLoadbalancer_dropletTag(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -250,7 +248,7 @@ func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -302,7 +300,7 @@ func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -356,7 +354,7 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -399,7 +397,7 @@ func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -440,7 +438,7 @@ func TestAccDigitalOceanLoadbalancer_multipleRules(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "2"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -451,7 +449,7 @@ func TestAccDigitalOceanLoadbalancer_multipleRules(t *testing.T) {
 							"tls_passthrough": "true",
 						},
 					),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{

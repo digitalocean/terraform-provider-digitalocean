@@ -1,8 +1,6 @@
 package digitalocean
 
 import (
-	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
-
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -83,8 +81,8 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "service_subnet"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.#", "3"),
-					setutil.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "tags.*", "foo"),
-					setutil.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "tags.*", "foo"),
+					resource.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "tags.*", "foo"),
+					resource.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "tags.*", "foo"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
@@ -93,8 +91,8 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.node_count", "1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.actual_node_count", "1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.#", "2"),
-					setutil.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.*", "one"),
-					setutil.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.*", "two"),
+					resource.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.*", "one"),
+					resource.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.*", "two"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.labels.%", "1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.labels.priority", "high"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.#", "1"),
@@ -137,8 +135,8 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName+"-updated"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.#", "2"),
-					setutil.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "tags.*", "one"),
-					setutil.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "tags.*", "two"),
+					resource.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "tags.*", "one"),
+					resource.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "tags.*", "two"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.labels.%", "0"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "surge_upgrade", "true"),
 				),

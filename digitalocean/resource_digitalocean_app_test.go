@@ -7,8 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
-
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -198,7 +196,7 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.name", appName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.env.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_app.foobar",
 						"spec.0.service.0.env.*",
 						map[string]string{
@@ -217,7 +215,7 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.name", appName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.env.#", "2"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_app.foobar",
 						"spec.0.service.0.env.*",
 						map[string]string{
@@ -226,7 +224,7 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 							"scope": "RUN_AND_BUILD_TIME",
 						},
 					),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_app.foobar",
 						"spec.0.service.0.env.*",
 						map[string]string{
@@ -245,7 +243,7 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.name", appName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.env.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_app.foobar",
 						"spec.0.service.0.env.*",
 						map[string]string{
