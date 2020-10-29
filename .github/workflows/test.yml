@@ -1,0 +1,31 @@
+# Runs unit tests and `go vet`
+# Note that acceptance tests are not currently run automatically.
+name: Unit Test
+
+on:
+  pull_request_target:
+  push:
+    branches:
+    - master
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [ 1.14.x, 1.15.x ]
+
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: make test
+      run: make test
+
+    - name: make vet
+      run: make vet
