@@ -6,18 +6,18 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanContainerRegistry_Basic(t *testing.T) {
 	var reg godo.Registry
-	regName := fmt.Sprintf("foo-%s", acctest.RandString(10))
+	regName := randomTestName()
 
 	resourceConfig := fmt.Sprintf(`
 resource "digitalocean_container_registry" "foo" {
-  name = "%s"
+  name                   = "%s"
+  subscription_tier_slug = "basic"
 }
 `, regName)
 
@@ -40,6 +40,8 @@ data "digitalocean_container_registry" "foobar" {
 					testAccCheckDataSourceDigitalOceanContainerRegistryExists("data.digitalocean_container_registry.foobar", &reg),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_container_registry.foobar", "name", regName),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_container_registry.foobar", "subscription_tier_slug", "basic"),
 				),
 			},
 		},

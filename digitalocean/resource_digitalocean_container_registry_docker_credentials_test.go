@@ -125,7 +125,8 @@ func testAccCheckDigitalOceanContainerRegistryDockerCredentialsExists(n string, 
 
 var testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_basic = `
 resource "digitalocean_container_registry" "foobar" {
-	name = "foobar"
+	name                   = "foobar"
+	subscription_tier_slug = "basic"
 }
 
 resource "digitalocean_container_registry_docker_credentials" "foobar" {
@@ -135,7 +136,8 @@ resource "digitalocean_container_registry_docker_credentials" "foobar" {
 
 var testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_withExpiry = `
 resource "digitalocean_container_registry" "foobar" {
-	name = "foobar"
+	name                   = "foobar"
+	subscription_tier_slug = "basic"
 }
 
 resource "digitalocean_container_registry_docker_credentials" "foobar" {

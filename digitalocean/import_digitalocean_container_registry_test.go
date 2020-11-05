@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -15,7 +16,7 @@ func TestAccDigitalOceanContainerRegistry_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanContainerRegistryConfig_basic,
+				Config: fmt.Sprintf(testAccCheckDigitalOceanContainerRegistryConfig_basic, "basic"),
 			},
 
 			{

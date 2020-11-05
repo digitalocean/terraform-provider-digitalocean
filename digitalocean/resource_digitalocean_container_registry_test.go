@@ -12,6 +12,8 @@ import (
 
 func TestAccDigitalOceanContainerRegistry_Basic(t *testing.T) {
 	var reg godo.Registry
+	starterConfig := fmt.Sprintf(testAccCheckDigitalOceanContainerRegistryConfig_basic, "starter")
+	basicConfig := fmt.Sprintf(testAccCheckDigitalOceanContainerRegistryConfig_basic, "basic")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -19,7 +21,7 @@ func TestAccDigitalOceanContainerRegistry_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanContainerRegistryConfig_basic,
+				Config: starterConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanContainerRegistryExists("digitalocean_container_registry.foobar", &reg),
 					testAccCheckDigitalOceanContainerRegistryAttributes(&reg),
@@ -29,6 +31,23 @@ func TestAccDigitalOceanContainerRegistry_Basic(t *testing.T) {
 						"digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/foobar"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry.foobar", "server_url", "registry.digitalocean.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_container_registry.foobar", "subscription_tier_slug", "starter"),
+				),
+			},
+			{
+				Config: basicConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanContainerRegistryExists("digitalocean_container_registry.foobar", &reg),
+					testAccCheckDigitalOceanContainerRegistryAttributes(&reg),
+					resource.TestCheckResourceAttr(
+						"digitalocean_container_registry.foobar", "name", "foobar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/foobar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_container_registry.foobar", "server_url", "registry.digitalocean.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_container_registry.foobar", "subscription_tier_slug", "basic"),
 				),
 			},
 		},
@@ -94,5 +113,6 @@ func testAccCheckDigitalOceanContainerRegistryExists(n string, reg *godo.Registr
 
 var testAccCheckDigitalOceanContainerRegistryConfig_basic = `
 resource "digitalocean_container_registry" "foobar" {
-    name = "foobar"
+  name                   = "foobar"
+  subscription_tier_slug = "%s"
 }`
