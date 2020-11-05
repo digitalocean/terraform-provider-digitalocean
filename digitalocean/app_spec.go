@@ -119,6 +119,12 @@ func appSpecEnvSchema() *schema.Resource {
 					"SECRET",
 				}, false),
 				Description: "The type of the environment variable.",
+				// The API does not always return `"type":"GENERAL"` when set.
+				// As being unset and being set to `GENERAL` are functionally,
+				// the same, we can safely ignore the diff.
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return new == "GENERAL" && old == ""
+				},
 			},
 		},
 	}
