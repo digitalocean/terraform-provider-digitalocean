@@ -182,6 +182,7 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
         key   = "FOO"
         value = "baz"
         scope = "RUN_TIME"
+        type  = "GENERAL"
       }
 `
 
