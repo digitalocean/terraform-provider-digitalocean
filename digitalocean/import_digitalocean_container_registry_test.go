@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -8,6 +9,7 @@ import (
 
 func TestAccDigitalOceanContainerRegistry_importBasic(t *testing.T) {
 	resourceName := "digitalocean_container_registry.foobar"
+	name := randomTestName()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -15,7 +17,7 @@ func TestAccDigitalOceanContainerRegistry_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanContainerRegistryConfig_basic,
+				Config: fmt.Sprintf(testAccCheckDigitalOceanContainerRegistryConfig_basic, name, "basic"),
 			},
 
 			{
