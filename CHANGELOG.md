@@ -1,3 +1,17 @@
+## 2.1.0 (November 06, 2020)
+
+NOTES:
+
+* DigitalOcean Container Registry is now in general availablity and requires a [subscription plan](https://www.digitalocean.com/docs/container-registry/#plans-and-pricing). As a result, the `digitalocean_container_registry` resource now requires setting a `subscription_tier_slug`.
+
+IMPROVEMENTS:
+
+* `digitalocean_container_registry`: Supports setting and updating a `subscription_tier_slug` ([#516](https://github.com/digitalocean/terraform-provider-digitalocean/pull/516)).
+
+BUG FIXES:
+
+* `digitalocean_app`: Suppress diff when env type is `GENERAL` ([#515](https://github.com/digitalocean/terraform-provider-digitalocean/pull/515)).
+
 ## 2.0.2 (October 28, 2020)
 
 BUG FIXES:
