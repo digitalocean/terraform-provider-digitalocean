@@ -12,6 +12,7 @@ import (
 
 func TestAccDigitalOceanContainerRegistryDockerCredentials_Basic(t *testing.T) {
 	var reg godo.Registry
+	name := randomTestName()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -19,12 +20,12 @@ func TestAccDigitalOceanContainerRegistryDockerCredentials_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanContainerRegistryDockerCredentialsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_basic,
+				Config: fmt.Sprintf(testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_basic, name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanContainerRegistryDockerCredentialsExists("digitalocean_container_registry.foobar", &reg),
-					testAccCheckDigitalOceanContainerRegistryDockerCredentialsAttributes(&reg),
+					testAccCheckDigitalOceanContainerRegistryDockerCredentialsAttributes(&reg, name),
 					resource.TestCheckResourceAttr(
-						"digitalocean_container_registry_docker_credentials.foobar", "registry_name", "foobar"),
+						"digitalocean_container_registry_docker_credentials.foobar", "registry_name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry_docker_credentials.foobar", "write", "true"),
 					resource.TestCheckResourceAttrSet(
@@ -39,6 +40,7 @@ func TestAccDigitalOceanContainerRegistryDockerCredentials_Basic(t *testing.T) {
 
 func TestAccDigitalOceanContainerRegistryDockerCredentials_withExpiry(t *testing.T) {
 	var reg godo.Registry
+	name := randomTestName()
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -46,12 +48,12 @@ func TestAccDigitalOceanContainerRegistryDockerCredentials_withExpiry(t *testing
 		CheckDestroy:      testAccCheckDigitalOceanContainerRegistryDockerCredentialsDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_withExpiry,
+				Config: fmt.Sprintf(testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_withExpiry, name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanContainerRegistryDockerCredentialsExists("digitalocean_container_registry.foobar", &reg),
-					testAccCheckDigitalOceanContainerRegistryDockerCredentialsAttributes(&reg),
+					testAccCheckDigitalOceanContainerRegistryDockerCredentialsAttributes(&reg, name),
 					resource.TestCheckResourceAttr(
-						"digitalocean_container_registry_docker_credentials.foobar", "registry_name", "foobar"),
+						"digitalocean_container_registry_docker_credentials.foobar", "registry_name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry_docker_credentials.foobar", "write", "true"),
 					resource.TestCheckResourceAttr(
@@ -85,10 +87,10 @@ func testAccCheckDigitalOceanContainerRegistryDockerCredentialsDestroy(s *terraf
 	return nil
 }
 
-func testAccCheckDigitalOceanContainerRegistryDockerCredentialsAttributes(reg *godo.Registry) resource.TestCheckFunc {
+func testAccCheckDigitalOceanContainerRegistryDockerCredentialsAttributes(reg *godo.Registry, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if reg.Name != "foobar" {
+		if reg.Name != name {
 			return fmt.Errorf("Bad name: %s", reg.Name)
 		}
 
@@ -125,7 +127,7 @@ func testAccCheckDigitalOceanContainerRegistryDockerCredentialsExists(n string, 
 
 var testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_basic = `
 resource "digitalocean_container_registry" "foobar" {
-	name                   = "foobar"
+	name                   = "%s"
 	subscription_tier_slug = "basic"
 }
 
@@ -136,7 +138,7 @@ resource "digitalocean_container_registry_docker_credentials" "foobar" {
 
 var testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_withExpiry = `
 resource "digitalocean_container_registry" "foobar" {
-	name                   = "foobar"
+	name                   = "%s"
 	subscription_tier_slug = "basic"
 }
 

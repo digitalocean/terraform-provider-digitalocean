@@ -12,8 +12,9 @@ import (
 
 func TestAccDigitalOceanContainerRegistry_Basic(t *testing.T) {
 	var reg godo.Registry
-	starterConfig := fmt.Sprintf(testAccCheckDigitalOceanContainerRegistryConfig_basic, "starter")
-	basicConfig := fmt.Sprintf(testAccCheckDigitalOceanContainerRegistryConfig_basic, "basic")
+	name := randomTestName()
+	starterConfig := fmt.Sprintf(testAccCheckDigitalOceanContainerRegistryConfig_basic, name, "starter")
+	basicConfig := fmt.Sprintf(testAccCheckDigitalOceanContainerRegistryConfig_basic, name, "basic")
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -24,11 +25,11 @@ func TestAccDigitalOceanContainerRegistry_Basic(t *testing.T) {
 				Config: starterConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanContainerRegistryExists("digitalocean_container_registry.foobar", &reg),
-					testAccCheckDigitalOceanContainerRegistryAttributes(&reg),
+					testAccCheckDigitalOceanContainerRegistryAttributes(&reg, name),
 					resource.TestCheckResourceAttr(
-						"digitalocean_container_registry.foobar", "name", "foobar"),
+						"digitalocean_container_registry.foobar", "name", name),
 					resource.TestCheckResourceAttr(
-						"digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/foobar"),
+						"digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/"+name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry.foobar", "server_url", "registry.digitalocean.com"),
 					resource.TestCheckResourceAttr(
@@ -39,11 +40,11 @@ func TestAccDigitalOceanContainerRegistry_Basic(t *testing.T) {
 				Config: basicConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanContainerRegistryExists("digitalocean_container_registry.foobar", &reg),
-					testAccCheckDigitalOceanContainerRegistryAttributes(&reg),
+					testAccCheckDigitalOceanContainerRegistryAttributes(&reg, name),
 					resource.TestCheckResourceAttr(
-						"digitalocean_container_registry.foobar", "name", "foobar"),
+						"digitalocean_container_registry.foobar", "name", name),
 					resource.TestCheckResourceAttr(
-						"digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/foobar"),
+						"digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/"+name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry.foobar", "server_url", "registry.digitalocean.com"),
 					resource.TestCheckResourceAttr(
@@ -73,10 +74,10 @@ func testAccCheckDigitalOceanContainerRegistryDestroy(s *terraform.State) error 
 	return nil
 }
 
-func testAccCheckDigitalOceanContainerRegistryAttributes(reg *godo.Registry) resource.TestCheckFunc {
+func testAccCheckDigitalOceanContainerRegistryAttributes(reg *godo.Registry, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if reg.Name != "foobar" {
+		if reg.Name != name {
 			return fmt.Errorf("Bad name: %s", reg.Name)
 		}
 
@@ -113,6 +114,6 @@ func testAccCheckDigitalOceanContainerRegistryExists(n string, reg *godo.Registr
 
 var testAccCheckDigitalOceanContainerRegistryConfig_basic = `
 resource "digitalocean_container_registry" "foobar" {
-  name                   = "foobar"
+  name                   = "%s"
   subscription_tier_slug = "%s"
 }`
