@@ -39,7 +39,7 @@ data "digitalocean_ssh_keys" "keys" {
 
 `sort` supports the following arguments:
 
-* `key` - (Required) Sort the SSH Keys by this key. This may be one of `name`, `public_key`, or `thumbprint`.
+* `key` - (Required) Sort the SSH Keys by this key. This may be one of `name`, `public_key`, or `fingerprint`.
 
 * `direction` - (Required) The sort direction. This may be either `asc` or `desc`.
 
