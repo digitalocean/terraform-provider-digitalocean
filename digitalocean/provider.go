@@ -71,6 +71,7 @@ func Provider() *schema.Provider {
 			"digitalocean_spaces_bucket_object":  dataSourceDigitalOceanSpacesBucketObject(),
 			"digitalocean_spaces_bucket_objects": dataSourceDigitalOceanSpacesBucketObjects(),
 			"digitalocean_ssh_key":               dataSourceDigitalOceanSSHKey(),
+			"digitalocean_ssh_keys":              dataSourceDigitalOceanSSHKeys(),
 			"digitalocean_tag":                   dataSourceDigitalOceanTag(),
 			"digitalocean_tags":                  dataSourceDigitalOceanTags(),
 			"digitalocean_volume_snapshot":       dataSourceDigitalOceanVolumeSnapshot(),

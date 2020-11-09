@@ -8,89 +8,55 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceDigitalOceanSSHKey() *schema.Resource {
+	recordSchema := sshKeySchema()
+
+	for _, f := range recordSchema {
+		f.Computed = true
+	}
+
+	recordSchema["name"].Required = true
+	recordSchema["name"].Computed = false
+
 	return &schema.Resource{
 		ReadContext: dataSourceDigitalOceanSSHKeyRead,
-		Schema: map[string]*schema.Schema{
-
-			"name": {
-				Type:         schema.TypeString,
-				Required:     true,
-				Description:  "name of the ssh key",
-				ValidateFunc: validation.NoZeroValues,
-			},
-			// computed attributes
-			"public_key": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "public key part of the ssh key",
-			},
-			"fingerprint": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "fingerprint of the ssh key",
-			},
-		},
+		Schema:      recordSchema,
 	}
 }
 
 func dataSourceDigitalOceanSSHKeyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*CombinedConfig).godoClient()
-
-	name := d.Get("name").(string)
-
-	opts := &godo.ListOptions{
-		Page:    1,
-		PerPage: 200,
-	}
-
-	keyList := []godo.Key{}
-
-	for {
-		keys, resp, err := client.Keys.List(context.Background(), opts)
-
-		if err != nil {
-			return diag.Errorf("Error retrieving ssh keys: %s", err)
-		}
-
-		for _, key := range keys {
-			keyList = append(keyList, key)
-		}
-
-		if resp.Links == nil || resp.Links.IsLastPage() {
-			break
-		}
-
-		page, err := resp.Links.CurrentPage()
-		if err != nil {
-			return diag.Errorf("Error retrieving ssh keys: %s", err)
-		}
-
-		opts.Page = page + 1
-	}
-
-	key, err := findKeyByName(keyList, name)
-
+	keyList, err := getDigitalOceanSshKeys(meta, nil)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	key, err := findSshKeyByName(keyList, d.Get("name").(string))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	flattenedKey, err := flattenDigitalOceanSshKey(*key, meta, nil)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := setResourceDataFromMap(d, flattenedKey); err != nil {
+		return diag.FromErr(err)
+	}
+
 	d.SetId(strconv.Itoa(key.ID))
-	d.Set("name", key.Name)
-	d.Set("public_key", key.PublicKey)
-	d.Set("fingerprint", key.Fingerprint)
 
 	return nil
 }
 
-func findKeyByName(keys []godo.Key, name string) (*godo.Key, error) {
+func findSshKeyByName(keys []interface{}, name string) (*godo.Key, error) {
 	results := make([]godo.Key, 0)
 	for _, v := range keys {
-		if v.Name == name {
-			results = append(results, v)
+		key := v.(godo.Key)
+		if key.Name == name {
+			results = append(results, key)
 		}
 	}
 	if len(results) == 1 {
