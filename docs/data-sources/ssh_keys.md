@@ -35,7 +35,7 @@ data "digitalocean_ssh_keys" "keys" {
  
 `filter` supports the following arguments:
 
-* `key` - (Required) Filter the SSH Keys by this key. This may be one of `name`, `public_key`, or `thumbprint`.
+* `key` - (Required) Filter the SSH Keys by this key. This may be one of `name`, `public_key`, or `fingerprint`.
 
 `sort` supports the following arguments:
 
