@@ -110,6 +110,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_attachment":                     resourceDigitalOceanVolumeAttachment(),
 			"digitalocean_volume_snapshot":                       resourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_vpc":                                   resourceDigitalOceanVPC(),
+			"digitalocean_image":                                 resourceDigitalOceanImage(),
 		},
 	}
 
