@@ -117,3 +117,13 @@ A `static_site` can contain:
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `route` - An HTTP paths that should be routed to this component.
   - `path` - Paths must start with `/` and must be unique within the app.
+
+A `database` can contain:
+
+* `name` - The name of the component.
+* `engine` - The database engine to use (`MYSQL`, `PG`, or `REDIS`).
+* `version` - The version of the database engine.
+* `production` - Whether this is a production or dev database.
+* `cluster_name` - The name of the underlying DigitalOcean DBaaS cluster. This is required for production databases. For dev databases, if `cluster_name` is not set, a new cluster will be provisioned.
+* `db_name` - The name of the MySQL or PostgreSQL database to configure.
+* `db_user` - The name of the MySQL or PostgreSQL user to configure.
