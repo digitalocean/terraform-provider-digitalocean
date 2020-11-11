@@ -49,7 +49,7 @@ resource "digitalocean_kubernetes_node_pool" "autoscale-pool-01" {
   name       = "autoscale-pool-01"
   size       = "s-1vcpu-2gb"
   auto_scale = true
-  min_nodes  = 0
+  min_nodes  = 1
   max_nodes  = 5
 }
 ```

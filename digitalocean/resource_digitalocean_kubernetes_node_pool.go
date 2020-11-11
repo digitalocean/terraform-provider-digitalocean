@@ -113,8 +113,9 @@ func nodePoolSchema() map[string]*schema.Schema {
 		},
 
 		"min_nodes": {
-			Type:     schema.TypeInt,
-			Optional: true,
+			Type:         schema.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(1),
 		},
 
 		"max_nodes": {
