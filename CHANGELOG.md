@@ -1,3 +1,16 @@
+## 2.2.0 (November 06, 2020)
+
+FEATURES:
+
+* **New Data Source**: `digitalocean_ssh_keys` ([#519](https://github.com/digitalocean/terraform-provider-digitalocean/pull/519)) Thanks to @stack72!
+* **New Resource**: `digitalocean_custom_image` ([#517](https://github.com/digitalocean/terraform-provider-digitalocean/pull/517)) Thanks to @frezbo!
+
+BUG FIXES:
+
+*  `digitalocean_kubernetes_node_pool`: Validate min_nodes is at least 1 and fix example ([#525](https://github.com/digitalocean/terraform-provider-digitalocean/pull/525)).
+* `digitalocean_app`: Document the database spec ([#524](https://github.com/digitalocean/terraform-provider-digitalocean/pull/524)).
+* `digitalocean_container_registry`: Update docs w/ `subscription_tier_slug` ([#523](https://github.com/digitalocean/terraform-provider-digitalocean/pull/523)).
+
 ## 2.1.0 (November 06, 2020)
 
 NOTES:
