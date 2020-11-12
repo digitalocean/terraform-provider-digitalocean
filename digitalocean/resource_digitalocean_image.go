@@ -20,12 +20,12 @@ const (
 	imageDeletedStatus   = "deleted"
 )
 
-func resourceDigitalOceanImage() *schema.Resource {
+func resourceDigitalOceanCustomImage() *schema.Resource {
 	return &schema.Resource{
-		ReadContext:   resourceDigitalOceanImageRead,
-		CreateContext: resourceDigitalOceanImageCreate,
-		UpdateContext: resourceDigitalOceanImageUpdate,
-		DeleteContext: resourceDigitalOceanImageDelete,
+		ReadContext:   resourceDigitalOceanCustomImageRead,
+		CreateContext: resourceDigitalOceanCustomImageCreate,
+		UpdateContext: resourceDigitalOceanCustomImageUpdate,
+		DeleteContext: resourceDigitalOceanCustomImageDelete,
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:         schema.TypeString,
@@ -54,7 +54,7 @@ func resourceDigitalOceanImage() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Default:      "Unknown",
-				ValidateFunc: validation.NoZeroValues,
+				ValidateFunc: validation.StringInSlice(validImageDistributions(), false),
 			},
 			"tags": tagsSchema(),
 			"image_id": {
@@ -93,7 +93,7 @@ func resourceDigitalOceanImage() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanImageCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanCustomImageCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	// TODO: Support multiple regions
@@ -129,10 +129,10 @@ func resourceDigitalOceanImageCreate(ctx context.Context, d *schema.ResourceData
 		return diag.Errorf(
 			"Error waiting for image (%s) to become ready: %s", d.Id(), err)
 	}
-	return resourceDigitalOceanImageRead(ctx, d, meta)
+	return resourceDigitalOceanCustomImageRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanImageRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanCustomImageRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	imageID := d.Id()
@@ -169,7 +169,7 @@ func resourceDigitalOceanImageRead(ctx context.Context, d *schema.ResourceData, 
 	return nil
 }
 
-func resourceDigitalOceanImageUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanCustomImageUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	imageID := d.Id()
@@ -188,10 +188,10 @@ func resourceDigitalOceanImageUpdate(ctx context.Context, d *schema.ResourceData
 			return diag.Errorf("Error updating image %s, name %s: %s", imageID, name, err)
 		}
 	}
-	return resourceDigitalOceanImageRead(ctx, d, meta)
+	return resourceDigitalOceanCustomImageRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanImageDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanCustomImageDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
 	imageID := d.Id()
@@ -202,7 +202,7 @@ func resourceDigitalOceanImageDelete(ctx context.Context, d *schema.ResourceData
 	}
 	_, err = client.Images.Delete(ctx, id)
 	if err != nil {
-		if strings.Contains(err.Error(), "mage Can not delete an already deleted image.") {
+		if strings.Contains(err.Error(), "Image Can not delete an already deleted image.") {
 			log.Printf("[INFO] Image %s no longer exists", d.Id())
 			d.SetId("")
 			return nil
@@ -248,4 +248,22 @@ func imageStateRefreshFunc(ctx context.Context, d *schema.ResourceData, state st
 // Ref: https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-image-by-id
 func imagePendingStatuses() []string {
 	return []string{"new", "pending"}
+}
+
+// Ref:https://developers.digitalocean.com/documentation/v2/#create-a-custom-image
+func validImageDistributions() []string {
+	return []string{
+		"Arch Linux",
+		"CentOS",
+		"CoreOS",
+		"Debian",
+		"Fedora",
+		"Fedora Atomic",
+		"FreeBSD",
+		"Gentoo",
+		"openSUSE",
+		"RancherOS",
+		"Ubuntu",
+		"Unknown",
+	}
 }

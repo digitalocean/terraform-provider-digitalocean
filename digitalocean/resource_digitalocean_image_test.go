@@ -6,22 +6,21 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccDigitalOceanImageFull(t *testing.T) {
-	rString := acctest.RandString(5)
-	name := "digitalocean_image.flatcar"
+func TestAccDigitalOceanCustomImageFull(t *testing.T) {
+	rString := randomTestName()
+	name := fmt.Sprintf("digitalocean_custom_image.%s", rString)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanImageDestroy,
+		CheckDestroy:      testAccCheckDigitalOceanCustomImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanImageConfig(rString),
+				Config: testAccCheckDigitalOceanCustomImageConfig(rString),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
 					resource.TestCheckResourceAttr(name, "description", fmt.Sprintf("%s-description", rString)),
@@ -42,9 +41,9 @@ func TestAccDigitalOceanImageFull(t *testing.T) {
 	})
 }
 
-func testAccCheckDigitalOceanImageConfig(name string) string {
+func testAccCheckDigitalOceanCustomImageConfig(name string) string {
 	return fmt.Sprintf(`
-resource "digitalocean_image" "flatcar" {
+resource "digitalocean_custom_image" "%s" {
 	name = "%s-name"
 	url = "https://stable.release.flatcar-linux.net/amd64-usr/2605.7.0/flatcar_production_digitalocean_image.bin.bz2"
 	regions = ["nyc3"]
@@ -53,14 +52,14 @@ resource "digitalocean_image" "flatcar" {
 		"flatcar"
 	]
 }
-`, name, name)
+`, name, name, name)
 }
 
-func testAccCheckDigitalOceanImageDestroy(s *terraform.State) error {
+func testAccCheckDigitalOceanCustomImageDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "digitalocean_image" {
+		if rs.Type != "digitalocean_custom_image" {
 			continue
 		}
 
