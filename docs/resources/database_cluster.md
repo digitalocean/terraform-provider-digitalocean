@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the database cluster.
 * `engine` - (Required) Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, or `redis` for Redis).
-* `size` - (Required) Database Droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`).
+* `size` - (Required) Database Droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`). See here for a [list of valid size slugs](https://developers.digitalocean.com/documentation/v2/#databases).
 * `region` - (Required) DigitalOcean region where the cluster will reside.
 * `node_count` - (Required) Number of nodes that will be included in the cluster.
 * `version` - (Required) Engine version used by the cluster (ex. `11` for PostgreSQL 11).
