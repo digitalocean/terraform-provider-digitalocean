@@ -30,7 +30,12 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 			"region": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "the region that the load blanacer is deployed in",
+				Description: "the region that the load balancer is deployed in",
+			},
+			"size": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "the size of the load balancer",
 			},
 			"ip": {
 				Type:        schema.TypeString,
@@ -236,6 +241,7 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 	d.Set("name", loadbalancer.Name)
 	d.Set("urn", loadbalancer.URN())
 	d.Set("region", loadbalancer.Region.Slug)
+	d.Set("size", loadbalancer.SizeSlug)
 	d.Set("ip", loadbalancer.IP)
 	d.Set("algorithm", loadbalancer.Algorithm)
 	d.Set("status", loadbalancer.Status)
