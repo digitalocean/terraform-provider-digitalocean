@@ -71,6 +71,8 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "size", "lb-small"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					setutil.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
@@ -122,6 +124,8 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "size", "lb-small"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					setutil.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
@@ -156,6 +160,8 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "size", "lb-small"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					setutil.TestCheckTypeSetElemNestedAttrs(
@@ -205,6 +211,8 @@ func TestAccDigitalOceanLoadbalancer_dropletTag(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "size", "lb-small"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					setutil.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_loadbalancer.foobar",
@@ -248,6 +256,8 @@ func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "size", "lb-small"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					setutil.TestCheckTypeSetElemNestedAttrs(
@@ -300,6 +310,8 @@ func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "size", "lb-small"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					setutil.TestCheckTypeSetElemNestedAttrs(
@@ -354,6 +366,8 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "size", "lb-small"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					setutil.TestCheckTypeSetElemNestedAttrs(
@@ -411,6 +425,8 @@ func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 							"tls_passthrough":  "false",
 						},
 					),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "size", "lb-small"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "redirect_http_to_https", "true"),
 					resource.TestCheckResourceAttr(
@@ -664,6 +680,7 @@ resource "digitalocean_droplet" "foobar" {
 resource "digitalocean_loadbalancer" "foobar" {
   name = "loadbalancer-%d"
   region = "nyc3"
+  size = "lb-small"
 
   forwarding_rule {
     entry_port = 80
@@ -689,6 +706,7 @@ resource "digitalocean_droplet" "foobar" {
 resource "digitalocean_loadbalancer" "foobar" {
   name = "loadbalancer-%d"
   region = "nyc3"
+  size = "lb-small"
 
   forwarding_rule {
     entry_port = 80
@@ -726,6 +744,7 @@ EOF
 resource "digitalocean_loadbalancer" "foobar" {
   name                   = "loadbalancer-%d"
   region                 = "nyc3"
+  size                   = "lb-small"
   redirect_http_to_https = true
   enable_proxy_protocol  = true
 
@@ -746,6 +765,7 @@ func testAccCheckDigitalOceanLoadbalancerConfig_multipleRules(rName string) stri
 resource "digitalocean_loadbalancer" "foobar" {
   name                   = "%s"
   region                 = "nyc3"
+  size                 = "lb-small"
 
   forwarding_rule {
     entry_port      = 443
@@ -784,6 +804,7 @@ resource "digitalocean_droplet" "foobar" {
 resource "digitalocean_loadbalancer" "foobar" {
   name = "%s"
   region = "nyc3"
+  size = "lb-small"
 
   forwarding_rule {
     entry_port = 80

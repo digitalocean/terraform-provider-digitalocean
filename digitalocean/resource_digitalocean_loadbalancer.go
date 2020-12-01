@@ -122,6 +122,18 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 					return strings.ToLower(val.(string))
 				},
 			},
+			"size": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "lb-small",
+				// Resizing an LB is not currently allowed. If/when that changes, this should be removed/set to false.
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"lb-small",
+					"lb-medium",
+					"lb-large",
+				}, false),
+			},
 
 			"name": {
 				Type:         schema.TypeString,
@@ -369,6 +381,7 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 
 	opts := &godo.LoadBalancerRequest{
 		Name:                   d.Get("name").(string),
+		SizeSlug:               d.Get("size").(string),
 		Region:                 d.Get("region").(string),
 		Algorithm:              d.Get("algorithm").(string),
 		RedirectHttpToHttps:    d.Get("redirect_http_to_https").(bool),
@@ -461,6 +474,7 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("enable_backend_keepalive", loadbalancer.EnableBackendKeepalive)
 	d.Set("droplet_tag", loadbalancer.Tag)
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
+	d.Set("size", loadbalancer.SizeSlug)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)

@@ -16,7 +16,7 @@ import (
 func TestAccDataSourceDigitalOceanLoadBalancer_Basic(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
 	testName := randomTestName()
-	resourceConfig := testAccCheckDataSourceDigitalOceanLoadBalancerConfig_basic(testName)
+	resourceConfig := testAccCheckDataSourceDigitalOceanLoadBalancerConfig(testName, "lb-small")
 	dataSourceConfig := `
 data "digitalocean_loadbalancer" "foobar" {
   name = digitalocean_loadbalancer.foo.name
@@ -39,6 +39,70 @@ data "digitalocean_loadbalancer" "foobar" {
 						"data.digitalocean_loadbalancer.foobar", "name", testName),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "size", "lb-small"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"data.digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+						},
+					),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "healthcheck.0.port", "22"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "tcp"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "droplet_ids.#", "2"),
+					resource.TestMatchResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_loadbalancer.foobar", "vpc_uuid"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "false"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceDigitalOceanLoadBalancer_Large(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	testName := randomTestName()
+	resourceConfig := testAccCheckDataSourceDigitalOceanLoadBalancerConfig(testName, "lb-large")
+	dataSourceConfig := `
+data "digitalocean_loadbalancer" "foobar" {
+  name = digitalocean_loadbalancer.foo.name
+}`
+
+	expectedURNRegEx, _ := regexp.Compile(`do:loadbalancer:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceDigitalOceanLoadBalancerExists("data.digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "name", testName),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "size", "lb-large"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					setutil.TestCheckTypeSetElemNestedAttrs(
@@ -99,6 +163,8 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "size", "lb-small"),
+					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "2"),
 					setutil.TestCheckTypeSetElemNestedAttrs(
 						"data.digitalocean_loadbalancer.foobar",
@@ -156,7 +222,7 @@ func testAccCheckDataSourceDigitalOceanLoadBalancerExists(n string, loadbalancer
 	}
 }
 
-func testAccCheckDataSourceDigitalOceanLoadBalancerConfig_basic(testName string) string {
+func testAccCheckDataSourceDigitalOceanLoadBalancerConfig(testName string, sizeSlug string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_tag" "foo" {
   name = "web"
@@ -175,6 +241,7 @@ resource "digitalocean_droplet" "foo" {
 resource "digitalocean_loadbalancer" "foo" {
   name   = "%s"
   region = "nyc3"
+  size   = "%s"
 
   forwarding_rule {
 	entry_port     = 80
@@ -191,5 +258,5 @@ resource "digitalocean_loadbalancer" "foo" {
 
   droplet_tag = digitalocean_tag.foo.id
   depends_on  = ["digitalocean_droplet.foo"]
-}`, testName, testName)
+}`, testName, testName, sizeSlug)
 }
