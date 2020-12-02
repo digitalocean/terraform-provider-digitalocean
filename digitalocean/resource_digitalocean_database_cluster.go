@@ -47,6 +47,11 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				// Required: true,
 				Optional: true,
 				ForceNew: true,
+				// Redis clusters are being force upgraded from version 5 to 6.
+				// Prevent attempting to recreate clusters specifying 5 in their config.
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return d.Get("engine") == "redis" && old == "6" && new == "5"
+				},
 			},
 
 			"size": {
