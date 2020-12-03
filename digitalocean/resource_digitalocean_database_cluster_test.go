@@ -248,6 +248,36 @@ func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
 	})
 }
 
+// For backwards compatibility the API allows for POST requests that specify "5"
+// for the version, but a Redis 6 cluster is actually created. The response body
+// specifies "6" for the version. This should be handled without Terraform
+// attempting to recreate the cluster.
+func TestAccDigitalOceanDatabaseCluster_oldRedisVersion(t *testing.T) {
+	var database godo.Database
+	databaseName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterRedis, databaseName, "5"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "name", databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "engine", "redis"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "version", "6"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDatabaseCluster_RedisWithEvictionPolicy(t *testing.T) {
 	var database godo.Database
 	databaseName := randomTestName()
@@ -279,7 +309,7 @@ func TestAccDigitalOceanDatabaseCluster_RedisWithEvictionPolicy(t *testing.T) {
 			},
 			// Remove eviction policy
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterRedis, databaseName),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterRedis, databaseName, "6"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
@@ -514,7 +544,7 @@ const testAccCheckDigitalOceanDatabaseClusterRedis = `
 resource "digitalocean_database_cluster" "foobar" {
 	name       = "%s"
 	engine     = "redis"
-	version    = "5"
+	version    = "%s"
 	size       = "db-s-1vcpu-1gb"
 	region     = "nyc1"
     node_count = 1
