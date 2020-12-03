@@ -1,3 +1,14 @@
+## 2.3.0 (December 03, 2020)
+
+IMPROVEMENTS:
+
+* provider: Build and release OpenBSD binaries ([#533](https://github.com/digitalocean/terraform-provider-digitalocean/issues/533)).
+* `digitalocean_loadbalancer`: Add support for new `size` attribute ([#532](https://github.com/digitalocean/terraform-provider-digitalocean/issues/532)). Thanks to @anitgandhi!
+
+BUG FIXES:
+
+* `digitalocean_database_cluster`: Handle Redis version change with DiffSuppressFunc ([#534](https://github.com/digitalocean/terraform-provider-digitalocean/issues/534)).
+
 ## 2.2.0 (November 06, 2020)
 
 FEATURES:
