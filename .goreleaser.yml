@@ -19,6 +19,7 @@ builds:
     - windows
     - linux
     - darwin
+    - openbsd
   goarch:
     - amd64
     - '386'
@@ -27,6 +28,10 @@ builds:
   ignore:
     - goos: darwin
       goarch: '386'
+    - goos: openbsd
+      goarch: arm
+    - goos: openbsd
+      goarch: arm64
   binary: '{{ .ProjectName }}_v{{ .Version }}'
 archives:
 - format: zip
