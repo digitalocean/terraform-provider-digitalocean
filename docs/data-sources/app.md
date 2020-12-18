@@ -22,7 +22,7 @@ output "default_ingress" {
 
 ## Argument Reference
 
-* `app_id` - The ID of the app to retrieve information about.
+* `app_id` - (Required) The ID of the app to retrieve information about.
 
 ## Attributes Reference
 
