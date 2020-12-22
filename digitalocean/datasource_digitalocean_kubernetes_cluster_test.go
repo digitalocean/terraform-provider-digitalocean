@@ -13,7 +13,7 @@ import (
 func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
-	resourceConfig := testAccDigitalOceanKubernetesConfigForDataSource(testClusterVersion16, rName)
+	resourceConfig := testAccDigitalOceanKubernetesConfigForDataSource(testClusterVersion19, rName)
 	dataSourceConfig := `
 data "digitalocean_kubernetes_cluster" "foobar" {
 	name = digitalocean_kubernetes_cluster.foo.name
