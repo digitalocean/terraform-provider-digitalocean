@@ -21,10 +21,10 @@ func appSpecSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "The slug for the DigitalOcean data center region hosting the app",
 		},
-		"domains": {
-			Type:     schema.TypeSet,
+		"domain": {
+			Type:     schema.TypeList,
 			Optional: true,
-			Elem:     &schema.Schema{Type: schema.TypeString},
+			Elem:     appSpecDomainSchema(),
 		},
 		"service": {
 			Type:     schema.TypeList,
@@ -57,6 +57,39 @@ func appSpecSchema() map[string]*schema.Schema {
 			Optional: true,
 			Elem:     appSpecEnvSchema(),
 			Set:      schema.HashResource(appSpecEnvSchema()),
+		},
+	}
+}
+
+func appSpecDomainSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The hostname for the domain.",
+			},
+			"type": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "PRIMARY",
+				ValidateFunc: validation.StringInSlice([]string{
+					"DEFAULT",
+					"PRIMARY",
+					"ALIAS",
+				}, false),
+				Description: "The type of the domain.",
+			},
+			"wildcard": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Indicates whether the domain includes all sub-domains, in addition to the given domain.",
+			},
+			"zone": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "If the domain uses DigitalOcean DNS and you would like App Platform to automatically manage it for you, set this to the name of the domain on your account.",
+			},
 		},
 	}
 }
@@ -529,7 +562,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 	appSpec := &godo.AppSpec{
 		Name:        appSpecConfig["name"].(string),
 		Region:      appSpecConfig["region"].(string),
-		Domains:     expandAppDomainSpec(appSpecConfig["domains"].(*schema.Set).List()),
+		Domains:     expandAppSpecDomains(appSpecConfig["domain"].([]interface{})),
 		Services:    expandAppSpecServices(appSpecConfig["service"].([]interface{})),
 		StaticSites: expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
 		Workers:     expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
@@ -549,7 +582,10 @@ func flattenAppSpec(spec *godo.AppSpec) []map[string]interface{} {
 		r := make(map[string]interface{})
 		r["name"] = (*spec).Name
 		r["region"] = (*spec).Region
-		r["domains"] = flattenAppDomainSpec((*spec).Domains)
+
+		if len((*spec).Domains) > 0 {
+			r["domain"] = flattenAppSpecDomains((*spec).Domains)
+		}
 
 		if len((*spec).Services) > 0 {
 			r["service"] = flattenAppSpecServices((*spec).Services)
@@ -581,25 +617,37 @@ func flattenAppSpec(spec *godo.AppSpec) []map[string]interface{} {
 	return result
 }
 
-func expandAppDomainSpec(config []interface{}) []*godo.AppDomainSpec {
+func expandAppSpecDomains(config []interface{}) []*godo.AppDomainSpec {
 	appDomains := make([]*godo.AppDomainSpec, 0, len(config))
 
 	for _, rawDomain := range config {
-		domain := &godo.AppDomainSpec{
-			Domain: rawDomain.(string),
+		domain := rawDomain.(map[string]interface{})
+
+		d := &godo.AppDomainSpec{
+			Domain:   domain["name"].(string),
+			Type:     godo.AppDomainSpecType(domain["type"].(string)),
+			Wildcard: domain["wildcard"].(bool),
+			Zone:     domain["zone"].(string),
 		}
 
-		appDomains = append(appDomains, domain)
+		appDomains = append(appDomains, d)
 	}
 
 	return appDomains
 }
 
-func flattenAppDomainSpec(spec []*godo.AppDomainSpec) *schema.Set {
-	result := schema.NewSet(schema.HashString, []interface{}{})
+func flattenAppSpecDomains(domains []*godo.AppDomainSpec) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(domains))
 
-	for _, domain := range spec {
-		result.Add(domain.Domain)
+	for i, d := range domains {
+		r := make(map[string]interface{})
+
+		r["name"] = d.Domain
+		r["type"] = string(d.Type)
+		r["wildcard"] = d.Zone
+		r["zone"] = d.Zone
+
+		result[i] = r
 	}
 
 	return result
@@ -935,6 +983,11 @@ func expandAppSpecStaticSites(config []interface{}) []*godo.AppStaticSiteSpec {
 			s.Git = expandAppGitSourceSpec(git)
 		}
 
+		//		image := site["image"].([]interface{})
+		//		if len(image) > 0 {
+		//			s.Image = expandAppImageSourceSpec(image)
+		//		}
+
 		routes := site["routes"].([]interface{})
 		if len(routes) > 0 {
 			s.Routes = expandAppRoutes(routes)
@@ -957,6 +1010,7 @@ func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec) []map[string]int
 		r["github"] = flattenAppGitHubSourceSpec(s.GitHub)
 		r["gitlab"] = flattenAppGitLabSourceSpec(s.GitLab)
 		r["git"] = flattenAppGitSourceSpec(s.Git)
+		// r["image"] = flattenAppImageSourceSpec(s.Image)
 		r["routes"] = flattenAppRoutes(s.Routes)
 		r["dockerfile_path"] = s.DockerfilePath
 		r["env"] = flattenAppEnvs(s.Envs)
