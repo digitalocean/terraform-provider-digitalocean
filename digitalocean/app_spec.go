@@ -644,7 +644,7 @@ func flattenAppSpecDomains(domains []*godo.AppDomainSpec) []map[string]interface
 
 		r["name"] = d.Domain
 		r["type"] = string(d.Type)
-		r["wildcard"] = d.Zone
+		r["wildcard"] = d.Wildcard
 		r["zone"] = d.Zone
 
 		result[i] = r
