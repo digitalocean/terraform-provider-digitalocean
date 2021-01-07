@@ -297,6 +297,11 @@ func appSpecStaticSiteSchema() *schema.Resource {
 			Optional:    true,
 			Description: "The name of the error document to use when serving this static site.",
 		},
+		"catchall_document": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The name of the document to use as the fallback for any requests to documents that are not found when serving this static site.",
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -694,15 +699,16 @@ func expandAppSpecStaticSites(config []interface{}) []*godo.AppStaticSiteSpec {
 		site := rawSite.(map[string]interface{})
 
 		s := &godo.AppStaticSiteSpec{
-			Name:            site["name"].(string),
-			BuildCommand:    site["build_command"].(string),
-			DockerfilePath:  site["dockerfile_path"].(string),
-			Envs:            expandAppEnvs(site["env"].(*schema.Set).List()),
-			SourceDir:       site["source_dir"].(string),
-			OutputDir:       site["output_dir"].(string),
-			IndexDocument:   site["index_document"].(string),
-			ErrorDocument:   site["error_document"].(string),
-			EnvironmentSlug: site["environment_slug"].(string),
+			Name:             site["name"].(string),
+			BuildCommand:     site["build_command"].(string),
+			DockerfilePath:   site["dockerfile_path"].(string),
+			Envs:             expandAppEnvs(site["env"].(*schema.Set).List()),
+			SourceDir:        site["source_dir"].(string),
+			OutputDir:        site["output_dir"].(string),
+			IndexDocument:    site["index_document"].(string),
+			ErrorDocument:    site["error_document"].(string),
+			CatchallDocument: site["catchall_document"].(string),
+			EnvironmentSlug:  site["environment_slug"].(string),
 		}
 
 		github := site["github"].([]interface{})
@@ -743,6 +749,7 @@ func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec) []map[string]int
 		r["output_dir"] = s.OutputDir
 		r["index_document"] = s.IndexDocument
 		r["error_document"] = s.ErrorDocument
+		r["catchall_document"] = s.CatchallDocument
 		r["environment_slug"] = s.EnvironmentSlug
 
 		result[i] = r

@@ -137,6 +137,8 @@ func TestAccDigitalOceanApp_StaticSite(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.static_site.0.catchall_document", "404.html"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.static_site.0.routes.0.path", "/"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.static_site.0.build_command", "bundle exec jekyll build -d ./public"),
@@ -448,10 +450,11 @@ resource "digitalocean_app" "foobar" {
     region = "ams"
 
     static_site {
-      name             = "sample-jekyll"
-      build_command    = "bundle exec jekyll build -d ./public"
-	  output_dir       = "/public"
-      environment_slug = "jekyll"
+      name              = "sample-jekyll"
+      build_command     = "bundle exec jekyll build -d ./public"
+      output_dir        = "/public"
+      environment_slug  = "jekyll"
+      catchall_document = "404.html"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-jekyll.git"

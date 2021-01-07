@@ -190,7 +190,8 @@ A `static_site` can contain:
 * `environment_slug` - An environment slug describing the type of this app.
 * `output_dir` - An optional path to where the built assets will be located, relative to the build context. If not set, App Platform will automatically scan for these directory names: `_static`, `dist`, `public`.
 * `index_document` - The name of the index document to use when serving this static site.
-* `error_document` - The name of the error document to use when serving this static site*
+* `error_document` - The name of the error document to use when serving this static site.
+* `catchall_document` - The name of the document to use as the fallback for any requests to documents that are not found when serving this static site.
 * `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication. Only one of `git` and `github` may be set.
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
