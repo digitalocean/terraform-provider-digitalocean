@@ -112,7 +112,7 @@ func TestAccDigitalOceanKubernetesNodePool_CreateWithAutoScale(t *testing.T) {
 						min_nodes = 1
 						max_nodes = 5
 					}
-				`, testClusterVersion16, rName, rName),
+				`, testClusterVersion19, rName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -150,7 +150,7 @@ func TestAccDigitalOceanKubernetesNodePool_CreateWithAutoScale(t *testing.T) {
 						min_nodes = 1
 						max_nodes = 3
 					}
-				`, testClusterVersion16, rName, rName),
+				`, testClusterVersion19, rName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -189,7 +189,7 @@ func TestAccDigitalOceanKubernetesNodePool_CreateWithAutoScale(t *testing.T) {
 						min_nodes = 1
 						max_nodes = 3
 					}
-				`, testClusterVersion16, rName, rName),
+				`, testClusterVersion19, rName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -225,7 +225,7 @@ func TestAccDigitalOceanKubernetesNodePool_CreateWithAutoScale(t *testing.T) {
 						size = "s-1vcpu-2gb"
 						node_count = 2
 					}
-				`, testClusterVersion16, rName, rName),
+				`, testClusterVersion19, rName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -275,7 +275,7 @@ func TestAccDigitalOceanKubernetesNodePool_UpdateWithAutoScale(t *testing.T) {
 						size = "s-1vcpu-2gb"
 						node_count = 1
 					}
-				`, testClusterVersion16, rName, rName),
+				`, testClusterVersion19, rName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -314,7 +314,7 @@ func TestAccDigitalOceanKubernetesNodePool_UpdateWithAutoScale(t *testing.T) {
 						min_nodes = 1
 						max_nodes = 3
 					}
-				`, testClusterVersion16, rName, rName),
+				`, testClusterVersion19, rName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -352,7 +352,7 @@ func TestAccDigitalOceanKubernetesNodePool_UpdateWithAutoScale(t *testing.T) {
 						min_nodes = 1
 						max_nodes = 3
 					}
-				`, testClusterVersion16, rName, rName),
+				`, testClusterVersion19, rName, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
@@ -395,7 +395,7 @@ resource digitalocean_kubernetes_node_pool "barfoo" {
 	node_count = 1
 	tags  = ["three","four"]
 }
-`, testClusterVersion16, rName, rName)
+`, testClusterVersion19, rName, rName)
 }
 
 func testAccDigitalOceanKubernetesConfigBasicWithNodePool2(rName string) string {
@@ -426,7 +426,7 @@ resource digitalocean_kubernetes_node_pool "barfoo" {
       priority = "high"
 	}
 }
-`, testClusterVersion16, rName, rName)
+`, testClusterVersion19, rName, rName)
 }
 
 func testAccCheckDigitalOceanKubernetesNodePoolExists(n string, cluster *godo.KubernetesCluster, pool *godo.KubernetesNodePool) resource.TestCheckFunc {
