@@ -47,6 +47,12 @@ func appSpecSchema() map[string]*schema.Schema {
 			Optional: true,
 			Elem:     appSpecDatabaseSchema(),
 		},
+		"env": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     appSpecEnvSchema(),
+			Set:      schema.HashResource(appSpecEnvSchema()),
+		},
 	}
 }
 
@@ -421,6 +427,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		StaticSites: expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
 		Workers:     expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
 		Databases:   expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
+		Envs:        expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
 	}
 
 	return appSpec
@@ -450,6 +457,10 @@ func flattenAppSpec(spec *godo.AppSpec) []map[string]interface{} {
 
 		if len((*spec).Databases) > 0 {
 			r["database"] = flattenAppSpecDatabases((*spec).Databases)
+		}
+
+		if len((*spec).Envs) > 0 {
+			r["env"] = flattenAppEnvs((*spec).Envs)
 		}
 
 		result = append(result, r)

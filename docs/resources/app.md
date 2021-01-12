@@ -122,6 +122,11 @@ The following arguments are supported:
  - `name` - (Required) The name of the app. Must be unique across all apps in the same account.
  - `region` - The slug for the DigitalOcean data center region hosting the app.
  - `domains` - A list of hostnames where the application will be available.
+ - `env` - Describes an app-wide environment variable made available to all components.
+     * `key` - The name of the environment variable.
+     * `value` - The value of the environment variable.
+     * `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
+     * `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 
 A spec can contain multiple components.
 
