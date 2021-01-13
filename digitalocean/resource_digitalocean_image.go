@@ -179,15 +179,20 @@ func resourceDigitalOceanCustomImageUpdate(ctx context.Context, d *schema.Resour
 		return diag.Errorf("Error converting id %s to string: %s", imageID, err)
 	}
 
-	if d.HasChange("name") {
-		name := d.Get("name").(string)
-		_, _, err := client.Images.Update(ctx, id, &godo.ImageUpdateRequest{
-			Name: name,
-		})
+	if d.HasChanges("name", "description", "distribution") {
+		imageName := d.Get("name").(string)
+		imageUpdateRequest := &godo.ImageUpdateRequest{
+			Name:         imageName,
+			Distribution: d.Get("distribution").(string),
+			Description:  d.Get("description").(string),
+		}
+
+		_, _, err := client.Images.Update(ctx, id, imageUpdateRequest)
 		if err != nil {
-			return diag.Errorf("Error updating image %s, name %s: %s", imageID, name, err)
+			return diag.Errorf("Error updating image %s, name %s: %s", imageID, imageName, err)
 		}
 	}
+
 	return resourceDigitalOceanCustomImageRead(ctx, d, meta)
 }
 

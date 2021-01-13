@@ -13,6 +13,7 @@ import (
 func TestAccDigitalOceanCustomImageFull(t *testing.T) {
 	rString := randomTestName()
 	name := fmt.Sprintf("digitalocean_custom_image.%s", rString)
+	updatedString := randomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -20,7 +21,7 @@ func TestAccDigitalOceanCustomImageFull(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanCustomImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanCustomImageConfig(rString),
+				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, "Unknown"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
 					resource.TestCheckResourceAttr(name, "description", fmt.Sprintf("%s-description", rString)),
@@ -37,22 +38,31 @@ func TestAccDigitalOceanCustomImageFull(t *testing.T) {
 					resource.TestCheckResourceAttrSet(name, "size_gigabytes"),
 				),
 			},
+			{
+				Config: testAccCheckDigitalOceanCustomImageConfig(rString, updatedString, "CoreOS"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", updatedString)),
+					resource.TestCheckResourceAttr(name, "description", fmt.Sprintf("%s-description", updatedString)),
+					resource.TestCheckResourceAttr(name, "distribution", "CoreOS"),
+				),
+			},
 		},
 	})
 }
 
-func testAccCheckDigitalOceanCustomImageConfig(name string) string {
+func testAccCheckDigitalOceanCustomImageConfig(rName string, name string, distro string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_custom_image" "%s" {
 	name = "%s-name"
-	url = "https://stable.release.flatcar-linux.net/amd64-usr/2605.7.0/flatcar_production_digitalocean_image.bin.bz2"
-	regions = ["nyc3"]
-	description = "%s-description"
+	url  = "https://stable.release.flatcar-linux.net/amd64-usr/2605.7.0/flatcar_production_digitalocean_image.bin.bz2"
+	regions      = ["nyc3"]
+	description  = "%s-description"
+	distribution = "%s"
 	tags = [
 		"flatcar"
 	]
 }
-`, name, name, name)
+`, rName, name, name, distro)
 }
 
 func testAccCheckDigitalOceanCustomImageDestroy(s *terraform.State) error {
