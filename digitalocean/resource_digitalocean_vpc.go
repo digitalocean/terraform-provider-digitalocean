@@ -79,9 +79,10 @@ func resourceDigitalOceanVPC() *schema.Resource {
 func resourceDigitalOceanVPCCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
+	region := d.Get("region").(string)
 	vpcRequest := &godo.VPCCreateRequest{
 		Name:       d.Get("name").(string),
-		RegionSlug: d.Get("region").(string),
+		RegionSlug: region,
 	}
 
 	if v, ok := d.GetOk("description"); ok {
@@ -91,6 +92,12 @@ func resourceDigitalOceanVPCCreate(ctx context.Context, d *schema.ResourceData, 
 	if v, ok := d.GetOk("ip_range"); ok {
 		vpcRequest.IPRange = v.(string)
 	}
+
+	// Prevent parallel creation of VPCs in the same region to protect
+	// against race conditions in IP range assignment.
+	key := fmt.Sprintf("resource_digitalocean_vpc/%s", region)
+	mutexKV.Lock(key)
+	defer mutexKV.Unlock(key)
 
 	log.Printf("[DEBUG] VPC create request: %#v", vpcRequest)
 	vpc, _, err := client.VPCs.Create(context.Background(), vpcRequest)

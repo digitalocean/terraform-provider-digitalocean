@@ -2,7 +2,12 @@ package digitalocean
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/internal/mutexkv"
 )
+
+// Global MutexKV
+var mutexKV = mutexkv.NewMutexKV()
 
 // Provider returns a schema.Provider for DigitalOcean.
 func Provider() *schema.Provider {
