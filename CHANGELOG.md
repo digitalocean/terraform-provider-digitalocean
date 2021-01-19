@@ -1,3 +1,17 @@
+## 2.4.0 (January 19, 2021)
+
+IMPROVEMENTS:
+
+* `digitalocean_app`: Add support for global env vars ([#549](https://github.com/digitalocean/terraform-provider-digitalocean/issues/549)).
+* `digitalocean_app`: Add GitLab support ([#556](https://github.com/digitalocean/terraform-provider-digitalocean/issues/556)).
+* `digitalocean_app`: Support `catchall_document` for static sites ([#539](https://github.com/digitalocean/terraform-provider-digitalocean/issues/539)).
+* `digitalocean_custom_image`: Support updating `description` and `distribution` ([#538](https://github.com/digitalocean/terraform-provider-digitalocean/issues/538)). Thanks to @frezbo!
+
+BUG FIXES:
+
+* `digitalocean_vpc`: Protect against race conditions in IP range assignment ([#552](https://github.com/digitalocean/terraform-provider-digitalocean/issues/552)).
+* `digitalocean_app`: Mark env var values as sensitive ([#554](https://github.com/digitalocean/terraform-provider-digitalocean/issues/554)).
+
 ## 2.3.0 (December 03, 2020)
 
 IMPROVEMENTS:
