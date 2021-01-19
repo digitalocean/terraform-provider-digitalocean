@@ -65,7 +65,7 @@ func appSpecGitSourceSchema() map[string]*schema.Schema {
 	}
 }
 
-func appSpecGitHubSourceSchema() map[string]*schema.Schema {
+func appSpecGitServiceSourceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"repo": {
 			Type:        schema.TypeString,
@@ -83,6 +83,14 @@ func appSpecGitHubSourceSchema() map[string]*schema.Schema {
 			Description: "Whether to automatically deploy new commits made to the repo",
 		},
 	}
+}
+
+func appSpecGitHubSourceSchema() map[string]*schema.Schema {
+	return appSpecGitServiceSourceSchema()
+}
+
+func appSpecGitLabSourceSchema() map[string]*schema.Schema {
+	return appSpecGitServiceSourceSchema()
 }
 
 func appSpecEnvSchema() *schema.Resource {
@@ -197,6 +205,14 @@ func appSpecComponentBase() map[string]*schema.Schema {
 			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: appSpecGitHubSourceSchema(),
+			},
+		},
+		"gitlab": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecGitLabSourceSchema(),
 			},
 		},
 		"dockerfile_path": {
@@ -494,6 +510,34 @@ func flattenAppGitHubSourceSpec(spec *godo.GitHubSourceSpec) []interface{} {
 	return result
 }
 
+func expandAppGitLabSourceSpec(config []interface{}) *godo.GitLabSourceSpec {
+	gitLabSourceConfig := config[0].(map[string]interface{})
+
+	gitLabSource := &godo.GitLabSourceSpec{
+		Repo:         gitLabSourceConfig["repo"].(string),
+		Branch:       gitLabSourceConfig["branch"].(string),
+		DeployOnPush: gitLabSourceConfig["deploy_on_push"].(bool),
+	}
+
+	return gitLabSource
+}
+
+func flattenAppGitLabSourceSpec(spec *godo.GitLabSourceSpec) []interface{} {
+	result := make([]interface{}, 0)
+
+	if spec != nil {
+
+		r := make(map[string]interface{})
+		r["repo"] = (*spec).Repo
+		r["branch"] = (*spec).Branch
+		r["deploy_on_push"] = (*spec).DeployOnPush
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
 func expandAppGitSourceSpec(config []interface{}) *godo.GitSourceSpec {
 	gitSourceConfig := config[0].(map[string]interface{})
 
@@ -645,6 +689,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.GitHub = expandAppGitHubSourceSpec(github)
 		}
 
+		gitlab := service["gitlab"].([]interface{})
+		if len(gitlab) > 0 {
+			s.GitLab = expandAppGitLabSourceSpec(gitlab)
+		}
+
 		git := service["git"].([]interface{})
 		if len(git) > 0 {
 			s.Git = expandAppGitSourceSpec(git)
@@ -676,6 +725,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["run_command"] = s.RunCommand
 		r["build_command"] = s.BuildCommand
 		r["github"] = flattenAppGitHubSourceSpec(s.GitHub)
+		r["gitlab"] = flattenAppGitLabSourceSpec(s.GitLab)
 		r["git"] = flattenAppGitSourceSpec(s.Git)
 		r["http_port"] = int(s.HTTPPort)
 		r["routes"] = flattenAppRoutes(s.Routes)
@@ -717,6 +767,11 @@ func expandAppSpecStaticSites(config []interface{}) []*godo.AppStaticSiteSpec {
 			s.GitHub = expandAppGitHubSourceSpec(github)
 		}
 
+		gitlab := site["gitlab"].([]interface{})
+		if len(gitlab) > 0 {
+			s.GitLab = expandAppGitLabSourceSpec(gitlab)
+		}
+
 		git := site["git"].([]interface{})
 		if len(git) > 0 {
 			s.Git = expandAppGitSourceSpec(git)
@@ -742,6 +797,7 @@ func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec) []map[string]int
 		r["name"] = s.Name
 		r["build_command"] = s.BuildCommand
 		r["github"] = flattenAppGitHubSourceSpec(s.GitHub)
+		r["gitlab"] = flattenAppGitLabSourceSpec(s.GitLab)
 		r["git"] = flattenAppGitSourceSpec(s.Git)
 		r["routes"] = flattenAppRoutes(s.Routes)
 		r["dockerfile_path"] = s.DockerfilePath
@@ -782,6 +838,11 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 			s.GitHub = expandAppGitHubSourceSpec(github)
 		}
 
+		gitlab := worker["gitlab"].([]interface{})
+		if len(gitlab) > 0 {
+			s.GitLab = expandAppGitLabSourceSpec(gitlab)
+		}
+
 		git := worker["git"].([]interface{})
 		if len(git) > 0 {
 			s.Git = expandAppGitSourceSpec(git)
@@ -803,6 +864,7 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["run_command"] = w.RunCommand
 		r["build_command"] = w.BuildCommand
 		r["github"] = flattenAppGitHubSourceSpec(w.GitHub)
+		r["gitlab"] = flattenAppGitLabSourceSpec(w.GitLab)
 		r["git"] = flattenAppGitSourceSpec(w.Git)
 		r["dockerfile_path"] = w.DockerfilePath
 		r["env"] = flattenAppEnvs(w.Envs)
