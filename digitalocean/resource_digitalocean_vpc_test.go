@@ -78,6 +78,36 @@ func TestAccDigitalOceanVPC_IPRange(t *testing.T) {
 	})
 }
 
+// https://github.com/digitalocean/terraform-provider-digitalocean/issues/551
+func TestAccDigitalOceanVPC_IPRangeRace(t *testing.T) {
+	vpcNameOne := randomTestName()
+	vpcNameTwo := randomTestName()
+	vpcCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCConfig_IPRangeRace, vpcNameOne, vpcNameTwo)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanVPCDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: vpcCreateConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVPCExists("digitalocean_vpc.foo"),
+					testAccCheckDigitalOceanVPCExists("digitalocean_vpc.bar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_vpc.foo", "name", vpcNameOne),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_vpc.foo", "ip_range"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_vpc.bar", "name", vpcNameTwo),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_vpc.bar", "ip_range"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanVPCDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -136,5 +166,17 @@ resource "digitalocean_vpc" "foobar" {
 	name     = "%s"
 	region   = "nyc3"
 	ip_range = "10.10.10.0/24"
+}
+`
+
+const testAccCheckDigitalOceanVPCConfig_IPRangeRace = `
+resource "digitalocean_vpc" "foo" {
+	name        = "%s"
+	region      = "nyc3"
+}
+
+resource "digitalocean_vpc" "bar" {
+	name        = "%s"
+	region      = "nyc3"
 }
 `
