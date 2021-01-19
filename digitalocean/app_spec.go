@@ -97,6 +97,7 @@ func appSpecEnvSchema() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The value of the environment variable.",
+				Sensitive:   true,
 			},
 			"scope": {
 				Type:     schema.TypeString,
