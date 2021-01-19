@@ -161,19 +161,19 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 
 	oneEnv := `
       env {
-        key   = "FOO"
+        key   = "COMPONENT_FOO"
         value = "bar"
       }
 `
 
 	twoEnvs := `
       env {
-        key   = "FOO"
+        key   = "COMPONENT_FOO"
         value = "bar"
       }
 
       env {
-        key   = "FIZZ"
+        key   = "COMPONENT_FIZZ"
         value = "pop"
         scope = "BUILD_TIME"
       }
@@ -181,7 +181,36 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 
 	oneEnvUpdated := `
       env {
-        key   = "FOO"
+        key   = "COMPONENT_FOO"
+        value = "baz"
+        scope = "RUN_TIME"
+        type  = "GENERAL"
+      }
+`
+
+	oneAppEnv := `
+      env {
+        key   = "APP_FOO"
+        value = "bar"
+      }
+`
+
+	twoAppEnvs := `
+      env {
+        key   = "APP_FOO"
+        value = "bar"
+      }
+
+      env {
+        key   = "APP_FIZZ"
+        value = "pop"
+        scope = "BUILD_TIME"
+      }
+`
+
+	oneAppEnvUpdated := `
+      env {
+        key   = "APP_FOO"
         value = "baz"
         scope = "RUN_TIME"
         type  = "GENERAL"
@@ -194,7 +223,7 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, oneEnv),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, oneEnv, oneAppEnv),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
@@ -205,7 +234,18 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 						"digitalocean_app.foobar",
 						"spec.0.service.0.env.*",
 						map[string]string{
-							"key":   "FOO",
+							"key":   "COMPONENT_FOO",
+							"value": "bar",
+							"scope": "RUN_AND_BUILD_TIME",
+						},
+					),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.env.#", "1"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_app.foobar",
+						"spec.0.env.*",
+						map[string]string{
+							"key":   "APP_FOO",
 							"value": "bar",
 							"scope": "RUN_AND_BUILD_TIME",
 						},
@@ -213,7 +253,7 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, twoEnvs),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, twoEnvs, twoAppEnvs),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
@@ -224,7 +264,7 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 						"digitalocean_app.foobar",
 						"spec.0.service.0.env.*",
 						map[string]string{
-							"key":   "FOO",
+							"key":   "COMPONENT_FOO",
 							"value": "bar",
 							"scope": "RUN_AND_BUILD_TIME",
 						},
@@ -233,7 +273,27 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 						"digitalocean_app.foobar",
 						"spec.0.service.0.env.*",
 						map[string]string{
-							"key":   "FIZZ",
+							"key":   "COMPONENT_FIZZ",
+							"value": "pop",
+							"scope": "BUILD_TIME",
+						},
+					),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.env.#", "2"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_app.foobar",
+						"spec.0.env.*",
+						map[string]string{
+							"key":   "APP_FOO",
+							"value": "bar",
+							"scope": "RUN_AND_BUILD_TIME",
+						},
+					),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_app.foobar",
+						"spec.0.env.*",
+						map[string]string{
+							"key":   "APP_FIZZ",
 							"value": "pop",
 							"scope": "BUILD_TIME",
 						},
@@ -241,7 +301,7 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, oneEnvUpdated),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, oneEnvUpdated, oneAppEnvUpdated),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
@@ -252,7 +312,18 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 						"digitalocean_app.foobar",
 						"spec.0.service.0.env.*",
 						map[string]string{
-							"key":   "FOO",
+							"key":   "COMPONENT_FOO",
+							"value": "baz",
+							"scope": "RUN_TIME",
+						},
+					),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.env.#", "1"),
+					setutil.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_app.foobar",
+						"spec.0.env.*",
+						map[string]string{
+							"key":   "APP_FOO",
 							"value": "baz",
 							"scope": "RUN_TIME",
 						},
@@ -487,6 +558,8 @@ resource "digitalocean_app" "foobar" {
 
 %s
     }
+
+%s
   }
 }`
 
