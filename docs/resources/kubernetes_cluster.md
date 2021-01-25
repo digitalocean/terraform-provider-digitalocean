@@ -59,7 +59,7 @@ provider "kubernetes" {
 Node pools may also be configured to [autoscale](https://www.digitalocean.com/docs/kubernetes/how-to/autoscale/).
 For example:
 
-```
+```hcl
 resource "digitalocean_kubernetes_cluster" "foo" {
   name    = "foo"
   region  = "nyc1"
@@ -82,7 +82,7 @@ Note that, while individual node pools may scale to 0, a cluster must always inc
 DigitalOcean Kubernetes clusters may also be configured to [auto upgrade](https://www.digitalocean.com/docs/kubernetes/how-to/upgrade-cluster/#automatically) patch versions.
 For example:
 
-```
+```hcl
 data "digitalocean_kubernetes_versions" "example" {
   version_prefix = "1.18."
 }
