@@ -14,7 +14,6 @@ data "digitalocean_kubernetes_cluster" "example" {
 }
 
 provider "kubernetes" {
-  load_config_file = false
   host             = data.digitalocean_kubernetes_cluster.example.endpoint
   token            = data.digitalocean_kubernetes_cluster.example.kube_config[0].token
   cluster_ca_certificate = base64decode(

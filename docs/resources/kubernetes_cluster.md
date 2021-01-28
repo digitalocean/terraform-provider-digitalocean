@@ -25,35 +25,6 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 }
 ```
 
-### Kubernetes Terraform Provider Example
-
-The cluster's kubeconfig is exported as an attribute allowing you to use it with the [Kubernetes Terraform provider](https://www.terraform.io/docs/providers/kubernetes/index.html). For example:
-
-```hcl
-resource "digitalocean_kubernetes_cluster" "foo" {
-  name   = "foo"
-  region = "nyc1"
-  # Grab the latest version slug from `doctl kubernetes options versions`
-  version = "1.19.3-do.3"
-  tags    = ["staging"]
-
-  node_pool {
-    name       = "worker-pool"
-    size       = "s-2vcpu-2gb"
-    node_count = 3
-  }
-}
-
-provider "kubernetes" {
-  load_config_file = false
-  host             = digitalocean_kubernetes_cluster.foo.endpoint
-  token            = digitalocean_kubernetes_cluster.foo.kube_config[0].token
-  cluster_ca_certificate = base64decode(
-    digitalocean_kubernetes_cluster.foo.kube_config[0].cluster_ca_certificate
-  )
-}
-```
-
 ### Autoscaling Example
 
 Node pools may also be configured to [autoscale](https://www.digitalocean.com/docs/kubernetes/how-to/autoscale/).
@@ -102,6 +73,47 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 ```
 
 Note that a data source is used to supply the version. This is needed to prevent configuration diff whenever a cluster is upgraded.
+
+### Kubernetes Terraform Provider Example
+
+The cluster's kubeconfig is exported as an attribute allowing you to use it with
+the [Kubernetes Terraform provider](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs).
+
+~> When using interpolation to pass credentials from a `digitalocean_kubernetes_cluster`
+resource to the Kubernetes provider, the cluster resource generally should not
+be created in the same Terraform module where Kubernetes provider resources are
+also used. This can lead to unpredictable errors which are hard to debug and
+diagnose. The root issue lies with the order in which Terraform itself evaluates
+the provider blocks vs. actual resources.
+
+When using the Kubernetes provider with a cluster created in a separate Terraform
+module or configuration, use the [`digitalocean_kubernetes_cluster` data-source](https://registry.terraform.io/providers/digitalocean/digitalocean/latest/docs/data-sources/kubernetes_cluster)
+to access the cluster's credentials. [See here for a full example](https://github.com/digitalocean/terraform-provider-digitalocean/tree/main/examples/kubernetes).
+
+```hcl
+resource "digitalocean_kubernetes_cluster" "foo" {
+  name   = "foo"
+  region = "nyc1"
+  # Grab the latest version slug from `doctl kubernetes options versions`
+  version = "1.19.3-do.3"
+  tags    = ["staging"]
+
+  node_pool {
+    name       = "worker-pool"
+    size       = "s-2vcpu-2gb"
+    node_count = 3
+  }
+}
+
+provider "kubernetes" {
+  load_config_file = false
+  host             = digitalocean_kubernetes_cluster.foo.endpoint
+  token            = digitalocean_kubernetes_cluster.foo.kube_config[0].token
+  cluster_ca_certificate = base64decode(
+    digitalocean_kubernetes_cluster.foo.kube_config[0].cluster_ca_certificate
+  )
+}
+```
 
 ## Argument Reference
 
