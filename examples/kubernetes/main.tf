@@ -1,27 +1,42 @@
-data "digitalocean_kubernetes_versions" "example" {
-  version_prefix = "1.19."
-}
-
-resource "digitalocean_kubernetes_cluster" "foobar" {
-  name    = "testing"
-  region  = "lon1"
-  version = data.digitalocean_kubernetes_versions.example.latest_version
-  tags    = ["foo", "bar"]
-
-  node_pool {
-    name       = "foobar"
-    size       = "s-1vcpu-2gb"
-    node_count = 1
-    tags       = ["one", "two"] // Tags from cluster are automatically added to node pools
+terraform {
+  required_providers {
+    digitalocean = {
+      source  = "digitalocean/digitalocean"
+      version = ">= 2.4.0"
+    }
+    kubernetes = {
+      source = "hashicorp/kubernetes"
+      version = ">= 2.0.0"
+    }
+    helm = {
+      source  = "hashicorp/helm"
+      version = ">= 2.0.1"
+    }
   }
 }
 
-// Add a second node pool
-resource "digitalocean_kubernetes_node_pool" "barfoo" {
-  cluster_id = digitalocean_kubernetes_cluster.foobar.id
+resource "random_id" "cluster_name" {
+  byte_length = 5
+}
 
-  name       = "barfoo"
-  size       = "s-1vcpu-2gb"
-  node_count = 1
-  tags       = ["three", "four"] // Tags from cluster are automatically added to node pools
+locals {
+  cluster_name = "tf-k8s-${random_id.cluster_name.hex}"
+}
+
+module "doks-cluster" {
+  source             = "./doks-cluster"
+  cluster_name       = local.cluster_name
+  cluster_region     = "nyc3"
+  cluster_version    = var.cluster_version
+
+  worker_size        = var.worker_size
+  worker_count       = var.worker_count
+}
+
+module "kubernetes-config" {
+  source           = "./kubernetes-config"
+  cluster_name     = module.doks-cluster.cluster_name
+  cluster_id       = module.doks-cluster.cluster_id
+
+  write_kubeconfig = var.write_kubeconfig
 }
