@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"log"
+	"strconv"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -890,6 +891,18 @@ func flattenAppHealthCheck(check *godo.AppServiceSpecHealthCheck) []interface{} 
 	return result
 }
 
+func expandAppInternalPort(config []interface{}) []int64 {
+	appInternalPorts := make([]int64, 0, len(config))
+
+	for _, rawinternalPort := range config {
+		internal_port := rawinternalPort.(int64)
+
+		appInternalPorts = append(appInternalPorts, internal_port)
+	}
+
+	return appInternalPorts
+}
+
 func expandAppRoutes(config []interface{}) []*godo.AppRouteSpec {
 	appRoutes := make([]*godo.AppRouteSpec, 0, len(config))
 
@@ -904,6 +917,19 @@ func expandAppRoutes(config []interface{}) []*godo.AppRouteSpec {
 	}
 
 	return appRoutes
+}
+
+func flattenAppInternalPortsSpec(internal_ports []int64) []interface{} {
+	result := make([]interface{}, 0)
+
+	for _, internal_port := range internal_ports {
+		r := make(map[string]interface{})
+		r["port"] = strconv.FormatInt(internal_port, 10)
+
+		result = append(result, r)
+	}
+
+	return result
 }
 
 func flattenAppRoutes(routes []*godo.AppRouteSpec) []interface{} {
@@ -968,6 +994,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.HealthCheck = expandAppHealthCheck(checks)
 		}
 
+		internal_ports := service["internal_port"].([]interface{})
+		if len(internal_ports) > 0 {
+			s.InternalPorts = expandAppInternalPort(internal_ports)
+		}
+
 		appServices = append(appServices, s)
 	}
 
@@ -985,6 +1016,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["build_command"] = s.BuildCommand
 		r["github"] = flattenAppGitHubSourceSpec(s.GitHub)
 		r["gitlab"] = flattenAppGitLabSourceSpec(s.GitLab)
+		r["internal_port"] = flattenAppInternalPortsSpec(s.InternalPorts)
 		r["git"] = flattenAppGitSourceSpec(s.Git)
 		r["image"] = flattenAppImageSourceSpec(s.Image)
 		r["http_port"] = int(s.HTTPPort)
