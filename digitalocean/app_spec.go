@@ -251,14 +251,6 @@ func appSpecComponentBase() map[string]*schema.Schema {
 				Schema: appSpecGitLabSourceSchema(),
 			},
 		},
-		"image": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: appSpecImageSourceSchema(),
-			},
-		},
 		"dockerfile_path": {
 			Type:        schema.TypeString,
 			Optional:    true,
@@ -330,6 +322,14 @@ func appSpecServicesSchema() *schema.Resource {
 				Schema: appSpecHealthCheckSchema(),
 			},
 		},
+		"image": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecImageSourceSchema(),
+			},
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -380,6 +380,14 @@ func appSpecWorkerSchema() *schema.Resource {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "An optional run command to override the component's default.",
+		},
+		"image": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecImageSourceSchema(),
+			},
 		},
 		"instance_size_slug": {
 			Type:        schema.TypeString,
