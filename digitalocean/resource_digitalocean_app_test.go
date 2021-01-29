@@ -49,6 +49,35 @@ func testSweepApp(region string) error {
 	return nil
 }
 
+func TestAccDigitalOceanApp_Image(t *testing.T) {
+	var app godo.App
+	appName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_addImage, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry_type", "DOCKER_HUB"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry", "hub.docker.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.repository", "hasura/grahql-engine"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.tag", "v1.3.3"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanApp_Basic(t *testing.T) {
 	var app godo.App
 	appName := randomTestName()
@@ -110,22 +139,6 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.database.0.name", "test-db"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.database.0.engine", "PG"),
-				),
-			},
-			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_addImage, appName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry_type", "DOCKER_HUB"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry", "hub.docker.com"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.image.0.repository", "hasura/grahql-engine"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.image.0.tag", "v1.3.3"),
 				),
 			},
 		},
