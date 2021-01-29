@@ -44,7 +44,7 @@ refreshed by running `terraform apply` again and setting `write_kubeconfig` to
 
 ```
 terraform apply -var="write_kubeconfig=true"
-export KUBECONFIG=$(terraform output -raw kubeconfig_path
+export KUBECONFIG=$(terraform output -raw kubeconfig_path)
 kubectl get pods -n test
 ```
 
