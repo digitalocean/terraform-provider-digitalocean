@@ -106,6 +106,7 @@ func appSpecImageSourceSchema() map[string]*schema.Schema {
 			Required: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				"UNSPECIFIED",
+				"DOCKER_HUB",
 				"DOCR",
 			}, false),
 			Description: "The registry type.",
