@@ -67,11 +67,11 @@ func TestAccDigitalOceanApp_Image(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry_type", "DOCKER_HUB"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry", "hub.docker.com"),
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry", "caddy"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.image.0.repository", "hasura/grahql-engine"),
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.repository", "caddy"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.image.0.tag", "v1.3.3"),
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.tag", "2.2.1-alpine"),
 				),
 			},
 		},
