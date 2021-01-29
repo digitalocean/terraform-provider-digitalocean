@@ -111,6 +111,13 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.database.0.engine", "PG"),
 				),
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_addJob, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.0.name", "go-job"),
+				),
 			},
 		},
 	})
@@ -570,6 +577,25 @@ resource "digitalocean_app" "foobar" {
     region = "ams"
 
     worker {
+      name               = "go-worker"
+      instance_count     = 1
+      instance_size_slug = "%s"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
+        branch         = "main"
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_addJob = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name = "%s"
+    region = "ams"
+
+    job {
       name               = "go-worker"
       instance_count     = 1
       instance_size_slug = "%s"
