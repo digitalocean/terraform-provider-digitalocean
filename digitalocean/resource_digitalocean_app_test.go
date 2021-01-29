@@ -111,6 +111,7 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.database.0.engine", "PG"),
 				),
+			},
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_addJob, appName),
 				Check: resource.ComposeTestCheckFunc(
