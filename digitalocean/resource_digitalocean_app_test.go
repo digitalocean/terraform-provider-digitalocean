@@ -124,6 +124,27 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_Job(t *testing.T) {
+	var app godo.App
+	appName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_addJob, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.0.name", "go-job"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanApp_StaticSite(t *testing.T) {
 	var app godo.App
 	appName := randomTestName()
