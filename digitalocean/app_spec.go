@@ -42,6 +42,11 @@ func appSpecSchema() map[string]*schema.Schema {
 			Optional: true,
 			Elem:     appSpecWorkerSchema(),
 		},
+		"job": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     appSpecJobSchema(),
+		},
 		"database": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -365,6 +370,47 @@ func appSpecWorkerSchema() *schema.Resource {
 	}
 }
 
+func appSpecJobSchema() *schema.Resource {
+	jobSchema := map[string]*schema.Schema{
+		"run_command": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "An optional run command to override the component's default.",
+		},
+		"instance_size_slug": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The instance size to use for this component.",
+		},
+		"instance_count": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Default:     1,
+			Description: "The amount of instances that this component should be scaled to.",
+		},
+		"kind": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Default:     "UNSPECIFIED",
+			ValidateFunc: validation.StringInSlice([]string{
+				"UNSPECIFIED",
+				"PRE_DEPLOY",
+				"POST_DEPLOY",
+				"FAILED_DEPLOY",
+			}, false),
+			Description: "The type of job and when it will be run during the deployment process.",
+		},
+	}
+
+	for k, v := range appSpecComponentBase() {
+		jobSchema[k] = v
+	}
+
+	return &schema.Resource{
+		Schema: jobSchema,
+	}
+}
+
 func appSpecDatabaseSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -426,6 +472,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		Services:    expandAppSpecServices(appSpecConfig["service"].([]interface{})),
 		StaticSites: expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
 		Workers:     expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
+		Jobs:        expandAppSpecJobs(appSpecConfig["job"].([]interface{})),
 		Databases:   expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
 		Envs:        expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
 	}
@@ -453,6 +500,10 @@ func flattenAppSpec(spec *godo.AppSpec) []map[string]interface{} {
 
 		if len((*spec).Workers) > 0 {
 			r["worker"] = flattenAppSpecWorkers((*spec).Workers)
+		}
+
+		if len((*spec).Jobs) > 0 {
+			r["job"] = flattenAppSpecJobs((*spec).Jobs)
 		}
 
 		if len((*spec).Databases) > 0 {
@@ -883,6 +934,72 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["instance_count"] = int(w.InstanceCount)
 		r["source_dir"] = w.SourceDir
 		r["environment_slug"] = w.EnvironmentSlug
+
+		result[i] = r
+	}
+
+	return result
+}
+
+func expandAppSpecJobs(config []interface{}) []*godo.AppJobSpec {
+	appJobs := make([]*godo.AppJobSpec, 0, len(config))
+
+	for _, rawJob := range config {
+		job := rawJob.(map[string]interface{})
+
+		s := &godo.AppJobSpec{
+			Name:             job["name"].(string),
+			RunCommand:       job["run_command"].(string),
+			BuildCommand:     job["build_command"].(string),
+			DockerfilePath:   job["dockerfile_path"].(string),
+			Envs:             expandAppEnvs(job["env"].(*schema.Set).List()),
+			InstanceSizeSlug: job["instance_size_slug"].(string),
+			InstanceCount:    int64(job["instance_count"].(int)),
+			SourceDir:        job["source_dir"].(string),
+			EnvironmentSlug:  job["environment_slug"].(string),
+			Kind:             godo.AppJobSpecKind(job["kind"].(string)),
+		}
+
+		github := job["github"].([]interface{})
+		if len(github) > 0 {
+			s.GitHub = expandAppGitHubSourceSpec(github)
+		}
+
+		git := job["git"].([]interface{})
+		if len(git) > 0 {
+			s.Git = expandAppGitSourceSpec(git)
+		}
+
+		image := job["image"].([]interface{})
+		if len(image) > 0 {
+			s.Image = expandAppImageSourceSpec(image)
+		}
+
+		appJobs = append(appJobs, s)
+	}
+
+	return appJobs
+}
+
+func flattenAppSpecJobs(jobs []*godo.AppJobSpec) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(jobs))
+
+	for i, j := range jobs {
+		r := make(map[string]interface{})
+
+		r["name"] = j.Name
+		r["run_command"] = j.RunCommand
+		r["build_command"] = j.BuildCommand
+		r["github"] = flattenAppGitHubSourceSpec(j.GitHub)
+		r["git"] = flattenAppGitSourceSpec(j.Git)
+		r["image"] = flattenAppImageSourceSpec(j.Image)
+		r["dockerfile_path"] = j.DockerfilePath
+		r["env"] = flattenAppEnvs(j.Envs)
+		r["instance_size_slug"] = j.InstanceSizeSlug
+		r["instance_count"] = int(j.InstanceCount)
+		r["source_dir"] = j.SourceDir
+		r["environment_slug"] = j.EnvironmentSlug
+		r["kind"] = string(j.Kind)
 
 		result[i] = r
 	}
