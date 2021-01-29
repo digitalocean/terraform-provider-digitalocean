@@ -112,6 +112,22 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.database.0.engine", "PG"),
 				),
 			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_addImage, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry_type", "DOCKER_HUB"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry", "hub.docker.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.repository", "hasura/grahql-engine"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.tag", "v1.3.3"),
+				),
+			},
 		},
 	})
 }
@@ -481,6 +497,33 @@ resource "digitalocean_app" "foobar" {
         path = "/python"
       }
     }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_addImage = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name = "%s"
+    region = "ams"
+
+    service {
+      name               = "image-service"
+      environment_slug   = "docker"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+
+      image {
+        registry_type = "DOCKER_HUB"
+		registry      = "hub.docker.com"
+		repository    = "hasura/graphql-engine"
+		tag 		  = "v1.3.3"
+      }
+
+      routes {
+        path = "/graphql"
+      }
+    }
+
   }
 }`
 
