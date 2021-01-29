@@ -508,22 +508,18 @@ resource "digitalocean_app" "foobar" {
 
     service {
       name               = "image-service"
-      environment_slug   = "docker"
       instance_count     = 1
       instance_size_slug = "basic-xxs"
 
       image {
         registry_type = "DOCKER_HUB"
-		registry      = "hub.docker.com"
-		repository    = "hasura/graphql-engine"
-		tag 		  = "v1.3.3"
+        registry      = "caddy"
+        repository    = "caddy"
+        tag           = "2.2.1-alpine"
       }
 
-      routes {
-        path = "/graphql"
-      }
+      http_port = 80
     }
-
   }
 }`
 
