@@ -104,6 +104,29 @@ provider "kubernetes" {
 }
 ```
 
+#### Exec credential plugin
+
+Another method to ensure that the Kubernetes provider is receiving valid credentials
+is to use an exec plugin. In order to use use this approach, the DigitalOcean
+CLI (`doctl`) must be present. `doctl` will renew the token if needed before
+initializing the provider.
+
+```hcl
+provider "kubernetes" {
+  host                   = data.digitalocean_kubernetes_cluster.foo.endpoint
+  cluster_ca_certificate = base64decode(
+    data.digitalocean_kubernetes_cluster.foo.kube_config[0].cluster_ca_certificate
+  )
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "doctl"
+    args = ["kubernetes", "cluster", "kubeconfig", "exec-credential",
+    "--version=v1beta1", data.digitalocean_kubernetes_cluster.foo.id]
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
