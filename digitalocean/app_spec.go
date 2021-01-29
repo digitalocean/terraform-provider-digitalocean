@@ -389,9 +389,9 @@ func appSpecJobSchema() *schema.Resource {
 			Description: "The amount of instances that this component should be scaled to.",
 		},
 		"kind": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Default:     "UNSPECIFIED",
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "UNSPECIFIED",
 			ValidateFunc: validation.StringInSlice([]string{
 				"UNSPECIFIED",
 				"PRE_DEPLOY",
