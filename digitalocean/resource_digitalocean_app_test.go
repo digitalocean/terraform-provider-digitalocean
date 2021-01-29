@@ -599,7 +599,7 @@ resource "digitalocean_app" "foobar" {
     job {
       name               = "go-worker"
       instance_count     = 1
-      instance_size_slug = "%s"
+      instance_size_slug = "basic-xxs"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
