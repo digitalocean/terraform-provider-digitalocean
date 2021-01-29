@@ -468,7 +468,7 @@ func TestAccDigitalOceanKubernetesCluster_KubernetesProviderInteroperability(t *
 		ExternalProviders: map[string]resource.ExternalProvider{
 			"kubernetes": {
 				Source:            "hashicorp/kubernetes",
-				VersionConstraint: "1.13.2",
+				VersionConstraint: "2.0.1",
 			},
 		},
 		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
@@ -637,7 +637,6 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 
 provider "kubernetes" {
   host = digitalocean_kubernetes_cluster.foobar.endpoint
-  load_config_file = false
   cluster_ca_certificate = base64decode(
     digitalocean_kubernetes_cluster.foobar.kube_config[0].cluster_ca_certificate
   )

@@ -15,6 +15,7 @@ website/node_modules
 .vagrant/
 *.backup
 ./*.tfstate
+*.terraform.lock.hcl
 .terraform/
 *.log
 *.bak
@@ -34,3 +35,6 @@ website/vendor
 
 # Local release artifacts
 dist/
+
+# kubeconfig file produced by running example
+examples/kubernetes/kubeconfig
