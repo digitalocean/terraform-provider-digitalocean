@@ -245,12 +245,12 @@ func appSpecRouteSchema() map[string]*schema.Schema {
 func appSpecInternalPortSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-		"port": {
-			Type:        schema.TypeInt,
-			Optional:    false,
-			Description: "A port used for internally contacting the service.",
-		},
-	}}
+			"port": {
+				Type:        schema.TypeInt,
+				Optional:    false,
+				Description: "A port used for internally contacting the service.",
+			},
+		}}
 }
 
 func appSpecHealthCheckSchema() map[string]*schema.Schema {
@@ -400,8 +400,8 @@ func appSpecServicesSchema() *schema.Resource {
 		"internal_port": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem: appSpecInternalPortSchema(),
-			Set: schema.HashResource(appSpecInternalPortSchema()),
+			Elem:     appSpecInternalPortSchema(),
+			Set:      schema.HashResource(appSpecInternalPortSchema()),
 		},
 	}
 
