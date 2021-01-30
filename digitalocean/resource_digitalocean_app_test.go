@@ -215,6 +215,49 @@ func TestAccDigitalOceanApp_StaticSite(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_InternalPort(t *testing.T) {
+	var app godo.App
+	appName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_addInternalPort, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "default_ingress"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_url"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "active_deployment_id"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.instance_count", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "basic-xxs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.git.0.repo_clone_url",
+						"https://github.com/digitalocean/sample-golang.git"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.git.0.branch", "main"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.http_path", "/"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.timeout_seconds", "10"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.routes.0.internal_ports.0", "5000"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanApp_Envs(t *testing.T) {
 	var app godo.App
 	appName := randomTestName()
@@ -678,6 +721,34 @@ resource "digitalocean_app" "foobar" {
       }
 
       http_port = 80
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_addInternalPort = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name = "%s"
+    region = "ams"
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+
+      routes {
+        path = "/"
+	  }
+	  
+	  internal_port {
+		port = 5000
+	  }
     }
   }
 }`
