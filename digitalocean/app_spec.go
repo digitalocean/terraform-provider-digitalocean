@@ -242,14 +242,15 @@ func appSpecRouteSchema() map[string]*schema.Schema {
 	}
 }
 
-func appSpecInternalPortSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func appSpecInternalPortSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
 		"port": {
 			Type:        schema.TypeInt,
 			Optional:    false,
 			Description: "A port used for internally contacting the service.",
 		},
-	}
+	}}
 }
 
 func appSpecHealthCheckSchema() map[string]*schema.Schema {
@@ -399,9 +400,8 @@ func appSpecServicesSchema() *schema.Resource {
 		"internal_port": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem: &schema.Resource{
-				Schema: appSpecInternalPortSchema(),
-			},
+			Elem: appSpecInternalPortSchema(),
+			Set: schema.HashResource(appSpecInternalPortSchema()),
 		},
 	}
 
@@ -912,9 +912,9 @@ func expandAppInternalPort(config []interface{}) []int64 {
 	appInternalPorts := make([]int64, 0, len(config))
 
 	for _, rawinternalPort := range config {
-		internal_port := rawinternalPort.(map[string]interface{})
+		internalPort := rawinternalPort.(map[string]interface{})
 
-		appInternalPorts = append(appInternalPorts, internal_port["port"].(int64))
+		appInternalPorts = append(appInternalPorts, internalPort["port"].(int64))
 	}
 
 	return appInternalPorts
