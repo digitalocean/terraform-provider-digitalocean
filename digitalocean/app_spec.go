@@ -242,6 +242,16 @@ func appSpecRouteSchema() map[string]*schema.Schema {
 	}
 }
 
+func appSpecInternalPortSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"port": {
+			Type:        schema.TypeInt,
+			Optional:    false,
+			Description: "A port used for internally contacting the service.",
+		},
+	}
+}
+
 func appSpecHealthCheckSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"http_path": {
@@ -384,6 +394,13 @@ func appSpecServicesSchema() *schema.Resource {
 			Computed: true,
 			Elem: &schema.Resource{
 				Schema: appSpecRouteSchema(),
+			},
+		},
+		"internal_port": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: appSpecInternalPortSchema(),
 			},
 		},
 	}
@@ -895,9 +912,9 @@ func expandAppInternalPort(config []interface{}) []int64 {
 	appInternalPorts := make([]int64, 0, len(config))
 
 	for _, rawinternalPort := range config {
-		internal_port := rawinternalPort.(int64)
+		internal_port := rawinternalPort.(map[string]interface{})
 
-		appInternalPorts = append(appInternalPorts, internal_port)
+		appInternalPorts = append(appInternalPorts, internal_port["port"].(int64))
 	}
 
 	return appInternalPorts
@@ -994,7 +1011,7 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.HealthCheck = expandAppHealthCheck(checks)
 		}
 
-		internal_ports := service["internal_port"].([]interface{})
+		internal_ports := service["internal_ports"].([]interface{})
 		if len(internal_ports) > 0 {
 			s.InternalPorts = expandAppInternalPort(internal_ports)
 		}
