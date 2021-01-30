@@ -1011,9 +1011,9 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.HealthCheck = expandAppHealthCheck(checks)
 		}
 
-		internal_ports := service["internal_ports"].([]interface{})
-		if len(internal_ports) > 0 {
-			s.InternalPorts = expandAppInternalPort(internal_ports)
+		internalPorts := service["internal_ports"].([]interface{})
+		if len(internalPorts) > 0 {
+			s.InternalPorts = expandAppInternalPort(internalPorts)
 		}
 
 		appServices = append(appServices, s)
