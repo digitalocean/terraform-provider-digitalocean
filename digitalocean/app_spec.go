@@ -247,7 +247,7 @@ func appSpecInternalPortSchema() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"port": {
 				Type:        schema.TypeInt,
-				Optional:    false,
+				Required:    true,
 				Description: "A port used for internally contacting the service.",
 			},
 		}}
