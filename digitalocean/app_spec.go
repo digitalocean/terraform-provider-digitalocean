@@ -241,7 +241,6 @@ func appSpecComponentBase() map[string]*schema.Schema {
 			Type:     schema.TypeList,
 			Optional: true,
 			Computed: true,
-			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: appSpecRouteSchema(),
 			},
@@ -359,6 +358,18 @@ func appSpecWorkerSchema() *schema.Resource {
 	for k, v := range appSpecComponentBase() {
 		workerSchema[k] = v
 	}
+
+	routes := schema.Schema{
+		Type:     schema.TypeList,
+		Optional: true,
+		Computed: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: appSpecRouteSchema(),
+		},
+	}
+
+	workerSchema["routes"] = &routes
 
 	return &schema.Resource{
 		Schema: workerSchema,
