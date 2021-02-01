@@ -618,6 +618,10 @@ resource "digitalocean_app" "foobar" {
       routes {
         path = "/"
       }
+
+      routes {
+        path = "/foo"
+      }
     }
   }
 }`
