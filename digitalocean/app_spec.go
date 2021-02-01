@@ -104,6 +104,36 @@ func appSpecGitLabSourceSchema() map[string]*schema.Schema {
 	return appSpecGitServiceSourceSchema()
 }
 
+func appSpecImageSourceSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"registry_type": {
+			Type:     schema.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				"UNSPECIFIED",
+				"DOCKER_HUB",
+				"DOCR",
+			}, false),
+			Description: "The registry type.",
+		},
+		"registry": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The registry name. Must be left empty for the DOCR registry type.",
+		},
+		"repository": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "The repository name.",
+		},
+		"tag": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The repository tag. Defaults to latest if not provided.",
+		},
+	}
+}
+
 func appSpecEnvSchema() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -297,6 +327,14 @@ func appSpecServicesSchema() *schema.Resource {
 				Schema: appSpecHealthCheckSchema(),
 			},
 		},
+		"image": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecImageSourceSchema(),
+			},
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -347,6 +385,14 @@ func appSpecWorkerSchema() *schema.Resource {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "An optional run command to override the component's default.",
+		},
+		"image": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecImageSourceSchema(),
+			},
 		},
 		"instance_size_slug": {
 			Type:        schema.TypeString,
@@ -626,6 +672,35 @@ func flattenAppGitSourceSpec(spec *godo.GitSourceSpec) []interface{} {
 	return result
 }
 
+func expandAppImageSourceSpec(config []interface{}) *godo.ImageSourceSpec {
+	imageSourceConfig := config[0].(map[string]interface{})
+
+	imageSource := &godo.ImageSourceSpec{
+		RegistryType: godo.ImageSourceSpecRegistryType(imageSourceConfig["registry_type"].(string)),
+		Registry:     imageSourceConfig["registry"].(string),
+		Repository:   imageSourceConfig["repository"].(string),
+		Tag:          imageSourceConfig["tag"].(string),
+	}
+
+	return imageSource
+}
+
+func flattenAppImageSourceSpec(spec *godo.ImageSourceSpec) []interface{} {
+	result := make([]interface{}, 0)
+
+	if spec != nil {
+		r := make(map[string]interface{})
+		r["registry_type"] = string((*spec).RegistryType)
+		r["registry"] = (*spec).Registry
+		r["repository"] = (*spec).Repository
+		r["tag"] = (*spec).Tag
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
 func expandAppEnvs(config []interface{}) []*godo.AppVariableDefinition {
 	appEnvs := make([]*godo.AppVariableDefinition, 0, len(config))
 
@@ -761,6 +836,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.Git = expandAppGitSourceSpec(git)
 		}
 
+		image := service["image"].([]interface{})
+		if len(image) > 0 {
+			s.Image = expandAppImageSourceSpec(image)
+		}
+
 		routes := service["routes"].([]interface{})
 		if len(routes) > 0 {
 			s.Routes = expandAppRoutes(routes)
@@ -789,6 +869,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["github"] = flattenAppGitHubSourceSpec(s.GitHub)
 		r["gitlab"] = flattenAppGitLabSourceSpec(s.GitLab)
 		r["git"] = flattenAppGitSourceSpec(s.Git)
+		r["image"] = flattenAppImageSourceSpec(s.Image)
 		r["http_port"] = int(s.HTTPPort)
 		r["routes"] = flattenAppRoutes(s.Routes)
 		r["dockerfile_path"] = s.DockerfilePath
@@ -910,6 +991,11 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 			s.Git = expandAppGitSourceSpec(git)
 		}
 
+		image := worker["image"].([]interface{})
+		if len(image) > 0 {
+			s.Image = expandAppImageSourceSpec(image)
+		}
+
 		appWorkers = append(appWorkers, s)
 	}
 
@@ -928,6 +1014,7 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["github"] = flattenAppGitHubSourceSpec(w.GitHub)
 		r["gitlab"] = flattenAppGitLabSourceSpec(w.GitLab)
 		r["git"] = flattenAppGitSourceSpec(w.Git)
+		r["image"] = flattenAppImageSourceSpec(w.Image)
 		r["dockerfile_path"] = w.DockerfilePath
 		r["env"] = flattenAppEnvs(w.Envs)
 		r["instance_size_slug"] = w.InstanceSizeSlug
