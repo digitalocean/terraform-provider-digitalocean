@@ -272,15 +272,6 @@ func appSpecComponentBase() map[string]*schema.Schema {
 			Elem:     appSpecEnvSchema(),
 			Set:      schema.HashResource(appSpecEnvSchema()),
 		},
-		"routes": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
-			MaxItems: 1,
-			Elem: &schema.Resource{
-				Schema: appSpecRouteSchema(),
-			},
-		},
 		"source_dir": {
 			Type:        schema.TypeString,
 			Optional:    true,
@@ -335,6 +326,14 @@ func appSpecServicesSchema() *schema.Resource {
 				Schema: appSpecImageSourceSchema(),
 			},
 		},
+		"routes": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: appSpecRouteSchema(),
+			},
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -367,6 +366,14 @@ func appSpecStaticSiteSchema() *schema.Resource {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "The name of the document to use as the fallback for any requests to documents that are not found when serving this static site.",
+		},
+		"routes": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: appSpecRouteSchema(),
+			},
 		},
 	}
 
