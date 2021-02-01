@@ -1060,6 +1060,11 @@ func expandAppSpecJobs(config []interface{}) []*godo.AppJobSpec {
 			s.GitHub = expandAppGitHubSourceSpec(github)
 		}
 
+		gitlab := job["gitlab"].([]interface{})
+		if len(gitlab) > 0 {
+			s.GitLab = expandAppGitLabSourceSpec(gitlab)
+		}
+
 		git := job["git"].([]interface{})
 		if len(git) > 0 {
 			s.Git = expandAppGitSourceSpec(git)
@@ -1086,6 +1091,7 @@ func flattenAppSpecJobs(jobs []*godo.AppJobSpec) []map[string]interface{} {
 		r["run_command"] = j.RunCommand
 		r["build_command"] = j.BuildCommand
 		r["github"] = flattenAppGitHubSourceSpec(j.GitHub)
+		r["gitlab"] = flattenAppGitLabSourceSpec(j.GitLab)
 		r["git"] = flattenAppGitSourceSpec(j.Git)
 		r["image"] = flattenAppImageSourceSpec(j.Image)
 		r["dockerfile_path"] = j.DockerfilePath
