@@ -736,7 +736,7 @@ resource "digitalocean_app" "foobar" {
         branch         = "main"
       }
 	  
-	  internal_ports = ["5000"]
+	  internal_ports = [ 5000 ]
     }
   }
 }`
