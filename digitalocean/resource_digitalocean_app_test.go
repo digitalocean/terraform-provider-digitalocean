@@ -141,14 +141,6 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.database.0.engine", "PG"),
 				),
 			},
-			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_addJob, appName),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.job.0.name", "go-job"),
-				),
-			},
 		},
 	})
 }
@@ -167,7 +159,17 @@ func TestAccDigitalOceanApp_Job(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.job.0.name", "go-job"),
+						"digitalocean_app.foobar", "spec.0.job.0.name", "example-pre-job"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.0.kind", "PRE_DEPLOY"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.0.run_command", "echo 'This is a pre-deploy job.'"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.1.name", "example-post-job"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.1.kind", "POST_DEPLOY"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.1.run_command", "echo 'This is a post-deploy job.'"),
 				),
 			},
 		},
@@ -670,13 +672,48 @@ resource "digitalocean_app" "foobar" {
     region = "ams"
 
     job {
-      name               = "go-worker"
+      name               = "example-pre-job"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+      kind = "PRE_DEPLOY"
+      run_command = "echo 'This is a pre-deploy job.'"
+
+      image {
+        registry_type = "DOCKER_HUB"
+        registry      = "frolvlad"
+        repository    = "alpine-bash"
+        tag           = "latest"
+      }
+    }
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
       instance_count     = 1
       instance_size_slug = "basic-xxs"
 
       git {
-        repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
         branch         = "main"
+      }
+
+      routes {
+        path = "/"
+      }
+    }
+
+    job {
+      name               = "example-post-job"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+      kind = "POST_DEPLOY"
+      run_command = "echo 'This is a post-deploy job.'"
+
+      image {
+        registry_type = "DOCKER_HUB"
+        registry      = "frolvlad"
+        repository    = "alpine-bash"
+        tag           = "latest"
       }
     }
   }
