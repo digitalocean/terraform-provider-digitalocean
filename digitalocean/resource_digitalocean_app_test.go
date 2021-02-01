@@ -230,8 +230,6 @@ func TestAccDigitalOceanApp_InternalPort(t *testing.T) {
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.name", appName),
-					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "default_ingress"),
-					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_url"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "active_deployment_id"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
@@ -240,16 +238,14 @@ func TestAccDigitalOceanApp_InternalPort(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "basic-xxs"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
-					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.git.0.repo_clone_url",
 						"https://github.com/digitalocean/sample-golang.git"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.git.0.branch", "main"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.http_path", "/"),
-					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.timeout_seconds", "10"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.routes.0.internal_ports.#", "1"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.routes.0.internal_ports.0", "5000"),
 				),
@@ -741,14 +737,8 @@ resource "digitalocean_app" "foobar" {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
         branch         = "main"
       }
-
-      routes {
-        path = "/"
-	  }
 	  
-	  internal_port {
-		port = 5000
-	  }
+	  internal_ports = ["5000"]
     }
   }
 }`

@@ -2,7 +2,6 @@ package digitalocean
 
 import (
 	"log"
-	"strconv"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -397,11 +396,10 @@ func appSpecServicesSchema() *schema.Resource {
 				Schema: appSpecRouteSchema(),
 			},
 		},
-		"internal_port": {
+		"internal_ports": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     appSpecInternalPortSchema(),
-			Set:      schema.HashResource(appSpecInternalPortSchema()),
+			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
 	}
 
@@ -908,13 +906,11 @@ func flattenAppHealthCheck(check *godo.AppServiceSpecHealthCheck) []interface{} 
 	return result
 }
 
-func expandAppInternalPort(config []interface{}) []int64 {
-	appInternalPorts := make([]int64, 0, len(config))
+func expandAppInternalPorts(config []interface{}) []int64 {
+	appInternalPorts := make([]int64, len(config))
 
-	for _, rawinternalPort := range config {
-		internalPort := rawinternalPort.(map[string]interface{})
-
-		appInternalPorts = append(appInternalPorts, internalPort["port"].(int64))
+	for i, v := range config {
+		appInternalPorts[i] = int64(v.(int))
 	}
 
 	return appInternalPorts
@@ -936,14 +932,11 @@ func expandAppRoutes(config []interface{}) []*godo.AppRouteSpec {
 	return appRoutes
 }
 
-func flattenAppInternalPortsSpec(internal_ports []int64) []interface{} {
-	result := make([]interface{}, 0)
+func flattenAppServiceInternalPortsSpec(internalPorts []int64) *schema.Set {
+	result := schema.NewSet(schema.HashInt, []interface{}{})
 
-	for _, internal_port := range internal_ports {
-		r := make(map[string]interface{})
-		r["port"] = strconv.FormatInt(internal_port, 10)
-
-		result = append(result, r)
+	for _, internalPort := range internalPorts {
+		result.Add(int(internalPort))
 	}
 
 	return result
@@ -1011,9 +1004,9 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.HealthCheck = expandAppHealthCheck(checks)
 		}
 
-		internalPorts := service["internal_ports"].([]interface{})
+		internalPorts := service["internal_ports"].(*schema.Set).List()
 		if len(internalPorts) > 0 {
-			s.InternalPorts = expandAppInternalPort(internalPorts)
+			s.InternalPorts = expandAppInternalPorts(internalPorts)
 		}
 
 		appServices = append(appServices, s)
@@ -1033,7 +1026,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["build_command"] = s.BuildCommand
 		r["github"] = flattenAppGitHubSourceSpec(s.GitHub)
 		r["gitlab"] = flattenAppGitLabSourceSpec(s.GitLab)
-		r["internal_port"] = flattenAppInternalPortsSpec(s.InternalPorts)
+		r["internal_ports"] = flattenAppServiceInternalPortsSpec(s.InternalPorts)
 		r["git"] = flattenAppGitSourceSpec(s.Git)
 		r["image"] = flattenAppImageSourceSpec(s.Image)
 		r["http_port"] = int(s.HTTPPort)
