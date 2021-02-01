@@ -983,11 +983,6 @@ func expandAppSpecStaticSites(config []interface{}) []*godo.AppStaticSiteSpec {
 			s.Git = expandAppGitSourceSpec(git)
 		}
 
-		//		image := site["image"].([]interface{})
-		//		if len(image) > 0 {
-		//			s.Image = expandAppImageSourceSpec(image)
-		//		}
-
 		routes := site["routes"].([]interface{})
 		if len(routes) > 0 {
 			s.Routes = expandAppRoutes(routes)
@@ -1010,7 +1005,6 @@ func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec) []map[string]int
 		r["github"] = flattenAppGitHubSourceSpec(s.GitHub)
 		r["gitlab"] = flattenAppGitLabSourceSpec(s.GitLab)
 		r["git"] = flattenAppGitSourceSpec(s.Git)
-		// r["image"] = flattenAppImageSourceSpec(s.Image)
 		r["routes"] = flattenAppRoutes(s.Routes)
 		r["dockerfile_path"] = s.DockerfilePath
 		r["env"] = flattenAppEnvs(s.Envs)
