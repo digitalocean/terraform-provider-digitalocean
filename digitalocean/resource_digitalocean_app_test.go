@@ -243,8 +243,6 @@ func TestAccDigitalOceanApp_InternalPort(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.git.0.branch", "main"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.timeout_seconds", "10"),
-					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.routes.0.internal_ports.#", "1"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.routes.0.internal_ports.0", "5000"),
