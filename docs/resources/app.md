@@ -62,7 +62,9 @@ resource "digitalocean_app" "mono-repo-example" {
   spec {
     name    = "mono-repo-example"
     region  = "ams"
-    domains = ["foo.example.com"]
+    domain {
+      name = "foo.example.com"
+    }
 
     # Build a Go project in the api/ directory that listens on port 3000
     # and serves it at https://foo.example.com/api
@@ -121,7 +123,14 @@ The following arguments are supported:
 * `spec` - (Required) A DigitalOcean App spec describing the app.
  - `name` - (Required) The name of the app. Must be unique across all apps in the same account.
  - `region` - The slug for the DigitalOcean data center region hosting the app.
- - `domains` - A list of hostnames where the application will be available.
+ - `domain` - Describes a domain where the application will be made available
+     * `name` - The hostname for the domain
+     * `type` - The domain type, which can be one of the following:
+         - `DEFAULT`: The default .ondigitalocean.app domain assigned to this app
+         - `PRIMARY`: The primary domain for this app that is displayed as the default in the control panel, used in bindable environment variables, and any other places that reference an app's live URL. Only one domain may be set as primary.
+         - `ALIAS`: A non-primary domain
+     * `wildcard`: A boolean indicating whether the domain includes all sub-domains, in addition to the given domain
+     * `zone`: If the domain uses DigitalOcean DNS and you would like App Platform to automatically manage it for you, set this to the name of the domain on your account.
  - `env` - Describes an app-wide environment variable made available to all components.
      * `key` - The name of the environment variable.
      * `value` - The value of the environment variable.
