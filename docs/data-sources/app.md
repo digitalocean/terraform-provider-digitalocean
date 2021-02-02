@@ -48,17 +48,22 @@ A `service` can contain:
 * `instance_size_slug` - The instance size to use for this component.
 * `instance_count` - The amount of instances that this component should be scaled to.
 * `http_port` - The internal port on which this service's run command will listen.
-* `git` - A Git repo to use as component's source. Only one of `git`, `github` or `gitlab` may be set.
+* `git` - A Git repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
 * `github` - A GitHub repo to use as component's source. Only one of `git`, `github` or `gitlab`  may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `gitlab` - A Gitlab repo to use as component's source. Only one of `git`, `github` or `gitlab` may be set.
+* `gitlab` - A Gitlab repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+* `image` - An image to use as the component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+  - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`
+  - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
+  - `repository` - The repository name.
+  - `tag` - The repository tag. Defaults to `latest` if not provided.
 * `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
@@ -84,17 +89,22 @@ A `worker` can contain:
 * `environment_slug` - An environment slug describing the type of this app.
 * `instance_size_slug` - The instance size to use for this component.
 * `instance_count` - The amount of instances that this component should be scaled to.
-* `git` - A Git repo to use as component's source. Only one of `git`, `github` or `gitlab` may be set.
+* `git` - A Git repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
 * `github` - A GitHub repo to use as component's source. Only one of `git`, `github` or `gitlab`  may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `gitlab` - A Gitlab repo to use as component's source. Only one of `git`, `github` or `gitlab` may be set.
+* `gitlab` - A Gitlab repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+* `image` - An image to use as the component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+  - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`
+  - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
+  - `repository` - The repository name.
+  - `tag` - The repository tag. Defaults to `latest` if not provided.
 * `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
@@ -112,14 +122,14 @@ A `static_site` can contain:
 * `index_document` - The name of the index document to use when serving this static site.
 * `error_document` - The name of the error document to use when serving this static site.
 * `catchall_document` - The name of the document to use as the fallback for any requests to documents that are not found when serving this static site.
-* `git` - A Git repo to use as component's source. Only one of `git`, `github` or `gitlab` may be set.
+* `git` - A Git repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
 * `github` - A GitHub repo to use as component's source. Only one of `git`, `github` or `gitlab`  may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `gitlab` - A Gitlab repo to use as component's source. Only one of `git`, `github` or `gitlab` may be set.
+* `gitlab` - A Gitlab repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.

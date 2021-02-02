@@ -129,8 +129,8 @@ The following arguments are supported:
          - `DEFAULT`: The default .ondigitalocean.app domain assigned to this app
          - `PRIMARY`: The primary domain for this app that is displayed as the default in the control panel, used in bindable environment variables, and any other places that reference an app's live URL. Only one domain may be set as primary.
          - `ALIAS`: A non-primary domain
-     * `wildcard`: A boolean indicating whether the domain includes all sub-domains, in addition to the given domain
-     * `zone`: If the domain uses DigitalOcean DNS and you would like App Platform to automatically manage it for you, set this to the name of the domain on your account.
+     * `wildcard` - A boolean indicating whether the domain includes all sub-domains, in addition to the given domain
+     * `zone` - If the domain uses DigitalOcean DNS and you would like App Platform to automatically manage it for you, set this to the name of the domain on your account.
  - `env` - Describes an app-wide environment variable made available to all components.
      * `key` - The name of the environment variable.
      * `value` - The value of the environment variable.
@@ -153,14 +153,19 @@ A `service` can contain:
 * `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication.  Only one of `git`, `github` or `gitlab`  may be set
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
-* `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github` or `gitlab`  may be set.
+* `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github` or `gitlab`  may be set.
+* `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+* `image` - An image to use as the component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+  - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`
+  - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
+  - `repository` - The repository name.
+  - `tag` - The repository tag. Defaults to `latest` if not provided.
 * `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
@@ -189,14 +194,19 @@ A `worker` can contain:
 * `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication.  Only one of `git`, `github` or `gitlab`  may be set
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
-* `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github` or `gitlab`  may be set.
+* `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github` or `gitlab`  may be set.
+* `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+* `image` - An image to use as the component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+  - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`
+  - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
+  - `repository` - The repository name.
+  - `tag` - The repository tag. Defaults to `latest` if not provided.
 * `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
@@ -217,11 +227,11 @@ A `static_site` can contain:
 * `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication.  Only one of `git`, `github` or `gitlab`  may be set
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
-* `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github` or `gitlab`  may be set.
+* `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github` or `gitlab`  may be set.
+* `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
