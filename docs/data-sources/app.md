@@ -48,6 +48,7 @@ A `service` can contain:
 * `instance_size_slug` - The instance size to use for this component.
 * `instance_count` - The amount of instances that this component should be scaled to.
 * `http_port` - The internal port on which this service's run command will listen.
+* `internal_ports` - A list of ports on which this service will listen for internal traffic.
 * `git` - A Git repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
