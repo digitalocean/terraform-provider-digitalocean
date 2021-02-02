@@ -436,6 +436,121 @@ func TestAccDigitalOceanApp_Worker(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_Domain(t *testing.T) {
+	var app godo.App
+	appName := randomTestName()
+
+	domain := fmt.Sprintf(`
+       domain {
+         name     = "%s.com"
+         wildcard = true
+       }
+`, appName)
+
+	updatedDomain := fmt.Sprintf(`
+       domain {
+         name     = "%s.net"
+         wildcard = true
+       }
+`, appName)
+
+	domainsConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Domains, appName, domain)
+	updatedDomainConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Domains, appName, updatedDomain)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: domainsConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.domain.0.name", appName+".com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.domain.0.wildcard", "true"),
+				),
+			},
+			{
+				Config: updatedDomainConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.domain.0.name", appName+".net"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.domain.0.wildcard", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanApp_DomainsDeprecation(t *testing.T) {
+	var app godo.App
+	appName := randomTestName()
+
+	deprecatedStyleDomain := fmt.Sprintf(`
+       domains = ["%s.com"]
+`, appName)
+
+	updatedDeprecatedStyleDomain := fmt.Sprintf(`
+       domains = ["%s.net"]
+`, appName)
+
+	newStyleDomain := fmt.Sprintf(`
+       domain {
+         name     = "%s.com"
+         wildcard = true
+       }
+`, appName)
+
+	domainsConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Domains, appName, deprecatedStyleDomain)
+	updateDomainsConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Domains, appName, updatedDeprecatedStyleDomain)
+	replaceDomainsConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Domains, appName, newStyleDomain)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: domainsConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.domains.0", appName+".com"),
+				),
+			},
+			{
+				Config: updateDomainsConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.domains.0", appName+".net"),
+				),
+			},
+			{
+				Config: replaceDomainsConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.domain.0.name", appName+".com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.domain.0.wildcard", "true"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanAppDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -718,6 +833,28 @@ resource "digitalocean_app" "foobar" {
         registry      = "frolvlad"
         repository    = "alpine-bash"
         tag           = "latest"
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_Domains = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name = "%s"
+    region = "ams"
+
+    %s
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
       }
     }
   }

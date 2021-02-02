@@ -20,7 +20,7 @@ func dataSourceDigitalOceanApp() *schema.Resource {
 				Computed:    true,
 				Description: "A DigitalOcean App Platform Spec",
 				Elem: &schema.Resource{
-					Schema: appSpecSchema(),
+					Schema: appSpecSchema(false),
 				},
 			},
 			"default_ingress": {

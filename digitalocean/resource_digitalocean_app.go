@@ -29,7 +29,7 @@ func resourceDigitalOceanApp() *schema.Resource {
 				MaxItems:    1,
 				Description: "A DigitalOcean App Platform Spec",
 				Elem: &schema.Resource{
-					Schema: appSpecSchema(),
+					Schema: appSpecSchema(true),
 				},
 			},
 
@@ -112,7 +112,7 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("updated_at", app.UpdatedAt.UTC().String())
 	d.Set("created_at", app.CreatedAt.UTC().String())
 
-	if err := d.Set("spec", flattenAppSpec(app.Spec)); err != nil {
+	if err := d.Set("spec", flattenAppSpec(d, app.Spec)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting app spec: %#v", err)
 	}
 

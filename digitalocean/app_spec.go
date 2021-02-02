@@ -8,8 +8,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func appSpecSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+// appSpecSchema returns map[string]*schema.Schema for the App Specification.
+// Set isResource to true in order to return a schema with additional attributes
+// appropriate for a resource or false for one used with a data-source.
+func appSpecSchema(isResource bool) map[string]*schema.Schema {
+	spec := map[string]*schema.Schema{
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
@@ -24,7 +27,15 @@ func appSpecSchema() map[string]*schema.Schema {
 		"domain": {
 			Type:     schema.TypeList,
 			Optional: true,
+			Computed: true,
 			Elem:     appSpecDomainSchema(),
+		},
+		"domains": {
+			Type:       schema.TypeSet,
+			Optional:   true,
+			Computed:   true,
+			Elem:       &schema.Schema{Type: schema.TypeString},
+			Deprecated: "This attribute has been replaced by `domain` which supports additional functionality.",
 		},
 		"service": {
 			Type:     schema.TypeList,
@@ -59,6 +70,12 @@ func appSpecSchema() map[string]*schema.Schema {
 			Set:      schema.HashResource(appSpecEnvSchema()),
 		},
 	}
+
+	if isResource {
+		spec["domain"].ConflictsWith = []string{"spec.0.domains"}
+	}
+
+	return spec
 }
 
 func appSpecDomainSchema() *schema.Resource {
@@ -72,7 +89,7 @@ func appSpecDomainSchema() *schema.Resource {
 			"type": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "PRIMARY",
+				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"DEFAULT",
 					"PRIMARY",
@@ -83,6 +100,7 @@ func appSpecDomainSchema() *schema.Resource {
 			"wildcard": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				Computed:    true,
 				Description: "Indicates whether the domain includes all sub-domains, in addition to the given domain.",
 			},
 			"zone": {
@@ -562,7 +580,6 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 	appSpec := &godo.AppSpec{
 		Name:        appSpecConfig["name"].(string),
 		Region:      appSpecConfig["region"].(string),
-		Domains:     expandAppSpecDomains(appSpecConfig["domain"].([]interface{})),
 		Services:    expandAppSpecServices(appSpecConfig["service"].([]interface{})),
 		StaticSites: expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
 		Workers:     expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
@@ -571,10 +588,18 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		Envs:        expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
 	}
 
+	// Prefer the `domain` block over `domains` if it is set.
+	domainConfig := appSpecConfig["domain"].([]interface{})
+	if len(domainConfig) > 0 {
+		appSpec.Domains = expandAppSpecDomains(domainConfig)
+	} else {
+		appSpec.Domains = expandAppDomainSpec(appSpecConfig["domains"].(*schema.Set).List())
+	}
+
 	return appSpec
 }
 
-func flattenAppSpec(spec *godo.AppSpec) []map[string]interface{} {
+func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0, 1)
 
 	if spec != nil {
@@ -584,7 +609,10 @@ func flattenAppSpec(spec *godo.AppSpec) []map[string]interface{} {
 		r["region"] = (*spec).Region
 
 		if len((*spec).Domains) > 0 {
-			r["domain"] = flattenAppSpecDomains((*spec).Domains)
+			r["domains"] = flattenAppDomainSpec((*spec).Domains)
+			if _, ok := d.GetOk("spec.0.domain"); ok {
+				r["domain"] = flattenAppSpecDomains((*spec).Domains)
+			}
 		}
 
 		if len((*spec).Services) > 0 {
@@ -617,6 +645,21 @@ func flattenAppSpec(spec *godo.AppSpec) []map[string]interface{} {
 	return result
 }
 
+// expandAppDomainSpec has been deprecated in favor of expandAppSpecDomains.
+func expandAppDomainSpec(config []interface{}) []*godo.AppDomainSpec {
+	appDomains := make([]*godo.AppDomainSpec, 0, len(config))
+
+	for _, rawDomain := range config {
+		domain := &godo.AppDomainSpec{
+			Domain: rawDomain.(string),
+		}
+
+		appDomains = append(appDomains, domain)
+	}
+
+	return appDomains
+}
+
 func expandAppSpecDomains(config []interface{}) []*godo.AppDomainSpec {
 	appDomains := make([]*godo.AppDomainSpec, 0, len(config))
 
@@ -634,6 +677,17 @@ func expandAppSpecDomains(config []interface{}) []*godo.AppDomainSpec {
 	}
 
 	return appDomains
+}
+
+// flattenAppDomainSpec has been deprecated in favor of flattenAppSpecDomains
+func flattenAppDomainSpec(spec []*godo.AppDomainSpec) *schema.Set {
+	result := schema.NewSet(schema.HashString, []interface{}{})
+
+	for _, domain := range spec {
+		result.Add(domain.Domain)
+	}
+
+	return result
 }
 
 func flattenAppSpecDomains(domains []*godo.AppDomainSpec) []map[string]interface{} {
