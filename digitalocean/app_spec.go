@@ -385,6 +385,11 @@ func appSpecServicesSchema() *schema.Resource {
 				Schema: appSpecRouteSchema(),
 			},
 		},
+		"internal_ports": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     &schema.Schema{Type: schema.TypeInt},
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -890,6 +895,16 @@ func flattenAppHealthCheck(check *godo.AppServiceSpecHealthCheck) []interface{} 
 	return result
 }
 
+func expandAppInternalPorts(config []interface{}) []int64 {
+	appInternalPorts := make([]int64, len(config))
+
+	for i, v := range config {
+		appInternalPorts[i] = int64(v.(int))
+	}
+
+	return appInternalPorts
+}
+
 func expandAppRoutes(config []interface{}) []*godo.AppRouteSpec {
 	appRoutes := make([]*godo.AppRouteSpec, 0, len(config))
 
@@ -904,6 +919,16 @@ func expandAppRoutes(config []interface{}) []*godo.AppRouteSpec {
 	}
 
 	return appRoutes
+}
+
+func flattenAppServiceInternalPortsSpec(internalPorts []int64) *schema.Set {
+	result := schema.NewSet(schema.HashInt, []interface{}{})
+
+	for _, internalPort := range internalPorts {
+		result.Add(int(internalPort))
+	}
+
+	return result
 }
 
 func flattenAppRoutes(routes []*godo.AppRouteSpec) []interface{} {
@@ -968,6 +993,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.HealthCheck = expandAppHealthCheck(checks)
 		}
 
+		internalPorts := service["internal_ports"].(*schema.Set).List()
+		if len(internalPorts) > 0 {
+			s.InternalPorts = expandAppInternalPorts(internalPorts)
+		}
+
 		appServices = append(appServices, s)
 	}
 
@@ -985,6 +1015,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["build_command"] = s.BuildCommand
 		r["github"] = flattenAppGitHubSourceSpec(s.GitHub)
 		r["gitlab"] = flattenAppGitLabSourceSpec(s.GitLab)
+		r["internal_ports"] = flattenAppServiceInternalPortsSpec(s.InternalPorts)
 		r["git"] = flattenAppGitSourceSpec(s.Git)
 		r["image"] = flattenAppImageSourceSpec(s.Image)
 		r["http_port"] = int(s.HTTPPort)
