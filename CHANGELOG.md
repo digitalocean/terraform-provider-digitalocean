@@ -1,3 +1,20 @@
+## 2.5.0 (February 03, 2021)
+
+NOTES:
+
+* `digitalocean_app`: In order to support additional features, the `domains` attribute has been deprecated and will be removed in a future release. It has been replaced by a repeatable `domain` block which supports wildcard domains and specifying DigitalOcean managed zones.
+
+IMPROVEMENTS:
+
+* `digitalocean_app`: Deprecate domains list in favor of domain block. ([#572](https://github.com/digitalocean/terraform-provider-digitalocean/issues/572)).
+* `digitalocean_app`: Add support for images as a component source ([#565](https://github.com/digitalocean/terraform-provider-digitalocean/issues/565)). Thanks to @rienafairefr and @acraven!
+* `digitalocean_app`: Add support for job components ([#566](https://github.com/digitalocean/terraform-provider-digitalocean/issues/566)).  Thanks to @rienafairefr and @acraven!
+* `digitalocean_app`: Add support for `internal_ports` ([#570](https://github.com/digitalocean/terraform-provider-digitalocean/issues/570)). Thanks to @rienafairefr!
+
+BUG FIXES:
+
+* `digitalocean_app`: Allow multiple routes for services and static sites ([#571](https://github.com/digitalocean/terraform-provider-digitalocean/issues/571)).
+
 ## 2.4.0 (January 19, 2021)
 
 IMPROVEMENTS:
