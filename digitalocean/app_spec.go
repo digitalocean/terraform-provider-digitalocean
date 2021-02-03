@@ -241,17 +241,6 @@ func appSpecRouteSchema() map[string]*schema.Schema {
 	}
 }
 
-func appSpecInternalPortSchema() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"port": {
-				Type:        schema.TypeInt,
-				Required:    true,
-				Description: "A port used for internally contacting the service.",
-			},
-		}}
-}
-
 func appSpecHealthCheckSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"http_path": {
