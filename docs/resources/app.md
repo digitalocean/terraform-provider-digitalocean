@@ -123,13 +123,13 @@ The following arguments are supported:
 * `spec` - (Required) A DigitalOcean App spec describing the app.
  - `name` - (Required) The name of the app. Must be unique across all apps in the same account.
  - `region` - The slug for the DigitalOcean data center region hosting the app.
- - `domain` - Describes a domain where the application will be made available
-     * `name` - The hostname for the domain
+ - `domain` - Describes a domain where the application will be made available.
+     * `name` - The hostname for the domain.
      * `type` - The domain type, which can be one of the following:
-         - `DEFAULT`: The default .ondigitalocean.app domain assigned to this app
+         - `DEFAULT`: The default .ondigitalocean.app domain assigned to this app.
          - `PRIMARY`: The primary domain for this app that is displayed as the default in the control panel, used in bindable environment variables, and any other places that reference an app's live URL. Only one domain may be set as primary.
-         - `ALIAS`: A non-primary domain
-     * `wildcard` - A boolean indicating whether the domain includes all sub-domains, in addition to the given domain
+         - `ALIAS`: A non-primary domain.
+     * `wildcard` - A boolean indicating whether the domain includes all sub-domains, in addition to the given domain.
      * `zone` - If the domain uses DigitalOcean DNS and you would like App Platform to automatically manage it for you, set this to the name of the domain on your account.
  - `env` - Describes an app-wide environment variable made available to all components.
      * `key` - The name of the environment variable.
@@ -163,7 +163,7 @@ A `service` can contain:
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
 * `image` - An image to use as the component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
-  - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`
+  - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`.
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
@@ -184,7 +184,7 @@ A `service` can contain:
 
 A `static_site` can contain:
 
-* `name` - The name of the component
+* `name` - The name of the component.
 * `build_command` - An optional build command to run while building this component from source.
 * `dockerfile_path` - The path to a Dockerfile relative to the root of the repo. If set, overrides usage of buildpacks.
 * `source_dir` - An optional path to the working directory to use for the build.
@@ -193,7 +193,7 @@ A `static_site` can contain:
 * `index_document` - The name of the index document to use when serving this static site.
 * `error_document` - The name of the error document to use when serving this static site.
 * `catchall_document` - The name of the document to use as the fallback for any requests to documents that are not found when serving this static site.
-* `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication.  Only one of `git`, `github` or `gitlab`  may be set
+* `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication.  Only one of `git`, `github` or `gitlab`  may be set.
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
 * `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
@@ -234,7 +234,7 @@ A `worker` can contain:
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
 * `image` - An image to use as the component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
-  - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`
+  - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`.
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
@@ -271,7 +271,7 @@ A `job` can contain:
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
 * `image` - An image to use as the component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
-  - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`
+  - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`.
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
