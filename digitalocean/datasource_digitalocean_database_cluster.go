@@ -176,14 +176,20 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 				}
 			}
 
-			d.Set("host", db.Connection.Host)
-			d.Set("private_host", db.PrivateConnection.Host)
-			d.Set("port", db.Connection.Port)
-			d.Set("uri", db.Connection.URI)
-			d.Set("private_uri", db.PrivateConnection.URI)
-			d.Set("database", db.Connection.Database)
-			d.Set("user", db.Connection.User)
-			d.Set("password", db.Connection.Password)
+			if db.Connection != nil {
+				d.Set("host", db.Connection.Host)
+				d.Set("port", db.Connection.Port)
+				d.Set("uri", db.Connection.URI)
+				d.Set("database", db.Connection.Database)
+				d.Set("user", db.Connection.User)
+				d.Set("password", db.Connection.Password)
+			}
+
+			if db.PrivateConnection != nil {
+				d.Set("private_host", db.PrivateConnection.Host)
+				d.Set("private_uri", db.PrivateConnection.URI)
+			}
+
 			d.Set("urn", db.URN())
 			d.Set("private_network_uuid", db.PrivateNetworkUUID)
 
