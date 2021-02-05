@@ -1,3 +1,10 @@
+## 2.5.1 (February 05, 2021)
+
+BUG FIXES:
+
+* `digitalocean_database_cluster`: Protect against panic if connection details not available. ([#577](https://github.com/digitalocean/terraform-provider-digitalocean/pull/577)).
+* `digitalocean_cdn`: Handle certificate name updates. ([#579](https://github.com/digitalocean/terraform-provider-digitalocean/pull/579)).
+
 ## 2.5.0 (February 03, 2021)
 
 NOTES:
