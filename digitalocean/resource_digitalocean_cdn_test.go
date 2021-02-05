@@ -103,6 +103,49 @@ func TestAccDigitalOceanCDN_Create_and_Update(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanCDN_CustomDomain(t *testing.T) {
+	spaceName := generateBucketName()
+	certName := randomTestName()
+	updatedCertName := generateBucketName()
+	domain := randomTestName() + ".com"
+	config := testAccCheckDigitalOceanCDNConfig_CustomDomain(domain, spaceName, certName)
+	updatedConfig := testAccCheckDigitalOceanCDNConfig_CustomDomain(domain, spaceName, updatedCertName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanCDNDestroy,
+		ExternalProviders: map[string]resource.ExternalProvider{
+			"tls": {
+				Source:            "hashicorp/tls",
+				VersionConstraint: "3.0.0",
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanCDNExists("digitalocean_cdn.space_cdn"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_cdn.space_cdn", "certificate_name", certName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_cdn.space_cdn", "custom_domain", "foo."+domain),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanCDNExists("digitalocean_cdn.space_cdn"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_cdn.space_cdn", "certificate_name", updatedCertName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_cdn.space_cdn", "custom_domain", "foo."+domain),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanCDNDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -175,3 +218,69 @@ resource "digitalocean_cdn" "foobar" {
 	origin = "${digitalocean_spaces_bucket.bucket.bucket_domain_name}"
 	ttl = %d
 }`
+
+func testAccCheckDigitalOceanCDNConfig_CustomDomain(domain string, spaceName string, certName string) string {
+	return fmt.Sprintf(`
+resource "tls_private_key" "example" {
+  algorithm   = "ECDSA"
+  ecdsa_curve = "P384"
+}
+
+resource "tls_self_signed_cert" "example" {
+  key_algorithm   = "ECDSA"
+  private_key_pem = tls_private_key.example.private_key_pem
+  dns_names = ["foo.%s"]
+  subject {
+    common_name  = "foo.%s"
+    organization = "%s"
+  }
+
+  validity_period_hours = 24
+
+  allowed_uses = [
+    "key_encipherment",
+    "digital_signature",
+    "server_auth",
+  ]
+}
+
+resource "digitalocean_spaces_bucket" "space" {
+  name = "%s"
+  region = "sfo3"
+}
+
+resource "digitalocean_certificate" "spaces_cert" {
+  name              = "%s"
+  type              = "custom"
+  private_key       = tls_private_key.example.private_key_pem
+  leaf_certificate  = tls_self_signed_cert.example.cert_pem
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource digitalocean_domain "domain" {
+  name = "%s"
+}
+
+resource digitalocean_record "record" {
+  domain = digitalocean_domain.domain.name
+  type   = "CNAME"
+  name   = "foo"
+  value  = "${digitalocean_spaces_bucket.space.bucket_domain_name}."
+}
+
+resource "digitalocean_cdn" "space_cdn" {
+  depends_on = [
+    digitalocean_spaces_bucket.space,
+    digitalocean_certificate.spaces_cert,
+    digitalocean_record.record
+  ]
+
+  origin           = digitalocean_spaces_bucket.space.bucket_domain_name
+  ttl              = 2400
+  certificate_name = digitalocean_certificate.spaces_cert.name
+  custom_domain    = "foo.%s"
+}`, domain, domain, certName, spaceName, certName, domain, domain)
+}
