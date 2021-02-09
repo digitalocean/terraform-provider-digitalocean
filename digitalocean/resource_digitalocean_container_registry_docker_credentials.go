@@ -36,9 +36,10 @@ func resourceDigitalOceanContainerRegistryDockerCredentials() *schema.Resource {
 				Default:  false,
 			},
 			"expiry_seconds": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  expirySecondsDefault,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      expirySecondsDefault,
+				ValidateFunc: validation.IntBetween(0, expirySecondsDefault),
 			},
 			"docker_credentials": {
 				Type:      schema.TypeString,
@@ -133,11 +134,6 @@ func generateDockerCredentials(readWrite bool, expirySeconds int, client *godo.C
 func updateExpiredDockerCredentials(d *schema.ResourceData, readWrite bool, client *godo.Client) error {
 	expirySeconds := d.Get("expiry_seconds").(int)
 	expirationTime := d.Get("credential_expiration_time").(string)
-
-	if (expirySeconds > expirySecondsDefault) || (expirySeconds <= 0) {
-		return fmt.Errorf("expiry_seconds outside acceptable range")
-	}
-
 	d.Set("expiry_seconds", expirySeconds)
 
 	currentTime := time.Now().UTC()
