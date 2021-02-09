@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `registry_name` - (Required) The name of the container registry.
 * `write` - (Optional) Allow for write access to the container registry. Defaults to false.
-* `expiry_seconds` - (Optional) The amount of time to pass before the Docker credentials expire in seconds. Defaults to 2147483647, or roughly 68 years. Must be greater than 0 and less than 2147483647.
+* `expiry_seconds` - (Optional) The amount of time to pass before the Docker credentials expire in seconds. Defaults to 1576800000, or roughly 50 years. Must be greater than 0 and less than 1576800000.
 
 ## Attributes Reference
 
