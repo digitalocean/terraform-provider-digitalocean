@@ -15,7 +15,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   name   = "foo"
   region = "nyc1"
   # Grab the latest version slug from `doctl kubernetes options versions`
-  version = "1.19.3-do.3"
+  version = "1.20.2-do.0"
 
   node_pool {
     name       = "worker-pool"
@@ -34,7 +34,7 @@ For example:
 resource "digitalocean_kubernetes_cluster" "foo" {
   name    = "foo"
   region  = "nyc1"
-  version = "1.19.3-do.3"
+  version = "1.20.2-do.0"
 
   node_pool {
     name       = "autoscale-worker-pool"
