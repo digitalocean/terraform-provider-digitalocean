@@ -51,24 +51,23 @@ func resourceDigitalOceanProjectResourcesUpdate(ctx context.Context, d *schema.R
 
 	if d.HasChange("resources") {
 		oldURNs, newURNs := d.GetChange("resources")
+		remove, add := getSetChanges(oldURNs.(*schema.Set), newURNs.(*schema.Set))
 
-		if oldURNs.(*schema.Set).Len() > 0 {
-			_, err = assignResourcesToDefaultProject(client, oldURNs.(*schema.Set))
+		if remove.Len() > 0 {
+			_, err = assignResourcesToDefaultProject(client, remove)
 			if err != nil {
 				return diag.Errorf("Error assigning resources to default project: %s", err)
 			}
 		}
 
-		var urns *[]interface{}
-
-		if newURNs.(*schema.Set).Len() > 0 {
-			urns, err = assignResourcesToProject(client, projectId, newURNs.(*schema.Set))
+		if add.Len() > 0 {
+			_, err = assignResourcesToProject(client, projectId, add)
 			if err != nil {
 				return diag.Errorf("Error assigning resources to project %s: %s", projectId, err)
 			}
 		}
 
-		if err = d.Set("resources", urns); err != nil {
+		if err = d.Set("resources", newURNs); err != nil {
 			return diag.FromErr(err)
 		}
 	}
