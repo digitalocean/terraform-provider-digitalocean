@@ -35,6 +35,8 @@ The following arguments are supported:
 * `name` - (Required) The name for the database replica.
 * `size` - (Required) Database Droplet size associated with the replica (ex. `db-s-1vcpu-1gb`).
 * `region` - (Required) DigitalOcean region where the replica will reside.
+* `tags` - (Optional) A list of tag names to be applied to the database replica.
+* `private_network_uuid` - (Optional) The ID of the VPC where the database replica will be located.
 
 ## Attributes Reference
 
