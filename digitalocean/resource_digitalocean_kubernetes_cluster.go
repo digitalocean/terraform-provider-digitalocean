@@ -49,7 +49,7 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 			"surge_upgrade": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default: true,
+				Default:  true,
 			},
 
 			"version": {
