@@ -206,22 +206,25 @@ func resourceDigitalOceanProjectUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	// The API requires project resources to be reassigned to another project if the association needs to be deleted.
-	// a diff of the resource could be implemented instead of removing all, (bulk) and adding the back again.
 	if d.HasChange("resources") {
 		oldURNs, newURNs := d.GetChange("resources")
+		remove, add := getSetChanges(oldURNs.(*schema.Set), newURNs.(*schema.Set))
 
-		assignResourcesToDefaultProject(client, oldURNs.(*schema.Set))
+		if remove.Len() > 0 {
+			_, err = assignResourcesToDefaultProject(client, remove)
+			if err != nil {
+				return diag.Errorf("Error assigning resources to default project: %s", err)
+			}
+		}
 
-		var urns *[]interface{}
-
-		if newURNs.(*schema.Set).Len() != 0 {
-			urns, err = assignResourcesToProject(client, projectId, newURNs.(*schema.Set))
+		if add.Len() > 0 {
+			_, err = assignResourcesToProject(client, projectId, add)
 			if err != nil {
 				return diag.Errorf("Error Updating project: %s", err)
 			}
 		}
 
-		d.Set("resources", urns)
+		d.Set("resources", newURNs)
 	}
 
 	log.Printf("[INFO] Updated Project, ID: %s", projectId)
