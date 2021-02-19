@@ -26,7 +26,7 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanKubernetesClusterImportState,
 		},
-		SchemaVersion: 2,
+		SchemaVersion: 3,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
@@ -49,6 +49,7 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 			"surge_upgrade": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default: true,
 			},
 
 			"version": {
