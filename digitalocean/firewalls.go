@@ -1,166 +1,358 @@
 package digitalocean
 
 import (
-	"context"
-	"fmt"
-
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func firewallSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"id": {
-			Type:        schema.TypeString,
-			Description: "the firewall identifier",
+		"firewall_id": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.NoZeroValues,
 		},
+
 		"name": {
-			Type:        schema.TypeString,
-			Description: "name of the firewall",
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.NoZeroValues,
 		},
-		"status": {
-			Type:        schema.TypeString,
-			Description: "indicates the current state of the firewall (e.g `waiting`, `succeded`, `failed`)",
-		},
-		"created_at": {
-			Type:        schema.TypeString,
-			Description: "ISO8601 date and time representing when the firewall was created",
-		},
-		"inbound_rules": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
-			Elem:     firewallInboundRuleSchema(),
-			Description: "List of inbound access rules specifying the protocol, ports, and sources for inbound traffic allowed through the firewall",
-		},
-		"outbound_rules": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
-			Elem:     firewallOutboundRuleSchema(),
-			Description: "List of inbound access rules specifying the protocol, ports, and sources for inbound traffic allowed through the firewall",
-		},
+
 		"droplet_ids": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
+			Elem:     &schema.Schema{Type: schema.TypeInt},
 			Optional: true,
-			Computed: true,
-			Elem:     schema.TypeInt,
 		},
-		"tags": {
-			Type:     schema.TypeList,
+
+		"inbound_rule": {
+			Type:     schema.TypeSet,
 			Optional: true,
-			Computed: true,
-			Elem:     schema.TypeString,
+			Elem:     firewallRuleSchema("source"),
 		},
+
+		"outbound_rule": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     firewallRuleSchema("destination"),
+		},
+
+		"status": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+
+		"created_at": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+
+		"pending_changes": {
+			Type:     schema.TypeList,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"droplet_id": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"removing": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
+					"status": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+				},
+			},
+		},
+
+		"tags": tagsSchema(),
 	}
 }
 
-func firewallInboundRuleSchema() *schema.Resource {
+func firewallRuleSchema(prefix string) *schema.Resource {
+	if prefix != "" && prefix[len(prefix)-1:] != "_" {
+		prefix += "_"
+	}
+
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"protocol": {
-				Type:        schema.TypeString,
-				Description: "The type of traffic to be allowed. This may be one of `tcp`, `udp`, or `icmp`",
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"tcp",
+					"udp",
+					"icmp",
+				}, false),
 			},
-			"ports": {
-				Type:        schema.TypeString,
-				Description: "The ports on which traffic will be allowed specified as a string containing a single port, a range (e.g. `8000-9000`), or `0` when all ports are open for a protocol. For ICMP rules this parameter will always return `0`",
+			"port_range": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
-			"sources": {
-				Type:        schema.TypeString,
-				Description: "An object specifying locations from which inbound traffic will be accepted",
+			prefix + "addresses": {
+				Type: schema.TypeSet,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.NoZeroValues,
+				},
+				Optional: true,
 			},
+			prefix + "droplet_ids": {
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeInt},
+				Optional: true,
+			},
+			prefix + "load_balancer_uids": {
+				Type: schema.TypeSet,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.NoZeroValues,
+				},
+				Optional: true,
+			},
+			prefix + "tags": tagsSchema(),
 		},
 	}
 }
 
-func firewallOutboundRuleSchema() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"protocol": {
-				Type:        schema.TypeString,
-				Description: "The type of traffic to be allowed. This may be one of `tcp`, `udp`, or `icmp`",
-			},
-			"ports": {
-				Type:        schema.TypeString,
-				Description: "The ports on which traffic will be allowed specified as a string containing a single port, a range (e.g. `8000-9000`), or `0` when all ports are open for a protocol. For ICMP rules this parameter will always return `0`",
-			},
-			"sources": {
-				Type:        schema.TypeString,
-				Description: "An object specifying locations from which inbound traffic will be accepted",
-			},
-		},
+func expandFirewallDropletIds(droplets []interface{}) []int {
+	expandedDroplets := make([]int, len(droplets))
+	for i, v := range droplets {
+		expandedDroplets[i] = v.(int)
 	}
+
+	return expandedDroplets
 }
 
-func firewallRuleTargetSchema() *schema.Resource {
-	return &schema.Resource{
-		Schema: map[string]*schema.Schema{
-			"addresses": {
-				Type:        schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     schema.TypeString,
-				Description: "List of the IPv4 addresses, IPv6 addresses, IPv4 CIDRs, and/or IPv6 CIDRs to which the firewall will allow traffic",
-			},
-			"droplet_ids": {
-				Type:        schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     schema.TypeInt,
-				Description: "List of the IDs of the Droplets to which the firewall will allow traffic",
-			},
-			"load_balancer_ids": {
-				Type:        schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     schema.TypeString,
-				Description: "List of the IDs (UUID) of the load balancers to which the firewall will allow traffic",
-			},
-			"tags": {
-				Type: schema.TypeList,
-				Optional: true,
-				Computed: true,
-				Elem:     schema.TypeString,
-				Description: "List of Tags corresponding to groups of Droplets to which the firewall will allow traffic",
-			},
-		},
+func expandFirewallRuleStringSet(strings []interface{}) []string {
+	expandedStrings := make([]string, len(strings))
+	for i, v := range strings {
+		expandedStrings[i] = v.(string)
 	}
+
+	return expandedStrings
 }
 
-func getDigitalOceanFirewalls(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
-	client := meta.(*CombinedConfig).godoClient()
+func expandFirewallInboundRules(rules []interface{}) []godo.InboundRule {
+	expandedRules := make([]godo.InboundRule, 0, len(rules))
+	for _, rawRule := range rules {
+		var src godo.Sources
 
-	opts := &godo.ListOptions{
-		Page:    1,
-		PerPage: 200,
+		rule := rawRule.(map[string]interface{})
+
+		src.DropletIDs = expandFirewallDropletIds(rule["source_droplet_ids"].(*schema.Set).List())
+
+		src.Addresses = expandFirewallRuleStringSet(rule["source_addresses"].(*schema.Set).List())
+
+		src.LoadBalancerUIDs = expandFirewallRuleStringSet(rule["source_load_balancer_uids"].(*schema.Set).List())
+
+		src.Tags = expandTags(rule["source_tags"].(*schema.Set).List())
+
+		r := godo.InboundRule{
+			Protocol:  rule["protocol"].(string),
+			PortRange: rule["port_range"].(string),
+			Sources:   &src,
+		}
+
+		expandedRules = append(expandedRules, r)
 	}
-
-	var allFirewalls []interface{}
-
-	for {
-
-		firewalls, resp, err := client.Firewalls.List(context.Background(), opts)
-
-		if err != nil {
-			return nil, fmt.Errorf("Error retrieving firewaqlls: %s", err)
-		}
-
-		for _, firewall := range firewalls {
-			allFirewalls = append(allFirewalls, firewall)
-		}
-
-		if resp.Links == nil || resp.Links.IsLastPage() {
-			break
-		}
-
-		page, err := resp.Links.CurrentPage()
-		if err != nil {
-			return nil, fmt.Errorf("Error retrieving firewalls: %s", err)
-		}
-
-		opts.Page = page + 1
-	}
-
-	return allFirewalls, nil
+	return expandedRules
 }
+
+func expandFirewallOutboundRules(rules []interface{}) []godo.OutboundRule {
+	expandedRules := make([]godo.OutboundRule, 0, len(rules))
+	for _, rawRule := range rules {
+		var dest godo.Destinations
+
+		rule := rawRule.(map[string]interface{})
+
+		dest.DropletIDs = expandFirewallDropletIds(rule["destination_droplet_ids"].(*schema.Set).List())
+
+		dest.Addresses = expandFirewallRuleStringSet(rule["destination_addresses"].(*schema.Set).List())
+
+		dest.LoadBalancerUIDs = expandFirewallRuleStringSet(rule["destination_load_balancer_uids"].(*schema.Set).List())
+
+		dest.Tags = expandTags(rule["destination_tags"].(*schema.Set).List())
+
+		r := godo.OutboundRule{
+			Protocol:     rule["protocol"].(string),
+			PortRange:    rule["port_range"].(string),
+			Destinations: &dest,
+		}
+
+		expandedRules = append(expandedRules, r)
+	}
+	return expandedRules
+}
+
+func firewallPendingChanges(d *schema.ResourceData, firewall *godo.Firewall) []interface{} {
+	remote := make([]interface{}, 0, len(firewall.PendingChanges))
+	for _, change := range firewall.PendingChanges {
+		rawChange := map[string]interface{}{
+			"droplet_id": change.DropletID,
+			"removing":   change.Removing,
+			"status":     change.Status,
+		}
+		remote = append(remote, rawChange)
+	}
+	return remote
+}
+
+func flattenFirewallDropletIds(droplets []int) *schema.Set {
+	if droplets == nil {
+		return nil
+	}
+
+	flattenedDroplets := schema.NewSet(schema.HashInt, []interface{}{})
+	for _, v := range droplets {
+		flattenedDroplets.Add(v)
+	}
+
+	return flattenedDroplets
+}
+
+func flattenFirewallRuleStringSet(strings []string) *schema.Set {
+	flattenedStrings := schema.NewSet(schema.HashString, []interface{}{})
+	for _, v := range strings {
+		flattenedStrings.Add(v)
+	}
+
+	return flattenedStrings
+}
+
+func flattenFirewallInboundRules(rules []godo.InboundRule) []interface{} {
+	if rules == nil {
+		return nil
+	}
+
+	flattenedRules := make([]interface{}, len(rules))
+	for i, rule := range rules {
+		sources := rule.Sources
+		protocol := rule.Protocol
+		portRange := rule.PortRange
+
+		rawRule := map[string]interface{}{
+			"protocol": protocol,
+		}
+
+		// The API returns 0 when the port range was specified as all.
+		// If protocol is `icmp` the API returns 0 for when port was
+		// not specified.
+		if portRange == "0" {
+			if protocol != "icmp" {
+				rawRule["port_range"] = "all"
+			}
+		} else {
+			rawRule["port_range"] = portRange
+		}
+
+		if sources.Tags != nil {
+			rawRule["source_tags"] = flattenTags(sources.Tags)
+		}
+
+		if sources.DropletIDs != nil {
+			rawRule["source_droplet_ids"] = flattenFirewallDropletIds(sources.DropletIDs)
+		}
+
+		if sources.Addresses != nil {
+			rawRule["source_addresses"] = flattenFirewallRuleStringSet(sources.Addresses)
+		}
+
+		if sources.LoadBalancerUIDs != nil {
+			rawRule["source_load_balancer_uids"] = flattenFirewallRuleStringSet(sources.LoadBalancerUIDs)
+		}
+
+		flattenedRules[i] = rawRule
+	}
+
+	return flattenedRules
+}
+
+func flattenFirewallOutboundRules(rules []godo.OutboundRule) []interface{} {
+	if rules == nil {
+		return nil
+	}
+
+	flattenedRules := make([]interface{}, len(rules))
+	for i, rule := range rules {
+		destinations := rule.Destinations
+		protocol := rule.Protocol
+		portRange := rule.PortRange
+
+		rawRule := map[string]interface{}{
+			"protocol": protocol,
+		}
+
+		// The API returns 0 when the port range was specified as all.
+		// If protocol is `icmp` the API returns 0 for when port was
+		// not specified.
+		if portRange == "0" {
+			if protocol != "icmp" {
+				rawRule["port_range"] = "all"
+			}
+		} else {
+			rawRule["port_range"] = portRange
+		}
+
+		if destinations.Tags != nil {
+			rawRule["destination_tags"] = flattenTags(destinations.Tags)
+		}
+
+		if destinations.DropletIDs != nil {
+			rawRule["destination_droplet_ids"] = flattenFirewallDropletIds(destinations.DropletIDs)
+		}
+
+		if destinations.Addresses != nil {
+			rawRule["destination_addresses"] = flattenFirewallRuleStringSet(destinations.Addresses)
+		}
+
+		if destinations.LoadBalancerUIDs != nil {
+			rawRule["destination_load_balancer_uids"] = flattenFirewallRuleStringSet(destinations.LoadBalancerUIDs)
+		}
+
+		flattenedRules[i] = rawRule
+	}
+
+	return flattenedRules
+}
+
+//func getDigitalOceanFirewalls(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
+//	client := meta.(*CombinedConfig).godoClient()
+//
+//	opts := &godo.ListOptions{
+//		Page:    1,
+//		PerPage: 200,
+//	}
+//
+//	var firewalls []interface{}
+//
+//	for {
+//		keys, resp, err := client.Firewalls.List(context.Background(), opts)
+//
+//		if err != nil {
+//			return nil, fmt.Errorf("Error retrieving firewalls: %s", err)
+//		}
+//
+//		for _, key := range keys {
+//			firewalls = append(firewalls, key)
+//		}
+//
+//		if resp.Links == nil || resp.Links.IsLastPage() {
+//			break
+//		}
+//
+//		page, err := resp.Links.CurrentPage()
+//		if err != nil {
+//			return nil, fmt.Errorf("Error retrieving firewalls: %s", err)
+//		}
+//
+//		opts.Page = page + 1
+//	}
+//
+//	return firewalls, nil
+//}

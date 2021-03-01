@@ -58,7 +58,7 @@ func Provider() *schema.Provider {
 			"digitalocean_droplet":               dataSourceDigitalOceanDroplet(),
 			"digitalocean_droplets":              dataSourceDigitalOceanDroplets(),
 			"digitalocean_droplet_snapshot":      dataSourceDigitalOceanDropletSnapshot(),
-			"digitalocean_firewalls":             dataSourceDigitalOceanFirewalls(),
+			"digitalocean_firewall":              dataSourceDigitalOceanFirewall(),
 			"digitalocean_floating_ip":           dataSourceDigitalOceanFloatingIp(),
 			"digitalocean_image":                 dataSourceDigitalOceanImage(),
 			"digitalocean_images":                dataSourceDigitalOceanImages(),
