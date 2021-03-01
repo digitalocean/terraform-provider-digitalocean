@@ -320,39 +320,3 @@ func flattenFirewallOutboundRules(rules []godo.OutboundRule) []interface{} {
 
 	return flattenedRules
 }
-
-//func getDigitalOceanFirewalls(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
-//	client := meta.(*CombinedConfig).godoClient()
-//
-//	opts := &godo.ListOptions{
-//		Page:    1,
-//		PerPage: 200,
-//	}
-//
-//	var firewalls []interface{}
-//
-//	for {
-//		keys, resp, err := client.Firewalls.List(context.Background(), opts)
-//
-//		if err != nil {
-//			return nil, fmt.Errorf("Error retrieving firewalls: %s", err)
-//		}
-//
-//		for _, key := range keys {
-//			firewalls = append(firewalls, key)
-//		}
-//
-//		if resp.Links == nil || resp.Links.IsLastPage() {
-//			break
-//		}
-//
-//		page, err := resp.Links.CurrentPage()
-//		if err != nil {
-//			return nil, fmt.Errorf("Error retrieving firewalls: %s", err)
-//		}
-//
-//		opts.Page = page + 1
-//	}
-//
-//	return firewalls, nil
-//}
