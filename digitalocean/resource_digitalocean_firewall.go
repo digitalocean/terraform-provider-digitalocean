@@ -96,7 +96,6 @@ func resourceDigitalOceanFirewallRead(ctx context.Context, d *schema.ResourceDat
 		return diag.Errorf("Error retrieving firewall: %s", err)
 	}
 
-	d.Set("firewall_id", firewall.ID)
 	d.Set("status", firewall.Status)
 	d.Set("created_at", firewall.Created)
 	d.Set("pending_changes", firewallPendingChanges(d, firewall))

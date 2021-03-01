@@ -1,7 +1,6 @@
 package digitalocean
 
 import (
-	"context"
 	"fmt"
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -13,7 +12,7 @@ import (
 func TestAccDataSourceDigitalOceanFirewall_Basic(t *testing.T) {
 	fwDataConfig := `
 data "digitalocean_firewall" "foobar" {
-	firewall_id = digitalocean_firewall.foobar.firewall_id
+	firewall_id = digitalocean_firewall.foobar.id
 	name = digitalocean_firewall.foobar.name
 }`
 
@@ -21,6 +20,7 @@ data "digitalocean_firewall" "foobar" {
 	fwName := randomTestName()
 
 	fwCreateConfig := fmt.Sprintf(testAccDigitalOceanFirewallConfig_OnlyInbound(fwName))
+	updatedFWCreateConfig := testAccDigitalOceanFirewallConfig_OnlyMultipleInbound(fwName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -28,42 +28,59 @@ data "digitalocean_firewall" "foobar" {
 		Steps: []resource.TestStep{
 			{
 				Config: fwCreateConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanFirewallExists("digitalocean_firewall.foobar", &firewall),
+				),
 			},
 			{
 				Config: fwCreateConfig + fwDataConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDatasourceDigitalOceanFirewallExists("data.digitalocean_firewall.foobar", &firewall),
 					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "name", "foobar-"+fwName),
+					resource.TestCheckResourceAttrPair("digitalocean_firewall.foobar", "id",
+						"data.digitalocean_firewall.foobar", "firewall_id"),
+					resource.TestCheckResourceAttrPair("digitalocean_firewall.foobar", "droplet_ids",
+						"data.digitalocean_firewall.foobar", "droplet_ids"),
+					resource.TestCheckResourceAttrPair("digitalocean_firewall.foobar", "inbound_rule",
+						"data.digitalocean_firewall.foobar", "inbound_rule"),
+					resource.TestCheckResourceAttrPair("digitalocean_firewall.foobar", "outbound_rule",
+						"data.digitalocean_firewall.foobar", "outbound_rule"),
+					resource.TestCheckResourceAttrPair("digitalocean_firewall.foobar", "status",
+						"data.digitalocean_firewall.foobar", "status"),
+					resource.TestCheckResourceAttrPair("digitalocean_firewall.foobar", "created_at",
+						"data.digitalocean_firewall.foobar", "created_at"),
+					resource.TestCheckResourceAttrPair("digitalocean_firewall.foobar", "pending_changes",
+						"data.digitalocean_firewall.foobar", "pending_changes"),
+					resource.TestCheckResourceAttrPair("digitalocean_firewall.foobar", "tags",
+						"data.digitalocean_firewall.foobar", "tags"),
+					func(n string) resource.TestCheckFunc {
+						return func(s *terraform.State) error {
+							r, _ := s.RootModule().Resources[n]
+							t.Logf("RESOURCE: %v", r)
+							return nil
+						}
+					}("data.digitalocean_firewall.foobar"),
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.0.protocol", "tcp"),
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.0.port_range", "22"),
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.0", "0.0.0.0/0"),
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.1", "::/0"),
+				),
+			},
+			{
+				Config: updatedFWCreateConfig,
+			},
+			{
+				Config: updatedFWCreateConfig + fwDataConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.0.protocol", "tcp"),
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.0.port_range", "22"),
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.0", "0.0.0.0/0"),
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.1", "::/0"),
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.1.protocol", "tcp"),
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.1.port_range", "80"),
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.1.source_addresses.0", "1.2.3.0/24"),
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.1.source_addresses.1", "2002::/16"),
 				),
 			},
 		},
 	})
-}
-
-func testAccCheckDatasourceDigitalOceanFirewallExists(resource string, firewall *godo.Firewall) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		rs, ok := s.RootModule().Resources[resource]
-		if !ok {
-			return fmt.Errorf("not found: %s", resource)
-		}
-
-		if rs.Primary.ID == "" {
-			return fmt.Errorf("no firewall ID is set")
-		}
-
-		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
-
-		foundFirewall, _, err := client.Firewalls.Get(context.Background(), rs.Primary.ID)
-		if err != nil {
-			return err
-		}
-
-		if foundFirewall.ID != rs.Primary.ID {
-			return fmt.Errorf("firewall not found")
-		}
-
-		*firewall = *foundFirewall
-
-		return nil
-	}
 }
