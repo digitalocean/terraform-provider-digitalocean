@@ -34,5 +34,5 @@ The following arguments are supported:
 
 ## Attributes Reference
 
-See the [Load Balancer Resource](/docs/providers/do/r/loadbalancer.html) for details on the
+See the [Load Balancer Resource](/providers/digitalocean/digitalocean/latest/docs/resources/loadbalancer) for details on the
 returned attributes - they are identical.
