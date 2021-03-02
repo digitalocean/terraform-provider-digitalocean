@@ -8,12 +8,6 @@ import (
 
 func firewallSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"firewall_id": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.NoZeroValues,
-		},
-
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,

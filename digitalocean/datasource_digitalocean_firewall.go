@@ -10,9 +10,15 @@ func dataSourceDigitalOceanFirewall() *schema.Resource {
 	fwSchema := firewallSchema()
 
 	for _, f := range fwSchema {
-		if !f.Required {
-			f.Computed = true
-		}
+		f.Computed = true
+		f.Required = false
+	}
+
+	fwSchema["name"].ValidateFunc = nil
+
+	fwSchema["firewall_id"] = &schema.Schema{
+		Type:     schema.TypeString,
+		Required: true,
 	}
 
 	return &schema.Resource{

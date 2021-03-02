@@ -3,7 +3,6 @@ package digitalocean
 import (
 	"fmt"
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -13,7 +12,6 @@ func TestAccDataSourceDigitalOceanFirewall_Basic(t *testing.T) {
 	fwDataConfig := `
 data "digitalocean_firewall" "foobar" {
 	firewall_id = digitalocean_firewall.foobar.id
-	name = digitalocean_firewall.foobar.name
 }`
 
 	var firewall godo.Firewall
@@ -52,13 +50,6 @@ data "digitalocean_firewall" "foobar" {
 						"data.digitalocean_firewall.foobar", "pending_changes"),
 					resource.TestCheckResourceAttrPair("digitalocean_firewall.foobar", "tags",
 						"data.digitalocean_firewall.foobar", "tags"),
-					func(n string) resource.TestCheckFunc {
-						return func(s *terraform.State) error {
-							r, _ := s.RootModule().Resources[n]
-							t.Logf("RESOURCE: %v", r)
-							return nil
-						}
-					}("data.digitalocean_firewall.foobar"),
 					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.0.protocol", "tcp"),
 					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.0.port_range", "22"),
 					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "inbound_rule.0.source_addresses.0", "0.0.0.0/0"),
