@@ -15,6 +15,7 @@ github.com/apparentlymart/go-cidr/cidr
 # github.com/apparentlymart/go-textseg v1.0.0
 github.com/apparentlymart/go-textseg/textseg
 # github.com/aws/aws-sdk-go v1.25.4
+## explicit
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
 github.com/aws/aws-sdk-go/aws/awsutil
@@ -57,6 +58,7 @@ github.com/bgentry/go-netrc/netrc
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/digitalocean/godo v1.57.0
+## explicit
 github.com/digitalocean/godo
 # github.com/emirpasic/gods v1.12.0
 github.com/emirpasic/gods/containers
@@ -163,6 +165,7 @@ github.com/hashicorp/go-safetemp
 # github.com/hashicorp/go-uuid v1.0.1
 github.com/hashicorp/go-uuid
 # github.com/hashicorp/go-version v1.2.1
+## explicit
 github.com/hashicorp/go-version
 # github.com/hashicorp/hcl/v2 v2.3.0
 github.com/hashicorp/hcl/v2
@@ -177,6 +180,7 @@ github.com/hashicorp/terraform-exec/tfinstall
 # github.com/hashicorp/terraform-json v0.5.0
 github.com/hashicorp/terraform-json
 # github.com/hashicorp/terraform-plugin-sdk/v2 v2.0.3
+## explicit
 github.com/hashicorp/terraform-plugin-sdk/v2/diag
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff
@@ -217,6 +221,7 @@ github.com/kevinburke/ssh_config
 # github.com/mitchellh/copystructure v1.0.0
 github.com/mitchellh/copystructure
 # github.com/mitchellh/go-homedir v1.1.0
+## explicit
 github.com/mitchellh/go-homedir
 # github.com/mitchellh/go-testing-interface v1.0.4
 github.com/mitchellh/go-testing-interface
@@ -233,6 +238,7 @@ github.com/pmezard/go-difflib/difflib
 # github.com/sergi/go-diff v1.1.0
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/stretchr/testify v1.6.1
+## explicit
 github.com/stretchr/testify/assert
 # github.com/ulikunitz/xz v0.5.7
 github.com/ulikunitz/xz
@@ -240,6 +246,7 @@ github.com/ulikunitz/xz/internal/hash
 github.com/ulikunitz/xz/internal/xlog
 github.com/ulikunitz/xz/lzma
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
+## explicit
 github.com/vmihailenco/msgpack
 github.com/vmihailenco/msgpack/codes
 # github.com/xanzy/ssh-agent v0.2.1
@@ -270,6 +277,7 @@ go.opencensus.io/trace/internal
 go.opencensus.io/trace/propagation
 go.opencensus.io/trace/tracestate
 # golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+## explicit
 golang.org/x/crypto/blowfish
 golang.org/x/crypto/cast5
 golang.org/x/crypto/chacha20
@@ -306,6 +314,7 @@ golang.org/x/net/internal/timeseries
 golang.org/x/net/proxy
 golang.org/x/net/trace
 # golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+## explicit
 golang.org/x/oauth2
 golang.org/x/oauth2/google
 golang.org/x/oauth2/internal
@@ -454,6 +463,9 @@ google.golang.org/protobuf/types/pluginpb
 # gopkg.in/warnings.v0 v0.1.2
 gopkg.in/warnings.v0
 # gopkg.in/yaml.v2 v2.2.4
+## explicit
 gopkg.in/yaml.v2
 # gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 gopkg.in/yaml.v3
+# git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
+# github.com/keybase/go-crypto v0.0.0-20190523171820-b785b22cc757 => github.com/keybase/go-crypto v0.0.0-20190416182011-b785b22cc757
