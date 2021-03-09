@@ -73,6 +73,17 @@ func TestAccDigitalOceanKubernetesNodePool_Update(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.#", "2"),
 				),
 			},
+			// Update NodePool Taint
+			{
+				Config: testAccDigitalOceanKubernetesConfigBasicWithNodePoolTaint(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "name", rName+"-tainted"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.1.taint.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.1.taint.0.effect", "NoSchedule"),
+				),
+			},
 		},
 	})
 }
@@ -394,6 +405,39 @@ resource digitalocean_kubernetes_node_pool "barfoo" {
 	size  = "s-1vcpu-2gb"
 	node_count = 1
 	tags  = ["three","four"]
+}
+`, testClusterVersion19, rName, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigBasicWithNodePoolTaint(rName string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+	name    = "%s"
+	region  = "lon1"
+	version = data.digitalocean_kubernetes_versions.test.latest_version
+	tags    = ["foo","bar"]
+
+	node_pool {
+		name		= "default"
+		size  		= "s-1vcpu-2gb"
+		node_count 	= 1
+		tags  		= ["one","two"]
+	}
+}
+
+resource digitalocean_kubernetes_node_pool "barfoo" {
+  cluster_id = "${digitalocean_kubernetes_cluster.foobar.id}"
+
+	name		= "%s-tainted"
+	size		= "s-1vcpu-2gb"
+	node_count	= 1
+	tags		= ["three","four"]
+	taint {
+		key    = "key1"
+		value  = "val1"
+		effect = "NoSchedule"
+	}
 }
 `, testClusterVersion19, rName, rName)
 }

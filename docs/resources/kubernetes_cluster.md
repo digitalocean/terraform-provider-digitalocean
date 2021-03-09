@@ -21,6 +21,12 @@ resource "digitalocean_kubernetes_cluster" "foo" {
     name       = "worker-pool"
     size       = "s-2vcpu-2gb"
     node_count = 3
+    
+    taint {
+      key    = "workloadKind"
+      value  = "database"
+      effect = "NoSchedule"
+    }
   }
 }
 ```
@@ -173,12 +179,17 @@ In addition to the arguments listed above, the following additional attributes a
   - `id` -  A unique ID that can be used to identify and reference the node pool.
   - `actual_node_count` - A computed field representing the actual number of nodes in the node pool, which is especially useful when auto-scaling is enabled.
   - `nodes` - A list of nodes in the pool. Each node exports the following attributes:
-     + `id` -  A unique ID that can be used to identify and reference the node.
-     + `name` - The auto-generated name for the node.
-     + `status` -  A string indicating the current status of the individual node.
-     + `droplet_id` - The id of the node's droplet
-     + `created_at` - The date and time when the node was created.
-     + `updated_at` - The date and time when the node was last updated.
+    + `id` -  A unique ID that can be used to identify and reference the node.
+    + `name` - The auto-generated name for the node.
+    + `status` -  A string indicating the current status of the individual node.
+    + `droplet_id` - The id of the node's droplet
+    + `created_at` - The date and time when the node was created.
+    + `updated_at` - The date and time when the node was last updated.
+  - `taint` - A list of taints applied to all nodes in the pool. Each taint exports the following attributes:
+    + `key` - An arbitrary string. The "key" and "value" fields of the "taint" object form a key-value pair.
+    + `value` - An arbitrary string. The "key" and "value" fields of the "taint" object form a key-value pair.
+    + `effect` - How the node reacts to pods that it won't tolerate. Available effect values are: "NoSchedule", "PreferNoSchedule", "NoExecute".
+
 
 ## Import
 

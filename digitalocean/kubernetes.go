@@ -1,0 +1,333 @@
+package digitalocean
+
+import (
+	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"strings"
+)
+
+func nodePoolSchema(isResource bool) map[string]*schema.Schema {
+	s := map[string]*schema.Schema{
+		"id": {
+			Type:     schema.TypeString,
+			Computed: true,
+		},
+		"name": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.NoZeroValues,
+		},
+
+		"size": {
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.NoZeroValues,
+		},
+
+		"actual_node_count": {
+			Type:     schema.TypeInt,
+			Computed: true,
+		},
+
+		"node_count": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+			DiffSuppressFunc: func(key, old, new string, d *schema.ResourceData) bool {
+				nodeCountKey := "node_count"
+				actualNodeCountKey := "actual_node_count"
+
+				// Since this schema is shared between the node pool resource
+				// and as the node pool sub-element of the cluster resource,
+				// we need to check for both variants of the incoming key.
+				keyParts := strings.Split(key, ".")
+				if keyParts[0] == "node_pool" {
+					npKeyParts := keyParts[:len(keyParts)-1]
+					nodeCountKeyParts := append(npKeyParts, "node_count")
+					nodeCountKey = strings.Join(nodeCountKeyParts, ".")
+					actualNodeCountKeyParts := append(npKeyParts, "actual_node_count")
+					actualNodeCountKey = strings.Join(actualNodeCountKeyParts, ".")
+				}
+
+				// If node_count equals actual_node_count already, then
+				// suppress the diff.
+				if d.Get(nodeCountKey).(int) == d.Get(actualNodeCountKey).(int) {
+					return true
+				}
+
+				// Otherwise suppress the diff only if old equals new.
+				return old == new
+			},
+		},
+
+		"auto_scale": {
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"min_nodes": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+		},
+
+		"max_nodes": {
+			Type:     schema.TypeInt,
+			Optional: true,
+		},
+
+		"tags": tagsSchema(),
+
+		"labels": {
+			Type:     schema.TypeMap,
+			Optional: true,
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+
+		"nodes": nodeSchema(),
+
+		"taint": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     nodePoolTaintSchema(),
+		},
+	}
+
+	if isResource {
+		// add the cluster id
+		s["cluster_id"] = &schema.Schema{
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.NoZeroValues,
+			ForceNew:     true,
+		}
+
+		// remove the id when this is used in a specific resource
+		// not as a child
+		delete(s, "id")
+	}
+
+	return s
+}
+
+func nodePoolTaintSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"key": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"value": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"effect": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"NoSchedule",
+					"PreferNoSchedule",
+					"NoExecute",
+				}, false),
+			},
+		},
+	}
+}
+
+func nodeSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeList,
+		Computed: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"name": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"status": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"droplet_id": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"created_at": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+
+				"updated_at": {
+					Type:     schema.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func expandLabels(labels map[string]interface{}) map[string]string {
+	expandedLabels := make(map[string]string)
+	if labels != nil {
+		for key, value := range labels {
+			expandedLabels[key] = value.(string)
+		}
+	}
+	return expandedLabels
+}
+
+func flattenLabels(labels map[string]string) map[string]interface{} {
+	flattenedLabels := make(map[string]interface{})
+	if labels != nil {
+		for key, value := range labels {
+			flattenedLabels[key] = value
+		}
+	}
+	return flattenedLabels
+}
+
+func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
+	expandedNodePools := make([]*godo.KubernetesNodePool, 0, len(nodePools))
+	for _, rawPool := range nodePools {
+		pool := rawPool.(map[string]interface{})
+		cr := &godo.KubernetesNodePool{
+			ID:        pool["id"].(string),
+			Name:      pool["name"].(string),
+			Size:      pool["size"].(string),
+			Count:     pool["node_count"].(int),
+			AutoScale: pool["auto_scale"].(bool),
+			MinNodes:  pool["min_nodes"].(int),
+			MaxNodes:  pool["max_nodes"].(int),
+			Tags:      expandTags(pool["tags"].(*schema.Set).List()),
+			Labels:    expandLabels(pool["labels"].(map[string]interface{})),
+			Nodes:     expandNodes(pool["nodes"].([]interface{})),
+			Taints:    expandNodePoolTaints(pool["taint"].([]interface{})),
+		}
+
+		expandedNodePools = append(expandedNodePools, cr)
+	}
+
+	return expandedNodePools
+}
+
+func flattenNodePool(d *schema.ResourceData, keyPrefix string, pool *godo.KubernetesNodePool, parentTags ...string) []interface{} {
+	rawPool := map[string]interface{}{
+		"id":                pool.ID,
+		"name":              pool.Name,
+		"size":              pool.Size,
+		"actual_node_count": pool.Count,
+		"auto_scale":        pool.AutoScale,
+		"min_nodes":         pool.MinNodes,
+		"max_nodes":         pool.MaxNodes,
+		"taint":             pool.Taints,
+	}
+
+	if pool.Tags != nil {
+		rawPool["tags"] = flattenTags(filterTags(pool.Tags))
+	}
+
+	if pool.Labels != nil {
+		rawPool["labels"] = flattenLabels(pool.Labels)
+	}
+
+	if pool.Nodes != nil {
+		rawPool["nodes"] = flattenNodes(pool.Nodes)
+	}
+
+	if pool.Taints != nil {
+		rawPool["taint"] = flattenNodePoolTaints(pool.Taints)
+	}
+
+	// Assign a node_count only if it's been set explicitly, since it's
+	// optional and we don't want to update with a 0 if it's not set.
+	if _, ok := d.GetOk(keyPrefix + "node_count"); ok {
+		rawPool["node_count"] = pool.Count
+	}
+
+	return []interface{}{rawPool}
+}
+
+func expandNodes(nodes []interface{}) []*godo.KubernetesNode {
+	expandedNodes := make([]*godo.KubernetesNode, 0, len(nodes))
+	for _, rawNode := range nodes {
+		node := rawNode.(map[string]interface{})
+		n := &godo.KubernetesNode{
+			ID:   node["id"].(string),
+			Name: node["name"].(string),
+		}
+
+		expandedNodes = append(expandedNodes, n)
+	}
+
+	return expandedNodes
+}
+
+func flattenNodes(nodes []*godo.KubernetesNode) []interface{} {
+	flattenedNodes := make([]interface{}, 0)
+	if nodes == nil {
+		return flattenedNodes
+	}
+
+	for _, node := range nodes {
+		rawNode := map[string]interface{}{
+			"id":         node.ID,
+			"name":       node.Name,
+			"status":     node.Status.State,
+			"droplet_id": node.DropletID,
+			"created_at": node.CreatedAt.UTC().String(),
+			"updated_at": node.UpdatedAt.UTC().String(),
+		}
+
+		flattenedNodes = append(flattenedNodes, rawNode)
+	}
+
+	return flattenedNodes
+}
+
+func expandNodePoolTaints(taints []interface{}) []godo.Taint {
+	expandedTaints := make([]godo.Taint, 0, len(taints))
+	for _, rawTaint := range taints {
+		taint := rawTaint.(map[string]interface{})
+		t := godo.Taint{
+			Key:    taint["key"].(string),
+			Value:  taint["value"].(string),
+			Effect: taint["effect"].(string),
+		}
+
+		expandedTaints = append(expandedTaints, t)
+	}
+
+	return expandedTaints
+}
+
+func flattenNodePoolTaints(taints []godo.Taint) []interface{} {
+	flattenedTaints := make([]interface{}, 0)
+	if taints == nil {
+		return flattenedTaints
+	}
+
+	for _, taint := range taints {
+		rawTaint := map[string]interface{}{
+			"key":    taint.Key,
+			"value":  taint.Value,
+			"effect": taint.Effect,
+		}
+
+		flattenedTaints = append(flattenedTaints, rawTaint)
+	}
+
+	return flattenedTaints
+}

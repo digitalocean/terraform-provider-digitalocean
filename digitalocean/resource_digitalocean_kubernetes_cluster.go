@@ -93,7 +93,7 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 				MinItems: 1,
 				MaxItems: 1,
 				Elem: &schema.Resource{
-					Schema: nodePoolSchema(),
+					Schema: nodePoolSchema(false),
 				},
 			},
 
@@ -205,6 +205,7 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 			AutoScale: pool.AutoScale,
 			MinNodes:  pool.MinNodes,
 			MaxNodes:  pool.MaxNodes,
+			Taints:    pool.Taints,
 		}
 	}
 
@@ -641,36 +642,4 @@ func filterTags(tags []string) []string {
 	}
 
 	return filteredTags
-}
-
-func flattenNodePool(d *schema.ResourceData, keyPrefix string, pool *godo.KubernetesNodePool, parentTags ...string) []interface{} {
-	rawPool := map[string]interface{}{
-		"id":                pool.ID,
-		"name":              pool.Name,
-		"size":              pool.Size,
-		"actual_node_count": pool.Count,
-		"auto_scale":        pool.AutoScale,
-		"min_nodes":         pool.MinNodes,
-		"max_nodes":         pool.MaxNodes,
-	}
-
-	if pool.Tags != nil {
-		rawPool["tags"] = flattenTags(filterTags(pool.Tags))
-	}
-
-	if pool.Labels != nil {
-		rawPool["labels"] = flattenLabels(pool.Labels)
-	}
-
-	if pool.Nodes != nil {
-		rawPool["nodes"] = flattenNodes(pool.Nodes)
-	}
-
-	// Assign a node_count only if it's been set explicitly, since it's
-	// optional and we don't want to update with a 0 if it's not set.
-	if _, ok := d.GetOk(keyPrefix + "node_count"); ok {
-		rawPool["node_count"] = pool.Count
-	}
-
-	return []interface{}{rawPool}
 }

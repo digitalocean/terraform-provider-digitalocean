@@ -102,6 +102,8 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.0.status"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.0.created_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.0.updated_at"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.taint.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.taint.0.effect", "PreferNoSchedule"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.raw_config"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.cluster_ca_certificate"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.host"),
@@ -526,12 +528,17 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 
 	node_pool {
 	  name = "default"
-		size  = "s-1vcpu-2gb"
-		node_count = 1
-		tags  = ["one","two"]
-        labels = {
-            priority = "high"
-        }
+      size  = "s-1vcpu-2gb"
+      node_count = 1
+      tags  = ["one","two"]
+      labels = {
+        priority = "high"
+      }
+      taint {
+        key = "key1"
+        value = "val1"
+        effect = "PreferNoSchedule"
+      }
 	}
 }
 `, testClusterVersion, rName)
