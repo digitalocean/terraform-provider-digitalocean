@@ -1,4 +1,4 @@
-## 2.5.2 (March 10, 2021)
+## 2.6.0 (March 10, 2021)
 NOTES:
 * With the update to go 1.16 ([#597](https://github.com/digitalocean/terraform-provider-digitalocean/pull/597)),
   the provider now supports `darwin_arm64`.
