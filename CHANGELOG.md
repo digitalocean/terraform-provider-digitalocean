@@ -11,7 +11,7 @@ IMPROVEMENTS:
 * kubernetes - enable surge upgrades by default during cluster creation ([#584](https://github.com/digitalocean/terraform-provider-digitalocean/pull/584))
 * Assign and remove project resources without unnecessary churn (Fixes: #585). ([#586](https://github.com/digitalocean/terraform-provider-digitalocean/pull/586))
 * dbaas replica: Add missing attrbutes to docs. ([#588](https://github.com/digitalocean/terraform-provider-digitalocean/pull/588))
-* bump kubernetes version ([#583](https://github.com/digitalocean/terraform-provider-digitalocean/pull/583))
+* Bump Kubernetes version used in documentation ([#583](https://github.com/digitalocean/terraform-provider-digitalocean/pull/583))
 
 BUG FIXES:
 * Fix broken documentation links ([#592](https://github.com/digitalocean/terraform-provider-digitalocean/pull/592))
