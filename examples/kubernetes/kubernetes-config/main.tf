@@ -16,6 +16,7 @@ terraform {
 }
 
 data "digitalocean_kubernetes_cluster" "primary" {
+  depends_on = [var.cluster_id]
   name = var.cluster_name
 }
 
