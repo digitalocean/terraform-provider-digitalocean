@@ -185,7 +185,7 @@ In addition to the arguments listed above, the following additional attributes a
     + `droplet_id` - The id of the node's droplet
     + `created_at` - The date and time when the node was created.
     + `updated_at` - The date and time when the node was last updated.
-  - `taint` - A list of taints applied to all nodes in the pool. Each taint exports the following attributes:
+  - `taint` - A block representing a taint applied to all nodes in the pool. Each taint exports the following attributes (taints must be unique by key and effect pair):
     + `key` - An arbitrary string. The "key" and "value" fields of the "taint" object form a key-value pair.
     + `value` - An arbitrary string. The "key" and "value" fields of the "taint" object form a key-value pair.
     + `effect` - How the node reacts to pods that it won't tolerate. Available effect values are: "NoSchedule", "PreferNoSchedule", "NoExecute".

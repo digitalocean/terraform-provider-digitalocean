@@ -92,7 +92,7 @@ func nodePoolSchema(isResource bool) map[string]*schema.Schema {
 		"nodes": nodeSchema(),
 
 		"taint": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     nodePoolTaintSchema(),
 		},
@@ -214,7 +214,7 @@ func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
 			Tags:      expandTags(pool["tags"].(*schema.Set).List()),
 			Labels:    expandLabels(pool["labels"].(map[string]interface{})),
 			Nodes:     expandNodes(pool["nodes"].([]interface{})),
-			Taints:    expandNodePoolTaints(pool["taint"].([]interface{})),
+			Taints:    expandNodePoolTaints(pool["taint"].(*schema.Set).List()),
 		}
 
 		expandedNodePools = append(expandedNodePools, cr)

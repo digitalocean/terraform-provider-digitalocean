@@ -15,18 +15,75 @@ func TestAccDigitalOceanKubernetesNodePool_Basic(t *testing.T) {
 	var k8s godo.KubernetesCluster
 	var k8sPool godo.KubernetesNodePool
 
+	clusterConfig := fmt.Sprintf(`%s
+resource "digitalocean_kubernetes_cluster" "foobar" {
+	name    = "%s"
+	region  = "lon1"
+	version = data.digitalocean_kubernetes_versions.test.latest_version
+	tags    = ["foo","bar"]
+
+	node_pool {
+		name = "default"
+		size  = "s-1vcpu-2gb"
+		node_count = 1
+		tags  = ["one","two"]
+	}
+}
+`, testClusterVersion19, rName)
+
+	nodePoolConfig := fmt.Sprintf(`resource digitalocean_kubernetes_node_pool "barfoo" {
+	cluster_id = "${digitalocean_kubernetes_cluster.foobar.id}"
+
+	name    = "%s"
+	size  = "s-1vcpu-2gb"
+	node_count = 1
+	tags  = ["three","four"]
+}
+`, rName)
+
+	nodePoolAddTaintConfig := fmt.Sprintf(`resource digitalocean_kubernetes_node_pool "barfoo" {
+	cluster_id = "${digitalocean_kubernetes_cluster.foobar.id}"
+
+	name       = "%s"
+	size       = "s-1vcpu-2gb"
+	node_count = 1
+	tags       = ["three","four"]
+	taint {
+		key    = "k1"
+		value  = "v1"
+		effect = "NoExecute"
+	}
+}
+`, rName)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigBasicWithNodePool(rName),
+				Config: clusterConfig + nodePoolConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "taint.#", "0"),
+				),
+			},
+			// Update: add taint
+			{
+				Config: clusterConfig + nodePoolAddTaintConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "taint.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "taint.0.effect", "NoExecute"),
+				),
+			},
+			// Update: remove all taints (ensure all taints are removed from resource)
+			{
+				Config: clusterConfig + nodePoolConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "taint.#", "0"),
 				),
 			},
 		},
@@ -80,8 +137,20 @@ func TestAccDigitalOceanKubernetesNodePool_Update(t *testing.T) {
 					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "name", rName+"-tainted"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.1.taint.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.1.taint.0.effect", "NoSchedule"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "taint.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "taint.0.effect", "NoSchedule"),
+				),
+			},
+			// Add second NodePool Taint
+			{
+				Config: testAccDigitalOceanKubernetesConfigBasicWithNodePoolTaint2(rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "name", rName+"-tainted"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "nodes.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "taint.#", "2"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "taint.0.effect", "NoSchedule"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "taint.1.effect", "PreferNoSchedule"),
 				),
 			},
 		},
@@ -437,6 +506,44 @@ resource digitalocean_kubernetes_node_pool "barfoo" {
 		key    = "key1"
 		value  = "val1"
 		effect = "NoSchedule"
+	}
+}
+`, testClusterVersion19, rName, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigBasicWithNodePoolTaint2(rName string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+	name    = "%s"
+	region  = "lon1"
+	version = data.digitalocean_kubernetes_versions.test.latest_version
+	tags    = ["foo","bar"]
+
+	node_pool {
+		name		= "default"
+		size  		= "s-1vcpu-2gb"
+		node_count 	= 1
+		tags  		= ["one","two"]
+	}
+}
+
+resource digitalocean_kubernetes_node_pool "barfoo" {
+  cluster_id = "${digitalocean_kubernetes_cluster.foobar.id}"
+
+	name		= "%s-tainted"
+	size		= "s-1vcpu-2gb"
+	node_count	= 1
+	tags		= ["three","four"]
+	taint {
+		key    = "key1"
+		value  = "val1"
+		effect = "NoSchedule"
+	}
+	taint {
+		key    = "key2"
+		value  = "val2"
+		effect = "PreferNoSchedule"
 	}
 }
 `, testClusterVersion19, rName, rName)

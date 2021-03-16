@@ -43,7 +43,7 @@ func resourceDigitalOceanKubernetesNodePoolCreate(ctx context.Context, d *schema
 		"auto_scale": d.Get("auto_scale"),
 		"min_nodes":  d.Get("min_nodes"),
 		"max_nodes":  d.Get("max_nodes"),
-		"taint":      d.Get("taint"),
+		"taints":     d.Get("taint"),
 	}
 
 	pool, err := digitaloceanKubernetesNodePoolCreate(client, rawPool, d.Get("cluster_id").(string))
@@ -106,6 +106,9 @@ func resourceDigitalOceanKubernetesNodePoolUpdate(ctx context.Context, d *schema
 	rawPool["auto_scale"] = d.Get("auto_scale")
 	rawPool["min_nodes"] = d.Get("min_nodes")
 	rawPool["max_nodes"] = d.Get("max_nodes")
+
+	_, newTaint := d.GetChange("taint")
+	rawPool["taints"] = newTaint
 
 	_, err := digitaloceanKubernetesNodePoolUpdate(client, rawPool, d.Get("cluster_id").(string), d.Id())
 	if err != nil {
@@ -197,7 +200,7 @@ func digitaloceanKubernetesNodePoolCreate(client *godo.Client, pool map[string]i
 		AutoScale: pool["auto_scale"].(bool),
 		MinNodes:  pool["min_nodes"].(int),
 		MaxNodes:  pool["max_nodes"].(int),
-		Taints:    expandNodePoolTaints(pool["taint"].([]interface{})),
+		Taints:    expandNodePoolTaints(pool["taints"].(*schema.Set).List()),
 	}
 
 	p, _, err := client.Kubernetes.CreateNodePool(context.Background(), clusterID, req)
@@ -244,8 +247,8 @@ func digitaloceanKubernetesNodePoolUpdate(client *godo.Client, pool map[string]i
 		req.Labels = expandLabels(pool["labels"].(map[string]interface{}))
 	}
 
-	if pool["taint"] != nil {
-		t := expandNodePoolTaints(pool["taint"].([]interface{}))
+	if pool["taints"] != nil {
+		t := expandNodePoolTaints(pool["taints"].(*schema.Set).List())
 		req.Taints = &t
 	}
 
