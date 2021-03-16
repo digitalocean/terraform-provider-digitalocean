@@ -1,3 +1,22 @@
+## 2.6.0 (March 10, 2021)
+NOTES:
+* With the update to go 1.16 ([#597](https://github.com/digitalocean/terraform-provider-digitalocean/pull/597)),
+  the provider now supports `darwin_arm64`.
+
+FEATURES:
+* `datasource_digitalocean_firewall`: Adds Firewall datasource ([#594](https://github.com/digitalocean/terraform-provider-digitalocean/pull/594))
+
+IMPROVEMENTS:
+* Run tests on pull_request not pull_request_target. ([#589](https://github.com/digitalocean/terraform-provider-digitalocean/pull/589))
+* kubernetes - enable surge upgrades by default during cluster creation ([#584](https://github.com/digitalocean/terraform-provider-digitalocean/pull/584))
+* Assign and remove project resources without unnecessary churn (Fixes: #585). ([#586](https://github.com/digitalocean/terraform-provider-digitalocean/pull/586))
+* dbaas replica: Add missing attrbutes to docs. ([#588](https://github.com/digitalocean/terraform-provider-digitalocean/pull/588))
+* Bump Kubernetes version used in documentation ([#583](https://github.com/digitalocean/terraform-provider-digitalocean/pull/583))
+
+BUG FIXES:
+* Fix broken documentation links ([#592](https://github.com/digitalocean/terraform-provider-digitalocean/pull/592))
+* Fix docs and validation for expiry_seconds on registry docker credentials resource. ([#582](https://github.com/digitalocean/terraform-provider-digitalocean/pull/582))
+
 ## 2.5.1 (February 05, 2021)
 
 BUG FIXES:

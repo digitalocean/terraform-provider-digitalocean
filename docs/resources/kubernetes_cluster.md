@@ -52,7 +52,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 }
 ```
 
-Note that, while individual node pools may scale to 0, a cluster must always include at least one node.
+Note that, each node pool must always have at least one node and when using autoscaling the min_nodes must be greater than or equal to 1.
 
 ### Auto Upgrade Example
 
