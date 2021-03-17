@@ -19,9 +19,6 @@ func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 		k.ValidateFunc = nil
 	}
 
-	//dsNodePoolSchema["size"].ValidateFunc = nil
-	//dsNodePoolSchema["name"].ValidateFunc = nil
-
 	return &schema.Resource{
 		ReadContext: dataSourceDigitalOceanKubernetesClusterRead,
 		Schema: map[string]*schema.Schema{
