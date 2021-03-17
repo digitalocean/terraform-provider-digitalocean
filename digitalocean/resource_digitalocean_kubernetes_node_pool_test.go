@@ -32,7 +32,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 `, testClusterVersion19, rName)
 
 	nodePoolConfig := fmt.Sprintf(`resource digitalocean_kubernetes_node_pool "barfoo" {
-	cluster_id = "${digitalocean_kubernetes_cluster.foobar.id}"
+	cluster_id = digitalocean_kubernetes_cluster.foobar.id
 
 	name    = "%s"
 	size  = "s-1vcpu-2gb"
@@ -42,7 +42,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 `, rName)
 
 	nodePoolAddTaintConfig := fmt.Sprintf(`resource digitalocean_kubernetes_node_pool "barfoo" {
-	cluster_id = "${digitalocean_kubernetes_cluster.foobar.id}"
+	cluster_id = digitalocean_kubernetes_cluster.foobar.id
 
 	name       = "%s"
 	size       = "s-1vcpu-2gb"
@@ -496,12 +496,15 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 }
 
 resource digitalocean_kubernetes_node_pool "barfoo" {
-  cluster_id = "${digitalocean_kubernetes_cluster.foobar.id}"
+  cluster_id = digitalocean_kubernetes_cluster.foobar.id
 
 	name		= "%s-tainted"
 	size		= "s-1vcpu-2gb"
 	node_count	= 1
 	tags		= ["three","four"]
+	labels = {
+      priority = "high"
+	}
 	taint {
 		key    = "key1"
 		value  = "val1"
@@ -529,12 +532,15 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 }
 
 resource digitalocean_kubernetes_node_pool "barfoo" {
-  cluster_id = "${digitalocean_kubernetes_cluster.foobar.id}"
+  cluster_id = digitalocean_kubernetes_cluster.foobar.id
 
 	name		= "%s-tainted"
 	size		= "s-1vcpu-2gb"
 	node_count	= 1
 	tags		= ["three","four"]
+	labels = {
+      priority = "high"
+	}
 	taint {
 		key    = "key1"
 		value  = "val1"
