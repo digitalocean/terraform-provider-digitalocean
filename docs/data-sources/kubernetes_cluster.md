@@ -65,8 +65,12 @@ The following attributes are exported:
   - `tags` - A list of tag names applied to the node pool.
   - `labels` - A map of key/value pairs applied to nodes in the pool. The labels are exposed in the Kubernetes API as labels in the metadata of the corresponding [Node resources](https://kubernetes.io/docs/concepts/architecture/nodes/).
   - `nodes` - A list of nodes in the pool. Each node exports the following attributes:
-     + `id` -  A unique ID that can be used to identify and reference the node.
-     + `name` - The auto-generated name for the node.
-     + `status` -  A string indicating the current status of the individual node.
-     + `created_at` - The date and time when the node was created.
-     + `updated_at` - The date and time when the node was last updated.
+    + `id` -  A unique ID that can be used to identify and reference the node.
+    + `name` - The auto-generated name for the node.
+    + `status` -  A string indicating the current status of the individual node.
+    + `created_at` - The date and time when the node was created.
+    + `updated_at` - The date and time when the node was last updated.
+  - `taint` - A list of taints applied to all nodes in the pool. Each taint exports the following attributes:
+    + `key` - An arbitrary string. The "key" and "value" fields of the "taint" object form a key-value pair.
+    + `value` - An arbitrary string. The "key" and "value" fields of the "taint" object form a key-value pair.
+    + `effect` - How the node reacts to pods that it won't tolerate. Available effect values are: "NoSchedule", "PreferNoSchedule", "NoExecute".

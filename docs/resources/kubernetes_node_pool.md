@@ -35,6 +35,12 @@ resource "digitalocean_kubernetes_node_pool" "bar" {
     service  = "backend"
     priority = "high"
   }
+  
+  taint {
+    key    = "workloadKind"
+    value  = "database"
+    effect = "NoSchedule"
+  }
 }
 ```
 
@@ -67,6 +73,7 @@ The following arguments are supported:
 * `max_nodes` - (Optional) If auto-scaling is enabled, this represents the maximum number of nodes that the node pool can be scaled up to.
 * `tags` - (Optional) A list of tag names to be applied to the Kubernetes cluster.
 * `labels` - (Optional) A map of key/value pairs to apply to nodes in the pool. The labels are exposed in the Kubernetes API as labels in the metadata of the corresponding [Node resources](https://kubernetes.io/docs/concepts/architecture/nodes/).
+* `taint` - (Optional) A list of taints applied to all nodes in the pool.
 
 ## Attributes Reference
 
@@ -81,6 +88,10 @@ In addition to the arguments listed above, the following additional attributes a
   - `droplet_id` - The id of the node's droplet
   - `created_at` - The date and time when the node was created.
   - `updated_at` - The date and time when the node was last updated.
+* `taint` - A list of taints applied to all nodes in the pool. Each taint exports the following attributes:
+  - `key` - An arbitrary string. The "key" and "value" fields of the "taint" object form a key-value pair.
+  - `value` - An arbitrary string. The "key" and "value" fields of the "taint" object form a key-value pair.
+  - `effect` - How the node reacts to pods that it won't tolerate. Available effect values are: "NoSchedule", "PreferNoSchedule", "NoExecute".
 
 ## Import
 
