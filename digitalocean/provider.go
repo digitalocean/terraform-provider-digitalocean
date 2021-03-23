@@ -83,6 +83,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_snapshot":       dataSourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_volume":                dataSourceDigitalOceanVolume(),
 			"digitalocean_vpc":                   dataSourceDigitalOceanVPC(),
+			"digitalocean_database_replica":      dataSourceDigitalOceanDatabaseReplica(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
