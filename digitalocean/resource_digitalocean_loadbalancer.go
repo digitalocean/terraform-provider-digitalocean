@@ -126,8 +126,6 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "lb-small",
-				// Resizing an LB is not currently allowed. If/when that changes, this should be removed/set to false.
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"lb-small",
 					"lb-medium",
