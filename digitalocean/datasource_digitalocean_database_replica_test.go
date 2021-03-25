@@ -66,9 +66,9 @@ func TestAccDataSourceDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 				Config: databaseConfig + replicaConfig + datasourceReplicaConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair("digitalocean_database_replica.read-01", "cluster_id",
-						"digitalocean_database_replica.my_db_replica", "cluster_id"),
+						"data.digitalocean_database_replica.my_db_replica", "cluster_id"),
 					resource.TestCheckResourceAttrPair("digitalocean_database_replica.read-01", "name",
-						"digitalocean_database_replica.my_db_replica", "name"),
+						"data.digitalocean_database_replica.my_db_replica", "name"),
 				),
 			},
 		},
