@@ -1,4 +1,16 @@
+## 2.7.0 (March 29, 2021)
+
+IMPROVEMENTS:
+
+* `digitalocean_kubernetes_cluster`, `digitalocean_kubernetes_node_pool`: Support for Kubernetes node pool taints ([#374](https://github.com/digitalocean/terraform-provider-digitalocean/issues/374)).
+* `digitalocean_loadbalancer`: Support resizing load balancers ([#606](https://github.com/digitalocean/terraform-provider-digitalocean/issues/606)).
+
+BUG FIXES:
+
+* docs: Fix Kubernetes autoscaling docs for `min_nodes` ([#602](https://github.com/digitalocean/terraform-provider-digitalocean/pull/602)). Thanks to @3dinfluence!
+
 ## 2.6.0 (March 10, 2021)
+
 NOTES:
 * With the update to go 1.16 ([#597](https://github.com/digitalocean/terraform-provider-digitalocean/pull/597)),
   the provider now supports `darwin_arm64`.
