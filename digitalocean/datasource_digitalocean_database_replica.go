@@ -106,8 +106,6 @@ func dataSourceDigitalOceanDatabaseReplica() *schema.Resource {
 func dataSourceDigitalOceanDatabaseReplicaRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	clusterId := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
-	d.Set("cluster_id", clusterId)
-	d.Set("name", name)
 	d.SetId(makeReplicaId(clusterId, name))
 	return resourceDigitalOceanDatabaseReplicaRead(ctx, d, meta)
 }

@@ -3,10 +3,12 @@ package digitalocean
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/godo"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanDatabaseReplica_Basic(t *testing.T) {
@@ -18,7 +20,7 @@ func TestAccDataSourceDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 
 	databaseConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, databaseName)
 	replicaConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigBasic, databaseReplicaName)
-	datasourceReplicaConfig := fmt.Sprintf(testAccCheckDigitalOceanDatasourceDatabaseReplicaConfigBasic, "digitalocean_database_replica.read-01.cluster_id", databaseReplicaName)
+	datasourceReplicaConfig := fmt.Sprintf(testAccCheckDigitalOceanDatasourceDatabaseReplicaConfigBasic, databaseReplicaName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -36,6 +38,21 @@ func TestAccDataSourceDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDatabaseReplicaExists("digitalocean_database_replica.read-01", &databaseReplica),
 					testAccCheckDigitalOceanDatabaseReplicaAttributes(&databaseReplica, databaseReplicaName),
+					resource.ComposeTestCheckFunc(
+						func(s *terraform.State) error {
+							time.Sleep(10 * time.Second)
+							return nil
+						},
+					),
+				),
+			},
+			{
+				Config: databaseConfig + replicaConfig + datasourceReplicaConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrPair("digitalocean_database_replica.read-01", "cluster_id",
+						"data.digitalocean_database_replica.my_db_replica", "cluster_id"),
+					resource.TestCheckResourceAttrPair("digitalocean_database_replica.read-01", "name",
+						"data.digitalocean_database_replica.my_db_replica", "name"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_replica.read-01", "size", "db-s-2vcpu-4gb"),
 					resource.TestCheckResourceAttr(
@@ -62,21 +79,14 @@ func TestAccDataSourceDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 						"digitalocean_database_replica.read-01", "private_network_uuid"),
 				),
 			},
-			{
-				Config: databaseConfig + replicaConfig + datasourceReplicaConfig,
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrPair("digitalocean_database_replica.read-01", "cluster_id",
-						"data.digitalocean_database_replica.my_db_replica", "cluster_id"),
-					resource.TestCheckResourceAttrPair("digitalocean_database_replica.read-01", "name",
-						"data.digitalocean_database_replica.my_db_replica", "name"),
-				),
-			},
 		},
 	})
 }
 
-const testAccCheckDigitalOceanDatasourceDatabaseReplicaConfigBasic = `
+const (
+	testAccCheckDigitalOceanDatasourceDatabaseReplicaConfigBasic = `
 data "digitalocean_database_replica" "my_db_replica" {
-	cluster_id = "%s"
+	cluster_id = digitalocean_database_cluster.foobar.id
 	name       = "%s"
-  }`
+	}`
+)
