@@ -31,6 +31,12 @@ func TestAccDataSourceDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 				Config: databaseConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					resource.ComposeTestCheckFunc(
+						func(s *terraform.State) error {
+							time.Sleep(30 * time.Second)
+							return nil
+						},
+					),
 				),
 			},
 			{
@@ -40,7 +46,7 @@ func TestAccDataSourceDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 					testAccCheckDigitalOceanDatabaseReplicaAttributes(&databaseReplica, databaseReplicaName),
 					resource.ComposeTestCheckFunc(
 						func(s *terraform.State) error {
-							time.Sleep(10 * time.Second)
+							time.Sleep(30 * time.Second)
 							return nil
 						},
 					),
@@ -53,30 +59,30 @@ func TestAccDataSourceDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 						"data.digitalocean_database_replica.my_db_replica", "cluster_id"),
 					resource.TestCheckResourceAttrPair("digitalocean_database_replica.read-01", "name",
 						"data.digitalocean_database_replica.my_db_replica", "name"),
+					// resource.TestCheckResourceAttr(
+					// 	"data.digitalocean_database_replica.my_db_replica", "size", "db-s-2vcpu-4gb"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_replica.read-01", "size", "db-s-2vcpu-4gb"),
+						"data.digitalocean_database_replica.my_db_replica", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_replica.read-01", "region", "nyc3"),
+						"data.digitalocean_database_replica.my_db_replica", "name", databaseReplicaName),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_database_replica.my_db_replica", "host"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_database_replica.my_db_replica", "private_host"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_database_replica.my_db_replica", "port"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_database_replica.my_db_replica", "user"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_database_replica.my_db_replica", "uri"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_database_replica.my_db_replica", "private_uri"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_database_replica.my_db_replica", "password"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_replica.read-01", "name", databaseReplicaName),
+						"data.digitalocean_database_replica.my_db_replica", "tags.#", "1"),
 					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_replica.read-01", "host"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_replica.read-01", "private_host"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_replica.read-01", "port"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_replica.read-01", "user"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_replica.read-01", "uri"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_replica.read-01", "private_uri"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_replica.read-01", "password"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_database_replica.read-01", "tags.#", "1"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_replica.read-01", "private_network_uuid"),
+						"data.digitalocean_database_replica.my_db_replica", "private_network_uuid"),
 				),
 			},
 		},
