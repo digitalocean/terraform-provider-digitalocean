@@ -15,35 +15,23 @@ func dataSourceDigitalOceanDatabaseReplica() *schema.Resource {
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"cluster_id": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 
 			"region": {
 				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
-			},
-
-			"size": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ForceNew: true,
+				Computed: true,
 			},
 
 			"private_network_uuid": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
-				Computed:     true,
-				ValidateFunc: validation.NoZeroValues,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 
 			"host": {
@@ -92,7 +80,6 @@ func dataSourceDigitalOceanDatabaseReplica() *schema.Resource {
 			"tags": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				ForceNew: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validateTag,
