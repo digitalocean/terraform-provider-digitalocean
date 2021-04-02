@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 	"time"
 
@@ -12,6 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+const (
+	mongoDBEngineSlug = "mongodb"
+	mysqlDBEngineSlug = "mysql"
+	redisDBEngineSlug = "redis"
 )
 
 func resourceDigitalOceanDatabaseCluster() *schema.Resource {
@@ -50,7 +57,7 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				// Redis clusters are being force upgraded from version 5 to 6.
 				// Prevent attempting to recreate clusters specifying 5 in their config.
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return d.Get("engine") == "redis" && old == "6" && new == "5"
+					return d.Get("engine") == redisDBEngineSlug && old == "6" && new == "5"
 				},
 			},
 
@@ -195,11 +202,11 @@ func validateExclusiveAttributes() schema.CustomizeDiffFunc {
 		_, hasEvictionPolicy := diff.GetOk("eviction_policy")
 		_, hasSqlMode := diff.GetOk("sql_mode")
 
-		if hasSqlMode && engine != "mysql" {
+		if hasSqlMode && engine != mysqlDBEngineSlug {
 			return fmt.Errorf("sql_mode is only supported for MySQL Database Clusters")
 		}
 
-		if hasEvictionPolicy && engine != "redis" {
+		if hasEvictionPolicy && engine != redisDBEngineSlug {
 			return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
 		}
 
@@ -228,6 +235,15 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 	database, _, err := client.Databases.Create(context.Background(), opts)
 	if err != nil {
 		return diag.Errorf("Error creating DatabaseCluster: %s", err)
+	}
+
+	// MongoDB clusters only return the password in response to the initial POST.
+	// We need to set it here before any subsequent GETs.
+	if database.EngineSlug == mongoDBEngineSlug {
+		err = setDatabaseConnectionInfo(database, d)
+		if err != nil {
+			return diag.Errorf("Error setting connection info for DatabaseCluster: %s", err)
+		}
 	}
 
 	database, err = waitForDatabaseCluster(client, database.ID, "online")
@@ -417,20 +433,10 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	}
 
 	// Computed values
-	if database.Connection != nil {
-		d.Set("host", database.Connection.Host)
-		d.Set("port", database.Connection.Port)
-		d.Set("uri", database.Connection.URI)
-		d.Set("database", database.Connection.Database)
-		d.Set("user", database.Connection.User)
-		d.Set("password", database.Connection.Password)
+	err = setDatabaseConnectionInfo(database, d)
+	if err != nil {
+		return diag.Errorf("Error setting connection info for DatabaseCluster: %s", err)
 	}
-
-	if database.PrivateConnection != nil {
-		d.Set("private_host", database.PrivateConnection.Host)
-		d.Set("private_uri", database.PrivateConnection.URI)
-	}
-
 	d.Set("urn", database.URN())
 	d.Set("private_network_uuid", database.PrivateNetworkUUID)
 
@@ -502,4 +508,59 @@ func flattenMaintWindowOpts(opts godo.DatabaseMaintenanceWindow) []map[string]in
 	result = append(result, item)
 
 	return result
+}
+
+func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) error {
+	if database.Connection != nil {
+		d.Set("host", database.Connection.Host)
+		d.Set("port", database.Connection.Port)
+		d.Set("uri", database.Connection.URI)
+		d.Set("database", database.Connection.Database)
+		d.Set("user", database.Connection.User)
+		if database.EngineSlug == mongoDBEngineSlug {
+			if database.Connection.Password != "" {
+				d.Set("password", database.Connection.Password)
+			}
+			uri, err := buildMongoDBConnectionURI(database.Connection, d)
+			if err != nil {
+				return err
+			}
+			d.Set("uri", uri)
+		} else {
+			d.Set("password", database.Connection.Password)
+			d.Set("uri", database.Connection.URI)
+		}
+	}
+
+	if database.PrivateConnection != nil {
+		d.Set("private_host", database.PrivateConnection.Host)
+		if database.EngineSlug == mongoDBEngineSlug {
+			uri, err := buildMongoDBConnectionURI(database.PrivateConnection, d)
+			if err != nil {
+				return err
+			}
+			d.Set("private_uri", uri)
+		} else {
+			d.Set("private_uri", database.PrivateConnection.URI)
+		}
+	}
+
+	return nil
+}
+
+// MongoDB clusters only return their password in response to the initial POST.
+// The host for the cluster is not known until it becomes available. In order to
+// build a usable connection URI, we must save the password and then add it to
+// the URL returned latter.
+func buildMongoDBConnectionURI(conn *godo.DatabaseConnection, d *schema.ResourceData) (string, error) {
+	password := d.Get("password")
+	uri, err := url.Parse(conn.URI)
+	if err != nil {
+		return "", err
+	}
+
+	userInfo := url.UserPassword(conn.User, password.(string))
+	uri.User = userInfo
+
+	return uri.String(), nil
 }

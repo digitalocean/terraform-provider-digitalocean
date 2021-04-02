@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"regexp"
 	"strings"
 	"testing"
@@ -76,6 +77,10 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "user"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "password"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "uri"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "private_uri"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "urn"),
 					resource.TestCheckResourceAttr(
@@ -389,6 +394,28 @@ func TestAccDigitalOceanDatabaseCluster_WithVPC(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_MongoDBPassword(t *testing.T) {
+	var database godo.Database
+	databaseName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigMongoDB, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					resource.TestCheckResourceAttrSet("digitalocean_database_cluster.foobar", "password"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword("digitalocean_database_cluster.foobar", "uri"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword("digitalocean_database_cluster.foobar", "private_uri"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDatabaseClusterDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -446,6 +473,35 @@ func testAccCheckDigitalOceanDatabaseClusterExists(n string, database *godo.Data
 		*database = *foundDatabaseCluster
 
 		return nil
+	}
+}
+
+// testAccCheckDigitalOceanDatabaseClusterURIPassword checks that the password in
+// a database cluster's URI or private URI matches the password value stored in
+// its password attribute.
+func testAccCheckDigitalOceanDatabaseClusterURIPassword(name string, attributeName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("not found: %s", name)
+		}
+
+		uri, ok := rs.Primary.Attributes[attributeName]
+		if !ok {
+			return fmt.Errorf("%s not set", attributeName)
+		}
+
+		u, err := url.Parse(uri)
+		if err != nil {
+			return err
+		}
+
+		password, ok := u.User.Password()
+		if !ok || password == "" {
+			return fmt.Errorf("password not set in %s: %s", attributeName, uri)
+		}
+
+		return resource.TestCheckResourceAttr(name, "password", password)(s)
 	}
 }
 
@@ -615,4 +671,14 @@ resource "digitalocean_database_cluster" "foobar" {
 	node_count           = 1
 	tags                 = ["production"]
 	private_network_uuid = digitalocean_vpc.foobar.id
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigMongoDB = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "mongodb"
+	version    = "4"
+	size       = "db-s-1vcpu-1gb"
+	region     = "nyc1"
+    node_count = 1
 }`
