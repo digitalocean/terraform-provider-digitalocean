@@ -437,6 +437,56 @@ func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 	})
 }
 
+// Load balancers can only be resized once an hour. The initial create counts
+// as a "resize" in this context. This test can not perform a resize, but it
+// does ensure that the the PUT includes the expected content by checking for
+// the failure.
+func TestAccDigitalOceanLoadbalancer_resizeExpectedFailure(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	rInt := acctest.RandInt()
+
+	lbConfig := `resource "digitalocean_loadbalancer" "foobar" {
+		name   = "loadbalancer-%d"
+		region = "nyc3"
+		size   = "%s"
+
+		forwarding_rule {
+			entry_port     = 80
+			entry_protocol = "http"
+
+			target_port     = 80
+			target_protocol = "http"
+		}
+
+		healthcheck {
+			port     = 22
+			protocol = "tcp"
+		}
+	}`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(lbConfig, rInt, "lb-small"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "size", "lb-small"),
+				),
+			},
+			{
+				Config:      fmt.Sprintf(lbConfig, rInt, "lb-large"),
+				ExpectError: regexp.MustCompile("Load Balancer can only be resized once every hour, last resized at:"),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanLoadbalancer_multipleRules(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
 	rName := randomTestName()

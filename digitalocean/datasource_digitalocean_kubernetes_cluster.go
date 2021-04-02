@@ -10,6 +10,15 @@ import (
 )
 
 func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
+	dsNodePoolSchema := nodePoolSchema(false)
+
+	for _, k := range dsNodePoolSchema {
+		k.Computed = true
+		k.Required = false
+		k.Default = nil
+		k.ValidateFunc = nil
+	}
+
 	return &schema.Resource{
 		ReadContext: dataSourceDigitalOceanKubernetesClusterRead,
 		Schema: map[string]*schema.Schema{
@@ -65,59 +74,7 @@ func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"size": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-
-						"actual_node_count": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
-						"node_count": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
-						"auto_scale": {
-							Type:     schema.TypeBool,
-							Computed: true,
-						},
-
-						"min_nodes": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
-						"max_nodes": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-
-						"tags": tagsSchema(),
-
-						"labels": {
-							Type:     schema.TypeMap,
-							Computed: true,
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-
-						"nodes": nodeSchema(),
-					},
+					Schema: dsNodePoolSchema,
 				},
 			},
 
