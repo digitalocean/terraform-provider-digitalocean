@@ -87,6 +87,10 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "tags.#", "1"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "private_network_uuid"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "uri"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "private_uri"),
 				),
 			},
 		},
@@ -246,6 +250,10 @@ func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "name", databaseName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_cluster.foobar", "engine", "redis"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "uri"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "private_uri"),
 				),
 				ExpectError: regexp.MustCompile(`The argument "version" is required, but no definition was found.`),
 			},
@@ -406,10 +414,14 @@ func TestAccDigitalOceanDatabaseCluster_MongoDBPassword(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigMongoDB, databaseName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
-					resource.TestCheckResourceAttrSet("digitalocean_database_cluster.foobar", "password"),
-					testAccCheckDigitalOceanDatabaseClusterURIPassword("digitalocean_database_cluster.foobar", "uri"),
-					testAccCheckDigitalOceanDatabaseClusterURIPassword("digitalocean_database_cluster.foobar", "private_uri"),
+					testAccCheckDigitalOceanDatabaseClusterExists(
+						"digitalocean_database_cluster.foobar", &database),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "password"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "uri"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "private_uri"),
 				),
 			},
 		},
