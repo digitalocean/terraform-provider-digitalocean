@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -246,6 +247,11 @@ func imageStateRefreshFunc(ctx context.Context, d *schema.ResourceData, state st
 		if err != nil {
 			return nil, "", err
 		}
+
+		if imageResponse.Status == imageDeletedStatus {
+			return nil, "", fmt.Errorf(imageResponse.ErrorMessage)
+		}
+
 		return imageResponse, imageResponse.Status, nil
 	}
 }

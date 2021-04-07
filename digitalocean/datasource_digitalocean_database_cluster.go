@@ -176,20 +176,10 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 				}
 			}
 
-			if db.Connection != nil {
-				d.Set("host", db.Connection.Host)
-				d.Set("port", db.Connection.Port)
-				d.Set("uri", db.Connection.URI)
-				d.Set("database", db.Connection.Database)
-				d.Set("user", db.Connection.User)
-				d.Set("password", db.Connection.Password)
+			err := setDatabaseConnectionInfo(&db, d)
+			if err != nil {
+				return diag.Errorf("Error setting connection info for database cluster: %s", err)
 			}
-
-			if db.PrivateConnection != nil {
-				d.Set("private_host", db.PrivateConnection.Host)
-				d.Set("private_uri", db.PrivateConnection.URI)
-			}
-
 			d.Set("urn", db.URN())
 			d.Set("private_network_uuid", db.PrivateNetworkUUID)
 

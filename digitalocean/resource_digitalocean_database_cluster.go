@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"strings"
 	"time"
 
@@ -12,6 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+const (
+	mongoDBEngineSlug = "mongodb"
+	mysqlDBEngineSlug = "mysql"
+	redisDBEngineSlug = "redis"
 )
 
 func resourceDigitalOceanDatabaseCluster() *schema.Resource {
@@ -50,7 +57,7 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				// Redis clusters are being force upgraded from version 5 to 6.
 				// Prevent attempting to recreate clusters specifying 5 in their config.
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return d.Get("engine") == "redis" && old == "6" && new == "5"
+					return d.Get("engine") == redisDBEngineSlug && old == "6" && new == "5"
 				},
 			},
 
@@ -195,11 +202,11 @@ func validateExclusiveAttributes() schema.CustomizeDiffFunc {
 		_, hasEvictionPolicy := diff.GetOk("eviction_policy")
 		_, hasSqlMode := diff.GetOk("sql_mode")
 
-		if hasSqlMode && engine != "mysql" {
+		if hasSqlMode && engine != mysqlDBEngineSlug {
 			return fmt.Errorf("sql_mode is only supported for MySQL Database Clusters")
 		}
 
-		if hasEvictionPolicy && engine != "redis" {
+		if hasEvictionPolicy && engine != redisDBEngineSlug {
 			return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
 		}
 
@@ -224,19 +231,28 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 		opts.PrivateNetworkUUID = v.(string)
 	}
 
-	log.Printf("[DEBUG] DatabaseCluster create configuration: %#v", opts)
+	log.Printf("[DEBUG] database cluster create configuration: %#v", opts)
 	database, _, err := client.Databases.Create(context.Background(), opts)
 	if err != nil {
-		return diag.Errorf("Error creating DatabaseCluster: %s", err)
+		return diag.Errorf("Error creating database cluster: %s", err)
+	}
+
+	// MongoDB clusters only return the password in response to the initial POST.
+	// We need to set it here before any subsequent GETs.
+	if database.EngineSlug == mongoDBEngineSlug {
+		err = setDatabaseConnectionInfo(database, d)
+		if err != nil {
+			return diag.Errorf("Error setting connection info for database cluster: %s", err)
+		}
 	}
 
 	database, err = waitForDatabaseCluster(client, database.ID, "online")
 	if err != nil {
-		return diag.Errorf("Error creating DatabaseCluster: %s", err)
+		return diag.Errorf("Error creating database cluster: %s", err)
 	}
 
 	d.SetId(database.ID)
-	log.Printf("[INFO] DatabaseCluster Name: %s", database.Name)
+	log.Printf("[INFO] database cluster Name: %s", database.Name)
 
 	if v, ok := d.GetOk("maintenance_window"); ok {
 		opts := expandMaintWindowOpts(v.([]interface{}))
@@ -250,21 +266,21 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 				return nil
 			}
 
-			return diag.Errorf("Error adding maintenance window for DatabaseCluster: %s", err)
+			return diag.Errorf("Error adding maintenance window for database cluster: %s", err)
 		}
 	}
 
 	if policy, ok := d.GetOk("eviction_policy"); ok {
 		_, err := client.Databases.SetEvictionPolicy(context.Background(), d.Id(), policy.(string))
 		if err != nil {
-			return diag.Errorf("Error adding eviction policy for DatabaseCluster: %s", err)
+			return diag.Errorf("Error adding eviction policy for database cluster: %s", err)
 		}
 	}
 
 	if mode, ok := d.GetOk("sql_mode"); ok {
 		_, err := client.Databases.SetSQLMode(context.Background(), d.Id(), mode.(string))
 		if err != nil {
-			return diag.Errorf("Error adding SQL mode for DatabaseCluster: %s", err)
+			return diag.Errorf("Error adding SQL mode for database cluster: %s", err)
 		}
 	}
 
@@ -289,12 +305,12 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 				return nil
 			}
 
-			return diag.Errorf("Error resizing DatabaseCluster: %s", err)
+			return diag.Errorf("Error resizing database cluster: %s", err)
 		}
 
 		_, err = waitForDatabaseCluster(client, d.Id(), "online")
 		if err != nil {
-			return diag.Errorf("Error resizing DatabaseCluster: %s", err)
+			return diag.Errorf("Error resizing database cluster: %s", err)
 		}
 	}
 
@@ -312,12 +328,12 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 				return nil
 			}
 
-			return diag.Errorf("Error migrating DatabaseCluster: %s", err)
+			return diag.Errorf("Error migrating database cluster: %s", err)
 		}
 
 		_, err = waitForDatabaseCluster(client, d.Id(), "online")
 		if err != nil {
-			return diag.Errorf("Error migrating DatabaseCluster: %s", err)
+			return diag.Errorf("Error migrating database cluster: %s", err)
 		}
 	}
 
@@ -333,7 +349,7 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 				return nil
 			}
 
-			return diag.Errorf("Error updating maintenance window for DatabaseCluster: %s", err)
+			return diag.Errorf("Error updating maintenance window for database cluster: %s", err)
 		}
 	}
 
@@ -341,13 +357,13 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 		if policy, ok := d.GetOk("eviction_policy"); ok {
 			_, err := client.Databases.SetEvictionPolicy(context.Background(), d.Id(), policy.(string))
 			if err != nil {
-				return diag.Errorf("Error updating eviction policy for DatabaseCluster: %s", err)
+				return diag.Errorf("Error updating eviction policy for database cluster: %s", err)
 			}
 		} else {
 			// If the eviction policy is completely removed from the config, set to noeviction
 			_, err := client.Databases.SetEvictionPolicy(context.Background(), d.Id(), godo.EvictionPolicyNoEviction)
 			if err != nil {
-				return diag.Errorf("Error updating eviction policy for DatabaseCluster: %s", err)
+				return diag.Errorf("Error updating eviction policy for database cluster: %s", err)
 			}
 		}
 	}
@@ -355,7 +371,7 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 	if d.HasChange("sql_mode") {
 		_, err := client.Databases.SetSQLMode(context.Background(), d.Id(), d.Get("sql_mode").(string))
 		if err != nil {
-			return diag.Errorf("Error updating SQL mode for DatabaseCluster: %s", err)
+			return diag.Errorf("Error updating SQL mode for database cluster: %s", err)
 		}
 	}
 
@@ -381,7 +397,7 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 			return nil
 		}
 
-		return diag.Errorf("Error retrieving DatabaseCluster: %s", err)
+		return diag.Errorf("Error retrieving database cluster: %s", err)
 	}
 
 	d.Set("name", database.Name)
@@ -401,7 +417,7 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	if _, ok := d.GetOk("eviction_policy"); ok {
 		policy, _, err := client.Databases.GetEvictionPolicy(context.Background(), d.Id())
 		if err != nil {
-			return diag.Errorf("Error retrieving eviction policy for DatabaseCluster: %s", err)
+			return diag.Errorf("Error retrieving eviction policy for database cluster: %s", err)
 		}
 
 		d.Set("eviction_policy", policy)
@@ -410,27 +426,17 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	if _, ok := d.GetOk("sql_mode"); ok {
 		mode, _, err := client.Databases.GetSQLMode(context.Background(), d.Id())
 		if err != nil {
-			return diag.Errorf("Error retrieving SQL mode for DatabaseCluster: %s", err)
+			return diag.Errorf("Error retrieving SQL mode for database cluster: %s", err)
 		}
 
 		d.Set("sql_mode", mode)
 	}
 
 	// Computed values
-	if database.Connection != nil {
-		d.Set("host", database.Connection.Host)
-		d.Set("port", database.Connection.Port)
-		d.Set("uri", database.Connection.URI)
-		d.Set("database", database.Connection.Database)
-		d.Set("user", database.Connection.User)
-		d.Set("password", database.Connection.Password)
+	err = setDatabaseConnectionInfo(database, d)
+	if err != nil {
+		return diag.Errorf("Error setting connection info for database cluster: %s", err)
 	}
-
-	if database.PrivateConnection != nil {
-		d.Set("private_host", database.PrivateConnection.Host)
-		d.Set("private_uri", database.PrivateConnection.URI)
-	}
-
 	d.Set("urn", database.URN())
 	d.Set("private_network_uuid", database.PrivateNetworkUUID)
 
@@ -440,10 +446,10 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 func resourceDigitalOceanDatabaseClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
-	log.Printf("[INFO] Deleting DatabaseCluster: %s", d.Id())
+	log.Printf("[INFO] Deleting database cluster: %s", d.Id())
 	_, err := client.Databases.Delete(context.Background(), d.Id())
 	if err != nil {
-		return diag.Errorf("Error deleting DatabaseCluster: %s", err)
+		return diag.Errorf("Error deleting database cluster: %s", err)
 	}
 
 	d.SetId("")
@@ -459,7 +465,7 @@ func waitForDatabaseCluster(client *godo.Client, id string, status string) (*god
 		database, _, err := client.Databases.Get(context.Background(), id)
 		if err != nil {
 			ticker.Stop()
-			return nil, fmt.Errorf("Error trying to read DatabaseCluster state: %s", err)
+			return nil, fmt.Errorf("Error trying to read database cluster state: %s", err)
 		}
 
 		if database.Status == status {
@@ -475,7 +481,7 @@ func waitForDatabaseCluster(client *godo.Client, id string, status string) (*god
 		n++
 	}
 
-	return nil, fmt.Errorf("Timeout waiting to DatabaseCluster to become %s", status)
+	return nil, fmt.Errorf("Timeout waiting to database cluster to become %s", status)
 }
 
 func expandMaintWindowOpts(config []interface{}) *godo.DatabaseUpdateMaintenanceRequest {
@@ -502,4 +508,59 @@ func flattenMaintWindowOpts(opts godo.DatabaseMaintenanceWindow) []map[string]in
 	result = append(result, item)
 
 	return result
+}
+
+func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) error {
+	if database.Connection != nil {
+		d.Set("host", database.Connection.Host)
+		d.Set("port", database.Connection.Port)
+		d.Set("uri", database.Connection.URI)
+		d.Set("database", database.Connection.Database)
+		d.Set("user", database.Connection.User)
+		if database.EngineSlug == mongoDBEngineSlug {
+			if database.Connection.Password != "" {
+				d.Set("password", database.Connection.Password)
+			}
+			uri, err := buildMongoDBConnectionURI(database.Connection, d)
+			if err != nil {
+				return err
+			}
+			d.Set("uri", uri)
+		} else {
+			d.Set("password", database.Connection.Password)
+			d.Set("uri", database.Connection.URI)
+		}
+	}
+
+	if database.PrivateConnection != nil {
+		d.Set("private_host", database.PrivateConnection.Host)
+		if database.EngineSlug == mongoDBEngineSlug {
+			uri, err := buildMongoDBConnectionURI(database.PrivateConnection, d)
+			if err != nil {
+				return err
+			}
+			d.Set("private_uri", uri)
+		} else {
+			d.Set("private_uri", database.PrivateConnection.URI)
+		}
+	}
+
+	return nil
+}
+
+// MongoDB clusters only return their password in response to the initial POST.
+// The host for the cluster is not known until it becomes available. In order to
+// build a usable connection URI, we must save the password and then add it to
+// the URL returned latter.
+func buildMongoDBConnectionURI(conn *godo.DatabaseConnection, d *schema.ResourceData) (string, error) {
+	password := d.Get("password")
+	uri, err := url.Parse(conn.URI)
+	if err != nil {
+		return "", err
+	}
+
+	userInfo := url.UserPassword(conn.User, password.(string))
+	uri.User = userInfo
+
+	return uri.String(), nil
 }
