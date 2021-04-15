@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -40,7 +41,7 @@ func resourceDigitalOceanCustomImage() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			"regions": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Required: true,
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -97,8 +98,8 @@ func resourceDigitalOceanCustomImage() *schema.Resource {
 func resourceDigitalOceanCustomImageCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
-	// TODO: Support multiple regions
-	regions := d.Get("regions").([]interface{})
+	// We import the image to the first region. We can distribute it to others once it is available.
+	regions := d.Get("regions").(*schema.Set).List()
 	region := regions[0].(string)
 
 	imageCreateRequest := godo.CustomImageCreateRequest{
@@ -123,13 +124,27 @@ func resourceDigitalOceanCustomImageCreate(ctx context.Context, d *schema.Resour
 	if err != nil {
 		return diag.Errorf("Error creating custom image: %s", err)
 	}
+
 	id := strconv.Itoa(imageResponse.ID)
 	d.SetId(id)
+
 	_, err = waitForImage(ctx, d, imageAvailableStatus, imagePendingStatuses(), "status", meta)
 	if err != nil {
-		return diag.Errorf(
-			"Error waiting for image (%s) to become ready: %s", d.Id(), err)
+		return diag.Errorf("Error waiting for image (%s) to become ready: %s", d.Id(), err)
 	}
+
+	if len(regions) > 1 {
+		// Remove the first region from the slice as the image is already there.
+		regions[0] = regions[len(regions)-1]
+		regions[len(regions)-1] = ""
+		regions = regions[:len(regions)-1]
+		log.Printf("[INFO] Image available in: %s Distributing to: %v", region, regions)
+		err = distributeImageToRegions(client, imageResponse.ID, regions)
+		if err != nil {
+			return diag.Errorf("Error distributing image (%s) to additional regions: %s", d.Id(), err)
+		}
+	}
+
 	return resourceDigitalOceanCustomImageRead(ctx, d, meta)
 }
 
@@ -158,6 +173,7 @@ func resourceDigitalOceanCustomImageRead(ctx context.Context, d *schema.Resource
 	d.Set("distribution", imageResponse.Distribution)
 	d.Set("slug", imageResponse.Slug)
 	d.Set("public", imageResponse.Public)
+	sort.Strings(imageResponse.Regions)
 	d.Set("regions", imageResponse.Regions)
 	d.Set("min_disk_size", imageResponse.MinDiskSize)
 	d.Set("size_gigabytes", imageResponse.SizeGigaBytes)
@@ -254,6 +270,28 @@ func imageStateRefreshFunc(ctx context.Context, d *schema.ResourceData, state st
 
 		return imageResponse, imageResponse.Status, nil
 	}
+}
+
+func distributeImageToRegions(client *godo.Client, imageId int, regions []interface{}) (err error) {
+	for _, region := range regions {
+		transferRequest := &godo.ActionRequest{
+			"type":   "transfer",
+			"region": region.(string),
+		}
+
+		log.Printf("[INFO] Transferring image (%d) to: %s", imageId, region)
+		action, _, err := client.ImageActions.Transfer(context.TODO(), imageId, transferRequest)
+		if err != nil {
+			return err
+		}
+
+		err = waitForAction(client, action)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Ref: https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-image-by-id

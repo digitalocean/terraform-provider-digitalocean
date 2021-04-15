@@ -13,6 +13,7 @@ import (
 func TestAccDigitalOceanCustomImageFull(t *testing.T) {
 	rString := randomTestName()
 	name := fmt.Sprintf("digitalocean_custom_image.%s", rString)
+	regions := `["nyc3"]`
 	updatedString := randomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -21,7 +22,7 @@ func TestAccDigitalOceanCustomImageFull(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanCustomImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, "Unknown"),
+				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regions, "Unknown"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
 					resource.TestCheckResourceAttr(name, "description", fmt.Sprintf("%s-description", rString)),
@@ -39,7 +40,7 @@ func TestAccDigitalOceanCustomImageFull(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanCustomImageConfig(rString, updatedString, "CoreOS"),
+				Config: testAccCheckDigitalOceanCustomImageConfig(rString, updatedString, regions, "CoreOS"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", updatedString)),
 					resource.TestCheckResourceAttr(name, "description", fmt.Sprintf("%s-description", updatedString)),
@@ -50,19 +51,41 @@ func TestAccDigitalOceanCustomImageFull(t *testing.T) {
 	})
 }
 
-func testAccCheckDigitalOceanCustomImageConfig(rName string, name string, distro string) string {
+func TestAccDigitalOceanCustomImageMultiRegion(t *testing.T) {
+	rString := randomTestName()
+	name := fmt.Sprintf("digitalocean_custom_image.%s", rString)
+	regions := `["nyc3", "nyc2"]`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanCustomImageDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regions, "Unknown"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
+					resource.TestCheckResourceAttr(name, "regions.0", "nyc2"),
+					resource.TestCheckResourceAttr(name, "regions.1", "nyc3"),
+				),
+			},
+		},
+	})
+}
+
+func testAccCheckDigitalOceanCustomImageConfig(rName string, name string, regions string, distro string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_custom_image" "%s" {
 	name = "%s-name"
 	url  = "https://stable.release.flatcar-linux.net/amd64-usr/2605.7.0/flatcar_production_digitalocean_image.bin.bz2"
-	regions      = ["nyc3"]
+	regions      = %v
 	description  = "%s-description"
 	distribution = "%s"
 	tags = [
 		"flatcar"
 	]
 }
-`, rName, name, name, distro)
+`, rName, name, regions, name, distro)
 }
 
 func testAccCheckDigitalOceanCustomImageDestroy(s *terraform.State) error {
