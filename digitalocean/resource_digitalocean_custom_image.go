@@ -11,6 +11,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -92,6 +93,11 @@ func resourceDigitalOceanCustomImage() *schema.Resource {
 				Computed: true,
 			},
 		},
+		// Images can not currently be removed from a region.
+		CustomizeDiff: customdiff.ForceNewIfChange("regions", func(ctx context.Context, old, new, meta interface{}) bool {
+			remove, _ := getSetChanges(old.(*schema.Set), new.(*schema.Set))
+			return len(remove.List()) > 0
+		}),
 	}
 }
 

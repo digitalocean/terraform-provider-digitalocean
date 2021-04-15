@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -66,17 +67,25 @@ func TestAccDigitalOceanCustomImageMultiRegion(t *testing.T) {
 				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regions, "Unknown"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
-					resource.TestCheckResourceAttr(name, "regions.0", "nyc2"),
-					resource.TestCheckResourceAttr(name, "regions.1", "nyc3"),
+					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "nyc2"),
+					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "nyc3"),
 				),
 			},
 			{
 				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regionsUpdated, "Unknown"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
-					resource.TestCheckResourceAttr(name, "regions.0", "nyc2"),
-					resource.TestCheckResourceAttr(name, "regions.1", "nyc3"),
-					resource.TestCheckResourceAttr(name, "regions.2", "tor1"),
+					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "nyc2"),
+					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "nyc3"),
+					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "tor1"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regions, "Unknown"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
+					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "nyc2"),
+					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "nyc3"),
 				),
 			},
 		},
@@ -113,6 +122,9 @@ func testAccCheckDigitalOceanCustomImageDestroy(s *terraform.State) error {
 
 		// Try to find the Image by ID
 		resp, _, err := client.Images.GetByID(context.Background(), id)
+		if err != nil {
+			return err
+		}
 
 		if resp.Status != imageDeletedStatus {
 			return fmt.Errorf("Image %d not destroyed", id)
