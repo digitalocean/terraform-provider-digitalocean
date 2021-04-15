@@ -55,6 +55,7 @@ func TestAccDigitalOceanCustomImageMultiRegion(t *testing.T) {
 	rString := randomTestName()
 	name := fmt.Sprintf("digitalocean_custom_image.%s", rString)
 	regions := `["nyc3", "nyc2"]`
+	regionsUpdated := `["nyc3", "nyc2", "tor1"]`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -67,6 +68,15 @@ func TestAccDigitalOceanCustomImageMultiRegion(t *testing.T) {
 					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
 					resource.TestCheckResourceAttr(name, "regions.0", "nyc2"),
 					resource.TestCheckResourceAttr(name, "regions.1", "nyc3"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regionsUpdated, "Unknown"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
+					resource.TestCheckResourceAttr(name, "regions.0", "nyc2"),
+					resource.TestCheckResourceAttr(name, "regions.1", "nyc3"),
+					resource.TestCheckResourceAttr(name, "regions.2", "tor1"),
 				),
 			},
 		},

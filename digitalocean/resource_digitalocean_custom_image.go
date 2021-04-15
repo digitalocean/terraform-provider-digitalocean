@@ -210,6 +210,15 @@ func resourceDigitalOceanCustomImageUpdate(ctx context.Context, d *schema.Resour
 		}
 	}
 
+	if d.HasChange("regions") {
+		old, new := d.GetChange("regions")
+		_, add := getSetChanges(old.(*schema.Set), new.(*schema.Set))
+		err = distributeImageToRegions(client, id, add.List())
+		if err != nil {
+			return diag.Errorf("Error distributing image (%s) to additional regions: %s", d.Id(), err)
+		}
+	}
+
 	return resourceDigitalOceanCustomImageRead(ctx, d, meta)
 }
 
