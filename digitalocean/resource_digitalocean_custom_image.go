@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -179,7 +178,6 @@ func resourceDigitalOceanCustomImageRead(ctx context.Context, d *schema.Resource
 	d.Set("distribution", imageResponse.Distribution)
 	d.Set("slug", imageResponse.Slug)
 	d.Set("public", imageResponse.Public)
-	sort.Strings(imageResponse.Regions)
 	d.Set("regions", imageResponse.Regions)
 	d.Set("min_disk_size", imageResponse.MinDiskSize)
 	d.Set("size_gigabytes", imageResponse.SizeGigaBytes)
