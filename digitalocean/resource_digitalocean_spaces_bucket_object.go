@@ -33,7 +33,7 @@ func resourceDigitalOceanSpacesBucketObject() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.StringInSlice(SpacesRegions, true),
 			},
 
 			"bucket": {

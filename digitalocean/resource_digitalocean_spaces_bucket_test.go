@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"regexp"
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
@@ -418,6 +419,25 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists(resourceName),
 				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanSpacesBucket_RegionError(t *testing.T) {
+	badRegion := "ny2"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+					resource "digitalocean_spaces_bucket" "bucket" {
+						name   = "tf-test-bucket"
+						region = "%s"
+					}`, badRegion),
+				ExpectError: regexp.MustCompile(`expected region to be one of`),
 			},
 		},
 	})

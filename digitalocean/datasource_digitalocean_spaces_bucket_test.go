@@ -78,3 +78,22 @@ data "digitalocean_spaces_bucket" "bucket" {
 		},
 	})
 }
+
+func TestAccDataSourceDigitalOceanSpacesBucket_RegionError(t *testing.T) {
+	badRegion := "ny2"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+					data "digitalocean_spaces_bucket" "bucket" {
+						name   = "tf-test-bucket"
+						region = "%s"
+					}`, badRegion),
+				ExpectError: regexp.MustCompile(`expected region to be one of`),
+			},
+		},
+	})
+}

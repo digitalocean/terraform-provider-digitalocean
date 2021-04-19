@@ -26,7 +26,7 @@ func dataSourceDigitalOceanSpacesBucketObjects() *schema.Resource {
 			"region": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.StringInSlice(SpacesRegions, true),
 			},
 
 			"prefix": {

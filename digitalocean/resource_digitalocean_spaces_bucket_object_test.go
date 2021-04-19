@@ -382,6 +382,25 @@ func TestAccDigitalOceanSpacesBucketObject_metadata(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanSpacesBucketObject_RegionError(t *testing.T) {
+	badRegion := "ny2"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`resource "digitalocean_spaces_bucket_object" "object" {
+										region = "%s"
+										bucket = "foo.digitaloceanspaces.com"
+										key = "test-key"
+									}`, badRegion),
+				ExpectError: regexp.MustCompile(`expected region to be one of`),
+			},
+		},
+	})
+}
+
 func testAccGetS3Conn() (*s3.S3, error) {
 	client, err := testAccProvider.Meta().(*CombinedConfig).spacesClient(testAccDigitalOceanSpacesBucketObject_TestRegion)
 	if err != nil {
