@@ -43,7 +43,9 @@ func (c *CombinedConfig) spacesClient(region string) (*session.Session, error) {
 	}
 
 	endpointWriter := strings.Builder{}
-	err := c.spacesEndpointTemplate.Execute(&endpointWriter, map[string]string{"Region": region})
+	err := c.spacesEndpointTemplate.Execute(&endpointWriter, map[string]string{
+		"Region": strings.ToLower(region),
+	})
 	if err != nil {
 		return &session.Session{}, err
 	}

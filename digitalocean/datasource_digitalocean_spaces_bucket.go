@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func dataSourceDigitalOceanSpacesBucket() *schema.Resource {
@@ -19,6 +20,7 @@ func dataSourceDigitalOceanSpacesBucket() *schema.Resource {
 
 	recordSchema["region"].Required = true
 	recordSchema["region"].Computed = false
+	recordSchema["region"].ValidateFunc = validation.StringInSlice(SpacesRegions, true)
 	recordSchema["name"].Required = true
 	recordSchema["name"].Computed = false
 

@@ -40,11 +40,12 @@ func resourceDigitalOceanBucket() *schema.Resource {
 				Description: "the uniform resource name for the bucket",
 			},
 			"region": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "Bucket region",
-				Default:     "nyc3",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Description:  "Bucket region",
+				Default:      "nyc3",
+				ValidateFunc: validation.StringInSlice(SpacesRegions, true),
 				StateFunc: func(val interface{}) string {
 					// DO API V2 region slug is always lowercase
 					return strings.ToLower(val.(string))

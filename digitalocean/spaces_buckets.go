@@ -7,6 +7,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+var (
+	// SpacesRegions is a list of DigitalOcean regions that support Spaces.
+	SpacesRegions = []string{"ams3", "fra1", "nyc3", "sfo2", "sfo3", "sgp1"}
+)
+
 type bucketMetadataStruct struct {
 	name   string
 	region string
@@ -53,14 +58,9 @@ func getSpacesBucketsInRegion(meta interface{}, region string) ([]*s3.Bucket, er
 func getDigitalOceanBuckets(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
 	// The DigitalOcean API does not currently return what regions have Spaces available. Thus, this
 	// function hard-codes the regions in which Spaces operates.
-	//
-	// This list is current as of April 20, 2020 and is from:
-	// https://www.digitalocean.com/docs/platform/availability-matrix/#other-product-availability
-	spacesRegions := []string{"ams3", "fra1", "nyc3", "sfo2", "sgp1"}
-
 	var buckets []interface{}
 
-	for _, region := range spacesRegions {
+	for _, region := range SpacesRegions {
 		bucketsInRegion, err := getSpacesBucketsInRegion(meta, region)
 		if err != nil {
 			return nil, err

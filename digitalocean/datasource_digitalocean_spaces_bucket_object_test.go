@@ -221,6 +221,25 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_MultipleSlashes(t *testing.
 	})
 }
 
+func TestAccDataSourceDigitalOceanSpacesBucketObject_RegionError(t *testing.T) {
+	badRegion := "ny2"
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`data "digitalocean_spaces_bucket_object" "object" {
+										region = "%s"
+										bucket = "foo.digitaloceanspaces.com"
+										key = "test-key"
+									}`, badRegion),
+				ExpectError: regexp.MustCompile(`expected region to be one of`),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanSpacesObjectDataSourceExists(n string, obj *s3.GetObjectOutput) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
