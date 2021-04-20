@@ -1,3 +1,16 @@
+## 2.8.0 (April 20, 2021)
+
+FEATURES:
+
+- **New Data Source**: `digitalocean_database_replica` ([#489](https://github.com/digitalocean/terraform-provider-digitalocean/issues/489))
+
+IMPROVEMENTS:
+
+- `digitalocean_spaces_bucket`, `digitalocean_spaces_bucket_object`: Validate input for region ([#618](https://github.com/digitalocean/terraform-provider-digitalocean/pull/618)).
+- `digitalocean_custom_image`: Support distributing custom images to multiple regions ([#616](https://github.com/digitalocean/terraform-provider-digitalocean/pull/616)).
+- `digitalocean_custom_image`: Surface a better error to users if image import fails ([#613](https://github.com/digitalocean/terraform-provider-digitalocean/pull/613)).
+- `digitalocean_database_cluster`: Support MongoDB beta by handling password differences ([#614](https://github.com/digitalocean/terraform-provider-digitalocean/pull/614)).
+
 ## 2.7.0 (March 29, 2021)
 
 IMPROVEMENTS:
