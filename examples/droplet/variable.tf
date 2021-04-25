@@ -65,15 +65,10 @@ variable "do_tor1" {
 
 variable "ubuntu" {
   description = "Default LTS"
-  default     = "ubuntu-16-04-x64"
+  default     = "ubuntu-20-04-x64"
 }
 
 variable "centos" {
   description = "Default Centos"
-  default     = "centos-72-x64"
-}
-
-variable "coreos" {
-  description = "Defaut Coreos"
-  default     = "coreos-899.17.0"
+  default     = "centos-83-x64"
 }
