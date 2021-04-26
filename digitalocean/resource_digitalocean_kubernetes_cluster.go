@@ -118,6 +118,11 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 			},
+
+			"urn": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 
 		CustomizeDiff: customdiff.All(
@@ -278,6 +283,7 @@ func digitaloceanKubernetesClusterRead(
 	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
 	d.Set("vpc_uuid", cluster.VPCUUID)
 	d.Set("auto_upgrade", cluster.AutoUpgrade)
+	d.Set("urn", cluster.URN())
 
 	// find the default node pool from all the pools in the cluster
 	// the default node pool has a custom tag terraform:default-node-pool

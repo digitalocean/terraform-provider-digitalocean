@@ -21,7 +21,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
     name       = "worker-pool"
     size       = "s-2vcpu-2gb"
     node_count = 3
-    
+
     taint {
       key    = "workloadKind"
       value  = "database"
@@ -189,7 +189,7 @@ In addition to the arguments listed above, the following additional attributes a
     + `key` - An arbitrary string. The "key" and "value" fields of the "taint" object form a key-value pair.
     + `value` - An arbitrary string. The "key" and "value" fields of the "taint" object form a key-value pair.
     + `effect` - How the node reacts to pods that it won't tolerate. Available effect values are: "NoSchedule", "PreferNoSchedule", "NoExecute".
-
+* `urn` - The uniform resource name (URN) for the Kubernetes cluster.
 
 ## Import
 

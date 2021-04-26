@@ -1,6 +1,8 @@
 package digitalocean
 
 import (
+	"regexp"
+
 	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
 
 	"context"
@@ -64,6 +66,7 @@ func testSweepKubernetesClusters(region string) error {
 func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
+	expectedURNRegEx, _ := regexp.Compile(`do:kubernetes:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -111,6 +114,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.expires_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "vpc_uuid"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "auto_upgrade"),
+					resource.TestMatchResourceAttr("digitalocean_kubernetes_cluster.foobar", "urn", expectedURNRegEx),
 				),
 			},
 			// Update: remove default node_pool taints
