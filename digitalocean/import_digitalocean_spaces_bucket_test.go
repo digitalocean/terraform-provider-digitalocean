@@ -37,6 +37,27 @@ func TestAccDigitalOceanBucket_importBasic(t *testing.T) {
 				ImportStateId:     "sfo2,nonexistent-bucket",
 				ExpectError:       regexp.MustCompile(`(Please verify the ID is correct|Cannot import non-existent remote object)`),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "bucket",
+				ExpectError:       regexp.MustCompile(`importing a Spaces bucket requires the format: <region>,<name>`),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "nyc2,",
+				ExpectError:       regexp.MustCompile(`importing a Spaces bucket requires the format: <region>,<name>`),
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     ",bucket",
+				ExpectError:       regexp.MustCompile(`importing a Spaces bucket requires the format: <region>,<name>`),
+			},
 		},
 	})
 }
