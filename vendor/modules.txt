@@ -57,7 +57,7 @@ github.com/aws/aws-sdk-go/service/sts/stsiface
 github.com/bgentry/go-netrc/netrc
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
-# github.com/digitalocean/godo v1.57.0
+# github.com/digitalocean/godo v1.60.0
 ## explicit
 github.com/digitalocean/godo
 # github.com/emirpasic/gods v1.12.0
