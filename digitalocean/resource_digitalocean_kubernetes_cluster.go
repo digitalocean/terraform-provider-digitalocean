@@ -87,6 +87,29 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 
 			"tags": tagsSchema(),
 
+			"maintenance_policy": {
+				Type:     schema.TypeList,
+				MinItems: 1,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"day": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"start_time": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"duration": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"node_pool": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -223,6 +246,14 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		NodePools:    poolCreateRequests,
 	}
 
+	if maint, ok := d.GetOk("maintenance_policy"); ok {
+		maintPolicy, err := expandMaintPolicyOpts(maint.([]interface{}))
+		if err != nil {
+			return diag.Errorf("Error setting Kubernetes maintenance policy : %s", err)
+		}
+		opts.MaintenancePolicy = maintPolicy
+	}
+
 	if vpc, ok := d.GetOk("vpc_uuid"); ok {
 		opts.VPCUUID = vpc.(string)
 	}
@@ -285,6 +316,12 @@ func digitaloceanKubernetesClusterRead(
 	d.Set("auto_upgrade", cluster.AutoUpgrade)
 	d.Set("urn", cluster.URN())
 
+	if _, ok := d.GetOk("maintenance_policy"); ok {
+		if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
+			return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
+		}
+	}
+
 	// find the default node pool from all the pools in the cluster
 	// the default node pool has a custom tag terraform:default-node-pool
 	foundDefaultNodePool := false
@@ -338,13 +375,21 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	client := meta.(*CombinedConfig).godoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChange("name") || d.HasChange("tags") || d.HasChange("auto_upgrade") || d.HasChange("surge_upgrade") {
+	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy") {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
 			Name:         d.Get("name").(string),
 			Tags:         expandTags(d.Get("tags").(*schema.Set).List()),
 			AutoUpgrade:  godo.Bool(d.Get("auto_upgrade").(bool)),
 			SurgeUpgrade: d.Get("surge_upgrade").(bool),
+		}
+
+		if maint, ok := d.GetOk("maintenance_policy"); ok {
+			maintPolicy, err := expandMaintPolicyOpts(maint.([]interface{}))
+			if err != nil {
+				return diag.Errorf("Error setting Kubernetes maintenance policy : %s", err)
+			}
+			opts.MaintenancePolicy = maintPolicy
 		}
 
 		_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)

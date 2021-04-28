@@ -53,6 +53,10 @@ The following attributes are exported:
   - `client_key` - The base64 encoded private key used by clients to access the cluster. Only available if token authentication is not supported on your cluster.
   - `client_certificate` - The base64 encoded public certificate used by clients to access the cluster. Only available if token authentication is not supported on your cluster.
   - `expires_at` - The date and time when the credentials will expire and need to be regenerated.
+* `maintenance_policy` - The maintenance policy of the Kubernetes cluster. Digital Ocean has a default maintenancen window.
+  - `day` - The day for the service window of the Kubernetes cluster.
+  - `duration` - The duration of the operation.
+  - `start_time` - The start time of the upgrade operation.
 * `node_pool` - A list of node pools associated with the cluster. Each node pool exports the following attributes:
   - `id` -  The unique ID that can be used to identify and reference the node pool.
   - `name` - The name of the node pool.

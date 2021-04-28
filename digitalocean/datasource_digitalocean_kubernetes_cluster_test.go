@@ -71,6 +71,10 @@ resource "digitalocean_kubernetes_cluster" "foo" {
           priority = "high"
         }
 	}
+	maintenance_policy {
+		day = "monday"
+		start_time = "00:00"
+	}
 }`, version, rName)
 }
 
