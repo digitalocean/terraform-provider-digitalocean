@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -13,6 +14,7 @@ import (
 func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
+	expectedURNRegEx, _ := regexp.Compile(`do:kubernetes:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
 	resourceConfig := testAccDigitalOceanKubernetesConfigForDataSource(testClusterVersion19, rName)
 	dataSourceConfig := `
 data "digitalocean_kubernetes_cluster" "foobar" {
@@ -43,6 +45,7 @@ data "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "node_pool.0.labels.priority", "high"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "vpc_uuid"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "auto_upgrade"),
+					resource.TestMatchResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "urn", expectedURNRegEx),
 				),
 			},
 		},
