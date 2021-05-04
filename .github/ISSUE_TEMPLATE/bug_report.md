@@ -12,6 +12,20 @@ tracker reserved for bug reports and feature requests. For general usage
 questions, please see:
 https://github.com/digitalocean/terraform-provider-digitalocean/discussions
 
+**NOTE: Before submitting a bug**
+
+There are cases where the provider receives HTTP Service Error (500 level HTTP
+statuses) responses from the DigitalOcean API. There are some cases where the
+provider might handle these and retry. If the problem persists, it's best to
+contact [DigitalOcean support](https://cloudsupport.digitalocean.com/) 
+
+# Bug Report
+
+Include as much of the following details with your bug report:
+
+> everything above this can be ommitted
+---
+
 ## Describe the bug
 A clear and concise description of what the bug is.
 
@@ -63,3 +77,4 @@ Droplets use custom images or kernels.
 **References**
 Include links to other GitHub issues (open or closed) or Pull Requests that
 relate to this issue.
+
