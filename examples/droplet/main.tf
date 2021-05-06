@@ -15,7 +15,7 @@ provider "digitalocean" {
 
 resource "digitalocean_droplet" "mywebserver" {
   # Obtain your ssh_key id number via your account. See Document https://developers.digitalocean.com/documentation/v2/#list-all-keys
-  ssh_keys           = [12345678]         # Key example
+  ssh_keys           = [29834845]        # Key example
   image              = var.ubuntu
   region             = var.do_ams3
   size               = "s-1vcpu-1gb"
@@ -23,22 +23,15 @@ resource "digitalocean_droplet" "mywebserver" {
   backups            = true
   ipv6               = true
   name               = "mywebserver-ams3"
+  user_data          = file("cloudinit.conf")
 
-  provisioner "remote-exec" {
-    inline = [
-      "export PATH=$PATH:/usr/bin",
-      "sudo apt-get update",
-      "sudo apt-get -y install nginx",
-    ]
-
-    connection {
+  connection {
       host     = self.ipv4_address
       type     = "ssh"
       private_key = file("~/.ssh/id_rsa")
       user     = "root"
       timeout  = "2m"
     }
-  }
 }
 
 resource "digitalocean_domain" "mywebserver" {
