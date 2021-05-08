@@ -34,6 +34,11 @@ resource "digitalocean_droplet" "mywebserver" {
     }
 }
 
+resource "digitalocean_ssh_key" "example" {
+  name       = "examplekey"
+  public_key = file(var.ssh_key_path)
+}
+
 resource "digitalocean_domain" "mywebserver" {
   name       = "www.mywebserver.com"
   ip_address = digitalocean_droplet.mywebserver.ipv4_address
