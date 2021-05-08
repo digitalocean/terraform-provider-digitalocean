@@ -15,7 +15,7 @@ provider "digitalocean" {
 
 resource "digitalocean_droplet" "mywebserver" {
   # Obtain your ssh_key id number via your account. See Document https://developers.digitalocean.com/documentation/v2/#list-all-keys
-  ssh_keys           = [29834845]        # Key example
+  ssh_keys           = [digitalocean_ssh_key.example.fingerprint]  
   image              = var.ubuntu
   region             = var.do_ams3
   size               = "s-1vcpu-1gb"
