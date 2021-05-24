@@ -41,7 +41,9 @@ The following arguments are supported:
 * `ssh_keys` - (Optional) A list of SSH IDs or fingerprints to enable in
    the format `[12345, 123456]`. To retrieve this info, use a tool such
    as `curl` with the [DigitalOcean API](https://developers.digitalocean.com/documentation/v2/#ssh-keys),
-   to retrieve them.
+   to retrieve them. Once a Droplet is created keys can't be removed or 
+   created via this provider. Modifying this field will destroy and 
+   recreate the Droplet.
 * `resize_disk` - (Optional) Boolean controlling whether to increase the disk
    size when resizing a Droplet. It defaults to `true`. When set to `false`,
    only the Droplet's RAM and CPU will be resized. **Increasing a Droplet's disk
