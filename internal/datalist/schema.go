@@ -6,8 +6,8 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/mitchellh/hashstructure/v2"
 )
 
 // This is the configuration for a "data list" resource. It represents the schema and operations
@@ -112,7 +112,12 @@ func dataListResourceRead(config *ResourceConfig) schema.ReadContextFunc {
 			flattenedRecords = applySorts(config.RecordSchema, flattenedRecords, sorts)
 		}
 
-		d.SetId(resource.UniqueId())
+		hash, err := hashstructure.Hash(records, hashstructure.FormatV2, nil)
+		if err != nil {
+			diag.Errorf("unable to set `%s` attribute: %s", config.ResultAttributeName, err)
+		}
+
+		d.SetId(fmt.Sprintf("%s/%d", config.ResultAttributeName, hash))
 
 		if err := d.Set(config.ResultAttributeName, flattenedRecords); err != nil {
 			return diag.Errorf("unable to set `%s` attribute: %s", config.ResultAttributeName, err)
