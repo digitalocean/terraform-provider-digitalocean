@@ -13,6 +13,15 @@ Use the navigation to the left to read about the available resources.
 ## Example Usage
 
 ```hcl
+terraform {
+  required_providers {
+    digitalocean = {
+      source = "digitalocean/digitalocean"
+      version = "~> 2.0"
+    }
+  }
+}
+
 # Set the variable value in *.tfvars file
 # or using -var="do_token=..." CLI option
 variable "do_token" {}
@@ -27,6 +36,9 @@ resource "digitalocean_droplet" "web" {
   # ...
 }
 ```
+
+-> **Note for Module Developers** Although provider configurations are shared between modules, each module must
+declare its own [provider requirements](https://www.terraform.io/docs/language/providers/requirements.html). See the [module development documentation](https://www.terraform.io/docs/language/modules/develop/providers.html) for additional information.
 
 ## Argument Reference
 
@@ -49,4 +61,4 @@ The following arguments are supported:
   used for DigitalOcean Spaces requests. (It defaults to the value of the
   `SPACES_ENDPOINT_URL` environment variable or `https://{{.Region}}.digitaloceanspaces.com`
   if unset.) The provider will replace `{{.Region}}` (via Go's templating engine) with the slug
-  of the applicable Spaces region. 
+  of the applicable Spaces region.
