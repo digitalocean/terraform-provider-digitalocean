@@ -150,6 +150,7 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			"ssh_keys": {
 				Type:     schema.TypeSet,
 				Optional: true,
+				ForceNew: true,
 				Elem: &schema.Schema{
 					Type:         schema.TypeString,
 					ValidateFunc: validation.NoZeroValues,

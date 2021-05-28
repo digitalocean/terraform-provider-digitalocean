@@ -38,10 +38,12 @@ The following arguments are supported:
   is enabled. When VPC is enabled on an account, this will provision the
   Droplet inside of your account's default VPC for the region. Use the
   `vpc_uuid` attribute to specify a different VPC.
-* `ssh_keys` - (Optional) A list of SSH IDs or fingerprints to enable in
-   the format `[12345, 123456]`. To retrieve this info, use a tool such
-   as `curl` with the [DigitalOcean API](https://developers.digitalocean.com/documentation/v2/#ssh-keys),
-   to retrieve them.
+* `ssh_keys` - (Optional) A list of SSH key IDs or fingerprints to enable in
+   the format `[12345, 123456]`. To retrieve this info, use the
+   [DigitalOcean API](https://docs.digitalocean.com/reference/api/api-reference/#tag/SSH-Keys)
+   or CLI (`doctl compute ssh-key list`). Once a Droplet is created keys can not
+   be added or removed via this provider. Modifying this field will prompt you
+   to destroy and recreate the Droplet.
 * `resize_disk` - (Optional) Boolean controlling whether to increase the disk
    size when resizing a Droplet. It defaults to `true`. When set to `false`,
    only the Droplet's RAM and CPU will be resized. **Increasing a Droplet's disk
