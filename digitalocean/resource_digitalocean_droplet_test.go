@@ -67,13 +67,13 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "size", "512mb"),
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "price_hourly", "0.00744"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "price_monthly", "5"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "image", "centos-7-x64"),
+						"digitalocean_droplet.foobar", "image", "centos-8-x64"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -95,7 +95,7 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
-	slug := "centos-7-x64"
+	slug := "centos-8-x64"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -133,9 +133,9 @@ func TestAccDigitalOceanDroplet_withSSH(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "size", "512mb"),
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "image", "centos-7-x64"),
+						"digitalocean_droplet.foobar", "image", "centos-8-x64"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -173,7 +173,7 @@ func TestAccDigitalOceanDroplet_Update(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("baz-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "size", "1gb"),
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "disk", "30"),
 				),
@@ -209,7 +209,7 @@ func TestAccDigitalOceanDroplet_ResizeWithOutDisk(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "size", "1gb"),
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "disk", "20"),
 				),
@@ -245,7 +245,7 @@ func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "size", "1gb"),
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "disk", "20"),
 				),
@@ -259,7 +259,7 @@ func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "size", "512mb"),
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "disk", "20"),
 				),
@@ -273,7 +273,7 @@ func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "size", "1gb"),
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "disk", "30"),
 				),
@@ -538,11 +538,11 @@ func testAccCheckDigitalOceanDropletAttributes(droplet *godo.Droplet) resource.T
 			return fmt.Errorf("Bad URN: %s", droplet.URN())
 		}
 
-		if droplet.Image.Slug != "centos-7-x64" {
+		if droplet.Image.Slug != "centos-8-x64" {
 			return fmt.Errorf("Bad image_slug: %s", droplet.Image.Slug)
 		}
 
-		if droplet.Size.Slug != "512mb" {
+		if droplet.Size.Slug != "s-1vcpu-1gb" {
 			return fmt.Errorf("Bad size_slug: %s", droplet.Size.Slug)
 		}
 
@@ -565,7 +565,7 @@ func testAccCheckDigitalOceanDropletAttributes(droplet *godo.Droplet) resource.T
 func testAccCheckDigitalOceanDropletRenamedAndResized(droplet *godo.Droplet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if droplet.Size.Slug != "1gb" {
+		if droplet.Size.Slug != "s-1vcpu-1gb" {
 			return fmt.Errorf("Bad size_slug: %s", droplet.SizeSlug)
 		}
 
@@ -580,7 +580,7 @@ func testAccCheckDigitalOceanDropletRenamedAndResized(droplet *godo.Droplet) res
 func testAccCheckDigitalOceanDropletResizeWithOutDisk(droplet *godo.Droplet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if droplet.Size.Slug != "1gb" {
+		if droplet.Size.Slug != "s-1vcpu-1gb" {
 			return fmt.Errorf("Bad size_slug: %s", droplet.SizeSlug)
 		}
 
@@ -595,7 +595,7 @@ func testAccCheckDigitalOceanDropletResizeWithOutDisk(droplet *godo.Droplet) res
 func testAccCheckDigitalOceanDropletResizeSmaller(droplet *godo.Droplet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if droplet.Size.Slug != "1gb" {
+		if droplet.Size.Slug != "s-1vcpu-1gb" {
 			return fmt.Errorf("Bad size_slug: %s", droplet.SizeSlug)
 		}
 
@@ -610,7 +610,7 @@ func testAccCheckDigitalOceanDropletResizeSmaller(droplet *godo.Droplet) resourc
 func testAccCheckDigitalOceanDropletAttributes_PrivateNetworkingIpv6(droplet *godo.Droplet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if droplet.Image.Slug != "centos-7-x64" {
+		if droplet.Image.Slug != "centos-8-x64" {
 			return fmt.Errorf("Bad image_slug: %s", droplet.Image.Slug)
 		}
 
@@ -697,8 +697,8 @@ func testAccCheckDigitalOceanDropletConfig_basic(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
-  size      = "512mb"
-  image     = "centos-7-x64"
+  size      = "s-1vcpu-1gb"
+  image     = "centos-8-x64"
   region    = "nyc3"
   user_data = "foobar"
 }`, rInt)
@@ -712,7 +712,7 @@ data "digitalocean_image" "foobar" {
 
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
-  size      = "512mb"
+  size      = "s-1vcpu-1gb"
   image     = "${data.digitalocean_image.foobar.id}"
   region    = "nyc3"
   user_data = "foobar"
@@ -728,8 +728,8 @@ resource "digitalocean_ssh_key" "foobar" {
 
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
-  size      = "512mb"
-  image     = "centos-7-x64"
+  size      = "s-1vcpu-1gb"
+  image     = "centos-8-x64"
   region    = "nyc3"
   user_data = "foobar"
   ssh_keys  = ["${digitalocean_ssh_key.foobar.id}"]
@@ -744,8 +744,8 @@ resource "digitalocean_tag" "barbaz" {
 
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
-  size      = "512mb"
-  image     = "centos-7-x64"
+  size      = "s-1vcpu-1gb"
+  image     = "centos-8-x64"
   region    = "nyc3"
   user_data = "foobar"
   tags  = ["${digitalocean_tag.barbaz.id}"]
@@ -757,8 +757,8 @@ func testAccCheckDigitalOceanDropletConfig_userdata_update(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
-  size      = "512mb"
-  image     = "centos-7-x64"
+  size      = "s-1vcpu-1gb"
+  image     = "centos-8-x64"
   region    = "nyc3"
   user_data = "foobar foobar"
 }
@@ -769,8 +769,8 @@ func testAccCheckDigitalOceanDropletConfig_RenameAndResize(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name     = "baz-%d"
-  size     = "1gb"
-  image    = "centos-7-x64"
+  size     = "s-1vcpu-1gb"
+  image    = "centos-8-x64"
   region   = "nyc3"
 }
 `, rInt)
@@ -780,8 +780,8 @@ func testAccCheckDigitalOceanDropletConfig_resize_without_disk(rInt int) string 
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name     = "foo-%d"
-  size     = "1gb"
-  image    = "centos-7-x64"
+  size     = "s-1vcpu-1gb"
+  image    = "centos-8-x64"
   region   = "nyc3"
   user_data = "foobar"
   resize_disk = false
@@ -793,8 +793,8 @@ func testAccCheckDigitalOceanDropletConfig_resize(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name     = "foo-%d"
-  size     = "1gb"
-  image    = "centos-7-x64"
+  size     = "s-1vcpu-1gb"
+  image    = "centos-8-x64"
   region   = "nyc3"
   user_data = "foobar"
   resize_disk = true
@@ -807,7 +807,7 @@ func testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(rInt int) strin
 resource "digitalocean_droplet" "foobar" {
   name               = "foo-%d"
   size               = "s-1vcpu-1gb"
-  image              = "centos-7-x64"
+  image              = "centos-8-x64"
   region             = "nyc3"
   ipv6               = true
   private_networking = true
@@ -825,7 +825,7 @@ resource "digitalocean_vpc" "foobar" {
 resource "digitalocean_droplet" "foobar" {
   name     = "foo-%d"
   size     = "s-1vcpu-1gb"
-  image    = "centos-7-x64"
+  image    = "centos-8-x64"
   region   = "nyc3"
   ipv6     = true
   vpc_uuid = digitalocean_vpc.foobar.id
@@ -837,8 +837,8 @@ func testAccCheckDigitalOceanDropletConfig_Monitoring(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name       = "foo-%d"
-  size       = "1gb"
-  image      = "centos-7-x64"
+  size       = "s-1vcpu-1gb"
+  image      = "centos-8-x64"
   region     = "nyc3"
   monitoring = true
  }
@@ -848,14 +848,14 @@ resource "digitalocean_droplet" "foobar" {
 func testAccCheckDigitalOceanDropletConfig_conditionalVolumes(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "myvol-01" {
-    region      = "sfo2"
+    region      = "sfo3"
     name        = "tf-acc-test-1-%d"
     size        = 1
     description = "an example volume"
 }
 
 resource "digitalocean_volume" "myvol-02" {
-    region      = "sfo2"
+    region      = "sfo3"
     name        = "tf-acc-test-2-%d"
     size        = 1
     description = "an example volume"
@@ -864,9 +864,9 @@ resource "digitalocean_volume" "myvol-02" {
 resource "digitalocean_droplet" "foobar" {
   count = 2
   name = "tf-acc-test-%d-${count.index}"
-  region = "sfo2"
-  image = "centos-7-x64"
-  size = "512mb"
+  region = "sfo3"
+  image = "centos-8-x64"
+  size = "s-1vcpu-1gb"
   volume_ids = ["${count.index == 0 ? digitalocean_volume.myvol-01.id : digitalocean_volume.myvol-02.id}"]
 }
 `, rInt, rInt, rInt)
@@ -876,8 +876,8 @@ func testAccCheckDigitalOceanDropletConfig_EnableBackups(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
-  size      = "512mb"
-  image     = "centos-7-x64"
+  size      = "s-1vcpu-1gb"
+  image     = "centos-8-x64"
   region    = "nyc3"
   user_data = "foobar"
   backups   = true
@@ -888,8 +888,8 @@ func testAccCheckDigitalOceanDropletConfig_DisableBackups(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
-  size      = "512mb"
-  image     = "centos-7-x64"
+  size      = "s-1vcpu-1gb"
+  image     = "centos-8-x64"
   region    = "nyc3"
   user_data = "foobar"
   backups   = false

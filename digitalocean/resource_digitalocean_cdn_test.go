@@ -41,11 +41,11 @@ func TestAccDigitalOceanCDN_Create(t *testing.T) {
 func TestAccDigitalOceanCDN_Create_with_TTL(t *testing.T) {
 
 	bucketName := generateBucketName()
-	ttl := 1800
+	ttl := 600
 	cdnCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_Create_with_TTL, bucketName, ttl)
 
 	expectedOrigin := bucketName + originSuffix
-	expectedTTL := "1800"
+	expectedTTL := "600"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -68,13 +68,13 @@ func TestAccDigitalOceanCDN_Create_with_TTL(t *testing.T) {
 func TestAccDigitalOceanCDN_Create_and_Update(t *testing.T) {
 
 	bucketName := generateBucketName()
-	ttl := 1800
+	ttl := 600
 
 	cdnCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_Create, bucketName)
 	cdnUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_Create_with_TTL, bucketName, ttl)
 
 	expectedOrigin := bucketName + originSuffix
-	expectedTTL := "1800"
+	expectedTTL := "600"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -279,7 +279,7 @@ resource "digitalocean_cdn" "space_cdn" {
   ]
 
   origin           = digitalocean_spaces_bucket.space.bucket_domain_name
-  ttl              = 2400
+  ttl              = 600
   certificate_name = digitalocean_certificate.spaces_cert.name
   custom_domain    = "foo.%s"
 }`, domain, domain, certName, spaceName, certName, domain, domain)

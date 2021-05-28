@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -67,25 +66,25 @@ func TestAccDigitalOceanCustomImageMultiRegion(t *testing.T) {
 				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regions, "Unknown"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
-					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "nyc2"),
-					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "nyc3"),
+					resource.TestCheckTypeSetElemAttr(name, "regions.*", "nyc2"),
+					resource.TestCheckTypeSetElemAttr(name, "regions.*", "nyc3"),
 				),
 			},
 			{
 				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regionsUpdated, "Unknown"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
-					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "nyc2"),
-					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "nyc3"),
-					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "tor1"),
+					resource.TestCheckTypeSetElemAttr(name, "regions.*", "nyc2"),
+					resource.TestCheckTypeSetElemAttr(name, "regions.*", "nyc3"),
+					resource.TestCheckTypeSetElemAttr(name, "regions.*", "tor1"),
 				),
 			},
 			{
 				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regions, "Unknown"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
-					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "nyc2"),
-					setutil.TestCheckTypeSetElemAttr(name, "regions.*", "nyc3"),
+					resource.TestCheckTypeSetElemAttr(name, "regions.*", "nyc2"),
+					resource.TestCheckTypeSetElemAttr(name, "regions.*", "nyc3"),
 				),
 			},
 		},

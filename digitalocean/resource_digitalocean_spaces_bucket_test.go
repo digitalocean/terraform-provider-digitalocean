@@ -7,8 +7,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -318,7 +316,7 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 						resourceName, "lifecycle_rule.0.id", "id1"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.0.prefix", "path1/"),
-					setutil.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.expiration.*",
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.0.expiration.*",
 						map[string]string{
 							"days":                         "365",
 							"date":                         "",
@@ -328,7 +326,7 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 						resourceName, "lifecycle_rule.1.id", "id2"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.prefix", "path2/"),
-					setutil.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.1.expiration.*",
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.1.expiration.*",
 						map[string]string{
 							"days":                         "",
 							"date":                         "2016-01-12",
@@ -366,7 +364,7 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 						resourceName, "lifecycle_rule.1.prefix", "path2/"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.1.enabled", "false"),
-					setutil.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.1.noncurrent_version_expiration.*",
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "lifecycle_rule.1.noncurrent_version_expiration.*",
 						map[string]string{"days": "365"}),
 				),
 			},
@@ -397,7 +395,7 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 						resourceName, "lifecycle_rule.0.id", "id1"),
 					resource.TestCheckResourceAttr(
 						resourceName, "lifecycle_rule.0.prefix", "path1/"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						resourceName, "lifecycle_rule.0.expiration.*",
 						map[string]string{
 							"days":                         "0",

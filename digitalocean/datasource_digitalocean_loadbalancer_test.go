@@ -6,8 +6,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/digitalocean/terraform-provider-digitalocean/internal/setutil"
-
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -44,7 +42,7 @@ data "digitalocean_loadbalancer" "foobar" {
 						"data.digitalocean_loadbalancer.foobar", "size", "lb-small"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"data.digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -106,7 +104,7 @@ data "digitalocean_loadbalancer" "foobar" {
 						"data.digitalocean_loadbalancer.foobar", "size", "lb-large"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"data.digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -167,7 +165,7 @@ data "digitalocean_loadbalancer" "foobar" {
 						"data.digitalocean_loadbalancer.foobar", "size", "lb-small"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "2"),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"data.digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
@@ -177,7 +175,7 @@ data "digitalocean_loadbalancer" "foobar" {
 							"target_protocol": "https",
 						},
 					),
-					setutil.TestCheckTypeSetElemNestedAttrs(
+					resource.TestCheckTypeSetElemNestedAttrs(
 						"data.digitalocean_loadbalancer.foobar",
 						"forwarding_rule.*",
 						map[string]string{
