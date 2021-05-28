@@ -66,7 +66,7 @@ data "digitalocean_projects" "both" {
 				Config: resourcesConfig,
 			},
 			{
-				Config: datasourcesConfig,
+				Config: resourcesConfig + datasourcesConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.digitalocean_projects.prod", "projects.#", "1"),
 					resource.TestCheckResourceAttr("data.digitalocean_projects.prod", "projects.0.name", prodProjectName),
