@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -184,6 +185,61 @@ data "digitalocean_loadbalancer" "foobar" {
 							"target_protocol": "http",
 						},
 					),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceDigitalOceanLoadBalancer_tlsCert(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	testName := randomTestName()
+	rInt := acctest.RandInt()
+	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
+	resourceConfig := testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(
+		testName+"-cert", rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_name",
+	)
+	dataSourceConfig := `
+data "digitalocean_loadbalancer" "foobar" {
+  name = digitalocean_loadbalancer.foobar.name
+}`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("data.digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"data.digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":       "443",
+							"entry_protocol":   "https",
+							"target_port":      "80",
+							"target_protocol":  "http",
+							"certificate_name": testName + "-cert",
+							"tls_passthrough":  "false",
+						},
+					),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "size", "lb-small"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "redirect_http_to_https", "true"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "true"),
 				),
 			},
 		},

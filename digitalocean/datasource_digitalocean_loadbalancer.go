@@ -82,6 +82,11 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 							Computed:    true,
 							Description: "the id of the tls certificate used for ssl termination if enabled",
 						},
+						"certificate_name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "the name of the tls certificate used for ssl termination if enabled",
+						},
 						"tls_passthrough": {
 							Type:        schema.TypeBool,
 							Computed:    true,
