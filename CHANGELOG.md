@@ -1,3 +1,19 @@
+## 2.9.0 (May 28, 2021)
+
+IMPROVEMENTS:
+
+- provider: Upgrade Terraform SDK to v2.6.1 ([#642](https://github.com/digitalocean/terraform-provider-digitalocean/pull/642)).
+- `digitalocean_kubernetes_cluster`: Expose URNs for Kubernetes clusters ([#626](https://github.com/digitalocean/terraform-provider-digitalocean/pull/626)).
+- docs: Cover `required_providers` in the index page ([#643](https://github.com/digitalocean/terraform-provider-digitalocean/pull/643)).
+- docs: Update nginx example to work ([#625](https://github.com/digitalocean/terraform-provider-digitalocean/pull/625)). Thanks to @atombrella!
+- Update issue templates ([#633](https://github.com/digitalocean/terraform-provider-digitalocean/pull/633)).
+
+BUG FIXES:
+
+- `digitalocean_loadbalancer`: Add `certificate_name` to load balancer data source ([#641](https://github.com/digitalocean/terraform-provider-digitalocean/pull/641)).
+- `digitalocean_droplet`: Changing SSH key for a Droplet should be `ForceNew` ([#640](https://github.com/digitalocean/terraform-provider-digitalocean/pull/640)).
+- `digitalocean_spaces_bucket`: Provide better error on malformated import ([#629](https://github.com/digitalocean/terraform-provider-digitalocean/pull/629)).
+
 ## 2.8.0 (April 20, 2021)
 
 FEATURES:
