@@ -92,15 +92,18 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 				MinItems: 1,
 				MaxItems: 1,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"day": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 						"start_time": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Computed: true,
 						},
 						"duration": {
 							Type:     schema.TypeString,
@@ -316,10 +319,8 @@ func digitaloceanKubernetesClusterRead(
 	d.Set("auto_upgrade", cluster.AutoUpgrade)
 	d.Set("urn", cluster.URN())
 
-	if _, ok := d.GetOk("maintenance_policy"); ok {
-		if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
-			return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
-		}
+	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
 	}
 
 	// find the default node pool from all the pools in the cluster
