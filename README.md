@@ -69,6 +69,29 @@ In order to run a specific acceptance test, use the `TESTARGS` environment varia
 $ make testacc TESTARGS='-run=TestAccDigitalOceanDomain_Basic'
 ```
 
+In order to check changes you made locally to the provider, you can use the binary you just compiled by adding the following
+to your `~/.terraformrc` file. This is valid for Terraform 0.14+. Please see
+[Terraform's documentation](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers)
+for more details.
+
+```
+provider_installation {
+
+  # Use /home/developer/go/bin as an overridden package directory
+  # for the digitalocean/digitalocean provider. This disables the version and checksum
+  # verifications for this provider and forces Terraform to look for the
+  # digitalocean provider plugin in the given directory.
+  dev_overrides {
+    "digitalocean/digitalocean" = "/home/developer/go/bin"
+  }
+
+  # For all other providers, install them directly from their origin provider
+  # registries as normal. If you omit this, Terraform will _only_ use
+  # the dev_overrides block, and so no other providers will be available.
+  direct {}
+}
+```
+
 For information about writing acceptance tests, see the main Terraform [contributing guide](https://github.com/hashicorp/terraform/blob/master/.github/CONTRIBUTING.md#writing-acceptance-tests).
 
 Releasing the Provider
