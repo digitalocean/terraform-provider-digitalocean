@@ -46,6 +46,9 @@ data "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "vpc_uuid"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "auto_upgrade"),
 					resource.TestMatchResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "urn", expectedURNRegEx),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day", "monday"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.start_time", "00:00"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.duration"),
 				),
 			},
 		},
@@ -70,6 +73,10 @@ resource "digitalocean_kubernetes_cluster" "foo" {
         labels = {
           priority = "high"
         }
+	}
+	maintenance_policy {
+		day = "monday"
+		start_time = "00:00"
 	}
 }`, version, rName)
 }

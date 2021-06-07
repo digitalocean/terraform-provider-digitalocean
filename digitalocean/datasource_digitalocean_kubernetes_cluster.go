@@ -70,6 +70,27 @@ func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 
 			"tags": tagsSchema(),
 
+			"maintenance_policy": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"day": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"duration": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"start_time": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"node_pool": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -117,7 +138,7 @@ func dataSourceDigitalOceanKubernetesClusterRead(ctx context.Context, d *schema.
 			return diag.Errorf("No clusters found")
 		}
 
-		return diag.Errorf("Error listing Kuberentes clusters: %s", err)
+		return diag.Errorf("Error listing Kubernetes clusters: %s", err)
 	}
 
 	// select the correct cluster

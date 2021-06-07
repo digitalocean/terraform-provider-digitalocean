@@ -1,10 +1,11 @@
 package digitalocean
 
 import (
+	"strings"
+
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"strings"
 )
 
 func nodePoolSchema(isResource bool) map[string]*schema.Schema {
@@ -221,6 +222,37 @@ func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
 	}
 
 	return expandedNodePools
+}
+
+func expandMaintPolicyOpts(config []interface{}) (*godo.KubernetesMaintenancePolicy, error) {
+	maintPolicy := &godo.KubernetesMaintenancePolicy{}
+	configMap := config[0].(map[string]interface{})
+
+	if v, ok := configMap["day"]; ok {
+		day, err := godo.KubernetesMaintenanceToDay(v.(string))
+		if err != nil {
+			return nil, err
+		}
+		maintPolicy.Day = day
+	}
+
+	if v, ok := configMap["start_time"]; ok {
+		maintPolicy.StartTime = v.(string)
+	}
+
+	return maintPolicy, nil
+}
+
+func flattenMaintPolicyOpts(opts *godo.KubernetesMaintenancePolicy) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	item := make(map[string]interface{})
+
+	item["day"] = opts.Day.String()
+	item["duration"] = opts.Duration
+	item["start_time"] = opts.StartTime
+	result = append(result, item)
+
+	return result
 }
 
 func flattenNodePool(d *schema.ResourceData, keyPrefix string, pool *godo.KubernetesNodePool, parentTags ...string) []interface{} {

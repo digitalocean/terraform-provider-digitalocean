@@ -56,7 +56,7 @@ Note that, each node pool must always have at least one node and when using auto
 
 ### Auto Upgrade Example
 
-DigitalOcean Kubernetes clusters may also be configured to [auto upgrade](https://www.digitalocean.com/docs/kubernetes/how-to/upgrade-cluster/#automatically) patch versions.
+DigitalOcean Kubernetes clusters may also be configured to [auto upgrade](https://www.digitalocean.com/docs/kubernetes/how-to/upgrade-cluster/#automatically) patch versions. You may explicitly specify the maintenance window policy.
 For example:
 
 ```hcl
@@ -69,6 +69,11 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   region       = "nyc1"
   auto_upgrade = true
   version      = data.digitalocean_kubernetes_versions.example.latest_version
+
+  maintenance_policy {
+    start_time  = "04:00"
+    day         = "sunday"
+  }
 
   node_pool {
     name       = "default"
@@ -153,6 +158,9 @@ The following arguments are supported:
   - `tags` - (Optional) A list of tag names to be applied to the Kubernetes cluster.
   - `labels` - (Optional) A map of key/value pairs to apply to nodes in the pool. The labels are exposed in the Kubernetes API as labels in the metadata of the corresponding [Node resources](https://kubernetes.io/docs/concepts/architecture/nodes/).
 * `tags` - (Optional) A list of tag names to be applied to the Kubernetes cluster.
+* `maintenance_policy` - (Optional) A block representing the cluster's maintenance window. Updates will be applied within this window. If not specified, a default maintenance window will be chosen. `auto_upgrade` must be set to `true` for this to have an effect.
+  - `day` - (Required) The day of the maintenance window policy. May be one of "monday" through "sunday", or "any" to indicate an arbitrary week day.
+  - `start_time` (Required) The start time in UTC of the maintenance window policy in 24-hour clock format / HH:MM notation (e.g., 15:00).
 
 ## Attributes Reference
 
@@ -190,6 +198,10 @@ In addition to the arguments listed above, the following additional attributes a
     + `value` - An arbitrary string. The "key" and "value" fields of the "taint" object form a key-value pair.
     + `effect` - How the node reacts to pods that it won't tolerate. Available effect values are: "NoSchedule", "PreferNoSchedule", "NoExecute".
 * `urn` - The uniform resource name (URN) for the Kubernetes cluster.
+* `maintenance_policy` - A block representing the cluster's maintenance window. Updates will be applied within this window. If not specified, a default maintenance window will be chosen.
+  - `day` - The day of the maintenance window policy. May be one of "monday" through "sunday", or "any" to indicate an arbitrary week day.
+  - `duration` A string denoting the duration of the service window, e.g., "04:00".
+  - `start_time` The hour in UTC when maintenance updates will be applied, in 24 hour format (e.g. “16:00”).
 
 ## Import
 
