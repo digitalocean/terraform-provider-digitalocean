@@ -181,9 +181,23 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanKubernetesClusterUpdateClusterMaintenancePolicy(t *testing.T) {
+func TestAccDigitalOceanKubernetesCluster_MaintenancePolicy(t *testing.T) {
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
+
+	policy := `
+	maintenance_policy {
+		day = "monday"
+		start_time = "00:00"
+	}
+`
+
+	updatedPolicy := `
+	maintenance_policy {
+		day = "any"
+		start_time = "04:00"
+	}
+`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -191,12 +205,22 @@ func TestAccDigitalOceanKubernetesClusterUpdateClusterMaintenancePolicy(t *testi
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigMaintenancePolicy(testClusterVersion19, rName),
+				Config: testAccDigitalOceanKubernetesConfigMaintenancePolicy(testClusterVersion19, rName, policy),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day", "monday"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.start_time", "00:00"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.duration"),
+				),
+			},
+			{
+				Config: testAccDigitalOceanKubernetesConfigMaintenancePolicy(testClusterVersion19, rName, updatedPolicy),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day", "any"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.start_time", "04:00"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.duration"),
 				),
 			},
@@ -307,7 +331,6 @@ func TestAccDigitalOceanKubernetesCluster_CreatePoolWithAutoScale(t *testing.T) 
 						}
 						maintenance_policy {
 							start_time = "05:00"
-							duration = "04:00"
 							day = "sunday"
 						}
 					}
@@ -607,7 +630,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 `, testClusterVersion, rName)
 }
 
-func testAccDigitalOceanKubernetesConfigMaintenancePolicy(testClusterVersion string, rName string) string {
+func testAccDigitalOceanKubernetesConfigMaintenancePolicy(testClusterVersion string, rName string, policy string) string {
 	return fmt.Sprintf(`%s
 
 resource "digitalocean_kubernetes_cluster" "foobar" {
@@ -617,10 +640,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	surge_upgrade = true
 	tags    = ["foo","bar", "one"]
 
-	maintenance_policy {
-		day = "monday"
-		start_time = "00:00"
-	}
+%s
 
 	node_pool {
 	  name = "default"
@@ -637,7 +657,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
       }
 	}
 }
-`, testClusterVersion, rName)
+`, testClusterVersion, rName, policy)
 }
 
 func testAccDigitalOceanKubernetesConfigBasic2(testClusterVersion string, rName string) string {
