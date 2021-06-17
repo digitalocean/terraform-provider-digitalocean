@@ -134,8 +134,8 @@ The following attributes are exported:
 * `droplet_ids` - The list of the IDs of the Droplets assigned to
   the Firewall.
 * `tags` - The names of the Tags assigned to the Firewall.
-* `inbound_rules` - The inbound access rule block for the Firewall.
-* `outbound_rules` - The outbound access rule block for the Firewall.
+* `inbound_rule` - The inbound access rule block for the Firewall.
+* `outbound_rule` - The outbound access rule block for the Firewall.
 
 ## Import
 
