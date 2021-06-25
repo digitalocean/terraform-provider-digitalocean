@@ -112,7 +112,8 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "vpc_uuid"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "auto_upgrade"),
 					resource.TestMatchResourceAttr("digitalocean_kubernetes_cluster.foobar", "urn", expectedURNRegEx),
-					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "maintenance_policy"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.start_time"),
 				),
 			},
 			// Update: remove default node_pool taints

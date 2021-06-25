@@ -151,6 +151,10 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		CustomizeDiff: customdiff.All(
 			customdiff.ForceNewIfChange("version", func(ctx context.Context, old, new, meta interface{}) bool {
 				// "version" can only be upgraded to newer versions, so we must create a new resource
@@ -270,14 +274,15 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
 	}
 
-	// wait for completion
-	cluster, err = waitForKubernetesClusterCreate(client, cluster.ID)
-	if err != nil {
-		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
-	}
-
 	// set the cluster id
 	d.SetId(cluster.ID)
+
+	// wait for completion
+	_, err = waitForKubernetesClusterCreate(client, d)
+	if err != nil {
+		d.SetId("")
+		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
+	}
 
 	return resourceDigitalOceanKubernetesClusterRead(ctx, d, meta)
 }
@@ -419,7 +424,8 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	}
 
 	// update the existing default pool
-	_, err := digitaloceanKubernetesNodePoolUpdate(client, newPool, d.Id(), oldPool["id"].(string), digitaloceanKubernetesDefaultNodePoolTag)
+	timeout := d.Timeout(schema.TimeoutCreate)
+	_, err := digitaloceanKubernetesNodePoolUpdate(client, timeout, newPool, d.Id(), oldPool["id"].(string), digitaloceanKubernetesDefaultNodePoolTag)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -547,13 +553,17 @@ func resourceDigitalOceanKubernetesClusterImportState(d *schema.ResourceData, me
 	return resourceDatas, nil
 }
 
-func waitForKubernetesClusterCreate(client *godo.Client, id string) (*godo.KubernetesCluster, error) {
-	ticker := time.NewTicker(10 * time.Second)
-	timeout := 120
-	n := 0
+func waitForKubernetesClusterCreate(client *godo.Client, d *schema.ResourceData) (*godo.KubernetesCluster, error) {
+	var (
+		tickerInterval = 10 * time.Second
+		timeoutSeconds = d.Timeout(schema.TimeoutDelete).Seconds()
+		timeout        = int(timeoutSeconds / tickerInterval.Seconds())
+		n              = 0
+	)
 
+	ticker := time.NewTicker(tickerInterval)
 	for range ticker.C {
-		cluster, _, err := client.Kubernetes.Get(context.Background(), id)
+		cluster, _, err := client.Kubernetes.Get(context.Background(), d.Id())
 		if err != nil {
 			ticker.Stop()
 			return nil, fmt.Errorf("Error trying to read cluster state: %s", err)
