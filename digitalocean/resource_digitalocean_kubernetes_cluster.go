@@ -556,12 +556,12 @@ func resourceDigitalOceanKubernetesClusterImportState(d *schema.ResourceData, me
 func waitForKubernetesClusterCreate(client *godo.Client, d *schema.ResourceData) (*godo.KubernetesCluster, error) {
 	var (
 		tickerInterval = 10 * time.Second
-		timeoutSeconds = d.Timeout(schema.TimeoutDelete).Seconds()
+		timeoutSeconds = d.Timeout(schema.TimeoutCreate).Seconds()
 		timeout        = int(timeoutSeconds / tickerInterval.Seconds())
 		n              = 0
+		ticker         = time.NewTicker(tickerInterval)
 	)
 
-	ticker := time.NewTicker(tickerInterval)
 	for range ticker.C {
 		cluster, _, err := client.Kubernetes.Get(context.Background(), d.Id())
 		if err != nil {

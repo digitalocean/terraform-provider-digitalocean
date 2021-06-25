@@ -31,6 +31,7 @@ func resourceDigitalOceanKubernetesNodePool() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 	}
 }
@@ -126,8 +127,17 @@ func resourceDigitalOceanKubernetesNodePoolUpdate(ctx context.Context, d *schema
 
 func resourceDigitalOceanKubernetesNodePoolDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
+	_, err := client.Kubernetes.DeleteNodePool(context.Background(), d.Get("cluster_id").(string), d.Id())
+	if err != nil {
+		return diag.Errorf("Unable to delete node pool %s", err)
+	}
 
-	return digitaloceanKubernetesNodePoolDelete(client, d.Get("cluster_id").(string), d.Id())
+	err = waitForKubernetesNodePoolDelete(client, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
 func resourceDigitalOceanKubernetesNodePoolImportState(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
@@ -276,21 +286,6 @@ func digitaloceanKubernetesNodePoolUpdate(client *godo.Client, timeout time.Dura
 	return p, nil
 }
 
-func digitaloceanKubernetesNodePoolDelete(client *godo.Client, clusterID, poolID string) diag.Diagnostics {
-	// delete the old pool
-	_, err := client.Kubernetes.DeleteNodePool(context.Background(), clusterID, poolID)
-	if err != nil {
-		return diag.Errorf("Unable to delete node pool %s", err)
-	}
-
-	err = waitForKubernetesNodePoolDelete(client, clusterID, poolID)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return nil
-}
-
 func waitForKubernetesNodePoolCreate(client *godo.Client, duration time.Duration, id string, poolID string) error {
 	var (
 		tickerInterval = 10 * time.Second
@@ -330,14 +325,17 @@ func waitForKubernetesNodePoolCreate(client *godo.Client, duration time.Duration
 	return fmt.Errorf("Timeout waiting to create nodepool")
 }
 
-func waitForKubernetesNodePoolDelete(client *godo.Client, id string, poolID string) error {
-	tickerInterval := 10 //10s
-	timeout := 1800      //1800s, 30min
-	n := 0
+func waitForKubernetesNodePoolDelete(client *godo.Client, d *schema.ResourceData) error {
+	var (
+		tickerInterval = 10 * time.Second
+		timeoutSeconds = d.Timeout(schema.TimeoutDelete).Seconds()
+		timeout        = int(timeoutSeconds / tickerInterval.Seconds())
+		n              = 0
+		ticker         = time.NewTicker(tickerInterval)
+	)
 
-	ticker := time.NewTicker(time.Duration(tickerInterval) * time.Second)
 	for range ticker.C {
-		_, resp, err := client.Kubernetes.GetNodePool(context.Background(), id, poolID)
+		_, resp, err := client.Kubernetes.GetNodePool(context.Background(), d.Get("cluster_id").(string), d.Id())
 		if err != nil {
 			ticker.Stop()
 
@@ -348,7 +346,7 @@ func waitForKubernetesNodePoolDelete(client *godo.Client, id string, poolID stri
 			return fmt.Errorf("Error trying to read nodepool state: %s", err)
 		}
 
-		if n*tickerInterval > timeout {
+		if n > timeout {
 			ticker.Stop()
 			break
 		}

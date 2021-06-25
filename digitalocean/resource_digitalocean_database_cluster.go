@@ -467,9 +467,9 @@ func waitForDatabaseCluster(client *godo.Client, d *schema.ResourceData, status 
 		timeoutSeconds = d.Timeout(schema.TimeoutDelete).Seconds()
 		timeout        = int(timeoutSeconds / tickerInterval.Seconds())
 		n              = 0
+		ticker         = time.NewTicker(tickerInterval)
 	)
 
-	ticker := time.NewTicker(tickerInterval)
 	for range ticker.C {
 		database, _, err := client.Databases.Get(context.Background(), d.Id())
 		if err != nil {
