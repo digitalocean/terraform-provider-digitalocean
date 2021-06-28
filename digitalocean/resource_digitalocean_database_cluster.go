@@ -171,6 +171,10 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 			"tags": tagsSchema(),
 		},
 
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+		},
+
 		CustomizeDiff: customdiff.All(
 			transitionVersionToRequired(),
 			validateExclusiveAttributes(),
@@ -246,13 +250,14 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 		}
 	}
 
-	database, err = waitForDatabaseCluster(client, database.ID, "online")
-	if err != nil {
-		return diag.Errorf("Error creating database cluster: %s", err)
-	}
-
 	d.SetId(database.ID)
 	log.Printf("[INFO] database cluster Name: %s", database.Name)
+
+	database, err = waitForDatabaseCluster(client, d, "online")
+	if err != nil {
+		d.SetId("")
+		return diag.Errorf("Error creating database cluster: %s", err)
+	}
 
 	if v, ok := d.GetOk("maintenance_window"); ok {
 		opts := expandMaintWindowOpts(v.([]interface{}))
@@ -308,7 +313,7 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 			return diag.Errorf("Error resizing database cluster: %s", err)
 		}
 
-		_, err = waitForDatabaseCluster(client, d.Id(), "online")
+		_, err = waitForDatabaseCluster(client, d, "online")
 		if err != nil {
 			return diag.Errorf("Error resizing database cluster: %s", err)
 		}
@@ -331,7 +336,7 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 			return diag.Errorf("Error migrating database cluster: %s", err)
 		}
 
-		_, err = waitForDatabaseCluster(client, d.Id(), "online")
+		_, err = waitForDatabaseCluster(client, d, "online")
 		if err != nil {
 			return diag.Errorf("Error migrating database cluster: %s", err)
 		}
@@ -456,13 +461,17 @@ func resourceDigitalOceanDatabaseClusterDelete(ctx context.Context, d *schema.Re
 	return nil
 }
 
-func waitForDatabaseCluster(client *godo.Client, id string, status string) (*godo.Database, error) {
-	ticker := time.NewTicker(15 * time.Second)
-	timeout := 120
-	n := 0
+func waitForDatabaseCluster(client *godo.Client, d *schema.ResourceData, status string) (*godo.Database, error) {
+	var (
+		tickerInterval = 15 * time.Second
+		timeoutSeconds = d.Timeout(schema.TimeoutDelete).Seconds()
+		timeout        = int(timeoutSeconds / tickerInterval.Seconds())
+		n              = 0
+		ticker         = time.NewTicker(tickerInterval)
+	)
 
 	for range ticker.C {
-		database, _, err := client.Databases.Get(context.Background(), id)
+		database, _, err := client.Databases.Get(context.Background(), d.Id())
 		if err != nil {
 			ticker.Stop()
 			return nil, fmt.Errorf("Error trying to read database cluster state: %s", err)
