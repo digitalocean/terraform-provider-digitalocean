@@ -45,6 +45,7 @@ resource "digitalocean_database_cluster" "redis-example" {
 ```
 
 ### Create a new MongoDB database cluster
+```hcl
 resource "digitalocean_database_cluster" "mongodb-example" {
   name       = "example-mongo-cluster"
   engine     = "mongodb"
@@ -53,6 +54,7 @@ resource "digitalocean_database_cluster" "mongodb-example" {
   region     = "nyc3"
   node_count = 1
 }
+```
 
 ## Argument Reference
 

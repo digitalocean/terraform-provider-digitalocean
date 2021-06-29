@@ -1,3 +1,9 @@
+## 2.10.1 (June 29, 2021)
+
+BUG FIXES:
+
+- docs: Add code fence to docs for MongoDB.
+
 ## 2.10.0 (June 29, 2021)
 
 IMPROVEMENTS:
