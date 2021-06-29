@@ -1,3 +1,17 @@
+## 2.10.0 (June 29, 2021)
+
+IMPROVEMENTS:
+
+- `digitalocean_kubernetes_cluster`:  Add support for Kubernetes maintenance policy ([#631](https://github.com/digitalocean/terraform-provider-digitalocean/pull/631)). Thanks to @atombrella!
+- `digitalocean_kubernetes_cluster`, `digitalocean_database_cluster`: Make create timeouts configurable for DBaaS and K8s clusters ([#650](https://github.com/digitalocean/terraform-provider-digitalocean/pull/650)).
+- docs: Fix Firewall Resource exported attributes documentation ([#648](https://github.com/digitalocean/terraform-provider-digitalocean/pull/648)). Thanks to @jubairsaidi!
+- docs: Add MongoDB to database cluster docs ([#651](https://github.com/digitalocean/terraform-provider-digitalocean/pull/651)).
+
+BUG FIXES:
+
+- `digitalocean_database_cluster`: Protect against setting empty tags ([#652](https://github.com/digitalocean/terraform-provider-digitalocean/pull/652)).
+
+
 ## 2.9.0 (May 28, 2021)
 
 IMPROVEMENTS:
