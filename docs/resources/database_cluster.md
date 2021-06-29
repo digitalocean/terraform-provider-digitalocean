@@ -44,12 +44,22 @@ resource "digitalocean_database_cluster" "redis-example" {
 }
 ```
 
+### Create a new MongoDB database cluster
+resource "digitalocean_database_cluster" "mongodb-example" {
+  name       = "example-mongo-cluster"
+  engine     = "mongodb"
+  version    = "4"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc3"
+  node_count = 1
+}
+
 ## Argument Reference
 
 The following arguments are supported:
 
 * `name` - (Required) The name of the database cluster.
-* `engine` - (Required) Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, or `redis` for Redis).
+* `engine` - (Required) Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, or `mongodb` for MongoDB).
 * `size` - (Required) Database Droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`). See here for a [list of valid size slugs](https://developers.digitalocean.com/documentation/v2/#databases).
 * `region` - (Required) DigitalOcean region where the cluster will reside.
 * `node_count` - (Required) Number of nodes that will be included in the cluster.
