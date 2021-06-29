@@ -128,7 +128,9 @@ func flattenTags(tags []string) *schema.Set {
 
 	flattenedTags := schema.NewSet(HashStringIgnoreCase, []interface{}{})
 	for _, v := range tags {
-		flattenedTags.Add(v)
+		if v != "" {
+			flattenedTags.Add(v)
+		}
 	}
 
 	return flattenedTags
