@@ -411,7 +411,7 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	d.Set("size", database.SizeSlug)
 	d.Set("region", database.RegionSlug)
 	d.Set("node_count", database.NumNodes)
-	d.Set("tags", database.Tags)
+	d.Set("tags", flattenTags(database.Tags))
 
 	if _, ok := d.GetOk("maintenance_window"); ok {
 		if err := d.Set("maintenance_window", flattenMaintWindowOpts(*database.MaintenanceWindow)); err != nil {

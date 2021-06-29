@@ -163,7 +163,7 @@ func resourceDigitalOceanDatabaseReplicaRead(ctx context.Context, d *schema.Reso
 	}
 
 	d.Set("region", replica.Region)
-	d.Set("tags", replica.Tags)
+	d.Set("tags", flattenTags(replica.Tags))
 
 	// Computed values
 	d.Set("host", replica.Connection.Host)
