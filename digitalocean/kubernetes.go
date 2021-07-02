@@ -182,20 +182,16 @@ func nodeSchema() *schema.Schema {
 
 func expandLabels(labels map[string]interface{}) map[string]string {
 	expandedLabels := make(map[string]string)
-	if labels != nil {
-		for key, value := range labels {
-			expandedLabels[key] = value.(string)
-		}
+	for key, value := range labels {
+		expandedLabels[key] = value.(string)
 	}
 	return expandedLabels
 }
 
 func flattenLabels(labels map[string]string) map[string]interface{} {
 	flattenedLabels := make(map[string]interface{})
-	if labels != nil {
-		for key, value := range labels {
-			flattenedLabels[key] = value
-		}
+	for key, value := range labels {
+		flattenedLabels[key] = value
 	}
 	return flattenedLabels
 }
