@@ -95,9 +95,7 @@ func dataSourceDigitalOceanVolumeRead(ctx context.Context, d *schema.ResourceDat
 			return diag.Errorf("Error retrieving volumes: %s", err)
 		}
 
-		for _, volume := range volumes {
-			volumeList = append(volumeList, volume)
-		}
+		volumeList = append(volumeList, volumes...)
 
 		if resp.Links == nil || resp.Links.IsLastPage() {
 			break

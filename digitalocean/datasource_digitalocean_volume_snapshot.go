@@ -96,9 +96,7 @@ func dataSourceDigitalOceanVolumeSnapshotRead(ctx context.Context, d *schema.Res
 			return diag.Errorf("Error retrieving volume snapshots: %s", err)
 		}
 
-		for _, s := range snapshots {
-			snapshotList = append(snapshotList, s)
-		}
+		snapshotList = append(snapshotList, snapshots...)
 
 		if resp.Links == nil || resp.Links.IsLastPage() {
 			break
