@@ -708,7 +708,7 @@ func newDropletStateRefreshFunc(
 		}
 
 		// See if we can access our attribute
-		if attr, ok := d.GetOkExists(attribute); ok {
+		if attr, ok := d.GetOk(attribute); ok {
 			// Retrieve the droplet properties
 			droplet, _, err := client.Droplets.Get(context.Background(), id)
 			if err != nil {

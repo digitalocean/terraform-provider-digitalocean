@@ -18,7 +18,7 @@ func resourceDigitalOceanFloatingIpAssignment() *schema.Resource {
 		ReadContext:   resourceDigitalOceanFloatingIpAssignmentRead,
 		DeleteContext: resourceDigitalOceanFloatingIpAssignmentDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -52,7 +52,7 @@ func resourceDigitalOceanFloatingIpAssignmentCreate(ctx context.Context, d *sche
 			"Error Assigning FloatingIP (%s) to the droplet: %s", ip_address, err)
 	}
 
-	_, unassignedErr := waitForFloatingIPAssignmentReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+	_, unassignedErr := waitForFloatingIPAssignmentReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
 	if unassignedErr != nil {
 		return diag.Errorf(
 			"Error waiting for FloatingIP (%s) to be Assigned: %s", ip_address, unassignedErr)
@@ -101,7 +101,7 @@ func resourceDigitalOceanFloatingIpAssignmentDelete(ctx context.Context, d *sche
 			return diag.Errorf("Error unassigning FloatingIP (%s) from the droplet: %s", ip_address, err)
 		}
 
-		_, unassignedErr := waitForFloatingIPAssignmentReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+		_, unassignedErr := waitForFloatingIPAssignmentReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
 		if unassignedErr != nil {
 			return diag.Errorf(
 				"Error waiting for FloatingIP (%s) to be unassigned: %s", ip_address, unassignedErr)
@@ -115,7 +115,7 @@ func resourceDigitalOceanFloatingIpAssignmentDelete(ctx context.Context, d *sche
 }
 
 func waitForFloatingIPAssignmentReady(
-	d *schema.ResourceData, target string, pending []string, attribute string, meta interface{}, actionId int) (interface{}, error) {
+	ctx context.Context, d *schema.ResourceData, target string, pending []string, attribute string, meta interface{}, actionId int) (interface{}, error) {
 	log.Printf(
 		"[INFO] Waiting for FloatingIP (%s) to have %s of %s",
 		d.Get("ip_address").(string), attribute, target)
@@ -131,7 +131,7 @@ func waitForFloatingIPAssignmentReady(
 		NotFoundChecks: 60,
 	}
 
-	return stateConf.WaitForState()
+	return stateConf.WaitForStateContext(ctx)
 }
 
 func newFloatingIPAssignmentStateRefreshFunc(

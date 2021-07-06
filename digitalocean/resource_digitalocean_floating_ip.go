@@ -79,7 +79,7 @@ func resourceDigitalOceanFloatingIpCreate(ctx context.Context, d *schema.Resourc
 				"Error Assigning FloatingIP (%s) to the droplet: %s", d.Id(), err)
 		}
 
-		_, unassignedErr := waitForFloatingIPReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+		_, unassignedErr := waitForFloatingIPReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
 		if unassignedErr != nil {
 			return diag.Errorf(
 				"Error waiting for FloatingIP (%s) to be Assigned: %s", d.Id(), unassignedErr)
@@ -101,7 +101,7 @@ func resourceDigitalOceanFloatingIpUpdate(ctx context.Context, d *schema.Resourc
 					"Error Assigning FloatingIP (%s) to the droplet: %s", d.Id(), err)
 			}
 
-			_, unassignedErr := waitForFloatingIPReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+			_, unassignedErr := waitForFloatingIPReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
 			if unassignedErr != nil {
 				return diag.Errorf(
 					"Error waiting for FloatingIP (%s) to be Assigned: %s", d.Id(), unassignedErr)
@@ -114,7 +114,7 @@ func resourceDigitalOceanFloatingIpUpdate(ctx context.Context, d *schema.Resourc
 					"Error unassigning FloatingIP (%s): %s", d.Id(), err)
 			}
 
-			_, unassignedErr := waitForFloatingIPReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+			_, unassignedErr := waitForFloatingIPReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
 			if unassignedErr != nil {
 				return diag.Errorf(
 					"Error waiting for FloatingIP (%s) to be Unassigned: %s", d.Id(), unassignedErr)
@@ -185,7 +185,7 @@ func resourceDigitalOceanFloatingIpDelete(ctx context.Context, d *schema.Resourc
 					"Error unassigning FloatingIP (%s) from the droplet: %s", d.Id(), err)
 			}
 
-			_, unassignedErr := waitForFloatingIPReady(d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+			_, unassignedErr := waitForFloatingIPReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
 			if unassignedErr != nil {
 				return diag.Errorf(
 					"Error waiting for FloatingIP (%s) to be unassigned: %s", d.Id(), unassignedErr)
@@ -206,7 +206,7 @@ func resourceDigitalOceanFloatingIpDelete(ctx context.Context, d *schema.Resourc
 }
 
 func waitForFloatingIPReady(
-	d *schema.ResourceData, target string, pending []string, attribute string, meta interface{}, actionId int) (interface{}, error) {
+	ctx context.Context, d *schema.ResourceData, target string, pending []string, attribute string, meta interface{}, actionId int) (interface{}, error) {
 	log.Printf(
 		"[INFO] Waiting for FloatingIP (%s) to have %s of %s",
 		d.Id(), attribute, target)
@@ -222,7 +222,7 @@ func waitForFloatingIPReady(
 		NotFoundChecks: 60,
 	}
 
-	return stateConf.WaitForState()
+	return stateConf.WaitForStateContext(ctx)
 }
 
 func newFloatingIPStateRefreshFunc(

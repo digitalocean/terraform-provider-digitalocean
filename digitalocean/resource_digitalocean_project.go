@@ -19,7 +19,7 @@ func resourceDigitalOceanProject() *schema.Resource {
 		UpdateContext: resourceDigitalOceanProjectUpdate,
 		DeleteContext: resourceDigitalOceanProjectDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{

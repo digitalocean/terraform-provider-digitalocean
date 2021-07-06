@@ -290,19 +290,19 @@ func expandDigitalOceanRecordResource(d *schema.ResourceData) (*godo.DomainRecor
 		Data: d.Get("value").(string),
 	}
 
-	if v, ok := d.GetOkExists("port"); ok {
+	if v, ok := d.GetOk("port"); ok {
 		record.Port = v.(int)
 	}
-	if v, ok := d.GetOkExists("priority"); ok {
+	if v, ok := d.GetOk("priority"); ok {
 		record.Priority = v.(int)
 	}
 	if v, ok := d.GetOk("ttl"); ok {
 		record.TTL = v.(int)
 	}
-	if v, ok := d.GetOkExists("weight"); ok {
+	if v, ok := d.GetOk("weight"); ok {
 		record.Weight = v.(int)
 	}
-	if v, ok := d.GetOkExists("flags"); ok {
+	if v, ok := d.GetOk("flags"); ok {
 		record.Flags = v.(int)
 	}
 	if v, ok := d.GetOk("tag"); ok {

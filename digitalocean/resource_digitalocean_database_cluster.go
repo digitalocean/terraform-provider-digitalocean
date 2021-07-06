@@ -28,7 +28,7 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 		UpdateContext: resourceDigitalOceanDatabaseClusterUpdate,
 		DeleteContext: resourceDigitalOceanDatabaseClusterDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{

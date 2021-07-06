@@ -212,7 +212,7 @@ func resourceDigitalOceanBucketCreate(ctx context.Context, d *schema.ResourceDat
 		ACL:    aws.String(d.Get("acl").(string)),
 	}
 
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+	err = resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
 		log.Printf("[DEBUG] Trying to create new Spaces bucket: %q", name)
 		_, err := svc.CreateBucket(input)
 		if awsErr, ok := err.(awserr.Error); ok {
@@ -233,7 +233,7 @@ func resourceDigitalOceanBucketCreate(ctx context.Context, d *schema.ResourceDat
 		return diag.Errorf("Error creating Spaces bucket: %s", err)
 	}
 
-	err = resource.Retry(5*time.Minute, func() *resource.RetryError {
+	err = resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
 		_, err := svc.HeadBucket(&s3.HeadBucketInput{Bucket: aws.String(name)})
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == "NotFound" {
