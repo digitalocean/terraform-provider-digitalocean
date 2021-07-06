@@ -63,6 +63,12 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"graceful_shutdown": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"created_at": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -613,6 +619,25 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 	if err != nil {
 		return diag.Errorf(
 			"Error waiting for droplet to be unlocked for destroy (%s): %s", d.Id(), err)
+	}
+
+	shutdown := d.Get("graceful_shutdown").(bool)
+	if shutdown {
+		log.Printf("[INFO] Shutting down droplet: %s", d.Id())
+
+		// Shutdown the droplet
+		// DO API doesn't return an error if we try to shutdown an already shutdown droplet
+		_, _, err = client.DropletActions.Shutdown(context.Background(), id)
+		if err != nil {
+			return diag.Errorf(
+				"Error shutting down the the droplet (%s): %s", d.Id(), err)
+		}
+
+		// Wait for shutdown
+		_, err = waitForDropletAttribute(d, "off", []string{"active"}, "status", meta)
+		if err != nil {
+			return diag.Errorf("Error waiting for droplet (%s) to become off: %s", d.Id(), err)
+		}
 	}
 
 	log.Printf("[INFO] Trying to Detach Storage Volumes (if any) from droplet: %s", d.Id())
