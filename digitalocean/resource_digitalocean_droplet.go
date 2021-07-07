@@ -648,13 +648,13 @@ func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta int
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"active", "off"},
 		Target:     []string{"archived"},
-		Refresh:    newDropletStateRefreshFunc(d, "status", meta),
+		Refresh:    newDropletStateRefreshFunc(ctx, d, "status", meta),
 		Timeout:    60 * time.Second,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 
-	return stateConf.WaitForStateContext(ctx)
+	return stateConf.WaitForState()
 }
 
 func waitForDropletAttribute(
@@ -668,7 +668,7 @@ func waitForDropletAttribute(
 	stateConf := &resource.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
-		Refresh:    newDropletStateRefreshFunc(d, attribute, meta),
+		Refresh:    newDropletStateRefreshFunc(ctx, d, attribute, meta),
 		Timeout:    60 * time.Minute,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -679,13 +679,13 @@ func waitForDropletAttribute(
 		NotFoundChecks: 60,
 	}
 
-	return stateConf.WaitForStateContext(ctx)
+	return stateConf.WaitForState()
 }
 
 // TODO This function still needs a little more refactoring to make it
 // cleaner and more efficient
 func newDropletStateRefreshFunc(
-	d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
+	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
 	client := meta.(*CombinedConfig).godoClient()
 	return func() (interface{}, string, error) {
 		id, err := strconv.Atoi(d.Id())
@@ -708,7 +708,7 @@ func newDropletStateRefreshFunc(
 		}
 
 		// See if we can access our attribute
-		if attr, ok := d.GetOk(attribute); ok {
+		if attr, ok := d.GetOkExists(attribute); ok {
 			// Retrieve the droplet properties
 			droplet, _, err := client.Droplets.Get(context.Background(), id)
 			if err != nil {
