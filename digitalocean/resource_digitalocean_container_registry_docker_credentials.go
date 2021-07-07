@@ -20,7 +20,7 @@ func resourceDigitalOceanContainerRegistryDockerCredentials() *schema.Resource {
 		UpdateContext: resourceDigitalOceanContainerRegistryDockerCredentialsUpdate,
 		DeleteContext: resourceDigitalOceanContainerRegistryDockerCredentialsDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{

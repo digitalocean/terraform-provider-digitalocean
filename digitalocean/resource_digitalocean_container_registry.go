@@ -20,7 +20,7 @@ func resourceDigitalOceanContainerRegistry() *schema.Resource {
 		UpdateContext: resourceDigitalOceanContainerRegistryUpdate,
 		DeleteContext: resourceDigitalOceanContainerRegistryDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{
