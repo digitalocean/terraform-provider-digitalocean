@@ -17,7 +17,7 @@ func resourceDigitalOceanVolumeSnapshot() *schema.Resource {
 		UpdateContext: resourceDigitalOceanVolumeSnapshotUpdate,
 		DeleteContext: resourceDigitalOceanVolumeSnapshotDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{

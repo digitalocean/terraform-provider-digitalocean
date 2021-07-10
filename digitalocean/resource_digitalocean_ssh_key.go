@@ -19,7 +19,7 @@ func resourceDigitalOceanSSHKey() *schema.Resource {
 		UpdateContext: resourceDigitalOceanSSHKeyUpdate,
 		DeleteContext: resourceDigitalOceanSSHKeyDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: map[string]*schema.Schema{

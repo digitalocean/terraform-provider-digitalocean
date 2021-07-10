@@ -21,7 +21,7 @@ func resourceDigitalOceanLoadbalancer() *schema.Resource {
 		UpdateContext: resourceDigitalOceanLoadbalancerUpdate,
 		DeleteContext: resourceDigitalOceanLoadbalancerDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		SchemaVersion: 1,
@@ -440,7 +440,7 @@ func resourceDigitalOceanLoadbalancerCreate(ctx context.Context, d *schema.Resou
 		Timeout:    10 * time.Minute,
 		MinTimeout: 15 * time.Second,
 	}
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.Errorf("Error waiting for Load Balancer (%s) to become active: %s", d.Get("name"), err)
 	}
 

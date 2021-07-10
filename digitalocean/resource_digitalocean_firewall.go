@@ -18,7 +18,7 @@ func resourceDigitalOceanFirewall() *schema.Resource {
 		UpdateContext: resourceDigitalOceanFirewallUpdate,
 		DeleteContext: resourceDigitalOceanFirewallDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: firewallSchema(),
