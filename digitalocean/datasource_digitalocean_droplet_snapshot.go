@@ -92,9 +92,7 @@ func dataSourceDigitalOceanDropletSnapshotRead(ctx context.Context, d *schema.Re
 			return diag.Errorf("Error retrieving Droplet snapshots: %s", err)
 		}
 
-		for _, s := range snapshots {
-			snapshotList = append(snapshotList, s)
-		}
+		snapshotList = append(snapshotList, snapshots...)
 
 		if resp.Links == nil || resp.Links.IsLastPage() {
 			break

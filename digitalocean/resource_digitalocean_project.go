@@ -309,9 +309,7 @@ func loadResourceURNs(client *godo.Client, projectId string) (*[]string, error) 
 			return nil, fmt.Errorf("Error loading project resources: %s", err)
 		}
 
-		for _, r := range resources {
-			resourceList = append(resourceList, r)
-		}
+		resourceList = append(resourceList, resources...)
 
 		if resp.Links == nil || resp.Links.IsLastPage() {
 			break

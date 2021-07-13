@@ -190,30 +190,28 @@ func flattenStickySessions(session *godo.StickySessions) []map[string]interface{
 func flattenForwardingRules(client *godo.Client, rules []godo.ForwardingRule) ([]map[string]interface{}, error) {
 	result := make([]map[string]interface{}, 0, 1)
 
-	if rules != nil {
-		for _, rule := range rules {
-			r := make(map[string]interface{})
+	for _, rule := range rules {
+		r := make(map[string]interface{})
 
-			r["entry_protocol"] = rule.EntryProtocol
-			r["entry_port"] = rule.EntryPort
-			r["target_protocol"] = rule.TargetProtocol
-			r["target_port"] = rule.TargetPort
-			r["tls_passthrough"] = rule.TlsPassthrough
+		r["entry_protocol"] = rule.EntryProtocol
+		r["entry_port"] = rule.EntryPort
+		r["target_protocol"] = rule.TargetProtocol
+		r["target_port"] = rule.TargetPort
+		r["tls_passthrough"] = rule.TlsPassthrough
 
-			if rule.CertificateID != "" {
-				// When the certificate type is lets_encrypt, the certificate
-				// ID will change when it's renewed, so we have to rely on the
-				// certificate name as the primary identifier instead.
-				cert, _, err := client.Certificates.Get(context.Background(), rule.CertificateID)
-				if err != nil {
-					return nil, err
-				}
-				r["certificate_id"] = cert.Name
-				r["certificate_name"] = cert.Name
+		if rule.CertificateID != "" {
+			// When the certificate type is lets_encrypt, the certificate
+			// ID will change when it's renewed, so we have to rely on the
+			// certificate name as the primary identifier instead.
+			cert, _, err := client.Certificates.Get(context.Background(), rule.CertificateID)
+			if err != nil {
+				return nil, err
 			}
-
-			result = append(result, r)
+			r["certificate_id"] = cert.Name
+			r["certificate_name"] = cert.Name
 		}
+
+		result = append(result, r)
 	}
 
 	return result, nil
