@@ -503,6 +503,48 @@ func TestAccDigitalOceanDroplet_EnableAndDisableBackups(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDroplet_EnableAndDisableGracefulShutdown(t *testing.T) {
+	var droplet godo.Droplet
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					testAccCheckDigitalOceanDropletAttributes(&droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "graceful_shutdown", "false"),
+				),
+			},
+
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_EnableGracefulShutdown(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "graceful_shutdown", "true"),
+				),
+			},
+
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_DisableGracefulShutdown(rInt),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "graceful_shutdown", "false"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDropletDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -893,5 +935,29 @@ resource "digitalocean_droplet" "foobar" {
   region    = "nyc3"
   user_data = "foobar"
   backups   = false
+}`, rInt)
+}
+
+func testAccCheckDigitalOceanDropletConfig_EnableGracefulShutdown(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name              = "foo-%d"
+  size              = "s-1vcpu-1gb"
+  image             = "centos-8-x64"
+  region            = "nyc3"
+  user_data         = "foobar"
+  graceful_shutdown = true
+}`, rInt)
+}
+
+func testAccCheckDigitalOceanDropletConfig_DisableGracefulShutdown(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name              = "foo-%d"
+  size              = "s-1vcpu-1gb"
+  image             = "centos-8-x64"
+  region            = "nyc3"
+  user_data         = "foobar"
+  graceful_shutdown = false
 }`, rInt)
 }
