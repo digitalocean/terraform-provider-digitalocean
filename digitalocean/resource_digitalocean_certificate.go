@@ -19,7 +19,7 @@ func resourceDigitalOceanCertificate() *schema.Resource {
 		ReadContext:   resourceDigitalOceanCertificateRead,
 		DeleteContext: resourceDigitalOceanCertificateDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		Schema: resourceDigitalOceanCertificateV1(),
@@ -233,7 +233,7 @@ func resourceDigitalOceanCertificateCreate(ctx context.Context, d *schema.Resour
 		MinTimeout: 3 * time.Second,
 	}
 
-	if _, err := stateConf.WaitForState(); err != nil {
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.Errorf("Error waiting for certificate (%s) to become active: %s", d.Get("name"), err)
 	}
 

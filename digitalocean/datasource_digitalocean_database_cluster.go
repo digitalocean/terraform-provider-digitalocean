@@ -138,9 +138,7 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 			return diag.Errorf("Error retrieving DatabaseClusters: %s", err)
 		}
 
-		for _, d := range databases {
-			databaseList = append(databaseList, d)
-		}
+		databaseList = append(databaseList, databases...)
 
 		if resp.Links == nil || resp.Links.IsLastPage() {
 			break

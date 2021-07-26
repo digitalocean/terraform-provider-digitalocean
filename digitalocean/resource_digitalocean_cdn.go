@@ -18,7 +18,7 @@ func resourceDigitalOceanCDN() *schema.Resource {
 		UpdateContext: resourceDigitalOceanCDNUpdate,
 		DeleteContext: resourceDigitalOceanCDNDelete,
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 
 		SchemaVersion: 1,

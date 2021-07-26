@@ -122,9 +122,7 @@ func listVPCs(client *godo.Client) ([]*godo.VPC, error) {
 			return vpcList, fmt.Errorf("Error retrieving VPCs: %s", err)
 		}
 
-		for _, v := range vpcs {
-			vpcList = append(vpcList, v)
-		}
+		vpcList = append(vpcList, vpcs...)
 
 		if resp.Links == nil || resp.Links.IsLastPage() {
 			break

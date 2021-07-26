@@ -220,9 +220,7 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 			return diag.Errorf("Error retrieving load balancers: %s", err)
 		}
 
-		for _, lb := range lbs {
-			lbList = append(lbList, lb)
-		}
+		lbList = append(lbList, lbs...)
 
 		if resp.Links == nil || resp.Links.IsLastPage() {
 			break
