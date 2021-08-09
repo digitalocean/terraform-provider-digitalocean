@@ -51,6 +51,12 @@ The following arguments are supported:
 * `tags` - (Optional) A list of the tags to be applied to this Droplet.
 * `user_data` (Optional) - A string of the desired User Data for the Droplet.
 * `volume_ids` (Optional) - A list of the IDs of each [block storage volume](/providers/digitalocean/digitalocean/latest/docs/resources/volume) to be attached to the Droplet.
+* `droplet_agent` (Optional) - A boolean indicating whether to install the
+   DigitalOcean agent used for providing access to the Droplet web console in
+   the control panel. By default, the agent is installed on new Droplets but
+   installation errors (i.e. OS not supported) are ignored. To prevent it from
+   being installed, set to `false`. To make installation errors fatal, explicitly
+   set it to `true`.
 
 ~> **NOTE:** If you use `volume_ids` on a Droplet, Terraform will assume management over the full set volumes for the instance, and treat additional volumes as a drift. For this reason, `volume_ids` must not be mixed with external `digitalocean_volume_attachment` resources for a given instance.
 

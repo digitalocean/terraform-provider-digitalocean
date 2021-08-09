@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -503,6 +504,134 @@ func TestAccDigitalOceanDroplet_EnableAndDisableBackups(t *testing.T) {
 	})
 }
 
+// TestAccDigitalOceanDroplet_withDropletAgentSetTrue tests that no error is returned
+// from the API when creating a Droplet using an OS that supports the agent
+// if the `droplet_agent` field is explicitly set to true.
+func TestAccDigitalOceanDroplet_withDropletAgentSetTrue(t *testing.T) {
+	var droplet godo.Droplet
+	keyName := randomTestName()
+	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
+	if err != nil {
+		t.Fatalf("Cannot generate test SSH key pair: %s", err)
+	}
+	dropletName := randomTestName()
+	agent := "droplet_agent = true"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, publicKeyMaterial, dropletName, "ubuntu-20-04-x64", agent),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", dropletName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "droplet_agent", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "image", "ubuntu-20-04-x64"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccDigitalOceanDroplet_withDropletAgentSetFalse tests that no error is returned
+// from the API when creating a Droplet using an OS that does not support the agent
+// if the `droplet_agent` field is explicitly set to false.
+func TestAccDigitalOceanDroplet_withDropletAgentSetFalse(t *testing.T) {
+	var droplet godo.Droplet
+	keyName := randomTestName()
+	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
+	if err != nil {
+		t.Fatalf("Cannot generate test SSH key pair: %s", err)
+	}
+	dropletName := randomTestName()
+	agent := "droplet_agent = false"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, publicKeyMaterial, dropletName, "freebsd-12-x64-zfs", agent),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", dropletName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "droplet_agent", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "image", "freebsd-12-x64-zfs"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccDigitalOceanDroplet_withDropletAgentNotSet tests that no error is returned
+// from the API when creating a Droplet using an OS that does not support the agent
+// if the `droplet_agent` field is not explicitly set.
+func TestAccDigitalOceanDroplet_withDropletAgentNotSet(t *testing.T) {
+	var droplet godo.Droplet
+	keyName := randomTestName()
+	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
+	if err != nil {
+		t.Fatalf("Cannot generate test SSH key pair: %s", err)
+	}
+	dropletName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, publicKeyMaterial, dropletName, "freebsd-12-x64-zfs", ""),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", dropletName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "image", "freebsd-12-x64-zfs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "region", "nyc3"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccDigitalOceanDroplet_withDropletAgentExpectError tests that an error is returned
+// from the API when creating a Droplet using an OS that does not support the agent
+// if the `droplet_agent` field is explicitly set to true.
+func TestAccDigitalOceanDroplet_withDropletAgentExpectError(t *testing.T) {
+	keyName := randomTestName()
+	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
+	if err != nil {
+		t.Fatalf("Cannot generate test SSH key pair: %s", err)
+	}
+	dropletName := randomTestName()
+	agent := "droplet_agent = true"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, publicKeyMaterial, dropletName, "freebsd-12-x64-zfs", agent),
+				ExpectError: regexp.MustCompile(`is not supported`),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDropletDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -894,4 +1023,21 @@ resource "digitalocean_droplet" "foobar" {
   user_data = "foobar"
   backups   = false
 }`, rInt)
+}
+
+func testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, testAccValidPublicKey, dropletName, image, agent string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_ssh_key" "foobar" {
+  name       = "%s"
+  public_key = "%s"
+}
+
+resource "digitalocean_droplet" "foobar" {
+  name      = "%s"
+  size      = "s-1vcpu-1gb"
+  image     = "%s"
+  region    = "nyc3"
+  ssh_keys  = [digitalocean_ssh_key.foobar.id]
+  %s
+}`, keyName, testAccValidPublicKey, dropletName, image, agent)
 }
