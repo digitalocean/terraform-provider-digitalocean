@@ -43,6 +43,7 @@ func resourceDigitalOceanDatabaseFirewall() *schema.Resource {
 								"droplet",
 								"k8s",
 								"tag",
+								"app",
 							}, false),
 						},
 
