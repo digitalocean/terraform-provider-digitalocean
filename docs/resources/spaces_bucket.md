@@ -6,7 +6,7 @@ page_title: "DigitalOcean: digitalocean_spaces_bucket"
 
 Provides a bucket resource for Spaces, DigitalOcean's object storage product.
 
-The [Spaces API](https://developers.digitalocean.com/documentation/spaces/) was
+The [Spaces API](https://docs.digitalocean.com/reference/api/spaces-api/) was
 designed to be interoperable with Amazon's AWS S3 API. This allows users to
 interact with the service while using the tools they already know. Spaces
 mirrors S3's authentication framework and requests to Spaces require a key pair
