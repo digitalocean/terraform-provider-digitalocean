@@ -48,6 +48,7 @@ func TestAccDigitalOceanDatabaseFirewall_MultipleResourceTypes(t *testing.T) {
 	dbName := randomTestName()
 	dropletName := randomTestName()
 	tagName := randomTestName()
+	appName := randomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -56,10 +57,10 @@ func TestAccDigitalOceanDatabaseFirewall_MultipleResourceTypes(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseFirewallConfigMultipleResourceTypes,
-					dbName, dropletName, tagName),
+					dbName, dropletName, tagName, appName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_firewall.example", "rule.#", "3"),
+						"digitalocean_database_firewall.example", "rule.#", "4"),
 				),
 			},
 		},
@@ -151,6 +152,25 @@ resource "digitalocean_tag" "foobar" {
 	name = "%s"
 }
 
+resource "digitalocean_app" "foobar" {
+  spec {
+    name = "%s"
+    region = "nyc"
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+    }
+  }
+}
+
 resource "digitalocean_database_firewall" "example" {
 	cluster_id = digitalocean_database_cluster.foobar.id
 
@@ -167,6 +187,11 @@ resource "digitalocean_database_firewall" "example" {
 	rule {
 		type  = "tag"
 		value = digitalocean_tag.foobar.name
+	}
+
+	rule {
+		type  = "app"
+		value = digitalocean_app.foobar.id
 	}
 }
 `
