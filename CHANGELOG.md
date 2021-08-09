@@ -1,3 +1,12 @@
+## 2.11.0 (August 9, 2021)
+
+IMPROVEMENTS:
+- `digitalocean_droplet`: Support setting the droplet_agent attribute ([#667](https://github.com/digitalocean/terraform-provider-digitalocean/pull/667)).
+- `digitalocean_database_firewall`: Allow setting app as a type ([#666](https://github.com/digitalocean/terraform-provider-digitalocean/issues/666)).
+- docs: Update links to API documentation ([#661](https://github.com/digitalocean/terraform-provider-digitalocean/pull/661)).
+- Simplified some loops based on go-staticcheck S1011 ([#656](https://github.com/digitalocean/terraform-provider-digitalocean/pull/656)). Thanks to @atombrella!
+- Update to Context-aware API v2 functions ([#657](https://github.com/digitalocean/terraform-provider-digitalocean/pull/657)). Thanks to @atombrella!
+
 ## 2.10.1 (June 29, 2021)
 
 BUG FIXES:
