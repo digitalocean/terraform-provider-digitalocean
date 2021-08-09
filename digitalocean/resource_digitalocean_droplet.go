@@ -183,6 +183,12 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 				Default:  false,
 			},
 
+			"droplet_agent": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			"tags": tagsSchema(),
 
 			"vpc_uuid": {
@@ -252,6 +258,10 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	if attr, ok := d.GetOk("monitoring"); ok {
 		opts.Monitoring = attr.(bool)
+	}
+
+	if attr, ok := d.GetOk("droplet_agent"); ok {
+		opts.WithDropletAgent = boolPtr(attr.(bool))
 	}
 
 	if attr, ok := d.GetOk("vpc_uuid"); ok {
