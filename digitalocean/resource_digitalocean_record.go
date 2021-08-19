@@ -125,14 +125,10 @@ func resourceDigitalOceanRecord() *schema.Resource {
 				}
 			}
 
-			_, hasPort := diff.GetOkExists("port")
 			_, hasWeight := diff.GetOkExists("weight")
 			if recordType == "SRV" {
 				if !hasPriority {
 					return fmt.Errorf("`priority` is required for when type is `SRV`")
-				}
-				if !hasPort {
-					return fmt.Errorf("`port` is required for when type is `SRV`")
 				}
 				if !hasWeight {
 					return fmt.Errorf("`weight` is required for when type is `SRV`")
@@ -164,6 +160,11 @@ func resourceDigitalOceanRecordCreate(ctx context.Context, d *schema.ResourceDat
 	}
 
 	newRecord.Type = d.Get("type").(string)
+
+	_, hasPort := d.GetOkExists("port")
+	if newRecord.Type == "SRV" && !hasPort {
+		return diag.Errorf("`port` is required for when type is `SRV`")
+	}
 
 	log.Printf("[DEBUG] record create configuration: %#v", newRecord)
 	rec, _, err := client.Domains.CreateRecord(context.Background(), d.Get("domain").(string), newRecord)

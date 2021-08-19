@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strconv"
 	"testing"
 
@@ -580,6 +581,97 @@ func TestAccDigitalOceanRecord_TXT(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_record.txt", "fqdn", domain),
 				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanRecord_ExpectedErrors(t *testing.T) {
+	var (
+		srvNoPort = `resource "digitalocean_record" "pgsql_default_pub_srv" {
+    domain = "example.com"
+
+    type = "SRV"
+    name = "_postgresql_.tcp.example.com"
+
+    // priority can be 0, but must be set.
+    priority = 0
+    weight = 0
+    value = "srv.example.com"
+}`
+		srvNoPrirority = `resource "digitalocean_record" "pgsql_default_pub_srv" {
+    domain = "example.com"
+
+    type = "SRV"
+    name = "_postgresql_.tcp.example.com"
+
+    port   = 3600
+    weight = 0
+    value  = "srv.example.com"
+}`
+		srvNoWeight = `resource "digitalocean_record" "pgsql_default_pub_srv" {
+    domain = "example.com"
+
+    type = "SRV"
+    name = "_postgresql._tcp.example.com"
+
+    port   = 3600
+	priority = 10
+    value  = "srv.example.com"
+}`
+		mxNoPriority = `resource "digitalocean_record" "foo_record" {
+  domain = "example.com"
+
+  name  = "terraform"
+  value = "mail."
+  type  = "MX"
+}`
+		caaNoFlags = `resource "digitalocean_record" "foo_record" {
+  domain = "example.com"
+
+  name  = "cert"
+  type  = "CAA"
+  value = "letsencrypt.org."
+  tag   = "issue"
+}`
+		caaNoTag = `resource "digitalocean_record" "foo_record" {
+  domain = "example.com"
+
+  name  = "cert"
+  type  = "CAA"
+  value = "letsencrypt.org."
+  flags   = 1
+}`
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanCertificateDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      srvNoPort,
+				ExpectError: regexp.MustCompile("`port` is required for when type is `SRV`"),
+			},
+			{
+				Config:      srvNoPrirority,
+				ExpectError: regexp.MustCompile("`priority` is required for when type is `SRV`"),
+			},
+			{
+				Config:      srvNoWeight,
+				ExpectError: regexp.MustCompile("`weight` is required for when type is `SRV`"),
+			},
+			{
+				Config:      mxNoPriority,
+				ExpectError: regexp.MustCompile("`priority` is required for when type is `MX`"),
+			},
+			{
+				Config:      caaNoFlags,
+				ExpectError: regexp.MustCompile("`flags` is required for when type is `CAA`"),
+			},
+			{
+				Config:      caaNoTag,
+				ExpectError: regexp.MustCompile("`tag` is required for when type is `CAA`"),
 			},
 		},
 	})
