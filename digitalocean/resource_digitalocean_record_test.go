@@ -24,6 +24,7 @@ func TestDigitalOceanRecordConstructFqdn(t *testing.T) {
 		{"nonexample.com", "nonexample.com.nonexample.com"},
 		{"test.nonexample.com", "test.nonexample.com.nonexample.com"},
 		{"test.nonexample.com.", "test.nonexample.com"},
+		{"@", "nonexample.com"},
 	}
 
 	domain := "nonexample.com"
@@ -576,6 +577,8 @@ func TestAccDigitalOceanRecord_TXT(t *testing.T) {
 						"digitalocean_record.txt", "domain", domain),
 					resource.TestCheckResourceAttr(
 						"digitalocean_record.txt", "value", "v=spf1 a:smtp01.example.com a:mail.example.com -all"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.txt", "fqdn", domain),
 				),
 			},
 		},

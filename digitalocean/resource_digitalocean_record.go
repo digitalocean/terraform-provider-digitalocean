@@ -313,6 +313,10 @@ func expandDigitalOceanRecordResource(d *schema.ResourceData) (*godo.DomainRecor
 }
 
 func constructFqdn(name, domain string) string {
+	if name == "@" {
+		return domain
+	}
+
 	rn := strings.ToLower(name)
 	domainSuffix := domain + "."
 	if strings.HasSuffix(rn, domainSuffix) {
