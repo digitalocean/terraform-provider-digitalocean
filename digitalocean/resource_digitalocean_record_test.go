@@ -24,6 +24,7 @@ func TestDigitalOceanRecordConstructFqdn(t *testing.T) {
 		{"nonexample.com", "nonexample.com.nonexample.com"},
 		{"test.nonexample.com", "test.nonexample.com.nonexample.com"},
 		{"test.nonexample.com.", "test.nonexample.com"},
+		{"@", "nonexample.com"},
 	}
 
 	domain := "nonexample.com"
@@ -557,6 +558,33 @@ func TestAccDigitalOceanRecord_iodefCAA(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanRecord_TXT(t *testing.T) {
+	var record godo.DomainRecord
+	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanRecordDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanRecordTXT, domain, domain),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanRecordExists("digitalocean_record.txt", &record),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.txt", "type", "TXT"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.txt", "domain", domain),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.txt", "value", "v=spf1 a:smtp01.example.com a:mail.example.com -all"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_record.txt", "fqdn", domain),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanRecordDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -857,4 +885,15 @@ resource "digitalocean_record" "CAA_iodef" {
   flags = "0"
   name  = "@"
   value = "mailto:caa-failures@example.com"
+}`
+
+const testAccCheckDigitalOceanRecordTXT = `
+resource "digitalocean_domain" "foobar" {
+  name       = "%s"
+}
+resource "digitalocean_record" "txt" {
+  domain = digitalocean_domain.foobar.name
+  type  = "TXT"
+  name  = "%s."
+  value = "v=spf1 a:smtp01.example.com a:mail.example.com -all"
 }`

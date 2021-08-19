@@ -54,7 +54,7 @@ func resourceDigitalOceanRecord() *schema.Resource {
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					domain := d.Get("domain").(string) + "."
 
-					return old+"."+domain == new
+					return (old == "@" && new == domain) || (old+"."+domain == new)
 				},
 			},
 
@@ -313,6 +313,10 @@ func expandDigitalOceanRecordResource(d *schema.ResourceData) (*godo.DomainRecor
 }
 
 func constructFqdn(name, domain string) string {
+	if name == "@" {
+		return domain
+	}
+
 	rn := strings.ToLower(name)
 	domainSuffix := domain + "."
 	if strings.HasSuffix(rn, domainSuffix) {
