@@ -1,3 +1,10 @@
+## 2.11.1 (August 20, 2021)
+
+BUG FIXES:
+
+- `digitalocean_record`: Move port validation for SRV records out of CustomizeDiff ([#670](https://github.com/digitalocean/terraform-provider-digitalocean/issues/670)).
+- `digitalocean_record`: Fix unexpected diffs for when TXT records are for the apex domain ([#664](https://github.com/digitalocean/terraform-provider-digitalocean/issues/664)).
+
 ## 2.11.0 (August 9, 2021)
 
 IMPROVEMENTS:
