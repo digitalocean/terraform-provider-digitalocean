@@ -373,21 +373,19 @@ func resourceDigitalOceanDropletImport(d *schema.ResourceData, meta interface{})
 		return nil, fmt.Errorf("Invalid droplet id: %v", err)
 	}
 
-	droplet, resp, err := client.Droplets.Get(context.Background(), id)
-	if resp.StatusCode != 404 {
-		if err != nil {
-			return nil, fmt.Errorf("Error importing droplet: %s", err)
-		}
-
-		if droplet.Image.Slug != "" {
-			d.Set("image", droplet.Image.Slug)
-		} else {
-			d.Set("image", godo.Stringify(droplet.Image.ID))
-		}
-
-		// This is a non API attribute. So set to the default setting in the schema.
-		d.Set("resize_disk", true)
+	droplet, _, err := client.Droplets.Get(context.Background(), id)
+	if err != nil {
+		return nil, fmt.Errorf("Error importing droplet: %s", err)
 	}
+
+	if droplet.Image.Slug != "" {
+		d.Set("image", droplet.Image.Slug)
+	} else {
+		d.Set("image", godo.Stringify(droplet.Image.ID))
+	}
+
+	// This is a non API attribute. So set to the default setting in the schema.
+	d.Set("resize_disk", true)
 
 	return []*schema.ResourceData{d}, nil
 }

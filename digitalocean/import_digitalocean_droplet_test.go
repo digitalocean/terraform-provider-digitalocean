@@ -38,7 +38,7 @@ func TestAccDigitalOceanDroplet_importBasic(t *testing.T) {
 				ImportState:       true,
 				ImportStateVerify: false,
 				ImportStateId:     "123",
-				ExpectError:       regexp.MustCompile(`(Please verify the ID is correct|Cannot import non-existent remote object)`),
+				ExpectError:       regexp.MustCompile(`The resource you were accessing could not be found.`),
 			},
 		},
 	})
