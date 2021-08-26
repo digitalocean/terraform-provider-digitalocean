@@ -132,9 +132,10 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"private_networking": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Computed: true,
+				Type:       schema.TypeBool,
+				Optional:   true,
+				Computed:   true,
+				Deprecated: "This parameter has been deprecated. Use `vpc_uuid` instead to specify a VPC network for the Droplet. If no `vpc_uuid` is provided, the Droplet will be placed in your account's default VPC for the region.",
 			},
 
 			"ipv4_address": {
