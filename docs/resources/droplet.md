@@ -34,10 +34,9 @@ The following arguments are supported:
    Defaults to false.
 * `ipv6` - (Optional) Boolean controlling if IPv6 is enabled. Defaults to false.
 * `vpc_uuid` - (Optional) The ID of the VPC where the Droplet will be located.
-* `private_networking` - (Optional)  Boolean controlling if private networking
-  is enabled. When VPC is enabled on an account, this will provision the
-  Droplet inside of your account's default VPC for the region. Use the
-  `vpc_uuid` attribute to specify a different VPC.
+* `private_networking` - (Optional) **Deprecated** Boolean controlling if private networking
+  is enabled. This parameter has been deprecated. Use `vpc_uuid` instead to specify a VPC network for the Droplet. If no `vpc_uuid` is provided, the Droplet will be placed in your account's default VPC for the region.
+
 * `ssh_keys` - (Optional) A list of SSH key IDs or fingerprints to enable in
    the format `[12345, 123456]`. To retrieve this info, use the
    [DigitalOcean API](https://docs.digitalocean.com/reference/api/api-reference/#tag/SSH-Keys)
