@@ -36,11 +36,19 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"v1/insights/droplet/load_1", "v1/insights/droplet/load_5", "v1/insights/droplet/load_15",
-					"v1/insights/droplet/memory_utilization_percent", "v1/insights/droplet/disk_utilization_percent",
-					"v1/insights/droplet/cpu", "v1/insights/droplet/disk_read", "v1/insights/droplet/disk_write",
-					"v1/insights/droplet/public_outbound_bandwidth", "v1/insights/droplet/public_inbound_bandwidth",
-					"v1/insights/droplet/private_outbound_bandwidth", "v1/insights/droplet/private_inbound_bandwidth",
+					godo.DropletCPUUtilizationPercent,
+					godo.DropletMemoryUtilizationPercent,
+					godo.DropletDiskUtilizationPercent,
+					godo.DropletPublicOutboundBandwidthRate,
+					godo.DropletDiskReadRate,
+					godo.DropletDiskWriteRate,
+					godo.DropletOneMinuteLoadAverage,
+					godo.DropletFiveMinuteLoadAverage,
+					godo.DropletFifteenMinuteLoadAverage,
+					// these are available as constants ...
+					"v1/insights/droplet/public_inbound_bandwidth",
+					"v1/insights/droplet/private_outbound_bandwidth",
+					"v1/insights/droplet/private_inbound_bandwidth",
 				}, false),
 			},
 
@@ -48,7 +56,8 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"GreaterThan", "LessThan",
+					string(godo.GreaterThan),
+					string(godo.LessThan),
 				}, false),
 				Description: "Description of the alert policy",
 			},
@@ -97,7 +106,7 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 										Description: "The Slack channel to send alerts to",
 									},
 									"url": {
-										Type:             schema.Type,
+										Type:             schema.TypeString,
 										Computed:         false,
 										DiffSuppressFunc: CaseSensitive,
 										Description:      "The webhook URL for Slack",
@@ -143,7 +152,7 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 		Compare:     d.Get("compare").(godo.AlertPolicyComp),
 		Window:      d.Get("window").(string),
 		Value:       d.Get("value").(float32),
-		//Entities:    expandEntities(d.Get("entities").(*schema.Set).List()),
+		Entities:    expandEntities(d.Get("entities").(*schema.Set).List()),
 	}
 
 	// alertPolicy, resp, err
@@ -154,35 +163,43 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 	}
 
 	d.SetId(alertPolicy.UUID)
-	log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
-
-	log.Printf("[INFO] App created, ID: %s", d.Id())
+	log.Printf("[INFO] Alert Policy created, ID: %s", d.Id())
 
 	return resourceDigitalOceanMonitorAlertRead(ctx, d, meta)
 }
 
-// func expandAlerts(alerts []godo.Alerts{}) ([]godo.Alerts, error) {
-// 	//
+func expandAlerts(alerts []interface{}) ([]godo.Alerts, error) {
+	alertPolicyNotifications := make([]godo.Alerts, len(alerts))
 
-// 	expandedAlerts := make([]godo.Alerts, len(alerts))
-// 	for i, s := range alerts {
-// 		alert := s.(string)
+	// for _, s := range alerts {
+	// 	alert := s.(string)
+	// }
 
-// 		var expandedSshKey godo.DropletCreateSSHKey
-// 		if id, err := strconv.Atoi(sshKey); err == nil {
-// 			expandedSshKey.ID = id
-// 		} else {
-// 			expandedSshKey.Fingerprint = sshKey
-// 		}
+	return alertPolicyNotifications, nil
+}
 
-// 		expandedSshKeys[i] = expandedSshKey
-// 	}
+func expandEntities(config []interface{}) []string {
+	alertEntities := make([]string, len(config))
 
-// 	return expandedSshKeys, nil
-// }
+	for i, v := range config {
+		alertEntities[i] = v.(string)
+	}
+
+	return alertEntities
+}
+
+func flattenEntities(entities []string) *schema.Set {
+	result := schema.NewSet(schema.HashString, []interface{}{})
+
+	for _, entity := range entities {
+		result.Add(entity)
+	}
+
+	return result
+}
 
 func flattenAlerts(alerts []godo.Alerts) []map[string]interface{} {
-
+	return nil
 }
 
 func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -198,7 +215,8 @@ func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.Resou
 		client.Monitoring.UpdateAlertPolicy(context.Background(), "", updateRequest)
 	}
 
-	client.Monitoring.UpdateAlertPolicy(ctx, alertPolicy)
+	// what other things to check in the update process?
+	client.Monitoring.UpdateAlertPolicy(ctx, "alertPolicy", nil)
 
 	return nil
 }
@@ -224,7 +242,7 @@ func resourceDigitalOceanMonitorAlertRead(ctx context.Context, d *schema.Resourc
 	// d.Set("alerts", flattenAlerts(alert.Alerts))
 	d.Set("value", alert.Value)
 	d.Set("window", alert.Window)
-	// d.Set("entities", flattenEntities(alert.Entities))
+	d.Set("entities", flattenEntities(alert.Entities))
 	d.Set("tags", flattenTags(alert.Tags))
 	d.Set("type", alert.Type)
 
