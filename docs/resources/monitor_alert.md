@@ -41,12 +41,31 @@ resource "digitalocean_monitoring" "cpu_alert" {
 The following arguments are supported:
 
 * `alerts` - (Required) How to send notifications about the alerts.
-* `description` - (Required) .
-* `region` - (Required) The region to start in.
-* `compare` - (Required)
+* `description` - (Required) The description of the alert.
+* `compare` - (Required) The comparison for `value`. 
+  This may be either `GreaterThan` or `LessThan`.
+* `type` - (Required) The type of the alert.
+  This may be either `v1/insights/droplet/load_1`, `v1/insights/droplet/load_5`, `v1/insights/droplet/load_15`,
+  `v1/insights/droplet/memory_utilization_percent`, `v1/insights/droplet/disk_utilization_percent`",
+  `v1/insights/droplet/cpu`, `v1/insights/droplet/disk_read`, `v1/insights/droplet/disk_write`,
+  `v1/insights/droplet/public_outbound_bandwidth`, `v1/insights/droplet/public_inbound_bandwidth`,
+  `v1/insights/droplet/private_outbound_bandwidth`, `v1/insights/droplet/private_inbound_bandwidth`.
 * `enabled` - (Required) The status of the alert.
 * `entities` - (Required) The resources to which the alert policy applies.
-* `value` - (Required) The value of 
+* `value` - (Required) The percentage to start alerting at, e.g., 90.
+* `tags` - (Required) Tags for the alert.
+* `window` - (Required) The time frame of the alert. Either 1m, 5m, 15m or 60m. 
 
 ## Attributes Reference
 
+The following attributes are exported.
+
+* `window` - The time frame of the alert.
+* `enabled` - The status of the alert.
+* `entities` - The resources for which the alert policy applies
+* `type` - The type of the alert.
+* `value` - The percentage to start alerting at.
+* `tags` - Tags for the alert.
+* `value` - The percentage to start alerting at, e.g., 90
+* `alerts` - The notification policies of the alert policy.
+* `description` - The description of the alert.

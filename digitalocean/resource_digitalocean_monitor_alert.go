@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"context"
+	"log"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -20,7 +21,6 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			// TODO: sort this list
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -29,6 +29,7 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 			"uuid": {
 				Type:     schema.TypeString,
 				Computed: true,
+				Required: true,
 			},
 
 			"type": {
@@ -119,13 +120,19 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	alertCreateRequest := &godo.AlertPolicyCreateRequest{
+		Alerts:	expandAlerts(d.Get("alerts").(godo.AppAlertSpec))
 		Type:        d.Get("type").(string),
 		Description: d.Get("description").(string),
-		Tags:        expandTags(d.Get("tags")).([]string),
-		Compare:     d.Get("compare").(string),
+		Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
+		Compare:     d.Get("compare").(godo.AlertPolicyComp),
+		Window:      d.Get("window").(string),
+		Entities:    expandEntities(d.Get("entities").(*schema.Set).List()),
+		Value:		 d.Get("value").(float32),
+
 	}
 
-	_, err, _ = client.Monitoring.CreateAlertPolicy(ctx, alertCreateRequest)
+	// alertPolicy, resp, err
+	alertPolicy, resp, err := client.Monitoring.CreateAlertPolicy(ctx, alertCreateRequest)
 
 	return nil
 }
@@ -150,18 +157,50 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 // 	return expandedSshKeys, nil
 // }
 
+// flattenAlerts
+
 func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
-	client.Monitoring.UpdateAlertPolicy(ctx, d)
+	// get the alert, and update it here
+	alertPolicy, _, _ := client.Monitoring.GetAlertPolicy(context.Background(), d.Id())
+	d.SetId(alertPolicy.UUID)
+
+	updateRequest := &godo.AlertPolicyUpdateRequest{}
+
+	if d.HasChange("alerts") {
+		client.Monitoring.UpdateAlertPolicy(context.Background(), "", updateRequest)
+	}
+
+	client.Monitoring.UpdateAlertPolicy(ctx, alertPolicy)
 
 	return nil
 }
 
 func resourceDigitalOceanMonitorAlertRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
-	// get a single monitoring alert by 
-	client.Monitoring.GetAlertPolicy(ctx, , meta)
+
+	alert, resp, err := client.Monitoring.GetAlertPolicy(ctx, d.Id())
+
+	if err != nil {
+		if resp != nil && resp.StatusCode == 404 {
+			log.Printf("[DEBUG] Alert (%s) was not found - removing from state", d.Id())
+			d.SetId("")
+			return nil
+		}
+		return diag.Errorf("Error reading Alert: %s", err)
+	}
+
+	d.SetId(alert.UUID)
+	d.Set("description", alert.Description)
+	d.Set("enabled", alert.Enabled)
+	d.Set("compare", alert.Compare)
+	// d.Set("alerts", flattenAlerts(alert.Alerts))
+	d.Set("value", alert.Value)
+	d.Set("window", alert.Window)
+	// d.Set("entities", flattenEntities(alert.Entities))
+	d.Set("tags", flattenTags(alert.Tags))
+	d.Set("type", alert.Type)
 
 	return nil
 }
@@ -169,13 +208,11 @@ func resourceDigitalOceanMonitorAlertRead(ctx context.Context, d *schema.Resourc
 func resourceDigitalOceanMonitorAlertDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
-	client.Monitoring.CreateAlertPolicy(ctx, d)
-
+	log.Printf("[INFO] Deleting the monitor alert")
+	_, err := client.Monitoring.DeleteAlertPolicy(context.Background(), d.Id())
+	if err != nil {
+		return diag.Errorf("Error deleting monitor alert: %s", err)
+	}
+	d.SetId("")
 	return nil
-
-	// if err != nil {
-	// 	return diag.FromErr(err)
-	// } else {
-	// 	return nil
-	// }
 }
