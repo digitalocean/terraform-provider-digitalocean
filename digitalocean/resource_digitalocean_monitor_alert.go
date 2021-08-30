@@ -79,24 +79,40 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 				Description: "Tags for the monitoring alert",
 			},
 
-			// {
-			// 	"alerts": {
-			// 	  "email": [
-			// 		"bob@exmaple.com"
-			// 	  ],
-			// 	  "slack": [
-			// 		{
-			// 		  "channel": "Production Alerts",
-			// 		  "url": "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
-			// 		}
-			// 	  ]
-			// 	},
-			// "alerts": {
-			// 	Type:        schema.TypeList,
-			// 	Computed:    false,
-			// 	Required:    false,
-			// 	Description: "List with details how to notify about the alert. Support for Slack or email.",
-			// },
+			"alerts": {
+				Type:        schema.TypeList,
+				Computed:    false,
+				Required:    false,
+				Description: "List with details how to notify about the alert. Support for Slack or email.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"slack": {
+							Type: schema.TypeList,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"channel": {
+										Type:        schema.TypeList,
+										Computed:    false,
+										Required:    true,
+										Description: "The Slack channel to send alerts to",
+									},
+									"url": {
+										Type:             schema.Type,
+										Computed:         false,
+										DiffSuppressFunc: CaseSensitive,
+										Description:      "The webhook URL for Slack",
+									},
+								},
+							},
+						},
+						"email": {
+							Type:             schema.TypeList,
+							Computed:         false,
+							DiffSuppressFunc: CaseSensitive,
+						},
+					},
+				},
+			},
 
 			"entities": {
 				Type:        schema.TypeSet,
@@ -120,24 +136,32 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	alertCreateRequest := &godo.AlertPolicyCreateRequest{
-		Alerts:	expandAlerts(d.Get("alerts").(godo.AppAlertSpec))
+		// Alerts:      expandAlerts(d.Get("alerts").(godo.AppAlertSpec)),
 		Type:        d.Get("type").(string),
 		Description: d.Get("description").(string),
 		Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
 		Compare:     d.Get("compare").(godo.AlertPolicyComp),
 		Window:      d.Get("window").(string),
-		Entities:    expandEntities(d.Get("entities").(*schema.Set).List()),
-		Value:		 d.Get("value").(float32),
-
+		Value:       d.Get("value").(float32),
+		//Entities:    expandEntities(d.Get("entities").(*schema.Set).List()),
 	}
 
 	// alertPolicy, resp, err
-	alertPolicy, resp, err := client.Monitoring.CreateAlertPolicy(ctx, alertCreateRequest)
+	alertPolicy, _, err := client.Monitoring.CreateAlertPolicy(ctx, alertCreateRequest)
 
-	return nil
+	if err != nil {
+		return diag.Errorf("Error creating Alert Policy: %s", err)
+	}
+
+	d.SetId(alertPolicy.UUID)
+	log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
+
+	log.Printf("[INFO] App created, ID: %s", d.Id())
+
+	return resourceDigitalOceanMonitorAlertRead(ctx, d, meta)
 }
 
-// func expandAlerts(alerts []interface{}) ([]godo.Alerts, error) {
+// func expandAlerts(alerts []godo.Alerts{}) ([]godo.Alerts, error) {
 // 	//
 
 // 	expandedAlerts := make([]godo.Alerts, len(alerts))
@@ -157,7 +181,9 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 // 	return expandedSshKeys, nil
 // }
 
-// flattenAlerts
+func flattenAlerts(alerts []godo.Alerts) []map[string]interface{} {
+
+}
 
 func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
