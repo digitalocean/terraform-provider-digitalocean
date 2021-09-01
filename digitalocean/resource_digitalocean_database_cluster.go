@@ -295,7 +295,7 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
-	if d.HasChange("size") || d.HasChange("node_count") {
+	if d.HasChanges("size", "node_count") {
 		opts := &godo.DatabaseResizeRequest{
 			SizeSlug: d.Get("size").(string),
 			NumNodes: d.Get("node_count").(int),

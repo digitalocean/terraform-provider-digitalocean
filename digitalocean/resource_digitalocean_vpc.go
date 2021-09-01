@@ -140,7 +140,7 @@ func resourceDigitalOceanVPCRead(ctx context.Context, d *schema.ResourceData, me
 func resourceDigitalOceanVPCUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
-	if d.HasChange("name") || d.HasChange("description") {
+	if d.HasChanges("name", "description") {
 		vpcUpdateRequest := &godo.VPCUpdateRequest{
 			Name:        d.Get("name").(string),
 			Description: d.Get("description").(string),
