@@ -96,28 +96,33 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"slack": {
-							Type: schema.TypeList,
+							Type:     schema.TypeList,
+							Required: false,
+							Computed: false,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"channel": {
-										Type:        schema.TypeList,
-										Computed:    false,
-										Required:    true,
-										Description: "The Slack channel to send alerts to",
+										Type:         schema.TypeList,
+										Computed:     false,
+										Required:     true,
+										Description:  "The Slack channel to send alerts to",
+										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"url": {
 										Type:             schema.TypeString,
 										Computed:         false,
 										DiffSuppressFunc: CaseSensitive,
 										Description:      "The webhook URL for Slack",
+										ValidateFunc:     validation.StringIsNotEmpty,
 									},
 								},
 							},
 						},
 						"email": {
-							Type:             schema.TypeList,
-							Computed:         false,
-							DiffSuppressFunc: CaseSensitive,
+							Type:         schema.TypeList,
+							Computed:     false,
+							Required:     false,
+							ValidateFunc: validation.ListOfUniqueStrings,
 						},
 					},
 				},
@@ -145,7 +150,7 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 	alertCreateRequest := &godo.AlertPolicyCreateRequest{
-		// Alerts:      expandAlerts(d.Get("alerts").(godo.AppAlertSpec)),
+		Alerts:      expandAlerts(d.Get("alerts").(*schema.Set).List()),
 		Type:        d.Get("type").(string),
 		Description: d.Get("description").(string),
 		Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
@@ -168,12 +173,12 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 	return resourceDigitalOceanMonitorAlertRead(ctx, d, meta)
 }
 
-func expandAlerts(alerts []interface{}) ([]godo.Alerts, error) {
-	alertPolicyNotifications := make([]godo.Alerts, len(alerts))
+func expandAlerts(alerts godo.Alerts) (*godo.Alerts, error) {
+	alertPolicyNotifications := &godo.Alerts{}
+	alertMap = alerts[0].(map[string]interface{})
 
-	// for _, s := range alerts {
-	// 	alert := s.(string)
-	// }
+	expandedAlerts := make([]*godo.Alerts, 0, len(alerts))
+	alertPolicyNotifications.Email = alert
 
 	return alertPolicyNotifications, nil
 }
@@ -189,12 +194,13 @@ func expandEntities(config []interface{}) []string {
 }
 
 func flattenEntities(entities []string) *schema.Set {
+	// it seems there are many functions like this in different places in the code base.
+	// maybe a utility library would be better
 	result := schema.NewSet(schema.HashString, []interface{}{})
 
 	for _, entity := range entities {
 		result.Add(entity)
 	}
-
 	return result
 }
 

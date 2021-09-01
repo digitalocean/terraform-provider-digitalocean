@@ -5,8 +5,8 @@ page_title: "DigitalOcean: digital_monitor_alert"
 # digitalocean_monitor
 
 Provides a [DigitalOcean Monitoring](https://docs.digitalocean.com/reference/api/api-reference/#tag/Monitoring) resource.
-Monitor alerts can be configured to alert about, e.g., disk or memory usage exceeding certain threshold. Notifications
-can be sent to either an email address or a Slack channel.
+Monitor alerts can be configured to alert about, e.g., disk or memory usage exceeding certain threshold, or traffic at certain
+limits. Notifications can be sent to either an email address or a Slack channel.
 
 ### Basic Example
 
@@ -20,19 +20,19 @@ resource "digitalocean_droplet" "web" {
 }
 
 resource "digitalocean_monitoring" "cpu_alert" {
-    alerts      = {
-        email = ["benny@digitalocean.com"]
-        slack = {
-            "channel"   = "Production Alerts",
-            "url"       = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
-    }
-    window      = "5m"
-    type        = "v1/insights/droplet/cpu"
-    compare     = "GreaterThan"
-    value       = 95
-    enabled     = true
-    entities    = [digitalocean_droplet.web.id]
-    description = "Alert about CPU usage"
+  alerts      = {
+    email = ["benny@digitalocean.com"]
+    slack = {
+      "channel"   = "Production Alerts",
+      "url"       = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
+  }
+  window      = "5m"
+  type        = "v1/insights/droplet/cpu"
+  compare     = "GreaterThan"
+  value       = 95
+  enabled     = true
+  entities    = [digitalocean_droplet.web.id]
+  description = "Alert about CPU usage"
 }
 ```
 
@@ -46,7 +46,7 @@ The following arguments are supported:
   This may be either `GreaterThan` or `LessThan`.
 * `type` - (Required) The type of the alert.
   This may be either `v1/insights/droplet/load_1`, `v1/insights/droplet/load_5`, `v1/insights/droplet/load_15`,
-  `v1/insights/droplet/memory_utilization_percent`, `v1/insights/droplet/disk_utilization_percent`",
+  `v1/insights/droplet/memory_utilization_percent`, `v1/insights/droplet/disk_utilization_percent`,
   `v1/insights/droplet/cpu`, `v1/insights/droplet/disk_read`, `v1/insights/droplet/disk_write`,
   `v1/insights/droplet/public_outbound_bandwidth`, `v1/insights/droplet/public_inbound_bandwidth`,
   `v1/insights/droplet/private_outbound_bandwidth`, `v1/insights/droplet/private_inbound_bandwidth`.

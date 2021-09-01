@@ -1,1 +1,7 @@
-package digitalocean_test
+package digitalocean
+
+import "testing"
+
+func TestAccDigitalOceanMonitorAlert(t *testing.T) {
+
+}
