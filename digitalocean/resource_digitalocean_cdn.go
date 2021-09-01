@@ -232,7 +232,7 @@ func resourceDigitalOceanCDNUpdate(ctx context.Context, d *schema.ResourceData, 
 		log.Printf("[INFO] Updated TTL on CDN")
 	}
 
-	if d.HasChange("certificate_id") || d.HasChange("custom_domain") || d.HasChange("certificate_name") {
+	if d.HasChanges("certificate_id", "custom_domain", "certificate_name") {
 		cdnUpdateRequest := &godo.CDNUpdateCustomDomainRequest{
 			CustomDomain: d.Get("custom_domain").(string),
 		}
