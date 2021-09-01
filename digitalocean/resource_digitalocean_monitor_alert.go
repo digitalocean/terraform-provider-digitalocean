@@ -59,7 +59,7 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 					string(godo.GreaterThan),
 					string(godo.LessThan),
 				}, false),
-				Description: "Description of the alert policy",
+				Description: "The comparison operator to use for value",
 			},
 
 			"description": {
@@ -80,13 +80,7 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 				ValidateFunc: validation.FloatAtLeast(0),
 			},
 
-			"tags": {
-				Type:        schema.TypeList,
-				Computed:    false,
-				Required:    false,
-				Optional:    true,
-				Description: "Tags for the monitoring alert",
-			},
+			"tags": tagsSchema(),
 
 			"alerts": {
 				Type:        schema.TypeList,
@@ -149,8 +143,8 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 
 func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
+
 	alertCreateRequest := &godo.AlertPolicyCreateRequest{
-		Alerts:      expandAlerts(d.Get("alerts").(*schema.Set).List()),
 		Type:        d.Get("type").(string),
 		Description: d.Get("description").(string),
 		Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
@@ -159,6 +153,8 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 		Value:       d.Get("value").(float32),
 		Entities:    expandEntities(d.Get("entities").(*schema.Set).List()),
 	}
+
+	alertCreateRequest.Alerts = expandAlerts(d.Get("alerts").([]interface{}))
 
 	// alertPolicy, resp, err
 	alertPolicy, _, err := client.Monitoring.CreateAlertPolicy(ctx, alertCreateRequest)
@@ -173,14 +169,44 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 	return resourceDigitalOceanMonitorAlertRead(ctx, d, meta)
 }
 
-func expandAlerts(alerts godo.Alerts) (*godo.Alerts, error) {
-	alertPolicyNotifications := &godo.Alerts{}
-	alertMap = alerts[0].(map[string]interface{})
+func expandAlerts(d *schema.ResourceData) *godo.Alerts {
 
-	expandedAlerts := make([]*godo.Alerts, 0, len(alerts))
-	alertPolicyNotifications.Email = alert
+	alerts := &godo.Alerts{
+		Slack: expandSlack(d.Get("slack").([]interface{})),
+		Email: expandEmail(d.Get("email").([]interface{})),
+	}
 
-	return alertPolicyNotifications, nil
+	return alerts
+}
+
+func expandSlack(slackChannels []interface{}) []godo.SlackDetails {
+	expandedSlackChannels := make([]godo.SlackDetails, 0, len(slackChannels))
+
+	for _, slackChannel := range slackChannels {
+		slack := slackChannel.(map[string]interface{})
+		n := &godo.SlackDetails{
+			Channel: slack["channel"].(string),
+			URL:     slack["url"].(string),
+		}
+
+		expandedSlackChannels = append(expandedSlackChannels, n)
+	}
+
+	return expandedSlackChannels
+}
+
+func expandEmail(config []interface{}) []string {
+	emailList := make([]string, len(config))
+
+	for i, v := range config {
+		emailList[i] = v.(string)
+	}
+
+	return emailList
+}
+
+func flattenAlerts(alerts []godo.Alerts) []map[string]interface{} {
+	return nil
 }
 
 func expandEntities(config []interface{}) []string {
@@ -204,10 +230,6 @@ func flattenEntities(entities []string) *schema.Set {
 	return result
 }
 
-func flattenAlerts(alerts []godo.Alerts) []map[string]interface{} {
-	return nil
-}
-
 func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
@@ -218,6 +240,7 @@ func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.Resou
 	updateRequest := &godo.AlertPolicyUpdateRequest{}
 
 	if d.HasChange("alerts") {
+		// godo.AlertDestinationUpdateRequest
 		client.Monitoring.UpdateAlertPolicy(context.Background(), "", updateRequest)
 	}
 
