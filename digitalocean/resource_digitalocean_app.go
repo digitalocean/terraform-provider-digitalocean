@@ -108,12 +108,17 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 	d.SetId(app.ID)
 	d.Set("default_ingress", app.DefaultIngress)
 	d.Set("live_url", app.LiveURL)
-	d.Set("active_deployment_id", app.ActiveDeployment.ID)
 	d.Set("updated_at", app.UpdatedAt.UTC().String())
 	d.Set("created_at", app.CreatedAt.UTC().String())
 
 	if err := d.Set("spec", flattenAppSpec(d, app.Spec)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting app spec: %#v", err)
+		return diag.Errorf("Error setting app spec: %#v", err)
+	}
+
+	if app.ActiveDeployment != nil {
+		d.Set("active_deployment_id", app.ActiveDeployment.ID)
+	} else {
+		return diag.Errorf("No active deployment found for app: %s (%s)", app.Spec.Name, app.ID)
 	}
 
 	return nil
