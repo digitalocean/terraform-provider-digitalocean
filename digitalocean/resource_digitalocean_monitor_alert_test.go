@@ -1,9 +1,12 @@
 package digitalocean
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
-// maybe these can be functions instead
-var test = `
+func testAccAlertPolicy(withAlerts bool) string {
+	return fmt.Sprint(`
 resource "digitalocean_droplet" "web" {
 	image  = "ubuntu-20-04-x64"
 	name   = "web-1"
@@ -26,7 +29,8 @@ resource "digitalocean_droplet" "web" {
 	entities    = [digitalocean_droplet.web.id]
 	description = "Alert about CPU usage"
   }
-`
+`)
+}
 
 func TestAccDigitalOceanMonitorAlert(t *testing.T) {
 

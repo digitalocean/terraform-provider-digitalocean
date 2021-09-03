@@ -69,9 +69,8 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 			},
 
 			"enabled": {
-				Type:     schema.TypeBool,
-				Default:  true,
-				Required: true,
+				Type:    schema.TypeBool,
+				Default: true,
 			},
 
 			"value": {
@@ -97,14 +96,13 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"channel": {
 										Type:         schema.TypeList,
-										Computed:     false,
 										Required:     true,
 										Description:  "The Slack channel to send alerts to",
 										ValidateFunc: validation.StringIsNotEmpty,
 									},
 									"url": {
 										Type:             schema.TypeString,
-										Computed:         false,
+										Required:         true,
 										DiffSuppressFunc: CaseSensitive,
 										Description:      "The webhook URL for Slack",
 										ValidateFunc:     validation.StringIsNotEmpty,
@@ -113,10 +111,11 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 							},
 						},
 						"email": {
-							Type:         schema.TypeList,
-							Computed:     false,
-							Required:     false,
-							ValidateFunc: validation.ListOfUniqueStrings,
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},
@@ -127,6 +126,9 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 				Required:    true,
 				MinItems:    1,
 				Description: "The droplets to apply the alert policy to",
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 
 			"window": {
@@ -135,7 +137,6 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					"5m", "10m", "30m", "1h",
 				}, false),
-				MinItems: 1,
 			},
 		},
 	}
@@ -148,9 +149,9 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 		Type:        d.Get("type").(string),
 		Description: d.Get("description").(string),
 		Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
-		Compare:     d.Get("compare").(godo.AlertPolicyComp),
+		Compare:     godo.AlertPolicyComp(d.Get("compare").(string)),
 		Window:      d.Get("window").(string),
-		Value:       d.Get("value").(float32),
+		Value:       float32(d.Get("value").(float64)),
 		Entities:    expandEntities(d.Get("entities").(*schema.Set).List()),
 	}
 
@@ -169,14 +170,16 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 	return resourceDigitalOceanMonitorAlertRead(ctx, d, meta)
 }
 
-func expandAlerts(d *schema.ResourceData) *godo.Alerts {
-
-	alerts := &godo.Alerts{
-		Slack: expandSlack(d.Get("slack").([]interface{})),
-		Email: expandEmail(d.Get("email").([]interface{})),
+func expandAlerts(config []interface{}) godo.Alerts {
+	alertConfig := config[0].(map[string]interface{})
+	alerts := godo.Alerts{
+		Slack: expandSlack(alertConfig["slack"].([]interface{})),
+		Email: expandEmail(alertConfig["email"].([]interface{})),
 	}
-
 	return alerts
+}
+
+func flattenAlerts(alerts godo.Alerts) {
 }
 
 func expandSlack(slackChannels []interface{}) []godo.SlackDetails {
@@ -184,7 +187,7 @@ func expandSlack(slackChannels []interface{}) []godo.SlackDetails {
 
 	for _, slackChannel := range slackChannels {
 		slack := slackChannel.(map[string]interface{})
-		n := &godo.SlackDetails{
+		n := godo.SlackDetails{
 			Channel: slack["channel"].(string),
 			URL:     slack["url"].(string),
 		}
@@ -193,6 +196,10 @@ func expandSlack(slackChannels []interface{}) []godo.SlackDetails {
 	}
 
 	return expandedSlackChannels
+}
+
+func flattenSlack() {
+
 }
 
 func expandEmail(config []interface{}) []string {
@@ -205,8 +212,8 @@ func expandEmail(config []interface{}) []string {
 	return emailList
 }
 
-func flattenAlerts(alerts []godo.Alerts) []map[string]interface{} {
-	return nil
+func flattenEmail(emails []string) {
+
 }
 
 func expandEntities(config []interface{}) []string {
@@ -268,7 +275,7 @@ func resourceDigitalOceanMonitorAlertRead(ctx context.Context, d *schema.Resourc
 	d.Set("description", alert.Description)
 	d.Set("enabled", alert.Enabled)
 	d.Set("compare", alert.Compare)
-	// d.Set("alerts", flattenAlerts(alert.Alerts))
+	d.Set("alerts", flattenAlerts(alert.Alerts))
 	d.Set("value", alert.Value)
 	d.Set("window", alert.Window)
 	d.Set("entities", flattenEntities(alert.Entities))
