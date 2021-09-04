@@ -179,7 +179,9 @@ func expandAlerts(config []interface{}) godo.Alerts {
 	return alerts
 }
 
-func flattenAlerts(alerts godo.Alerts) {
+func flattenAlerts(alerts []godo.Alerts) []map[string]interface{} {
+	flattenSlack(alerts.Slack)
+	flattenEmail(alerts.Email)
 }
 
 func expandSlack(slackChannels []interface{}) []godo.SlackDetails {
@@ -198,8 +200,17 @@ func expandSlack(slackChannels []interface{}) []godo.SlackDetails {
 	return expandedSlackChannels
 }
 
-func flattenSlack() {
+func flattenSlack(slackChannels []godo.SlackDetails) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, len(slackChannels))
 
+	for _, slackChannel := range slackChannels {
+		item := make(map[string]interface{})
+		item["url"] = slackChannel.URL
+		item["channel"] = slackChannel.Channel
+		result = append(result, item)
+	}
+
+	return result
 }
 
 func expandEmail(config []interface{}) []string {
@@ -212,8 +223,17 @@ func expandEmail(config []interface{}) []string {
 	return emailList
 }
 
-func flattenEmail(emails []string) {
+func flattenEmail(emails []string) []interface{} {
+	if emails == nil {
+		return nil
+	}
 
+	flattenedEmails := make([]string, len(emails))
+	for i, v := range emails {
+		flattenedEmails[i] = v.(string)
+	}
+
+	return flattenedEmails
 }
 
 func expandEntities(config []interface{}) []string {
@@ -249,6 +269,10 @@ func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.Resou
 	if d.HasChange("alerts") {
 		// godo.AlertDestinationUpdateRequest
 		client.Monitoring.UpdateAlertPolicy(context.Background(), "", updateRequest)
+	}
+
+	if d.HasChange("tags") {
+		updateRequest.Tags = d.Get("tags").([]string)
 	}
 
 	// what other things to check in the update process?

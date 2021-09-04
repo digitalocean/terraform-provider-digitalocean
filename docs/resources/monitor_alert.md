@@ -69,3 +69,11 @@ The following attributes are exported.
 * `value` - The percentage to start alerting at, e.g., 90
 * `alerts` - The notification policies of the alert policy.
 * `description` - The description of the alert.
+
+## Import
+
+Monitor alerts can be imported using the monitor alert `uuid`, e.g.
+
+```
+terraform import digitalocean_monitor_alert.cpu_alert b8ecd2ab-2267-4a5e-8692-cbf1d32583e3
+```
