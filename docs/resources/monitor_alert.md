@@ -20,11 +20,11 @@ resource "digitalocean_droplet" "web" {
 }
 
 resource "digitalocean_monitoring" "cpu_alert" {
-  alerts      = {
+  alerts      {
     email = ["benny@digitalocean.com"]
-    slack = {
-      "channel"   = "Production Alerts",
-      "url"       = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
+    slack {
+      channel   = "Production Alerts",
+      url       = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
   }
   window      = "5m"
   type        = "v1/insights/droplet/cpu"
@@ -74,6 +74,6 @@ The following attributes are exported.
 
 Monitor alerts can be imported using the monitor alert `uuid`, e.g.
 
-```
+```shell
 terraform import digitalocean_monitor_alert.cpu_alert b8ecd2ab-2267-4a5e-8692-cbf1d32583e3
 ```

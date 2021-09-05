@@ -23,13 +23,12 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 
 			"uuid": {
 				Type:     schema.TypeString,
 				Computed: true,
-				Required: true,
 			},
 
 			"type": {
@@ -69,8 +68,9 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 			},
 
 			"enabled": {
-				Type:    schema.TypeBool,
-				Default: true,
+				Type:     schema.TypeBool,
+				Default:  true,
+				Optional: true,
 			},
 
 			"value": {
@@ -83,22 +83,21 @@ func resourceDigitalMonitorAlert() *schema.Resource {
 
 			"alerts": {
 				Type:        schema.TypeList,
-				Computed:    false,
-				Required:    false,
+				Optional:    true,
 				Description: "List with details how to notify about the alert. Support for Slack or email.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"slack": {
 							Type:     schema.TypeList,
-							Required: false,
-							Computed: false,
+							Optional: true,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"channel": {
-										Type:         schema.TypeList,
-										Required:     true,
-										Description:  "The Slack channel to send alerts to",
-										ValidateFunc: validation.StringIsNotEmpty,
+										Type:             schema.TypeString,
+										Required:         true,
+										DiffSuppressFunc: CaseSensitive,
+										Description:      "The Slack channel to send alerts to",
+										ValidateFunc:     validation.StringIsNotEmpty,
 									},
 									"url": {
 										Type:             schema.TypeString,
@@ -179,9 +178,13 @@ func expandAlerts(config []interface{}) godo.Alerts {
 	return alerts
 }
 
-func flattenAlerts(alerts []godo.Alerts) []map[string]interface{} {
-	flattenSlack(alerts.Slack)
-	flattenEmail(alerts.Email)
+func flattenAlerts(alerts godo.Alerts) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	result["email"] = flattenEmail(alerts.Email)
+	result["slack"] = flattenSlack(alerts.Slack)
+
+	return result
 }
 
 func expandSlack(slackChannels []interface{}) []godo.SlackDetails {
@@ -223,14 +226,14 @@ func expandEmail(config []interface{}) []string {
 	return emailList
 }
 
-func flattenEmail(emails []string) []interface{} {
+func flattenEmail(emails []string) []string {
 	if emails == nil {
 		return nil
 	}
 
 	flattenedEmails := make([]string, len(emails))
 	for i, v := range emails {
-		flattenedEmails[i] = v.(string)
+		flattenedEmails[i] = v
 	}
 
 	return flattenedEmails
@@ -266,10 +269,14 @@ func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.Resou
 
 	updateRequest := &godo.AlertPolicyUpdateRequest{}
 
-	if d.HasChange("alerts") {
-		// godo.AlertDestinationUpdateRequest
-		client.Monitoring.UpdateAlertPolicy(context.Background(), "", updateRequest)
-	}
+	// TODO
+	// if d.HasChange("alerts") {
+	// 	// Check the individual things to see if there are changes
+	// 	updateRequest := godo.AlertDestinationUpdateRequest{
+	// 		SlackWebhooks: expandSlack(d.Get("slack").([]godo.AppAlertSlackWebhook)),
+	// 	}
+	// 	client.Monitoring.UpdateAlertPolicy(context.Background(), "", updateRequest)
+	// }
 
 	if d.HasChange("tags") {
 		updateRequest.Tags = d.Get("tags").([]string)
