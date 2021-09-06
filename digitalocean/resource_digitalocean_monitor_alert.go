@@ -157,9 +157,8 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 
 	alertCreateRequest.Alerts = expandAlerts(d.Get("alerts").([]interface{}))
 
-	// alertPolicy, resp, err
-	alertPolicy, _, err := client.Monitoring.CreateAlertPolicy(ctx, alertCreateRequest)
-
+	log.Printf("[DEBUG] Alert Policy create configuration: %#v", alertCreateRequest)
+	alertPolicy, _, err := client.Monitoring.CreateAlertPolicy(context.Background(), alertCreateRequest)
 	if err != nil {
 		return diag.Errorf("Error creating Alert Policy: %s", err)
 	}
@@ -173,19 +172,19 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 func expandAlerts(config []interface{}) godo.Alerts {
 	alertConfig := config[0].(map[string]interface{})
 	alerts := godo.Alerts{
-		Slack: expandSlack(alertConfig["slack"].([]interface{})),
+		// Slack: expandSlack(alertConfig["slack"].([]interface{})),
 		Email: expandEmail(alertConfig["email"].([]interface{})),
 	}
 	return alerts
 }
 
-func flattenAlerts(alerts godo.Alerts) map[string]interface{} {
-	result := make(map[string]interface{})
-
-	result["email"] = flattenEmail(alerts.Email)
-	result["slack"] = flattenSlack(alerts.Slack)
-
-	return result
+func flattenAlerts(alerts godo.Alerts) []interface{} {
+	return []interface{}{
+		map[string]interface{}{
+			"email": flattenEmail(alerts.Email),
+			// "slack": flattenSlack(alerts.Slack),
+		},
+	}
 }
 
 func expandSlack(slackChannels []interface{}) []godo.SlackDetails {
@@ -204,7 +203,7 @@ func expandSlack(slackChannels []interface{}) []godo.SlackDetails {
 	return expandedSlackChannels
 }
 
-func flattenSlack(slackChannels []godo.SlackDetails) []map[string]interface{} {
+func flattenSlack(slackChannels []godo.SlackDetails) []interface{} {
 	result := make([]map[string]interface{}, 0, len(slackChannels))
 
 	for _, slackChannel := range slackChannels {
@@ -214,7 +213,7 @@ func flattenSlack(slackChannels []godo.SlackDetails) []map[string]interface{} {
 		result = append(result, item)
 	}
 
-	return result
+	return []interface{}{result}
 }
 
 func expandEmail(config []interface{}) []string {
@@ -227,14 +226,16 @@ func expandEmail(config []interface{}) []string {
 	return emailList
 }
 
-func flattenEmail(emails []string) []string {
+func flattenEmail(emails []string) *schema.Set {
 	if emails == nil {
 		return nil
 	}
 
-	flattenedEmails := make([]string, len(emails))
-	for i, v := range emails {
-		flattenedEmails[i] = v
+	flattenedEmails := schema.NewSet(HashStringIgnoreCase, []interface{}{})
+	for _, v := range emails {
+		if v != "" {
+			flattenedEmails.Add(v)
+		}
 	}
 
 	return flattenedEmails
@@ -250,15 +251,18 @@ func expandEntities(config []interface{}) []string {
 	return alertEntities
 }
 
-func flattenEntities(entities []string) *schema.Set {
+func flattenEntities(entities []string) []interface{} {
 	// it seems there are many functions like this in different places in the code base.
 	// maybe a utility library would be better
-	result := schema.NewSet(schema.HashString, []interface{}{})
-
-	for _, entity := range entities {
-		result.Add(entity)
+	if entities == nil {
+		return nil
 	}
-	return result
+
+	return []interface{}{
+		map[string]interface{}{
+			"entities": entities,
+		},
+	}
 }
 
 func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

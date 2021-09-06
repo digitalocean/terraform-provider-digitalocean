@@ -20,11 +20,7 @@ resource "digitalocean_droplet" "web" {
   
   resource "digitalocean_monitor_alert" "cpu_alert" {
 	alerts  {
-	  email = ["benny@digitalocean.com"]
-	  slack {
-		channel   = "Production Alerts"
-		url       = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
-	  }
+	  email 	= ["benny@digitalocean.com"]
 	}
 	window      = "%s"
 	type        = "v1/insights/droplet/cpu"
@@ -36,7 +32,6 @@ resource "digitalocean_droplet" "web" {
 `, window)
 }
 
-// can be a variable
 func testAccAlertPolicyNoAlerts() string {
 	return `
 resource "digitalocean_droplet" "web" {
@@ -47,6 +42,9 @@ resource "digitalocean_droplet" "web" {
   }
   
   resource "digitalocean_monitor_alert" "cpu_alert" {
+	alerts {
+	  email 	= ["benny@digitalocean.com"]
+	}
 	window      = "5m"
 	type        = "v1/insights/droplet/cpu"
 	compare     = "GreaterThan"
@@ -68,8 +66,9 @@ func TestAccDigitalOceanMonitorAlert(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "compare", "GreaterThan"),
-					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts.slack.0.channel", "Production Alerts"),
-					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
+					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts.0.email", "benny@digitalocean.com"),
+					// resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts.slack.0.channel", "Production Alerts"),
+					// resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
 				),
 			},
 		},
@@ -88,8 +87,14 @@ func TestAccDigitalOceanMonitorAlertNoAlerts(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "compare", "GreaterThan"),
 					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts"),
+					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.0.email", "benny@digitalocean.com"),
 				),
+				// ExpectError: "",
 			},
 		},
 	})
 }
+
+// ideas for tests:
+// email/slack required
+//
