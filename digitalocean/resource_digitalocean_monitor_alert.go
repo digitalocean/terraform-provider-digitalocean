@@ -83,7 +83,7 @@ func resourceDigitalOceanMonitorAlert() *schema.Resource {
 
 			"alerts": {
 				Type:        schema.TypeList,
-				Optional:    true,
+				Required:    true,
 				Description: "List with details how to notify about the alert. Support for Slack or email.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -110,8 +110,9 @@ func resourceDigitalOceanMonitorAlert() *schema.Resource {
 							},
 						},
 						"email": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:        schema.TypeList,
+							Optional:    true,
+							Description: "List of email addresses to sent notifications to",
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
@@ -172,7 +173,7 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 func expandAlerts(config []interface{}) godo.Alerts {
 	alertConfig := config[0].(map[string]interface{})
 	alerts := godo.Alerts{
-		// Slack: expandSlack(alertConfig["slack"].([]interface{})),
+		Slack: expandSlack(alertConfig["slack"].([]interface{})),
 		Email: expandEmail(alertConfig["email"].([]interface{})),
 	}
 	return alerts
@@ -182,12 +183,16 @@ func flattenAlerts(alerts godo.Alerts) []interface{} {
 	return []interface{}{
 		map[string]interface{}{
 			"email": flattenEmail(alerts.Email),
-			// "slack": flattenSlack(alerts.Slack),
+			"slack": flattenSlack(alerts.Slack),
 		},
 	}
 }
 
 func expandSlack(slackChannels []interface{}) []godo.SlackDetails {
+	if len(slackChannels) == 0 {
+		return nil
+	}
+
 	expandedSlackChannels := make([]godo.SlackDetails, 0, len(slackChannels))
 
 	for _, slackChannel := range slackChannels {
@@ -217,6 +222,9 @@ func flattenSlack(slackChannels []godo.SlackDetails) []interface{} {
 }
 
 func expandEmail(config []interface{}) []string {
+	if len(config) == 0 {
+		return nil
+	}
 	emailList := make([]string, len(config))
 
 	for i, v := range config {
@@ -227,7 +235,7 @@ func expandEmail(config []interface{}) []string {
 }
 
 func flattenEmail(emails []string) *schema.Set {
-	if emails == nil {
+	if len(emails) == 0 {
 		return nil
 	}
 
