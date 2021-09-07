@@ -107,7 +107,7 @@ func Provider() *schema.Provider {
 			"digitalocean_kubernetes_cluster":                    resourceDigitalOceanKubernetesCluster(),
 			"digitalocean_kubernetes_node_pool":                  resourceDigitalOceanKubernetesNodePool(),
 			"digitalocean_loadbalancer":                          resourceDigitalOceanLoadbalancer(),
-			"digitalocean_monitor_alert":                         resourceDigitalMonitorAlert(),
+			"digitalocean_monitor_alert":                         resourceDigitalOceanMonitorAlert(),
 			"digitalocean_project":                               resourceDigitalOceanProject(),
 			"digitalocean_project_resources":                     resourceDigitalOceanProjectResources(),
 			"digitalocean_record":                                resourceDigitalOceanRecord(),

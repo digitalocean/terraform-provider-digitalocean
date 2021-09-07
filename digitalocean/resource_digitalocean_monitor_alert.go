@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func resourceDigitalMonitorAlert() *schema.Resource {
+func resourceDigitalOceanMonitorAlert() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanMonitorAlertCreate,
 		ReadContext:   resourceDigitalOceanMonitorAlertRead,
