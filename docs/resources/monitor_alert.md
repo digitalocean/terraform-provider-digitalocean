@@ -23,7 +23,7 @@ resource "digitalocean_monitoring" "cpu_alert" {
   alerts      {
     email = ["benny@digitalocean.com"]
     slack {
-      channel   = "Production Alerts",
+      channel   = "Production Alerts"
       url       = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
   }
   window      = "5m"
@@ -54,19 +54,20 @@ The following arguments are supported:
 * `entities` - (Required) The resources to which the alert policy applies.
 * `value` - (Required) The percentage to start alerting at, e.g., 90.
 * `tags` - (Required) Tags for the alert.
-* `window` - (Required) The time frame of the alert. Either 1m, 5m, 15m or 60m. 
+* `window` - (Required) The time frame of the alert. Either `5m`, `10m`, `30m`, or `1h`. 
 
 ## Attributes Reference
 
 The following attributes are exported.
 
+* `uuid` - The uuid of the alert.
 * `window` - The time frame of the alert.
 * `enabled` - The status of the alert.
 * `entities` - The resources for which the alert policy applies
 * `type` - The type of the alert.
 * `value` - The percentage to start alerting at.
 * `tags` - Tags for the alert.
-* `value` - The percentage to start alerting at, e.g., 90
+* `value` - The percentage to start alerting at, e.g., 90.
 * `alerts` - The notification policies of the alert policy.
 * `description` - The description of the alert.
 

@@ -21,11 +21,6 @@ func resourceDigitalOceanMonitorAlert() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-
 			"uuid": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -262,7 +257,7 @@ func expandEntities(config []interface{}) []string {
 func flattenEntities(entities []string) []interface{} {
 	// it seems there are many functions like this in different places in the code base.
 	// maybe a utility library would be better
-	if entities == nil {
+	if len(entities) == 0 {
 		return nil
 	}
 
@@ -275,30 +270,16 @@ func flattenEntities(entities []string) []interface{} {
 
 func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
+	opts := &godo.AlertPolicyUpdateRequest{}
 
-	// get the alert, and update it here
-	alertPolicy, _, _ := client.Monitoring.GetAlertPolicy(context.Background(), d.Id())
-	d.SetId(alertPolicy.UUID)
-
-	updateRequest := &godo.AlertPolicyUpdateRequest{}
-
-	// TODO
-	// if d.HasChange("alerts") {
-	// 	// Check the individual things to see if there are changes
-	// 	updateRequest := godo.AlertDestinationUpdateRequest{
-	// 		SlackWebhooks: expandSlack(d.Get("slack").([]godo.AppAlertSlackWebhook)),
-	// 	}
-	// 	client.Monitoring.UpdateAlertPolicy(context.Background(), "", updateRequest)
-	// }
-
-	if d.HasChange("tags") {
-		updateRequest.Tags = d.Get("tags").([]string)
+	if d.HasChange("alerts") {
+		alerts := expandAlerts(d.Get("alerts").([]interface{}))
+		opts.Alerts = alerts
+		client.Monitoring.UpdateAlertPolicy(ctx, d.Id(), opts)
 	}
+	// what more to update here?
 
-	// what other things to check in the update process?
-	client.Monitoring.UpdateAlertPolicy(ctx, "alertPolicy", nil)
-
-	return nil
+	return resourceDigitalOceanMonitorAlertRead(ctx, d, meta)
 }
 
 func resourceDigitalOceanMonitorAlertRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
