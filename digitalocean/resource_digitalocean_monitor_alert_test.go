@@ -90,6 +90,7 @@ func TestAccDigitalOceanMonitorAlert(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
 		ProviderFactories:         testAccProviderFactories,
+		CheckDestroy:              testAccCheckDigitalOceanDropletDestroy,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
@@ -97,7 +98,7 @@ func TestAccDigitalOceanMonitorAlert(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "compare", "GreaterThan"),
-					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts.0.email", "benny@digitalocean.com"),
+					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts.email.0", "benny@digitalocean.com"),
 					// resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts.slack.0.channel", "Production Alerts"),
 					// resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
 				),
@@ -110,6 +111,7 @@ func TestAccDigitalOceanMonitorAlertEmailAlerts(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
 		ProviderFactories:         testAccProviderFactories,
+		CheckDestroy:              testAccCheckDigitalOceanDropletDestroy,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
@@ -118,7 +120,7 @@ func TestAccDigitalOceanMonitorAlertEmailAlerts(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "compare", "GreaterThan"),
 					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.0.email", "benny@digitalocean.com"),
+					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.email.0", "benny@digitalocean.com"),
 				),
 			},
 		},
@@ -129,6 +131,7 @@ func TestAccDigitalOceanMonitorAlertSlackEmailAlerts(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
 		ProviderFactories:         testAccProviderFactories,
+		CheckDestroy:              testAccCheckDigitalOceanDropletDestroy,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
@@ -137,9 +140,9 @@ func TestAccDigitalOceanMonitorAlertSlackEmailAlerts(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "compare", "GreaterThan"),
 					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.0.email", "benny@digitalocean.com"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.0.slack.0.channel", "production-alerts"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.0.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
+					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.email.0", "benny@digitalocean.com"),
+					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.slack.0.channel", "production-alerts"),
+					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
 				),
 			},
 		},
@@ -151,6 +154,7 @@ func TestAccDigitalOceanMonitorAlertUpdate(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
 		ProviderFactories:         testAccProviderFactories,
+		CheckDestroy:              testAccCheckDigitalOceanDropletDestroy,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
@@ -159,9 +163,9 @@ func TestAccDigitalOceanMonitorAlertUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "compare", "GreaterThan"),
 					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.0.email", "benny@digitalocean.com"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.0.slack.0.channel", "production-alerts"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.0.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
+					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.email.0", "benny@digitalocean.com"),
+					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.slack.0.channel", "production-alerts"),
+					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
 				),
 			},
 			{
@@ -170,9 +174,9 @@ func TestAccDigitalOceanMonitorAlertUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
 					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "compare", "GreaterThan"),
 					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.0.email", "benny@digitalocean.com"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.0.slack.0.channel", "production-alerts"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.0.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
+					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.email.0", "benny@digitalocean.com"),
+					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.slack.0.channel", "production-alerts"),
+					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
 				),
 			},
 		},
