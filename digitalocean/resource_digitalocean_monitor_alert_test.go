@@ -96,11 +96,10 @@ func TestAccDigitalOceanMonitorAlert(t *testing.T) {
 			{
 				Config: testAccAlertPolicy("5m"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
-					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "compare", "GreaterThan"),
-					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts.email.0", "benny@digitalocean.com"),
-					// resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts.slack.0.channel", "Production Alerts"),
-					// resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
+					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
+					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "compare", "GreaterThan"),
+					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.email.0", "benny@digitalocean.com"),
 				),
 			},
 		},
