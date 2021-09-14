@@ -230,15 +230,15 @@ func expandEmail(config []interface{}) []string {
 	return emailList
 }
 
-func flattenEmail(emails []string) *schema.Set {
+func flattenEmail(emails []string) []string {
 	if len(emails) == 0 {
 		return nil
 	}
 
-	flattenedEmails := schema.NewSet(HashStringIgnoreCase, []interface{}{})
+	flattenedEmails := make([]string, 0)
 	for _, v := range emails {
 		if v != "" {
-			flattenedEmails.Add(v)
+			flattenedEmails = append(flattenedEmails, v)
 		}
 	}
 
