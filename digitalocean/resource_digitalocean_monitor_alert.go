@@ -80,6 +80,7 @@ func resourceDigitalOceanMonitorAlert() *schema.Resource {
 				Type:        schema.TypeList,
 				Required:    true,
 				Description: "List with details how to notify about the alert. Support for Slack or email.",
+				MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"slack": {
