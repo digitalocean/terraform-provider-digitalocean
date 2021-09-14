@@ -255,19 +255,6 @@ func expandEntities(config []interface{}) []string {
 	return alertEntities
 }
 
-func flattenEntities(entities []string) []interface{} {
-	// it seems there are many functions like this in different places in the code base.
-	// maybe a utility library would be better
-	if len(entities) == 0 {
-		return nil
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"entities": entities,
-		},
-	}
-}
 
 func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
