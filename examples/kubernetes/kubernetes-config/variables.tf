@@ -9,8 +9,9 @@ variable "primary_cluster" {
   })
 }
 
-variable "cluster_id" {
-  type = string
+# Helm chart deployment can sometimes take longer than the default 5 minutes
+variable "nginx_ingress_helm_timeout_seconds" {
+  default     = 600
 }
 
 variable "write_kubeconfig" {
