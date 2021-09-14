@@ -105,6 +105,9 @@ resource "helm_release" "nginx_ingress" {
   repository = "https://charts.bitnami.com/bitnami"
   chart      = "nginx-ingress-controller"
 
+  # Try to allow time for external endpoints to be applied to service
+  wait_for_jobs = true
+
   set {
     name  = "service.type"
     value = "LoadBalancer"
@@ -143,5 +146,15 @@ resource "kubernetes_ingress" "test_ingress" {
         }
       }
     }
+  }
+}
+
+data "kubernetes_service" "nginx-ingress-controller" {  
+  depends_on = [
+    helm_release.nginx_ingress
+  ]
+  metadata {
+    name      = "nginx-ingress-controller"
+    namespace = kubernetes_namespace.test.metadata.0.name
   }
 }
