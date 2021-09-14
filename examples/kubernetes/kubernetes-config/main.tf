@@ -109,6 +109,14 @@ resource "helm_release" "nginx_ingress" {
     name  = "service.type"
     value = "LoadBalancer"
   }
+  set {
+    name  = "service.annotations.service\\.beta\\.kubernetes\\.io/do-loadbalancer-name"
+    value = var.primary_cluster.name
+  }
+  set {
+    name  = "service.annotations.service\\.beta\\.kubernetes\\.io/do-loadbalancer-size-slug"
+    value = "lb-small"
+  }
 }
 
 resource "kubernetes_ingress" "test_ingress" {
