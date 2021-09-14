@@ -291,7 +291,7 @@ func resourceDigitalOceanMonitorAlertRead(ctx context.Context, d *schema.Resourc
 	d.Set("alerts", flattenAlerts(alert.Alerts))
 	d.Set("value", alert.Value)
 	d.Set("window", alert.Window)
-	d.Set("entities", flattenEntities(alert.Entities))
+	d.Set("entities", alert.Entities)
 	d.Set("tags", flattenTags(alert.Tags))
 	d.Set("type", alert.Type)
 
