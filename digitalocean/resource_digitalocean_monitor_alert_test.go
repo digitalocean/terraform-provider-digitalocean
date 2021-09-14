@@ -160,12 +160,11 @@ func TestAccDigitalOceanMonitorAlertUpdate(t *testing.T) {
 			{
 				Config: testAccAlertPolicySlackEmailAlerts(),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
-					resource.TestCheckResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "compare", "GreaterThan"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.cpu_alert", "alerts"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.email.0", "benny@digitalocean.com"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.slack.0.channel", "production-alerts"),
-					resource.TestCheckNoResourceAttr("digitalocean_spaces_monitor_alert.alerts.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
+					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
+					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "compare", "GreaterThan"),
+					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.email.0", "benny@digitalocean.com"),
+					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.slack.#", "0"),
 				),
 			},
 			{
