@@ -108,9 +108,6 @@ resource "helm_release" "nginx_ingress" {
   # Helm chart deployment can sometimes take longer than the default 5 minutes
   timeout    = var.nginx_ingress_helm_timeout_seconds
 
-  # Try to allow time for external endpoints to be applied to service
-  wait_for_jobs = true
-
   set {
     name  = "service.type"
     value = "LoadBalancer"
