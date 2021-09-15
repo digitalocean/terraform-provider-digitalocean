@@ -9,16 +9,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccDigitalOceanDatabaseMonitorAlert_importBasic(t *testing.T) {
-	resourceName := "digitalocean_monitor_alert.cpu_alert"
+func TestAccDigitalOceanMonitorAlert_importBasic(t *testing.T) {
+	// copied from the database import test, but 3/3 does not fail ...
+
+	randName := randomTestName()
+	resourceName := fmt.Sprintf("digitalocean_monitor_alert.%s", randName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanDatabaseDBDestroy,
+		CheckDestroy:      testAccCheckDigitalOceanMonitorAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccAlertPolicy("10m")),
+				Config: fmt.Sprintf(testAccAlertPolicy, randName, "", "10m", "v1/insights/droplet/memory_utilization_percent", "Alert about memory usage"),
 			},
 			{
 				ResourceName:      resourceName,
@@ -31,8 +34,8 @@ func TestAccDigitalOceanDatabaseMonitorAlert_importBasic(t *testing.T) {
 				ResourceName:      resourceName,
 				ImportState:       true,
 				ImportStateVerify: false,
-				ImportStateId:     fmt.Sprintf("%s,%s", "this-cluster-id-does-not-exist", monitor_alert_test_name),
-				ExpectError:       regexp.MustCompile(`(Please verify the ID is correct|Cannot import non-existent remote object)`),
+				ImportStateId:     "this-monitor-alert-id-does-not-exist",
+				ExpectError:       regexp.MustCompile(`some fancy error`),
 			},
 		},
 	})

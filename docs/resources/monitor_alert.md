@@ -20,7 +20,7 @@ resource "digitalocean_droplet" "web" {
 }
 
 resource "digitalocean_monitoring" "cpu_alert" {
-  alerts      {
+  alerts {
     email = ["benny@digitalocean.com"]
     slack {
       channel   = "Production Alerts"
@@ -40,7 +40,9 @@ resource "digitalocean_monitoring" "cpu_alert" {
 
 The following arguments are supported:
 
-* `alerts` - (Required) How to send notifications about the alerts.
+* `alerts` - (Required) How to send notifications about the alerts. This is a list with one element, .
+  Note that for Slack, the DigitalOcean app needs to have permissions for your workspace. You can
+  read more in [Slack's documentation](https://slack.com/intl/en-dk/help/articles/222386767-Manage-app-installation-settings-for-your-workspace)
 * `description` - (Required) The description of the alert.
 * `compare` - (Required) The comparison for `value`. 
   This may be either `GreaterThan` or `LessThan`.
@@ -52,7 +54,8 @@ The following arguments are supported:
   `v1/insights/droplet/private_outbound_bandwidth`, `v1/insights/droplet/private_inbound_bandwidth`.
 * `enabled` - (Required) The status of the alert.
 * `entities` - (Required) The resources to which the alert policy applies.
-* `value` - (Required) The percentage to start alerting at, e.g., 90.
+* `value` - (Required) The value to start alerting at, e.g., 90% or 85Mbps. This is a floating-point number. 
+  DigitalOcean will show the correct unit in the web panel.
 * `tags` - (Required) Tags for the alert.
 * `window` - (Required) The time frame of the alert. Either `5m`, `10m`, `30m`, or `1h`. 
 

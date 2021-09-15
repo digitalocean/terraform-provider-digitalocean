@@ -1,20 +1,25 @@
 package digitalocean
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-// update and delete tests missing
 
 const (
-	monitor_alert_test_name = "cpu_alert"
-)
+	// make some consts for slack/email stuff, so they aren't duplicated
 
-func testAccAlertPolicy(window string) string {
-	return fmt.Sprintf(`
+	slackChannels = `
+slack {
+	channel = "production-alerts"
+	url		= "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
+}
+	`
+
+	testAccAlertPolicy = `
 resource "digitalocean_droplet" "web" {
 	image  = "ubuntu-20-04-x64"
 	name   = "web-1"
@@ -25,42 +30,18 @@ resource "digitalocean_droplet" "web" {
   resource "digitalocean_monitor_alert" "%s" {
 	alerts  {
 	  email 	= ["benny@digitalocean.com"]
+      %s
 	}
 	window      = "%s"
-	type        = "v1/insights/droplet/cpu"
+	type        = "%s"
 	compare     = "GreaterThan"
 	value       = 95
 	entities    = [digitalocean_droplet.web.id]
-	description = "Alert about CPU usage"
-  }
-`, monitor_alert_test_name, window)
-}
-
-func testAccAlertPolicyEmailAlerts() string {
-	return `
-resource "digitalocean_droplet" "web" {
-	image  = "ubuntu-20-04-x64"
-	name   = "web-1"
-	region = "fra1"
-	size   = "s-1vcpu-1gb"
-  }
-  
-  resource "digitalocean_monitor_alert" "cpu_alert" {
-	alerts {
-	  email 	= ["benny@digitalocean.com"]
-	}
-	window      = "5m"
-	type        = "v1/insights/droplet/cpu"
-	compare     = "GreaterThan"
-	value       = 95
-	entities    = [digitalocean_droplet.web.id]
-	description = "Alert about CPU usage"
+	description = "%s"
   }
 `
-}
 
-func testAccAlertPolicySlackEmailAlerts() string {
-	return `
+	testAccAlertPolicySlackEmailAlerts = `
 resource "digitalocean_droplet" "web" {
 	image  = "ubuntu-20-04-x64"
 	name   = "web-1"
@@ -68,7 +49,7 @@ resource "digitalocean_droplet" "web" {
 	size   = "s-1vcpu-1gb"
   }
   
-  resource "digitalocean_monitor_alert" "cpu_alert" {
+  resource "digitalocean_monitor_alert" "%s" {
 	alerts {
 	  email 	= ["benny@digitalocean.com"]
 	  slack {
@@ -84,22 +65,25 @@ resource "digitalocean_droplet" "web" {
 	description = "Alert about CPU usage"
   }
 `
-}
+)
 
 func TestAccDigitalOceanMonitorAlert(t *testing.T) {
+	var randName = randomTestName()
+	resourceName := fmt.Sprintf("digitalocean_monitor_alert.%s", randName)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
 		ProviderFactories:         testAccProviderFactories,
-		CheckDestroy:              testAccCheckDigitalOceanDropletDestroy,
+		CheckDestroy:              testAccCheckDigitalOceanMonitorAlertDestroy,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAlertPolicy("5m"),
+				Config: fmt.Sprintf(testAccAlertPolicy, randName, "", "5m", "v1/insights/droplet/cpu", "Alert about CPU usage"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "compare", "GreaterThan"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.email.0", "benny@digitalocean.com"),
+					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/cpu"),
+					resource.TestCheckResourceAttr(resourceName, "compare", "GreaterThan"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.email.0", "benny@digitalocean.com"),
 				),
 			},
 		},
@@ -107,19 +91,22 @@ func TestAccDigitalOceanMonitorAlert(t *testing.T) {
 }
 
 func TestAccDigitalOceanMonitorAlertEmailAlerts(t *testing.T) {
+	var randName = randomTestName()
+	resourceName := fmt.Sprintf("digitalocean_monitor_alert.%s", randName)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
 		ProviderFactories:         testAccProviderFactories,
-		CheckDestroy:              testAccCheckDigitalOceanDropletDestroy,
+		CheckDestroy:              testAccCheckDigitalOceanMonitorAlertDestroy,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAlertPolicyEmailAlerts(),
+				Config: fmt.Sprintf(testAccAlertPolicy, randName, " ", "5m", "v1/insights/droplet/cpu", "Alert about CPU usage"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "compare", "GreaterThan"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.email.0", "benny@digitalocean.com"),
+					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/cpu"),
+					resource.TestCheckResourceAttr(resourceName, "compare", "GreaterThan"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.email.0", "benny@digitalocean.com"),
 				),
 			},
 		},
@@ -127,57 +114,83 @@ func TestAccDigitalOceanMonitorAlertEmailAlerts(t *testing.T) {
 }
 
 func TestAccDigitalOceanMonitorAlertSlackEmailAlerts(t *testing.T) {
+	var randName = randomTestName()
+	resourceName := fmt.Sprintf("digitalocean_monitor_alert.%s", randName)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
 		ProviderFactories:         testAccProviderFactories,
-		CheckDestroy:              testAccCheckDigitalOceanDropletDestroy,
+		CheckDestroy:              testAccCheckDigitalOceanMonitorAlertDestroy,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAlertPolicySlackEmailAlerts(),
+				Config: fmt.Sprintf(testAccAlertPolicySlackEmailAlerts, randName),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "compare", "GreaterThan"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.#", "1"),
-					resource.TestCheckResourceAttrSet("digitalocean_monitor_alert.cpu_alert", "alerts.0.email.0"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.slack.0.channel", "production-alerts"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
+					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/cpu"),
+					resource.TestCheckResourceAttr(resourceName, "compare", "GreaterThan"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.#", "1"),
+					resource.TestCheckResourceAttrSet(resourceName, "alerts.0.email.0"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.0.channel", "production-alerts"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
 				),
 			},
 		},
 	})
 }
 
-// change the type, and see that it'll change
 func TestAccDigitalOceanMonitorAlertUpdate(t *testing.T) {
+	var randName = randomTestName()
+	resourceName := fmt.Sprintf("digitalocean_monitor_alert.%s", randName)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { testAccPreCheck(t) },
 		ProviderFactories:         testAccProviderFactories,
-		CheckDestroy:              testAccCheckDigitalOceanDropletDestroy,
+		CheckDestroy:              testAccCheckDigitalOceanMonitorAlertDestroy,
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccAlertPolicySlackEmailAlerts(),
+				Config: fmt.Sprintf(testAccAlertPolicy, randName, "", "10m", "v1/insights/droplet/cpu", "Alert about CPU usage"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "compare", "GreaterThan"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.email.0", "benny@digitalocean.com"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.slack.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/cpu"),
+					resource.TestCheckResourceAttr(resourceName, "compare", "GreaterThan"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.email.0", "benny@digitalocean.com"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.#", "0"),
 				),
 			},
 			{
-				Config: testAccAlertPolicySlackEmailAlerts(),
+				// how to update?
+				Config: fmt.Sprintf(testAccAlertPolicy, randName, slackChannels, "10m", "v1/insights/droplet/memory_utilization_percent", "Alert about memory usage"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "type", "v1/insights/droplet/cpu"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "compare", "GreaterThan"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.email.0", "benny@digitalocean.com"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.slack.#", "1"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.slack.0.channel", "production-alerts"),
-					resource.TestCheckResourceAttr("digitalocean_monitor_alert.cpu_alert", "alerts.0.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
+					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/memory_utilization_percent"),
+					resource.TestCheckResourceAttr(resourceName, "compare", "GreaterThan"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.email.0", "benny@digitalocean.com"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.0.channel", "production-alerts"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
 				),
 			},
 		},
 	})
+}
+
+func testAccCheckDigitalOceanMonitorAlertDestroy(s *terraform.State) error {
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "digitalocean_monitor_alert" {
+			continue
+		}
+		uuid := rs.Primary.Attributes["uuid"]
+
+		// Try to find the monitor alert
+		_, _, err := client.Monitoring.GetAlertPolicy(context.Background(), uuid)
+
+		if err == nil {
+			return fmt.Errorf("Monitor alert still exists")
+		}
+	}
+
+	return nil
 }

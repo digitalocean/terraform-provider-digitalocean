@@ -59,6 +59,7 @@ func resourceDigitalOceanMonitorAlert() *schema.Resource {
 			"description": {
 				Type:        schema.TypeString,
 				Required:    true,
+				ForceNew:    true,
 				Description: "Description of the alert policy",
 			},
 
@@ -204,7 +205,7 @@ func expandSlack(slackChannels []interface{}) []godo.SlackDetails {
 	return expandedSlackChannels
 }
 
-func flattenSlack(slackChannels []godo.SlackDetails) []interface{} {
+func flattenSlack(slackChannels []godo.SlackDetails) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0, len(slackChannels))
 
 	for _, slackChannel := range slackChannels {
@@ -214,7 +215,7 @@ func flattenSlack(slackChannels []godo.SlackDetails) []interface{} {
 		result = append(result, item)
 	}
 
-	return []interface{}{result}
+	return result
 }
 
 func expandEmail(config []interface{}) []string {
@@ -254,7 +255,6 @@ func expandEntities(config []interface{}) []string {
 
 	return alertEntities
 }
-
 
 func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
