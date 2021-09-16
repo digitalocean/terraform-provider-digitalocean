@@ -49,6 +49,33 @@ func TestAccDigitalOceanDatabaseUser_Basic(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseUser_MongoDB(t *testing.T) {
+	var databaseUser godo.DatabaseUser
+	databaseClusterName := randomTestName()
+	databaseUserName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseUserConfigMongo, databaseClusterName, databaseUserName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseUserExists("digitalocean_database_user.foobar_user", &databaseUser),
+					testAccCheckDigitalOceanDatabaseUserAttributes(&databaseUser, databaseUserName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "name", databaseUserName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "role"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "password"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDatabaseUser_MySQLAuth(t *testing.T) {
 	var databaseUser godo.DatabaseUser
 	databaseClusterName := randomTestName()
@@ -206,6 +233,26 @@ resource "digitalocean_database_cluster" "foobar" {
 	name       = "%s"
 	engine     = "pg"
 	version    = "11"
+	size       = "db-s-1vcpu-1gb"
+	region     = "nyc1"
+	node_count = 1
+
+	maintenance_window {
+        day  = "friday"
+        hour = "13:00:00"
+	}
+}
+
+resource "digitalocean_database_user" "foobar_user" {
+  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  name       = "%s"
+}`
+
+const testAccCheckDigitalOceanDatabaseUserConfigMongo = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "mongodb"
+	version    = "4"
 	size       = "db-s-1vcpu-1gb"
 	region     = "nyc1"
 	node_count = 1
