@@ -96,6 +96,15 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 						"hour": {
 							Type:     schema.TypeString,
 							Required: true,
+							// Prevent a diff when seconds in response, e.g: "13:00" -> "13:00:00"
+							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+								newSplit := strings.Split(new, ":")
+								if len(newSplit) == 3 {
+									newTrimed := strings.Join(newSplit[:2], ":")
+									return newTrimed == old
+								}
+								return old == new
+							},
 						},
 					},
 				},
