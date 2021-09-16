@@ -100,7 +100,7 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								newSplit := strings.Split(new, ":")
 								if len(newSplit) == 3 {
-									newTrimed := strings.Join([]string{newSplit[0], newSplit[1]}, ":")
+									newTrimed := strings.Join(newSplit[:2], ":")
 									return newTrimed == old
 								}
 								return old == new
