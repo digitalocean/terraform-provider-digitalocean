@@ -276,6 +276,64 @@ func appSpecHealthCheckSchema() map[string]*schema.Schema {
 	}
 }
 
+func appSpecCORSSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"allow_origins": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "The set of allowed CORS origins. This configures the Access-Control-Allow-Origin header.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"exact": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "Exact string match.",
+					},
+					"prefix": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "Prefix-based match. ",
+					},
+					"regex": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "RE2 style regex-based match.",
+					},
+				},
+			},
+		},
+		"allow_methods": {
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Elem:        &schema.Schema{Type: schema.TypeString},
+			Description: "The set of allowed HTTP methods. This configures the Access-Control-Allow-Methods header.",
+		},
+		"allow_headers": {
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Elem:        &schema.Schema{Type: schema.TypeString},
+			Description: "The set of allowed HTTP request headers. This configures the Access-Control-Allow-Headers header.",
+		},
+		"expose_headers": {
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Elem:        &schema.Schema{Type: schema.TypeString},
+			Description: "The set of HTTP response headers that browsers are allowed to access. This configures the Access-Control-Expose-Headers header.",
+		},
+		"max_age": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "An optional duration specifying how long browsers can cache the results of a preflight request. This configures the Access-Control-Max-Age header. Example: `5h30m`.",
+		},
+		"allow_credentials": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Whether browsers should expose the response to the client-side JavaScript code when the request’s credentials mode is `include`. This configures the Access-Control-Allow-Credentials header.",
+		},
+	}
+}
+
 func appSpecComponentBase() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
@@ -390,6 +448,14 @@ func appSpecServicesSchema() *schema.Resource {
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
+		"cors": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecCORSSchema(),
+			},
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -429,6 +495,14 @@ func appSpecStaticSiteSchema() *schema.Resource {
 			Computed: true,
 			Elem: &schema.Resource{
 				Schema: appSpecRouteSchema(),
+			},
+		},
+		"cors": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecCORSSchema(),
 			},
 		},
 	}
@@ -998,6 +1072,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.InternalPorts = expandAppInternalPorts(internalPorts)
 		}
 
+		cors := service["cors"].([]interface{})
+		if len(cors) > 0 {
+			s.CORS = expandAppCORSPolicy(cors)
+		}
+
 		appServices = append(appServices, s)
 	}
 
@@ -1027,6 +1106,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["instance_count"] = int(s.InstanceCount)
 		r["source_dir"] = s.SourceDir
 		r["environment_slug"] = s.EnvironmentSlug
+		r["cors"] = flattenAppCORSPolicy(s.CORS)
 
 		result[i] = r
 	}
@@ -1073,6 +1153,11 @@ func expandAppSpecStaticSites(config []interface{}) []*godo.AppStaticSiteSpec {
 			s.Routes = expandAppRoutes(routes)
 		}
 
+		cors := site["cors"].([]interface{})
+		if len(cors) > 0 {
+			s.CORS = expandAppCORSPolicy(cors)
+		}
+
 		appSites = append(appSites, s)
 	}
 
@@ -1099,6 +1184,7 @@ func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec) []map[string]int
 		r["error_document"] = s.ErrorDocument
 		r["catchall_document"] = s.CatchallDocument
 		r["environment_slug"] = s.EnvironmentSlug
+		r["cors"] = flattenAppCORSPolicy(s.CORS)
 
 		result[i] = r
 	}
@@ -1285,6 +1371,86 @@ func flattenAppSpecDatabases(databases []*godo.AppDatabaseSpec) []map[string]int
 		r["db_user"] = db.DBUser
 
 		result[i] = r
+	}
+
+	return result
+}
+
+func expandAppCORSPolicy(config []interface{}) *godo.AppCORSPolicy {
+	if len(config) == 0 || config[0] == nil {
+		return &godo.AppCORSPolicy{}
+	}
+
+	appCORSConfig := config[0].(map[string]interface{})
+	allowOriginsConfig := appCORSConfig["allow_origins"].([]interface{})
+	allowOriginsMap := allowOriginsConfig[0].(map[string]interface{})
+
+	var allowOrigins []*godo.AppStringMatch
+	if allowOriginsMap["exact"] != "" {
+		allowOrigins = append(allowOrigins, &godo.AppStringMatch{Exact: allowOriginsMap["exact"].(string)})
+	}
+	if allowOriginsMap["prefix"] != "" {
+		allowOrigins = append(allowOrigins, &godo.AppStringMatch{Prefix: allowOriginsMap["prefix"].(string)})
+	}
+	if allowOriginsMap["regex"] != "" {
+		allowOrigins = append(allowOrigins, &godo.AppStringMatch{Regex: allowOriginsMap["regex"].(string)})
+	}
+
+	var allowMethods []string
+	for _, v := range appCORSConfig["allow_methods"].(*schema.Set).List() {
+		allowMethods = append(allowMethods, v.(string))
+	}
+
+	var allowHeaders []string
+	for _, v := range appCORSConfig["allow_headers"].(*schema.Set).List() {
+		allowHeaders = append(allowHeaders, v.(string))
+	}
+
+	var exposeHeaders []string
+	for _, v := range appCORSConfig["expose_headers"].(*schema.Set).List() {
+		exposeHeaders = append(exposeHeaders, v.(string))
+	}
+
+	return &godo.AppCORSPolicy{
+		AllowOrigins:     allowOrigins,
+		AllowMethods:     allowMethods,
+		AllowHeaders:     allowHeaders,
+		ExposeHeaders:    exposeHeaders,
+		MaxAge:           appCORSConfig["max_age"].(string),
+		AllowCredentials: appCORSConfig["allow_credentials"].(bool),
+	}
+}
+
+func flattenAppCORSPolicy(policy *godo.AppCORSPolicy) []interface{} {
+	result := make([]interface{}, 0)
+
+	if policy != nil {
+		r := make(map[string]interface{})
+
+		if len(policy.AllowOrigins) != 0 {
+			allowOriginsResult := make([]interface{}, 0)
+			allowOrigins := make(map[string]string)
+			for _, p := range policy.AllowOrigins {
+				if p.Exact != "" {
+					allowOrigins["exact"] = p.Exact
+				}
+				if p.Prefix != "" {
+					allowOrigins["prefix"] = p.Prefix
+				}
+				if p.Regex != "" {
+					allowOrigins["regex"] = p.Regex
+				}
+			}
+			r["allow_origins"] = append(allowOriginsResult, allowOrigins)
+		}
+
+		r["allow_methods"] = policy.AllowMethods
+		r["allow_headers"] = policy.AllowHeaders
+		r["expose_headers"] = policy.ExposeHeaders
+		r["max_age"] = policy.MaxAge
+		r["allow_credentials"] = policy.AllowCredentials
+
+		result = append(result, r)
 	}
 
 	return result
