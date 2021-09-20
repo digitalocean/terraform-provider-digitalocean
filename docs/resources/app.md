@@ -315,6 +315,7 @@ A `database` can contain:
 
 In addition to the above attributes, the following are exported:
 
+* `id` - The ID of the app.
 * `default_ingress` - The default URL to access the app.
 * `live_url` - The live URL of the app.
 * `active_deployment_id` - The ID the app's currently active deployment.
