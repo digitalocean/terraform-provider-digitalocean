@@ -587,6 +587,117 @@ func TestAccDigitalOceanApp_DomainsDeprecation(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_CORS(t *testing.T) {
+	var app godo.App
+	appName := randomTestName()
+
+	allowedOrginExact := `
+       cors {
+         allow_origins {
+           exact = "https://example.com"
+         }
+       }
+`
+
+	allowedOrginPrefix := `
+       cors {
+         allow_origins {
+           prefix = "https://example.com"
+         }
+       }
+`
+
+	allowedOrginRegex := `
+       cors {
+         allow_origins {
+           regex = "https://[0-9a-z]*.digitalocean.com"
+         }
+       }
+`
+
+	fullConfig := `
+       cors {
+         allow_origins {
+           prefix = "https://example.com"
+         }
+         allow_methods     = ["GET", "PUT"]
+         allow_headers     = ["X-Custom-Header", "Upgrade-Insecure-Requests"]
+         expose_headers    = ["Content-Encoding", "ETag"]
+         max_age           = "1h"
+         allow_credentials = true
+       }
+`
+
+	allowedOrginExactConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
+		appName, allowedOrginExact,
+	)
+	allowedOrginPrefixConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
+		appName, allowedOrginPrefix,
+	)
+	allowedOrginRegexConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
+		appName, allowedOrginRegex,
+	)
+	updatedConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
+		appName, fullConfig,
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: allowedOrginExactConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_origins.0.exact", "https://example.com"),
+				),
+			},
+			{
+				Config: allowedOrginPrefixConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_origins.0.prefix", "https://example.com"),
+				),
+			},
+			{
+				Config: allowedOrginRegexConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_origins.0.regex", "https://[0-9a-z]*.digitalocean.com"),
+				),
+			},
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_origins.0.prefix", "https://example.com"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_methods.*", "GET"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_methods.*", "PUT"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_headers.*", "X-Custom-Header"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_headers.*", "Upgrade-Insecure-Requests"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.expose_headers.*", "Content-Encoding"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.expose_headers.*", "ETag"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.max_age", "1h"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_credentials", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanApp_TimeoutConfig(t *testing.T) {
 	appName := randomTestName()
 
@@ -947,6 +1058,28 @@ resource "digitalocean_app" "foobar" {
       environment_slug   = "go"
       instance_count     = 1
       instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_CORS = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name = "%s"
+    region = "nyc"
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+
+      %s
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
