@@ -590,10 +590,26 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 	var app godo.App
 	appName := randomTestName()
 
-	allowedOrgin := `
+	allowedOrginExact := `
        cors {
          allow_origins {
            exact = "https://example.com"
+         }
+       }
+`
+
+	allowedOrginPrefix := `
+       cors {
+         allow_origins {
+           prefix = "https://example.com"
+         }
+       }
+`
+
+	allowedOrginRegex := `
+       cors {
+         allow_origins {
+           regex = "https://[0-9a-z]*.digitalocean.com"
          }
        }
 `
@@ -611,8 +627,14 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
        }
 `
 
-	allowedOrginConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
-		appName, allowedOrgin,
+	allowedOrginExactConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
+		appName, allowedOrginExact,
+	)
+	allowedOrginPrefixConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
+		appName, allowedOrginPrefix,
+	)
+	allowedOrginRegexConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
+		appName, allowedOrginRegex,
 	)
 	updatedConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
 		appName, fullConfig,
@@ -623,11 +645,27 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: allowedOrginConfig,
+				Config: allowedOrginExactConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_origins.0.exact", "https://example.com"),
+				),
+			},
+			{
+				Config: allowedOrginPrefixConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_origins.0.prefix", "https://example.com"),
+				),
+			},
+			{
+				Config: allowedOrginRegexConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_origins.0.regex", "https://[0-9a-z]*.digitalocean.com"),
 				),
 			},
 			{
