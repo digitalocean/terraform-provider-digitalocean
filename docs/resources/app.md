@@ -147,7 +147,7 @@ A `service` can contain:
 * `source_dir` - An optional path to the working directory to use for the build.
 * `run_command` - An optional run command to override the component's default.
 * `environment_slug` - An environment slug describing the type of this app.
-* `instance_size_slug` - The instance size to use for this component.
+* `instance_size_slug` - The instance size to use for this component. This determines the plan (basic or professional) and the available CPU and memory. The list of available instance sizes can be [found with the API](https://docs.digitalocean.com/reference/api/api-reference/#operation/list_instance_sizes) or using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/) (`doctl apps tier instance-size list`). Default: `basic-xxs`
 * `instance_count` - The amount of instances that this component should be scaled to.
 * `http_port` - The internal port on which this service's run command will listen.
 * `internal_ports` - A list of ports on which this service will listen for internal traffic.
@@ -220,7 +220,7 @@ A `worker` can contain:
 * `source_dir` - An optional path to the working directory to use for the build.
 * `run_command` - An optional run command to override the component's default.
 * `environment_slug` - An environment slug describing the type of this app.
-* `instance_size_slug` - The instance size to use for this component.
+* `instance_size_slug` - The instance size to use for this component. This determines the plan (basic or professional) and the available CPU and memory. The list of available instance sizes can be [found with the API](https://docs.digitalocean.com/reference/api/api-reference/#operation/list_instance_sizes) or using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/) (`doctl apps tier instance-size list`). Default: `basic-xxs`
 * `instance_count` - The amount of instances that this component should be scaled to.
 * `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication.  Only one of `git`, `github` or `gitlab`  may be set
   - `repo_clone_url` - The clone URL of the repo.
@@ -257,7 +257,7 @@ A `job` can contain:
 * `source_dir` - An optional path to the working directory to use for the build.
 * `run_command` - An optional run command to override the component's default.
 * `environment_slug` - An environment slug describing the type of this app.
-* `instance_size_slug` - The instance size to use for this component.
+* `instance_size_slug` - The instance size to use for this component. This determines the plan (basic or professional) and the available CPU and memory. The list of available instance sizes can be [found with the API](https://docs.digitalocean.com/reference/api/api-reference/#operation/list_instance_sizes) or using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/) (`doctl apps tier instance-size list`). Default: `basic-xxs`
 * `instance_count` - The amount of instances that this component should be scaled to.
 * `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication.  Only one of `git`, `github` or `gitlab`  may be set
   - `repo_clone_url` - The clone URL of the repo.
