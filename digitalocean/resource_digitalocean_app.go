@@ -65,6 +65,10 @@ func resourceDigitalOceanApp() *schema.Resource {
 				Description: "The date and time of when the App was created",
 			},
 		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(30 * time.Minute),
+		},
 	}
 }
 
@@ -81,8 +85,8 @@ func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, 
 
 	d.SetId(app.ID)
 	log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
-
-	err = waitForAppDeployment(client, app.ID)
+	timeout := d.Timeout(schema.TimeoutCreate)
+	err = waitForAppDeployment(client, app.ID, timeout)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -137,7 +141,8 @@ func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, 
 		}
 
 		log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
-		err = waitForAppDeployment(client, app.ID)
+		timeout := d.Timeout(schema.TimeoutCreate)
+		err = waitForAppDeployment(client, app.ID, timeout)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -161,15 +166,15 @@ func resourceDigitalOceanAppDelete(ctx context.Context, d *schema.ResourceData, 
 	return nil
 }
 
-func waitForAppDeployment(client *godo.Client, id string) error {
+func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration) error {
 	tickerInterval := 10 //10s
-	timeout := 1800      //1800s, 30min
+	timeoutSeconds := int(timeout.Seconds())
 	n := 0
 
 	var deploymentID string
 	ticker := time.NewTicker(time.Duration(tickerInterval) * time.Second)
 	for range ticker.C {
-		if n*tickerInterval > timeout {
+		if n*tickerInterval > timeoutSeconds {
 			ticker.Stop()
 			break
 		}
@@ -209,5 +214,5 @@ func waitForAppDeployment(client *godo.Client, id string) error {
 		n++
 	}
 
-	return fmt.Errorf("timeout waiting to app (%s) deployment", id)
+	return fmt.Errorf("timeout waiting for app (%s) deployment", id)
 }

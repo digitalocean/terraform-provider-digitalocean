@@ -162,6 +162,8 @@ The following arguments are supported:
   - `day` - (Required) The day of the maintenance window policy. May be one of "monday" through "sunday", or "any" to indicate an arbitrary week day.
   - `start_time` (Required) The start time in UTC of the maintenance window policy in 24-hour clock format / HH:MM notation (e.g., 15:00).
 
+This resource supports [customized create timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
+
 ## Attributes Reference
 
 In addition to the arguments listed above, the following additional attributes are exported:

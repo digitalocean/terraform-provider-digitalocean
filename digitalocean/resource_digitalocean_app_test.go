@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -586,6 +587,22 @@ func TestAccDigitalOceanApp_DomainsDeprecation(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_TimeoutConfig(t *testing.T) {
+	appName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withTimeout, appName),
+				ExpectError: regexp.MustCompile("timeout waiting for app"),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanAppDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -649,6 +666,28 @@ resource "digitalocean_app" "foobar" {
       health_check {
         http_path       = "/"
         timeout_seconds = 10
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_withTimeout = `
+resource "digitalocean_app" "foobar" {
+  timeouts {
+    create = "10s"
+  }
+
+  spec {
+    name = "%s"
+    region = "ams"
+
+    service {
+      name               = "go-service-with-timeout"
+      instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
       }
     }
   }
