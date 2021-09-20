@@ -77,6 +77,8 @@ The following arguments are supported:
 * `day` - (Required) The day of the week on which to apply maintenance updates.
 * `hour` - (Required) The hour in UTC at which maintenance updates will be applied in 24 hour format.
 
+This resource supports [customized create timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
+
 ## Attributes Reference
 
 In addition to the above arguments, the following attributes are exported:

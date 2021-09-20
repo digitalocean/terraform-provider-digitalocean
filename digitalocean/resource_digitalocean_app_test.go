@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -639,6 +640,7 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 	updatedConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
 		appName, fullConfig,
 	)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
 		Providers:    testAccProviders,
@@ -691,6 +693,22 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_credentials", "true"),
 				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanApp_TimeoutConfig(t *testing.T) {
+	appName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withTimeout, appName),
+				ExpectError: regexp.MustCompile("timeout waiting for app"),
 			},
 		},
 	})
@@ -759,6 +777,28 @@ resource "digitalocean_app" "foobar" {
       health_check {
         http_path       = "/"
         timeout_seconds = 10
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_withTimeout = `
+resource "digitalocean_app" "foobar" {
+  timeouts {
+    create = "10s"
+  }
+
+  spec {
+    name = "%s"
+    region = "ams"
+
+    service {
+      name               = "go-service-with-timeout"
+      instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
       }
     }
   }
