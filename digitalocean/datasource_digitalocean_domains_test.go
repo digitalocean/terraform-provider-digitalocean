@@ -44,8 +44,7 @@ data "digitalocean_domains" "result" {
 					resource.TestCheckResourceAttr("data.digitalocean_domains.result", "domains.#", "1"),
 					resource.TestCheckResourceAttrPair("data.digitalocean_domains.result", "domains.0.name", "digitalocean_domain.foo", "name"),
 					resource.TestCheckResourceAttrPair("data.digitalocean_domains.result", "domains.0.urn", "digitalocean_domain.foo", "urn"),
-					// skip checking `ttl` because digitalocean_domain does not expose the default TTL yet
-					//resource.TestCheckResourceAttrPair("data.digitalocean_domains.result", "domains.0.ttl", "digitalocean_domain.foo", "ttl"),
+					resource.TestCheckResourceAttrPair("data.digitalocean_domains.result", "domains.0.ttl", "digitalocean_domain.foo", "ttl"),
 				),
 			},
 			{
