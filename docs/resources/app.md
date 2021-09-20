@@ -291,6 +291,8 @@ A `database` can contain:
 * `db_name` - The name of the MySQL or PostgreSQL database to configure.
 * `db_user` - The name of the MySQL or PostgreSQL user to configure.
 
+This resource supports [customized create timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
+
 ## Attributes Reference
 
 In addition to the above attributes, the following are exported:
