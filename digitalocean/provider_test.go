@@ -3,11 +3,12 @@ package digitalocean
 import (
 	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"

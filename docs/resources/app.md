@@ -87,6 +87,19 @@ resource "digitalocean_app" "mono-repo-example" {
         path = "/api"
       }
 
+      alerts {
+        emails = ["benny@digitalocean.com"]
+        slack {
+          channel   = "Production Alerts"
+          url       = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
+        }
+        value = 95
+        type  =
+        spec {
+
+        }
+      }
+
       run_command = "bin/api"
     }
 
@@ -300,6 +313,18 @@ A `job` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+* `alerts` - Describes the alert policies of the app, similar to the [monitor resource](/providers/digitalocean/digitalocean/latest/docs/resources/monitor_alert) that can be used for a droplet.
+  - `value` - The threshold for the type of the warning. 
+  - `operator` - The operator to use. This is either of `OPERATOR_GREATERTHAN`, `OPERATOR_LESSTHAN` or `OPERATOR_UNSPECIFIED`.
+  - `emails` - The list of emails to send notifications to.
+  - `slack` - The Slack channels to send notifications to. Note that the DigitalOcean app needs to have permissions for your workspace. You can
+    read more in [Slack's documentation](https://slack.com/intl/en-dk/help/articles/222386767-Manage-app-installation-settings-for-your-workspace)
+  - `rule` - The type of the alert to configure. This is either of 
+  - `component` - The component to apply the alert policy for.
+  - `phase` - This is either of `UNKNOWN`, `PENDING`, `CONFIGURING`, `ACTIVE`, `ERROR`.
+  - `window` - The time before alerts should be triggered. This is either of `UNSPECIFIED_WINDOW`, `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`,   
+    `ONE_HOUR`.
+  - `progress` - This is either of `UNKNOWN`, `PENDING`, `CONFIGURING`, `ACTIVE`, `ERROR`.
 
 A `database` can contain:
 
