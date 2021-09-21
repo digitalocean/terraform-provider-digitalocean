@@ -58,7 +58,6 @@ func resourceDigitalOceanMonitorAlert() *schema.Resource {
 			"description": {
 				Type:        schema.TypeString,
 				Required:    true,
-				ForceNew:    true,
 				Description: "Description of the alert policy",
 			},
 
@@ -150,9 +149,8 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 		Window:      d.Get("window").(string),
 		Value:       float32(d.Get("value").(float64)),
 		Entities:    expandEntities(d.Get("entities").(*schema.Set).List()),
+		Alerts:      expandAlerts(d.Get("alerts").([]interface{})),
 	}
-
-	alertCreateRequest.Alerts = expandAlerts(d.Get("alerts").([]interface{}))
 
 	log.Printf("[DEBUG] Alert Policy create configuration: %#v", alertCreateRequest)
 	alertPolicy, _, err := client.Monitoring.CreateAlertPolicy(context.Background(), alertCreateRequest)
@@ -257,14 +255,23 @@ func expandEntities(config []interface{}) []string {
 
 func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
-	opts := &godo.AlertPolicyUpdateRequest{}
 
-	if d.HasChange("alerts") {
-		alerts := expandAlerts(d.Get("alerts").([]interface{}))
-		opts.Alerts = alerts
-		client.Monitoring.UpdateAlertPolicy(ctx, d.Id(), opts)
+	updateRequest := &godo.AlertPolicyUpdateRequest{
+		Type:        d.Get("type").(string),
+		Enabled:     godo.Bool(d.Get("enabled").(bool)),
+		Description: d.Get("description").(string),
+		Tags:        expandTags(d.Get("tags").(*schema.Set).List()),
+		Compare:     godo.AlertPolicyComp(d.Get("compare").(string)),
+		Window:      d.Get("window").(string),
+		Value:       float32(d.Get("value").(float64)),
+		Entities:    expandEntities(d.Get("entities").(*schema.Set).List()),
+		Alerts:      expandAlerts(d.Get("alerts").([]interface{})),
 	}
-	// what more to update here?
+
+	_, _, err := client.Monitoring.UpdateAlertPolicy(ctx, d.Id(), updateRequest)
+	if err != nil {
+		return diag.Errorf("Error updating monitoring alert: %s", err)
+	}
 
 	return resourceDigitalOceanMonitorAlertRead(ctx, d, meta)
 }

@@ -91,6 +91,36 @@ resource "digitalocean_droplet" "web" {
 	description = "%s"
 }
 `
+
+	testAccAlertPolicyAddDroplet = `
+resource "digitalocean_droplet" "web" {
+	image  = "ubuntu-20-04-x64"
+	name   = "web-1"
+	region = "fra1"
+	size   = "s-1vcpu-1gb"
+  }
+
+resource "digitalocean_droplet" "web2" {
+	image  = "ubuntu-20-04-x64"
+	name   = "web-2"
+	region = "fra1"
+	size   = "s-1vcpu-1gb"
+}
+
+
+resource "digitalocean_monitor_alert" "%s" {
+	alerts  {
+	  email 	= ["benny@digitalocean.com"]
+      %s
+	}
+	window      = "%s"
+	type        = "%s"
+	compare     = "GreaterThan"
+	value       = 95
+	entities    = [digitalocean_droplet.web.id, digitalocean_droplet.web2.id]
+	description = "%s"
+  }
+`
 )
 
 func TestAccDigitalOceanMonitorAlert(t *testing.T) {
@@ -177,24 +207,29 @@ func TestAccDigitalOceanMonitorAlertUpdate(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccAlertPolicy, randName, "", "10m", "v1/insights/droplet/cpu", "Alert about CPU usage"),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "description", "Alert about CPU usage"),
 					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/cpu"),
 					resource.TestCheckResourceAttr(resourceName, "compare", "GreaterThan"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "entities.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.0.email.0", "benny@digitalocean.com"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.#", "0"),
+					resource.TestCheckResourceAttr(resourceName, "window", "10m"),
 				),
 			},
 			{
-				// how to update?
-				Config: fmt.Sprintf(testAccAlertPolicy, randName, slackChannels, "10m", "v1/insights/droplet/memory_utilization_percent", "Alert about memory usage"),
+				Config: fmt.Sprintf(testAccAlertPolicyAddDroplet, randName, slackChannels, "5m", "v1/insights/droplet/memory_utilization_percent", "Alert about memory usage"),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "description", "Alert about memory usage"),
 					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/memory_utilization_percent"),
 					resource.TestCheckResourceAttr(resourceName, "compare", "GreaterThan"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "entities.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.0.email.0", "benny@digitalocean.com"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.0.channel", "production-alerts"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
+					resource.TestCheckResourceAttr(resourceName, "window", "5m"),
 				),
 			},
 		},
