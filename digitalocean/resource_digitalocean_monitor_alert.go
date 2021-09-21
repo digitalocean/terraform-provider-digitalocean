@@ -34,15 +34,14 @@ func resourceDigitalOceanMonitorAlert() *schema.Resource {
 					godo.DropletMemoryUtilizationPercent,
 					godo.DropletDiskUtilizationPercent,
 					godo.DropletPublicOutboundBandwidthRate,
+					godo.DropletPublicInboundBandwidthRate,
+					godo.DropletPrivateOutboundBandwidthRate,
+					godo.DropletPrivateInboundBandwidthRate,
 					godo.DropletDiskReadRate,
 					godo.DropletDiskWriteRate,
 					godo.DropletOneMinuteLoadAverage,
 					godo.DropletFiveMinuteLoadAverage,
 					godo.DropletFifteenMinuteLoadAverage,
-					// these are available as constants ...
-					"v1/insights/droplet/public_inbound_bandwidth",
-					"v1/insights/droplet/private_outbound_bandwidth",
-					"v1/insights/droplet/private_inbound_bandwidth",
 				}, false),
 			},
 
