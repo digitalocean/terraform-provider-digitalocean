@@ -55,6 +55,12 @@ func dataSourceDigitalOceanDatabaseReplica() *schema.Resource {
 				Sensitive: true,
 			},
 
+			"urn": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"private_uri": {
 				Type:      schema.TypeString,
 				Computed:  true,

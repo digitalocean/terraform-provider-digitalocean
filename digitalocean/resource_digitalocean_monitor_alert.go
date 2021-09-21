@@ -80,40 +80,7 @@ func resourceDigitalOceanMonitorAlert() *schema.Resource {
 				Required:    true,
 				Description: "List with details how to notify about the alert. Support for Slack or email.",
 				MaxItems:    1,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"slack": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"channel": {
-										Type:             schema.TypeString,
-										Required:         true,
-										DiffSuppressFunc: CaseSensitive,
-										Description:      "The Slack channel to send alerts to",
-										ValidateFunc:     validation.StringIsNotEmpty,
-									},
-									"url": {
-										Type:             schema.TypeString,
-										Required:         true,
-										DiffSuppressFunc: CaseSensitive,
-										Description:      "The webhook URL for Slack",
-										ValidateFunc:     validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-						"email": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "List of email addresses to sent notifications to",
-							Elem: &schema.Schema{
-								Type: schema.TypeString,
-							},
-						},
-					},
-				},
+				Elem:        alertEmailSlackSchema(),
 			},
 
 			"entities": {
@@ -213,34 +180,6 @@ func flattenSlack(slackChannels []godo.SlackDetails) []map[string]interface{} {
 	}
 
 	return result
-}
-
-func expandEmail(config []interface{}) []string {
-	if len(config) == 0 {
-		return nil
-	}
-	emailList := make([]string, len(config))
-
-	for i, v := range config {
-		emailList[i] = v.(string)
-	}
-
-	return emailList
-}
-
-func flattenEmail(emails []string) []string {
-	if len(emails) == 0 {
-		return nil
-	}
-
-	flattenedEmails := make([]string, 0)
-	for _, v := range emails {
-		if v != "" {
-			flattenedEmails = append(flattenedEmails, v)
-		}
-	}
-
-	return flattenedEmails
 }
 
 func expandEntities(config []interface{}) []string {
