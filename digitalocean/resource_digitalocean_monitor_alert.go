@@ -120,7 +120,7 @@ func resourceDigitalOceanMonitorAlert() *schema.Resource {
 
 			"entities": {
 				Type:        schema.TypeSet,
-				Required:    true,
+				Optional:    true,
 				MinItems:    1,
 				Description: "The droplets to apply the alert policy to",
 				Elem: &schema.Schema{

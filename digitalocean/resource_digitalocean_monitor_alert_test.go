@@ -26,7 +26,7 @@ resource "digitalocean_droplet" "web" {
 	region = "fra1"
 	size   = "s-1vcpu-1gb"
   }
-  
+
   resource "digitalocean_monitor_alert" "%s" {
 	alerts  {
 	  email 	= ["benny@digitalocean.com"]
@@ -48,7 +48,7 @@ resource "digitalocean_droplet" "web" {
 	region = "fra1"
 	size   = "s-1vcpu-1gb"
   }
-  
+
   resource "digitalocean_monitor_alert" "%s" {
 	alerts {
 	  email 	= ["benny@digitalocean.com"]
@@ -64,6 +64,32 @@ resource "digitalocean_droplet" "web" {
 	entities    = [digitalocean_droplet.web.id]
 	description = "Alert about CPU usage"
   }
+`
+
+	testAccAlertPolicyWithTag = `
+resource "digitalocean_tag" "test" {
+    name = "%s"
+}
+
+resource "digitalocean_droplet" "web" {
+	image  = "ubuntu-20-04-x64"
+	name   = "web-1"
+	region = "fra1"
+	size   = "s-1vcpu-1gb"
+	tags    = [digitalocean_tag.test.name]
+  }
+
+  resource "digitalocean_monitor_alert" "%s" {
+	alerts  {
+	  email 	= ["benny@digitalocean.com"]
+	}
+	window      = "%s"
+	type        = "%s"
+	compare     = "GreaterThan"
+	value       = 95
+	tags        = [digitalocean_tag.test.name]
+	description = "%s"
+}
 `
 )
 
@@ -169,6 +195,33 @@ func TestAccDigitalOceanMonitorAlertUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.0.channel", "production-alerts"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanMonitorAlertWithTag(t *testing.T) {
+	var (
+		randName = randomTestName()
+		tagName  = randomTestName()
+	)
+	resourceName := fmt.Sprintf("digitalocean_monitor_alert.%s", randName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:                  func() { testAccPreCheck(t) },
+		ProviderFactories:         testAccProviderFactories,
+		CheckDestroy:              testAccCheckDigitalOceanMonitorAlertDestroy,
+		PreventPostDestroyRefresh: true,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccAlertPolicyWithTag, tagName, randName, "5m", "v1/insights/droplet/cpu", "Alert about CPU usage"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/cpu"),
+					resource.TestCheckResourceAttr(resourceName, "compare", "GreaterThan"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.email.0", "benny@digitalocean.com"),
+					resource.TestCheckResourceAttr(resourceName, "tags.0", tagName),
 				),
 			},
 		},
