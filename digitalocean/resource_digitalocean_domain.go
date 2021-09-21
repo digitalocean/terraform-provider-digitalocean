@@ -36,6 +36,10 @@ func resourceDigitalOceanDomain() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"ttl": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -82,6 +86,7 @@ func resourceDigitalOceanDomainRead(ctx context.Context, d *schema.ResourceData,
 
 	d.Set("name", domain.Name)
 	d.Set("urn", domain.URN())
+	d.Set("ttl", domain.TTL)
 
 	return nil
 }
