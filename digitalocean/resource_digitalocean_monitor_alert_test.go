@@ -10,14 +10,24 @@ import (
 )
 
 const (
-	// make some consts for slack/email stuff, so they aren't duplicated
-
 	slackChannels = `
 slack {
 	channel = "production-alerts"
 	url		= "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
 }
 	`
+
+	multipleSlackChannel = `
+slack {
+	channel = "production-alerts"
+	url		= "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
+}
+
+slack {
+	channel = "digitalocean-cloud-alerts"
+	url		= "https://hooks.slack.com/services/T2345678/BBBBBBBB/XXXXXX"
+}
+`
 
 	testAccAlertPolicy = `
 resource "digitalocean_droplet" "web" {
@@ -146,29 +156,6 @@ func TestAccDigitalOceanMonitorAlert(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanMonitorAlertEmailAlerts(t *testing.T) {
-	var randName = randomTestName()
-	resourceName := fmt.Sprintf("digitalocean_monitor_alert.%s", randName)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:                  func() { testAccPreCheck(t) },
-		ProviderFactories:         testAccProviderFactories,
-		CheckDestroy:              testAccCheckDigitalOceanMonitorAlertDestroy,
-		PreventPostDestroyRefresh: true,
-		Steps: []resource.TestStep{
-			{
-				Config: fmt.Sprintf(testAccAlertPolicy, randName, " ", "5m", "v1/insights/droplet/cpu", "Alert about CPU usage"),
-				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/cpu"),
-					resource.TestCheckResourceAttr(resourceName, "compare", "GreaterThan"),
-					resource.TestCheckResourceAttr(resourceName, "alerts.#", "1"),
-					resource.TestCheckResourceAttr(resourceName, "alerts.0.email.0", "benny@digitalocean.com"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDigitalOceanMonitorAlertSlackEmailAlerts(t *testing.T) {
 	var randName = randomTestName()
 	resourceName := fmt.Sprintf("digitalocean_monitor_alert.%s", randName)
@@ -218,7 +205,7 @@ func TestAccDigitalOceanMonitorAlertUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccAlertPolicyAddDroplet, randName, slackChannels, "5m", "v1/insights/droplet/memory_utilization_percent", "Alert about memory usage"),
+				Config: fmt.Sprintf(testAccAlertPolicyAddDroplet, randName, multipleSlackChannel, "5m", "v1/insights/droplet/memory_utilization_percent", "Alert about memory usage"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", "Alert about memory usage"),
 					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/memory_utilization_percent"),
@@ -226,9 +213,11 @@ func TestAccDigitalOceanMonitorAlertUpdate(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "alerts.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "entities.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.0.email.0", "benny@digitalocean.com"),
-					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.#", "2"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.0.channel", "production-alerts"),
 					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.0.url", "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.1.channel", "digitalocean-cloud-alerts"),
+					resource.TestCheckResourceAttr(resourceName, "alerts.0.slack.1.url", "https://hooks.slack.com/services/T2345678/BBBBBBBB/XXXXXX"),
 					resource.TestCheckResourceAttr(resourceName, "window", "5m"),
 				),
 			},
