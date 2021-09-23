@@ -30,6 +30,7 @@ The following attributes are exported:
 
 * `id` - The name of the domain
 * `urn` - The uniform resource name of the domain
+* `ttl` - The TTL value of the domain
 
 ## Import
 
