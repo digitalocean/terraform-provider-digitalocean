@@ -1,3 +1,24 @@
+## 2.12.0 (September 22, 2021)
+
+FEATURES:
+
+- **New Resource:** `digitalocean_monitor_alert` ((#679)[https://github.com/digitalocean/terraform-provider-digitalocean/pull/679]) Thanks to @atombrella!
+
+IMPROVEMENTS:
+
+- `digitalocean_domain`: Expose TTL ((#702)[https://github.com/digitalocean/terraform-provider-digitalocean/pull/702]). Thanks to @atombrella!
+- `digitalocean_app`: Support setting CORS policies ((#699)[https://github.com/digitalocean/terraform-provider-digitalocean/pull/699]).
+- `digitalocean_app`: Make create timeout configurable ((#698)[https://github.com/digitalocean/terraform-provider-digitalocean/pull/698]).
+- `digitalocean_droplet`: Mark `private_networking` as deprecated. ((#676)[https://github.com/digitalocean/terraform-provider-digitalocean/issues/676])
+- docs: Provide more context for apps' `instance_size_slug` ((#701)[https://github.com/digitalocean/terraform-provider-digitalocean/pull/701])
+- misc: Replace d.HasChange sequences with d.HasChanges  ((#681)[https://github.com/digitalocean/terraform-provider-digitalocean/pull/681]) Thanks to @atombrella!
+
+BUGFIXES:
+
+- `digitalocean_database_user`: Handle passwords for MongoDB ((#696)[https://github.com/digitalocean/terraform-provider-digitalocean/issues/696]).
+- `digitalocean_app`: Error to prevent panic if no deployment found ((#678)[https://github.com/digitalocean/terraform-provider-digitalocean/issues/678]).
+- `digitalocean_droplet`: Protect against panic when importing Droplet errors ((#674)[https://github.com/digitalocean/terraform-provider-digitalocean/issues/674]).
+
 ## 2.11.1 (August 20, 2021)
 
 BUG FIXES:

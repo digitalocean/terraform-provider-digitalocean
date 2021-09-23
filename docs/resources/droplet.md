@@ -31,7 +31,8 @@ The following arguments are supported:
 * `backups` - (Optional) Boolean controlling if backups are made. Defaults to
    false.
 * `monitoring` - (Optional) Boolean controlling whether monitoring agent is installed.
-   Defaults to false.
+   Defaults to false. If set to `true`, you can configure monitor alert policies
+   [monitor alert resource](/providers/digitalocean/digitalocean/latest/docs/resources/monitor_alert)
 * `ipv6` - (Optional) Boolean controlling if IPv6 is enabled. Defaults to false.
 * `vpc_uuid` - (Optional) The ID of the VPC where the Droplet will be located.
 * `private_networking` - (Optional) **Deprecated** Boolean controlling if private networking
