@@ -19,7 +19,7 @@ resource "digitalocean_droplet" "web" {
   size   = "s-1vcpu-1gb"
 }
 
-resource "digitalocean_monitoring" "cpu_alert" {
+resource "digitalocean_monitor_alert" "cpu_alert" {
   alerts {
     email = ["benny@digitalocean.com"]
     slack {
