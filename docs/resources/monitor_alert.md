@@ -1,5 +1,5 @@
 ---
-page_title: "DigitalOcean: digital_monitor_alert"
+page_title: "DigitalOcean: digitalocean_monitor_alert"
 ---
 
 # digitalocean_monitor_alert
