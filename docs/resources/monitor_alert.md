@@ -2,7 +2,7 @@
 page_title: "DigitalOcean: digital_monitor_alert"
 ---
 
-# digitalocean_monitor
+# digitalocean_monitor_alert
 
 Provides a [DigitalOcean Monitoring](https://docs.digitalocean.com/reference/api/api-reference/#tag/Monitoring) resource.
 Monitor alerts can be configured to alert about, e.g., disk or memory usage exceeding certain threshold, or traffic at certain
