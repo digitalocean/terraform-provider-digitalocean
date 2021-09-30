@@ -52,7 +52,7 @@ func resourceDigitalOceanFloatingIpAssignmentCreate(ctx context.Context, d *sche
 			"Error Assigning FloatingIP (%s) to the droplet: %s", ip_address, err)
 	}
 
-	_, unassignedErr := waitForFloatingIPAssignmentReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+	_, unassignedErr := waitForFloatingIPAssignmentReady(ctx, d, "done", []string{"new", "in-progress"}, "status", meta, action.ID)
 	if unassignedErr != nil {
 		return diag.Errorf(
 			"Error waiting for FloatingIP (%s) to be Assigned: %s", ip_address, unassignedErr)
@@ -101,7 +101,7 @@ func resourceDigitalOceanFloatingIpAssignmentDelete(ctx context.Context, d *sche
 			return diag.Errorf("Error unassigning FloatingIP (%s) from the droplet: %s", ip_address, err)
 		}
 
-		_, unassignedErr := waitForFloatingIPAssignmentReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+		_, unassignedErr := waitForFloatingIPAssignmentReady(ctx, d, "done", []string{"new", "in-progress"}, "status", meta, action.ID)
 		if unassignedErr != nil {
 			return diag.Errorf(
 				"Error waiting for FloatingIP (%s) to be unassigned: %s", ip_address, unassignedErr)
