@@ -1,3 +1,9 @@
+## 2.12.1 (October 1, 2021)
+
+BUGFIXES:
+
+* docs: Correct the example for `digitalocean_monitor_alert` ([#710](https://github.com/digitalocean/terraform-provider-digitalocean/pull/710)). Thanks to @jessedobbelaere!
+
 ## 2.12.0 (September 22, 2021)
 
 FEATURES:
