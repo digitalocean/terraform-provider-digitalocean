@@ -53,6 +53,8 @@ func Provider() *schema.Provider {
 			"digitalocean_certificate":           dataSourceDigitalOceanCertificate(),
 			"digitalocean_container_registry":    dataSourceDigitalOceanContainerRegistry(),
 			"digitalocean_database_cluster":      dataSourceDigitalOceanDatabaseCluster(),
+			"digitalocean_database_ca":           dataSourceDigitalOceanDatabaseCA(),
+			"digitalocean_database_replica":      dataSourceDigitalOceanDatabaseReplica(),
 			"digitalocean_domain":                dataSourceDigitalOceanDomain(),
 			"digitalocean_domains":               dataSourceDigitalOceanDomains(),
 			"digitalocean_droplet":               dataSourceDigitalOceanDroplet(),
@@ -83,7 +85,6 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_snapshot":       dataSourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_volume":                dataSourceDigitalOceanVolume(),
 			"digitalocean_vpc":                   dataSourceDigitalOceanVPC(),
-			"digitalocean_database_replica":      dataSourceDigitalOceanDatabaseReplica(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
