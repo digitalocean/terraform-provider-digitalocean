@@ -57,6 +57,8 @@ The following arguments are supported:
    installation errors (i.e. OS not supported) are ignored. To prevent it from
    being installed, set to `false`. To make installation errors fatal, explicitly
    set it to `true`.
+* `graceful_shutdown` (Optional) - A boolean indicating whether the droplet
+   should be gracefully shut down before it is deleted.
 
 ~> **NOTE:** If you use `volume_ids` on a Droplet, Terraform will assume management over the full set volumes for the instance, and treat additional volumes as a drift. For this reason, `volume_ids` must not be mixed with external `digitalocean_volume_attachment` resources for a given instance.
 
