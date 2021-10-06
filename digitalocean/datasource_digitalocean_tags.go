@@ -58,7 +58,9 @@ func getDigitalOceanTags(meta interface{}, extra map[string]interface{}) ([]inte
 			return nil, fmt.Errorf("Error retrieving tags: %s", err)
 		}
 
-		tagsList = append(tagsList, tags)
+		for _, tag := range tags {
+			tagsList = append(tagsList, tag)
+		}
 
 		if resp.Links == nil || resp.Links.IsLastPage() {
 			break
