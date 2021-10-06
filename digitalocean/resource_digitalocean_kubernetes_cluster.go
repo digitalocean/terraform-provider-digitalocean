@@ -52,6 +52,12 @@ func resourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Default:  true,
 			},
 
+			"ha": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"version": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -249,6 +255,7 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		RegionSlug:   d.Get("region").(string),
 		VersionSlug:  d.Get("version").(string),
 		SurgeUpgrade: d.Get("surge_upgrade").(bool),
+		HA:           d.Get("ha").(bool),
 		Tags:         expandTags(d.Get("tags").(*schema.Set).List()),
 		NodePools:    poolCreateRequests,
 	}
@@ -312,6 +319,7 @@ func digitaloceanKubernetesClusterRead(
 	d.Set("region", cluster.RegionSlug)
 	d.Set("version", cluster.VersionSlug)
 	d.Set("surge_upgrade", cluster.SurgeUpgrade)
+	d.Set("ha", cluster.HA)
 	d.Set("cluster_subnet", cluster.ClusterSubnet)
 	d.Set("service_subnet", cluster.ServiceSubnet)
 	d.Set("ipv4_address", cluster.IPv4)

@@ -77,6 +77,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "surge_upgrade", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ha", "true"),
 					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "ipv4_address"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_subnet"),
@@ -639,6 +640,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	region  = "lon1"
 	version = data.digitalocean_kubernetes_versions.test.latest_version
 	surge_upgrade = true
+	ha      = true
 	tags    = ["foo","bar", "one"]
 
 %s
@@ -669,6 +671,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	region  = "lon1"
 	version = data.digitalocean_kubernetes_versions.test.latest_version
 	surge_upgrade = true
+	ha      = true
 	tags    = ["foo","bar"]
 
 	node_pool {
@@ -711,6 +714,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
 	region  = "lon1"
     surge_upgrade = true
+	ha      = true
 	version = data.digitalocean_kubernetes_versions.test.latest_version
 	tags    = ["one","two"]
 

@@ -43,6 +43,11 @@ func dataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ha": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+
 			"vpc_uuid": {
 				Type:     schema.TypeString,
 				Computed: true,
