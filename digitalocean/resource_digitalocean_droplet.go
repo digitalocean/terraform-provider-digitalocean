@@ -643,7 +643,7 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 		}
 
 		// Wait for shutdown
-		_, err = waitForDropletAttribute(d, "off", []string{"active"}, "status", meta)
+		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", meta)
 		if err != nil {
 			return diag.Errorf("Error waiting for droplet (%s) to become off: %s", d.Id(), err)
 		}
