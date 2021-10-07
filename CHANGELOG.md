@@ -16,8 +16,8 @@ FEATURES:
 
 IMPROVEMENTS:
 
-* Give a name to the kubernetes example load balancer ([#703](https://github.com/digitalocean/terraform-provider-digitalocean/pull/703))
-* Gracefully shutdown droplet before deleting  ([#719](https://github.com/digitalocean/terraform-provider-digitalocean/pull/719))
+- Give a name to the kubernetes example load balancer ([#703](https://github.com/digitalocean/terraform-provider-digitalocean/pull/703))
+- Gracefully shutdown droplet before deleting  ([#719](https://github.com/digitalocean/terraform-provider-digitalocean/pull/719))
 
 ## 2.12.1 (October 1, 2021)
 
