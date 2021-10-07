@@ -23,6 +23,9 @@ const (
 	testClusterVersion19 = `data "digitalocean_kubernetes_versions" "test" {
   version_prefix = "1.19."
 }`
+	testClusterVersion21 = `data "digitalocean_kubernetes_versions" "test" {
+  version_prefix = "1.21."
+}`
 )
 
 func init() {
@@ -77,6 +80,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "surge_upgrade", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ha", "true"),
 					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "ipv4_address"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_subnet"),
@@ -144,6 +148,46 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.tags.#", "2"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.nodes.#", "1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.taint.#", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesCluster_CreateWithHAControlPlane(t *testing.T) {
+	rName := randomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`%s
+
+					resource "digitalocean_kubernetes_cluster" "foobar" {
+						name    	 = "%s"
+						region  	 = "nyc1"
+						ha      	 = true
+						version 	 = data.digitalocean_kubernetes_versions.test.latest_version
+
+						node_pool {
+							name = "default"
+							size  = "s-1vcpu-2gb"
+							node_count = 1
+						}
+					}
+				`, testClusterVersion21, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ha", "true"),
+					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
 				),
 			},
 		},
@@ -608,7 +652,7 @@ func testAccDigitalOceanKubernetesConfigBasic(testClusterVersion string, rName s
 
 resource "digitalocean_kubernetes_cluster" "foobar" {
 	name    = "%s"
-	region  = "lon1"
+	region  = "nyc1"
 	version = data.digitalocean_kubernetes_versions.test.latest_version
 	surge_upgrade = true
 	tags    = ["foo","bar", "one"]
