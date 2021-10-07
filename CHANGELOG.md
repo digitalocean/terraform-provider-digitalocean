@@ -1,3 +1,9 @@
+## 2.13.0 (October 7, 2021)
+
+IMPROVEMENTS:
+
+- `digitalocean_kubernetes_cluster`: Support setting the `ha` attribute ([#718](https://github.com/digitalocean/terraform-provider-digitalocean/pull/718))
+
 ## 2.12.1 (October 1, 2021)
 
 BUGFIXES:
