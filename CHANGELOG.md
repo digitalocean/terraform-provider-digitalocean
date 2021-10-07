@@ -1,3 +1,24 @@
+## 2.14.0 (October 7, 2021)
+
+IMPROVEMENTS:
+
+- `digitalocean_kubernetes_cluster`: Support setting the `ha` attribute ([#718](https://github.com/digitalocean/terraform-provider-digitalocean/pull/718))
+
+## 2.13.0 (October 7, 2021)
+
+BUG FIXES:
+
+- Fix tag collection in digitalocean_tags data source ([#716](https://github.com/digitalocean/terraform-provider-digitalocean/pull/716))
+
+FEATURES:
+
+- Add digitalocean_database_ca data source. ([#717](https://github.com/digitalocean/terraform-provider-digitalocean/pull/717))
+
+IMPROVEMENTS:
+
+- Give a name to the kubernetes example load balancer ([#703](https://github.com/digitalocean/terraform-provider-digitalocean/pull/703))
+- Gracefully shutdown droplet before deleting  ([#719](https://github.com/digitalocean/terraform-provider-digitalocean/pull/719))
+
 ## 2.12.1 (October 1, 2021)
 
 BUGFIXES:
