@@ -68,6 +68,8 @@ data "digitalocean_loadbalancer" "foobar" {
 						"data.digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "false"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "false"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "disable_lets_encrypt_dns_records", "false"),
 				),
 			},
 		},

@@ -91,7 +91,7 @@ The following arguments are supported:
 
 * `name` - (Required) The Load Balancer name
 * `region` - (Required) The region to start in
-* `size` - (Optional) The size of the Load Balancer. It must be either `lb-small`, `lb-medium`, or `lb-large`. Defaults to `lb-small`. 
+* `size` - (Optional) The size of the Load Balancer. It must be either `lb-small`, `lb-medium`, or `lb-large`. Defaults to `lb-small`.
 * `algorithm` - (Optional) The load balancing algorithm used to determine
 which backend Droplet will be selected by a client. It must be either `round_robin`
 or `least_connections`. The default value is `round_robin`.
@@ -108,6 +108,7 @@ Default value is `false`.
 Protocol should be used to pass information from connecting client requests to
 the backend service. Default value is `false`.
 * `enable_backend_keepalive` - (Optional) A boolean value indicating whether HTTP keepalive connections are maintained to target Droplets. Default value is `false`.
+* `disable_lets_encrypt_dns_records` - (Optional) A boolean value indicating whether to disable automatic DNS record creation for Let's Encrypt certificates that are added to the load balancer. Default value is `false`.
 * `vpc_uuid` - (Optional) The ID of the VPC where the load balancer will be located.
 * `droplet_ids` (Optional) - A list of the IDs of each droplet to be attached to the Load Balancer.
 * `droplet_tag` (Optional) - The name of a Droplet tag corresponding to Droplets to be assigned to the Load Balancer.

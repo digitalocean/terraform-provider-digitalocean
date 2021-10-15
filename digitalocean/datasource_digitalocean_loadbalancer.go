@@ -192,6 +192,11 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Computed:    true,
 				Description: "whether HTTP keepalive connections are maintained to target Droplets",
 			},
+			"disable_lets_encrypt_dns_records": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "whether to disable automatic DNS record creation for Let's Encrypt certificates that are added to the load balancer",
+			},
 			"vpc_uuid": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -252,6 +257,7 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 	d.Set("redirect_http_to_https", loadbalancer.RedirectHttpToHttps)
 	d.Set("enable_proxy_protocol", loadbalancer.EnableProxyProtocol)
 	d.Set("enable_backend_keepalive", loadbalancer.EnableBackendKeepalive)
+	d.Set("disable_lets_encrypt_dns_records", loadbalancer.DisableLetsEncryptDNSRecords)
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {

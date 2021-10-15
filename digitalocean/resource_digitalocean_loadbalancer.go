@@ -321,6 +321,12 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Default:  false,
 			},
 
+			"disable_lets_encrypt_dns_records": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"vpc_uuid": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -378,14 +384,15 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 	}
 
 	opts := &godo.LoadBalancerRequest{
-		Name:                   d.Get("name").(string),
-		SizeSlug:               d.Get("size").(string),
-		Region:                 d.Get("region").(string),
-		Algorithm:              d.Get("algorithm").(string),
-		RedirectHttpToHttps:    d.Get("redirect_http_to_https").(bool),
-		EnableProxyProtocol:    d.Get("enable_proxy_protocol").(bool),
-		EnableBackendKeepalive: d.Get("enable_backend_keepalive").(bool),
-		ForwardingRules:        forwardingRules,
+		Name:                         d.Get("name").(string),
+		SizeSlug:                     d.Get("size").(string),
+		Region:                       d.Get("region").(string),
+		Algorithm:                    d.Get("algorithm").(string),
+		RedirectHttpToHttps:          d.Get("redirect_http_to_https").(bool),
+		EnableProxyProtocol:          d.Get("enable_proxy_protocol").(bool),
+		EnableBackendKeepalive:       d.Get("enable_backend_keepalive").(bool),
+		ForwardingRules:              forwardingRules,
+		DisableLetsEncryptDNSRecords: godo.Bool(d.Get("disable_lets_encrypt_dns_records").(bool)),
 	}
 
 	if v, ok := d.GetOk("droplet_tag"); ok {
