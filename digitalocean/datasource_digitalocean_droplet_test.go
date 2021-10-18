@@ -176,7 +176,7 @@ func testAccCheckDataSourceDigitalOceanDropletConfig_basicById(name string) stri
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foo" {
   name   = "%s"
-  size   = "512mb"
+  size   = "s-1vcpu-1gb"
   image  = "centos-7-x64"
   region = "nyc3"
   ipv6   = true
@@ -196,7 +196,7 @@ resource "digitalocean_tag" "foo" {
 
 resource "digitalocean_droplet" "foo" {
   name   = "%s"
-  size   = "512mb"
+  size   = "s-1vcpu-1gb"
   image  = "centos-7-x64"
   region = "nyc3"
   ipv6   = true
@@ -213,7 +213,7 @@ resource "digitalocean_tag" "foo" {
 
 resource "digitalocean_droplet" "foo" {
   name   = "%s"
-  size   = "512mb"
+  size   = "s-1vcpu-1gb"
   image  = "centos-7-x64"
   region = "nyc3"
   ipv6   = true

@@ -694,7 +694,7 @@ resource "digitalocean_tag" "barbaz" {
 
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
-  size      = "512mb"
+  size      = "s-1vcpu-1gb"
   image     = "centos-7-x64"
   region    = "nyc3"
   tags = ["${digitalocean_tag.barbaz.id}"]
@@ -727,7 +727,7 @@ func testAccCheckDigitalOceanLoadbalancerConfig_minimal(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
-  size      = "512mb"
+  size      = "s-1vcpu-1gb"
   image     = "centos-7-x64"
   region    = "nyc3"
 }
@@ -753,7 +753,7 @@ func testAccCheckDigitalOceanLoadbalancerConfig_stickySessions(rInt int) string 
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
-  size      = "512mb"
+  size      = "s-1vcpu-1gb"
   image     = "centos-7-x64"
   region    = "nyc3"
 }
