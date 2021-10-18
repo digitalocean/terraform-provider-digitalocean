@@ -98,6 +98,8 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "true"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "disable_lets_encrypt_dns_records", "false"),
 				),
 			},
 		},
@@ -148,6 +150,8 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "true"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "disable_lets_encrypt_dns_records", "false"),
 				),
 			},
 			{
@@ -185,6 +189,8 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "false"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "disable_lets_encrypt_dns_records", "true"),
 				),
 			},
 		},
@@ -672,8 +678,9 @@ resource "digitalocean_loadbalancer" "foobar" {
     protocol = "tcp"
   }
 
-  enable_proxy_protocol    = false
-  enable_backend_keepalive = false
+  enable_proxy_protocol            = false
+  enable_backend_keepalive         = false
+  disable_lets_encrypt_dns_records = true
 
   droplet_ids = [digitalocean_droplet.foobar.id, digitalocean_droplet.foo.id]
 }`, rInt, rInt, rInt)
