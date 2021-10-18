@@ -121,7 +121,7 @@ func testAccCheckDigitalOceanDropletSnapshotDestroy(s *terraform.State) error {
 const testAccCheckDigitalOceanDropletSnapshotConfig_basic = `
 resource "digitalocean_droplet" "foo" {
 	name      = "foo-%d"
-	size      = "512mb"
+	size      = "s-1vcpu-1gb"
 	image     = "centos-7-x64"
 	region    = "nyc3"
 	user_data = "foobar"
