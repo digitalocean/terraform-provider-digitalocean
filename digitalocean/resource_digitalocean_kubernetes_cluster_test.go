@@ -184,6 +184,7 @@ func TestAccDigitalOceanKubernetesCluster_CreateWithHAControlPlane(t *testing.T)
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "nyc1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ha", "true"),
+					resource.TestCheckNoResourceAttr("digitalocean_kubernetes_cluster.foobar", "ipv4"),
 					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
