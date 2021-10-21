@@ -188,6 +188,7 @@ func TestAccDigitalOceanKubernetesCluster_CreateWithHAControlPlane(t *testing.T)
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),
 				),
 			},
 		},
