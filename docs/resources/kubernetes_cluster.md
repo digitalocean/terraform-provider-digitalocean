@@ -172,7 +172,7 @@ In addition to the arguments listed above, the following additional attributes a
 * `id` - A unique ID that can be used to identify and reference a Kubernetes cluster.
 * `cluster_subnet` - The range of IP addresses in the overlay network of the Kubernetes cluster.
 * `service_subnet` - The range of assignable IP addresses for services running in the Kubernetes cluster.
-* `ipv4_address` - The public IPv4 address of the Kubernetes master node.
+* `ipv4_address` - The public IPv4 address of the Kubernetes master node. This will not be set if high availability is configured on the cluster (v1.21+)
 * `endpoint` - The base URL of the API server on the Kubernetes master node.
 * `status` -  A string indicating the current status of the cluster. Potential values include running, provisioning, and errored.
 * `created_at` - The date and time when the Kubernetes cluster was created.
