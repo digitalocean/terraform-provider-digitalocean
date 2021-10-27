@@ -1,31 +1,60 @@
-# Runs unit tests and `go vet`
-# Note that acceptance tests are not currently run automatically.
-name: Unit Test
+name: Acceptance Tests
+
+# Runs the acceptance test suite when the `!run acceptance` comment is added
+# or edited on a pull request by org owners.
 
 on:
-  pull_request:
-  push:
-    branches:
-    - main
+  # suite at 10:00 every Monday
+  schedule:
+    - cron: 0 15 * * MON-FRI
+  issue_comment:
+    types:
+      - created
+      - edited
 
 jobs:
   test:
     strategy:
       matrix:
-        go-version: [ 1.14.x, 1.15.x, 1.16.x]
+        go-version: [1.15.x, 1.16.x, 1.17.x]
 
     runs-on: ubuntu-latest
     steps:
-    - name: Install Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: ${{ matrix.go-version }}
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
 
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: make test
-      run: make test
+      - name: make test
+        run: make test
 
-    - name: make vet
-      run: make vet
+      - name: make vet
+        run: make vet
+
+  acceptance-tests:
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: Acceptance Tests
+
+    continue-on-error: true
+
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: make testacc
+        run: make testacc
+        env:
+          TESTARGS: -parallel 20
+          DIGITALOCEAN_TOKEN: ${{ secrets.ACCEPTANCE_TESTS_TOKEN }}
+          SPACES_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
+          SPACES_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
