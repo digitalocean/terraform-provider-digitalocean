@@ -38,7 +38,7 @@ jobs:
     #
     # This job has the `continue-on-error` set to true which prevents blocking
     # PRs if the tests fail.
-    needs: test
+    needs: unit
     runs-on: ubuntu-latest
     environment:
       name: Acceptance Tests
