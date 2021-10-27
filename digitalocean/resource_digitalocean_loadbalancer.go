@@ -480,6 +480,7 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("droplet_tag", loadbalancer.Tag)
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 	d.Set("size", loadbalancer.SizeSlug)
+	d.Set("disable_lets_encrypt_dns_records", loadbalancer.DisableLetsEncryptDNSRecords)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)
