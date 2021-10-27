@@ -125,12 +125,30 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 			"size": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "lb-small",
 				ValidateFunc: validation.StringInSlice([]string{
 					"lb-small",
 					"lb-medium",
 					"lb-large",
 				}, false),
+				Deprecated: "This attribute has been replaced by the `size_unit`.",
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					switch {
+					case new == "lb-small" && d.Get("size_unit") == 1:
+						return true
+					case new == "lb-medium" && d.Get("size_unit") == 3:
+						return true
+					case new == "lb-large" && d.Get("size_unit") == 6:
+						return true
+					}
+					return false
+				},
+			},
+
+			"size_unit": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: validation.IntBetween(1, 100),
 			},
 
 			"name": {
@@ -385,7 +403,6 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 
 	opts := &godo.LoadBalancerRequest{
 		Name:                         d.Get("name").(string),
-		SizeSlug:                     d.Get("size").(string),
 		Region:                       d.Get("region").(string),
 		Algorithm:                    d.Get("algorithm").(string),
 		RedirectHttpToHttps:          d.Get("redirect_http_to_https").(bool),
@@ -393,6 +410,14 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 		EnableBackendKeepalive:       d.Get("enable_backend_keepalive").(bool),
 		ForwardingRules:              forwardingRules,
 		DisableLetsEncryptDNSRecords: godo.Bool(d.Get("disable_lets_encrypt_dns_records").(bool)),
+	}
+
+	if v, ok := d.GetOk("size"); ok {
+		opts.SizeSlug = v.(string)
+	}
+
+	if v, ok := d.GetOk("size_unit"); ok {
+		opts.SizeUnit = v.(uint32)
 	}
 
 	if v, ok := d.GetOk("droplet_tag"); ok {
@@ -480,6 +505,7 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("droplet_tag", loadbalancer.Tag)
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 	d.Set("size", loadbalancer.SizeSlug)
+	d.Set("size_unit", loadbalancer.SizeUnit)
 	d.Set("disable_lets_encrypt_dns_records", loadbalancer.DisableLetsEncryptDNSRecords)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {
