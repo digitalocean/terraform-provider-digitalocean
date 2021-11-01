@@ -3,9 +3,12 @@ package digitalocean
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -117,3 +120,39 @@ resource "digitalocean_container_registry" "foobar" {
   name                   = "%s"
   subscription_tier_slug = "%s"
 }`
+
+func TestRevokeOAuthToken(t *testing.T) {
+	mux := http.NewServeMux()
+	server := httptest.NewServer(mux)
+	defer server.Close()
+
+	token, err := uuid.GenerateUUID()
+	if err != nil {
+		t.Fatalf("error creating fake token: %s", err.Error())
+	}
+
+	mux.HandleFunc("/revoke", func(w http.ResponseWriter, r *http.Request) {
+		if http.MethodPost != r.Method {
+			t.Errorf("method = %v, expected %v", r.Method, http.MethodPost)
+		}
+
+		authHeader := r.Header.Get("Authorization")
+		expectedAuth := fmt.Sprintf("Bearer %s", token)
+		if authHeader != expectedAuth {
+			t.Errorf("auth header  = %v, expected %v", authHeader, expectedAuth)
+		}
+
+		r.ParseForm()
+		bodyToken := r.Form.Get("token")
+		if token != bodyToken {
+			t.Errorf("token  = %v, expected %v", bodyToken, token)
+		}
+
+		w.WriteHeader(http.StatusOK)
+	})
+
+	err = revokeOAuthToken(token, server.URL+"/revoke")
+	if err != nil {
+		t.Errorf("error revoking token: %s", err.Error())
+	}
+}

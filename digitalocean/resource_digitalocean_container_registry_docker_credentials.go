@@ -2,7 +2,13 @@ package digitalocean
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -11,7 +17,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-const expirySecondsDefault = 1576800000 // Max allowed by the API, roughly 50 years
+const (
+	expirySecondsDefault     = 1576800000 // Max allowed by the API, roughly 50 years
+	oauthTokenRevokeEndpoint = "https://cloud.digitalocean.com/v1/oauth/revoke"
+)
 
 func resourceDigitalOceanContainerRegistryDockerCredentials() *schema.Resource {
 	return &schema.Resource{
@@ -114,9 +123,60 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsUpdate(ctx context.Co
 	return nil
 }
 
+type dockerConfig struct {
+	Auths struct {
+		Registry struct {
+			Auth string `json:"auth"`
+		} `json:"registry.digitalocean.com"`
+	} `json:"auths"`
+}
+
 func resourceDigitalOceanContainerRegistryDockerCredentialsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	configJSON := d.Get("docker_credentials")
+	var config dockerConfig
+	err := json.Unmarshal([]byte(configJSON.(string)), &config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// The OAuth token is used for both the username and password
+	// and stored as a base64 encoded string.
+	decoded, err := base64.StdEncoding.DecodeString(config.Auths.Registry.Auth)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	tokens := strings.Split(string(decoded), ":")
+	if len(tokens) != 2 {
+		return diag.FromErr(errors.New("unable to find OAuth token"))
+	}
+
+	err = revokeOAuthToken(tokens[0], oauthTokenRevokeEndpoint)
+	if err != nil {
+		diag.FromErr(err)
+	}
+
 	d.SetId("")
 	return nil
+}
+
+func revokeOAuthToken(token string, endpoint string) error {
+	data := url.Values{}
+	data.Set("token", token)
+	req, err := http.NewRequest(http.MethodPost, endpoint, strings.NewReader(data.Encode()))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	client := http.Client{}
+
+	resp, err := client.Do(req)
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.New("error revoking token: " + http.StatusText(resp.StatusCode))
+	}
+
+	return err
 }
 
 func generateDockerCredentials(readWrite bool, expirySeconds int, client *godo.Client) (string, error) {
