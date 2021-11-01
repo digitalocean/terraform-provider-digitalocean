@@ -225,7 +225,7 @@ resource "digitalocean_volume" "foobar" {
 
 resource "digitalocean_droplet" "foobar" {
 	name               = "baz-%d"
-	size               = "1gb"
+	size               = "s-1vcpu-1gb"
 	image              = "centos-7-x64"
 	region             = "nyc1"
 }
@@ -254,7 +254,7 @@ resource "digitalocean_volume" "barfoo" {
 
 resource "digitalocean_droplet" "foobar" {
 	name               = "baz-%d"
-	size               = "1gb"
+	size               = "s-1vcpu-1gb"
 	image              = "centos-7-x64"
 	region             = "nyc1"
 }
@@ -288,7 +288,7 @@ resource "digitalocean_volume" "foobar_second" {
 
 resource "digitalocean_droplet" "foobar" {
 	name               = "baz-%d"
-	size               = "1gb"
+	size               = "s-1vcpu-1gb"
 	image              = "centos-7-x64"
 	region             = "nyc1"
 }

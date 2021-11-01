@@ -28,7 +28,7 @@ data "digitalocean_project" "playground" {
 
 resource "digitalocean_droplet" "foobar" {
   name   = "example"
-  size   = "512mb"
+  size   = "s-1vcpu-1gb"
   image  = "centos-7-x64"
   region = "nyc3"
 }
