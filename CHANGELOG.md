@@ -1,3 +1,24 @@
+## 2.15.0 (November 1, 2021)
+
+IMPROVEMENTS:
+
+- `digitalocean_container_registry_docker_credentials`: Revoke OAuth token when credentials are destroyed ([#735](https://github.com/digitalocean/terraform-provider-digitalocean/pull/735)). - @andrewsomething
+- `digitalocean_loadbalancer`: Support disabling automatic DNS records when using Let's Encrypt certificates ([#723](https://github.com/digitalocean/terraform-provider-digitalocean/pull/723), [#730](https://github.com/digitalocean/terraform-provider-digitalocean/pull/730)). - @andrewsomething
+
+BUG FIXES:
+
+- docs: Remove outdated info from README ([#733](https://github.com/digitalocean/terraform-provider-digitalocean/pull/733)). - @andrewsomething
+
+TESTING:
+
+- testing: Check for endpoint attr in `digitalocean_kubernetes_cluster` when HA is enabled ([#725](https://github.com/digitalocean/terraform-provider-digitalocean/pull/725)). - @danaelhe
+- testing: Add acceptance test workflow ([#732](https://github.com/digitalocean/terraform-provider-digitalocean/pull/732)). - @scotchneat
+- testing: Add scheduled acceptance test runs ([#734](https://github.com/digitalocean/terraform-provider-digitalocean/pull/734)). - @scotchneat
+- testing: Limit acceptance test job/workflow to single run at a time ([#738](https://github.com/digitalocean/terraform-provider-digitalocean/pull/738)). - @scotchneat
+- testing: Acceptance tests: Don't use deprecated size slugs ([#737](https://github.com/digitalocean/terraform-provider-digitalocean/pull/737)). - @andrewsomething
+- testing: Acceptance tests: Use 2048 bit private keys in test data ([#736](https://github.com/digitalocean/terraform-provider-digitalocean/pull/736)). - @andrewsomething
+- testing: Fixes an invalid droplet size in some acceptance tests ([#724](https://github.com/digitalocean/terraform-provider-digitalocean/pull/724)). - @scotchneat
+
 ## 2.14.0 (October 7, 2021)
 
 IMPROVEMENTS:
