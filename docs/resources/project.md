@@ -40,7 +40,7 @@ The following example demonstrates the creation of a project with a Droplet reso
 ```hcl
 resource "digitalocean_droplet" "foobar" {
   name   = "example"
-  size   = "512mb"
+  size   = "s-1vcpu-1gb"
   image  = "centos-7-x64"
   region = "nyc3"
 }
