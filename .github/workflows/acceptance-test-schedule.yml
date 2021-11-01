@@ -6,6 +6,8 @@ on:
   schedule:
     - cron: 0 14 * * MON-FRI # Every weekday at 14:00 UTC (10a Eastern)
 
+concurrency: acceptance_tests
+
 jobs:
   acceptance:
     runs-on: ubuntu-latest
