@@ -32,6 +32,11 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Computed:    true,
 				Description: "the region that the load balancer is deployed in",
 			},
+			"size_unit": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "the size of the load balancer.",
+			},
 			"size": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -249,7 +254,12 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 	d.Set("name", loadbalancer.Name)
 	d.Set("urn", loadbalancer.URN())
 	d.Set("region", loadbalancer.Region.Slug)
-	d.Set("size", loadbalancer.SizeSlug)
+	if loadbalancer.SizeUnit > 0 {
+		d.Set("size_unit", loadbalancer.SizeUnit)
+	} else if loadbalancer.SizeSlug != "" {
+		d.Set("size", loadbalancer.SizeSlug)
+	}
+
 	d.Set("ip", loadbalancer.IP)
 	d.Set("algorithm", loadbalancer.Algorithm)
 	d.Set("status", loadbalancer.Status)
