@@ -95,6 +95,8 @@ The following arguments are supported:
   will be accepted.
 * `source_load_balancer_uids` - (Optional) An array containing the IDs
   of the Load Balancers from which the inbound traffic will be accepted.
+* `source_kubernetes_ids` - (Optional) An array containing the IDs of
+  the Kubernetes clusters from which the inbound traffic will be accepted.
 
 `outbound_rule` supports the following:
 
@@ -109,10 +111,11 @@ The following arguments are supported:
   outbound traffic will be allowed.
 * `destination_droplet_ids` - (Optional) An array containing the IDs of
   the Droplets to which the outbound traffic will be allowed.
+* `destination_kubernetes_ids` - (Optional) An array containing the IDs of
+  the Kubernetes clusters to which the outbound traffic will be allowed.
 * `destination_tags` - (Optional) An array containing the names of Tags
   corresponding to groups of Droplets to which the outbound traffic will
   be allowed.
-  traffic.
 * `destination_load_balancer_uids` - (Optional) An array containing the IDs
   of the Load Balancers to which the outbound traffic will be allowed.
 
