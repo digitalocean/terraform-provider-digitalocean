@@ -39,7 +39,7 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "size", "lb-small"),
+						"data.digitalocean_loadbalancer.foobar", "size_unit", "1"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(
@@ -103,7 +103,69 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "size", "lb-large"),
+						"data.digitalocean_loadbalancer.foobar", "size_unit", "6"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"data.digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+						},
+					),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "healthcheck.0.port", "22"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "tcp"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "droplet_ids.#", "2"),
+					resource.TestMatchResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "urn", expectedURNRegEx),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_loadbalancer.foobar", "vpc_uuid"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "false"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "false"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceDigitalOceanLoadBalancer_Size2(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	testName := randomTestName()
+	resourceConfig := testAccCheckDataSourceDigitalOceanLoadBalancerConfigSizeUnit(testName, 2)
+	dataSourceConfig := `
+data "digitalocean_loadbalancer" "foobar" {
+  name = digitalocean_loadbalancer.foo.name
+}`
+
+	expectedURNRegEx, _ := regexp.Compile(`do:loadbalancer:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceDigitalOceanLoadBalancerExists("data.digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "name", testName),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "size_unit", "2"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(
@@ -164,7 +226,7 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "size", "lb-small"),
+						"data.digitalocean_loadbalancer.foobar", "size_unit", "1"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(
@@ -237,7 +299,7 @@ data "digitalocean_loadbalancer" "foobar" {
 						},
 					),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "size", "lb-small"),
+						"data.digitalocean_loadbalancer.foobar", "size_unit", "1"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "redirect_http_to_https", "true"),
 					resource.TestCheckResourceAttr(
@@ -315,4 +377,43 @@ resource "digitalocean_loadbalancer" "foo" {
   droplet_tag = digitalocean_tag.foo.id
   depends_on  = ["digitalocean_droplet.foo"]
 }`, testName, testName, sizeSlug)
+}
+
+func testAccCheckDataSourceDigitalOceanLoadBalancerConfigSizeUnit(testName string, sizeUnit uint32) string {
+	return fmt.Sprintf(`
+resource "digitalocean_tag" "foo" {
+  name = "web"
+}
+
+resource "digitalocean_droplet" "foo" {
+  count              = 2
+  image              = "ubuntu-18-04-x64"
+  name               = "%s-${count.index}"
+  region             = "nyc3"
+  size               = "s-1vcpu-1gb"
+  private_networking = true
+  tags               = [digitalocean_tag.foo.id]
+}
+
+resource "digitalocean_loadbalancer" "foo" {
+  name   = "%s"
+  region = "nyc3"
+  size_unit = "%d"
+
+  forwarding_rule {
+	entry_port     = 80
+	entry_protocol = "http"
+
+	target_port     = 80
+	target_protocol = "http"
+  }
+
+  healthcheck {
+	port     = 22
+    protocol = "tcp"
+  }
+
+  droplet_tag = digitalocean_tag.foo.id
+  depends_on  = ["digitalocean_droplet.foo"]
+}`, testName, testName, sizeUnit)
 }
