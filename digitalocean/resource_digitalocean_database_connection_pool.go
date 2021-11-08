@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -168,6 +169,8 @@ func resourceDigitalOceanDatabaseConnectionPoolImport(d *schema.ResourceData, me
 		d.SetId(createConnectionPoolID(s[0], s[1]))
 		d.Set("cluster_id", s[0])
 		d.Set("name", s[1])
+	} else {
+		return nil, errors.New("must use the ID of the source database cluster and the name of the connection pool joined with a comma (e.g. `id,name`)")
 	}
 
 	return []*schema.ResourceData{d}, nil
