@@ -1,4 +1,4 @@
-## 2.15.0 (November 8, 2021)
+## 2.16.0 (November 8, 2021)
 
 IMPROVEMENTS:
 
