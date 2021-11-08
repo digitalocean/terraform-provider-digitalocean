@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -185,6 +186,8 @@ func resourceDigitalOceanDatabaseReplicaImport(d *schema.ResourceData, meta inte
 		d.SetId(makeReplicaId(s[0], s[1]))
 		d.Set("cluster_id", s[0])
 		d.Set("name", s[1])
+	} else {
+		return nil, errors.New("must use the ID of the source database cluster and the replica name joined with a comma (e.g. `id,name`)")
 	}
 
 	return []*schema.ResourceData{d}, nil

@@ -39,6 +39,13 @@ func TestAccDigitalOceanDatabaseDB_importBasic(t *testing.T) {
 				ImportStateId:     fmt.Sprintf("%s,%s", "this-cluster-id-does-not-exist", databaseDBName),
 				ExpectError:       regexp.MustCompile(`(Please verify the ID is correct|Cannot import non-existent remote object)`),
 			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "db",
+				ExpectError:       regexp.MustCompile("joined with a comma"),
+			},
 		},
 	})
 }
