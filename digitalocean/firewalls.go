@@ -109,6 +109,14 @@ func firewallRuleSchema(prefix string) *schema.Resource {
 				},
 				Optional: true,
 			},
+			prefix + "kubernetes_ids": {
+				Type: schema.TypeSet,
+				Elem: &schema.Schema{
+					Type:         schema.TypeString,
+					ValidateFunc: validation.NoZeroValues,
+				},
+				Optional: true,
+			},
 			prefix + "tags": tagsSchema(),
 		},
 	}
@@ -145,6 +153,8 @@ func expandFirewallInboundRules(rules []interface{}) []godo.InboundRule {
 
 		src.LoadBalancerUIDs = expandFirewallRuleStringSet(rule["source_load_balancer_uids"].(*schema.Set).List())
 
+		src.KubernetesIDs = expandFirewallRuleStringSet(rule["source_kubernetes_ids"].(*schema.Set).List())
+
 		src.Tags = expandTags(rule["source_tags"].(*schema.Set).List())
 
 		r := godo.InboundRule{
@@ -170,6 +180,8 @@ func expandFirewallOutboundRules(rules []interface{}) []godo.OutboundRule {
 		dest.Addresses = expandFirewallRuleStringSet(rule["destination_addresses"].(*schema.Set).List())
 
 		dest.LoadBalancerUIDs = expandFirewallRuleStringSet(rule["destination_load_balancer_uids"].(*schema.Set).List())
+
+		dest.KubernetesIDs = expandFirewallRuleStringSet(rule["destination_kubernetes_ids"].(*schema.Set).List())
 
 		dest.Tags = expandTags(rule["destination_tags"].(*schema.Set).List())
 
@@ -261,6 +273,10 @@ func flattenFirewallInboundRules(rules []godo.InboundRule) []interface{} {
 			rawRule["source_load_balancer_uids"] = flattenFirewallRuleStringSet(sources.LoadBalancerUIDs)
 		}
 
+		if sources.KubernetesIDs != nil {
+			rawRule["source_kubernetes_ids"] = flattenFirewallRuleStringSet(sources.KubernetesIDs)
+		}
+
 		flattenedRules[i] = rawRule
 	}
 
@@ -307,6 +323,10 @@ func flattenFirewallOutboundRules(rules []godo.OutboundRule) []interface{} {
 
 		if destinations.LoadBalancerUIDs != nil {
 			rawRule["destination_load_balancer_uids"] = flattenFirewallRuleStringSet(destinations.LoadBalancerUIDs)
+		}
+
+		if destinations.KubernetesIDs != nil {
+			rawRule["destination_kubernetes_ids"] = flattenFirewallRuleStringSet(destinations.KubernetesIDs)
 		}
 
 		flattenedRules[i] = rawRule
