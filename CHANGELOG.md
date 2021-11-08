@@ -1,3 +1,14 @@
+## 2.15.0 (November 8, 2021)
+
+IMPROVEMENTS:
+
+- `digitalocean_loadbalancer`: Add support for size_unit ([#742](https://github.com/digitalocean/terraform-provider-digitalocean/pull/742)). - @bbassingthwaite
+- `digitalocean_database_firewall`: Add attributes for Kubernetes cluster IDs to firewall rules ([#741](https://github.com/digitalocean/terraform-provider-digitalocean/pull/741)). - @tdyas
+
+BUG FIXES:
+
+- `digitalocean_database_user`, `digitalocean_database_replica`, `digitalocean_database_db`, `digitalocean_database_connection_pool`: Provide better error messages importing sub-resources. ([#744](https://github.com/digitalocean/terraform-provider-digitalocean/pull/744)). - @andrewsomething
+
 ## 2.15.0 (November 1, 2021)
 
 IMPROVEMENTS:
