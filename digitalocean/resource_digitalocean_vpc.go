@@ -144,6 +144,7 @@ func resourceDigitalOceanVPCUpdate(ctx context.Context, d *schema.ResourceData, 
 		vpcUpdateRequest := &godo.VPCUpdateRequest{
 			Name:        d.Get("name").(string),
 			Description: d.Get("description").(string),
+			Default:     godo.Bool(d.Get("default").(bool)),
 		}
 		_, _, err := client.VPCs.Update(context.Background(), d.Id(), vpcUpdateRequest)
 
