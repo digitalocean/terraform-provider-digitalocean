@@ -49,6 +49,8 @@ func TestAccDigitalOceanVPC_Basic(t *testing.T) {
 						"digitalocean_vpc.foobar", "name", updatedVPCName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpc.foobar", "description", updatedVPVDesc),
+					resource.TestCheckResourceAttr(
+						"digitalocean_vpc.foobar", "default", "false"),
 				),
 			},
 		},
@@ -72,6 +74,8 @@ func TestAccDigitalOceanVPC_IPRange(t *testing.T) {
 						"digitalocean_vpc.foobar", "name", vpcName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpc.foobar", "ip_range", "10.10.10.0/24"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_vpc.foobar", "default", "false"),
 				),
 			},
 		},
