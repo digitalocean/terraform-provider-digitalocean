@@ -28,3 +28,22 @@ jobs:
           DIGITALOCEAN_TOKEN: ${{ secrets.ACCEPTANCE_TESTS_TOKEN }}
           SPACES_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
           SPACES_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
+
+  sweep:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17.x
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: make sweep
+        run: make sweep
+        env:
+          DIGITALOCEAN_TOKEN: ${{ secrets.ACCEPTANCE_TESTS_TOKEN }}
+          SPACES_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
+          SPACES_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}

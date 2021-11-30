@@ -2,13 +2,13 @@ package digitalocean
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceDigitalOceanRecords_Basic(t *testing.T) {
-	name1 := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	name1 := randomTestName("records") + ".com"
 
 	resourcesConfig := fmt.Sprintf(`
 resource "digitalocean_domain" "foo" {

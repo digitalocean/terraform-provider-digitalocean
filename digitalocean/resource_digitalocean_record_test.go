@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -39,7 +38,7 @@ func TestDigitalOceanRecordConstructFqdn(t *testing.T) {
 
 func TestAccDigitalOceanRecord_Basic(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -67,7 +66,7 @@ func TestAccDigitalOceanRecord_Basic(t *testing.T) {
 
 func TestAccDigitalOceanRecord_BasicFullName(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName("record") + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -95,7 +94,7 @@ func TestAccDigitalOceanRecord_BasicFullName(t *testing.T) {
 
 func TestAccDigitalOceanRecord_Updated(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName("record") + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -143,7 +142,7 @@ func TestAccDigitalOceanRecord_Updated(t *testing.T) {
 
 func TestAccDigitalOceanRecord_HostnameValue(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -172,7 +171,7 @@ func TestAccDigitalOceanRecord_HostnameValue(t *testing.T) {
 
 func TestAccDigitalOceanRecord_ExternalHostnameValue(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -201,7 +200,7 @@ func TestAccDigitalOceanRecord_ExternalHostnameValue(t *testing.T) {
 
 func TestAccDigitalOceanRecord_FlagsAndTag(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -234,7 +233,7 @@ func TestAccDigitalOceanRecord_FlagsAndTag(t *testing.T) {
 
 func TestAccDigitalOceanRecord_MX(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -263,7 +262,7 @@ func TestAccDigitalOceanRecord_MX(t *testing.T) {
 
 func TestAccDigitalOceanRecord_MX_at(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -292,7 +291,7 @@ func TestAccDigitalOceanRecord_MX_at(t *testing.T) {
 
 func TestAccDigitalOceanRecord_SRV_zero_weight_port(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -325,7 +324,7 @@ func TestAccDigitalOceanRecord_SRV_zero_weight_port(t *testing.T) {
 
 func TestAccDigitalOceanRecord_UpdateBasic(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -374,7 +373,7 @@ func TestAccDigitalOceanRecord_UpdateBasic(t *testing.T) {
 
 func TestAccDigitalOceanRecord_MXUpdated(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -423,7 +422,7 @@ func TestAccDigitalOceanRecord_MXUpdated(t *testing.T) {
 
 func TestAccDigitalOceanRecord_SrvUpdated(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -476,7 +475,7 @@ func TestAccDigitalOceanRecord_SrvUpdated(t *testing.T) {
 
 func TestAccDigitalOceanRecord_CaaUpdated(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -529,7 +528,7 @@ func TestAccDigitalOceanRecord_CaaUpdated(t *testing.T) {
 
 func TestAccDigitalOceanRecord_iodefCAA(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -561,7 +560,7 @@ func TestAccDigitalOceanRecord_iodefCAA(t *testing.T) {
 
 func TestAccDigitalOceanRecord_TXT(t *testing.T) {
 	var record godo.DomainRecord
-	domain := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domain := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },

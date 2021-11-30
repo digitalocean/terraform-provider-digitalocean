@@ -14,7 +14,7 @@ import (
 func TestAccDataSourceDigitalOceanRecord_Basic(t *testing.T) {
 	var record godo.DomainRecord
 	recordDomain := fmt.Sprintf("%s.com", randomTestName())
-	recordName := randomTestName()
+	recordName := randomTestName("record")
 	resourceConfig := fmt.Sprintf(`
 resource "digitalocean_domain" "foo" {
   name       = "%s"
