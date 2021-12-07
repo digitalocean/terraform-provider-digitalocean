@@ -28,6 +28,9 @@ jobs:
       - name: make vet
         run: make vet
 
+      - name: make lint
+        run: make lint
+
       - name: make test
         run: make test
 

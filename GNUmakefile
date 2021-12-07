@@ -28,8 +28,15 @@ sweep:
 	@echo "WARNING: This will destroy infrastructure. Use only in development accounts."
 	go test ./digitalocean -v -sweep=1
 
+goimports:
+	@echo "==> Fixing imports code with goimports..."
+	@find . -name '*.go' | grep -v vendor | grep -v generator-resource-id | while read f; do ./scripts/goimport-file.sh "$$f"; done
+
+lint:
+	./scripts/run-lint.sh
+
 fmt:
-	gofmt -w $(GOFMT_FILES)
+	gofmt -s -w $(GOFMT_FILES)
 
 fmtcheck:
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"

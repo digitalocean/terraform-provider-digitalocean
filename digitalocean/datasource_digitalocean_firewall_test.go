@@ -2,9 +2,9 @@ package digitalocean
 
 import (
 	"fmt"
-	"github.com/digitalocean/godo"
 	"testing"
 
+	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
