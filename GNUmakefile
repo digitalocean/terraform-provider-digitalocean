@@ -26,7 +26,7 @@ vet:
 
 sweep:
 	@echo "WARNING: This will destroy infrastructure. Use only in development accounts."
-	go test $(TEST) -v -sweep=1
+	go test ./digitalocean -v -sweep=1
 
 fmt:
 	gofmt -w $(GOFMT_FILES)
