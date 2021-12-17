@@ -6,14 +6,13 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanDomain_Basic(t *testing.T) {
 	var domain godo.Domain
-	domainName := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domainName := randomTestName() + ".com"
 	expectedURN := fmt.Sprintf("do:domain:%s", domainName)
 
 	resourceConfig := fmt.Sprintf(`

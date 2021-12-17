@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceDigitalOceanDomains_Basic(t *testing.T) {
-	name1 := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
-	name2 := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	name1 := randomTestName() + ".com"
+	name2 := randomTestName() + ".com"
 
 	resourcesConfig := fmt.Sprintf(`
 resource "digitalocean_domain" "foo" {

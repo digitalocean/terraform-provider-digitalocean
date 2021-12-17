@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDigitalOceanRecord_importBasic(t *testing.T) {
 	resourceName := "digitalocean_record.foobar"
-	domainName := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domainName := randomTestName("record") + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },

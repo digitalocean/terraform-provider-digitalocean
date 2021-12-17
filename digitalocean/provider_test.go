@@ -3,11 +3,12 @@ package digitalocean
 import (
 	"context"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -174,8 +175,12 @@ func TestSpaceAPIEndpointOverride(t *testing.T) {
 	}
 }
 
-func randomTestName() string {
-	return randomName(testNamePrefix, 10)
+func randomTestName(additionalNames ...string) string {
+	prefix := testNamePrefix
+	for _, n := range additionalNames {
+		prefix += "-" + strings.Replace(n, " ", "_", -1)
+	}
+	return randomName(prefix, 10)
 }
 
 func randomName(prefix string, length int) string {
