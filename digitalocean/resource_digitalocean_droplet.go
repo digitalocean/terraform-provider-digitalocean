@@ -721,6 +721,7 @@ func waitForDropletAttribute(
 func newDropletStateRefreshFunc(
 	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
 	client := meta.(*CombinedConfig).godoClient()
+	dropletID := d.Id()
 	return func() (interface{}, string, error) {
 		id, err := strconv.Atoi(d.Id())
 		if err != nil {
@@ -732,6 +733,8 @@ func newDropletStateRefreshFunc(
 		if diags.HasError() {
 			return nil, "", err
 		}
+		// On 404 response resourceDigitalOceanDropletRead() will unset ID while we want it to remain set.
+		d.SetId(dropletID)
 
 		// If the droplet is locked, continue waiting. We can
 		// only perform actions on unlocked droplets, so it's
