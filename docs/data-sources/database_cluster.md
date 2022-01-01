@@ -9,7 +9,6 @@ Provides information on a DigitalOcean database cluster resource.
 ## Example Usage
 
 ```hcl
-# Create a new database cluster
 data "digitalocean_database_cluster" "example" {
   name = "example-cluster"
 }
