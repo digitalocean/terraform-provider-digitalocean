@@ -480,7 +480,11 @@ func waitForDatabaseCluster(client *godo.Client, d *schema.ResourceData, status 
 	)
 
 	for range ticker.C {
-		database, _, err := client.Databases.Get(context.Background(), d.Id())
+		database, resp, err := client.Databases.Get(context.Background(), d.Id())
+		if resp.StatusCode == 404 {
+			continue
+		}
+
 		if err != nil {
 			ticker.Stop()
 			return nil, fmt.Errorf("Error trying to read database cluster state: %s", err)
