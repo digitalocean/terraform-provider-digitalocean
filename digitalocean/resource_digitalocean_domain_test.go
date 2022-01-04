@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -36,7 +35,7 @@ func testSweepDomain(region string) error {
 	}
 
 	for _, d := range domains {
-		if strings.HasPrefix(d.Name, "foobar-") {
+		if strings.HasPrefix(d.Name, testNamePrefix) {
 			log.Printf("Destroying domain %s", d.Name)
 
 			if _, err := client.Domains.Delete(context.Background(), d.Name); err != nil {
@@ -50,7 +49,7 @@ func testSweepDomain(region string) error {
 
 func TestAccDigitalOceanDomain_Basic(t *testing.T) {
 	var domain godo.Domain
-	domainName := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domainName := randomTestName() + ".com"
 
 	expectedURN := fmt.Sprintf("do:domain:%s", domainName)
 
@@ -78,7 +77,7 @@ func TestAccDigitalOceanDomain_Basic(t *testing.T) {
 
 func TestAccDigitalOceanDomain_WithoutIp(t *testing.T) {
 	var domain godo.Domain
-	domainName := fmt.Sprintf("foobar-test-terraform-%s.com", acctest.RandString(10))
+	domainName := randomTestName() + ".com"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },

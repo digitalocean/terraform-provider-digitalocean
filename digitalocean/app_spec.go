@@ -238,6 +238,11 @@ func appSpecRouteSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Path specifies an route by HTTP path prefix. Paths must start with / and must be unique within the app.",
 		},
+		"preserve_path_prefix": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: " An optional flag to preserve the path that is forwarded to the backend service.",
+		},
 	}
 }
 
@@ -986,7 +991,8 @@ func expandAppRoutes(config []interface{}) []*godo.AppRouteSpec {
 		route := rawRoute.(map[string]interface{})
 
 		r := &godo.AppRouteSpec{
-			Path: route["path"].(string),
+			Path:               route["path"].(string),
+			PreservePathPrefix: route["preserve_path_prefix"].(bool),
 		}
 
 		appRoutes = append(appRoutes, r)
@@ -1011,6 +1017,7 @@ func flattenAppRoutes(routes []*godo.AppRouteSpec) []interface{} {
 	for _, route := range routes {
 		r := make(map[string]interface{})
 		r["path"] = route.Path
+		r["preserve_path_prefix"] = route.PreservePathPrefix
 
 		result = append(result, r)
 	}

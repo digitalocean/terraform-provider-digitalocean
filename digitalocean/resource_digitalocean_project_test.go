@@ -240,7 +240,7 @@ func TestAccDigitalOceanProject_UpdateFromDropletToSpacesResource(t *testing.T) 
 
 func TestAccDigitalOceanProject_WithManyResources(t *testing.T) {
 	projectName := generateProjectName()
-	domainBase := randomTestName()
+	domainBase := randomTestName("project")
 
 	createConfig := fixtureCreateDomainResources(domainBase)
 	updateConfig := fixtureWithManyResources(domainBase, projectName)
