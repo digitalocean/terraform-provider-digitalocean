@@ -13,6 +13,7 @@ The following resource types can be associated with a project:
 * Domains
 * Droplets
 * Floating IP
+* Kubernetes Cluster
 * Load Balancers
 * Spaces Bucket
 * Volume
