@@ -64,6 +64,8 @@ func TestAccDigitalOceanApp_Image(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.routes.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry_type", "DOCKER_HUB"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry", "caddy"),
@@ -104,6 +106,8 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.routes.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.git.0.repo_clone_url",
 						"https://github.com/digitalocean/sample-golang.git"),
 					resource.TestCheckResourceAttr(
@@ -123,9 +127,13 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/go"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.routes.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.1.name", "python-service"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.1.routes.0.path", "/python"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.1.routes.0.preserve_path_prefix", "true"),
 				),
 			},
 			{
@@ -134,6 +142,8 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.routes.0.preserve_path_prefix", "false"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.database.0.name", "test-db"),
 					resource.TestCheckResourceAttr(
@@ -199,6 +209,8 @@ func TestAccDigitalOceanApp_StaticSite(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.static_site.0.catchall_document", "404.html"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.static_site.0.routes.0.path", "/"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.static_site.0.routes.0.preserve_path_prefix", "false"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.static_site.0.build_command", "bundle exec jekyll build -d ./public"),
 					resource.TestCheckResourceAttr(
@@ -838,7 +850,8 @@ resource "digitalocean_app" "foobar" {
       }
 
       routes {
-        path = "/python"
+        path                 = "/python"
+        preserve_path_prefix = true
       }
     }
   }

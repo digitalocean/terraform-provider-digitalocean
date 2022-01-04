@@ -72,6 +72,7 @@ A `service` can contain:
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `route` - An HTTP paths that should be routed to this component.
   - `path` - Paths must start with `/` and must be unique within the app.
+  - `preserve_path_prefix` -  An optional flag to preserve the path that is forwarded to the backend service.
 * `health_check` - A health check to determine the availability of this component.
   - `http_path` - The route path used for the HTTP health check ping.
   - `initial_delay_seconds` - The number of seconds to wait before beginning health checks.
@@ -109,6 +110,7 @@ A `static_site` can contain:
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `route` - An HTTP paths that should be routed to this component.
   - `path` - Paths must start with `/` and must be unique within the app.
+  - `preserve_path_prefix` -  An optional flag to preserve the path that is forwarded to the backend service.
 
 A `worker` can contain:
 
