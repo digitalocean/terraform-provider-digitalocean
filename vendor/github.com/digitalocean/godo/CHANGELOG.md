@@ -1,5 +1,25 @@
 # Change Log
 
+## [v1.73.0] - 2021-12-03
+
+- #501 - @CollinShoop - Add support for Registry ListManifests and ListRepositoriesV2
+
+## [v1.72.0] - 2021-11-29
+
+- #500 - @ElanHasson - APPS-4420: Add PreservePathPrefix to AppRouteSpec
+
+## [v1.71.0] - 2021-11-09
+
+- #498 - @bojand - apps: update spec to include log destinations
+
+## [v1.70.0] - 2021-11-01
+
+- #491 - @andrewsomething - Add support for retrieving Droplet monitoring metrics.
+- #494 - @alexandear - Refactor tests: replace t.Errorf with assert/require
+- #495 - @alexandear - Fix typos and grammar issues in comments
+- #492 - @andrewsomething - Update golang.org/x/net
+- #486 - @abeltay - Fix typo on "DigitalOcean"
+
 ## [v1.69.1] - 2021-10-06
 
 - #484 - @sunny-b - k8s/godo: remove ha field from update request
