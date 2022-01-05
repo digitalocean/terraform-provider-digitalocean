@@ -36,3 +36,12 @@ The following arguments are supported:
 
 * `ip_address` - (Required) The Floating IP to assign to the Droplet.
 * `droplet_id` - (Optional) The ID of Droplet that the Floating IP will be assigned to.
+
+## Import
+
+Floating IP assignments can be imported using the Floating IP itself and the `id` of
+the Droplet joined with a comma. For example:
+
+```
+terraform import digitalocean_floating_ip_assignment.foobar 192.0.2.1,123456
+```
