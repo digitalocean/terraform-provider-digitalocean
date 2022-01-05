@@ -2,8 +2,11 @@ package digitalocean
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -18,7 +21,7 @@ func resourceDigitalOceanFloatingIpAssignment() *schema.Resource {
 		ReadContext:   resourceDigitalOceanFloatingIpAssignmentRead,
 		DeleteContext: resourceDigitalOceanFloatingIpAssignmentDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: resourceDigitalOceanFloatingIPAssignmentImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -148,4 +151,21 @@ func newFloatingIPAssignmentStateRefreshFunc(
 		log.Printf("[INFO] The FloatingIP Action Status is %s", action.Status)
 		return &action, action.Status, nil
 	}
+}
+
+func resourceDigitalOceanFloatingIPAssignmentImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if strings.Contains(d.Id(), ",") {
+		s := strings.Split(d.Id(), ",")
+		d.SetId(resource.PrefixedUniqueId(fmt.Sprintf("%s-%s-", s[1], s[0])))
+		d.Set("ip_address", s[0])
+		dropletID, err := strconv.Atoi(s[1])
+		if err != nil {
+			return nil, err
+		}
+		d.Set("droplet_id", dropletID)
+	} else {
+		return nil, errors.New("must use the Floating IP and the ID of the Droplet joined with a comma (e.g. `ip_address,droplet_id`)")
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
