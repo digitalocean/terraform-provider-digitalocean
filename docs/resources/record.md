@@ -15,7 +15,7 @@ resource "digitalocean_domain" "default" {
 
 # Add an A record to the domain for www.example.com.
 resource "digitalocean_record" "www" {
-  domain = digitalocean_domain.default.name
+  domain = digitalocean_domain.default.id
   type   = "A"
   name   = "www"
   value  = "192.168.0.11"
@@ -23,7 +23,7 @@ resource "digitalocean_record" "www" {
 
 # Add a MX record for the example.com domain itself.
 resource "digitalocean_record" "mx" {
-  domain   = digitalocean_domain.default.name
+  domain   = digitalocean_domain.default.id
   type     = "MX"
   name     = "@"
   priority = 10

@@ -90,10 +90,10 @@ func testAccCheckDigitalOceanFloatingIPAttachmentExists(n string) resource.TestC
 		}
 
 		if rs.Primary.Attributes["ip_address"] == "" {
-			return fmt.Errorf("No Record ID is set")
+			return fmt.Errorf("No floating IP is set")
 		}
 		fipID := rs.Primary.Attributes["ip_address"]
-		dropletId, err := strconv.Atoi(rs.Primary.Attributes["droplet_id"])
+		dropletID, err := strconv.Atoi(rs.Primary.Attributes["droplet_id"])
 		if err != nil {
 			return err
 		}
@@ -106,8 +106,8 @@ func testAccCheckDigitalOceanFloatingIPAttachmentExists(n string) resource.TestC
 			return err
 		}
 
-		if foundFloatingIP.IP != fipID || foundFloatingIP.Droplet.ID != dropletId {
-			return fmt.Errorf("Wrong volume attachment found")
+		if foundFloatingIP.IP != fipID || foundFloatingIP.Droplet.ID != dropletID {
+			return fmt.Errorf("wrong floating IP attachment found")
 		}
 
 		return nil
