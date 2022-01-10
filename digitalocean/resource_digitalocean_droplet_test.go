@@ -174,9 +174,9 @@ func TestAccDigitalOceanDroplet_Update(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("baz-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-2gb"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "disk", "30"),
+						"digitalocean_droplet.foobar", "disk", "50"),
 				),
 			},
 		},
@@ -210,9 +210,9 @@ func TestAccDigitalOceanDroplet_ResizeWithOutDisk(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-2gb"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "disk", "20"),
+						"digitalocean_droplet.foobar", "disk", "25"),
 				),
 			},
 		},
@@ -237,7 +237,7 @@ func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 				),
 			},
-
+			// Test moving to larger plan with resize_disk = false only increases RAM, not disk.
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_resize_without_disk(rInt),
 				Check: resource.ComposeTestCheckFunc(
@@ -246,12 +246,12 @@ func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-2gb"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "disk", "20"),
+						"digitalocean_droplet.foobar", "disk", "25"),
 				),
 			},
-
+			// Test that we can downgrade a Droplet plan as long as the disk remains the same
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_basic(rInt),
 				Check: resource.ComposeTestCheckFunc(
@@ -262,10 +262,10 @@ func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "disk", "20"),
+						"digitalocean_droplet.foobar", "disk", "25"),
 				),
 			},
-
+			// Test that resizing resize_disk = true increases the disk
 			{
 				Config: testAccCheckDigitalOceanDropletConfig_resize(rInt),
 				Check: resource.ComposeTestCheckFunc(
@@ -274,9 +274,9 @@ func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-2gb"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "disk", "30"),
+						"digitalocean_droplet.foobar", "disk", "50"),
 				),
 			},
 		},
@@ -736,11 +736,11 @@ func testAccCheckDigitalOceanDropletAttributes(droplet *godo.Droplet) resource.T
 func testAccCheckDigitalOceanDropletRenamedAndResized(droplet *godo.Droplet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if droplet.Size.Slug != "s-1vcpu-1gb" {
+		if droplet.Size.Slug != "s-1vcpu-2gb" {
 			return fmt.Errorf("Bad size_slug: %s", droplet.SizeSlug)
 		}
 
-		if droplet.Disk != 30 {
+		if droplet.Disk != 50 {
 			return fmt.Errorf("Bad disk: %d", droplet.Disk)
 		}
 
@@ -751,11 +751,11 @@ func testAccCheckDigitalOceanDropletRenamedAndResized(droplet *godo.Droplet) res
 func testAccCheckDigitalOceanDropletResizeWithOutDisk(droplet *godo.Droplet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if droplet.Size.Slug != "s-1vcpu-1gb" {
+		if droplet.Size.Slug != "s-1vcpu-2gb" {
 			return fmt.Errorf("Bad size_slug: %s", droplet.SizeSlug)
 		}
 
-		if droplet.Disk != 20 {
+		if droplet.Disk != 25 {
 			return fmt.Errorf("Bad disk: %d", droplet.Disk)
 		}
 
@@ -766,11 +766,11 @@ func testAccCheckDigitalOceanDropletResizeWithOutDisk(droplet *godo.Droplet) res
 func testAccCheckDigitalOceanDropletResizeSmaller(droplet *godo.Droplet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if droplet.Size.Slug != "s-1vcpu-1gb" {
+		if droplet.Size.Slug != "s-1vcpu-2gb" {
 			return fmt.Errorf("Bad size_slug: %s", droplet.SizeSlug)
 		}
 
-		if droplet.Disk != 30 {
+		if droplet.Disk != 50 {
 			return fmt.Errorf("Bad disk: %d", droplet.Disk)
 		}
 
@@ -940,7 +940,7 @@ func testAccCheckDigitalOceanDropletConfig_RenameAndResize(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name     = "baz-%d"
-  size     = "s-1vcpu-1gb"
+  size     = "s-1vcpu-2gb"
   image    = "centos-8-x64"
   region   = "nyc3"
 }
@@ -951,7 +951,7 @@ func testAccCheckDigitalOceanDropletConfig_resize_without_disk(rInt int) string 
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name     = "foo-%d"
-  size     = "s-1vcpu-1gb"
+  size     = "s-1vcpu-2gb"
   image    = "centos-8-x64"
   region   = "nyc3"
   user_data = "foobar"
@@ -964,7 +964,7 @@ func testAccCheckDigitalOceanDropletConfig_resize(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name     = "foo-%d"
-  size     = "s-1vcpu-1gb"
+  size     = "s-1vcpu-2gb"
   image    = "centos-8-x64"
   region   = "nyc3"
   user_data = "foobar"
