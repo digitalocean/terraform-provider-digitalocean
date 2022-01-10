@@ -286,23 +286,35 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
 
-	droplet, _, err := client.Droplets.Create(context.Background(), opts)
-
+	droplet, resp, err := client.Droplets.Create(context.Background(), opts)
 	if err != nil {
 		return diag.Errorf("Error creating droplet: %s", err)
 	}
 
 	// Assign the droplets id
 	d.SetId(strconv.Itoa(droplet.ID))
-
 	log.Printf("[INFO] Droplet ID: %s", d.Id())
 
+	// Wait for Droplet create action to successfully finish.
+	if len(resp.Links.Actions) == 1 {
+		actionID := resp.Links.Actions[0].ID
+		err = waitForAction(client, &godo.Action{ID: actionID})
+		if err != nil {
+			return diag.Errorf("Droplet (%s) create action (%d) errorred: %s", d.Id(), actionID, err)
+		}
+	} else {
+		return diag.Errorf("Unable to find Droplet (%s) create action.", d.Id())
+	}
+
+	// Ensure Droplet status has moved to "active."
 	_, err = waitForDropletAttribute(ctx, d, "active", []string{"new"}, "status", meta)
 	if err != nil {
-		return diag.Errorf(
-			"Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
+		return diag.Errorf("Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
 	}
-	return resourceDigitalOceanDropletRead(ctx, d, meta)
+
+	// waitForDropletAttribute updates the Droplet's state and calls setDropletAttributes.
+	// So there is no need to call resourceDigitalOceanDropletRead and add additional API calls.
+	return nil
 }
 
 func resourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -326,10 +338,20 @@ func resourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceData
 		return diag.Errorf("Error retrieving droplet: %s", err)
 	}
 
-	// Image can drift once the image is build if a remote drift is detected
-	// as can cause issues with slug changes due image patch that shoudn't be sync.
-	// See: https://github.com/digitalocean/terraform-provider-digitalocean/issues/152
+	err = setDropletAttributes(d, droplet)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
+	return nil
+}
+
+func setDropletAttributes(d *schema.ResourceData, droplet *godo.Droplet) error {
+	// Note that the image attribute is not set here. It is intentionally allowed
+	// to drift once the Droplet has been created. This is to workaround the fact that
+	// image slugs can move to point to images with a different ID. Image slugs are helpers
+	// that always point to the most recent version of an image.
+	// See: https://github.com/digitalocean/terraform-provider-digitalocean/issues/152
 	d.Set("name", droplet.Name)
 	d.Set("urn", droplet.URN())
 	d.Set("region", droplet.Region.Slug)
@@ -356,11 +378,11 @@ func resourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceData
 	}
 
 	if err := d.Set("volume_ids", flattenDigitalOceanDropletVolumeIds(droplet.VolumeIDs)); err != nil {
-		return diag.Errorf("Error setting `volume_ids`: %+v", err)
+		return fmt.Errorf("Error setting `volume_ids`: %+v", err)
 	}
 
 	if err := d.Set("tags", flattenTags(droplet.Tags)); err != nil {
-		return diag.Errorf("Error setting `tags`: %+v", err)
+		return fmt.Errorf("Error setting `tags`: %+v", err)
 	}
 
 	// Initialize the connection info
@@ -682,7 +704,7 @@ func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta int
 	stateConf := &resource.StateChangeConf{
 		Pending:    []string{"active", "off"},
 		Target:     []string{"archived"},
-		Refresh:    newDropletStateRefreshFunc(ctx, d, "status", meta),
+		Refresh:    dropletStateRefreshFunc(ctx, d, "status", meta),
 		Timeout:    60 * time.Second,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -702,7 +724,7 @@ func waitForDropletAttribute(
 	stateConf := &resource.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
-		Refresh:    newDropletStateRefreshFunc(ctx, d, attribute, meta),
+		Refresh:    dropletStateRefreshFunc(ctx, d, attribute, meta),
 		Timeout:    60 * time.Minute,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -718,23 +740,25 @@ func waitForDropletAttribute(
 
 // TODO This function still needs a little more refactoring to make it
 // cleaner and more efficient
-func newDropletStateRefreshFunc(
+func dropletStateRefreshFunc(
 	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
 	client := meta.(*CombinedConfig).godoClient()
-	dropletID := d.Id()
 	return func() (interface{}, string, error) {
 		id, err := strconv.Atoi(d.Id())
 		if err != nil {
 			return nil, "", err
 		}
 
-		// TODO: See if context can potentially be passed in to this function?
-		diags := resourceDigitalOceanDropletRead(context.Background(), d, meta)
-		if diags.HasError() {
+		// Retrieve the droplet properties
+		droplet, _, err := client.Droplets.Get(context.Background(), id)
+		if err != nil {
+			return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
+		}
+
+		err = setDropletAttributes(d, droplet)
+		if err != nil {
 			return nil, "", err
 		}
-		// On 404 response resourceDigitalOceanDropletRead() will unset ID while we want it to remain set.
-		d.SetId(dropletID)
 
 		// If the droplet is locked, continue waiting. We can
 		// only perform actions on unlocked droplets, so it's
@@ -746,12 +770,6 @@ func newDropletStateRefreshFunc(
 
 		// See if we can access our attribute
 		if attr, ok := d.GetOkExists(attribute); ok {
-			// Retrieve the droplet properties
-			droplet, _, err := client.Droplets.Get(context.Background(), id)
-			if err != nil {
-				return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
-			}
-
 			switch attr.(type) {
 			case bool:
 				return &droplet, strconv.FormatBool(attr.(bool)), nil
