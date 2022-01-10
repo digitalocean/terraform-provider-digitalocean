@@ -13,7 +13,7 @@ An error is triggered if the provided load balancer name does not exist.
 
 ## Example Usage
 
-Get the load balancer:
+Get the load balancer by name:
 
 ```hcl
 data "digitalocean_loadbalancer" "example" {
@@ -25,11 +25,20 @@ output "lb_output" {
 }
 ```
 
+Get the load balancer by ID:
+
+```hcl
+data "digitalocean_loadbalancer" "example" {
+  id = "loadbalancer_id"
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of load balancer.
+* `name` - (Optional) The name of load balancer.
+* `id` - (Optional) The ID of load balancer.
 * `urn` - The uniform resource name for the Load Balancer
 
 ## Attributes Reference
