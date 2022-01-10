@@ -641,7 +641,7 @@ func testAccCheckDataSourceDigitalOceanLoadBalancerExists(n string, loadbalancer
 func testAccCheckDataSourceDigitalOceanLoadBalancerConfig(testName string, sizeSlug string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_tag" "foo" {
-  name = "web"
+  name = "%s"
 }
 
 resource "digitalocean_droplet" "foo" {
@@ -674,13 +674,13 @@ resource "digitalocean_loadbalancer" "foo" {
 
   droplet_tag = digitalocean_tag.foo.id
   depends_on  = ["digitalocean_droplet.foo"]
-}`, testName, testName, sizeSlug)
+}`, testName, testName, testName, sizeSlug)
 }
 
 func testAccCheckDataSourceDigitalOceanLoadBalancerConfigSizeUnit(testName string, sizeUnit uint32) string {
 	return fmt.Sprintf(`
 resource "digitalocean_tag" "foo" {
-  name = "web"
+  name = "%s"
 }
 
 resource "digitalocean_droplet" "foo" {
@@ -713,5 +713,5 @@ resource "digitalocean_loadbalancer" "foo" {
 
   droplet_tag = digitalocean_tag.foo.id
   depends_on  = ["digitalocean_droplet.foo"]
-}`, testName, testName, sizeUnit)
+}`, testName, testName, testName, sizeUnit)
 }
