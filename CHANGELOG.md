@@ -1,3 +1,27 @@
+## 2.17.0 (January 14, 2022)
+
+IMPROVEMENTS:
+
+- `digitalocean_loadbalancer`: Fetch loadbalancer resource in datasource by ID ([#773](https://github.com/digitalocean/terraform-provider-digitalocean/pull/773)). @opeco17
+- `digitalocean_vpc`: Allow updating name and description of default vpcs ([#748](https://github.com/digitalocean/terraform-provider-digitalocean/pull/748)). - @andrewsomething
+- `digitalocean_app`: Support preserve_path_prefix ([#768](https://github.com/digitalocean/terraform-provider-digitalocean/pull/768)). - @andrewsomething
+
+BUG FIXES:
+
+- `digitalocean_droplet` - Refactor post-create polling code ([#776](https://github.com/digitalocean/terraform-provider-digitalocean/pull/776)). - @andrewsomething
+- `digitalocean_floating_ip_assignment`: Properly support importing existing assignments ([#771](https://github.com/digitalocean/terraform-provider-digitalocean/pull/771)). - @andrewsomething
+- `digitalocean_database_cluster`: Retry on 404s in post create polling ([#761](https://github.com/digitalocean/terraform-provider-digitalocean/pull/761)). - @opeco17
+
+MISC:
+
+- docs: Update records examples to use domain id over name ([#770](https://github.com/digitalocean/terraform-provider-digitalocean/pull/770)). - @andrewsomething
+- docs: Add k8s as available project resource to docs ([#750](https://github.com/digitalocean/terraform-provider-digitalocean/pull/750)) - @scotchneat
+- docs: Fix database cluster documentation ([#766](https://github.com/digitalocean/terraform-provider-digitalocean/pull/766)) - @colinwilson
+- provider: Update to v2.10.1 of the terraform-plugin-sdk ([#760](https://github.com/digitalocean/terraform-provider-digitalocean/pull/760)). - @andrewsomething
+- testing: Makefile: Only run sweep against the digitalocean package ([#759](https://github.com/digitalocean/terraform-provider-digitalocean/pull/759)). - @andrewsomething
+- testing: Update domains sweeper ([#753](https://github.com/digitalocean/terraform-provider-digitalocean/pull/753)) - @scotchneat
+
+
 ## 2.16.0 (November 8, 2021)
 
 IMPROVEMENTS:
