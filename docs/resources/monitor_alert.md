@@ -4,9 +4,12 @@ page_title: "DigitalOcean: digitalocean_monitor_alert"
 
 # digitalocean_monitor_alert
 
-Provides a [DigitalOcean Monitoring](https://docs.digitalocean.com/reference/api/api-reference/#tag/Monitoring) resource.
-Monitor alerts can be configured to alert about, e.g., disk or memory usage exceeding certain threshold, or traffic at certain
-limits. Notifications can be sent to either an email address or a Slack channel.
+Provides a [DigitalOcean Monitoring](https://docs.digitalocean.com/reference/api/api-reference/#tag/Monitoring)
+resource. Monitor alerts can be configured to alert about, e.g., disk or memory
+usage exceeding a certain threshold or traffic at a certain limit. Notifications
+can be sent to either an email address or a Slack channel.
+
+-> **Note** Currently, the [DigitalOcean API](https://docs.digitalocean.com/reference/api/api-reference/#operation/create_alert_policy) only supports creating alerts for Droplets.
 
 ### Basic Example
 
@@ -21,10 +24,11 @@ resource "digitalocean_droplet" "web" {
 
 resource "digitalocean_monitor_alert" "cpu_alert" {
   alerts {
-    email = ["benny@digitalocean.com"]
+    email = ["sammy@digitalocean.com"]
     slack {
       channel   = "Production Alerts"
       url       = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
+    }
   }
   window      = "5m"
   type        = "v1/insights/droplet/cpu"
@@ -44,7 +48,7 @@ The following arguments are supported:
   Note that for Slack, the DigitalOcean app needs to have permissions for your workspace. You can
   read more in [Slack's documentation](https://slack.com/intl/en-dk/help/articles/222386767-Manage-app-installation-settings-for-your-workspace)
 * `description` - (Required) The description of the alert.
-* `compare` - (Required) The comparison for `value`. 
+* `compare` - (Required) The comparison for `value`.
   This may be either `GreaterThan` or `LessThan`.
 * `type` - (Required) The type of the alert.
   This may be either `v1/insights/droplet/load_1`, `v1/insights/droplet/load_5`, `v1/insights/droplet/load_15`,
@@ -53,11 +57,11 @@ The following arguments are supported:
   `v1/insights/droplet/public_outbound_bandwidth`, `v1/insights/droplet/public_inbound_bandwidth`,
   `v1/insights/droplet/private_outbound_bandwidth`, `v1/insights/droplet/private_inbound_bandwidth`.
 * `enabled` - (Required) The status of the alert.
-* `entities` - (Required) The resources to which the alert policy applies.
-* `value` - (Required) The value to start alerting at, e.g., 90% or 85Mbps. This is a floating-point number. 
+* `entities` - A list of IDs for the resources to which the alert policy applies.
+* `tags` - A list of tags. When an included tag is added to a resource, the alert policy will apply to it.
+* `value` - (Required) The value to start alerting at, e.g., 90% or 85Mbps. This is a floating-point number.
   DigitalOcean will show the correct unit in the web panel.
-* `tags` - (Required) Tags for the alert.
-* `window` - (Required) The time frame of the alert. Either `5m`, `10m`, `30m`, or `1h`. 
+* `window` - (Required) The time frame of the alert. Either `5m`, `10m`, `30m`, or `1h`.
 
 ## Attributes Reference
 
