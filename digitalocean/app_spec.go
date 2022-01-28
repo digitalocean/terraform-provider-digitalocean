@@ -623,6 +623,7 @@ func appSpecDatabaseSchema() *schema.Resource {
 					"MYSQL",
 					"PG",
 					"REDIS",
+					"MONGODB",
 				}, false),
 				Description: "The database engine to use.",
 			},
