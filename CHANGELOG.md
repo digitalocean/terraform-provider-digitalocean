@@ -1,3 +1,10 @@
+## 2.17.1 (January 28, 2022)
+
+IMPROVEMENTS:
+
+- `digitalocean_app`: Allow using `MONGODB` as a database engine option ([#783](https://github.com/digitalocean/terraform-provider-digitalocean/pull/783)). - @cnunciato
+- doc: Update docs for `digitalocean_monitor_alert` to highlight it is currently Droplet-only ([#780](https://github.com/digitalocean/terraform-provider-digitalocean/pull/780)). - @andrewsomething
+
 ## 2.17.0 (January 14, 2022)
 
 IMPROVEMENTS:
