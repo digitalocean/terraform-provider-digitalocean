@@ -306,7 +306,7 @@ A `job` can contain:
 A `database` can contain:
 
 * `name` - The name of the component.
-* `engine` - The database engine to use (`MYSQL`, `PG`, or `REDIS`).
+* `engine` - The database engine to use (`MYSQL`, `PG`, `REDIS`, or `MONGODB`).
 * `version` - The version of the database engine.
 * `production` - Whether this is a production or dev database.
 * `cluster_name` - The name of the underlying DigitalOcean DBaaS cluster. This is required for production databases. For dev databases, if `cluster_name` is not set, a new cluster will be provisioned.
