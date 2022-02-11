@@ -49,7 +49,6 @@ func resourceDigitalOceanProject() *schema.Resource {
 			"environment": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Default:      "Development",
 				Description:  "the environment of the project's resources",
 				ValidateFunc: validation.StringInSlice([]string{"development", "staging", "production"}, true),
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {

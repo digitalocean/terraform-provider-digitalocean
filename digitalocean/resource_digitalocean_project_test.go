@@ -31,7 +31,7 @@ func TestAccDigitalOceanProject_CreateWithDefaults(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_project.myproj", "purpose", "Web Application"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_project.myproj", "environment", "Development"),
+						"digitalocean_project.myproj", "environment", ""),
 					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "id"),
 					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "owner_uuid"),
 					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "owner_id"),
