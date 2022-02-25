@@ -66,6 +66,10 @@ resource "digitalocean_app" "mono-repo-example" {
       name = "foo.example.com"
     }
 
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+    }
+
     # Build a Go project in the api/ directory that listens on port 3000
     # and serves it at https://foo.example.com/api
     service {
@@ -87,17 +91,11 @@ resource "digitalocean_app" "mono-repo-example" {
         path = "/api"
       }
 
-      alerts {
-        emails = ["benny@digitalocean.com"]
-        slack {
-          channel   = "Production Alerts"
-          url       = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
-        }
-        value = 95
-        type  =
-        spec {
-
-        }
+      alert {
+        value    = 75
+        operator = "GREATER_THAN"
+        window   = "TEN_MINUTES"
+        rule     = "CPU_UTILIZATION"
       }
 
       run_command = "bin/api"
@@ -149,6 +147,9 @@ The following arguments are supported:
      * `value` - The value of the environment variable.
      * `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
      * `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+ - `alert` - Describes an alert policy for the app.
+     * `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DOMAIN_FAILED`, or `DOMAIN_LIVE`.
+     * `disabled` - Determines whether or not the alert is disabled (default: `false`).
 
 A spec can contain multiple components.
 
@@ -205,6 +206,12 @@ A `service` can contain:
   - `expose_headers` - The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
   - `allow_methods` - The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
   - `allow_credentials` - Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+* `alert` - Describes an alert policy for the component.
+  - `rule` - The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
+  - `value` - The threshold for the type of the warning.
+  - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
+  - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
+  - `disabled` - Determines whether or not the alert is disabled (default: `false`).
 
 A `static_site` can contain:
 
@@ -278,6 +285,12 @@ A `worker` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+* `alert` - Describes an alert policy for the component.
+  - `rule` - The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
+  - `value` - The threshold for the type of the warning.
+  - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
+  - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
+  - `disabled` - Determines whether or not the alert is disabled (default: `false`).
 
 A `job` can contain:
 
@@ -315,18 +328,12 @@ A `job` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
-* `alerts` - Describes the alert policies of the app, similar to the [monitor resource](/providers/digitalocean/digitalocean/latest/docs/resources/monitor_alert) that can be used for a droplet.
-  - `value` - The threshold for the type of the warning. 
-  - `operator` - The operator to use. This is either of `OPERATOR_GREATERTHAN`, `OPERATOR_LESSTHAN` or `OPERATOR_UNSPECIFIED`.
-  - `emails` - The list of emails to send notifications to.
-  - `slack` - The Slack channels to send notifications to. Note that the DigitalOcean app needs to have permissions for your workspace. You can
-    read more in [Slack's documentation](https://slack.com/intl/en-dk/help/articles/222386767-Manage-app-installation-settings-for-your-workspace)
-  - `rule` - The type of the alert to configure. This is either of 
-  - `component` - The component to apply the alert policy for.
-  - `phase` - This is either of `UNKNOWN`, `PENDING`, `CONFIGURING`, `ACTIVE`, `ERROR`.
-  - `window` - The time before alerts should be triggered. This is either of `UNSPECIFIED_WINDOW`, `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`,   
-    `ONE_HOUR`.
-  - `progress` - This is either of `UNKNOWN`, `PENDING`, `CONFIGURING`, `ACTIVE`, `ERROR`.
+* `alert` - Describes an alert policy for the component.
+  - `rule` - The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
+  - `value` - The threshold for the type of the warning.
+  - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
+  - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
+  - `disabled` - Determines whether or not the alert is disabled (default: `false`).
 
 A `database` can contain:
 

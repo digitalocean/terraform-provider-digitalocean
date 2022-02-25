@@ -69,11 +69,11 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Elem:     appSpecEnvSchema(),
 			Set:      schema.HashResource(appSpecEnvSchema()),
 		},
-		"alerts": {
+		"alert": {
 			Type:     schema.TypeSet,
 			Optional: true,
-			Elem:     appSpecAlerts(),
-			Set:      schema.HashResource(appSpecAlerts()),
+			Elem:     appSpecAppLevelAlerts(),
+			Set:      schema.HashResource(appSpecAppLevelAlerts()),
 		},
 	}
 
@@ -113,6 +113,28 @@ func appSpecDomainSchema() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "If the domain uses DigitalOcean DNS and you would like App Platform to automatically manage it for you, set this to the name of the domain on your account.",
+			},
+		},
+	}
+}
+
+func appSpecAppLevelAlerts() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"rule": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(godo.AppAlertSpecRule_DeploymentFailed),
+					string(godo.AppAlertSpecRule_DeploymentLive),
+					string(godo.AppAlertSpecRule_DomainFailed),
+					string(godo.AppAlertSpecRule_DomainLive),
+				}, false),
+			},
+			"disabled": {
+				Type:     schema.TypeBool,
+				Default:  false,
+				Optional: true,
 			},
 		},
 	}
@@ -467,6 +489,12 @@ func appSpecServicesSchema() *schema.Resource {
 				Schema: appSpecCORSSchema(),
 			},
 		},
+		"alert": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Alert policies for the app component",
+			Elem:        appSpecComponentAlerts(),
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -553,6 +581,12 @@ func appSpecWorkerSchema() *schema.Resource {
 			Default:     1,
 			Description: "The amount of instances that this component should be scaled to.",
 		},
+		"alert": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Alert policies for the app component",
+			Elem:        appSpecComponentAlerts(),
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -602,11 +636,11 @@ func appSpecJobSchema() *schema.Resource {
 			}, false),
 			Description: "The type of job and when it will be run during the deployment process.",
 		},
-		"alerts": {
+		"alert": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			Description: "Alert policies about the app",
-			Elem:        appSpecAlerts(),
+			Description: "Alert policies for the app component",
+			Elem:        appSpecComponentAlerts(),
 		},
 	}
 
@@ -619,78 +653,22 @@ func appSpecJobSchema() *schema.Resource {
 	}
 }
 
-func appSpecAlerts() *schema.Resource {
-	// AppAlertSpec
+func appSpecComponentAlerts() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:     schema.TypeString,
-				Computed: true,
-				Optional: true,
-			},
-			"component": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"slack": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"slack": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"channel": {
-										Type:             schema.TypeString,
-										Required:         true,
-										DiffSuppressFunc: CaseSensitive,
-										Description:      "The Slack channel to send alerts to",
-										ValidateFunc:     validation.StringIsNotEmpty,
-									},
-									"url": {
-										Type:             schema.TypeString,
-										Required:         true,
-										DiffSuppressFunc: CaseSensitive,
-										Description:      "The webhook URL for Slack",
-										ValidateFunc:     validation.StringIsNotEmpty,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			"emails": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "List of email addresses to sent notifications to",
-				Elem: &schema.Schema{
-					Type: schema.TypeString,
-				},
-			},
 			"rule": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(godo.AppAlertSpecRule_UnspecifiedRule),
 					string(godo.AppAlertSpecRule_CPUUtilization),
 					string(godo.AppAlertSpecRule_MemUtilization),
 					string(godo.AppAlertSpecRule_RestartCount),
-					string(godo.AppAlertSpecRule_DeploymentFailed),
-					string(godo.AppAlertSpecRule_DeploymentLive),
-					string(godo.AppAlertSpecRule_DomainFailed),
-					string(godo.AppAlertSpecRule_DomainLive),
 				}, false),
-				Description: "The name of the component",
-			},
-			"enabled": {
-				Type:     schema.TypeBool,
-				Default:  true,
-				Optional: true,
 			},
 			"operator": {
-				Type: schema.TypeString,
+				Type:     schema.TypeString,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(godo.AppAlertSpecOperator_GreaterThan),
 					string(godo.AppAlertSpecOperator_LessThan),
@@ -699,7 +677,7 @@ func appSpecAlerts() *schema.Resource {
 			},
 			"window": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(godo.AppAlertSpecWindow_FiveMinutes),
 					string(godo.AppAlertSpecWindow_TenMinutes),
@@ -713,27 +691,10 @@ func appSpecAlerts() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.FloatAtLeast(0),
 			},
-			"phase": {
-				Type:     schema.TypeString,
+			"disabled": {
+				Type:     schema.TypeBool,
+				Default:  false,
 				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(godo.AppAlertPhase_Unknown),
-					string(godo.AppAlertPhase_Pending),
-					string(godo.AppAlertPhase_Configuring),
-					string(godo.AppAlertPhase_Active),
-					string(godo.AppAlertPhase_Error),
-				}, false),
-			},
-			"progress": {
-				Type:     schema.TypeString,
-				Optional: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(godo.AppAlertPhase_Unknown),
-					string(godo.AppAlertPhase_Pending),
-					string(godo.AppAlertPhase_Configuring),
-					string(godo.AppAlertPhase_Active),
-					string(godo.AppAlertPhase_Error),
-				}, false),
 			},
 		},
 	}
@@ -803,7 +764,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		Jobs:        expandAppSpecJobs(appSpecConfig["job"].([]interface{})),
 		Databases:   expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
 		Envs:        expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
-		Alerts:      expandAppAlerts(appSpecConfig["env"].([]interface{})),
+		Alerts:      expandAppAlerts(appSpecConfig["alert"].(*schema.Set).List()),
 	}
 
 	// Prefer the `domain` block over `domains` if it is set.
@@ -857,9 +818,9 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 			r["env"] = flattenAppEnvs((*spec).Envs)
 		}
 
-		// if len((*spec).Alerts) > 0 {
-		// 	r["alerts"] = flattenAppAlerts((*spec).Alerts)
-		// }
+		if len((*spec).Alerts) > 0 {
+			r["alert"] = flattenAppAlerts((*spec).Alerts)
+		}
 
 		result = append(result, r)
 	}
@@ -867,12 +828,55 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 	return result
 }
 
-func flattenAppAlerts(alerts *godo.AppAlertSpec) []interface{} {
-	return nil
+func expandAppAlerts(config []interface{}) []*godo.AppAlertSpec {
+	appAlerts := make([]*godo.AppAlertSpec, 0, len(config))
+
+	for _, rawAlert := range config {
+		alert := rawAlert.(map[string]interface{})
+
+		a := &godo.AppAlertSpec{
+			Rule:     godo.AppAlertSpecRule(alert["rule"].(string)),
+			Disabled: alert["disabled"].(bool),
+		}
+
+		if alert["operator"] != nil {
+			a.Operator = godo.AppAlertSpecOperator(alert["operator"].(string))
+		}
+		if alert["window"] != nil {
+			a.Window = godo.AppAlertSpecWindow(alert["window"].(string))
+		}
+		if alert["value"] != nil {
+			a.Value = float32(alert["value"].(float64))
+		}
+
+		appAlerts = append(appAlerts, a)
+	}
+
+	return appAlerts
 }
 
-func expandAppAlerts(alerts []interface{}) *godo.AppAlertSpec {
-	return nil
+func flattenAppAlerts(alerts []*godo.AppAlertSpec) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(alerts))
+
+	for i, a := range alerts {
+		r := make(map[string]interface{})
+
+		r["rule"] = a.Rule
+		r["disabled"] = a.Disabled
+		if a.Operator != "" {
+			r["operator"] = a.Operator
+		}
+		if a.Value != 0 {
+			r["value"] = a.Value
+		}
+		if a.Window != "" {
+			r["window"] = a.Window
+		}
+
+		result[i] = r
+	}
+
+	return result
 }
 
 // expandAppDomainSpec has been deprecated in favor of expandAppSpecDomains.
@@ -1230,6 +1234,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.CORS = expandAppCORSPolicy(cors)
 		}
 
+		alerts := service["alert"].([]interface{})
+		if len(alerts) > 0 {
+			s.Alerts = expandAppAlerts(alerts)
+		}
+
 		appServices = append(appServices, s)
 	}
 
@@ -1260,6 +1269,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["source_dir"] = s.SourceDir
 		r["environment_slug"] = s.EnvironmentSlug
 		r["cors"] = flattenAppCORSPolicy(s.CORS)
+		r["alert"] = flattenAppAlerts(s.Alerts)
 
 		result[i] = r
 	}
@@ -1383,6 +1393,11 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 			s.Image = expandAppImageSourceSpec(image)
 		}
 
+		alerts := worker["alert"].([]interface{})
+		if len(alerts) > 0 {
+			s.Alerts = expandAppAlerts(alerts)
+		}
+
 		appWorkers = append(appWorkers, s)
 	}
 
@@ -1408,6 +1423,7 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["instance_count"] = int(w.InstanceCount)
 		r["source_dir"] = w.SourceDir
 		r["environment_slug"] = w.EnvironmentSlug
+		r["alert"] = flattenAppAlerts(w.Alerts)
 
 		result[i] = r
 	}
@@ -1454,6 +1470,11 @@ func expandAppSpecJobs(config []interface{}) []*godo.AppJobSpec {
 			s.Image = expandAppImageSourceSpec(image)
 		}
 
+		alerts := job["alert"].([]interface{})
+		if len(alerts) > 0 {
+			s.Alerts = expandAppAlerts(alerts)
+		}
+
 		appJobs = append(appJobs, s)
 	}
 
@@ -1480,6 +1501,7 @@ func flattenAppSpecJobs(jobs []*godo.AppJobSpec) []map[string]interface{} {
 		r["source_dir"] = j.SourceDir
 		r["environment_slug"] = j.EnvironmentSlug
 		r["kind"] = string(j.Kind)
+		r["alert"] = flattenAppAlerts(j.Alerts)
 
 		result[i] = r
 	}
