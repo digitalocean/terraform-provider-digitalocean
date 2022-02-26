@@ -495,6 +495,12 @@ func appSpecServicesSchema() *schema.Resource {
 			Description: "Alert policies for the app component",
 			Elem:        appSpecComponentAlerts(),
 		},
+		"log_destination": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Logs",
+			Elem:        appSpecLogDestinations(),
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -587,6 +593,12 @@ func appSpecWorkerSchema() *schema.Resource {
 			Description: "Alert policies for the app component",
 			Elem:        appSpecComponentAlerts(),
 		},
+		"log_destination": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Logs",
+			Elem:        appSpecLogDestinations(),
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -642,6 +654,12 @@ func appSpecJobSchema() *schema.Resource {
 			Description: "Alert policies for the app component",
 			Elem:        appSpecComponentAlerts(),
 		},
+		"log_destination": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Logs",
+			Elem:        appSpecLogDestinations(),
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -695,6 +713,68 @@ func appSpecComponentAlerts() *schema.Resource {
 				Type:     schema.TypeBool,
 				Default:  false,
 				Optional: true,
+			},
+		},
+	}
+}
+
+func appSpecLogDestinations() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the log destination",
+			},
+			"papertrail": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Papertrail configuration.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"endpoint": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Papertrail syslog endpoint.",
+						},
+					},
+				},
+			},
+			"datadog": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Datadog configuration.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"endpoint": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Datadog HTTP log intake endpoint.",
+						},
+						"api_key": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Datadog API key.",
+						},
+					},
+				},
+			},
+			"logtail": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Logtail configuration.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"token": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Logtail token.",
+						},
+					},
+				},
 			},
 		},
 	}
@@ -871,6 +951,86 @@ func flattenAppAlerts(alerts []*godo.AppAlertSpec) []map[string]interface{} {
 		}
 		if a.Window != "" {
 			r["window"] = a.Window
+		}
+
+		result[i] = r
+	}
+
+	return result
+}
+
+func expandAppLogDestinations(config []interface{}) []*godo.AppLogDestinationSpec {
+	logDestinations := make([]*godo.AppLogDestinationSpec, 0, len(config))
+
+	for _, rawDestination := range config {
+		destination := rawDestination.(map[string]interface{})
+
+		d := &godo.AppLogDestinationSpec{
+			Name: (destination["name"].(string)),
+		}
+
+		papertrail := destination["papertrail"].([]interface{})
+		if len(papertrail) > 0 {
+			papertrailConfig := papertrail[0].(map[string]interface{})
+			d.Papertrail = &godo.AppLogDestinationSpecPapertrail{
+				Endpoint: (papertrailConfig["endpoint"].(string)),
+			}
+		}
+
+		datadog := destination["datadog"].([]interface{})
+		if len(datadog) > 0 {
+			datadogConfig := datadog[0].(map[string]interface{})
+			d.Datadog = &godo.AppLogDestinationSpecDataDog{
+				Endpoint: (datadogConfig["endpoint"].(string)),
+				ApiKey:   (datadogConfig["api_key"].(string)),
+			}
+		}
+
+		logtail := destination["logtail"].([]interface{})
+		if len(logtail) > 0 {
+			logtailConfig := logtail[0].(map[string]interface{})
+			d.Logtail = &godo.AppLogDestinationSpecLogtail{
+				Token: (logtailConfig["token"].(string)),
+			}
+		}
+
+		logDestinations = append(logDestinations, d)
+	}
+
+	return logDestinations
+}
+
+func flattenAppLogDestinations(destinations []*godo.AppLogDestinationSpec) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(destinations))
+
+	for i, d := range destinations {
+		r := make(map[string]interface{})
+
+		r["name"] = d.Name
+
+		if d.Papertrail != nil {
+			papertrail := make([]interface{}, 1)
+			papertrail[0] = map[string]string{
+				"endpoint": d.Papertrail.Endpoint,
+			}
+			r["papertrail"] = papertrail
+		}
+
+		if d.Datadog != nil {
+			datadog := make([]interface{}, 1)
+			datadog[0] = map[string]string{
+				"endpoint": d.Datadog.Endpoint,
+				"api_key":  d.Datadog.ApiKey,
+			}
+			r["datadog"] = datadog
+		}
+
+		if d.Logtail != nil {
+			logtail := make([]interface{}, 1)
+			logtail[0] = map[string]string{
+				"token": d.Logtail.Token,
+			}
+			r["logtail"] = logtail
 		}
 
 		result[i] = r
@@ -1239,6 +1399,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.Alerts = expandAppAlerts(alerts)
 		}
 
+		log_destinations := service["log_destination"].([]interface{})
+		if len(log_destinations) > 0 {
+			s.LogDestinations = expandAppLogDestinations(log_destinations)
+		}
+
 		appServices = append(appServices, s)
 	}
 
@@ -1270,6 +1435,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["environment_slug"] = s.EnvironmentSlug
 		r["cors"] = flattenAppCORSPolicy(s.CORS)
 		r["alert"] = flattenAppAlerts(s.Alerts)
+		r["log_destination"] = flattenAppLogDestinations(s.LogDestinations)
 
 		result[i] = r
 	}
@@ -1398,6 +1564,11 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 			s.Alerts = expandAppAlerts(alerts)
 		}
 
+		log_destinations := worker["log_destination"].([]interface{})
+		if len(log_destinations) > 0 {
+			s.LogDestinations = expandAppLogDestinations(log_destinations)
+		}
+
 		appWorkers = append(appWorkers, s)
 	}
 
@@ -1424,6 +1595,7 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["source_dir"] = w.SourceDir
 		r["environment_slug"] = w.EnvironmentSlug
 		r["alert"] = flattenAppAlerts(w.Alerts)
+		r["log_destination"] = flattenAppLogDestinations(w.LogDestinations)
 
 		result[i] = r
 	}
@@ -1475,6 +1647,11 @@ func expandAppSpecJobs(config []interface{}) []*godo.AppJobSpec {
 			s.Alerts = expandAppAlerts(alerts)
 		}
 
+		log_destinations := job["log_destination"].([]interface{})
+		if len(log_destinations) > 0 {
+			s.LogDestinations = expandAppLogDestinations(log_destinations)
+		}
+
 		appJobs = append(appJobs, s)
 	}
 
@@ -1502,6 +1679,7 @@ func flattenAppSpecJobs(jobs []*godo.AppJobSpec) []map[string]interface{} {
 		r["environment_slug"] = j.EnvironmentSlug
 		r["kind"] = string(j.Kind)
 		r["alert"] = flattenAppAlerts(j.Alerts)
+		r["log_destination"] = flattenAppLogDestinations(j.LogDestinations)
 
 		result[i] = r
 	}

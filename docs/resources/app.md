@@ -98,6 +98,13 @@ resource "digitalocean_app" "mono-repo-example" {
         rule     = "CPU_UTILIZATION"
       }
 
+      log_destination {
+        name = "MyLogs"
+        papertrail {
+          endpoint = "syslog+tls://example.com:12345"
+        }
+      }
+
       run_command = "bin/api"
     }
 
@@ -212,6 +219,15 @@ A `service` can contain:
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
   - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+* `log_destination` - Describes a log forwarding destination.
+  - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
+  - `papertrail` - Papertrail configuration.
+    - `endpoint` - Papertrail syslog endpoint.
+  - `datadog` - Datadog configuration.
+    - `endpoint` - Datadog HTTP log intake endpoint.
+    - `api_key` - Datadog API key.
+  - `logtail` - Logtail configuration.
+    - `token` - Logtail token.
 
 A `static_site` can contain:
 
@@ -291,6 +307,15 @@ A `worker` can contain:
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
   - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+* `log_destination` - Describes a log forwarding destination.
+  - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
+  - `papertrail` - Papertrail configuration.
+    - `endpoint` - Papertrail syslog endpoint.
+  - `datadog` - Datadog configuration.
+    - `endpoint` - Datadog HTTP log intake endpoint.
+    - `api_key` - Datadog API key.
+  - `logtail` - Logtail configuration.
+    - `token` - Logtail token.
 
 A `job` can contain:
 
@@ -334,6 +359,15 @@ A `job` can contain:
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
   - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+* `log_destination` - Describes a log forwarding destination.
+  - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
+  - `papertrail` - Papertrail configuration.
+    - `endpoint` - Papertrail syslog endpoint.
+  - `datadog` - Datadog configuration.
+    - `endpoint` - Datadog HTTP log intake endpoint.
+    - `api_key` - Datadog API key.
+  - `logtail` - Logtail configuration.
+    - `token` - Logtail token.
 
 A `database` can contain:
 
