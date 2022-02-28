@@ -100,6 +100,8 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.rule", "DEPLOYMENT_FAILED"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.instance_count", "1"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "basic-xxs"),
@@ -116,6 +118,14 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.http_path", "/"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.timeout_seconds", "10"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "75"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.operator", "GREATER_THAN"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.window", "TEN_MINUTES"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.rule", "CPU_UTILIZATION"),
 				),
 			},
 			{
@@ -134,6 +144,14 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.1.routes.0.path", "/python"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.1.routes.0.preserve_path_prefix", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "85"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.operator", "GREATER_THAN"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.window", "FIVE_MINUTES"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.rule", "CPU_UTILIZATION"),
 				),
 			},
 			{
@@ -775,6 +793,10 @@ resource "digitalocean_app" "foobar" {
     name = "%s"
     region = "ams"
 
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+    }
+
     service {
       name               = "go-service"
       environment_slug   = "go"
@@ -789,6 +811,13 @@ resource "digitalocean_app" "foobar" {
       health_check {
         http_path       = "/"
         timeout_seconds = 10
+      }
+
+      alert {
+        value    = 75
+        operator = "GREATER_THAN"
+        window   = "TEN_MINUTES"
+        rule     = "CPU_UTILIZATION"
       }
     }
   }
@@ -822,6 +851,10 @@ resource "digitalocean_app" "foobar" {
     name = "%s"
     region = "ams"
 
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+    }
+
     service {
       name               = "go-service"
       environment_slug   = "go"
@@ -835,6 +868,13 @@ resource "digitalocean_app" "foobar" {
 
       routes {
         path = "/go"
+      }
+
+      alert {
+        value    = 85
+        operator = "GREATER_THAN"
+        window   = "FIVE_MINUTES"
+        rule     = "CPU_UTILIZATION"
       }
     }
 
@@ -908,6 +948,10 @@ resource "digitalocean_app" "foobar" {
     name = "%s"
     region = "ams"
 
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+    }
+
     service {
       name               = "go-service"
       environment_slug   = "go"
@@ -921,6 +965,13 @@ resource "digitalocean_app" "foobar" {
 
       routes {
         path = "/"
+      }
+
+      alert {
+        value    = 85
+        operator = "GREATER_THAN"
+        window   = "FIVE_MINUTES"
+        rule     = "CPU_UTILIZATION"
       }
     }
 

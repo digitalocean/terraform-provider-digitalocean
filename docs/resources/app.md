@@ -66,6 +66,10 @@ resource "digitalocean_app" "mono-repo-example" {
       name = "foo.example.com"
     }
 
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+    }
+
     # Build a Go project in the api/ directory that listens on port 3000
     # and serves it at https://foo.example.com/api
     service {
@@ -85,6 +89,13 @@ resource "digitalocean_app" "mono-repo-example" {
 
       routes {
         path = "/api"
+      }
+
+      alert {
+        value    = 75
+        operator = "GREATER_THAN"
+        window   = "TEN_MINUTES"
+        rule     = "CPU_UTILIZATION"
       }
 
       run_command = "bin/api"
@@ -136,6 +147,9 @@ The following arguments are supported:
      * `value` - The value of the environment variable.
      * `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
      * `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+ - `alert` - Describes an alert policy for the app.
+     * `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DOMAIN_FAILED`, or `DOMAIN_LIVE`.
+     * `disabled` - Determines whether or not the alert is disabled (default: `false`).
 
 A spec can contain multiple components.
 
@@ -192,6 +206,12 @@ A `service` can contain:
   - `expose_headers` - The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
   - `allow_methods` - The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
   - `allow_credentials` - Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+* `alert` - Describes an alert policy for the component.
+  - `rule` - The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
+  - `value` - The threshold for the type of the warning.
+  - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
+  - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
+  - `disabled` - Determines whether or not the alert is disabled (default: `false`).
 
 A `static_site` can contain:
 
@@ -265,6 +285,12 @@ A `worker` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+* `alert` - Describes an alert policy for the component.
+  - `rule` - The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
+  - `value` - The threshold for the type of the warning.
+  - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
+  - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
+  - `disabled` - Determines whether or not the alert is disabled (default: `false`).
 
 A `job` can contain:
 
@@ -302,6 +328,12 @@ A `job` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+* `alert` - Describes an alert policy for the component.
+  - `rule` - The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
+  - `value` - The threshold for the type of the warning.
+  - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
+  - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
+  - `disabled` - Determines whether or not the alert is disabled (default: `false`).
 
 A `database` can contain:
 
