@@ -735,7 +735,7 @@ func appSpecLogDestinations() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"endpoint": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "Papertrail syslog endpoint.",
 						},
 					},
@@ -751,11 +751,12 @@ func appSpecLogDestinations() *schema.Resource {
 						"endpoint": {
 							Type:        schema.TypeString,
 							Optional:    true,
+							Default:     "https://http-intake.logs.datadoghq.com",
 							Description: "Datadog HTTP log intake endpoint.",
 						},
 						"api_key": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "Datadog API key.",
 						},
 					},
@@ -770,7 +771,7 @@ func appSpecLogDestinations() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"token": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "Logtail token.",
 						},
 					},
