@@ -43,6 +43,8 @@ func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair("digitalocean_app.foobar", "created_at",
 						"data.digitalocean_app.foobar", "created_at"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.rule", "DEPLOYMENT_FAILED"),
+					resource.TestCheckResourceAttr(
 						"data.digitalocean_app.foobar", "spec.0.service.0.instance_count", "1"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "basic-xxs"),
@@ -53,6 +55,18 @@ func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
 						"https://github.com/digitalocean/sample-golang.git"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_app.foobar", "spec.0.service.0.git.0.branch", "main"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "75"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.operator", "GREATER_THAN"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.window", "TEN_MINUTES"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.rule", "CPU_UTILIZATION"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.name", "ServiceLogs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.papertrail.0.endpoint", "syslog+tls://example.com:12345"),
 				),
 			},
 			{

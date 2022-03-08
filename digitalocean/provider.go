@@ -114,6 +114,7 @@ func Provider() *schema.Provider {
 			"digitalocean_record":                                resourceDigitalOceanRecord(),
 			"digitalocean_spaces_bucket":                         resourceDigitalOceanBucket(),
 			"digitalocean_spaces_bucket_object":                  resourceDigitalOceanSpacesBucketObject(),
+			"digitalocean_spaces_bucket_policy":                  resourceDigitalOceanSpacesBucketPolicy(),
 			"digitalocean_ssh_key":                               resourceDigitalOceanSSHKey(),
 			"digitalocean_tag":                                   resourceDigitalOceanTag(),
 			"digitalocean_volume":                                resourceDigitalOceanVolume(),

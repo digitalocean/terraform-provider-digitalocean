@@ -69,6 +69,12 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Elem:     appSpecEnvSchema(),
 			Set:      schema.HashResource(appSpecEnvSchema()),
 		},
+		"alert": {
+			Type:     schema.TypeSet,
+			Optional: true,
+			Elem:     appSpecAppLevelAlerts(),
+			Set:      schema.HashResource(appSpecAppLevelAlerts()),
+		},
 	}
 
 	if isResource {
@@ -107,6 +113,28 @@ func appSpecDomainSchema() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "If the domain uses DigitalOcean DNS and you would like App Platform to automatically manage it for you, set this to the name of the domain on your account.",
+			},
+		},
+	}
+}
+
+func appSpecAppLevelAlerts() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"rule": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(godo.AppAlertSpecRule_DeploymentFailed),
+					string(godo.AppAlertSpecRule_DeploymentLive),
+					string(godo.AppAlertSpecRule_DomainFailed),
+					string(godo.AppAlertSpecRule_DomainLive),
+				}, false),
+			},
+			"disabled": {
+				Type:     schema.TypeBool,
+				Default:  false,
+				Optional: true,
 			},
 		},
 	}
@@ -461,6 +489,18 @@ func appSpecServicesSchema() *schema.Resource {
 				Schema: appSpecCORSSchema(),
 			},
 		},
+		"alert": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Alert policies for the app component",
+			Elem:        appSpecComponentAlerts(),
+		},
+		"log_destination": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Logs",
+			Elem:        appSpecLogDestinations(),
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -547,6 +587,18 @@ func appSpecWorkerSchema() *schema.Resource {
 			Default:     1,
 			Description: "The amount of instances that this component should be scaled to.",
 		},
+		"alert": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Alert policies for the app component",
+			Elem:        appSpecComponentAlerts(),
+		},
+		"log_destination": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Logs",
+			Elem:        appSpecLogDestinations(),
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -596,6 +648,18 @@ func appSpecJobSchema() *schema.Resource {
 			}, false),
 			Description: "The type of job and when it will be run during the deployment process.",
 		},
+		"alert": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Alert policies for the app component",
+			Elem:        appSpecComponentAlerts(),
+		},
+		"log_destination": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Logs",
+			Elem:        appSpecLogDestinations(),
+		},
 	}
 
 	for k, v := range appSpecComponentBase() {
@@ -604,6 +668,116 @@ func appSpecJobSchema() *schema.Resource {
 
 	return &schema.Resource{
 		Schema: jobSchema,
+	}
+}
+
+func appSpecComponentAlerts() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"rule": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(godo.AppAlertSpecRule_UnspecifiedRule),
+					string(godo.AppAlertSpecRule_CPUUtilization),
+					string(godo.AppAlertSpecRule_MemUtilization),
+					string(godo.AppAlertSpecRule_RestartCount),
+				}, false),
+			},
+			"operator": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(godo.AppAlertSpecOperator_GreaterThan),
+					string(godo.AppAlertSpecOperator_LessThan),
+					string(godo.AppAlertSpecOperator_UnspecifiedOperator),
+				}, false),
+			},
+			"window": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(godo.AppAlertSpecWindow_FiveMinutes),
+					string(godo.AppAlertSpecWindow_TenMinutes),
+					string(godo.AppAlertSpecWindow_ThirtyMinutes),
+					string(godo.AppAlertSpecWindow_OneHour),
+					string(godo.AppAlertSpecWindow_UnspecifiedWindow),
+				}, false),
+			},
+			"value": {
+				Type:         schema.TypeFloat,
+				Required:     true,
+				ValidateFunc: validation.FloatAtLeast(0),
+			},
+			"disabled": {
+				Type:     schema.TypeBool,
+				Default:  false,
+				Optional: true,
+			},
+		},
+	}
+}
+
+func appSpecLogDestinations() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Name of the log destination",
+			},
+			"papertrail": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Papertrail configuration.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"endpoint": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Papertrail syslog endpoint.",
+						},
+					},
+				},
+			},
+			"datadog": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Datadog configuration.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"endpoint": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "https://http-intake.logs.datadoghq.com",
+							Description: "Datadog HTTP log intake endpoint.",
+						},
+						"api_key": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Datadog API key.",
+						},
+					},
+				},
+			},
+			"logtail": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Logtail configuration.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"token": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "Logtail token.",
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -671,6 +845,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		Jobs:        expandAppSpecJobs(appSpecConfig["job"].([]interface{})),
 		Databases:   expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
 		Envs:        expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
+		Alerts:      expandAppAlerts(appSpecConfig["alert"].(*schema.Set).List()),
 	}
 
 	// Prefer the `domain` block over `domains` if it is set.
@@ -724,7 +899,142 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 			r["env"] = flattenAppEnvs((*spec).Envs)
 		}
 
+		if len((*spec).Alerts) > 0 {
+			r["alert"] = flattenAppAlerts((*spec).Alerts)
+		}
+
 		result = append(result, r)
+	}
+
+	return result
+}
+
+func expandAppAlerts(config []interface{}) []*godo.AppAlertSpec {
+	appAlerts := make([]*godo.AppAlertSpec, 0, len(config))
+
+	for _, rawAlert := range config {
+		alert := rawAlert.(map[string]interface{})
+
+		a := &godo.AppAlertSpec{
+			Rule:     godo.AppAlertSpecRule(alert["rule"].(string)),
+			Disabled: alert["disabled"].(bool),
+		}
+
+		if alert["operator"] != nil {
+			a.Operator = godo.AppAlertSpecOperator(alert["operator"].(string))
+		}
+		if alert["window"] != nil {
+			a.Window = godo.AppAlertSpecWindow(alert["window"].(string))
+		}
+		if alert["value"] != nil {
+			a.Value = float32(alert["value"].(float64))
+		}
+
+		appAlerts = append(appAlerts, a)
+	}
+
+	return appAlerts
+}
+
+func flattenAppAlerts(alerts []*godo.AppAlertSpec) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(alerts))
+
+	for i, a := range alerts {
+		r := make(map[string]interface{})
+
+		r["rule"] = a.Rule
+		r["disabled"] = a.Disabled
+		if a.Operator != "" {
+			r["operator"] = a.Operator
+		}
+		if a.Value != 0 {
+			r["value"] = a.Value
+		}
+		if a.Window != "" {
+			r["window"] = a.Window
+		}
+
+		result[i] = r
+	}
+
+	return result
+}
+
+func expandAppLogDestinations(config []interface{}) []*godo.AppLogDestinationSpec {
+	logDestinations := make([]*godo.AppLogDestinationSpec, 0, len(config))
+
+	for _, rawDestination := range config {
+		destination := rawDestination.(map[string]interface{})
+
+		d := &godo.AppLogDestinationSpec{
+			Name: (destination["name"].(string)),
+		}
+
+		papertrail := destination["papertrail"].([]interface{})
+		if len(papertrail) > 0 {
+			papertrailConfig := papertrail[0].(map[string]interface{})
+			d.Papertrail = &godo.AppLogDestinationSpecPapertrail{
+				Endpoint: (papertrailConfig["endpoint"].(string)),
+			}
+		}
+
+		datadog := destination["datadog"].([]interface{})
+		if len(datadog) > 0 {
+			datadogConfig := datadog[0].(map[string]interface{})
+			d.Datadog = &godo.AppLogDestinationSpecDataDog{
+				Endpoint: (datadogConfig["endpoint"].(string)),
+				ApiKey:   (datadogConfig["api_key"].(string)),
+			}
+		}
+
+		logtail := destination["logtail"].([]interface{})
+		if len(logtail) > 0 {
+			logtailConfig := logtail[0].(map[string]interface{})
+			d.Logtail = &godo.AppLogDestinationSpecLogtail{
+				Token: (logtailConfig["token"].(string)),
+			}
+		}
+
+		logDestinations = append(logDestinations, d)
+	}
+
+	return logDestinations
+}
+
+func flattenAppLogDestinations(destinations []*godo.AppLogDestinationSpec) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(destinations))
+
+	for i, d := range destinations {
+		r := make(map[string]interface{})
+
+		r["name"] = d.Name
+
+		if d.Papertrail != nil {
+			papertrail := make([]interface{}, 1)
+			papertrail[0] = map[string]string{
+				"endpoint": d.Papertrail.Endpoint,
+			}
+			r["papertrail"] = papertrail
+		}
+
+		if d.Datadog != nil {
+			datadog := make([]interface{}, 1)
+			datadog[0] = map[string]string{
+				"endpoint": d.Datadog.Endpoint,
+				"api_key":  d.Datadog.ApiKey,
+			}
+			r["datadog"] = datadog
+		}
+
+		if d.Logtail != nil {
+			logtail := make([]interface{}, 1)
+			logtail[0] = map[string]string{
+				"token": d.Logtail.Token,
+			}
+			r["logtail"] = logtail
+		}
+
+		result[i] = r
 	}
 
 	return result
@@ -1085,6 +1395,16 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.CORS = expandAppCORSPolicy(cors)
 		}
 
+		alerts := service["alert"].([]interface{})
+		if len(alerts) > 0 {
+			s.Alerts = expandAppAlerts(alerts)
+		}
+
+		log_destinations := service["log_destination"].([]interface{})
+		if len(log_destinations) > 0 {
+			s.LogDestinations = expandAppLogDestinations(log_destinations)
+		}
+
 		appServices = append(appServices, s)
 	}
 
@@ -1115,6 +1435,8 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["source_dir"] = s.SourceDir
 		r["environment_slug"] = s.EnvironmentSlug
 		r["cors"] = flattenAppCORSPolicy(s.CORS)
+		r["alert"] = flattenAppAlerts(s.Alerts)
+		r["log_destination"] = flattenAppLogDestinations(s.LogDestinations)
 
 		result[i] = r
 	}
@@ -1238,6 +1560,16 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 			s.Image = expandAppImageSourceSpec(image)
 		}
 
+		alerts := worker["alert"].([]interface{})
+		if len(alerts) > 0 {
+			s.Alerts = expandAppAlerts(alerts)
+		}
+
+		log_destinations := worker["log_destination"].([]interface{})
+		if len(log_destinations) > 0 {
+			s.LogDestinations = expandAppLogDestinations(log_destinations)
+		}
+
 		appWorkers = append(appWorkers, s)
 	}
 
@@ -1263,6 +1595,8 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["instance_count"] = int(w.InstanceCount)
 		r["source_dir"] = w.SourceDir
 		r["environment_slug"] = w.EnvironmentSlug
+		r["alert"] = flattenAppAlerts(w.Alerts)
+		r["log_destination"] = flattenAppLogDestinations(w.LogDestinations)
 
 		result[i] = r
 	}
@@ -1309,6 +1643,16 @@ func expandAppSpecJobs(config []interface{}) []*godo.AppJobSpec {
 			s.Image = expandAppImageSourceSpec(image)
 		}
 
+		alerts := job["alert"].([]interface{})
+		if len(alerts) > 0 {
+			s.Alerts = expandAppAlerts(alerts)
+		}
+
+		log_destinations := job["log_destination"].([]interface{})
+		if len(log_destinations) > 0 {
+			s.LogDestinations = expandAppLogDestinations(log_destinations)
+		}
+
 		appJobs = append(appJobs, s)
 	}
 
@@ -1335,6 +1679,8 @@ func flattenAppSpecJobs(jobs []*godo.AppJobSpec) []map[string]interface{} {
 		r["source_dir"] = j.SourceDir
 		r["environment_slug"] = j.EnvironmentSlug
 		r["kind"] = string(j.Kind)
+		r["alert"] = flattenAppAlerts(j.Alerts)
+		r["log_destination"] = flattenAppLogDestinations(j.LogDestinations)
 
 		result[i] = r
 	}
