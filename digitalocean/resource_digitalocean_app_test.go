@@ -126,6 +126,10 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.window", "TEN_MINUTES"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.rule", "CPU_UTILIZATION"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.name", "ServiceLogs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.papertrail.0.endpoint", "syslog+tls://example.com:12345"),
 				),
 			},
 			{
@@ -152,6 +156,10 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.window", "FIVE_MINUTES"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.rule", "CPU_UTILIZATION"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.name", "ServiceLogs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.papertrail.0.endpoint", "syslog+tls://example.com:12345"),
 				),
 			},
 			{
@@ -166,6 +174,10 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.database.0.name", "test-db"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.database.0.engine", "PG"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.name", "ServiceLogs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.papertrail.0.endpoint", "syslog+tls://example.com:12345"),
 				),
 			},
 		},
@@ -197,6 +209,12 @@ func TestAccDigitalOceanApp_Job(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.job.1.kind", "POST_DEPLOY"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.job.1.run_command", "echo 'This is a post-deploy job.'"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.1.log_destination.0.name", "JobLogs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.1.log_destination.0.datadog.0.endpoint", "https://example.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.1.log_destination.0.datadog.0.api_key", "test-api-key"),
 				),
 			},
 		},
@@ -489,6 +507,10 @@ func TestAccDigitalOceanApp_Worker(t *testing.T) {
 						"https://github.com/digitalocean/sample-sleeper.git"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.worker.0.git.0.branch", "main"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.log_destination.0.name", "WorkerLogs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.log_destination.0.logtail.0.token", "test-api-token"),
 				),
 			},
 			{
@@ -819,6 +841,13 @@ resource "digitalocean_app" "foobar" {
         window   = "TEN_MINUTES"
         rule     = "CPU_UTILIZATION"
       }
+
+      log_destination {
+        name = "ServiceLogs"
+        papertrail {
+          endpoint = "syslog+tls://example.com:12345"
+        }
+      }
     }
   }
 }`
@@ -875,6 +904,13 @@ resource "digitalocean_app" "foobar" {
         operator = "GREATER_THAN"
         window   = "FIVE_MINUTES"
         rule     = "CPU_UTILIZATION"
+      }
+
+      log_destination {
+        name = "ServiceLogs"
+        papertrail {
+          endpoint = "syslog+tls://example.com:12345"
+        }
       }
     }
 
@@ -973,6 +1009,13 @@ resource "digitalocean_app" "foobar" {
         window   = "FIVE_MINUTES"
         rule     = "CPU_UTILIZATION"
       }
+
+      log_destination {
+        name = "ServiceLogs"
+        papertrail {
+          endpoint = "syslog+tls://example.com:12345"
+        }
+      }
     }
 
     database {
@@ -1051,6 +1094,13 @@ resource "digitalocean_app" "foobar" {
         repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
         branch         = "main"
       }
+
+      log_destination {
+        name = "WorkerLogs"
+        logtail {
+          token = "test-api-token"
+        }
+      }
     }
   }
 }`
@@ -1104,6 +1154,14 @@ resource "digitalocean_app" "foobar" {
         registry      = "frolvlad"
         repository    = "alpine-bash"
         tag           = "latest"
+      }
+
+      log_destination {
+        name = "JobLogs"
+        datadog {
+          endpoint = "https://example.com"
+          api_key = "test-api-key"
+        }
       }
     }
   }
