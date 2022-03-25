@@ -54,6 +54,14 @@ func resourceDigitalOceanContainerRegistry() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"storage_usage_bytes": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"created_at": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -103,6 +111,8 @@ func resourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.Re
 	d.Set("region", reg.Region)
 	d.Set("endpoint", fmt.Sprintf("%s/%s", RegistryHostname, reg.Name))
 	d.Set("server_url", RegistryHostname)
+	d.Set("created_at", reg.CreatedAt.UTC().String())
+	d.Set("storage_usage_bytes", reg.StorageUsageBytes)
 
 	sub, _, err := client.Registry.GetSubscription(context.Background())
 	if err != nil {

@@ -39,6 +39,10 @@ func TestAccDigitalOceanContainerRegistry_Basic(t *testing.T) {
 						"digitalocean_container_registry.foobar", "subscription_tier_slug", "starter"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_container_registry.foobar", "region"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry.foobar", "storage_usage_bytes"),
 				),
 			},
 			{
@@ -56,6 +60,10 @@ func TestAccDigitalOceanContainerRegistry_Basic(t *testing.T) {
 						"digitalocean_container_registry.foobar", "subscription_tier_slug", "basic"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_container_registry.foobar", "region"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry.foobar", "storage_usage_bytes"),
 				),
 			},
 		},
@@ -87,6 +95,10 @@ func TestAccDigitalOceanContainerRegistry_CustomRegion(t *testing.T) {
 						"digitalocean_container_registry.foobar", "subscription_tier_slug", "starter"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_container_registry.foobar", "region", "sfo3"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry.foobar", "storage_usage_bytes"),
 				),
 			},
 		},
