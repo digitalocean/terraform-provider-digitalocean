@@ -42,6 +42,8 @@ data "digitalocean_container_registry" "foobar" {
 						"data.digitalocean_container_registry.foobar", "name", regName),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_container_registry.foobar", "subscription_tier_slug", "basic"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_container_registry.foobar", "region"),
 				),
 			},
 		},
