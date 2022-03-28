@@ -36,5 +36,8 @@ The following attributes are exported:
 * `id`: The ID of the tag. This is the same as the name.
 * `name` - The name of the container registry
 * `subscription_tier_slug` - The slug identifier for the subscription tier
-* `endpoint`: The URL endpoint of the container registry. Ex: `registry.digitalocean.com/my_registry`
-* `server_url`: The domain of the container registry. Ex: `registry.digitalocean.com`
+* `region` - The slug identifier for the  region
+* `endpoint` - The URL endpoint of the container registry. Ex: `registry.digitalocean.com/my_registry`
+* `server_url` - The domain of the container registry. Ex: `registry.digitalocean.com`
+* `storage_usage_bytes` - The amount of storage used in the registry in bytes.
+* `created_at` - The date and time when the registry was created
