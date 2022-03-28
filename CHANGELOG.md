@@ -1,3 +1,9 @@
+## 2.19.0 (March 28, 2022)
+
+IMPROVEMENTS:
+
+- `digitalocean_container_registry`: Support providing custom region ([#804](https://github.com/digitalocean/terraform-provider-digitalocean/pull/804)). - @andrewsomething
+
 ## 2.18.0 (March 8, 2022)
 
 FEATURES:
