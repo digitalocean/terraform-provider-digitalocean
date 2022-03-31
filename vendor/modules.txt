@@ -106,6 +106,9 @@ github.com/hashicorp/go-multierror
 # github.com/hashicorp/go-plugin v1.4.1
 github.com/hashicorp/go-plugin
 github.com/hashicorp/go-plugin/internal/plugin
+# github.com/hashicorp/go-retryablehttp v0.7.0
+## explicit
+github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-uuid v1.0.2
 ## explicit
 github.com/hashicorp/go-uuid

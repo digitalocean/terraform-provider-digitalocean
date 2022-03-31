@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"golang.org/x/oauth2"
@@ -70,7 +71,12 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	})
 
 	userAgent := fmt.Sprintf("Terraform/%s", c.TerraformVersion)
-	client := oauth2.NewClient(oauth2.NoContext, tokenSrc)
+	client := retryablehttp.NewClient().StandardClient()
+
+	client.Transport = &oauth2.Transport{
+		Base:   client.Transport,
+		Source: oauth2.ReuseTokenSource(nil, tokenSrc),
+	}
 
 	client.Transport = logging.NewTransport("DigitalOcean", client.Transport)
 
