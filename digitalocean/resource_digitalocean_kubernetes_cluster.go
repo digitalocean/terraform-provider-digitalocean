@@ -703,6 +703,10 @@ func renderKubeconfig(name string, region string, creds *godo.KubernetesClusterC
 // we need to filter tags to remove any automatically added to avoid state problems,
 // these are tags starting with "k8s:" or named "k8s"
 func filterTags(tags []string) []string {
+	if tags == nil {
+		return nil
+	}
+
 	filteredTags := make([]string, 0)
 	for _, t := range tags {
 		if !strings.HasPrefix(t, "k8s:") &&

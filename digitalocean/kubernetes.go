@@ -189,6 +189,10 @@ func expandLabels(labels map[string]interface{}) map[string]string {
 }
 
 func flattenLabels(labels map[string]string) map[string]interface{} {
+	if labels == nil {
+		return nil
+	}
+
 	flattenedLabels := make(map[string]interface{})
 	for key, value := range labels {
 		flattenedLabels[key] = value
