@@ -156,7 +156,7 @@ The following arguments are supported:
   - `auto_scale` - (Optional) Enable auto-scaling of the number of nodes in the node pool within the given min/max range.
   - `min_nodes` - (Optional) If auto-scaling is enabled, this represents the minimum number of nodes that the node pool can be scaled down to.
   - `max_nodes` - (Optional) If auto-scaling is enabled, this represents the maximum number of nodes that the node pool can be scaled up to.
-  - `tags` - (Optional) A list of tag names to be applied to the Kubernetes cluster.
+  - `tags` - (Optional) A list of tag names applied to the node pool.
   - `labels` - (Optional) A map of key/value pairs to apply to nodes in the pool. The labels are exposed in the Kubernetes API as labels in the metadata of the corresponding [Node resources](https://kubernetes.io/docs/concepts/architecture/nodes/).
 * `tags` - (Optional) A list of tag names to be applied to the Kubernetes cluster.
 * `maintenance_policy` - (Optional) A block representing the cluster's maintenance window. Updates will be applied within this window. If not specified, a default maintenance window will be chosen. `auto_upgrade` must be set to `true` for this to have an effect.
