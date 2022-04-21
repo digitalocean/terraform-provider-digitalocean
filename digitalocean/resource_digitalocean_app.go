@@ -187,6 +187,9 @@ func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration)
 
 			if app.InProgressDeployment != nil {
 				deploymentID = app.InProgressDeployment.ID
+			} else {
+				ticker.Stop()
+				return nil
 			}
 
 		} else {
