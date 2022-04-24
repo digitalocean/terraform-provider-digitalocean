@@ -185,6 +185,7 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 								"https",
 								"http2",
 								"tcp",
+								"udp",
 							}, false),
 						},
 						"entry_port": {
@@ -200,6 +201,7 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 								"https",
 								"http2",
 								"tcp",
+								"udp",
 							}, false),
 						},
 						"target_port": {

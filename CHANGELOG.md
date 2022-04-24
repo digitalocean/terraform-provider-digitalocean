@@ -1,3 +1,29 @@
+## 2.19.0 (March 28, 2022)
+
+IMPROVEMENTS:
+
+- `digitalocean_container_registry`: Support providing custom region ([#804](https://github.com/digitalocean/terraform-provider-digitalocean/pull/804)). - @andrewsomething
+
+## 2.18.0 (March 8, 2022)
+
+FEATURES:
+
+- **New Resource:** `digitalocean_spaces_bucket_policy` ([#800](https://github.com/digitalocean/terraform-provider-digitalocean/pull/800)) - @pavelkovar
+
+IMPROVEMENTS:
+
+- `digitalocean_app`: Implement support for App Platform `log_destinations` ([#798](https://github.com/digitalocean/terraform-provider-digitalocean/pull/798)). - @jbrunton
+- `digitalocean_app`: Implement support for configuring alert policies ([#797](https://github.com/digitalocean/terraform-provider-digitalocean/pull/797)). - @andrewsomething
+
+BUG FIXES:
+
+- `digitalocean_project`: Environment is optional, don't set default ([#788](https://github.com/digitalocean/terraform-provider-digitalocean/pull/788)). - @andrewsomething
+- `digitalocean_droplet`: Handle optional boolean `droplet_agent` ([#785](https://github.com/digitalocean/terraform-provider-digitalocean/pull/785)). - @Kidsan
+
+MISC:
+
+- docs: Add default ttl to `digitalocean_record` ([#791](https://github.com/digitalocean/terraform-provider-digitalocean/pull/791)). - @unixlab
+
 ## 2.17.1 (January 28, 2022)
 
 IMPROVEMENTS:

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/s3"
+	awspolicy "github.com/hashicorp/awspolicyequivalence"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -91,4 +92,12 @@ func flattenSpacesBucket(rawBucketMetadata, meta interface{}, extra map[string]i
 	flattenedBucket["urn"] = fmt.Sprintf("do:space:%s", name)
 
 	return flattenedBucket, nil
+}
+
+func compareSpacesBucketPolicy(policy1, policy2 string) bool {
+	equivalent, err := awspolicy.PoliciesAreEquivalent(policy1, policy2)
+	if err != nil {
+		return false
+	}
+	return equivalent
 }

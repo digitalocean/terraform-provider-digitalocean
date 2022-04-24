@@ -39,11 +39,26 @@ func resourceDigitalOceanContainerRegistry() *schema.Resource {
 					"professional",
 				}, false),
 			},
+			"region": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
 			"endpoint": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"server_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"storage_usage_bytes": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"created_at": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -58,6 +73,10 @@ func resourceDigitalOceanContainerRegistryCreate(ctx context.Context, d *schema.
 	opts := &godo.RegistryCreateRequest{
 		Name:                 d.Get("name").(string),
 		SubscriptionTierSlug: d.Get("subscription_tier_slug").(string),
+	}
+
+	if region, ok := d.GetOk("region"); ok {
+		opts.Region = region.(string)
 	}
 
 	log.Printf("[DEBUG] Container Registry create configuration: %#v", opts)
@@ -89,8 +108,11 @@ func resourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.Re
 
 	d.SetId(reg.Name)
 	d.Set("name", reg.Name)
+	d.Set("region", reg.Region)
 	d.Set("endpoint", fmt.Sprintf("%s/%s", RegistryHostname, reg.Name))
 	d.Set("server_url", RegistryHostname)
+	d.Set("created_at", reg.CreatedAt.UTC().String())
+	d.Set("storage_usage_bytes", reg.StorageUsageBytes)
 
 	sub, _, err := client.Registry.GetSubscription(context.Background())
 	if err != nil {

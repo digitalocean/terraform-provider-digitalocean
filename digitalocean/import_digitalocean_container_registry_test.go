@@ -17,7 +17,7 @@ func TestAccDigitalOceanContainerRegistry_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanContainerRegistryDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanContainerRegistryConfig_basic, name, "basic"),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanContainerRegistryConfig_basic, name, "basic", ""),
 			},
 
 			{

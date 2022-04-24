@@ -1,5 +1,21 @@
 # Change Log
 
+## [v1.77.0] - 2022-03-16
+
+- #518 - @rcj4747 - apps: Update apps protos
+
+## [v1.76.0] - 2022-03-09
+
+- #516 - @CollinShoop - Add registry region support
+
+## [v1.75.0] - 2022-01-27
+
+- #508 - @ElanHasson - Synchronize public protos and add multiple specs
+
+## [v1.74.0] - 2022-01-20
+
+- #506 - @ZachEddy - Add new component type to apps-related structs
+
 ## [v1.73.0] - 2021-12-03
 
 - #501 - @CollinShoop - Add support for Registry ListManifests and ListRepositoriesV2

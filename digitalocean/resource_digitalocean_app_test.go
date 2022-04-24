@@ -100,6 +100,8 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.rule", "DEPLOYMENT_FAILED"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.instance_count", "1"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "basic-xxs"),
@@ -116,6 +118,18 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.http_path", "/"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.timeout_seconds", "10"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "75"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.operator", "GREATER_THAN"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.window", "TEN_MINUTES"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.rule", "CPU_UTILIZATION"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.name", "ServiceLogs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.papertrail.0.endpoint", "syslog+tls://example.com:12345"),
 				),
 			},
 			{
@@ -134,6 +148,18 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.1.routes.0.path", "/python"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.1.routes.0.preserve_path_prefix", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "85"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.operator", "GREATER_THAN"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.window", "FIVE_MINUTES"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.rule", "CPU_UTILIZATION"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.name", "ServiceLogs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.papertrail.0.endpoint", "syslog+tls://example.com:12345"),
 				),
 			},
 			{
@@ -148,6 +174,10 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.database.0.name", "test-db"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.database.0.engine", "PG"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.name", "ServiceLogs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.papertrail.0.endpoint", "syslog+tls://example.com:12345"),
 				),
 			},
 		},
@@ -179,6 +209,12 @@ func TestAccDigitalOceanApp_Job(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.job.1.kind", "POST_DEPLOY"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.job.1.run_command", "echo 'This is a post-deploy job.'"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.1.log_destination.0.name", "JobLogs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.1.log_destination.0.datadog.0.endpoint", "https://example.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.1.log_destination.0.datadog.0.api_key", "test-api-key"),
 				),
 			},
 		},
@@ -471,6 +507,10 @@ func TestAccDigitalOceanApp_Worker(t *testing.T) {
 						"https://github.com/digitalocean/sample-sleeper.git"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.worker.0.git.0.branch", "main"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.log_destination.0.name", "WorkerLogs"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.log_destination.0.logtail.0.token", "test-api-token"),
 				),
 			},
 			{
@@ -775,6 +815,10 @@ resource "digitalocean_app" "foobar" {
     name = "%s"
     region = "ams"
 
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+    }
+
     service {
       name               = "go-service"
       environment_slug   = "go"
@@ -789,6 +833,20 @@ resource "digitalocean_app" "foobar" {
       health_check {
         http_path       = "/"
         timeout_seconds = 10
+      }
+
+      alert {
+        value    = 75
+        operator = "GREATER_THAN"
+        window   = "TEN_MINUTES"
+        rule     = "CPU_UTILIZATION"
+      }
+
+      log_destination {
+        name = "ServiceLogs"
+        papertrail {
+          endpoint = "syslog+tls://example.com:12345"
+        }
       }
     }
   }
@@ -822,6 +880,10 @@ resource "digitalocean_app" "foobar" {
     name = "%s"
     region = "ams"
 
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+    }
+
     service {
       name               = "go-service"
       environment_slug   = "go"
@@ -835,6 +897,20 @@ resource "digitalocean_app" "foobar" {
 
       routes {
         path = "/go"
+      }
+
+      alert {
+        value    = 85
+        operator = "GREATER_THAN"
+        window   = "FIVE_MINUTES"
+        rule     = "CPU_UTILIZATION"
+      }
+
+      log_destination {
+        name = "ServiceLogs"
+        papertrail {
+          endpoint = "syslog+tls://example.com:12345"
+        }
       }
     }
 
@@ -908,6 +984,10 @@ resource "digitalocean_app" "foobar" {
     name = "%s"
     region = "ams"
 
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+    }
+
     service {
       name               = "go-service"
       environment_slug   = "go"
@@ -921,6 +1001,20 @@ resource "digitalocean_app" "foobar" {
 
       routes {
         path = "/"
+      }
+
+      alert {
+        value    = 85
+        operator = "GREATER_THAN"
+        window   = "FIVE_MINUTES"
+        rule     = "CPU_UTILIZATION"
+      }
+
+      log_destination {
+        name = "ServiceLogs"
+        papertrail {
+          endpoint = "syslog+tls://example.com:12345"
+        }
       }
     }
 
@@ -1000,6 +1094,13 @@ resource "digitalocean_app" "foobar" {
         repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
         branch         = "main"
       }
+
+      log_destination {
+        name = "WorkerLogs"
+        logtail {
+          token = "test-api-token"
+        }
+      }
     }
   }
 }`
@@ -1053,6 +1154,14 @@ resource "digitalocean_app" "foobar" {
         registry      = "frolvlad"
         repository    = "alpine-bash"
         tag           = "latest"
+      }
+
+      log_destination {
+        name = "JobLogs"
+        datadog {
+          endpoint = "https://example.com"
+          api_key = "test-api-key"
+        }
       }
     }
   }

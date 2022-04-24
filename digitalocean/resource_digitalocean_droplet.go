@@ -267,7 +267,7 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		opts.Monitoring = attr.(bool)
 	}
 
-	if attr, ok := d.GetOk("droplet_agent"); ok {
+	if attr, ok := d.GetOkExists("droplet_agent"); ok {
 		opts.WithDropletAgent = boolPtr(attr.(bool))
 	}
 
