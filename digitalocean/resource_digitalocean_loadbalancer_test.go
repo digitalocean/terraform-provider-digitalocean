@@ -297,6 +297,60 @@ func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanLoadbalancer_minimalUDP(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	rInt := acctest.RandInt()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_minimalUDP(rInt),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "size_unit", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "udp",
+							"target_port":     "80",
+							"target_protocol": "udp",
+							"tls_passthrough": "false",
+						},
+					),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "healthcheck.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "healthcheck.0.port", "80"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "healthcheck.0.protocol", "http"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "sticky_sessions.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "sticky_sessions.0.type", "none"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "droplet_ids.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "false"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
@@ -534,6 +588,40 @@ func TestAccDigitalOceanLoadbalancer_multipleRules(t *testing.T) {
 					),
 				),
 			},
+			{
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_multipleRulesUDP(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "name", rName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "443",
+							"entry_protocol":  "udp",
+							"target_port":     "443",
+							"target_protocol": "udp",
+							"tls_passthrough": "false",
+						},
+					),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.foobar",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "444",
+							"entry_protocol":  "udp",
+							"target_port":     "444",
+							"target_protocol": "udp",
+							"tls_passthrough": "false",
+						},
+					),
+				),
+			},
 		},
 	})
 }
@@ -749,6 +837,32 @@ resource "digitalocean_loadbalancer" "foobar" {
 }`, rInt, rInt)
 }
 
+func testAccCheckDigitalOceanLoadbalancerConfig_minimalUDP(rInt int) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name      = "foo-%d"
+  size      = "s-1vcpu-1gb"
+  image     = "centos-7-x64"
+  region    = "nyc3"
+}
+
+resource "digitalocean_loadbalancer" "foobar" {
+  name = "loadbalancer-%d"
+  region = "nyc3"
+  size = "lb-small"
+
+  forwarding_rule {
+    entry_port = 80
+    entry_protocol = "udp"
+
+    target_port = 80
+    target_protocol = "udp"
+  }
+
+  droplet_ids = ["${digitalocean_droplet.foobar.id}"]
+}`, rInt, rInt)
+}
+
 func testAccCheckDigitalOceanLoadbalancerConfig_stickySessions(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
@@ -837,6 +951,31 @@ resource "digitalocean_loadbalancer" "foobar" {
     target_protocol = "http"
     entry_protocol  = "http"
     target_port     = 80
+  }
+}`, rName)
+}
+
+func testAccCheckDigitalOceanLoadbalancerConfig_multipleRulesUDP(rName string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_loadbalancer" "foobar" {
+  name                   = "%s"
+  region                 = "nyc3"
+  size                 = "lb-small"
+
+  forwarding_rule {
+    entry_port      = 443
+    entry_protocol  = "udp"
+
+    target_port     = 443
+    target_protocol = "udp"
+
+  }
+
+  forwarding_rule {
+    entry_port      = 444
+    target_protocol = "udp"
+    entry_protocol  = "udp"
+    target_port     = 444
   }
 }`, rName)
 }
