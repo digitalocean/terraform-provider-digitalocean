@@ -17,14 +17,11 @@ import (
 )
 
 const (
-	testClusterVersion18 = `data "digitalocean_kubernetes_versions" "test" {
-  version_prefix = "1.18."
-}`
-	testClusterVersion19 = `data "digitalocean_kubernetes_versions" "test" {
-  version_prefix = "1.19."
-}`
 	testClusterVersion21 = `data "digitalocean_kubernetes_versions" "test" {
   version_prefix = "1.21."
+}`
+	testClusterVersion22 = `data "digitalocean_kubernetes_versions" "test" {
+  version_prefix = "1.22."
 }`
 )
 
@@ -74,7 +71,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion19, rName),
+				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -140,7 +137,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
         priority = "high"
       }
 	}
-}`, testClusterVersion19, rName),
+}`, testClusterVersion22, rName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "tags.#", "3"),
@@ -178,7 +175,7 @@ func TestAccDigitalOceanKubernetesCluster_CreateWithHAControlPlane(t *testing.T)
 							node_count = 1
 						}
 					}
-				`, testClusterVersion21, rName),
+				`, testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -206,14 +203,14 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion19, rName),
+				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 				),
 			},
 			{
-				Config: testAccDigitalOceanKubernetesConfigBasic4(testClusterVersion19, rName+"-updated"),
+				Config: testAccDigitalOceanKubernetesConfigBasic4(testClusterVersion22, rName+"-updated"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName+"-updated"),
@@ -252,7 +249,7 @@ func TestAccDigitalOceanKubernetesCluster_MaintenancePolicy(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigMaintenancePolicy(testClusterVersion19, rName, policy),
+				Config: testAccDigitalOceanKubernetesConfigMaintenancePolicy(testClusterVersion22, rName, policy),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -262,7 +259,7 @@ func TestAccDigitalOceanKubernetesCluster_MaintenancePolicy(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDigitalOceanKubernetesConfigMaintenancePolicy(testClusterVersion19, rName, updatedPolicy),
+				Config: testAccDigitalOceanKubernetesConfigMaintenancePolicy(testClusterVersion22, rName, updatedPolicy),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -285,7 +282,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion19, rName),
+				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -296,7 +293,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDigitalOceanKubernetesConfigBasic2(testClusterVersion19, rName),
+				Config: testAccDigitalOceanKubernetesConfigBasic2(testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -324,7 +321,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion19, rName),
+				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -335,7 +332,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolSize(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDigitalOceanKubernetesConfigBasic3(testClusterVersion19, rName),
+				Config: testAccDigitalOceanKubernetesConfigBasic3(testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -381,7 +378,7 @@ func TestAccDigitalOceanKubernetesCluster_CreatePoolWithAutoScale(t *testing.T) 
 							day = "sunday"
 						}
 					}
-				`, testClusterVersion19, rName),
+				`, testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -415,7 +412,7 @@ func TestAccDigitalOceanKubernetesCluster_CreatePoolWithAutoScale(t *testing.T) 
 							max_nodes = 3
 						}
 					}
-				`, testClusterVersion19, rName),
+				`, testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -446,7 +443,7 @@ func TestAccDigitalOceanKubernetesCluster_CreatePoolWithAutoScale(t *testing.T) 
 							max_nodes = 3
 						}
 					}
-				`, testClusterVersion19, rName),
+				`, testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -474,7 +471,7 @@ func TestAccDigitalOceanKubernetesCluster_CreatePoolWithAutoScale(t *testing.T) 
 							node_count = 2
 						}
 					}
-				`, testClusterVersion19, rName),
+				`, testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -515,7 +512,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolWithAutoScale(t *testing.T) 
 						node_count = 1
 					}
 				}
-			`, testClusterVersion19, rName),
+			`, testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -546,7 +543,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolWithAutoScale(t *testing.T) 
 							max_nodes = 3
 						}
 					}
-				`, testClusterVersion19, rName),
+				`, testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -576,7 +573,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdatePoolWithAutoScale(t *testing.T) 
 							max_nodes = 3
 						}
 					}
-				`, testClusterVersion19, rName),
+				`, testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
@@ -609,7 +606,7 @@ func TestAccDigitalOceanKubernetesCluster_KubernetesProviderInteroperability(t *
 		CheckDestroy: testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfig_KubernetesProviderInteroperability(testClusterVersion19, rName),
+				Config: testAccDigitalOceanKubernetesConfig_KubernetesProviderInteroperability(testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s), resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.raw_config"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.cluster_ca_certificate"),
@@ -631,14 +628,14 @@ func TestAccDigitalOceanKubernetesCluster_UpgradeVersion(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion18, rName),
+				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion21, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
 				),
 			},
 			{
-				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion19, rName),
+				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion22, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttrPtr("digitalocean_kubernetes_cluster.foobar", "id", &k8s.ID),
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),

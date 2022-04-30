@@ -15,7 +15,7 @@ func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	rName := randomTestName()
 	var k8s godo.KubernetesCluster
 	expectedURNRegEx, _ := regexp.Compile(`do:kubernetes:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
-	resourceConfig := testAccDigitalOceanKubernetesConfigForDataSource(testClusterVersion19, rName)
+	resourceConfig := testAccDigitalOceanKubernetesConfigForDataSource(testClusterVersion22, rName)
 	dataSourceConfig := `
 data "digitalocean_kubernetes_cluster" "foobar" {
 	name = digitalocean_kubernetes_cluster.foo.name
