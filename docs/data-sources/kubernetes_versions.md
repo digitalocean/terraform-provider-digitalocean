@@ -40,7 +40,7 @@ resource "digitalocean_kubernetes_cluster" "example-cluster" {
 
 ```hcl
 data "digitalocean_kubernetes_versions" "example" {
-  version_prefix = "1.16."
+  version_prefix = "1.22."
 }
 
 resource "digitalocean_kubernetes_cluster" "example-cluster" {

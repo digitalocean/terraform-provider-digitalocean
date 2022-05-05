@@ -1,6 +1,6 @@
 
 variable "cluster_version" {
-  default = "1.19"
+  default = "1.22"
 }
 
 variable "worker_count" {

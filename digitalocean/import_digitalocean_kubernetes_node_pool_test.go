@@ -32,7 +32,7 @@ resource "digitalocean_kubernetes_node_pool" "barfoo" {
   size = "s-1vcpu-2gb"
   node_count = 1
 }
-`, testClusterVersion19, testName1, testName2)
+`, testClusterVersionLatest, testName1, testName2)
 	resourceName := "digitalocean_kubernetes_node_pool.barfoo"
 
 	resource.ParallelTest(t, resource.TestCase{
