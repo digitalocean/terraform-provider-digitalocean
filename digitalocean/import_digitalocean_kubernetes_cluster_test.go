@@ -21,7 +21,7 @@ func TestAccDigitalOceanKubernetesCluster_ImportBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersion19, clusterName),
+				Config: testAccDigitalOceanKubernetesConfigBasic(testClusterVersionLatest, clusterName),
 				// Remove the default node pool tag so that the import code which infers
 				// the need to add the tag gets triggered.
 				Check: testAccDigitalOceanKubernetesRemoveDefaultNodePoolTag(clusterName),
@@ -112,7 +112,7 @@ resource "digitalocean_kubernetes_node_pool" "barfoo" {
   size = "s-1vcpu-2gb"
   node_count = 1
 }
-`, testClusterVersion19, testName1, testName2)
+`, testClusterVersionLatest, testName1, testName2)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
