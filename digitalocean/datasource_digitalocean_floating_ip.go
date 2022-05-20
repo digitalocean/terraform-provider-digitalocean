@@ -1,6 +1,9 @@
 package digitalocean
 
 import (
+	"context"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -9,9 +12,8 @@ func dataSourceDigitalOceanFloatingIP() *schema.Resource {
 	return &schema.Resource{
 		// TODO: Uncomment when dates for deprecation timeline are set.
 		// DeprecationMessage: "This data source is deprecated and will be removed in a future release. Please use digitalocean_reserved_ip instead.",
-		ReadContext: resourceDigitalOceanFloatingIPRead,
+		ReadContext: dataSourceDigitalOceanFloatingIPRead,
 		Schema: map[string]*schema.Schema{
-
 			"ip_address": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -36,4 +38,14 @@ func dataSourceDigitalOceanFloatingIP() *schema.Resource {
 			},
 		},
 	}
+}
+
+func dataSourceDigitalOceanFloatingIPRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	err := dataSourceDigitalOceanReservedIPRead(ctx, d, meta)
+	if err != nil {
+		return err
+	}
+	reservedIPURNtoFloatingIPURN(d)
+
+	return nil
 }
