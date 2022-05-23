@@ -4,6 +4,8 @@ page_title: "DigitalOcean: digitalocean_floating_ip"
 
 # digitalocean_floating_ip
 
+~> **Deprecated:** DigitalOcean Floating IPs have been reserved IPs. This data source will be removed in a future release. Please use `digitalocean_reserved_ip` instead.
+
 Get information on a floating ip. This data source provides the region and Droplet id
 as configured on your DigitalOcean account. This is useful if the floating IP
 in question is not managed by Terraform or you need to find the Droplet the IP is

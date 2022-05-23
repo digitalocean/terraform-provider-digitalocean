@@ -4,6 +4,8 @@ page_title: "DigitalOcean: digitalocean_floating_ip"
 
 # digitalocean\_floating_ip
 
+~> **Deprecated:** DigitalOcean Floating IPs have been reserved IPs. This resource will be removed in a future release. Please use `digitalocean_reserved_ip` instead.
+
 Provides a DigitalOcean Floating IP to represent a publicly-accessible static IP addresses that can be mapped to one of your Droplets.
 
 ~> **NOTE:** Floating IPs can be assigned to a Droplet either directly on the `digitalocean_floating_ip` resource by setting a `droplet_id` or using the `digitalocean_floating_ip_assignment` resource, but the two cannot be used together.
