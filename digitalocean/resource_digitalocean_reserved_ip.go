@@ -45,7 +45,6 @@ func resourceDigitalOceanReservedIP() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.IsIPv4Address,
 			},
-
 			"droplet_id": {
 				Type:     schema.TypeInt,
 				Optional: true,
@@ -57,12 +56,12 @@ func resourceDigitalOceanReservedIP() *schema.Resource {
 func resourceDigitalOceanReservedIPCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*CombinedConfig).godoClient()
 
-	log.Printf("[INFO] Create a reserved IP In a Region")
+	log.Printf("[INFO] Creating a reserved IP in a region")
 	regionOpts := &godo.ReservedIPCreateRequest{
 		Region: d.Get("region").(string),
 	}
 
-	log.Printf("[DEBUG] ReservedIP Create: %#v", regionOpts)
+	log.Printf("[DEBUG] Reserved IP create: %#v", regionOpts)
 	reservedIP, _, err := client.ReservedIPs.Create(context.Background(), regionOpts)
 	if err != nil {
 		return diag.Errorf("Error creating reserved IP: %s", err)
@@ -71,18 +70,17 @@ func resourceDigitalOceanReservedIPCreate(ctx context.Context, d *schema.Resourc
 	d.SetId(reservedIP.IP)
 
 	if v, ok := d.GetOk("droplet_id"); ok {
-
 		log.Printf("[INFO] Assigning the reserved IP to the Droplet %d", v.(int))
 		action, _, err := client.ReservedIPActions.Assign(context.Background(), d.Id(), v.(int))
 		if err != nil {
 			return diag.Errorf(
-				"Error Assigning reserved IP (%s) to the droplet: %s", d.Id(), err)
+				"Error Assigning reserved IP (%s) to the Droplet: %s", d.Id(), err)
 		}
 
 		_, unassignedErr := waitForReservedIPReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
 		if unassignedErr != nil {
 			return diag.Errorf(
-				"Error waiting for reserved IP (%s) to be Assigned: %s", d.Id(), unassignedErr)
+				"Error waiting for reserved IP (%s) to be assigned: %s", d.Id(), unassignedErr)
 		}
 	}
 
@@ -98,7 +96,7 @@ func resourceDigitalOceanReservedIPUpdate(ctx context.Context, d *schema.Resourc
 			action, _, err := client.ReservedIPActions.Assign(context.Background(), d.Id(), v.(int))
 			if err != nil {
 				return diag.Errorf(
-					"Error Assigning reserved IP (%s) to the droplet: %s", d.Id(), err)
+					"Error assigning reserved IP (%s) to the Droplet: %s", d.Id(), err)
 			}
 
 			_, unassignedErr := waitForReservedIPReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
@@ -130,23 +128,25 @@ func resourceDigitalOceanReservedIPRead(ctx context.Context, d *schema.ResourceD
 
 	log.Printf("[INFO] Reading the details of the reserved IP %s", d.Id())
 	reservedIP, resp, err := client.ReservedIPs.Get(context.Background(), d.Id())
-	if resp.StatusCode != 404 {
-		if err != nil {
-			return diag.Errorf("Error retrieving reserved IP: %s", err)
+	if err != nil {
+		if resp != nil && resp.StatusCode == 404 {
+			log.Printf("[WARN] Reserved IP (%s) not found", d.Id())
+			d.SetId("")
+			return nil
 		}
 
-		if _, ok := d.GetOk("droplet_id"); ok && reservedIP.Droplet != nil {
-			d.Set("region", reservedIP.Droplet.Region.Slug)
-			d.Set("droplet_id", reservedIP.Droplet.ID)
-		} else {
-			d.Set("region", reservedIP.Region.Slug)
-		}
-
-		d.Set("ip_address", reservedIP.IP)
-		d.Set("urn", reservedIP.URN())
-	} else {
-		d.SetId("")
+		return diag.Errorf("Error retrieving reserved IP: %s", err)
 	}
+
+	if _, ok := d.GetOk("droplet_id"); ok && reservedIP.Droplet != nil {
+		d.Set("region", reservedIP.Droplet.Region.Slug)
+		d.Set("droplet_id", reservedIP.Droplet.ID)
+	} else {
+		d.Set("region", reservedIP.Region.Slug)
+	}
+
+	d.Set("ip_address", reservedIP.IP)
+	d.Set("urn", reservedIP.URN())
 
 	return nil
 }

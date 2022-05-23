@@ -31,7 +31,6 @@ func resourceDigitalOceanReservedIPAssignment() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.IsIPv4Address,
 			},
-
 			"droplet_id": {
 				Type:         schema.TypeInt,
 				Required:     true,
@@ -78,7 +77,7 @@ func resourceDigitalOceanReservedIPAssignmentRead(ctx context.Context, d *schema
 	}
 
 	if reservedIP.Droplet == nil || reservedIP.Droplet.ID != dropletID {
-		log.Printf("[INFO] A droplet was detected on the reserved IP.")
+		log.Printf("[INFO] A Droplet was detected on the reserved IP.")
 		d.SetId("")
 	}
 
