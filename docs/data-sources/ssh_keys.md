@@ -14,13 +14,24 @@ about a single SSH Key if you already know the unique `name` to retrieve.
 
 ## Example Usage
 
-For example to find all SSH Keys:
+For example, to find all SSH keys:
 
 ```hcl
 data "digitalocean_ssh_keys" "keys" {
   sort {
     key       = "name"
     direction = "asc"
+  }
+}
+```
+
+Or to find ones matching specific values:
+
+```hcl
+data "digitalocean_ssh_keys" "keys" {
+  filter {
+    key    = "name"
+    values = ["laptop", "desktop"]
   }
 }
 ```
@@ -32,10 +43,12 @@ data "digitalocean_ssh_keys" "keys" {
 
 * `sort` - (Optional) Sort the results.
   The `sort` block is documented below.
- 
+
 `filter` supports the following arguments:
 
 * `key` - (Required) Filter the SSH Keys by this key. This may be one of `name`, `public_key`, or `fingerprint`.
+
+* `values` - (Required) A list of values to match against the key field. Only retrieves SSH keys where the key field matches one or more of the values provided here.
 
 `sort` supports the following arguments:
 
@@ -45,7 +58,7 @@ data "digitalocean_ssh_keys" "keys" {
 
 ## Attributes Reference
 
-* `ssh_keys` - A list of SSH Keys. Each SSH Key has the following attributes:  
+* `ssh_keys` - A list of SSH Keys. Each SSH Key has the following attributes:
 
   * `id` - The ID of the ssh key.
   * `name`: The name of the ssh key.
