@@ -1,3 +1,23 @@
+## 2.20.0 (May 25, 2022)
+
+IMPROVEMENTS:
+
+- `digitalocean_app`: Support functions components ([#831](https://github.com/digitalocean/terraform-provider-digitalocean/pull/831)). - @andrewsomething
+- `digitalocean_monitor_alert`: Support load balancer alert types ([#822](https://github.com/digitalocean/terraform-provider-digitalocean/pull/822)). - @andrewsomething
+- `digitalocean_loadbalancer`: support udp as a target and entry protocol ([#789](https://github.com/digitalocean/terraform-provider-digitalocean/pull/789)). - @dikshant
+
+BUG FIXES:
+
+- `digitalocean_kubernetes_cluster`: Always perform upgrade check ([#823](https://github.com/digitalocean/terraform-provider-digitalocean/issues/823)). - @macno
+
+MISC:
+
+- docs: Document values attribute in ssh_keys data source ([#832](https://github.com/digitalocean/terraform-provider-digitalocean/pull/832)). - @andrewsomething
+- docs: Note limitations on importing MongoDB users ([#821](https://github.com/digitalocean/terraform-provider-digitalocean/pull/821)). - @andrewsomething
+- docs: Fix k8's node_pool.tags description ([#816](https://github.com/digitalocean/terraform-provider-digitalocean/pull/816)). - @danaelhe
+- testing: Fix k8s versions in acceptance tests ([#826](https://github.com/digitalocean/terraform-provider-digitalocean/pull/826)). - @gizero
+- provider: Build with go 1.18 ([#813](https://github.com/digitalocean/terraform-provider-digitalocean/pull/813)). - @ChiefMateStarbuck
+
 ## 2.19.0 (March 28, 2022)
 
 IMPROVEMENTS:
