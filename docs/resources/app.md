@@ -369,6 +369,56 @@ A `job` can contain:
   - `logtail` - Logtail configuration.
     - `token` - Logtail token.
 
+
+A `function` component can contain:
+
+* `name` - The name of the component.
+* `source_dir` - An optional path to the working directory to use for the build.
+* `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication.  Only one of `git`, `github` or `gitlab`  may be set.
+  - `repo_clone_url` - The clone URL of the repo.
+  - `branch` - The name of the branch to use.
+* `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
+  - `repo` - The name of the repo in the format `owner/repo`.
+  - `branch` - The name of the branch to use.
+  - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+* `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
+  - `repo` - The name of the repo in the format `owner/repo`.
+  - `branch` - The name of the branch to use.
+  - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+* `env` - Describes an environment variable made available to an app competent.
+  - `key` - The name of the environment variable.
+  - `value` - The value of the environment variable.
+  - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
+  - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+* `route` - An HTTP paths that should be routed to this component.
+  - `path` - Paths must start with `/` and must be unique within the app.
+  - `preserve_path_prefix` -  An optional flag to preserve the path that is forwarded to the backend service.
+* `cors` - The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
+	- `allow_origins` - The `Access-Control-Allow-Origin` can be
+    - `exact` - The `Access-Control-Allow-Origin` header will be set to the client's origin only if the client's origin exactly matches the value you provide.
+    - `prefix` -  The `Access-Control-Allow-Origin` header will be set to the client's origin if the beginning of the client's origin matches the value you provide.
+    - `regex` - The `Access-Control-Allow-Origin` header will be set to the client's origin if the client’s origin matches the regex you provide, in [RE2 style syntax](https://github.com/google/re2/wiki/Syntax).
+  - `allow_headers` - The set of allowed HTTP request headers. This configures the `Access-Control-Allow-Headers` header.
+  - `max_age` - An optional duration specifying how long browsers can cache the results of a preflight request. This configures the Access-Control-Max-Age header. Example: `5h30m`.
+  - `expose_headers` - The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
+  - `allow_methods` - The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
+  - `allow_credentials` - Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+* `alert` - Describes an alert policy for the component.
+  - `rule` - The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
+  - `value` - The threshold for the type of the warning.
+  - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
+  - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
+  - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+* `log_destination` - Describes a log forwarding destination.
+  - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
+  - `papertrail` - Papertrail configuration.
+    - `endpoint` - Papertrail syslog endpoint.
+  - `datadog` - Datadog configuration.
+    - `endpoint` - Datadog HTTP log intake endpoint.
+    - `api_key` - Datadog API key.
+  - `logtail` - Logtail configuration.
+    - `token` - Logtail token.
+
 A `database` can contain:
 
 * `name` - The name of the component.
