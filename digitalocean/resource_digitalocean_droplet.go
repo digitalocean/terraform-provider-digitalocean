@@ -28,6 +28,15 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 		MigrateState:  resourceDigitalOceanDropletMigrateState,
 		SchemaVersion: 1,
 
+		// We are using these timeouts to be the minimum timeout for an operation.
+		// This is how long an operation will wait for a state update, however
+		// implementation of updates and deletes contain multiple instances of waiting for a state update
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(40 * time.Minute),
+			Update: schema.DefaultTimeout(80 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Second),
+		},
+
 		Schema: map[string]*schema.Schema{
 			"image": {
 				Type:         schema.TypeString,
@@ -307,7 +316,7 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	// Ensure Droplet status has moved to "active."
-	_, err = waitForDropletAttribute(ctx, d, "active", []string{"new"}, "status", meta)
+	_, err = waitForDropletAttribute(ctx, d, "active", []string{"new"}, "status", schema.TimeoutCreate, meta)
 	if err != nil {
 		return diag.Errorf("Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
 	}
@@ -460,7 +469,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		// Wait for power off
-		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", meta)
+		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", schema.TimeoutUpdate, meta)
 		if err != nil {
 			return diag.Errorf(
 				"Error waiting for droplet (%s) to become powered off: %s", d.Id(), err)
@@ -497,8 +506,8 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 				"Error powering on droplet (%s) after resize: %s", d.Id(), err)
 		}
 
-		// Wait for power off
-		_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", meta)
+		// Wait for power on
+		_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", schema.TimeoutUpdate, meta)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -517,7 +526,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for the name to change
 		_, err = waitForDropletAttribute(
-			ctx, d, newName.(string), []string{"", oldName.(string)}, "name", meta)
+			ctx, d, newName.(string), []string{"", oldName.(string)}, "name", schema.TimeoutUpdate, meta)
 
 		if err != nil {
 			return diag.Errorf(
@@ -563,7 +572,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for the private_networking to turn on
 		_, err = waitForDropletAttribute(
-			ctx, d, "true", []string{"", "false"}, "private_networking", meta)
+			ctx, d, "true", []string{"", "false"}, "private_networking", schema.TimeoutUpdate, meta)
 
 		if err != nil {
 			return diag.Errorf(
@@ -582,7 +591,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for ipv6 to turn on
 		_, err = waitForDropletAttribute(
-			ctx, d, "true", []string{"", "false"}, "ipv6", meta)
+			ctx, d, "true", []string{"", "false"}, "ipv6", schema.TimeoutUpdate, meta)
 
 		if err != nil {
 			return diag.Errorf(
@@ -645,7 +654,7 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 	}
 
 	_, err = waitForDropletAttribute(
-		ctx, d, "false", []string{"", "true"}, "locked", meta)
+		ctx, d, "false", []string{"", "true"}, "locked", schema.TimeoutDelete, meta)
 
 	if err != nil {
 		return diag.Errorf(
@@ -665,7 +674,7 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 		}
 
 		// Wait for shutdown
-		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", meta)
+		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", schema.TimeoutDelete, meta)
 		if err != nil {
 			return diag.Errorf("Error waiting for droplet (%s) to become off: %s", d.Id(), err)
 		}
@@ -714,7 +723,7 @@ func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta int
 }
 
 func waitForDropletAttribute(
-	ctx context.Context, d *schema.ResourceData, target string, pending []string, attribute string, meta interface{}) (interface{}, error) {
+	ctx context.Context, d *schema.ResourceData, target string, pending []string, attribute string, timeoutKey string, meta interface{}) (interface{}, error) {
 	// Wait for the droplet so we can get the networking attributes
 	// that show up after a while
 	log.Printf(
@@ -725,7 +734,7 @@ func waitForDropletAttribute(
 		Pending:    pending,
 		Target:     []string{target},
 		Refresh:    dropletStateRefreshFunc(ctx, d, attribute, meta),
-		Timeout:    60 * time.Minute,
+		Timeout:    d.Timeout(timeoutKey),
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
 
@@ -794,9 +803,9 @@ func powerOnAndWait(ctx context.Context, d *schema.ResourceData, meta interface{
 	if err != nil {
 		return err
 	}
-
+	// this method is only used for droplet updates so use that as the timeout parameter
 	// Wait for power on
-	_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", meta)
+	_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", schema.TimeoutUpdate, meta)
 	if err != nil {
 		return err
 	}
