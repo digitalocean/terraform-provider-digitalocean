@@ -160,7 +160,7 @@ resource "digitalocean_floating_ip" "foobar" {
 func testAccCheckDigitalOceanFloatingIPConfig_droplet(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name               = "foobar-%d"
+  name               = "tf-acc-test-%d"
   size               = "s-1vcpu-1gb"
   image              = "centos-7-x64"
   region             = "nyc3"
@@ -177,7 +177,7 @@ resource "digitalocean_floating_ip" "foobar" {
 func testAccCheckDigitalOceanFloatingIPConfig_Reassign(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "baz" {
-  name               = "baz-%d"
+  name               = "tf-acc-test-%d"
   size               = "s-1vcpu-1gb"
   image              = "centos-7-x64"
   region             = "nyc3"
@@ -194,7 +194,7 @@ resource "digitalocean_floating_ip" "foobar" {
 func testAccCheckDigitalOceanFloatingIPConfig_Unassign(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "baz" {
-  name               = "baz-%d"
+  name               = "tf-acc-test-%d"
   size               = "s-1vcpu-1gb"
   image              = "centos-7-x64"
   region             = "nyc3"
