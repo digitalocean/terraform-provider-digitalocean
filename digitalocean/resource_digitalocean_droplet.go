@@ -31,9 +31,10 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 		// We are using these timeouts to be the minimum timeout for an operation.
 		// This is how long an operation will wait for a state update, however
 		// implementation of updates and deletes contain multiple instances of waiting for a state update
+		// so the true timeout of an operation could be a multiple of the set value.
 		Timeouts: &schema.ResourceTimeout{
-			Create: schema.DefaultTimeout(40 * time.Minute),
-			Update: schema.DefaultTimeout(80 * time.Minute),
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
 			Delete: schema.DefaultTimeout(60 * time.Second),
 		},
 
