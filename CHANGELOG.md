@@ -1,3 +1,15 @@
+## 2.21.0 (June 16, 2022)
+
+FEATURES:
+
+- **New Resource:** `digitalocean_reserved_ip`  ([#830](https://github.com/digitalocean/terraform-provider-digitalocean/pull/830)). - @andrewsomething
+- **New Resource:** `digitalocean_reserved_ip_assignment` ([#830](https://github.com/digitalocean/terraform-provider-digitalocean/pull/830)). - @andrewsomething
+- **New Data Source:** `digitalocean_reserved_ip` ([#830](https://github.com/digitalocean/terraform-provider-digitalocean/pull/830)). - @andrewsomething
+
+MISC:
+
+- examples: Change k8s example to use ingress v1 ([#831](https://github.com/digitalocean/terraform-provider-digitalocean/pull/837)). - @jacobgreenleaf
+
 ## 2.20.0 (May 25, 2022)
 
 IMPROVEMENTS:
