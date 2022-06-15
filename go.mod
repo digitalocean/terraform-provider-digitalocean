@@ -2,7 +2,7 @@ module github.com/digitalocean/terraform-provider-digitalocean
 
 require (
 	github.com/aws/aws-sdk-go v1.42.18
-	github.com/digitalocean/godo v1.79.0
+	github.com/digitalocean/godo v1.81.0
 	github.com/hashicorp/awspolicyequivalence v1.5.0
 	github.com/hashicorp/go-uuid v1.0.2
 	github.com/hashicorp/go-version v1.3.0
@@ -63,8 +63,6 @@ require (
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
-
-replace github.com/digitalocean/godo => github.com/senorprogrammer/godo v1.75.1-0.20220511210934-477acfa9ed5f
 
 replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
 
