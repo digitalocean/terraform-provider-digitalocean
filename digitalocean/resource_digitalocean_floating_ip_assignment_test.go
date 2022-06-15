@@ -121,7 +121,7 @@ resource "digitalocean_floating_ip" "foobar" {
 
 resource "digitalocean_droplet" "foobar" {
   count              = 2
-  name               = "foobar-${count.index}"
+  name               = "tf-acc-test-${count.index}"
   size               = "s-1vcpu-1gb"
   image              = "centos-7-x64"
   region             = "nyc3"
@@ -142,7 +142,7 @@ resource "digitalocean_floating_ip" "foobar" {
 
 resource "digitalocean_droplet" "foobar" {
   count              = 2
-  name               = "foobar-${count.index}"
+  name               = "tf-acc-test-${count.index}"
   size               = "s-1vcpu-1gb"
   image              = "centos-7-x64"
   region             = "nyc3"
@@ -163,7 +163,7 @@ resource "digitalocean_floating_ip" "foobar" {
 
 resource "digitalocean_droplet" "foobar" {
   count              = 2
-  name               = "foobar-${count.index}"
+  name               = "tf-acc-test-${count.index}"
   size               = "s-1vcpu-1gb"
   image              = "centos-7-x64"
   region             = "nyc3"
@@ -175,7 +175,7 @@ resource "digitalocean_droplet" "foobar" {
 var testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroy = `
 resource "digitalocean_droplet" "foobar" {
   image = "centos-7-x64"
-  name = "foo-bar"
+  name = "tf-acc-test"
   region = "nyc3"
   size = "s-1vcpu-1gb"
 
@@ -201,7 +201,7 @@ resource "digitalocean_floating_ip_assignment" "foobar" {
 var testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroyReassign = `
 resource "digitalocean_droplet" "foobar" {
   image = "ubuntu-18-04-x64"
-  name = "foobar"
+  name = "tf-acc-test"
   region = "nyc3"
   size = "s-1vcpu-1gb"
 
