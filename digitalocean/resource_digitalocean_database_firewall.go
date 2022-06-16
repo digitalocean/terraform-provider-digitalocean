@@ -91,9 +91,9 @@ func resourceDigitalOceanDatabaseFirewallRead(ctx context.Context, d *schema.Res
 
 	rules, resp, err := client.Databases.GetFirewallRules(context.TODO(), clusterID)
 	if err != nil {
-		if resp.StatusCode == 404 {
+		if resp != nil && resp.StatusCode == 404 {
 			d.SetId("")
-			return nil;
+			return nil
 		}
 		return diag.Errorf("Error retrieving DatabaseFirewall: %s", err)
 	}
