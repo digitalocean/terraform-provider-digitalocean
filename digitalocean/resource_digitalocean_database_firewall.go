@@ -89,8 +89,12 @@ func resourceDigitalOceanDatabaseFirewallRead(ctx context.Context, d *schema.Res
 	client := meta.(*CombinedConfig).godoClient()
 	clusterID := d.Get("cluster_id").(string)
 
-	rules, _, err := client.Databases.GetFirewallRules(context.TODO(), clusterID)
+	rules, resp, err := client.Databases.GetFirewallRules(context.TODO(), clusterID)
 	if err != nil {
+		if resp.StatusCode == 404 {
+			d.SetId("")
+			return nil;
+		}
 		return diag.Errorf("Error retrieving DatabaseFirewall: %s", err)
 	}
 
