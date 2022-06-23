@@ -122,7 +122,12 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 	if app.ActiveDeployment != nil {
 		d.Set("active_deployment_id", app.ActiveDeployment.ID)
 	} else {
-		return diag.Errorf("No active deployment found for app: %s (%s)", app.Spec.Name, app.ID)
+		deploymentWarning := diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  fmt.Sprintf("No active deployment found for app: %s (%s)", app.Spec.Name, app.ID),
+		}
+		d.Set("active_deployment_id", "")
+		return diag.Diagnostics{deploymentWarning}
 	}
 
 	return nil
