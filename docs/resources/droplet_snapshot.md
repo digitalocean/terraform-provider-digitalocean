@@ -20,6 +20,14 @@ resource "digitalocean_droplet_snapshot" "web-snapshot" {
   droplet_id = digitalocean_droplet.web.id
   name       = "web-snapshot-01"
 }
+
+
+resource "digitalocean_droplet" "from-snapshot" {
+  image  = digitalocean_droplet_snapshot.web-snapshot.id
+  name   = "web-02"
+  region = "nyc3"
+  size   = "s-2vcpu-4gb"
+}
 ```
 
 ## Argument Reference

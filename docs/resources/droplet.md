@@ -24,7 +24,7 @@ resource "digitalocean_droplet" "web" {
 
 The following arguments are supported:
 
-* `image` - (Required) The Droplet image ID or slug.
+* `image` - (Required) The Droplet image ID or slug. This could be either image ID or droplet snapshot ID.
 * `name` - (Required) The Droplet name.
 * `region` - (Required) The region to start in.
 * `size` - (Required) The unique slug that indentifies the type of Droplet. You can find a list of available slugs on [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#tag/Sizes).
