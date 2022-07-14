@@ -20,6 +20,24 @@ data "digitalocean_droplet_snapshot" "web-snapshot" {
 }
 ```
 
+Create image from snapshot:
+
+```hcl
+data "digitalocean_droplet_snapshot" "web-snapshot" {
+  name_regex  = "^web"
+  region      = "nyc3"
+  most_recent = true
+}
+
+resource "digitalocean_droplet" "from-snapshot" {
+  image  = data.digitalocean_droplet_snapshot.web-snapshot.id
+  name   = "web-02"
+  region = "nyc3"
+  size   = "s-2vcpu-4gb"
+}
+```
+
+
 ## Argument Reference
 
 * `name` - (Optional) The name of the Droplet snapshot.
