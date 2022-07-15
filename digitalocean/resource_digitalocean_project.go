@@ -66,8 +66,10 @@ func resourceDigitalOceanProject() *schema.Resource {
 				Description: "the id of the project owner.",
 			},
 			"is_default": {
-				Type:     schema.TypeBool,
-				Computed: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "determine if the project is the default or not.",
 			},
 			"created_at": {
 				Type:        schema.TypeString,
