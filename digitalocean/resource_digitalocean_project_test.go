@@ -43,6 +43,42 @@ func TestAccDigitalOceanProject_CreateWithDefaults(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanProject_CreateWithIsDefault(t *testing.T) {
+
+	expectedName := generateProjectName()
+	expectedIsDefault := "true"
+	createConfig := fixtureCreateWithIsDefault(expectedName, expectedIsDefault)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: createConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "name", expectedName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "description", ""),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "purpose", "Web Application"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "environment", ""),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "is_default", expectedIsDefault),
+					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "id"),
+					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "owner_uuid"),
+					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "owner_id"),
+					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "updated_at"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanProject_CreateWithInitialValues(t *testing.T) {
 
 	expectedName := generateProjectName()
@@ -440,4 +476,12 @@ func fixtureWithManyResources(domainBase string, name string) string {
 			name = "%s"
 			resources = digitalocean_domain.foobar[*].urn
 		}`, domainBase, name)
+}
+
+func fixtureCreateWithIsDefault(name string, is_default string) string {
+	return fmt.Sprintf(`
+		resource "digitalocean_project" "myproj" {
+			name = "%s"
+			is_default = "%s"
+		}`, name, is_default)
 }
