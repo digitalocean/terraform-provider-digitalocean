@@ -1,9 +1,8 @@
 package digitalocean
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
 	"github.com/digitalocean/terraform-provider-digitalocean/internal/mutexkv"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // Global MutexKV

@@ -1,0 +1,39 @@
+run:
+  timeout: 60m
+  modules-download-mode: vendor
+
+issues:
+  max-per-linter: 0
+  max-same-issues: 0
+  exclude-rules:
+    #TODO: Enable failing gosimple checks
+    - linters:
+        - gosimple
+      text: "S(1007|1034|1039)"
+    # TODO: Enable failing staticchecks
+    - linters:
+        - staticcheck
+      text: "SA(1006|1019|4006|6005):"
+
+linters:
+  disable-all: true
+  enable:
+    - gofmt
+    - goimports
+    - govet
+    - typecheck
+    - unconvert
+    - varcheck
+    - staticcheck
+    - gosimple
+    # TODO: Enable addition linters
+    # - deadcode
+    # - errcheck
+    # - ineffassign
+    # - unused
+
+linters-settings:
+  errcheck:
+    ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
+  nakedret:
+    max-func-lines: 40

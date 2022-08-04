@@ -37,6 +37,11 @@ func dataSourceDigitalOceanApp() *schema.Resource {
 				Computed:    true,
 				Description: "The ID the App's currently active deployment",
 			},
+			"urn": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The uniform resource identifier for the app",
+			},
 			"updated_at": {
 				Type:        schema.TypeString,
 				Computed:    true,

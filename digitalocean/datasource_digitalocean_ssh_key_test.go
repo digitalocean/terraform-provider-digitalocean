@@ -93,7 +93,7 @@ func testAccCheckDataSourceDigitalOceanSSHKeyExists(n string, key *godo.Key) res
 }
 
 func testAccGenerateDataSourceDigitalOceanSSHKeyPublic() (string, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, 1024)
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return "", fmt.Errorf("Unable to generate key: %v", err)
 	}

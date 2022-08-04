@@ -28,6 +28,11 @@ jobs:
       - name: make vet
         run: make vet
 
+      - name: Lint with golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          only-new-issues: true
+
       - name: make test
         run: make test
 
