@@ -7,10 +7,6 @@ default: build
 build: fmtcheck
 	go install
 
-tools:
-	@echo "==> installing required tooling..."
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH || $$GOPATH)/bin v1.41.1
-
 test: fmtcheck
 	go test $(TEST) || exit 1
 	echo $(TEST) | \
@@ -34,10 +30,13 @@ sweep:
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."
-	@find . -name '*.go' | grep -v vendor | grep -v generator-resource-id | while read f; do ./scripts/goimport-file.sh "$$f"; done
+	@find . -name '*.go' | grep -v vendor | grep -v generator-resource-id | while read f; do goimports -w "$$f"; done
 
-lint:
-	./scripts/run-lint.sh
+install-golangci-lint:
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+lint: install-golangci-lint
+	@golangci-lint run -v ./...
 
 fmt:
 	gofmt -s -w $(GOFMT_FILES)

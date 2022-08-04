@@ -28,11 +28,11 @@ jobs:
       - name: make vet
         run: make vet
 
-      - name: make tools
-        run: make tools
-
-      - name: make lint
-        run: make lint
+      - name: Lint with golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          only-new-issues: true
+        if: matrix.os == 'ubuntu-latest'
 
       - name: make test
         run: make test
