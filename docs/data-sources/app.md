@@ -31,6 +31,7 @@ The following attributes are exported:
 * `default_ingress` - The default URL to access the app.
 * `live_url` - The live URL of the app.
 * `active_deployment_id` - The ID the app's currently active deployment.
+* `urn` - The uniform resource identifier for the app.
 * `updated_at` - The date and time of when the app was last updated.
 * `created_at` - The date and time of when the app was created.
 * `spec` - A DigitalOcean App spec describing the app.
