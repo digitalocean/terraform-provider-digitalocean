@@ -70,11 +70,11 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "price_hourly", "0.00744"),
+						"digitalocean_droplet.foobar", "price_hourly", "0.00893"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "price_monthly", "5"),
+						"digitalocean_droplet.foobar", "price_monthly", "6"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "image", "ubuntu-21-10-x64"),
+						"digitalocean_droplet.foobar", "image", "ubuntu-22-04-x64"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -96,7 +96,7 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 	var droplet godo.Droplet
 	rInt := acctest.RandInt()
-	slug := "ubuntu-21-10-x64"
+	slug := "ubuntu-22-04-x64"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -136,7 +136,7 @@ func TestAccDigitalOceanDroplet_withSSH(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "image", "ubuntu-21-10-x64"),
+						"digitalocean_droplet.foobar", "image", "ubuntu-22-04-x64"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -599,7 +599,7 @@ func TestAccDigitalOceanDroplet_withDropletAgentSetFalse(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, publicKeyMaterial, dropletName, "freebsd-12-x64-zfs", agent),
+				Config: testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, publicKeyMaterial, dropletName, "rancheros", agent),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -607,7 +607,7 @@ func TestAccDigitalOceanDroplet_withDropletAgentSetFalse(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "droplet_agent", "false"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "image", "freebsd-12-x64-zfs"),
+						"digitalocean_droplet.foobar", "image", "rancheros"),
 				),
 			},
 		},
@@ -632,7 +632,7 @@ func TestAccDigitalOceanDroplet_withDropletAgentNotSet(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, publicKeyMaterial, dropletName, "freebsd-12-x64-zfs", ""),
+				Config: testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, publicKeyMaterial, dropletName, "rancheros", ""),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -640,7 +640,7 @@ func TestAccDigitalOceanDroplet_withDropletAgentNotSet(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "image", "freebsd-12-x64-zfs"),
+						"digitalocean_droplet.foobar", "image", "rancheros"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "region", "nyc3"),
 				),
@@ -667,7 +667,7 @@ func TestAccDigitalOceanDroplet_withDropletAgentExpectError(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, publicKeyMaterial, dropletName, "freebsd-12-x64-zfs", agent),
+				Config:      testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, publicKeyMaterial, dropletName, "rancheros", agent),
 				ExpectError: regexp.MustCompile(`is not supported`),
 			},
 		},
@@ -709,7 +709,7 @@ func testAccCheckDigitalOceanDropletAttributes(droplet *godo.Droplet) resource.T
 			return fmt.Errorf("Bad URN: %s", droplet.URN())
 		}
 
-		if droplet.Image.Slug != "ubuntu-21-10-x64" {
+		if droplet.Image.Slug != "ubuntu-22-04-x64" {
 			return fmt.Errorf("Bad image_slug: %s", droplet.Image.Slug)
 		}
 
@@ -717,11 +717,11 @@ func testAccCheckDigitalOceanDropletAttributes(droplet *godo.Droplet) resource.T
 			return fmt.Errorf("Bad size_slug: %s", droplet.Size.Slug)
 		}
 
-		if droplet.Size.PriceHourly != 0.00744 {
+		if droplet.Size.PriceHourly != 0.00893 {
 			return fmt.Errorf("Bad price_hourly: %v", droplet.Size.PriceHourly)
 		}
 
-		if droplet.Size.PriceMonthly != 5.0 {
+		if droplet.Size.PriceMonthly != 6.0 {
 			return fmt.Errorf("Bad price_monthly: %v", droplet.Size.PriceMonthly)
 		}
 
@@ -781,7 +781,7 @@ func testAccCheckDigitalOceanDropletResizeSmaller(droplet *godo.Droplet) resourc
 func testAccCheckDigitalOceanDropletAttributes_PrivateNetworkingIpv6(droplet *godo.Droplet) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 
-		if droplet.Image.Slug != "ubuntu-21-10-x64" {
+		if droplet.Image.Slug != "ubuntu-22-04-x64" {
 			return fmt.Errorf("Bad image_slug: %s", droplet.Image.Slug)
 		}
 
@@ -869,7 +869,7 @@ func testAccCheckDigitalOceanDropletConfig_basic(rInt int) string {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "ubuntu-21-10-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
 }`, rInt)
@@ -900,7 +900,7 @@ resource "digitalocean_ssh_key" "foobar" {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "ubuntu-21-10-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
   ssh_keys  = ["${digitalocean_ssh_key.foobar.id}"]
@@ -916,7 +916,7 @@ resource "digitalocean_tag" "barbaz" {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "ubuntu-21-10-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
   tags  = ["${digitalocean_tag.barbaz.id}"]
@@ -929,7 +929,7 @@ func testAccCheckDigitalOceanDropletConfig_userdata_update(rInt int) string {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "ubuntu-21-10-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar foobar"
 }
@@ -941,7 +941,7 @@ func testAccCheckDigitalOceanDropletConfig_RenameAndResize(rInt int) string {
 resource "digitalocean_droplet" "foobar" {
   name     = "baz-%d"
   size     = "s-1vcpu-2gb"
-  image    = "ubuntu-21-10-x64"
+  image    = "ubuntu-22-04-x64"
   region   = "nyc3"
 }
 `, rInt)
@@ -952,7 +952,7 @@ func testAccCheckDigitalOceanDropletConfig_resize_without_disk(rInt int) string 
 resource "digitalocean_droplet" "foobar" {
   name     = "foo-%d"
   size     = "s-1vcpu-2gb"
-  image    = "ubuntu-21-10-x64"
+  image    = "ubuntu-22-04-x64"
   region   = "nyc3"
   user_data = "foobar"
   resize_disk = false
@@ -965,7 +965,7 @@ func testAccCheckDigitalOceanDropletConfig_resize(rInt int) string {
 resource "digitalocean_droplet" "foobar" {
   name     = "foo-%d"
   size     = "s-1vcpu-2gb"
-  image    = "ubuntu-21-10-x64"
+  image    = "ubuntu-22-04-x64"
   region   = "nyc3"
   user_data = "foobar"
   resize_disk = true
@@ -978,7 +978,7 @@ func testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(rInt int) strin
 resource "digitalocean_droplet" "foobar" {
   name               = "foo-%d"
   size               = "s-1vcpu-1gb"
-  image              = "ubuntu-21-10-x64"
+  image              = "ubuntu-22-04-x64"
   region             = "nyc3"
   ipv6               = true
   private_networking = true
@@ -996,7 +996,7 @@ resource "digitalocean_vpc" "foobar" {
 resource "digitalocean_droplet" "foobar" {
   name     = "foo-%d"
   size     = "s-1vcpu-1gb"
-  image    = "ubuntu-21-10-x64"
+  image    = "ubuntu-22-04-x64"
   region   = "nyc3"
   ipv6     = true
   vpc_uuid = digitalocean_vpc.foobar.id
@@ -1009,7 +1009,7 @@ func testAccCheckDigitalOceanDropletConfig_Monitoring(rInt int) string {
 resource "digitalocean_droplet" "foobar" {
   name       = "foo-%d"
   size       = "s-1vcpu-1gb"
-  image      = "ubuntu-21-10-x64"
+  image      = "ubuntu-22-04-x64"
   region     = "nyc3"
   monitoring = true
  }
@@ -1036,7 +1036,7 @@ resource "digitalocean_droplet" "foobar" {
   count = 2
   name = "tf-acc-test-%d-${count.index}"
   region = "sfo3"
-  image = "ubuntu-21-10-x64"
+  image = "ubuntu-22-04-x64"
   size = "s-1vcpu-1gb"
   volume_ids = ["${count.index == 0 ? digitalocean_volume.myvol-01.id : digitalocean_volume.myvol-02.id}"]
 }
@@ -1048,7 +1048,7 @@ func testAccCheckDigitalOceanDropletConfig_EnableBackups(rInt int) string {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "ubuntu-21-10-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
   backups   = true
@@ -1060,7 +1060,7 @@ func testAccCheckDigitalOceanDropletConfig_DisableBackups(rInt int) string {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "ubuntu-21-10-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
   backups   = false
@@ -1089,7 +1089,7 @@ func testAccCheckDigitalOceanDropletConfig_EnableGracefulShutdown(rInt int) stri
 resource "digitalocean_droplet" "foobar" {
   name              = "foo-%d"
   size              = "s-1vcpu-1gb"
-  image             = "ubuntu-21-10-x64"
+  image             = "ubuntu-22-04-x64"
   region            = "nyc3"
   user_data         = "foobar"
   graceful_shutdown = true
@@ -1101,7 +1101,7 @@ func testAccCheckDigitalOceanDropletConfig_DisableGracefulShutdown(rInt int) str
 resource "digitalocean_droplet" "foobar" {
   name              = "foo-%d"
   size              = "s-1vcpu-1gb"
-  image             = "ubuntu-21-10-x64"
+  image             = "ubuntu-22-04-x64"
   region            = "nyc3"
   user_data         = "foobar"
   graceful_shutdown = false
