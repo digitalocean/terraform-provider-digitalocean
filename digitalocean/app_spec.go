@@ -8,6 +8,16 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+type appSpecComponentType string
+
+const (
+	serviceComponent    appSpecComponentType = "service"
+	staticSiteComponent appSpecComponentType = "static_site"
+	workerComponent     appSpecComponentType = "worker"
+	jobComponent        appSpecComponentType = "job"
+	functionComponent   appSpecComponentType = "function"
+)
+
 // appSpecSchema returns map[string]*schema.Schema for the App Specification.
 // Set isResource to true in order to return a schema with additional attributes
 // appropriate for a resource or false for one used with a data-source.
@@ -57,6 +67,11 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Type:     schema.TypeList,
 			Optional: true,
 			Elem:     appSpecJobSchema(),
+		},
+		"function": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     appSpecFunctionsSchema(),
 		},
 		"database": {
 			Type:     schema.TypeList,
@@ -367,8 +382,8 @@ func appSpecCORSSchema() map[string]*schema.Schema {
 	}
 }
 
-func appSpecComponentBase() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
+func appSpecComponentBase(componentType appSpecComponentType) map[string]*schema.Schema {
+	baseSchema := map[string]*schema.Schema{
 		"name": {
 			Type:        schema.TypeString,
 			Required:    true,
@@ -398,16 +413,6 @@ func appSpecComponentBase() map[string]*schema.Schema {
 				Schema: appSpecGitLabSourceSchema(),
 			},
 		},
-		"dockerfile_path": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "The path to a Dockerfile relative to the root of the repo. If set, overrides usage of buildpacks.",
-		},
-		"build_command": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "An optional build command to run while building this component from source.",
-		},
 		"env": {
 			Type:     schema.TypeSet,
 			Optional: true,
@@ -419,12 +424,44 @@ func appSpecComponentBase() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "An optional path to the working directory to use for the build.",
 		},
-		"environment_slug": {
+	}
+
+	// Attributes used by all components except functions.
+	if componentType != functionComponent {
+		baseSchema["environment_slug"] = &schema.Schema{
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "An environment slug describing the type of this app.",
-		},
+		}
+		baseSchema["dockerfile_path"] = &schema.Schema{
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The path to a Dockerfile relative to the root of the repo. If set, overrides usage of buildpacks.",
+		}
+		baseSchema["build_command"] = &schema.Schema{
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "An optional build command to run while building this component from source.",
+		}
 	}
+
+	// Attributes used by all components except static sites.
+	if componentType != staticSiteComponent {
+		baseSchema["alert"] = &schema.Schema{
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Alert policies for the app component",
+			Elem:        appSpecComponentAlerts(),
+		}
+		baseSchema["log_destination"] = &schema.Schema{
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Logs",
+			Elem:        appSpecLogDestinations(),
+		}
+	}
+
+	return baseSchema
 }
 
 func appSpecServicesSchema() *schema.Resource {
@@ -489,21 +526,9 @@ func appSpecServicesSchema() *schema.Resource {
 				Schema: appSpecCORSSchema(),
 			},
 		},
-		"alert": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "Alert policies for the app component",
-			Elem:        appSpecComponentAlerts(),
-		},
-		"log_destination": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "Logs",
-			Elem:        appSpecLogDestinations(),
-		},
 	}
 
-	for k, v := range appSpecComponentBase() {
+	for k, v := range appSpecComponentBase(serviceComponent) {
 		serviceSchema[k] = v
 	}
 
@@ -552,7 +577,7 @@ func appSpecStaticSiteSchema() *schema.Resource {
 		},
 	}
 
-	for k, v := range appSpecComponentBase() {
+	for k, v := range appSpecComponentBase(staticSiteComponent) {
 		staticSiteSchema[k] = v
 	}
 
@@ -587,21 +612,9 @@ func appSpecWorkerSchema() *schema.Resource {
 			Default:     1,
 			Description: "The amount of instances that this component should be scaled to.",
 		},
-		"alert": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "Alert policies for the app component",
-			Elem:        appSpecComponentAlerts(),
-		},
-		"log_destination": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "Logs",
-			Elem:        appSpecLogDestinations(),
-		},
 	}
 
-	for k, v := range appSpecComponentBase() {
+	for k, v := range appSpecComponentBase(workerComponent) {
 		workerSchema[k] = v
 	}
 
@@ -648,26 +661,43 @@ func appSpecJobSchema() *schema.Resource {
 			}, false),
 			Description: "The type of job and when it will be run during the deployment process.",
 		},
-		"alert": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "Alert policies for the app component",
-			Elem:        appSpecComponentAlerts(),
-		},
-		"log_destination": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "Logs",
-			Elem:        appSpecLogDestinations(),
-		},
 	}
 
-	for k, v := range appSpecComponentBase() {
+	for k, v := range appSpecComponentBase(jobComponent) {
 		jobSchema[k] = v
 	}
 
 	return &schema.Resource{
 		Schema: jobSchema,
+	}
+}
+
+func appSpecFunctionsSchema() *schema.Resource {
+	functionsSchema := map[string]*schema.Schema{
+		"routes": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Computed: true,
+			Elem: &schema.Resource{
+				Schema: appSpecRouteSchema(),
+			},
+		},
+		"cors": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecCORSSchema(),
+			},
+		},
+	}
+
+	for k, v := range appSpecComponentBase(functionComponent) {
+		functionsSchema[k] = v
+	}
+
+	return &schema.Resource{
+		Schema: functionsSchema,
 	}
 }
 
@@ -843,6 +873,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		StaticSites: expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
 		Workers:     expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
 		Jobs:        expandAppSpecJobs(appSpecConfig["job"].([]interface{})),
+		Functions:   expandAppSpecFunctions(appSpecConfig["function"].([]interface{})),
 		Databases:   expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
 		Envs:        expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
 		Alerts:      expandAppAlerts(appSpecConfig["alert"].(*schema.Set).List()),
@@ -889,6 +920,10 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 
 		if len((*spec).Jobs) > 0 {
 			r["job"] = flattenAppSpecJobs((*spec).Jobs)
+		}
+
+		if len((*spec).Functions) > 0 {
+			r["function"] = flattenAppSpecFunctions((*spec).Functions)
 		}
 
 		if len((*spec).Databases) > 0 {
@@ -1400,9 +1435,9 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.Alerts = expandAppAlerts(alerts)
 		}
 
-		log_destinations := service["log_destination"].([]interface{})
-		if len(log_destinations) > 0 {
-			s.LogDestinations = expandAppLogDestinations(log_destinations)
+		logDestinations := service["log_destination"].([]interface{})
+		if len(logDestinations) > 0 {
+			s.LogDestinations = expandAppLogDestinations(logDestinations)
 		}
 
 		appServices = append(appServices, s)
@@ -1565,9 +1600,9 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 			s.Alerts = expandAppAlerts(alerts)
 		}
 
-		log_destinations := worker["log_destination"].([]interface{})
-		if len(log_destinations) > 0 {
-			s.LogDestinations = expandAppLogDestinations(log_destinations)
+		logDestinations := worker["log_destination"].([]interface{})
+		if len(logDestinations) > 0 {
+			s.LogDestinations = expandAppLogDestinations(logDestinations)
 		}
 
 		appWorkers = append(appWorkers, s)
@@ -1648,9 +1683,9 @@ func expandAppSpecJobs(config []interface{}) []*godo.AppJobSpec {
 			s.Alerts = expandAppAlerts(alerts)
 		}
 
-		log_destinations := job["log_destination"].([]interface{})
-		if len(log_destinations) > 0 {
-			s.LogDestinations = expandAppLogDestinations(log_destinations)
+		logDestinations := job["log_destination"].([]interface{})
+		if len(logDestinations) > 0 {
+			s.LogDestinations = expandAppLogDestinations(logDestinations)
 		}
 
 		appJobs = append(appJobs, s)
@@ -1681,6 +1716,82 @@ func flattenAppSpecJobs(jobs []*godo.AppJobSpec) []map[string]interface{} {
 		r["kind"] = string(j.Kind)
 		r["alert"] = flattenAppAlerts(j.Alerts)
 		r["log_destination"] = flattenAppLogDestinations(j.LogDestinations)
+
+		result[i] = r
+	}
+
+	return result
+}
+
+func expandAppSpecFunctions(config []interface{}) []*godo.AppFunctionsSpec {
+	appFn := make([]*godo.AppFunctionsSpec, 0, len(config))
+
+	for _, rawFn := range config {
+		fn := rawFn.(map[string]interface{})
+
+		f := &godo.AppFunctionsSpec{
+			Name:      fn["name"].(string),
+			Envs:      expandAppEnvs(fn["env"].(*schema.Set).List()),
+			SourceDir: fn["source_dir"].(string),
+		}
+
+		github := fn["github"].([]interface{})
+		if len(github) > 0 {
+			f.GitHub = expandAppGitHubSourceSpec(github)
+		}
+
+		gitlab := fn["gitlab"].([]interface{})
+		if len(gitlab) > 0 {
+			f.GitLab = expandAppGitLabSourceSpec(gitlab)
+		}
+
+		git := fn["git"].([]interface{})
+		if len(git) > 0 {
+			f.Git = expandAppGitSourceSpec(git)
+		}
+
+		alerts := fn["alert"].([]interface{})
+		if len(alerts) > 0 {
+			f.Alerts = expandAppAlerts(alerts)
+		}
+
+		logDestinations := fn["log_destination"].([]interface{})
+		if len(logDestinations) > 0 {
+			f.LogDestinations = expandAppLogDestinations(logDestinations)
+		}
+
+		routes := fn["routes"].([]interface{})
+		if len(routes) > 0 {
+			f.Routes = expandAppRoutes(routes)
+		}
+
+		cors := fn["cors"].([]interface{})
+		if len(cors) > 0 {
+			f.CORS = expandAppCORSPolicy(cors)
+		}
+
+		appFn = append(appFn, f)
+	}
+
+	return appFn
+}
+
+func flattenAppSpecFunctions(functions []*godo.AppFunctionsSpec) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(functions))
+
+	for i, fn := range functions {
+		r := make(map[string]interface{})
+
+		r["name"] = fn.Name
+		r["source_dir"] = fn.SourceDir
+		r["github"] = flattenAppGitHubSourceSpec(fn.GitHub)
+		r["gitlab"] = flattenAppGitLabSourceSpec(fn.GitLab)
+		r["git"] = flattenAppGitSourceSpec(fn.Git)
+		r["routes"] = flattenAppRoutes(fn.Routes)
+		r["cors"] = flattenAppCORSPolicy(fn.CORS)
+		r["env"] = flattenAppEnvs(fn.Envs)
+		r["alert"] = flattenAppAlerts(fn.Alerts)
+		r["log_destination"] = flattenAppLogDestinations(fn.LogDestinations)
 
 		result[i] = r
 	}

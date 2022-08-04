@@ -6,7 +6,7 @@ terraform {
     }
     kubernetes = {
       source = "hashicorp/kubernetes"
-      version = ">= 2.0.0"
+      version = ">= 2.7.0"
     }
     helm = {
       source  = "hashicorp/helm"
@@ -123,7 +123,7 @@ resource "helm_release" "nginx_ingress" {
   }
 }
 
-resource "kubernetes_ingress" "test_ingress" {
+resource "kubernetes_ingress_v1" "test_ingress" {
   wait_for_load_balancer = true
   metadata {
     name = "test-ingress"
@@ -139,8 +139,12 @@ resource "kubernetes_ingress" "test_ingress" {
       http {
         path {
           backend {
-            service_name = kubernetes_service.test.metadata.0.name
-            service_port = 5678
+            service {
+              name = kubernetes_service.test.metadata.0.name
+              port {
+                number = 5678
+              }
+            }
           }
 
           path = "/test"

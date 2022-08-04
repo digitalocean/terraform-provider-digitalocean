@@ -23,7 +23,7 @@ Optionally, the Kubernetes version, the number of worker nodes, and the instance
 type of the worker nodes can also be specified:
 
 ```
-terraform apply -var=cluster_version=1.18 -var=worker_size=s-4vcpu-8gb -var=worker_count=5
+terraform apply -var=cluster_version=1.22 -var=worker_size=s-4vcpu-8gb -var=worker_count=5
 ```
 
 

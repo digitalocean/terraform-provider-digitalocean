@@ -419,24 +419,22 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	}
 
 	// Update the node pool if necessary
-	if !d.HasChange("node_pool") {
-		return resourceDigitalOceanKubernetesClusterRead(ctx, d, meta)
-	}
+	if d.HasChange("node_pool") {
+		old, new := d.GetChange("node_pool")
+		oldPool := old.([]interface{})[0].(map[string]interface{})
+		newPool := new.([]interface{})[0].(map[string]interface{})
 
-	old, new := d.GetChange("node_pool")
-	oldPool := old.([]interface{})[0].(map[string]interface{})
-	newPool := new.([]interface{})[0].(map[string]interface{})
+		// If the node_count is unset, then remove it from the update map.
+		if _, ok := d.GetOk("node_pool.0.node_count"); !ok {
+			delete(newPool, "node_count")
+		}
 
-	// If the node_count is unset, then remove it from the update map.
-	if _, ok := d.GetOk("node_pool.0.node_count"); !ok {
-		delete(newPool, "node_count")
-	}
-
-	// update the existing default pool
-	timeout := d.Timeout(schema.TimeoutCreate)
-	_, err := digitaloceanKubernetesNodePoolUpdate(client, timeout, newPool, d.Id(), oldPool["id"].(string), digitaloceanKubernetesDefaultNodePoolTag)
-	if err != nil {
-		return diag.FromErr(err)
+		// update the existing default pool
+		timeout := d.Timeout(schema.TimeoutCreate)
+		_, err := digitaloceanKubernetesNodePoolUpdate(client, timeout, newPool, d.Id(), oldPool["id"].(string), digitaloceanKubernetesDefaultNodePoolTag)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	if d.HasChange("version") {

@@ -97,6 +97,7 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "default_ingress"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_url"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "active_deployment_id"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "urn"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
 					resource.TestCheckResourceAttr(
@@ -518,6 +519,70 @@ func TestAccDigitalOceanApp_Worker(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.worker.0.instance_size_slug", "professional-xs"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanApp_Function(t *testing.T) {
+	var app godo.App
+	appName := randomTestName()
+	fnConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_function, appName, "")
+
+	corsConfig := `
+       cors {
+         allow_origins {
+           prefix = "https://example.com"
+         }
+         allow_methods     = ["GET"]
+         allow_headers     = ["X-Custom-Header"]
+         expose_headers    = ["Content-Encoding", "ETag"]
+         max_age           = "1h"
+       }
+`
+	updatedFnConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_function, appName, corsConfig)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { testAccPreCheck(t) },
+		Providers:    testAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fnConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "active_deployment_id"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.function.0.source_dir", "/"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.function.0.routes.0.path", "/api"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.function.0.git.0.repo_clone_url",
+						"https://github.com/digitalocean/sample-functions-nodejs-helloworld.git"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.function.0.git.0.branch", "master"),
+				),
+			},
+			{
+				Config: updatedFnConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.function.0.cors.0.allow_origins.0.prefix", "https://example.com"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.function.0.cors.0.allow_methods.*", "GET"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.function.0.cors.0.allow_headers.*", "X-Custom-Header"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.function.0.cors.0.expose_headers.*", "Content-Encoding"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.function.0.cors.0.expose_headers.*", "ETag"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.function.0.cors.0.max_age", "1h"),
 				),
 			},
 		},
@@ -1051,6 +1116,29 @@ resource "digitalocean_app" "foobar" {
       routes {
         path = "/foo"
       }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_function = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name = "%s"
+    region = "nyc"
+
+    function {
+      name              = "example"
+	  source_dir        = "/"
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-functions-nodejs-helloworld.git"
+        branch         = "master"
+      }
+      routes {
+        path = "/api"
+      }
+
+%s
+
     }
   }
 }`

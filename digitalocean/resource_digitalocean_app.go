@@ -53,11 +53,18 @@ func resourceDigitalOceanApp() *schema.Resource {
 				Description: "The ID the App's currently active deployment",
 			},
 
+			"urn": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The uniform resource identifier for the app",
+			},
+
 			"updated_at": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The date and time of when the App was last updated",
 			},
+
 			"created_at": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -113,6 +120,7 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("live_url", app.LiveURL)
 	d.Set("updated_at", app.UpdatedAt.UTC().String())
 	d.Set("created_at", app.CreatedAt.UTC().String())
+	d.Set("urn", app.URN())
 
 	if err := d.Set("spec", flattenAppSpec(d, app.Spec)); err != nil {
 		return diag.Errorf("Error setting app spec: %#v", err)
@@ -121,7 +129,12 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 	if app.ActiveDeployment != nil {
 		d.Set("active_deployment_id", app.ActiveDeployment.ID)
 	} else {
-		return diag.Errorf("No active deployment found for app: %s (%s)", app.Spec.Name, app.ID)
+		deploymentWarning := diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  fmt.Sprintf("No active deployment found for app: %s (%s)", app.Spec.Name, app.ID),
+		}
+		d.Set("active_deployment_id", "")
+		return diag.Diagnostics{deploymentWarning}
 	}
 
 	return nil
@@ -179,15 +192,26 @@ func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration)
 		}
 
 		if deploymentID == "" {
-			app, _, err := client.Apps.Get(context.Background(), id)
+			// The InProgressDeployment is generally not known and returned as
+			// part of the initial response to the request. For config updates
+			// (as opposed to updates to the app's source), the "deployment"
+			// can complete before the first time we poll the app. We can not
+			// know if the InProgressDeployment has not started or if it has
+			// already completed. So instead we need to list all of the
+			// deployments for the application.
+			deployments, err := listAppDeployments(client, id)
 			if err != nil {
 				return fmt.Errorf("Error trying to read app deployment state: %s", err)
 			}
 
-			if app.InProgressDeployment != nil {
-				deploymentID = app.InProgressDeployment.ID
+			// We choose the most recent deployment. Note that there is a possibility
+			// that the deployment has not been created yet. If that is true,
+			// we will do the wrong thing here and test the status of a previously
+			// completed deployment and exit. However there is no better way to
+			// correlate a deployment with the request that triggered it.
+			if len(deployments) > 0 {
+				deploymentID = deployments[0].ID
 			}
-
 		} else {
 			deployment, _, err := client.Apps.GetDeployment(context.Background(), id, deploymentID)
 			if err != nil {
@@ -214,4 +238,31 @@ func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration)
 	}
 
 	return fmt.Errorf("timeout waiting for app (%s) deployment", id)
+}
+
+func listAppDeployments(client *godo.Client, appID string) ([]*godo.Deployment, error) {
+	list := []*godo.Deployment{}
+
+	opts := &godo.ListOptions{PerPage: 200}
+	for {
+		deployments, resp, err := client.Apps.ListDeployments(context.Background(), appID, opts)
+		if err != nil {
+			return nil, err
+		}
+
+		list = append(list, deployments...)
+
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return nil, err
+		}
+
+		opts.Page = page + 1
+	}
+
+	return list, nil
 }
