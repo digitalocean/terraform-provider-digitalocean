@@ -35,7 +35,7 @@ data "digitalocean_droplet" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet.foobar", "image", "centos-7-x64"),
+						"data.digitalocean_droplet.foobar", "image", "ubuntu-22-04-x64"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -66,7 +66,7 @@ func TestAccDataSourceDigitalOceanDroplet_BasicById(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet.foobar", "image", "centos-7-x64"),
+						"data.digitalocean_droplet.foobar", "image", "ubuntu-22-04-x64"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -103,7 +103,7 @@ func TestAccDataSourceDigitalOceanDroplet_BasicByTag(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet.foobar", "image", "centos-7-x64"),
+						"data.digitalocean_droplet.foobar", "image", "ubuntu-22-04-x64"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -165,7 +165,7 @@ resource "digitalocean_vpc" "foobar" {
 resource "digitalocean_droplet" "foo" {
   name     = "%s"
   size     = "s-1vcpu-1gb"
-  image    = "centos-7-x64"
+  image    = "ubuntu-22-04-x64"
   region   = "nyc3"
   ipv6     = true
   vpc_uuid = digitalocean_vpc.foobar.id
@@ -177,7 +177,7 @@ func testAccCheckDataSourceDigitalOceanDropletConfig_basicById(name string) stri
 resource "digitalocean_droplet" "foo" {
   name   = "%s"
   size   = "s-1vcpu-1gb"
-  image  = "centos-7-x64"
+  image  = "ubuntu-22-04-x64"
   region = "nyc3"
   ipv6   = true
 }
@@ -197,7 +197,7 @@ resource "digitalocean_tag" "foo" {
 resource "digitalocean_droplet" "foo" {
   name   = "%s"
   size   = "s-1vcpu-1gb"
-  image  = "centos-7-x64"
+  image  = "ubuntu-22-04-x64"
   region = "nyc3"
   ipv6   = true
   tags   = [digitalocean_tag.foo.id]
@@ -214,7 +214,7 @@ resource "digitalocean_tag" "foo" {
 resource "digitalocean_droplet" "foo" {
   name   = "%s"
   size   = "s-1vcpu-1gb"
-  image  = "centos-7-x64"
+  image  = "ubuntu-22-04-x64"
   region = "nyc3"
   ipv6   = true
   tags   = [digitalocean_tag.foo.id]

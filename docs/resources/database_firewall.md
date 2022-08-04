@@ -52,7 +52,7 @@ resource "digitalocean_database_firewall" "example-fw" {
 resource "digitalocean_droplet" "web" {
   name   = "web-01"
   size   = "s-1vcpu-1gb"
-  image  = "centos-7-x64"
+  image  = "ubuntu-22-04-x64"
   region = "nyc3"
 }
 

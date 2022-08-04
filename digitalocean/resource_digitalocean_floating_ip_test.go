@@ -162,7 +162,7 @@ func testAccCheckDigitalOceanFloatingIPConfig_droplet(rInt int) string {
 resource "digitalocean_droplet" "foobar" {
   name               = "tf-acc-test-%d"
   size               = "s-1vcpu-1gb"
-  image              = "centos-7-x64"
+  image              = "ubuntu-22-04-x64"
   region             = "nyc3"
   ipv6               = true
   private_networking = true
@@ -179,7 +179,7 @@ func testAccCheckDigitalOceanFloatingIPConfig_Reassign(rInt int) string {
 resource "digitalocean_droplet" "baz" {
   name               = "tf-acc-test-%d"
   size               = "s-1vcpu-1gb"
-  image              = "centos-7-x64"
+  image              = "ubuntu-22-04-x64"
   region             = "nyc3"
   ipv6               = true
   private_networking = true
@@ -196,7 +196,7 @@ func testAccCheckDigitalOceanFloatingIPConfig_Unassign(rInt int) string {
 resource "digitalocean_droplet" "baz" {
   name               = "tf-acc-test-%d"
   size               = "s-1vcpu-1gb"
-  image              = "centos-7-x64"
+  image              = "ubuntu-22-04-x64"
   region             = "nyc3"
   ipv6               = true
   private_networking = true
