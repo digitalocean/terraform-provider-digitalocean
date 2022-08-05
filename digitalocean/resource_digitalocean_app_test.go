@@ -97,6 +97,7 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "default_ingress"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_url"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "active_deployment_id"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "urn"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
 					resource.TestCheckResourceAttr(

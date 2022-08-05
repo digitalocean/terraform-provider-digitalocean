@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
-	"testing"
-
 	"strings"
+	"testing"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"

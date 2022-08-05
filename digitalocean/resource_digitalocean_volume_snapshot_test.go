@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"testing"
-
 	"strings"
+	"testing"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"

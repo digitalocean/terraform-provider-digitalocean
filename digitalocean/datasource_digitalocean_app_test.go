@@ -38,6 +38,8 @@ func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
 						"data.digitalocean_app.foobar", "live_url"),
 					resource.TestCheckResourceAttrPair("digitalocean_app.foobar", "active_deployment_id",
 						"data.digitalocean_app.foobar", "active_deployment_id"),
+					resource.TestCheckResourceAttrPair("digitalocean_app.foobar", "urn",
+						"data.digitalocean_app.foobar", "urn"),
 					resource.TestCheckResourceAttrPair("digitalocean_app.foobar", "updated_at",
 						"data.digitalocean_app.foobar", "updated_at"),
 					resource.TestCheckResourceAttrPair("digitalocean_app.foobar", "created_at",

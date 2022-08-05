@@ -6,9 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -54,11 +53,18 @@ func resourceDigitalOceanApp() *schema.Resource {
 				Description: "The ID the App's currently active deployment",
 			},
 
+			"urn": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The uniform resource identifier for the app",
+			},
+
 			"updated_at": {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The date and time of when the App was last updated",
 			},
+
 			"created_at": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -114,6 +120,7 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("live_url", app.LiveURL)
 	d.Set("updated_at", app.UpdatedAt.UTC().String())
 	d.Set("created_at", app.CreatedAt.UTC().String())
+	d.Set("urn", app.URN())
 
 	if err := d.Set("spec", flattenAppSpec(d, app.Spec)); err != nil {
 		return diag.Errorf("Error setting app spec: %#v", err)
