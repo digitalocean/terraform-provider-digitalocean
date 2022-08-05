@@ -30,7 +30,7 @@ data "digitalocean_project" "playground" {
 resource "digitalocean_droplet" "foobar" {
   name   = "example"
   size   = "s-1vcpu-1gb"
-  image  = "centos-7-x64"
+  image  = "ubuntu-22-04-x64"
   region = "nyc3"
 }
 

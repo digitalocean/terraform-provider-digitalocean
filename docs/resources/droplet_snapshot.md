@@ -12,7 +12,7 @@ Provides a resource which can be used to create a snapshot from an existing Digi
 resource "digitalocean_droplet" "web" {
   name   = "web-01"
   size   = "s-1vcpu-1gb"
-  image  = "centos-7-x64"
+  image  = "ubuntu-22-04-x64"
   region = "nyc3"
 }
 

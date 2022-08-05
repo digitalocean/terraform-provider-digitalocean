@@ -81,7 +81,7 @@ resource "digitalocean_droplet" "bar" {
   region = "lon1"
   name   = "%s"
   size   = "s-1vcpu-1gb"
-  image  = "centos-7-x64"
+  image  = "ubuntu-22-04-x64"
 }
 
 resource "digitalocean_droplet_snapshot" "bar" {
@@ -148,7 +148,7 @@ const testAccCheckDataSourceDigitalOceanDropletSnapshot_basic = `
 resource "digitalocean_droplet" "foo" {
   name   = "%s"
   size   = "s-1vcpu-1gb"
-  image  = "centos-7-x64"
+  image  = "ubuntu-22-04-x64"
   region = "nyc3"
 }
 

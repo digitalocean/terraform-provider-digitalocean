@@ -192,7 +192,7 @@ resource "digitalocean_volume" "foobar" {
 resource "digitalocean_droplet" "foobar" {
   name               = "baz-%d"
   size               = "s-1vcpu-1gb"
-  image              = "centos-7-x64"
+  image              = "ubuntu-22-04-x64"
   region             = "nyc1"
   ipv6               = true
   private_networking = true
@@ -337,7 +337,7 @@ resource "digitalocean_volume" "foobar" {
 resource "digitalocean_droplet" "foobar" {
   name               = "baz-%d"
   size               = "s-1vcpu-1gb"
-  image              = "centos-7-x64"
+  image              = "ubuntu-22-04-x64"
   region             = "nyc1"
   ipv6               = true
   private_networking = true

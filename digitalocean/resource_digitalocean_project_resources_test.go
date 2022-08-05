@@ -22,7 +22,7 @@ resource "digitalocean_project" "foo" {
 resource "digitalocean_droplet" "foobar" {
   name      = "%s"
   size      = "s-1vcpu-1gb"
-  image     = "centos-7-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
 }

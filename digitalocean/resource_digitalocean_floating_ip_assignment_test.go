@@ -123,7 +123,7 @@ resource "digitalocean_droplet" "foobar" {
   count              = 2
   name               = "tf-acc-test-${count.index}"
   size               = "s-1vcpu-1gb"
-  image              = "centos-7-x64"
+  image              = "ubuntu-22-04-x64"
   region             = "nyc3"
   ipv6               = true
   private_networking = true
@@ -144,7 +144,7 @@ resource "digitalocean_droplet" "foobar" {
   count              = 2
   name               = "tf-acc-test-${count.index}"
   size               = "s-1vcpu-1gb"
-  image              = "centos-7-x64"
+  image              = "ubuntu-22-04-x64"
   region             = "nyc3"
   ipv6               = true
   private_networking = true
@@ -165,7 +165,7 @@ resource "digitalocean_droplet" "foobar" {
   count              = 2
   name               = "tf-acc-test-${count.index}"
   size               = "s-1vcpu-1gb"
-  image              = "centos-7-x64"
+  image              = "ubuntu-22-04-x64"
   region             = "nyc3"
   ipv6               = true
   private_networking = true
@@ -174,7 +174,7 @@ resource "digitalocean_droplet" "foobar" {
 
 var testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroy = `
 resource "digitalocean_droplet" "foobar" {
-  image = "centos-7-x64"
+  image = "ubuntu-22-04-x64"
   name = "tf-acc-test"
   region = "nyc3"
   size = "s-1vcpu-1gb"

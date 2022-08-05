@@ -705,7 +705,7 @@ func testAccCheckDigitalOceanLoadbalancerConfig_basic(rInt int) string {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "centos-7-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
 }
 
@@ -738,14 +738,14 @@ func testAccCheckDigitalOceanLoadbalancerConfig_updated(rInt int) string {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "centos-7-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
 }
 
 resource "digitalocean_droplet" "foo" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "centos-7-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
 }
 
@@ -783,7 +783,7 @@ resource "digitalocean_tag" "barbaz" {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "centos-7-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   tags = ["${digitalocean_tag.barbaz.id}"]
 }
@@ -816,7 +816,7 @@ func testAccCheckDigitalOceanLoadbalancerConfig_minimal(rInt int) string {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "centos-7-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
 }
 
@@ -842,7 +842,7 @@ func testAccCheckDigitalOceanLoadbalancerConfig_minimalUDP(rInt int) string {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "centos-7-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
 }
 
@@ -868,7 +868,7 @@ func testAccCheckDigitalOceanLoadbalancerConfig_stickySessions(rInt int) string 
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "centos-7-x64"
+  image     = "ubuntu-22-04-x64"
   region    = "nyc3"
 }
 
@@ -990,7 +990,7 @@ resource "digitalocean_vpc" "foobar" {
 resource "digitalocean_droplet" "foobar" {
   name      = "%s"
   size      = "s-1vcpu-1gb"
-  image     = "centos-7-x64"
+  image     = "ubuntu-22-04-x64"
   region   = "nyc3"
   vpc_uuid = digitalocean_vpc.foobar.id
 }
