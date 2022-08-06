@@ -51,7 +51,7 @@ Terraform's core, so please mention this. -->
 # please use a service like Dropbox and share a link to the ZIP file. For
 # security, you can also encrypt the files using our GPG public key.-->
 
-**Expected behavior**
+**Terraform version**
 <!-- Run `terraform -v` to show the version. If you are not running the latest
 version of Terraform, please upgrade because your issue may have already been
 fixed. -->
