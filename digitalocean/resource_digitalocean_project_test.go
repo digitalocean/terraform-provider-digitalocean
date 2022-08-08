@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -47,24 +48,50 @@ func TestAccDigitalOceanProject_CreateWithIsDefault(t *testing.T) {
 	expectedName := generateProjectName()
 	expectedIsDefault := "true"
 	createConfig := fixtureCreateWithIsDefault(expectedName, expectedIsDefault)
-	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
-	defaultProject, _, defaultProjErr := client.Projects.GetDefault(context.Background())
-	if defaultProjErr != nil {
-		t.Errorf("Error locating default project %s", defaultProjErr)
-	}
-
-	createResetDefault := fixtureResetDefaultProject(defaultProject.Name)
+	var (
+		originalDefaultProject = &godo.Project{}
+		client                 = &godo.Client{}
+	)
 
 	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { testAccPreCheck(t) },
+		PreCheck: func() {
+			testAccPreCheck(t)
+
+			// Get an store original default project ID
+			client = testAccProvider.Meta().(*CombinedConfig).godoClient()
+			defaultProject, _, defaultProjErr := client.Projects.GetDefault(context.Background())
+			if defaultProjErr != nil {
+				t.Errorf("Error locating default project %s", defaultProjErr)
+			}
+			originalDefaultProject = defaultProject
+		},
 		ProviderFactories: testAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: createConfig,
+				Config:             createConfig,
+				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
+					// Restore original default project. This must happen here
+					// to ensure it runs even if the tests fails.
+					func(*terraform.State) error {
+						t.Logf("Restoring original default project: %s (%s)", originalDefaultProject.Name, originalDefaultProject.ID)
+						originalDefaultProject.IsDefault = true
+						updateReq := &godo.UpdateProjectRequest{
+							Name:        originalDefaultProject.Name,
+							Description: originalDefaultProject.Description,
+							Purpose:     originalDefaultProject.Purpose,
+							Environment: originalDefaultProject.Environment,
+							IsDefault:   true,
+						}
+						_, _, err := client.Projects.Update(context.Background(), originalDefaultProject.ID, updateReq)
+						if err != nil {
+							return fmt.Errorf("Error restoring default project %s", err)
+						}
+						return nil
+					},
 					resource.TestCheckResourceAttr(
 						"digitalocean_project.myproj", "name", expectedName),
 					resource.TestCheckResourceAttr(
@@ -80,16 +107,6 @@ func TestAccDigitalOceanProject_CreateWithIsDefault(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "owner_id"),
 					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "created_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "updated_at"),
-				),
-			},
-			{
-				Config: createResetDefault,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanProjectExists("digitalocean_project.defaultproj"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_project.defaultproj", "name", defaultProject.Name),
-					resource.TestCheckResourceAttr(
-						"digitalocean_project.defaultproj", "is_default", "true"),
 				),
 			},
 		},
