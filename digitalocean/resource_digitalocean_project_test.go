@@ -44,10 +44,17 @@ func TestAccDigitalOceanProject_CreateWithDefaults(t *testing.T) {
 }
 
 func TestAccDigitalOceanProject_CreateWithIsDefault(t *testing.T) {
-
 	expectedName := generateProjectName()
 	expectedIsDefault := "true"
 	createConfig := fixtureCreateWithIsDefault(expectedName, expectedIsDefault)
+	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
+
+	defaultProject, _, defaultProjErr := client.Projects.GetDefault(context.Background())
+	if defaultProjErr != nil {
+		t.Errorf("Error locating default project %s", defaultProjErr)
+	}
+
+	createResetDefault := fixtureResetDefaultProject(defaultProject.Name)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -73,6 +80,16 @@ func TestAccDigitalOceanProject_CreateWithIsDefault(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "owner_id"),
 					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "created_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_project.myproj", "updated_at"),
+				),
+			},
+			{
+				Config: createResetDefault,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanProjectExists("digitalocean_project.defaultproj"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.defaultproj", "name", defaultProject.Name),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.defaultproj", "is_default", "true"),
 				),
 			},
 		},
@@ -484,4 +501,12 @@ func fixtureCreateWithIsDefault(name string, is_default string) string {
 			name = "%s"
 			is_default = "%s"
 		}`, name, is_default)
+}
+
+func fixtureResetDefaultProject(name string) string {
+	return fmt.Sprintf(`
+		resource "digitalocean_project" "defaultproj" {
+			name = "%s"
+			is_default = "true"
+		}`, name)
 }

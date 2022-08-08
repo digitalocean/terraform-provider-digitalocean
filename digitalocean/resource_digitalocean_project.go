@@ -125,6 +125,21 @@ func resourceDigitalOceanProjectCreate(ctx context.Context, d *schema.ResourceDa
 		d.Set("resources", resources)
 	}
 
+	if v, ok := d.GetOk("is_default"); ok {
+		updateReq := &godo.UpdateProjectRequest{
+			Name:        project.Name,
+			Description: project.Description,
+			Purpose:     project.Purpose,
+			Environment: project.Environment,
+			IsDefault:   v.(bool),
+		}
+
+		_, _, err := client.Projects.Update(context.Background(), project.ID, updateReq)
+		if err != nil {
+			return diag.Errorf("Error setting project as default: %s", err)
+		}
+	}
+
 	d.SetId(project.ID)
 	log.Printf("[INFO] Project created, ID: %s", d.Id())
 
