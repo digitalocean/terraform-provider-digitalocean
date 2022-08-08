@@ -249,10 +249,6 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		opts.IPv6 = attr.(bool)
 	}
 
-	if attr, ok := d.GetOk("private_networking"); ok {
-		opts.PrivateNetworking = attr.(bool)
-	}
-
 	if attr, ok := d.GetOk("user_data"); ok {
 		opts.UserData = attr.(string)
 	}
@@ -558,26 +554,6 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 			if err := waitForAction(client, action); err != nil {
 				return diag.Errorf("Error waiting for backups to be disabled for droplet (%s): %s", d.Id(), err)
 			}
-		}
-	}
-
-	// As there is no way to disable private networking,
-	// we only check if it needs to be enabled
-	if d.HasChange("private_networking") && d.Get("private_networking").(bool) {
-		_, _, err = client.DropletActions.EnablePrivateNetworking(context.Background(), id)
-
-		if err != nil {
-			return diag.Errorf(
-				"Error enabling private networking for droplet (%s): %s", d.Id(), err)
-		}
-
-		// Wait for the private_networking to turn on
-		_, err = waitForDropletAttribute(
-			ctx, d, "true", []string{"", "false"}, "private_networking", schema.TimeoutUpdate, meta)
-
-		if err != nil {
-			return diag.Errorf(
-				"Error waiting for private networking to be enabled on for droplet (%s): %s", d.Id(), err)
 		}
 	}
 
