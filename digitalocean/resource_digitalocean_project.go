@@ -66,8 +66,10 @@ func resourceDigitalOceanProject() *schema.Resource {
 				Description: "the id of the project owner.",
 			},
 			"is_default": {
-				Type:     schema.TypeBool,
-				Computed: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "determine if the project is the default or not.",
 			},
 			"created_at": {
 				Type:        schema.TypeString,
@@ -121,6 +123,21 @@ func resourceDigitalOceanProjectCreate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		d.Set("resources", resources)
+	}
+
+	if v, ok := d.GetOk("is_default"); ok {
+		updateReq := &godo.UpdateProjectRequest{
+			Name:        project.Name,
+			Description: project.Description,
+			Purpose:     project.Purpose,
+			Environment: project.Environment,
+			IsDefault:   v.(bool),
+		}
+
+		_, _, err := client.Projects.Update(context.Background(), project.ID, updateReq)
+		if err != nil {
+			return diag.Errorf("Error setting project as default: %s", err)
+		}
 	}
 
 	d.SetId(project.ID)
