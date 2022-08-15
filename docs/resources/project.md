@@ -64,6 +64,7 @@ The following arguments are supported:
 * `purpose` - (Optional) the purpose of the project, (Default: "Web Application")
 * `environment` - (Optional) the environment of the project's resources. The possible values are: `Development`, `Staging`, `Production`)
 * `resources` - a list of uniform resource names (URNs) for the resources associated with the project
+* `is_default` - (Optional) a boolean indicating whether or not the project is the default project. (Default: "false")
 
 ## Attributes Reference
 
