@@ -1,3 +1,13 @@
+# 2.22.1 (August 16, 2022)
+
+BUG FIXES:
+
+- `digitalocean_app`: Limit the number of deployments listed when polling ([#865](https://github.com/digitalocean/terraform-provider-digitalocean/pull/865)). - @andrewsomething
+
+MISC:
+
+- release workflow: switch to `crazy-max/ghaction-import-gpg@v5.0.0` ([#863](https://github.com/digitalocean/terraform-provider-digitalocean/pull/863)). - @andrewsomething
+
 ## 2.22.0 (August 15, 2022)
 
 IMPROVEMENTS:
