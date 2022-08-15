@@ -1,3 +1,23 @@
+## 2.22.0 (August 15, 2022)
+
+IMPROVEMENTS:
+
+- `digitalocean_project`: Make `is_default` configurable ([#860](https://github.com/digitalocean/terraform-provider-digitalocean/pull/860)). - @danaelhe
+- `digitalocean_droplet`: Configurable timeouts for Droplet create operations ([#839](https://github.com/digitalocean/terraform-provider-digitalocean/pull/839)). - @ngharrington
+- `digitalocean_app`: Add computed URN attribute ([#854](https://github.com/digitalocean/terraform-provider-digitalocean/pull/854)). - @andrewsomething
+
+BUG FIXES:
+
+- `digitalocean_app`: Only warn on read if there is no active deployment ([#843](https://github.com/digitalocean/terraform-provider-digitalocean/pull/843)). - @andrewsomething
+- `digitalocean_database_firewall`: Remove firewall rule from state if missing ([#840](https://github.com/digitalocean/terraform-provider-digitalocean/pull/840)). - @liamjcooper
+
+MISC:
+
+- chore: Fix incorrect heading in bug template ([#859](https://github.com/digitalocean/terraform-provider-digitalocean/pull/859)). - @artis3n
+- testing: Use supported OS for Droplet image slug. ([#855](https://github.com/digitalocean/terraform-provider-digitalocean/pull/855)). - @andrewsomething
+- testing: Introduce golangci-lint in GitHub workflows. ([#755](https://github.com/digitalocean/terraform-provider-digitalocean/pull/755)). - @atombrella
+- docs: Add more examples on using Droplet snapshots ([#846](https://github.com/digitalocean/terraform-provider-digitalocean/pull/846)). - @mkjmdski
+
 ## 2.21.0 (June 16, 2022)
 
 FEATURES:
