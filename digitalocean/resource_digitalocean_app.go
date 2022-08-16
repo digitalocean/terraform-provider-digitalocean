@@ -199,7 +199,8 @@ func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration)
 			// know if the InProgressDeployment has not started or if it has
 			// already completed. So instead we need to list all of the
 			// deployments for the application.
-			deployments, err := listAppDeployments(client, id)
+			opts := &godo.ListOptions{PerPage: 20}
+			deployments, _, err := client.Apps.ListDeployments(context.Background(), id, opts)
 			if err != nil {
 				return fmt.Errorf("Error trying to read app deployment state: %s", err)
 			}
@@ -238,31 +239,4 @@ func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration)
 	}
 
 	return fmt.Errorf("timeout waiting for app (%s) deployment", id)
-}
-
-func listAppDeployments(client *godo.Client, appID string) ([]*godo.Deployment, error) {
-	list := []*godo.Deployment{}
-
-	opts := &godo.ListOptions{PerPage: 200}
-	for {
-		deployments, resp, err := client.Apps.ListDeployments(context.Background(), appID, opts)
-		if err != nil {
-			return nil, err
-		}
-
-		list = append(list, deployments...)
-
-		if resp.Links == nil || resp.Links.IsLastPage() {
-			break
-		}
-
-		page, err := resp.Links.CurrentPage()
-		if err != nil {
-			return nil, err
-		}
-
-		opts.Page = page + 1
-	}
-
-	return list, nil
 }
