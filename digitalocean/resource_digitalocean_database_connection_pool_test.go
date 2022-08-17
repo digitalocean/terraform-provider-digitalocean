@@ -59,6 +59,52 @@ func TestAccDigitalOceanDatabaseConnectionPool_Basic(t *testing.T) {
 						"digitalocean_database_connection_pool.pool-01", "name", databaseConnectionPoolName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_connection_pool.pool-01", "mode", "session"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_connection_pool.pool-01", "user", ""),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_connection_pool.pool-01", "password", ""),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDatabaseConnectionPool_InboundUser(t *testing.T) {
+
+	var databaseConnectionPool godo.DatabasePool
+	databaseName := randomTestName()
+	databaseConnectionPoolName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseConnectionPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseConnectionPoolConfigInboundUser, databaseName, databaseConnectionPoolName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseConnectionPoolExists("digitalocean_database_connection_pool.pool-01", &databaseConnectionPool),
+					testAccCheckDigitalOceanDatabaseConnectionPoolAttributes(&databaseConnectionPool, databaseConnectionPoolName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_connection_pool.pool-01", "name", databaseConnectionPoolName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_connection_pool.pool-01", "size", "10"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_connection_pool.pool-01", "mode", "transaction"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_connection_pool.pool-01", "db_name", "defaultdb"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_connection_pool.pool-01", "user", ""),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_connection_pool.pool-01", "host"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_connection_pool.pool-01", "private_host"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_connection_pool.pool-01", "port"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_connection_pool.pool-01", "uri"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_connection_pool.pool-01", "private_uri"),
 				),
 			},
 		},
@@ -180,7 +226,6 @@ resource "digitalocean_database_connection_pool" "pool-01" {
   mode       = "session"
   size       = 10
   db_name    = "defaultdb"
-  user       = "doadmin"
 }`
 
 const testAccCheckDigitalOceanDatabaseConnectionPoolConfigBad = `
@@ -200,4 +245,22 @@ resource "digitalocean_database_connection_pool" "pool-01" {
   size       = 10
   db_name    = "defaultdb"
   user       = "doadmin"
+}`
+
+const testAccCheckDigitalOceanDatabaseConnectionPoolConfigInboundUser = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "pg"
+	version    = "11"
+	size       = "db-s-1vcpu-1gb"
+	region     = "nyc1"
+	node_count = 1
+}
+
+resource "digitalocean_database_connection_pool" "pool-01" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
+  mode       = "transaction"
+  size       = 10
+  db_name    = "defaultdb"
 }`

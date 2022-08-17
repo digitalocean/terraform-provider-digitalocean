@@ -38,7 +38,7 @@ The following arguments are supported:
 * `mode` - (Required) The PGBouncer transaction mode for the connection pool. The allowed values are session, transaction, and statement.
 * `size` - (Required) The desired size of the PGBouncer connection pool.
 * `db_name` - (Required) The database for use with the connection pool.
-* `user` - (Required) The name of the database user for use with the connection pool.
+* `user` - (Optional) The name of the database user for use with the connection pool. When excluded, all sessions connect to the database as the inbound user.
 
 ## Attributes Reference
 
