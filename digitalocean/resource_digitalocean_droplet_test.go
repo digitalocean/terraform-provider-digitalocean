@@ -674,6 +674,30 @@ func TestAccDigitalOceanDroplet_withDropletAgentExpectError(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDroplet_withTimeout(t *testing.T) {
+	dropletName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`resource "digitalocean_droplet" "foobar" {
+  name              = "%s"
+  size              = "s-1vcpu-1gb"
+  image             = "ubuntu-22-04-x64"
+  region            = "nyc3"
+  timeouts {
+	create = "5s"
+  }
+}`, dropletName),
+				ExpectError: regexp.MustCompile(`timeout while waiting for state`),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDropletDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
