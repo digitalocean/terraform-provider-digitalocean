@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -54,10 +55,13 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				// Required: true,
 				Optional: true,
 				ForceNew: true,
-				// Redis clusters are being force upgraded from version 5 to 6.
-				// Prevent attempting to recreate clusters specifying 5 in their config.
+				// When Redis clusters are forced to upgrade, this prevents attempting
+				// to recreate clusters specifying the previous version in their config.
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return d.Get("engine") == redisDBEngineSlug && old == "6" && new == "5"
+					remoteVersion, _ := strconv.Atoi(old)
+					configVersion, _ := strconv.Atoi(new)
+
+					return d.Get("engine") == redisDBEngineSlug && remoteVersion > configVersion
 				},
 			},
 
