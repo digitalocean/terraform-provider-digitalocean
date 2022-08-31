@@ -261,12 +261,19 @@ func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
 	})
 }
 
-// For backwards compatibility the API allows for POST requests that specify "5"
-// for the version, but a Redis 6 cluster is actually created. The response body
-// specifies "6" for the version. This should be handled without Terraform
-// attempting to recreate the cluster.
+// DigitalOcean only supports one version of Redis. For backwards compatibility
+// the API allows for POST requests that specifies a previous version, but new
+// clusters are created with the latest/only supported version, regardless of
+// the version specified in the config.
+// The provider suppresses diffs when the config version is <= to the latest
+// version. New clusters is always created with the latest version .
 func TestAccDigitalOceanDatabaseCluster_oldRedisVersion(t *testing.T) {
-	var database godo.Database
+	var (
+		database     godo.Database
+		client       = &godo.Client{}
+		redisVersion string
+	)
+
 	databaseName := randomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -277,6 +284,17 @@ func TestAccDigitalOceanDatabaseCluster_oldRedisVersion(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterRedis, databaseName, "5"),
 				Check: resource.ComposeTestCheckFunc(
+					// Fetch the Databases Options and get the current supported version of
+					// Redis from the response.
+					func(*terraform.State) error {
+						client = testAccProvider.Meta().(*CombinedConfig).godoClient()
+						options, _, err := client.Databases.ListOptions(context.Background())
+						if err != nil {
+							t.Error("Error fetching database options")
+						}
+						redisVersion = options.RedisOptions.Versions[0]
+						return nil
+					},
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
 					resource.TestCheckResourceAttr(
@@ -284,7 +302,7 @@ func TestAccDigitalOceanDatabaseCluster_oldRedisVersion(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_cluster.foobar", "engine", "redis"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_cluster.foobar", "version", "6"),
+						"digitalocean_database_cluster.foobar", "version", redisVersion),
 				),
 			},
 		},
