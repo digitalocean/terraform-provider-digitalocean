@@ -268,15 +268,14 @@ func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
 // The provider suppresses diffs when the config version is <= to the latest
 // version. New clusters is always created with the latest version .
 func TestAccDigitalOceanDatabaseCluster_oldRedisVersion(t *testing.T) {
-	var database godo.Database
-	databaseName := randomTestName()
-
-	// Fetch the Databases Options and get the current supported version of
-	// Redis from the response.
 	var (
+		database     godo.Database
 		client       = &godo.Client{}
 		redisVersion string
 	)
+
+	databaseName := randomTestName()
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		ProviderFactories: testAccProviderFactories,
@@ -285,6 +284,8 @@ func TestAccDigitalOceanDatabaseCluster_oldRedisVersion(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterRedis, databaseName, "5"),
 				Check: resource.ComposeTestCheckFunc(
+					// Fetch the Databases Options and get the current supported version of
+					// Redis from the response.
 					func(*terraform.State) error {
 						client = testAccProvider.Meta().(*CombinedConfig).godoClient()
 						options, _, err := client.Databases.ListOptions(context.Background())
