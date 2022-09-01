@@ -1,3 +1,14 @@
+# 2.22.2 (August 31, 2022)
+
+IMPROVEMENTS:
+
+- `digitalocean_database_connection_pool`: make user optional in db connection pool, update acc tests ([#868](https://github.com/digitalocean/terraform-provider-digitalocean/pull/868)) - @DMW2151
+
+MISC:
+
+- `digitalocean_database_cluster`: Suppress diffs on forced Redis version upgrades ([#873](https://github.com/digitalocean/terraform-provider-digitalocean/pull/873)) - @scotchneat
+- `docs`: fix app spec link([#871](https://github.com/digitalocean/terraform-provider-digitalocean/pull/871)) - @jkpe
+
 # 2.22.1 (August 16, 2022)
 
 BUG FIXES:
