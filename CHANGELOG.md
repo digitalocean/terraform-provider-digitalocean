@@ -1,3 +1,9 @@
+# 2.22.3 (September 12, 2022)
+
+BUG FIXES:
+
+- `digitalocean_droplet`: Fix configurable timeouts for Droplet creates ([#867](https://github.com/digitalocean/terraform-provider-digitalocean/pull/867)). - @andrewsomething
+
 # 2.22.2 (August 31, 2022)
 
 IMPROVEMENTS:
