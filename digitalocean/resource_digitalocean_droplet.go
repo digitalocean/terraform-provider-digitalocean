@@ -296,7 +296,7 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
 
-	droplet, resp, err := client.Droplets.Create(context.Background(), opts)
+	droplet, _, err := client.Droplets.Create(context.Background(), opts)
 	if err != nil {
 		return diag.Errorf("Error creating droplet: %s", err)
 	}
@@ -304,17 +304,6 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 	// Assign the droplets id
 	d.SetId(strconv.Itoa(droplet.ID))
 	log.Printf("[INFO] Droplet ID: %s", d.Id())
-
-	// Wait for Droplet create action to successfully finish.
-	if len(resp.Links.Actions) == 1 {
-		actionID := resp.Links.Actions[0].ID
-		err = waitForAction(client, &godo.Action{ID: actionID})
-		if err != nil {
-			return diag.Errorf("Droplet (%s) create action (%d) errorred: %s", d.Id(), actionID, err)
-		}
-	} else {
-		return diag.Errorf("Unable to find Droplet (%s) create action.", d.Id())
-	}
 
 	// Ensure Droplet status has moved to "active."
 	_, err = waitForDropletAttribute(ctx, d, "active", []string{"new"}, "status", schema.TimeoutCreate, meta)
