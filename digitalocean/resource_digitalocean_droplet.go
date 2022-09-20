@@ -54,7 +54,8 @@ func resourceDigitalOceanDroplet() *schema.Resource {
 
 			"region": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
+				Computed: true,
 				ForceNew: true,
 				StateFunc: func(val interface{}) string {
 					// DO API V2 region slug is always lowercase

@@ -698,6 +698,38 @@ func TestAccDigitalOceanDroplet_withTimeout(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDroplet_Regionless(t *testing.T) {
+	var droplet godo.Droplet
+	dropletName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name              = "%s"
+  size              = "s-1vcpu-1gb"
+  image             = "ubuntu-22-04-x64"
+}`, dropletName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", dropletName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "image", "ubuntu-22-04-x64"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_droplet.foobar", "region"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDropletDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
