@@ -116,7 +116,7 @@ the backend service. Default value is `false`.
 
 `forwarding_rule` supports the following:
 
-* `entry_protocol` - (Required) The protocol used for traffic to the Load Balancer. The possible values are: `http`, `https`, `http2` or `tcp`.
+* `entry_protocol` - (Required) The protocol used for traffic to the Load Balancer. The possible values are: `http`, `https`, `http2`, `http3`, or `tcp`.
 * `entry_port` - (Required) An integer representing the port on which the Load Balancer instance will listen.
 * `target_protocol` - (Required) The protocol used for traffic from the Load Balancer to the backend Droplets. The possible values are: `http`, `https`, `http2` or `tcp`.
 * `target_port` - (Required) An integer representing the port on the backend Droplets to which the Load Balancer will send traffic.
