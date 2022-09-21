@@ -37,6 +37,7 @@ func resourceDigitalOceanRecord() *schema.Resource {
 					"NS",
 					"TXT",
 					"SRV",
+					"SOA",
 				}, false),
 			},
 
