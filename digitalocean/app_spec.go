@@ -225,6 +225,21 @@ func appSpecImageSourceSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "The repository tag. Defaults to latest if not provided.",
 		},
+		"deploy_on_push": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Computed:    true,
+			Description: "Configures automatically deploying images pushed to DOCR.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"enabled": {
+						Type:        schema.TypeBool,
+						Optional:    true,
+						Description: "Whether to automatically deploy images pushed to DOCR.",
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -1229,18 +1244,34 @@ func expandAppImageSourceSpec(config []interface{}) *godo.ImageSourceSpec {
 		Tag:          imageSourceConfig["tag"].(string),
 	}
 
+	docrPush := imageSourceConfig["deploy_on_push"].([]interface{})
+	if len(docrPush) > 0 {
+		docrPushConfig := docrPush[0].(map[string]interface{})
+		imageSource.DeployOnPush = &godo.ImageSourceSpecDeployOnPush{
+			Enabled: (docrPushConfig["enabled"].(bool)),
+		}
+	}
+
 	return imageSource
 }
 
-func flattenAppImageSourceSpec(spec *godo.ImageSourceSpec) []interface{} {
+func flattenAppImageSourceSpec(i *godo.ImageSourceSpec) []interface{} {
 	result := make([]interface{}, 0)
 
-	if spec != nil {
+	if i != nil {
 		r := make(map[string]interface{})
-		r["registry_type"] = string((*spec).RegistryType)
-		r["registry"] = (*spec).Registry
-		r["repository"] = (*spec).Repository
-		r["tag"] = (*spec).Tag
+		r["registry_type"] = string((*i).RegistryType)
+		r["registry"] = (*i).Registry
+		r["repository"] = (*i).Repository
+		r["tag"] = (*i).Tag
+
+		if i.DeployOnPush != nil {
+			docrPush := make([]interface{}, 1)
+			docrPush[0] = map[string]interface{}{
+				"enabled": i.DeployOnPush.Enabled,
+			}
+			r["deploy_on_push"] = docrPush
+		}
 
 		result = append(result, r)
 	}
