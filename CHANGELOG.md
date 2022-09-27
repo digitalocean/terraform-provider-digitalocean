@@ -1,3 +1,18 @@
+# 2.23.0 (September 27, 2022)
+
+IMPROVEMENTS:
+
+- `digitalocean_app`: Support deploy on push to DOCR ([#883](https://github.com/digitalocean/terraform-provider-digitalocean/pull/883)). - @andrewsomething
+- `digitalocean_droplet`: Region is no longer a required value ([#879](https://github.com/digitalocean/terraform-provider-digitalocean/pull/879)). - @andrewsomething
+
+BUG FIXES:
+
+- `digitalocean_record`: Add SOA as possible record type ([#882](https://github.com/digitalocean/terraform-provider-digitalocean/pull/882)). - @Nosmoht
+
+MISC:
+
+- Upgrade to Go 1.19  ([#884](https://github.com/digitalocean/terraform-provider-digitalocean/pull/884)). - @andrewsomething
+
 # 2.22.3 (September 12, 2022)
 
 BUG FIXES:
