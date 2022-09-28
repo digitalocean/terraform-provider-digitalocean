@@ -113,6 +113,12 @@ func resourceDigitalOceanBucket() *schema.Resource {
 				Computed:    true,
 			},
 
+			"endpoint": {
+				Type:        schema.TypeString,
+				Description: "The FQDN of the bucket without the bucket name",
+				Computed:    true,
+			},
+
 			"lifecycle_rule": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -462,6 +468,9 @@ func resourceDigitalOceanBucketRead(ctx context.Context, d *schema.ResourceData,
 	urn := fmt.Sprintf("do:space:%s", d.Get("name"))
 	d.Set("urn", urn)
 
+	// Set the bucket's endpoint.
+	d.Set("endpoint", bucketEndpoint(d.Get("region").(string)))
+
 	return nil
 }
 
@@ -772,6 +781,10 @@ func resourceDigitalOceanBucketImport(d *schema.ResourceData, meta interface{}) 
 
 func bucketDomainName(bucket string, region string) string {
 	return fmt.Sprintf("%s.%s.digitaloceanspaces.com", bucket, region)
+}
+
+func bucketEndpoint(region string) string {
+	return fmt.Sprintf("%s.digitaloceanspaces.com", region)
 }
 
 func retryOnAwsCode(code string, f func() (interface{}, error)) (interface{}, error) {
