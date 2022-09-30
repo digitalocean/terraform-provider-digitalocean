@@ -123,6 +123,7 @@ The following attributes are exported:
 * `urn` - The uniform resource name for the bucket
 * `region` - The name of the region
 * `bucket_domain_name` - The FQDN of the bucket (e.g. bucket-name.nyc3.digitaloceanspaces.com)
+* `endpoint` - The FQDN of the bucket without the bucket name (e.g. nyc3.digitaloceanspaces.com)
 
 ## Import
 
