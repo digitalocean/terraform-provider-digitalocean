@@ -75,3 +75,4 @@ data "digitalocean_spaces_buckets" "nyc3" {
   - `region` - The slug of the region where the bucket is stored.
   - `urn` - The uniform resource name of the bucket
   - `bucket_domain_name` - The FQDN of the bucket (e.g. bucket-name.nyc3.digitaloceanspaces.com)
+  - `endpoint` - The FQDN of the bucket without the bucket name (e.g. nyc3.digitaloceanspaces.com)

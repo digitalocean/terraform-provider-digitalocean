@@ -45,6 +45,7 @@ data "digitalocean_spaces_bucket" "bucket" {
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket.bucket", "name", bucketName),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket.bucket", "region", bucketRegion),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket.bucket", "bucket_domain_name", bucketDomainName(bucketName, bucketRegion)),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket.bucket", "endpoint", bucketEndpoint(bucketRegion)),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket.bucket", "urn", fmt.Sprintf("do:space:%s", bucketName)),
 				),
 			},

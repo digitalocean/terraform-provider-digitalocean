@@ -36,6 +36,10 @@ func spacesBucketSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Description: "The FQDN of the bucket",
 		},
+		"endpoint": {
+			Type:        schema.TypeString,
+			Description: "The FQDN of the bucket without the bucket name",
+		},
 	}
 }
 
@@ -90,6 +94,7 @@ func flattenSpacesBucket(rawBucketMetadata, meta interface{}, extra map[string]i
 	flattenedBucket["region"] = region
 	flattenedBucket["bucket_domain_name"] = bucketDomainName(name, region)
 	flattenedBucket["urn"] = fmt.Sprintf("do:space:%s", name)
+	flattenedBucket["endpoint"] = bucketEndpoint(region)
 
 	return flattenedBucket, nil
 }

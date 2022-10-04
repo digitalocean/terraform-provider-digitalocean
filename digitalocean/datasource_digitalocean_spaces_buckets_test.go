@@ -51,6 +51,7 @@ data "digitalocean_spaces_buckets" "result" {
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_buckets.result", "buckets.0.name", bucketName1),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_buckets.result", "buckets.0.region", bucketRegion1),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_buckets.result", "buckets.0.bucket_domain_name", bucketDomainName(bucketName1, bucketRegion1)),
+					resource.TestCheckResourceAttr("data.digitalocean_spaces_buckets.result", "buckets.0.endpoint", bucketEndpoint(bucketRegion1)),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_buckets.result", "buckets.0.urn", fmt.Sprintf("do:space:%s", bucketName1)),
 				),
 			},
