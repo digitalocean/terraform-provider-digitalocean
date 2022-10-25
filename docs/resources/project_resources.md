@@ -35,7 +35,7 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_project_resources" "barfoo" {
-  project = data.digitalocean_project.foo.id
+  project = data.digitalocean_project.playground.id
   resources = [
     digitalocean_droplet.foobar.urn
   ]
