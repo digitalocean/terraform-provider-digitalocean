@@ -2,7 +2,7 @@ module github.com/digitalocean/terraform-provider-digitalocean
 
 require (
 	github.com/aws/aws-sdk-go v1.42.18
-	github.com/digitalocean/godo v1.86.0
+	github.com/digitalocean/godo v1.87.0
 	github.com/hashicorp/awspolicyequivalence v1.5.0
 	github.com/hashicorp/go-uuid v1.0.2
 	github.com/hashicorp/go-version v1.3.0
@@ -57,6 +57,7 @@ require (
 	golang.org/x/net v0.0.0-20220921155015-db77216a4ee9 // indirect
 	golang.org/x/sys v0.0.0-20220728004956-3c1f35247d10 // indirect
 	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/time v0.0.0-20220922220347-f3bd1da661af // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20200825200019-8632dd797987 // indirect
 	google.golang.org/grpc v1.32.0 // indirect
