@@ -46,6 +46,10 @@ func resourceDigitalOceanMonitorAlert() *schema.Resource {
 					godo.LoadBalancerConnectionUtilizationPercent,
 					godo.LoadBalancerDropletHealth,
 					godo.LoadBalancerTLSUtilizationPercent,
+					godo.DbaasFifteenMinuteLoadAverage,
+					godo.DbaasMemoryUtilizationPercent,
+					godo.DbaasDiskUtilizationPercent,
+					godo.DbaasCPUUtilizationPercent,
 				}, false),
 			},
 
