@@ -341,6 +341,12 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Default:  false,
 			},
 
+			"project_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "",
+			},
+
 			"disable_lets_encrypt_dns_records": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -412,6 +418,7 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 		EnableBackendKeepalive:       d.Get("enable_backend_keepalive").(bool),
 		ForwardingRules:              forwardingRules,
 		DisableLetsEncryptDNSRecords: godo.Bool(d.Get("disable_lets_encrypt_dns_records").(bool)),
+		ProjectID:                    d.Get("project_id").(string),
 	}
 	sizeUnit, ok := d.GetOk("size_unit")
 	if ok {
@@ -504,6 +511,7 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("enable_backend_keepalive", loadbalancer.EnableBackendKeepalive)
 	d.Set("droplet_tag", loadbalancer.Tag)
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
+	d.Set("project_id", loadbalancer.ProjectID)
 	if loadbalancer.SizeUnit > 0 {
 		d.Set("size_unit", loadbalancer.SizeUnit)
 	} else {

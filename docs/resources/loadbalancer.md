@@ -129,6 +129,7 @@ the backend service. Default value is `false`.
 * `type` - (Required) An attribute indicating how and if requests from a client will be persistently served by the same backend Droplet. The possible values are `cookies` or `none`. If not specified, the default value is `none`.
 * `cookie_name` - (Optional) The name to be used for the cookie sent to the client. This attribute is required when using `cookies` for the sticky sessions type.
 * `cookie_ttl_seconds` - (Optional) The number of seconds until the cookie set by the Load Balancer expires. This attribute is required when using `cookies` for the sticky sessions type.
+* `project_id` - (Optional) The project id of the load balancer. This option if left blank will default to the user's default project
 
 
 `healthcheck` supports the following:
