@@ -100,6 +100,10 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "true"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "disable_lets_encrypt_dns_records", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "http_idle_timeout_seconds", "90"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "project_id", "my-project-uuid"),
 				),
 			},
 		},
@@ -152,6 +156,10 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "true"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "disable_lets_encrypt_dns_records", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "http_idle_timeout_seconds", "90"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "project_id", "my-project-uuid"),
 				),
 			},
 			{
@@ -191,6 +199,10 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "false"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "disable_lets_encrypt_dns_records", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "http_idle_timeout_seconds", "120"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "project_id", "my-project-uuid"),
 				),
 			},
 		},
@@ -728,6 +740,8 @@ resource "digitalocean_loadbalancer" "foobar" {
 
   enable_proxy_protocol    = true
   enable_backend_keepalive = true
+  http_idle_timeout_seconds = 90
+  project_id = "my-project-uuid"
 
   droplet_ids = [digitalocean_droplet.foobar.id]
 }`, rInt, rInt)
@@ -769,6 +783,8 @@ resource "digitalocean_loadbalancer" "foobar" {
   enable_proxy_protocol            = false
   enable_backend_keepalive         = false
   disable_lets_encrypt_dns_records = true
+  http_idle_timeout_seconds = 120
+  project_id = "my-project-uuid"
 
   droplet_ids = [digitalocean_droplet.foobar.id, digitalocean_droplet.foo.id]
 }`, rInt, rInt, rInt)

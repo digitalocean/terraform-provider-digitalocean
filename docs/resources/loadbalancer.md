@@ -129,6 +129,7 @@ the backend service. Default value is `false`.
 * `type` - (Required) An attribute indicating how and if requests from a client will be persistently served by the same backend Droplet. The possible values are `cookies` or `none`. If not specified, the default value is `none`.
 * `cookie_name` - (Optional) The name to be used for the cookie sent to the client. This attribute is required when using `cookies` for the sticky sessions type.
 * `cookie_ttl_seconds` - (Optional) The number of seconds until the cookie set by the Load Balancer expires. This attribute is required when using `cookies` for the sticky sessions type.
+* `http_idle_timeout_seconds` - (Optional) The http idle timeout configuration in seconds. if not specified, this defaults to 60 seconds.
 
 
 `healthcheck` supports the following:
