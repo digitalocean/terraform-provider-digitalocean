@@ -184,6 +184,7 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 								"http",
 								"https",
 								"http2",
+								"http3",
 								"tcp",
 								"udp",
 							}, false),
