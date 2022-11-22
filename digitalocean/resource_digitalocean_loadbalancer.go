@@ -365,18 +365,6 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-
-			"http_idle_timeout_seconds": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  nil,
-			},
-
-			"project_id": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "",
-			},
 		},
 	}
 }
@@ -425,19 +413,12 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 		EnableBackendKeepalive:       d.Get("enable_backend_keepalive").(bool),
 		ForwardingRules:              forwardingRules,
 		DisableLetsEncryptDNSRecords: godo.Bool(d.Get("disable_lets_encrypt_dns_records").(bool)),
-		ProjectID:                    d.Get("project_id").(string),
 	}
 	sizeUnit, ok := d.GetOk("size_unit")
 	if ok {
 		opts.SizeUnit = uint32(sizeUnit.(int))
 	} else {
 		opts.SizeSlug = d.Get("size").(string)
-	}
-
-	idleTimeout, ok := d.GetOk("http_idle_timeout_seconds")
-	if ok {
-		t := uint64(idleTimeout.(int))
-		opts.HTTPIdleTimeoutSeconds = &t
 	}
 
 	if v, ok := d.GetOk("droplet_tag"); ok {
@@ -524,8 +505,6 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("enable_backend_keepalive", loadbalancer.EnableBackendKeepalive)
 	d.Set("droplet_tag", loadbalancer.Tag)
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
-	d.Set("http_idle_timeout_seconds", loadbalancer.HTTPIdleTimeoutSeconds)
-
 	if loadbalancer.SizeUnit > 0 {
 		d.Set("size_unit", loadbalancer.SizeUnit)
 	} else {
