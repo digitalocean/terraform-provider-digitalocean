@@ -369,13 +369,13 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 			"http_idle_timeout_seconds": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  nil,
+				Computed: true,
 			},
 
 			"project_id": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "",
+				Computed: true,
 			},
 		},
 	}
