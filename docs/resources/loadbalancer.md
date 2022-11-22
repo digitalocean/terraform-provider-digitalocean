@@ -109,7 +109,9 @@ Default value is `false`.
 Protocol should be used to pass information from connecting client requests to
 the backend service. Default value is `false`.
 * `enable_backend_keepalive` - (Optional) A boolean value indicating whether HTTP keepalive connections are maintained to target Droplets. Default value is `false`.
+* `http_idle_timeout_seconds` - (Optional) Specifies the idle timeout for HTTPS connections on the load balancer in seconds.
 * `disable_lets_encrypt_dns_records` - (Optional) A boolean value indicating whether to disable automatic DNS record creation for Let's Encrypt certificates that are added to the load balancer. Default value is `false`.
+* `project_id` - (Optional) The ID of the project that the load balancer is associated with. If no ID is provided at creation, the load balancer associates with the user's default project.
 * `vpc_uuid` - (Optional) The ID of the VPC where the load balancer will be located.
 * `droplet_ids` (Optional) - A list of the IDs of each droplet to be attached to the Load Balancer.
 * `droplet_tag` (Optional) - The name of a Droplet tag corresponding to Droplets to be assigned to the Load Balancer.
@@ -129,8 +131,6 @@ the backend service. Default value is `false`.
 * `type` - (Required) An attribute indicating how and if requests from a client will be persistently served by the same backend Droplet. The possible values are `cookies` or `none`. If not specified, the default value is `none`.
 * `cookie_name` - (Optional) The name to be used for the cookie sent to the client. This attribute is required when using `cookies` for the sticky sessions type.
 * `cookie_ttl_seconds` - (Optional) The number of seconds until the cookie set by the Load Balancer expires. This attribute is required when using `cookies` for the sticky sessions type.
-* `http_idle_timeout_seconds` - (Optional) The http idle timeout configuration in seconds. if not specified, this defaults to 60 seconds.
-
 
 `healthcheck` supports the following:
 
