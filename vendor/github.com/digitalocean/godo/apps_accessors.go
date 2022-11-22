@@ -118,14 +118,6 @@ func (a *App) GetPinnedDeployment() *Deployment {
 	return a.PinnedDeployment
 }
 
-// GetProjectID returns the ProjectID field.
-func (a *App) GetProjectID() string {
-	if a == nil {
-		return ""
-	}
-	return a.ProjectID
-}
-
 // GetRegion returns the Region field.
 func (a *App) GetRegion() *AppRegion {
 	if a == nil {
@@ -404,14 +396,6 @@ func (a *AppCORSPolicy) GetMaxAge() string {
 		return ""
 	}
 	return a.MaxAge
-}
-
-// GetProjectID returns the ProjectID field.
-func (a *AppCreateRequest) GetProjectID() string {
-	if a == nil {
-		return ""
-	}
-	return a.ProjectID
 }
 
 // GetSpec returns the Spec field.
@@ -2884,6 +2868,38 @@ func (i *ImageSourceSpecDeployOnPush) GetEnabled() bool {
 		return false
 	}
 	return i.Enabled
+}
+
+// GetAppID returns the AppID field.
+func (u *UpgradeBuildpackRequest) GetAppID() string {
+	if u == nil {
+		return ""
+	}
+	return u.AppID
+}
+
+// GetBuildpackID returns the BuildpackID field.
+func (u *UpgradeBuildpackRequest) GetBuildpackID() string {
+	if u == nil {
+		return ""
+	}
+	return u.BuildpackID
+}
+
+// GetMajorVersion returns the MajorVersion field.
+func (u *UpgradeBuildpackRequest) GetMajorVersion() int32 {
+	if u == nil {
+		return 0
+	}
+	return u.MajorVersion
+}
+
+// GetTriggerDeployment returns the TriggerDeployment field.
+func (u *UpgradeBuildpackRequest) GetTriggerDeployment() bool {
+	if u == nil {
+		return false
+	}
+	return u.TriggerDeployment
 }
 
 // GetAffectedComponents returns the AffectedComponents field.
