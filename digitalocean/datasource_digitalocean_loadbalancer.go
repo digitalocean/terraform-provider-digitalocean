@@ -215,6 +215,17 @@ func dataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Computed:    true,
 				Description: "UUID of the VPC in which the load balancer is located",
 			},
+			"http_idle_timeout_seconds": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: " Specifies the idle timeout for HTTPS connections on the load balancer.",
+			},
+
+			"project_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The ID of the project that the load balancer is associated with.",
+			},
 		},
 	}
 }
@@ -289,6 +300,8 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 	d.Set("enable_backend_keepalive", foundLoadbalancer.EnableBackendKeepalive)
 	d.Set("disable_lets_encrypt_dns_records", foundLoadbalancer.DisableLetsEncryptDNSRecords)
 	d.Set("vpc_uuid", foundLoadbalancer.VPCUUID)
+	d.Set("http_idle_timeout_seconds", foundLoadbalancer.HTTPIdleTimeoutSeconds)
+	d.Set("project_id", foundLoadbalancer.ProjectID)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(foundLoadbalancer.DropletIDs)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)

@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
@@ -100,6 +101,10 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "true"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "disable_lets_encrypt_dns_records", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "http_idle_timeout_seconds", "90"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_loadbalancer.foobar", "project_id"),
 				),
 			},
 		},
@@ -152,6 +157,10 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "true"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "disable_lets_encrypt_dns_records", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "http_idle_timeout_seconds", "90"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_loadbalancer.foobar", "project_id"),
 				),
 			},
 			{
@@ -191,6 +200,10 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "false"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "disable_lets_encrypt_dns_records", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "http_idle_timeout_seconds", "120"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_loadbalancer.foobar", "project_id"),
 				),
 			},
 		},
@@ -291,6 +304,75 @@ func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "enable_proxy_protocol", "false"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "enable_backend_keepalive", "false"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_loadbalancer.foobar", "project_id"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanLoadbalancer_NonDefaultProject(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	lbName := randomTestName()
+	projectName := randomTestName()
+
+	projectConfig := `
+
+resource "digitalocean_project" "test" {
+  name      = "%s"
+}
+`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(projectConfig, projectName) + testAccCheckDigitalOceanLoadbalancerConfig_NonDefaultProject(projectName, lbName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.test", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.test", "name", lbName),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_loadbalancer.test", "project_id", "digitalocean_project.test", "id"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.test", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.test", "size_unit", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.test", "forwarding_rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_loadbalancer.test",
+						"forwarding_rule.*",
+						map[string]string{
+							"entry_port":      "80",
+							"entry_protocol":  "http",
+							"target_port":     "80",
+							"target_protocol": "http",
+							"tls_passthrough": "false",
+						},
+					),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.test", "healthcheck.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.test", "healthcheck.0.port", "80"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.test", "healthcheck.0.protocol", "http"),
+				),
+			},
+			{
+				// The load balancer must be destroyed before the project which
+				// discovers that asynchronously.
+				Config: fmt.Sprintf(projectConfig, projectName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckFunc(
+						func(s *terraform.State) error {
+							time.Sleep(10 * time.Second)
+							return nil
+						},
+					),
 				),
 			},
 		},
@@ -409,6 +491,7 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
+	certName := randomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -417,7 +500,7 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(
-					"tf-acc-test-certificate-01", rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_id"),
+					certName, rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_id"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
@@ -436,7 +519,7 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 							"entry_protocol":   "https",
 							"target_port":      "80",
 							"target_protocol":  "http",
-							"certificate_name": "tf-acc-test-certificate-01",
+							"certificate_name": certName,
 							"tls_passthrough":  "false",
 						},
 					),
@@ -454,6 +537,7 @@ func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
 	rInt := acctest.RandInt()
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := generateTestCertMaterial(t)
+	certName := randomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -462,7 +546,7 @@ func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(
-					"tf-acc-test-certificate-02", rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_name"),
+					certName, rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_name"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
@@ -479,7 +563,7 @@ func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 							"entry_protocol":   "https",
 							"target_port":      "80",
 							"target_protocol":  "http",
-							"certificate_name": "tf-acc-test-certificate-02",
+							"certificate_name": certName,
 							"tls_passthrough":  "false",
 						},
 					),
@@ -728,6 +812,7 @@ resource "digitalocean_loadbalancer" "foobar" {
 
   enable_proxy_protocol    = true
   enable_backend_keepalive = true
+  http_idle_timeout_seconds = 90
 
   droplet_ids = [digitalocean_droplet.foobar.id]
 }`, rInt, rInt)
@@ -769,6 +854,7 @@ resource "digitalocean_loadbalancer" "foobar" {
   enable_proxy_protocol            = false
   enable_backend_keepalive         = false
   disable_lets_encrypt_dns_records = true
+  http_idle_timeout_seconds = 120
 
   droplet_ids = [digitalocean_droplet.foobar.id, digitalocean_droplet.foo.id]
 }`, rInt, rInt, rInt)
@@ -821,9 +907,9 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name = "loadbalancer-%d"
-  region = "nyc3"
-  size = "lb-small"
+  name      = "loadbalancer-%d"
+  region    = "nyc3"
+  size_unit = 1
 
   forwarding_rule {
     entry_port = 80
@@ -835,6 +921,30 @@ resource "digitalocean_loadbalancer" "foobar" {
 
   droplet_ids = ["${digitalocean_droplet.foobar.id}"]
 }`, rInt, rInt)
+}
+
+func testAccCheckDigitalOceanLoadbalancerConfig_NonDefaultProject(projectName, lbName string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_tag" "test" {
+  name = "%s"
+}
+
+resource "digitalocean_loadbalancer" "test" {
+  name = "%s"
+  region = "nyc3"
+  size = "lb-small"
+  project_id = digitalocean_project.test.id
+
+  forwarding_rule {
+    entry_port = 80
+    entry_protocol = "http"
+
+    target_port = 80
+    target_protocol = "http"
+  }
+
+  droplet_tag = digitalocean_tag.test.name
+}`, projectName, lbName)
 }
 
 func testAccCheckDigitalOceanLoadbalancerConfig_minimalUDP(rInt int) string {
