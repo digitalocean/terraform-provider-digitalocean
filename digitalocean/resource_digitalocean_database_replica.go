@@ -10,6 +10,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -131,12 +132,30 @@ func resourceDigitalOceanDatabaseReplicaCreate(ctx context.Context, d *schema.Re
 	}
 
 	log.Printf("[DEBUG] DatabaseReplica create configuration: %#v", opts)
-	replica, _, err := client.Databases.CreateReplica(context.Background(), clusterId, opts)
+
+
+	var replicaCluster *godo.DatabaseReplica
+
+	// Retry requests that fail w. Failed Precondition (412). New DBs can be marked ready while
+	// first backup is still being created.
+	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+		rc, resp, err := client.Databases.CreateReplica(context.Background(), clusterId, opts)
+		if err != nil {
+			if resp.StatusCode == 412 {
+				return resource.RetryableError(err)
+			} else {
+				return resource.NonRetryableError(fmt.Errorf("Error creating DatabaseReplica: %s", err))
+			}
+		}
+		replicaCluster = rc
+		return nil
+	})
+
 	if err != nil {
-		return diag.Errorf("Error creating DatabaseReplica: %s", err)
+		return diag.FromErr(err)
 	}
 
-	replica, err = waitForDatabaseReplica(client, clusterId, "online", replica.Name)
+	replica, err := waitForDatabaseReplica(client, clusterId, "online", replicaCluster.Name)
 	if err != nil {
 		return diag.Errorf("Error creating DatabaseReplica: %s", err)
 	}
@@ -218,7 +237,11 @@ func waitForDatabaseReplica(client *godo.Client, cluster_id, status, name string
 	n := 0
 
 	for range ticker.C {
-		replica, _, err := client.Databases.GetReplica(context.Background(), cluster_id, name)
+		replica, resp, err := client.Databases.GetReplica(context.Background(), cluster_id, name)
+		if resp.StatusCode == 404 {
+			continue
+		}
+
 		if err != nil {
 			ticker.Stop()
 			return nil, fmt.Errorf("Error trying to read DatabaseReplica state: %s", err)
