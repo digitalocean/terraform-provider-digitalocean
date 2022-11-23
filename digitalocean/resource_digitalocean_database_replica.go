@@ -133,7 +133,6 @@ func resourceDigitalOceanDatabaseReplicaCreate(ctx context.Context, d *schema.Re
 
 	log.Printf("[DEBUG] DatabaseReplica create configuration: %#v", opts)
 
-
 	var replicaCluster *godo.DatabaseReplica
 
 	// Retry requests that fail w. Failed Precondition (412). New DBs can be marked ready while
