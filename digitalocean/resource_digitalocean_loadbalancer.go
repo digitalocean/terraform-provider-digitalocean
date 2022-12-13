@@ -377,6 +377,29 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Optional: true,
 				Computed: true,
 			},
+
+			"firewall": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"allow": {
+							Type:        schema.TypeSet,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Computed:    true,
+							Description: "the rules for ALLOWING traffic to the LB (strings in the form: 'ip:1.2.3.4' or 'cidr:1.2.0.0/16')",
+						},
+						"deny": {
+							Type:        schema.TypeSet,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Computed:    true,
+							Description: "the rules for DENYING traffic to the LB (strings in the form: 'ip:1.2.3.4' or 'cidr:1.2.0.0/16')",
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -457,6 +480,10 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 
 	if v, ok := d.GetOk("sticky_sessions"); ok {
 		opts.StickySessions = expandStickySessions(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("firewall"); ok {
+		opts.Firewall = expandLBFirewall(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("vpc_uuid"); ok {
@@ -554,6 +581,10 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 
 	if err := d.Set("forwarding_rule", forwardingRules); err != nil {
 		return diag.Errorf("[DEBUG] Error setting Load Balancer forwarding_rule - error: %#v", err)
+	}
+
+	if err := d.Set("firewall", flattenLBFirewall(loadbalancer.Firewall)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting Load Balancer firewall - error: %#v", err)
 	}
 
 	return nil

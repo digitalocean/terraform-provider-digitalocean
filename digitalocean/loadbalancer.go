@@ -41,6 +41,22 @@ func expandStickySessions(config []interface{}) *godo.StickySessions {
 	return stickySession
 }
 
+func expandLBFirewall(config []interface{}) *godo.LBFirewall {
+	firewallConfig := config[0].(map[string]interface{})
+
+	firewall := &godo.LBFirewall{}
+
+	if v, ok := firewallConfig["allow"]; ok {
+		firewall.Allow = v.([]string)
+	}
+
+	if v, ok := firewallConfig["deny"]; ok {
+		firewall.Deny = v.([]string)
+	}
+
+	return firewall
+}
+
 func expandHealthCheck(config []interface{}) *godo.HealthCheck {
 	healthcheckConfig := config[0].(map[string]interface{})
 
@@ -185,6 +201,29 @@ func flattenStickySessions(session *godo.StickySessions) []map[string]interface{
 	}
 
 	return result
+}
+
+func flattenLBFirewall(firewall *godo.LBFirewall) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, 1)
+
+	if firewall != nil {
+		r := make(map[string]interface{})
+		// TODO: Unsure if nested rules requiring flattening? (jrolheiser)
+		r["allow"] = flattenFirewallRules((*firewall).Allow)
+		r["deny"] = flattenFirewallRules((*firewall).Deny)
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
+func flattenFirewallRules(rules []string) *schema.Set {
+	flatSet := schema.NewSet(schema.HashString, []interface{}{})
+	for _, v := range rules {
+		flatSet.Add(v)
+	}
+	return flatSet
 }
 
 func flattenForwardingRules(client *godo.Client, rules []godo.ForwardingRule) ([]map[string]interface{}, error) {
