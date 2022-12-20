@@ -47,11 +47,19 @@ func expandLBFirewall(config []interface{}) *godo.LBFirewall {
 	firewall := &godo.LBFirewall{}
 
 	if v, ok := firewallConfig["allow"]; ok {
-		firewall.Allow = v.([]string)
+		allows := make([]string, 0, len(v.([]interface{})))
+		for _, val := range v.([]interface{}) {
+			allows = append(allows, val.(string))
+		}
+		firewall.Allow = allows
 	}
 
 	if v, ok := firewallConfig["deny"]; ok {
-		firewall.Deny = v.([]string)
+		denies := make([]string, 0, len(v.([]interface{})))
+		for _, val := range v.([]interface{}) {
+			denies = append(denies, val.(string))
+		}
+		firewall.Deny = denies
 	}
 
 	return firewall
@@ -208,22 +216,13 @@ func flattenLBFirewall(firewall *godo.LBFirewall) []map[string]interface{} {
 
 	if firewall != nil {
 		r := make(map[string]interface{})
-		// TODO: Unsure if nested rules requiring flattening? (jrolheiser)
-		r["allow"] = flattenFirewallRules((*firewall).Allow)
-		r["deny"] = flattenFirewallRules((*firewall).Deny)
+		r["allow"] = (*firewall).Allow
+		r["deny"] = (*firewall).Deny
 
 		result = append(result, r)
 	}
 
 	return result
-}
-
-func flattenFirewallRules(rules []string) *schema.Set {
-	flatSet := schema.NewSet(schema.HashString, []interface{}{})
-	for _, v := range rules {
-		flatSet.Add(v)
-	}
-	return flatSet
 }
 
 func flattenForwardingRules(client *godo.Client, rules []godo.ForwardingRule) ([]map[string]interface{}, error) {

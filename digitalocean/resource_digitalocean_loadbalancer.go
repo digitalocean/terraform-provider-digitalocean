@@ -379,22 +379,22 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 			},
 
 			"firewall": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"allow": {
-							Type:        schema.TypeSet,
+							Type:        schema.TypeList,
 							Elem:        &schema.Schema{Type: schema.TypeString},
-							Computed:    true,
+							Optional:    true,
 							Description: "the rules for ALLOWING traffic to the LB (strings in the form: 'ip:1.2.3.4' or 'cidr:1.2.0.0/16')",
 						},
 						"deny": {
-							Type:        schema.TypeSet,
+							Type:        schema.TypeList,
 							Elem:        &schema.Schema{Type: schema.TypeString},
-							Computed:    true,
+							Optional:    true,
 							Description: "the rules for DENYING traffic to the LB (strings in the form: 'ip:1.2.3.4' or 'cidr:1.2.0.0/16')",
 						},
 					},
@@ -483,7 +483,7 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 	}
 
 	if v, ok := d.GetOk("firewall"); ok {
-		opts.Firewall = expandLBFirewall(v.([]interface{}))
+		opts.Firewall = expandLBFirewall(v.(*schema.Set).List())
 	}
 
 	if v, ok := d.GetOk("vpc_uuid"); ok {
