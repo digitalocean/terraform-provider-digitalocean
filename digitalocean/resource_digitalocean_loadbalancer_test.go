@@ -735,6 +735,37 @@ func TestAccDigitalOceanLoadbalancer_WithVPC(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanLoadbalancer_Firewall(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	lbName := randomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_Firewall(lbName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "name", lbName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "firewall.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "firewall.0.deny.0", "cidr:1.2.0.0/16"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "firewall.0.deny.1", "ip:2.3.4.5"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "firewall.0.allow.0", "ip:1.2.3.4"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "firewall.0.allow.1", "cidr:2.3.4.0/24"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanLoadbalancerDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -1121,4 +1152,35 @@ resource "digitalocean_loadbalancer" "foobar" {
   vpc_uuid = digitalocean_vpc.foobar.id
   droplet_ids = [digitalocean_droplet.foobar.id]
 }`, randomTestName(), randomTestName(), name)
+}
+
+func testAccCheckDigitalOceanLoadbalancerConfig_Firewall(name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name      = "%s"
+  size      = "s-1vcpu-1gb"
+  image     = "ubuntu-22-04-x64"
+  region   = "nyc3"
+}
+
+resource "digitalocean_loadbalancer" "foobar" {
+  name = "%s"
+  region = "nyc3"
+  size = "lb-small"
+
+  forwarding_rule {
+    entry_port = 80
+    entry_protocol = "http"
+
+    target_port = 80
+    target_protocol = "http"
+  }
+
+  firewall {
+    deny = ["cidr:1.2.0.0/16", "ip:2.3.4.5"]
+    allow = ["ip:1.2.3.4", "cidr:2.3.4.0/24"]
+  }
+
+  droplet_ids = [digitalocean_droplet.foobar.id]
+}`, randomTestName(), name)
 }

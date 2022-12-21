@@ -115,6 +115,7 @@ the backend service. Default value is `false`.
 * `vpc_uuid` - (Optional) The ID of the VPC where the load balancer will be located.
 * `droplet_ids` (Optional) - A list of the IDs of each droplet to be attached to the Load Balancer.
 * `droplet_tag` (Optional) - The name of a Droplet tag corresponding to Droplets to be assigned to the Load Balancer.
+* `firewall` (Optional) - A block containing rules for allowing/denying traffic to the Load Balancer. The `firewall` block is documented below. Only 1 firewall is allowed.
 
 `forwarding_rule` supports the following:
 
@@ -137,10 +138,16 @@ the backend service. Default value is `false`.
 * `protocol` - (Required) The protocol used for health checks sent to the backend Droplets. The possible values are `http`, `https` or `tcp`.
 * `port` - (Optional) An integer representing the port on the backend Droplets on which the health check will attempt a connection.
 * `path` - (Optional) The path on the backend Droplets to which the Load Balancer instance will send a request.
-* `check_interval_seconds` - (Optional) The number of seconds between between two consecutive health checks. If not specified, the default value is `10`.
+* `check_interval_seconds` - (Optional) The number of seconds between two consecutive health checks. If not specified, the default value is `10`.
 * `response_timeout_seconds` - (Optional) The number of seconds the Load Balancer instance will wait for a response until marking a health check as failed. If not specified, the default value is `5`.
 * `unhealthy_threshold` - (Optional) The number of times a health check must fail for a backend Droplet to be marked "unhealthy" and be removed from the pool. If not specified, the default value is `3`.
 * `healthy_threshold` - (Optional) The number of times a health check must pass for a backend Droplet to be marked "healthy" and be re-added to the pool. If not specified, the default value is `5`.
+
+`firewall` supports the following:
+
+* `deny` - (Optional) A list of strings describing deny rules. Must be colon delimited strings of the form `{type}:{source}`
+* `allow` - (Optional) A list of strings describing allow rules. Must be colon delimited strings of the form `{type}:{source}`
+* Ex. `deny = ["cidr:1.2.0.0/16", "ip:2.3.4.5"]` or `allow = ["ip:1.2.3.4", "cidr:2.3.4.0/24"]`
 
 
 ## Attributes Reference

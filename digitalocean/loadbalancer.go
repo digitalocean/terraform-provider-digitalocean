@@ -41,6 +41,30 @@ func expandStickySessions(config []interface{}) *godo.StickySessions {
 	return stickySession
 }
 
+func expandLBFirewall(config []interface{}) *godo.LBFirewall {
+	firewallConfig := config[0].(map[string]interface{})
+
+	firewall := &godo.LBFirewall{}
+
+	if v, ok := firewallConfig["allow"]; ok {
+		allows := make([]string, 0, len(v.([]interface{})))
+		for _, val := range v.([]interface{}) {
+			allows = append(allows, val.(string))
+		}
+		firewall.Allow = allows
+	}
+
+	if v, ok := firewallConfig["deny"]; ok {
+		denies := make([]string, 0, len(v.([]interface{})))
+		for _, val := range v.([]interface{}) {
+			denies = append(denies, val.(string))
+		}
+		firewall.Deny = denies
+	}
+
+	return firewall
+}
+
 func expandHealthCheck(config []interface{}) *godo.HealthCheck {
 	healthcheckConfig := config[0].(map[string]interface{})
 
@@ -180,6 +204,20 @@ func flattenStickySessions(session *godo.StickySessions) []map[string]interface{
 		r["type"] = (*session).Type
 		r["cookie_name"] = (*session).CookieName
 		r["cookie_ttl_seconds"] = (*session).CookieTtlSeconds
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
+func flattenLBFirewall(firewall *godo.LBFirewall) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, 1)
+
+	if firewall != nil {
+		r := make(map[string]interface{})
+		r["allow"] = (*firewall).Allow
+		r["deny"] = (*firewall).Deny
 
 		result = append(result, r)
 	}
