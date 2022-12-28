@@ -195,7 +195,7 @@ A `service` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
-* `route` - An HTTP paths that should be routed to this component.
+* `routes` - An HTTP paths that should be routed to this component.
   - `path` - Paths must start with `/` and must be unique within the app.
   - `preserve_path_prefix` -  An optional flag to preserve the path that is forwarded to the backend service.
 * `health_check` - A health check to determine the availability of this component.
@@ -258,7 +258,7 @@ A `static_site` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
-* `route` - An HTTP paths that should be routed to this component.
+* `routes` - An HTTP paths that should be routed to this component.
   - `path` - Paths must start with `/` and must be unique within the app.
   - `preserve_path_prefix` -  An optional flag to preserve the path that is forwarded to the backend service.
 * `cors` - The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
@@ -396,7 +396,7 @@ A `function` component can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
-* `route` - An HTTP paths that should be routed to this component.
+* `routes` - An HTTP paths that should be routed to this component.
   - `path` - Paths must start with `/` and must be unique within the app.
   - `preserve_path_prefix` -  An optional flag to preserve the path that is forwarded to the backend service.
 * `cors` - The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
