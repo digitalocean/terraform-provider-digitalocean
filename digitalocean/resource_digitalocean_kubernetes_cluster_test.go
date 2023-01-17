@@ -17,11 +17,23 @@ import (
 )
 
 const (
-	testClusterVersionPrevious = `data "digitalocean_kubernetes_versions" "test" {
-  version_prefix = "1.21."
+	testClusterVersionPrevious = `data "digitalocean_kubernetes_versions" "latest" {
+}
+
+locals {
+  previous_version = format("%s.",
+    join(".", [
+      split(".",data.digitalocean_kubernetes_versions.latest.latest_version)[0],
+      tostring(parseint(split(".",data.digitalocean_kubernetes_versions.latest.latest_version)[1], 10)-1)
+    ])
+  )
+}
+
+data "digitalocean_kubernetes_versions" "test" {
+  version_prefix = local.previous_version
 }`
+
 	testClusterVersionLatest = `data "digitalocean_kubernetes_versions" "test" {
-  version_prefix = "1.22."
 }`
 )
 
