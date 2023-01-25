@@ -446,6 +446,43 @@ func TestAccDigitalOceanDatabaseCluster_MongoDBPassword(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_Upgrade(t *testing.T) {
+	var database godo.Database
+	databaseName := randomTestName()
+	previousPGVersion := "13"
+	latestPGVersion := "14"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				// TODO: Hardcoding the versions here is not ideal.
+				// We will need to determine a better way to fetch the last and latest versions dynamically.
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigCustomVersion, databaseName, "pg", previousPGVersion),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists(
+						"digitalocean_database_cluster.foobar", &database),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "name", databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "engine", "pg"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "version", previousPGVersion),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigCustomVersion, databaseName, "pg", latestPGVersion),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "version", latestPGVersion),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDatabaseClusterDestroy(s *terraform.State) error {
 	client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 
@@ -708,6 +745,16 @@ resource "digitalocean_database_cluster" "foobar" {
 	name       = "%s"
 	engine     = "mongodb"
 	version    = "4"
+	size       = "db-s-1vcpu-1gb"
+	region     = "nyc3"
+    node_count = 1
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigCustomVersion = `
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "%s"
+	version    = "%s"
 	size       = "db-s-1vcpu-1gb"
 	region     = "nyc3"
     node_count = 1

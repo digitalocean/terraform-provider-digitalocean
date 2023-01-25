@@ -65,7 +65,8 @@ The following arguments are supported:
 * `size` - (Required) Database Droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`). See here for a [list of valid size slugs](https://docs.digitalocean.com/reference/api/api-reference/#tag/Databases).
 * `region` - (Required) DigitalOcean region where the cluster will reside.
 * `node_count` - (Required) Number of nodes that will be included in the cluster.
-* `version` - (Required) Engine version used by the cluster (ex. `11` for PostgreSQL 11).
+* `version` - (Required) Engine version used by the cluster (ex. `14` for PostgreSQL 14).
+  When this value is changed, a call to the [Upgrade major Version for a Database](https://docs.digitalocean.com/reference/api/api-reference/#operation/databases_update_major_version) API operation is made with the new version.
 * `tags` - (Optional) A list of tag names to be applied to the database cluster.
 * `private_network_uuid` - (Optional) The ID of the VPC where the database cluster will be located.
 * `eviction_policy` - (Optional) A string specifying the eviction policy for a Redis cluster. Valid values are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.

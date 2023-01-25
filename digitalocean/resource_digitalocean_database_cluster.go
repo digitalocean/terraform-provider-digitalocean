@@ -54,7 +54,6 @@ func resourceDigitalOceanDatabaseCluster() *schema.Resource {
 				// CustomizeDiffFunc is used to provide users with a better hint in the error message.
 				// Required: true,
 				Optional: true,
-				ForceNew: true,
 				// When Redis clusters are forced to upgrade, this prevents attempting
 				// to recreate clusters specifying the previous version in their config.
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
@@ -390,6 +389,14 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 		_, err := client.Databases.SetSQLMode(context.Background(), d.Id(), d.Get("sql_mode").(string))
 		if err != nil {
 			return diag.Errorf("Error updating SQL mode for database cluster: %s", err)
+		}
+	}
+
+	if d.HasChange("version") {
+		upgradeVersionReq := &godo.UpgradeVersionRequest{Version: d.Get("version").(string)}
+		_, err := client.Databases.UpgradeMajorVersion(context.Background(), d.Id(), upgradeVersionReq)
+		if err != nil {
+			return diag.Errorf("Error upgrading version for database cluster: %s", err)
 		}
 	}
 
