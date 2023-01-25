@@ -38,7 +38,13 @@ func resourceDigitalOceanUptimeAlert() *schema.Resource {
 			"type": {
 				Type:        schema.TypeString,
 				Description: "The type of health check to perform. Enum: 'latency' 'down' 'down_global' 'ssl_expiry'",
-				Required:    true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"latency",
+					"down",
+					"down_global",
+					"ssl_expiry",
+				}, false),
+				Required: true,
 			},
 			"threshold": {
 				Type:        schema.TypeInt,
@@ -113,7 +119,7 @@ func resourceDigitalOceanUptimeAlertCreate(ctx context.Context, d *schema.Resour
 	}
 
 	log.Printf("[DEBUG] Uptime alert create configuration: %#v", opts)
-	alert, _, err := client.UptimeChecks.CreateAlert(context.Background(), checkID, opts)
+	alert, _, err := client.UptimeChecks.CreateAlert(ctx, checkID, opts)
 	if err != nil {
 		return diag.Errorf("Error creating Uptime Alert: %s", err)
 	}
@@ -156,7 +162,7 @@ func resourceDigitalOceanUptimeAlertUpdate(ctx context.Context, d *schema.Resour
 
 	log.Printf("[DEBUG] Uptime alert update configuration: %#v", opts)
 
-	alert, _, err := client.UptimeChecks.UpdateAlert(context.Background(), checkID, d.Id(), opts)
+	alert, _, err := client.UptimeChecks.UpdateAlert(ctx, checkID, d.Id(), opts)
 	if err != nil {
 		return diag.Errorf("Error updating Alert: %s", err)
 	}
@@ -174,7 +180,7 @@ func resourceDigitalOceanUptimeAlertDelete(ctx context.Context, d *schema.Resour
 	log.Printf("[INFO] Deleting uptime alert: %s", d.Id())
 
 	// Delete the uptime alert
-	_, err := client.UptimeChecks.DeleteAlert(context.Background(), checkID, d.Id())
+	_, err := client.UptimeChecks.DeleteAlert(ctx, checkID, d.Id())
 
 	if err != nil {
 		return diag.Errorf("Error deleting uptime alerts: %s", err)
@@ -188,7 +194,7 @@ func resourceDigitalOceanUptimeAlertRead(ctx context.Context, d *schema.Resource
 
 	checkID := d.Get("check_id").(string)
 
-	alert, resp, err := client.UptimeChecks.GetAlert(context.Background(), checkID, d.Id())
+	alert, resp, err := client.UptimeChecks.GetAlert(ctx, checkID, d.Id())
 	if err != nil {
 		// If the check is somehow already destroyed, mark as
 		// successfully gone
@@ -200,7 +206,7 @@ func resourceDigitalOceanUptimeAlertRead(ctx context.Context, d *schema.Resource
 		return diag.Errorf("Error retrieving check: %s", err)
 	}
 
-	d.Set("id", alert.ID)
+	d.SetId(alert.ID)
 	d.Set("name", alert.Name)
 	d.Set("type", alert.Type)
 	d.Set("threshold", alert.Threshold)

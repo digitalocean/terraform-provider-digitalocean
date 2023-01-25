@@ -5,7 +5,7 @@ page_title: "DigitalOcean: digitalocean_uptime_check"
 # digitalocean_uptime_check
 
 Provides a [DigitalOcean Uptime Checks](https://docs.digitalocean.com/reference/api/kafka-beta-api-reference/#tag/Uptime)
-resource. Uptime Checks provide the ability to monitor your endpoints from around the world, and alert you when they're slow, unavailable, or SSL certificates are expiring. To interact with Uptime, you will generally send requests to the Uptime endpoint at /v2/uptime/
+resource. Uptime Checks provide the ability to monitor your endpoints from around the world, and alert you when they're slow, unavailable, or SSL certificates are expiring.
 
 
 ### Basic Example

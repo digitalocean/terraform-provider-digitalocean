@@ -79,7 +79,7 @@ func resourceDigitalOceanUptimeCheckCreate(ctx context.Context, d *schema.Resour
 	}
 
 	log.Printf("[DEBUG] Uptime check create configuration: %#v", opts)
-	check, _, err := client.UptimeChecks.Create(context.Background(), opts)
+	check, _, err := client.UptimeChecks.Create(ctx, opts)
 	if err != nil {
 		return diag.Errorf("Error creating Check: %s", err)
 	}
@@ -121,7 +121,7 @@ func resourceDigitalOceanUptimeCheckUpdate(ctx context.Context, d *schema.Resour
 
 	log.Printf("[DEBUG] Uptime Check update configuration: %#v", opts)
 
-	_, _, err := client.UptimeChecks.Update(context.Background(), id, opts)
+	_, _, err := client.UptimeChecks.Update(ctx, id, opts)
 	if err != nil {
 		return diag.Errorf("Error updating uptime check: %s", err)
 	}
@@ -135,7 +135,7 @@ func resourceDigitalOceanUptimeCheckDelete(ctx context.Context, d *schema.Resour
 	log.Printf("[INFO] Deleting uptime check: %s", d.Id())
 
 	// Delete the uptime check
-	_, err := client.UptimeChecks.Delete(context.Background(), d.Id())
+	_, err := client.UptimeChecks.Delete(ctx, d.Id())
 
 	if err != nil {
 		return diag.Errorf("Error deleting uptime checks: %s", err)
@@ -159,7 +159,7 @@ func resourceDigitalOceanUptimeCheckRead(ctx context.Context, d *schema.Resource
 		return diag.Errorf("Error retrieving check: %s", err)
 	}
 
-	d.Set("id", check.ID)
+	d.SetId(check.ID)
 	d.Set("name", check.Name)
 	d.Set("target", check.Target)
 	d.Set("enabled", check.Enabled)
