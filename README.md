@@ -97,7 +97,7 @@ This repository contains a GitHub Action configured to automatically build and
 publish assets for release when a tag is pushed that matches the pattern `v*`
 (ie. `v0.1.0`).
 
-A [Gorelaser](https://goreleaser.com/) configuration is provided that produces
+A [Goreleaser](https://goreleaser.com/) configuration is provided that produces
 build artifacts matching the [layout required](https://www.terraform.io/docs/registry/providers/publishing.html#manually-preparing-a-release)
 to publish the provider in the Terraform Registry.
 
