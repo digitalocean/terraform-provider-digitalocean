@@ -10,6 +10,9 @@ import (
 )
 
 const testAccCheckDigitalOceanUptimeAlertConfig_basic = `
+data "digitalocean_account" "test" {
+}
+
 resource "digitalocean_uptime_check" "test" {
 	name  = "terraform-test"
 	target = "https://www.landingpage.com"
