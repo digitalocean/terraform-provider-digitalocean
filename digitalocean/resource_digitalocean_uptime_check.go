@@ -41,8 +41,13 @@ func resourceDigitalOceanUptimeCheck() *schema.Resource {
 			"type": {
 				Type:        schema.TypeString,
 				Description: "The type of health check to perform. Enum: 'ping' 'http' 'https'",
-				Default:     "https",
-				Optional:    true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"ping",
+					"http",
+					"https",
+				}, false),
+				Default:  "https",
+				Optional: true,
 			},
 			"target": {
 				Type:        schema.TypeString,

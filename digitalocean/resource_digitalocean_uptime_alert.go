@@ -54,12 +54,25 @@ func resourceDigitalOceanUptimeAlert() *schema.Resource {
 			"comparison": {
 				Type:        schema.TypeString,
 				Description: "The comparison operator used against the alert's threshold. Enum: 'greater_than' 'less_than",
-				Optional:    true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"greater_than",
+					"less_than",
+				}, false),
+				Optional: true,
 			},
 			"period": {
 				Type:        schema.TypeString,
 				Description: "Period of time the threshold must be exceeded to trigger the alert. Enum '2m' '3m' '5m' '10m' '15m' '30m' '1h'",
-				Optional:    true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"2m",
+					"3m",
+					"5m",
+					"10m",
+					"15m",
+					"30m",
+					"1hr",
+				}, false),
+				Optional: true,
 			},
 			"notifications": {
 				Type:        schema.TypeList,
