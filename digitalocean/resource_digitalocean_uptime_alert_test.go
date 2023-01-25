@@ -22,7 +22,7 @@ resource "digitalocean_uptime_check" "test" {
 	threshold = %s
 	comparison = "greater_than"
 	notifications {
-		email = ["delhertani@digitalocean.com"]
+		email = [data.digitalocean_account.test.email]
 	}
 	period = "2m"
   }

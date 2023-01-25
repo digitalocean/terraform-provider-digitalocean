@@ -22,11 +22,9 @@ func resourceDigitalOceanUptimeCheck() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"name": {
-				Type:         schema.TypeString,
-				Description:  "A human-friendly display name for the check.",
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.NoZeroValues,
+				Type:        schema.TypeString,
+				Description: "A human-friendly display name for the check.",
+				Required:    true,
 			},
 			"id": {
 				Type:     schema.TypeString,
@@ -44,7 +42,6 @@ func resourceDigitalOceanUptimeCheck() *schema.Resource {
 			"type": {
 				Type:        schema.TypeString,
 				Description: "The type of health check to perform. Enum: 'ping' 'http' 'https'",
-				ForceNew:    true,
 				Default:     "https",
 				Optional:    true,
 			},
@@ -52,11 +49,9 @@ func resourceDigitalOceanUptimeCheck() *schema.Resource {
 				Type:        schema.TypeString,
 				Description: "The endpoint to perform healthchecks on.",
 				Required:    true,
-				ForceNew:    true,
 			},
 			"enabled": {
 				Type:        schema.TypeBool,
-				ForceNew:    true,
 				Default:     false,
 				Optional:    true,
 				Description: "A boolean value indicating whether the check is enabled/disabled.",
