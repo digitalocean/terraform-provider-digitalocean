@@ -51,7 +51,7 @@ func resourceDigitalOceanUptimeCheck() *schema.Resource {
 			},
 			"enabled": {
 				Type:        schema.TypeBool,
-				Default:     false,
+				Default:     true,
 				Optional:    true,
 				Description: "A boolean value indicating whether the check is enabled/disabled.",
 			},
