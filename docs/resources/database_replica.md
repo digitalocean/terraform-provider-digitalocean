@@ -10,11 +10,8 @@ Provides a DigitalOcean database replica resource.
 
 ### Create a new PostgreSQL database replica
 ```hcl
-resource "digitalocean_database_replica" "read-replica" {
-  cluster_id = digitalocean_database_cluster.postgres-example.id
-  name       = "read-replica"
-  size       = "db-s-1vcpu-1gb"
-  region     = "nyc1"
+output "UUID" {
+  value = digitalocean_database_replica.replica-example.uuid
 }
 
 resource "digitalocean_database_cluster" "postgres-example" {
@@ -24,6 +21,23 @@ resource "digitalocean_database_cluster" "postgres-example" {
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
+}
+
+resource "digitalocean_database_replica" "replica-example" {
+  cluster_id = digitalocean_database_cluster.postgres-example.id
+  name       = "replica-example"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+}
+
+# Create firewall rule for database replica
+resource "digitalocean_database_firewall" "example-fw" {
+  cluster_id = digitalocean_database_replica.replica-example.uuid
+
+  rule {
+    type  = "ip_addr"
+    value = "192.168.1.1"
+  }
 }
 ```
 
@@ -42,7 +56,8 @@ The following arguments are supported:
 
 In addition to the above arguments, the following attributes are exported:
 
-* `id` - The ID of the database replica.
+* `id` - The ID of the database replica created by Terraform.
+* `uuid` - The UUID of the database replica. You can reference this uuid as the ID of the target database cluster for other resources. See example firewall "Create firewall rule for database replica" example above.
 * `host` - Database replica's hostname.
 * `private_host` - Same as `host`, but only accessible from resources within the account and in the same region.
 * `port` - Network port that the database replica is listening on.

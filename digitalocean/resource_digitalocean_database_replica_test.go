@@ -60,6 +60,8 @@ func TestAccDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 						"digitalocean_database_replica.read-01", "tags.#", "1"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_replica.read-01", "private_network_uuid"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_replica.read-01", "uuid"),
 				),
 			},
 		},
@@ -136,6 +138,7 @@ func testAccCheckDigitalOceanDatabaseReplicaExists(n string, database *godo.Data
 		client := testAccProvider.Meta().(*CombinedConfig).godoClient()
 		clusterId := rs.Primary.Attributes["cluster_id"]
 		name := rs.Primary.Attributes["name"]
+		uuid := rs.Primary.Attributes["uuid"]
 
 		foundDatabaseReplica, _, err := client.Databases.GetReplica(context.Background(), clusterId, name)
 
@@ -145,6 +148,10 @@ func testAccCheckDigitalOceanDatabaseReplicaExists(n string, database *godo.Data
 
 		if foundDatabaseReplica.Name != name {
 			return fmt.Errorf("DatabaseReplica not found")
+		}
+
+		if foundDatabaseReplica.ID != uuid {
+			return fmt.Errorf("DatabaseReplica UUID not found")
 		}
 
 		*database = *foundDatabaseReplica
