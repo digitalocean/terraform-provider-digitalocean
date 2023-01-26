@@ -57,7 +57,7 @@ The following arguments are supported:
 In addition to the above arguments, the following attributes are exported:
 
 * `id` - The ID of the database replica created by Terraform.
-* `uuid` - The UUID of the database replica. You can reference this uuid as the ID of the target database cluster for other resources. See example firewall "Create firewall rule for database replica" example above.
+* `uuid` - The UUID of the database replica. The uuid can be used to reference the database replica as the target database cluster in other resources. See example  "Create firewall rule for database replica" above.
 * `host` - Database replica's hostname.
 * `private_host` - Same as `host`, but only accessible from resources within the account and in the same region.
 * `port` - Network port that the database replica is listening on.
