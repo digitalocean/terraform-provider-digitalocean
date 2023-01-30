@@ -93,6 +93,30 @@ For information about writing acceptance tests, see the main Terraform [contribu
 Releasing the Provider
 ----------------------
 
+To release the provider:
+
+1. Use
+   [github-changelog-generator](https://github.com/digitalocean/github-changelog-generator)
+   to list the changes since the last release and decide what kind of release
+   you are doing (bugfix, feature or breaking).
+1. Create a new commit that only contains updates to
+   [CHANGELOG.md](CHANGELOG.md) listing the respective changes for the new
+   version. Godo follows [semver](https://www.semver.org/) versioning
+   semantics.
+1. Once the CHANGELOG.md commit is merged, create a new tag on that commit with
+   the new version that will be released (be sure to pull the latest from
+   git).
+
+   ```bash
+   git tag -m "release $new_version" -a "$new_version"
+   ```
+
+1. Push the tag:  
+
+   ```bash
+   git push "$origin" tag "$new_version"
+   ```
+
 This repository contains a GitHub Action configured to automatically build and
 publish assets for release when a tag is pushed that matches the pattern `v*`
 (ie. `v0.1.0`).
@@ -103,3 +127,4 @@ to publish the provider in the Terraform Registry.
 
 Releases will appear as drafts. Once marked as published on the GitHub Releases page,
 they will become available via the Terraform Registry.
+
