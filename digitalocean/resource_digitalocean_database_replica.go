@@ -39,6 +39,13 @@ func resourceDigitalOceanDatabaseReplica() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"uuid": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				ForceNew:    true,
+				Description: "The unique universal identifier for the database replica.",
+			},
+
 			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -159,7 +166,15 @@ func resourceDigitalOceanDatabaseReplicaCreate(ctx context.Context, d *schema.Re
 		return diag.Errorf("Error creating DatabaseReplica: %s", err)
 	}
 
+	// Terraform requires a unique ID for each resource,
+	// this concatc the parent cluster's ID and the replica's
+	// name to form a replica's ID for Terraform state. This is
+	// before the replica's ID was exposed in the DO API.
 	d.SetId(makeReplicaId(clusterId, replica.Name))
+	// the replica ID is now exposed in the DO API. It can be referenced
+	// via the uuid in order to not change Terraform's
+	// internal ID for existing resources.
+	d.Set("uuid", replica.ID)
 	log.Printf("[INFO] DatabaseReplica Name: %s", replica.Name)
 
 	return resourceDigitalOceanDatabaseReplicaRead(ctx, d, meta)
