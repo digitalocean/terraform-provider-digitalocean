@@ -1,3 +1,28 @@
+# 2.25.2
+
+IMPROVEMENTS:
+
+- `database_replica`: add retry on db replica create (#907) - @DMW2151
+
+# 2.25.1
+
+IMPROVEMENTS:
+
+- `monitoring`: Support HTTP idle timeout & Project ID (#897) - @StephenVarela
+
+# 2.24.0
+
+IMPROVEMENTS:
+
+- `spaces`: add endpoint attribute to bucket (#886)- @selborsolrac
+- `monitor_alert_resource`: Update Monitor Alert resource with new DBAAS public alert types (#893) - @dweinshenker
+- `spaces`: Add new DC to spaces (#899) - @mandalae
+- `loadbalancers`: load balancers: add HTTP/3 as an entry protocol (#895) - @anitgandhi
+
+MISC:
+
+- `docs`: Fix reference in documentation of project_resources (#890) - @Lavode
+
 # 2.23.0 (September 27, 2022)
 
 IMPROVEMENTS:
