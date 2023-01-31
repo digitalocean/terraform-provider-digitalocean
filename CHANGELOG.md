@@ -1,3 +1,20 @@
+# 2.26.0
+
+IMPROVEMENTS:
+
+- `database replica`: Expose Database Replica ID (#921) - @danaelhe
+- `uptime`: Add Uptime Checks and Alerts Support (#919) - @danaelhe
+- `databases`: Support upgrading the database version (#918) - @scotchneat
+- `loadbalancers`: Add firewall support for Loadbalancers (#911) - @jrolheiser
+- `loadbalancers`: Loadbalancers support http alerts metrics (#903) - @StephenVarela
+
+MISC:
+
+- `docs`: `routes` documentation in `app.md` matches `app_spec.go` (#915) - @olaven
+- `testing`: Find previous K8s release dynamically. (#916) - @andrewsomething
+- `docs`: Fix typo in README (#920) - @mbardelmeijer
+- `docs`: Add releasing notes & missing changelog entries (#922) - @scotchneat
+
 # 2.25.2
 
 IMPROVEMENTS:
