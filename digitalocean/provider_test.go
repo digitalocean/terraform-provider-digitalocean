@@ -2,35 +2,16 @@ package digitalocean
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"strings"
 	"testing"
 
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-const testNamePrefix = "tf-acc-test-"
-
-var testAccProvider *schema.Provider
-var testAccProviders map[string]*schema.Provider
-var testAccProviderFactories map[string]func() (*schema.Provider, error)
-
-func init() {
-	testAccProvider = Provider()
-	testAccProviders = map[string]*schema.Provider{
-		"digitalocean": testAccProvider,
-	}
-	testAccProviderFactories = map[string]func() (*schema.Provider, error){
-		"digitalocean": func() (*schema.Provider, error) {
-			return testAccProvider, nil
-		},
-	}
-}
 
 func TestProvider(t *testing.T) {
 	if err := Provider().InternalValidate(); err != nil {
@@ -40,17 +21,6 @@ func TestProvider(t *testing.T) {
 
 func TestProvider_impl(t *testing.T) {
 	var _ *schema.Provider = Provider()
-}
-
-func testAccPreCheck(t *testing.T) {
-	if v := os.Getenv("DIGITALOCEAN_TOKEN"); v == "" {
-		t.Fatal("DIGITALOCEAN_TOKEN must be set for acceptance tests")
-	}
-
-	err := testAccProvider.Configure(context.Background(), terraform.NewResourceConfigRaw(nil))
-	if err != nil {
-		t.Fatal(err)
-	}
 }
 
 func TestURLOverride(t *testing.T) {
@@ -72,7 +42,7 @@ func TestURLOverride(t *testing.T) {
 		t.Fatalf("Expected metadata, got nil")
 	}
 
-	client := meta.(*CombinedConfig).godoClient()
+	client := meta.(*config.CombinedConfig).GodoClient()
 	if client.BaseURL.String() != customEndpoint {
 		t.Fatalf("Expected %s, got %s", customEndpoint, client.BaseURL.String())
 	}
@@ -94,7 +64,7 @@ func TestURLDefault(t *testing.T) {
 		t.Fatal("Expected metadata, got nil")
 	}
 
-	client := meta.(*CombinedConfig).godoClient()
+	client := meta.(*config.CombinedConfig).GodoClient()
 	if client.BaseURL.String() != "https://api.digitalocean.com" {
 		t.Fatalf("Expected %s, got %s", "https://api.digitalocean.com", client.BaseURL.String())
 	}
@@ -129,7 +99,7 @@ func TestSpaceAPIDefaultEndpoint(t *testing.T) {
 
 	var client *session.Session
 	var err error
-	client, err = meta.(*CombinedConfig).spacesClient("sfo2")
+	client, err = meta.(*config.CombinedConfig).SpacesClient("sfo2")
 	if err != nil {
 		t.Fatalf("Failed to create Spaces client: %s", err)
 	}
@@ -163,7 +133,7 @@ func TestSpaceAPIEndpointOverride(t *testing.T) {
 
 	var client *session.Session
 	var err error
-	client, err = meta.(*CombinedConfig).spacesClient("sfo2")
+	client, err = meta.(*config.CombinedConfig).SpacesClient("sfo2")
 	if err != nil {
 		t.Fatalf("Failed to create Spaces client: %s", err)
 	}
@@ -172,16 +142,4 @@ func TestSpaceAPIEndpointOverride(t *testing.T) {
 	if *client.Config.Endpoint != expectedEndpoint {
 		t.Fatalf("Expected %s, got %s", expectedEndpoint, *client.Config.Endpoint)
 	}
-}
-
-func randomTestName(additionalNames ...string) string {
-	prefix := testNamePrefix
-	for _, n := range additionalNames {
-		prefix += "-" + strings.Replace(n, " ", "_", -1)
-	}
-	return randomName(prefix, 10)
-}
-
-func randomName(prefix string, length int) string {
-	return fmt.Sprintf("%s%s", prefix, acctest.RandString(length))
 }
