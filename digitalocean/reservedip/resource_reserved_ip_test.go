@@ -14,36 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func init() {
-	resource.AddTestSweepers("digitalocean_reserved_ip", &resource.Sweeper{
-		Name: "digitalocean_reserved_ip",
-		F:    testSweepReservedIPs,
-	})
-
-}
-
-func testSweepReservedIPs(region string) error {
-	meta, err := acceptance.SharedConfigForRegion(region)
-	if err != nil {
-		return err
-	}
-
-	client := meta.(*config.CombinedConfig).GodoClient()
-
-	ips, _, err := client.ReservedIPs.List(context.Background(), nil)
-	if err != nil {
-		return err
-	}
-
-	for _, ip := range ips {
-		if _, err := client.ReservedIPs.Delete(context.Background(), ip.IP); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func TestAccDigitalOceanReservedIP_Region(t *testing.T) {
 	var reservedIP godo.ReservedIP
 

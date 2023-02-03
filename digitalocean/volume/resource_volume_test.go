@@ -3,71 +3,16 @@ package volume_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-func init() {
-	resource.AddTestSweepers("digitalocean_volume", &resource.Sweeper{
-		Name:         "digitalocean_volume",
-		F:            testSweepVolumes,
-		Dependencies: []string{"digitalocean_droplet"},
-	})
-}
-
-func testSweepVolumes(region string) error {
-	meta, err := acceptance.SharedConfigForRegion(region)
-	if err != nil {
-		return err
-	}
-
-	client := meta.(*config.CombinedConfig).GodoClient()
-
-	opt := &godo.ListVolumeParams{
-		ListOptions: &godo.ListOptions{PerPage: 200},
-	}
-	volumes, _, err := client.Storage.ListVolumes(context.Background(), opt)
-	if err != nil {
-		return err
-	}
-
-	for _, v := range volumes {
-		if strings.HasPrefix(v.Name, "volume-") || strings.HasPrefix(v.Name, "tf-acc-test-") {
-
-			if len(v.DropletIDs) > 0 {
-				log.Printf("Detaching volume %v from Droplet %v", v.ID, v.DropletIDs[0])
-
-				action, _, err := client.StorageActions.DetachByDropletID(context.Background(), v.ID, v.DropletIDs[0])
-				if err != nil {
-					return fmt.Errorf("Error resizing volume (%s): %s", v.ID, err)
-				}
-
-				if err = util.WaitForAction(client, action); err != nil {
-					return fmt.Errorf(
-						"Error waiting for volume (%s): %s", v.ID, err)
-				}
-			}
-
-			log.Printf("Destroying Volume %s", v.Name)
-
-			if _, err := client.Storage.DeleteVolume(context.Background(), v.ID); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func TestAccDigitalOceanVolume_Basic(t *testing.T) {
 	name := fmt.Sprintf("volume-%s", acctest.RandString(10))

@@ -1,17 +1,13 @@
-package acceptance
+package sweep
 
 import (
 	"fmt"
 	"os"
-	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestMain(m *testing.M) {
-	resource.TestMain(m)
-}
+const TestNamePrefix = "tf-acc-test-"
 
 func SharedConfigForRegion(region string) (interface{}, error) {
 	if os.Getenv("DIGITALOCEAN_TOKEN") == "" {

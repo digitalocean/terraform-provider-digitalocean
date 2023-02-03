@@ -3,7 +3,6 @@ package certificate_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"reflect"
 	"regexp"
 	"strings"
@@ -18,41 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-func init() {
-	resource.AddTestSweepers("digitalocean_certificate", &resource.Sweeper{
-		Name: "digitalocean_certificate",
-		F:    testSweepCertificate,
-	})
-
-}
-
-func testSweepCertificate(region string) error {
-	meta, err := acceptance.SharedConfigForRegion(region)
-	if err != nil {
-		return err
-	}
-
-	client := meta.(*config.CombinedConfig).GodoClient()
-
-	opt := &godo.ListOptions{PerPage: 200}
-	certs, _, err := client.Certificates.List(context.Background(), opt)
-	if err != nil {
-		return err
-	}
-
-	for _, c := range certs {
-		if strings.HasPrefix(c.Name, "certificate-") {
-			log.Printf("Destroying certificate %s", c.Name)
-
-			if _, err := client.Certificates.Delete(context.Background(), c.ID); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func testCertificateStateDataV0() map[string]interface{} {
 	return map[string]interface{}{

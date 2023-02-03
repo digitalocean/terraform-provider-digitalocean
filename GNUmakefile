@@ -28,7 +28,7 @@ vet:
 
 sweep:
 	@echo "WARNING: This will destroy infrastructure. Use only in development accounts."
-	go test ./digitalocean/... -v -sweep=1
+	go test ./digitalocean/sweep/... -v -sweep=1
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."

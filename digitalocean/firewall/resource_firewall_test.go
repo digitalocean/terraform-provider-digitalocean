@@ -3,8 +3,6 @@ package firewall_test
 import (
 	"context"
 	"fmt"
-	"log"
-	"strings"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -14,41 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-func init() {
-	resource.AddTestSweepers("digitalocean_firewall", &resource.Sweeper{
-		Name: "digitalocean_firewall",
-		F:    testSweepFirewall,
-	})
-
-}
-
-func testSweepFirewall(region string) error {
-	meta, err := acceptance.SharedConfigForRegion(region)
-	if err != nil {
-		return err
-	}
-
-	client := meta.(*config.CombinedConfig).GodoClient()
-
-	opt := &godo.ListOptions{PerPage: 200}
-	fws, _, err := client.Firewalls.List(context.Background(), opt)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range fws {
-		if strings.HasPrefix(f.Name, "foobar-") {
-			log.Printf("Destroying firewall %s", f.Name)
-
-			if _, err := client.Firewalls.Delete(context.Background(), f.ID); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func TestAccDigitalOceanFirewall_AllowOnlyInbound(t *testing.T) {
 	rName := acctest.RandString(10)

@@ -3,8 +3,6 @@ package domain_test
 import (
 	"context"
 	"fmt"
-	"log"
-	"strings"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -13,41 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-func init() {
-	resource.AddTestSweepers("digitalocean_domain", &resource.Sweeper{
-		Name: "digitalocean_domain",
-		F:    testSweepDomain,
-	})
-
-}
-
-func testSweepDomain(region string) error {
-	meta, err := acceptance.SharedConfigForRegion(region)
-	if err != nil {
-		return err
-	}
-
-	client := meta.(*config.CombinedConfig).GodoClient()
-
-	opt := &godo.ListOptions{PerPage: 200}
-	domains, _, err := client.Domains.List(context.Background(), opt)
-	if err != nil {
-		return err
-	}
-
-	for _, d := range domains {
-		if strings.HasPrefix(d.Name, acceptance.TestNamePrefix) {
-			log.Printf("Destroying domain %s", d.Name)
-
-			if _, err := client.Domains.Delete(context.Background(), d.Name); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func TestAccDigitalOceanDomain_Basic(t *testing.T) {
 	var domain godo.Domain

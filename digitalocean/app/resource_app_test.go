@@ -3,9 +3,7 @@ package app_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -14,41 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-func init() {
-	resource.AddTestSweepers("digitalocean_app", &resource.Sweeper{
-		Name: "digitalocean_app",
-		F:    testSweepApp,
-	})
-
-}
-
-func testSweepApp(region string) error {
-	meta, err := acceptance.SharedConfigForRegion(region)
-	if err != nil {
-		return err
-	}
-
-	client := meta.(*config.CombinedConfig).GodoClient()
-
-	opt := &godo.ListOptions{PerPage: 200}
-	apps, _, err := client.Apps.List(context.Background(), opt)
-	if err != nil {
-		return err
-	}
-
-	for _, app := range apps {
-		if strings.HasPrefix(app.Spec.Name, acceptance.TestNamePrefix) {
-			log.Printf("Destroying app %s", app.Spec.Name)
-
-			if _, err := client.Apps.Delete(context.Background(), app.ID); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func TestAccDigitalOceanApp_Image(t *testing.T) {
 	var app godo.App

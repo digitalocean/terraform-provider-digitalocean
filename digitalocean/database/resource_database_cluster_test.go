@@ -3,10 +3,8 @@ package database_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/url"
 	"regexp"
-	"strings"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -15,41 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-func init() {
-	resource.AddTestSweepers("digitalocean_database_cluster", &resource.Sweeper{
-		Name: "digitalocean_database_cluster",
-		F:    testSweepDatabaseCluster,
-	})
-
-}
-
-func testSweepDatabaseCluster(region string) error {
-	meta, err := acceptance.SharedConfigForRegion(region)
-	if err != nil {
-		return err
-	}
-
-	client := meta.(*config.CombinedConfig).GodoClient()
-
-	opt := &godo.ListOptions{PerPage: 200}
-	databases, _, err := client.Databases.List(context.Background(), opt)
-	if err != nil {
-		return err
-	}
-
-	for _, db := range databases {
-		if strings.HasPrefix(db.Name, acceptance.TestNamePrefix) {
-			log.Printf("Destroying database cluster %s", db.Name)
-
-			if _, err := client.Databases.Delete(context.Background(), db.ID); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 	var database godo.Database

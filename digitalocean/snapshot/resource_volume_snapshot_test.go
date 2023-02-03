@@ -3,8 +3,6 @@ package snapshot_test
 import (
 	"context"
 	"fmt"
-	"log"
-	"strings"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -14,41 +12,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-func init() {
-	resource.AddTestSweepers("digitalocean_volume_snapshot", &resource.Sweeper{
-		Name:         "digitalocean_volume_snapshot",
-		F:            testSweepVolumeSnapshots,
-		Dependencies: []string{"digitalocean_volume"},
-	})
-}
-
-func testSweepVolumeSnapshots(region string) error {
-	meta, err := acceptance.SharedConfigForRegion(region)
-	if err != nil {
-		return err
-	}
-
-	client := meta.(*config.CombinedConfig).GodoClient()
-
-	opt := &godo.ListOptions{PerPage: 200}
-	snapshots, _, err := client.Snapshots.ListVolume(context.Background(), opt)
-	if err != nil {
-		return err
-	}
-
-	for _, s := range snapshots {
-		if strings.HasPrefix(s.Name, "snapshot-") {
-			log.Printf("Destroying Volume Snapshot %s", s.Name)
-
-			if _, err := client.Snapshots.Delete(context.Background(), s.ID); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func TestAccDigitalOceanVolumeSnapshot_Basic(t *testing.T) {
 	var snapshot godo.Snapshot

@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"log"
 	"reflect"
 	"regexp"
-	"strings"
 	"testing"
 	"time"
 
@@ -39,41 +37,6 @@ data "digitalocean_kubernetes_versions" "test" {
 	testClusterVersionLatest = `data "digitalocean_kubernetes_versions" "test" {
 }`
 )
-
-func init() {
-	resource.AddTestSweepers("digitalocean_kubernetes_cluster", &resource.Sweeper{
-		Name: "digitalocean_kubernetes_cluster",
-		F:    testSweepKubernetesClusters,
-	})
-
-}
-
-func testSweepKubernetesClusters(region string) error {
-	meta, err := acceptance.SharedConfigForRegion(region)
-	if err != nil {
-		return err
-	}
-
-	client := meta.(*config.CombinedConfig).GodoClient()
-
-	opt := &godo.ListOptions{PerPage: 200}
-	clusters, _, err := client.Kubernetes.List(context.Background(), opt)
-	if err != nil {
-		return err
-	}
-	log.Printf("[DEBUG] Found %d Kubernetes clusters to sweep", len(clusters))
-
-	for _, c := range clusters {
-		if strings.HasPrefix(c.Name, acceptance.TestNamePrefix) {
-			log.Printf("Destroying Kubernetes cluster %s", c.Name)
-			if _, err := client.Kubernetes.Delete(context.Background(), c.ID); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	rName := acceptance.RandomTestName()

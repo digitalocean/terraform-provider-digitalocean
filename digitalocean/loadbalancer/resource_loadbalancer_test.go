@@ -3,7 +3,6 @@ package loadbalancer_test
 import (
 	"context"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"testing"
@@ -16,41 +15,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
-
-func init() {
-	resource.AddTestSweepers("digitalocean_loadbalancer", &resource.Sweeper{
-		Name: "digitalocean_loadbalancer",
-		F:    testSweepLoadbalancer,
-	})
-
-}
-
-func testSweepLoadbalancer(region string) error {
-	meta, err := acceptance.SharedConfigForRegion(region)
-	if err != nil {
-		return err
-	}
-
-	client := meta.(*config.CombinedConfig).GodoClient()
-
-	opt := &godo.ListOptions{PerPage: 200}
-	lbs, _, err := client.LoadBalancers.List(context.Background(), opt)
-	if err != nil {
-		return err
-	}
-
-	for _, l := range lbs {
-		if strings.HasPrefix(l.Name, "loadbalancer-") {
-			log.Printf("Destroying loadbalancer %s", l.Name)
-
-			if _, err := client.LoadBalancers.Delete(context.Background(), l.ID); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
 
 func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
