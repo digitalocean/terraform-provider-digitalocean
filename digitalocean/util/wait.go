@@ -2,7 +2,6 @@ package util
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -43,12 +42,4 @@ func WaitForAction(client *godo.Client, action *godo.Action) error {
 		NotFoundChecks: 60,
 	}).WaitForState()
 	return err
-}
-
-func IsDigitalOceanError(err error, code int, message string) bool {
-	if err, ok := err.(*godo.ErrorResponse); ok {
-		return err.Response.StatusCode == code &&
-			strings.Contains(strings.ToLower(err.Message), strings.ToLower(message))
-	}
-	return false
 }

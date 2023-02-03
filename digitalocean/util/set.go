@@ -1,15 +1,8 @@
 package util
 
 import (
-	"strings"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
-
-// Helper function for sets of strings that are case insensitive
-func HashStringIgnoreCase(v interface{}) int {
-	return SDKHashString(strings.ToLower(v.(string)))
-}
 
 // GetSetChanges compares two *schema.Set, "old" and "new." It returns one
 // *schema.Set only containing items not found in the "new" set and another
