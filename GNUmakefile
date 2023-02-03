@@ -1,6 +1,8 @@
 TEST?=$$(go list ./... |grep -v 'vendor')
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
-PKG_NAME=digitalocean
+PKG_NAME:=digitalocean
+ACCTEST_TIMEOUT:=120m
+ACCTEST_PARALLELISM:=2
 
 default: build
 
@@ -13,7 +15,7 @@ test: fmtcheck
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 testacc: fmtcheck
-	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 120m
+	TF_ACC=1 go test -v ./$(PKG_NAME)/... $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -parallel=$(ACCTEST_PARALLELISM)
 
 vet:
 	@echo "go vet ."
@@ -26,7 +28,7 @@ vet:
 
 sweep:
 	@echo "WARNING: This will destroy infrastructure. Use only in development accounts."
-	go test ./digitalocean -v -sweep=1
+	go test ./digitalocean/... -v -sweep=1
 
 goimports:
 	@echo "==> Fixing imports code with goimports..."
@@ -46,14 +48,6 @@ fmtcheck:
 
 errcheck:
 	@sh -c "'$(CURDIR)/scripts/errcheck.sh'"
-
-test-compile:
-	@if [ "$(TEST)" = "./..." ]; then \
-		echo "ERROR: Set TEST to a specific package. For example,"; \
-		echo "  make test-compile TEST=./$(PKG_NAME)"; \
-		exit 1; \
-	fi
-	go test -c $(TEST) $(TESTARGS)
 
 website:
 	@echo "Use this site to preview markdown rendering: https://registry.terraform.io/tools/doc-preview"
