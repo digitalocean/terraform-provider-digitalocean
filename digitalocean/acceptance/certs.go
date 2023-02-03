@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 )
 
+// GenerateTestCertMaterial generates a TLS certificate for use in acceptance test fixtures.
 func GenerateTestCertMaterial(t *testing.T) (string, string, string) {
 	leafCertMaterial, privateKeyMaterial, err := randTLSCert("Acme Co", "example.com")
 	if err != nil {
