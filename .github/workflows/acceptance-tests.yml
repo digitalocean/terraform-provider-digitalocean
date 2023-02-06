@@ -1,0 +1,32 @@
+on:
+  repository_dispatch:
+    types: [testacc-command]
+
+name: Acceptance Testing
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    if:
+      github.event.client_payload.slash_command.sha != '' &&
+      github.event.client_payload.slash_command.pkg != '' &&
+      github.event.client_payload.pull_request.head.sha == github.event.client_payload.slash_command.sha
+    concurrency: acceptance_tests
+
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19.x
+
+      - name: Checkout PR
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.client_payload.slash_command.sha }}
+
+      - run: make PKG_NAME="${{ github.event.client_payload.slash_command.pkg }}" testacc
+        env:
+          ACCTEST_PARALLELISM: 10
+          DIGITALOCEAN_TOKEN: ${{ secrets.ACCEPTANCE_TESTS_TOKEN }}
+          SPACES_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
+          SPACES_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
