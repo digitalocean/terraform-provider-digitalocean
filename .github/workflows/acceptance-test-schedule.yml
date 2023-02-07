@@ -16,7 +16,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.18.x
+          go-version: 1.19.x
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -30,13 +30,15 @@ jobs:
           SPACES_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
 
   sweep:
+    if: ${{ always() }}
+    needs: acceptance
     runs-on: ubuntu-latest
 
     steps:
       - name: Install Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.18.x
+          go-version: 1.19.x
 
       - name: Checkout
         uses: actions/checkout@v2
