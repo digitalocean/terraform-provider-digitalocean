@@ -65,6 +65,12 @@ In order to run a specific acceptance test, use the `TESTARGS` environment varia
 $ make testacc TESTARGS='-run=TestAccDigitalOceanDomain_Basic'
 ```
 
+All acceptance tests for a specific package can be run by setting the `PKG_NAME` environment variable. For example:
+
+```sh
+$ make testacc PKG_NAME=digitalocean/account
+```
+
 In order to check changes you made locally to the provider, you can use the binary you just compiled by adding the following
 to your `~/.terraformrc` file. This is valid for Terraform 0.14+. Please see
 [Terraform's documentation](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers)
@@ -111,7 +117,7 @@ To release the provider:
    git tag -m "release $new_version" -a "$new_version"
    ```
 
-1. Push the tag:  
+1. Push the tag:
 
    ```bash
    git push "$origin" tag "$new_version"

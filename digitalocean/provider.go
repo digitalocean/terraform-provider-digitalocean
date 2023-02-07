@@ -1,12 +1,34 @@
 package digitalocean
 
 import (
-	"github.com/digitalocean/terraform-provider-digitalocean/internal/mutexkv"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/account"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/app"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/cdn"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/certificate"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/database"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/domain"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/droplet"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/firewall"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/image"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/monitoring"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/project"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/region"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/registry"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/reservedip"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/size"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/snapshot"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/spaces"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/sshkey"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/uptime"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/volume"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpc"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
-
-// Global MutexKV
-var mutexKV = mutexkv.NewMutexKV()
 
 // Provider returns a schema.Provider for DigitalOcean.
 func Provider() *schema.Provider {
@@ -47,85 +69,85 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"digitalocean_account":               dataSourceDigitalOceanAccount(),
-			"digitalocean_app":                   dataSourceDigitalOceanApp(),
-			"digitalocean_certificate":           dataSourceDigitalOceanCertificate(),
-			"digitalocean_container_registry":    dataSourceDigitalOceanContainerRegistry(),
-			"digitalocean_database_cluster":      dataSourceDigitalOceanDatabaseCluster(),
-			"digitalocean_database_ca":           dataSourceDigitalOceanDatabaseCA(),
-			"digitalocean_database_replica":      dataSourceDigitalOceanDatabaseReplica(),
-			"digitalocean_domain":                dataSourceDigitalOceanDomain(),
-			"digitalocean_domains":               dataSourceDigitalOceanDomains(),
-			"digitalocean_droplet":               dataSourceDigitalOceanDroplet(),
-			"digitalocean_droplets":              dataSourceDigitalOceanDroplets(),
-			"digitalocean_droplet_snapshot":      dataSourceDigitalOceanDropletSnapshot(),
-			"digitalocean_firewall":              dataSourceDigitalOceanFirewall(),
-			"digitalocean_floating_ip":           dataSourceDigitalOceanFloatingIP(),
-			"digitalocean_image":                 dataSourceDigitalOceanImage(),
-			"digitalocean_images":                dataSourceDigitalOceanImages(),
-			"digitalocean_kubernetes_cluster":    dataSourceDigitalOceanKubernetesCluster(),
-			"digitalocean_kubernetes_versions":   dataSourceDigitalOceanKubernetesVersions(),
-			"digitalocean_loadbalancer":          dataSourceDigitalOceanLoadbalancer(),
-			"digitalocean_project":               dataSourceDigitalOceanProject(),
-			"digitalocean_projects":              dataSourceDigitalOceanProjects(),
-			"digitalocean_record":                dataSourceDigitalOceanRecord(),
-			"digitalocean_records":               dataSourceDigitalOceanRecords(),
-			"digitalocean_region":                dataSourceDigitalOceanRegion(),
-			"digitalocean_regions":               dataSourceDigitalOceanRegions(),
-			"digitalocean_reserved_ip":           dataSourceDigitalOceanReservedIP(),
-			"digitalocean_sizes":                 dataSourceDigitalOceanSizes(),
-			"digitalocean_spaces_bucket":         dataSourceDigitalOceanSpacesBucket(),
-			"digitalocean_spaces_buckets":        dataSourceDigitalOceanSpacesBuckets(),
-			"digitalocean_spaces_bucket_object":  dataSourceDigitalOceanSpacesBucketObject(),
-			"digitalocean_spaces_bucket_objects": dataSourceDigitalOceanSpacesBucketObjects(),
-			"digitalocean_ssh_key":               dataSourceDigitalOceanSSHKey(),
-			"digitalocean_ssh_keys":              dataSourceDigitalOceanSSHKeys(),
-			"digitalocean_tag":                   dataSourceDigitalOceanTag(),
-			"digitalocean_tags":                  dataSourceDigitalOceanTags(),
-			"digitalocean_volume_snapshot":       dataSourceDigitalOceanVolumeSnapshot(),
-			"digitalocean_volume":                dataSourceDigitalOceanVolume(),
-			"digitalocean_vpc":                   dataSourceDigitalOceanVPC(),
+			"digitalocean_account":               account.DataSourceDigitalOceanAccount(),
+			"digitalocean_app":                   app.DataSourceDigitalOceanApp(),
+			"digitalocean_certificate":           certificate.DataSourceDigitalOceanCertificate(),
+			"digitalocean_container_registry":    registry.DataSourceDigitalOceanContainerRegistry(),
+			"digitalocean_database_cluster":      database.DataSourceDigitalOceanDatabaseCluster(),
+			"digitalocean_database_ca":           database.DataSourceDigitalOceanDatabaseCA(),
+			"digitalocean_database_replica":      database.DataSourceDigitalOceanDatabaseReplica(),
+			"digitalocean_domain":                domain.DataSourceDigitalOceanDomain(),
+			"digitalocean_domains":               domain.DataSourceDigitalOceanDomains(),
+			"digitalocean_droplet":               droplet.DataSourceDigitalOceanDroplet(),
+			"digitalocean_droplets":              droplet.DataSourceDigitalOceanDroplets(),
+			"digitalocean_droplet_snapshot":      snapshot.DataSourceDigitalOceanDropletSnapshot(),
+			"digitalocean_firewall":              firewall.DataSourceDigitalOceanFirewall(),
+			"digitalocean_floating_ip":           reservedip.DataSourceDigitalOceanFloatingIP(),
+			"digitalocean_image":                 image.DataSourceDigitalOceanImage(),
+			"digitalocean_images":                image.DataSourceDigitalOceanImages(),
+			"digitalocean_kubernetes_cluster":    kubernetes.DataSourceDigitalOceanKubernetesCluster(),
+			"digitalocean_kubernetes_versions":   kubernetes.DataSourceDigitalOceanKubernetesVersions(),
+			"digitalocean_loadbalancer":          loadbalancer.DataSourceDigitalOceanLoadbalancer(),
+			"digitalocean_project":               project.DataSourceDigitalOceanProject(),
+			"digitalocean_projects":              project.DataSourceDigitalOceanProjects(),
+			"digitalocean_record":                domain.DataSourceDigitalOceanRecord(),
+			"digitalocean_records":               domain.DataSourceDigitalOceanRecords(),
+			"digitalocean_region":                region.DataSourceDigitalOceanRegion(),
+			"digitalocean_regions":               region.DataSourceDigitalOceanRegions(),
+			"digitalocean_reserved_ip":           reservedip.DataSourceDigitalOceanReservedIP(),
+			"digitalocean_sizes":                 size.DataSourceDigitalOceanSizes(),
+			"digitalocean_spaces_bucket":         spaces.DataSourceDigitalOceanSpacesBucket(),
+			"digitalocean_spaces_buckets":        spaces.DataSourceDigitalOceanSpacesBuckets(),
+			"digitalocean_spaces_bucket_object":  spaces.DataSourceDigitalOceanSpacesBucketObject(),
+			"digitalocean_spaces_bucket_objects": spaces.DataSourceDigitalOceanSpacesBucketObjects(),
+			"digitalocean_ssh_key":               sshkey.DataSourceDigitalOceanSSHKey(),
+			"digitalocean_ssh_keys":              sshkey.DataSourceDigitalOceanSSHKeys(),
+			"digitalocean_tag":                   tag.DataSourceDigitalOceanTag(),
+			"digitalocean_tags":                  tag.DataSourceDigitalOceanTags(),
+			"digitalocean_volume_snapshot":       snapshot.DataSourceDigitalOceanVolumeSnapshot(),
+			"digitalocean_volume":                volume.DataSourceDigitalOceanVolume(),
+			"digitalocean_vpc":                   vpc.DataSourceDigitalOceanVPC(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"digitalocean_app":                                   resourceDigitalOceanApp(),
-			"digitalocean_certificate":                           resourceDigitalOceanCertificate(),
-			"digitalocean_container_registry":                    resourceDigitalOceanContainerRegistry(),
-			"digitalocean_container_registry_docker_credentials": resourceDigitalOceanContainerRegistryDockerCredentials(),
-			"digitalocean_cdn":                                   resourceDigitalOceanCDN(),
-			"digitalocean_database_cluster":                      resourceDigitalOceanDatabaseCluster(),
-			"digitalocean_database_connection_pool":              resourceDigitalOceanDatabaseConnectionPool(),
-			"digitalocean_database_db":                           resourceDigitalOceanDatabaseDB(),
-			"digitalocean_database_firewall":                     resourceDigitalOceanDatabaseFirewall(),
-			"digitalocean_database_replica":                      resourceDigitalOceanDatabaseReplica(),
-			"digitalocean_database_user":                         resourceDigitalOceanDatabaseUser(),
-			"digitalocean_domain":                                resourceDigitalOceanDomain(),
-			"digitalocean_droplet":                               resourceDigitalOceanDroplet(),
-			"digitalocean_droplet_snapshot":                      resourceDigitalOceanDropletSnapshot(),
-			"digitalocean_firewall":                              resourceDigitalOceanFirewall(),
-			"digitalocean_floating_ip":                           resourceDigitalOceanFloatingIP(),
-			"digitalocean_floating_ip_assignment":                resourceDigitalOceanFloatingIPAssignment(),
-			"digitalocean_kubernetes_cluster":                    resourceDigitalOceanKubernetesCluster(),
-			"digitalocean_kubernetes_node_pool":                  resourceDigitalOceanKubernetesNodePool(),
-			"digitalocean_loadbalancer":                          resourceDigitalOceanLoadbalancer(),
-			"digitalocean_monitor_alert":                         resourceDigitalOceanMonitorAlert(),
-			"digitalocean_project":                               resourceDigitalOceanProject(),
-			"digitalocean_project_resources":                     resourceDigitalOceanProjectResources(),
-			"digitalocean_record":                                resourceDigitalOceanRecord(),
-			"digitalocean_reserved_ip":                           resourceDigitalOceanReservedIP(),
-			"digitalocean_reserved_ip_assignment":                resourceDigitalOceanReservedIPAssignment(),
-			"digitalocean_spaces_bucket":                         resourceDigitalOceanBucket(),
-			"digitalocean_spaces_bucket_object":                  resourceDigitalOceanSpacesBucketObject(),
-			"digitalocean_spaces_bucket_policy":                  resourceDigitalOceanSpacesBucketPolicy(),
-			"digitalocean_ssh_key":                               resourceDigitalOceanSSHKey(),
-			"digitalocean_tag":                                   resourceDigitalOceanTag(),
-			"digitalocean_uptime_check":                          resourceDigitalOceanUptimeCheck(),
-			"digitalocean_uptime_alert":                          resourceDigitalOceanUptimeAlert(),
-			"digitalocean_volume":                                resourceDigitalOceanVolume(),
-			"digitalocean_volume_attachment":                     resourceDigitalOceanVolumeAttachment(),
-			"digitalocean_volume_snapshot":                       resourceDigitalOceanVolumeSnapshot(),
-			"digitalocean_vpc":                                   resourceDigitalOceanVPC(),
-			"digitalocean_custom_image":                          resourceDigitalOceanCustomImage(),
+			"digitalocean_app":                                   app.ResourceDigitalOceanApp(),
+			"digitalocean_certificate":                           certificate.ResourceDigitalOceanCertificate(),
+			"digitalocean_container_registry":                    registry.ResourceDigitalOceanContainerRegistry(),
+			"digitalocean_container_registry_docker_credentials": registry.ResourceDigitalOceanContainerRegistryDockerCredentials(),
+			"digitalocean_cdn":                                   cdn.ResourceDigitalOceanCDN(),
+			"digitalocean_database_cluster":                      database.ResourceDigitalOceanDatabaseCluster(),
+			"digitalocean_database_connection_pool":              database.ResourceDigitalOceanDatabaseConnectionPool(),
+			"digitalocean_database_db":                           database.ResourceDigitalOceanDatabaseDB(),
+			"digitalocean_database_firewall":                     database.ResourceDigitalOceanDatabaseFirewall(),
+			"digitalocean_database_replica":                      database.ResourceDigitalOceanDatabaseReplica(),
+			"digitalocean_database_user":                         database.ResourceDigitalOceanDatabaseUser(),
+			"digitalocean_domain":                                domain.ResourceDigitalOceanDomain(),
+			"digitalocean_droplet":                               droplet.ResourceDigitalOceanDroplet(),
+			"digitalocean_droplet_snapshot":                      snapshot.ResourceDigitalOceanDropletSnapshot(),
+			"digitalocean_firewall":                              firewall.ResourceDigitalOceanFirewall(),
+			"digitalocean_floating_ip":                           reservedip.ResourceDigitalOceanFloatingIP(),
+			"digitalocean_floating_ip_assignment":                reservedip.ResourceDigitalOceanFloatingIPAssignment(),
+			"digitalocean_kubernetes_cluster":                    kubernetes.ResourceDigitalOceanKubernetesCluster(),
+			"digitalocean_kubernetes_node_pool":                  kubernetes.ResourceDigitalOceanKubernetesNodePool(),
+			"digitalocean_loadbalancer":                          loadbalancer.ResourceDigitalOceanLoadbalancer(),
+			"digitalocean_monitor_alert":                         monitoring.ResourceDigitalOceanMonitorAlert(),
+			"digitalocean_project":                               project.ResourceDigitalOceanProject(),
+			"digitalocean_project_resources":                     project.ResourceDigitalOceanProjectResources(),
+			"digitalocean_record":                                domain.ResourceDigitalOceanRecord(),
+			"digitalocean_reserved_ip":                           reservedip.ResourceDigitalOceanReservedIP(),
+			"digitalocean_reserved_ip_assignment":                reservedip.ResourceDigitalOceanReservedIPAssignment(),
+			"digitalocean_spaces_bucket":                         spaces.ResourceDigitalOceanBucket(),
+			"digitalocean_spaces_bucket_object":                  spaces.ResourceDigitalOceanSpacesBucketObject(),
+			"digitalocean_spaces_bucket_policy":                  spaces.ResourceDigitalOceanSpacesBucketPolicy(),
+			"digitalocean_ssh_key":                               sshkey.ResourceDigitalOceanSSHKey(),
+			"digitalocean_tag":                                   tag.ResourceDigitalOceanTag(),
+			"digitalocean_uptime_check":                          uptime.ResourceDigitalOceanUptimeCheck(),
+			"digitalocean_uptime_alert":                          uptime.ResourceDigitalOceanUptimeAlert(),
+			"digitalocean_volume":                                volume.ResourceDigitalOceanVolume(),
+			"digitalocean_volume_attachment":                     volume.ResourceDigitalOceanVolumeAttachment(),
+			"digitalocean_volume_snapshot":                       snapshot.ResourceDigitalOceanVolumeSnapshot(),
+			"digitalocean_vpc":                                   vpc.ResourceDigitalOceanVPC(),
+			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
 		},
 	}
 
@@ -143,7 +165,7 @@ func Provider() *schema.Provider {
 }
 
 func providerConfigure(d *schema.ResourceData, terraformVersion string) (interface{}, error) {
-	config := Config{
+	conf := config.Config{
 		Token:            d.Get("token").(string),
 		APIEndpoint:      d.Get("api_endpoint").(string),
 		AccessID:         d.Get("spaces_access_id").(string),
@@ -152,8 +174,8 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 	}
 
 	if endpoint, ok := d.GetOk("spaces_endpoint"); ok {
-		config.SpacesAPIEndpoint = endpoint.(string)
+		conf.SpacesAPIEndpoint = endpoint.(string)
 	}
 
-	return config.Client()
+	return conf.Client()
 }
