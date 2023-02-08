@@ -15,24 +15,24 @@ func TestAccDataSourceDigitalOceanDroplets_Basic(t *testing.T) {
 
 	resourcesConfig := fmt.Sprintf(`
 resource "digitalocean_droplet" "foo" {
-  name     = "%s"
-  size     = "s-1vcpu-1gb"
-  image    = "ubuntu-22-04-x64"
-  region   = "nyc3"
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
 }
 
 resource "digitalocean_droplet" "bar" {
-  name     = "%s"
-  size     = "s-1vcpu-1gb"
-  image    = "ubuntu-22-04-x64"
-  region   = "nyc3"
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
 }
 `, name1, name2)
 
 	datasourceConfig := fmt.Sprintf(`
 data "digitalocean_droplets" "result" {
   filter {
-    key = "name"
+    key    = "name"
     values = ["%s"]
   }
 }

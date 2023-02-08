@@ -84,7 +84,7 @@ func TestAccDataSourceDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 const (
 	testAccCheckDigitalOceanDatasourceDatabaseReplicaConfigBasic = `
 data "digitalocean_database_replica" "my_db_replica" {
-	cluster_id = digitalocean_database_cluster.foobar.id
-	name       = "%s"
-	}`
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
+}`
 )

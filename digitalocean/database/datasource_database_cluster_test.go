@@ -85,28 +85,28 @@ func testAccCheckDataSourceDigitalOceanDatabaseClusterExists(n string, databaseC
 
 const testAccCheckDataSourceDigitalOceanDatabaseClusterConfigBasic = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-    node_count = 1
-	tags       = ["production"]
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
 }
 `
 
 const testAccCheckDataSourceDigitalOceanDatabaseClusterConfigWithDatasource = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-    node_count = 1
-	tags       = ["production"]
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
 }
 
 data "digitalocean_database_cluster" "foobar" {
-   name = "${digitalocean_database_cluster.foobar.name}"
+  name = "${digitalocean_database_cluster.foobar.name}"
 }
 `

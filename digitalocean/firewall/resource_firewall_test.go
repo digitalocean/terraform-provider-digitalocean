@@ -181,119 +181,119 @@ func TestAccDigitalOceanFirewall_ImportMultipleRules(t *testing.T) {
 
 func testAccDigitalOceanFirewallConfig_OnlyInbound(rName string) string {
 	return fmt.Sprintf(`
-	resource "digitalocean_firewall" "foobar" {
-				name          = "foobar-%s"
-				inbound_rule {
-					protocol         = "tcp"
-					port_range       = "22"
-					source_addresses = ["0.0.0.0/0", "::/0"]
-				}
+resource "digitalocean_firewall" "foobar" {
+  name = "foobar-%s"
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
 
-			}
+}
 	`, rName)
 }
 
 func testAccDigitalOceanFirewallConfig_OnlyOutbound(rName string) string {
 	return fmt.Sprintf(`
-	resource "digitalocean_firewall" "foobar" {
-				name          = "foobar-%s"
-				outbound_rule {
-					protocol              = "tcp"
-					port_range            = "22"
-					destination_addresses = ["0.0.0.0/0", "::/0"]
-				}
+resource "digitalocean_firewall" "foobar" {
+  name = "foobar-%s"
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "22"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
 
-			}
+}
 	`, rName)
 }
 
 func testAccDigitalOceanFirewallConfig_OnlyMultipleInbound(rName string) string {
 	return fmt.Sprintf(`
-	resource "digitalocean_firewall" "foobar" {
-				name          = "foobar-%s"
-				inbound_rule {
-					protocol         = "tcp"
-					port_range       = "22"
-					source_addresses = ["0.0.0.0/0", "::/0"]
-				}
-				inbound_rule {
-					protocol         = "tcp"
-					port_range       = "80"
-					source_addresses = ["1.2.3.0/24", "2002::/16"]
-				}
+resource "digitalocean_firewall" "foobar" {
+  name = "foobar-%s"
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "80"
+    source_addresses = ["1.2.3.0/24", "2002::/16"]
+  }
 
-			}
+}
 	`, rName)
 }
 
 func testAccDigitalOceanFirewallConfig_OnlyMultipleOutbound(rName string) string {
 	return fmt.Sprintf(`
-	resource "digitalocean_firewall" "foobar" {
-				name          = "foobar-%s"
-				outbound_rule {
-					protocol              = "tcp"
-					port_range            = "22"
-					destination_addresses = ["192.168.1.0/24", "2002:1001::/48"]
-				}
-				outbound_rule {
-					protocol              = "udp"
-					port_range            = "53"
-					destination_addresses = ["1.2.3.0/24", "2002::/16"]
-				}
+resource "digitalocean_firewall" "foobar" {
+  name = "foobar-%s"
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "22"
+    destination_addresses = ["192.168.1.0/24", "2002:1001::/48"]
+  }
+  outbound_rule {
+    protocol              = "udp"
+    port_range            = "53"
+    destination_addresses = ["1.2.3.0/24", "2002::/16"]
+  }
 
-			}
+}
 	`, rName)
 }
 
 func testAccDigitalOceanFirewallConfig_MultipleInboundAndOutbound(tagName string, rName string) string {
 	return fmt.Sprintf(`
-	resource "digitalocean_tag" "foobar" {
-		name = "%s"
-	}
+resource "digitalocean_tag" "foobar" {
+  name = "%s"
+}
 
-	resource "digitalocean_firewall" "foobar" {
-				name          = "foobar-%s"
-				inbound_rule {
-					protocol         = "tcp"
-					port_range       = "22"
-					source_addresses = ["0.0.0.0/0", "::/0"]
-				}
-				inbound_rule {
-					protocol         = "tcp"
-					port_range       = "443"
-					source_addresses = ["192.168.1.0/24", "2002:1001:1:2::/64"]
-					source_tags      = ["%s"]
-				}
-				outbound_rule {
-					protocol              = "tcp"
-					port_range            = "443"
-					destination_addresses = ["192.168.1.0/24", "2002:1001:1:2::/64"]
-					destination_tags      = ["%s"]
-				}
-				outbound_rule {
-					protocol              = "udp"
-					port_range            = "53"
-					destination_addresses = ["0.0.0.0/0", "::/0"]
-				}
+resource "digitalocean_firewall" "foobar" {
+  name = "foobar-%s"
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "443"
+    source_addresses = ["192.168.1.0/24", "2002:1001:1:2::/64"]
+    source_tags      = ["%s"]
+  }
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "443"
+    destination_addresses = ["192.168.1.0/24", "2002:1001:1:2::/64"]
+    destination_tags      = ["%s"]
+  }
+  outbound_rule {
+    protocol              = "udp"
+    port_range            = "53"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+  }
 
-			}
+}
 	`, tagName, rName, tagName, tagName)
 }
 
 func testAccDigitalOceanFirewallConfig_fullPortRange(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_firewall" "foobar" {
-	name          = "foobar-%s"
-	inbound_rule {
-		protocol         = "tcp"
-		port_range       = "all"
-		source_addresses = ["192.168.1.1/32"]
-	}
-	outbound_rule {
-		protocol              = "tcp"
-		port_range            = "all"
-		destination_addresses = ["192.168.1.2/32"]
-	}
+  name = "foobar-%s"
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "all"
+    source_addresses = ["192.168.1.1/32"]
+  }
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "all"
+    destination_addresses = ["192.168.1.2/32"]
+  }
 }
 `, rName)
 }
@@ -301,16 +301,16 @@ resource "digitalocean_firewall" "foobar" {
 func testAccDigitalOceanFirewallConfig_icmp(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_firewall" "foobar" {
-	name          = "foobar-%s"
-	inbound_rule {
-		protocol         = "icmp"
-		source_addresses = ["192.168.1.1/32"]
-	}
-	outbound_rule {
-		protocol              = "icmp"
-		port_range            = "1-65535"
-		destination_addresses = ["192.168.1.2/32"]
-	}
+  name = "foobar-%s"
+  inbound_rule {
+    protocol         = "icmp"
+    source_addresses = ["192.168.1.1/32"]
+  }
+  outbound_rule {
+    protocol              = "icmp"
+    port_range            = "1-65535"
+    destination_addresses = ["192.168.1.2/32"]
+  }
 }
 `, rName)
 }

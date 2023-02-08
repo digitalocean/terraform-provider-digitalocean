@@ -101,9 +101,9 @@ resource "digitalocean_volume" "foo" {
 }
 
 resource "digitalocean_volume_snapshot" "foobar" {
-  name = "snapshot-%d"
+  name      = "snapshot-%d"
   volume_id = "${digitalocean_volume.foo.id}"
-  tags = ["foo","bar"]
+  tags      = ["foo", "bar"]
 }`
 
 func TestAccDigitalOceanVolumeSnapshot_UpdateTags(t *testing.T) {
@@ -142,7 +142,7 @@ resource "digitalocean_volume" "foo" {
 }
 
 resource "digitalocean_volume_snapshot" "foobar" {
-  name = "snapshot-%d"
+  name      = "snapshot-%d"
   volume_id = "${digitalocean_volume.foo.id}"
-  tags = ["foo","bar","baz"]
+  tags      = ["foo", "bar", "baz"]
 }`

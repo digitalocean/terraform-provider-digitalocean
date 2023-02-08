@@ -97,14 +97,14 @@ func TestAccDigitalOceanCustomImageMultiRegion(t *testing.T) {
 func testAccCheckDigitalOceanCustomImageConfig(rName string, name string, regions string, distro string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_custom_image" "%s" {
-	name = "%s-name"
-	url  = "https://stable.release.flatcar-linux.net/amd64-usr/2605.7.0/flatcar_production_digitalocean_image.bin.bz2"
-	regions      = %v
-	description  = "%s-description"
-	distribution = "%s"
-	tags = [
-		"flatcar"
-	]
+  name         = "%s-name"
+  url          = "https://stable.release.flatcar-linux.net/amd64-usr/2605.7.0/flatcar_production_digitalocean_image.bin.bz2"
+  regions      = %s
+  description  = "%s-description"
+  distribution = "%s"
+  tags = [
+    "flatcar"
+  ]
 }
 `, rName, name, regions, name, distro)
 }

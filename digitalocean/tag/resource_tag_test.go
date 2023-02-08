@@ -104,5 +104,5 @@ func testAccCheckDigitalOceanTagExists(n string, tag *godo.Tag) resource.TestChe
 
 var testAccCheckDigitalOceanTagConfig_basic = fmt.Sprintf(`
 resource "digitalocean_tag" "foobar" {
-    name = "foobar"
+  name = "foobar"
 }`)

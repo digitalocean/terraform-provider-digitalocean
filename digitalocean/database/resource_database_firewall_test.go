@@ -90,73 +90,73 @@ func testAccCheckDigitalOceanDatabaseFirewallDestroy(s *terraform.State) error {
 
 const testAccCheckDigitalOceanDatabaseFirewallConfigBasic = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
 }
 
 resource "digitalocean_database_firewall" "example" {
-	cluster_id = digitalocean_database_cluster.foobar.id
+  cluster_id = digitalocean_database_cluster.foobar.id
 
-	rule {
-		type  = "ip_addr"
-		value = "192.168.1.1"
-	}
+  rule {
+    type  = "ip_addr"
+    value = "192.168.1.1"
+  }
 }
 `
 
 const testAccCheckDigitalOceanDatabaseFirewallConfigAddRule = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
 }
 
 resource "digitalocean_database_firewall" "example" {
-	cluster_id = digitalocean_database_cluster.foobar.id
+  cluster_id = digitalocean_database_cluster.foobar.id
 
-	rule {
-		type  = "ip_addr"
-		value = "192.168.1.1"
-	}
+  rule {
+    type  = "ip_addr"
+    value = "192.168.1.1"
+  }
 
-	rule {
-		type  = "ip_addr"
-		value = "192.0.2.0"
-	}
+  rule {
+    type  = "ip_addr"
+    value = "192.0.2.0"
+  }
 }
 `
 
 const testAccCheckDigitalOceanDatabaseFirewallConfigMultipleResourceTypes = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
 }
 
 resource "digitalocean_droplet" "foobar" {
-	name      = "%s"
-	size      = "s-1vcpu-1gb"
-	image     = "ubuntu-22-04-x64"
-	region    = "nyc3"
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
 }
 
 resource "digitalocean_tag" "foobar" {
-	name = "%s"
+  name = "%s"
 }
 
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "nyc"
 
     service {
@@ -174,26 +174,26 @@ resource "digitalocean_app" "foobar" {
 }
 
 resource "digitalocean_database_firewall" "example" {
-	cluster_id = digitalocean_database_cluster.foobar.id
+  cluster_id = digitalocean_database_cluster.foobar.id
 
-	rule {
-		type  = "ip_addr"
-		value = "192.168.1.1"
-	}
+  rule {
+    type  = "ip_addr"
+    value = "192.168.1.1"
+  }
 
-	rule {
-		type  = "droplet"
-		value = digitalocean_droplet.foobar.id
-	}
+  rule {
+    type  = "droplet"
+    value = digitalocean_droplet.foobar.id
+  }
 
-	rule {
-		type  = "tag"
-		value = digitalocean_tag.foobar.name
-	}
+  rule {
+    type  = "tag"
+    value = digitalocean_tag.foobar.name
+  }
 
-	rule {
-		type  = "app"
-		value = digitalocean_app.foobar.id
-	}
+  rule {
+    type  = "app"
+    value = digitalocean_app.foobar.id
+  }
 }
 `

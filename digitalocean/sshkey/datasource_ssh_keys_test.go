@@ -25,12 +25,12 @@ func TestAccDataSourceDigitalOceanSSHKeys_Basic(t *testing.T) {
 
 	resourcesConfig := fmt.Sprintf(`
 resource "digitalocean_ssh_key" "foo" {
-  name = "%s"
+  name       = "%s"
   public_key = "%s"
 }
 
 resource "digitalocean_ssh_key" "bar" {
-  name = "%s"
+  name       = "%s"
   public_key = "%s"
 }
 `, keyName1, pubKey1, keyName2, pubKey2)

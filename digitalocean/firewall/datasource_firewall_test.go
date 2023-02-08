@@ -12,7 +12,7 @@ import (
 func TestAccDataSourceDigitalOceanFirewall_Basic(t *testing.T) {
 	fwDataConfig := `
 data "digitalocean_firewall" "foobar" {
-	firewall_id = digitalocean_firewall.foobar.id
+  firewall_id = digitalocean_firewall.foobar.id
 }`
 
 	var firewall godo.Firewall

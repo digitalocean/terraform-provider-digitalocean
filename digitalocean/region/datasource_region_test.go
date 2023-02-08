@@ -11,7 +11,7 @@ import (
 func TestAccDigitalOceanRegion_Basic(t *testing.T) {
 	config := `
 data "digitalocean_region" "lon1" {
-	slug = "lon1"
+  slug = "lon1"
 }
 `
 	resource.ParallelTest(t, resource.TestCase{
@@ -35,7 +35,7 @@ data "digitalocean_region" "lon1" {
 func TestAccDigitalOceanRegion_MissingSlug(t *testing.T) {
 	config := `
 data "digitalocean_region" "xyz5" {
-	slug = "xyz5"
+  slug = "xyz5"
 }
 `
 	resource.ParallelTest(t, resource.TestCase{

@@ -70,7 +70,7 @@ data "digitalocean_kubernetes_versions" "foobar" {}`
 
 const testAccCheckDataSourceDigitalOceanKubernetesVersionsConfig_filtered = `
 data "digitalocean_kubernetes_versions" "foobar" {
-	version_prefix = "1.12." # No longer supported, should be empty
+  version_prefix = "1.12." # No longer supported, should be empty
 }`
 
 const testAccCheckDataSourceDigitalOceanKubernetesVersionsConfig_create = `
@@ -78,13 +78,13 @@ data "digitalocean_kubernetes_versions" "foobar" {
 }
 
 resource "digitalocean_kubernetes_cluster" "foobar" {
-	name    = "%s"
-	region  = "lon1"
-	version = data.digitalocean_kubernetes_versions.foobar.latest_version
+  name    = "%s"
+  region  = "lon1"
+  version = data.digitalocean_kubernetes_versions.foobar.latest_version
 
-	node_pool {
-		name = "default"
-		size  = "s-1vcpu-2gb"
-		node_count = 1
-	}
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
 }`

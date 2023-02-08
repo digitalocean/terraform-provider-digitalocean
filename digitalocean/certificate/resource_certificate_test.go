@@ -149,11 +149,11 @@ func testAccCheckDigitalOceanCertificateExists(n string, cert *godo.Certificate)
 func testAccCheckDigitalOceanCertificateConfig_basic(rInt int, privateKeyMaterial, leafCert, certChain string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_certificate" "foobar" {
-  name = "certificate-%d"
-  private_key = <<EOF
+  name              = "certificate-%d"
+  private_key       = <<EOF
 %s
 EOF
-  leaf_certificate = <<EOF
+  leaf_certificate  = <<EOF
 %s
 EOF
   certificate_chain = <<EOF
@@ -165,8 +165,8 @@ EOF
 func testAccCheckDigitalOceanCertificateConfig_customNoLeaf(rInt int, privateKeyMaterial, certChain string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_certificate" "foobar" {
-  name = "certificate-%d"
-  private_key = <<EOF
+  name              = "certificate-%d"
+  private_key       = <<EOF
 %s
 EOF
   certificate_chain = <<EOF
@@ -178,8 +178,8 @@ EOF
 func testAccCheckDigitalOceanCertificateConfig_customNoKey(rInt int, leafCert, certChain string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_certificate" "foobar" {
-  name = "certificate-%d"
-  leaf_certificate = <<EOF
+  name              = "certificate-%d"
+  leaf_certificate  = <<EOF
 %s
 EOF
   certificate_chain = <<EOF

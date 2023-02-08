@@ -200,25 +200,25 @@ func generateBucketName() string {
 
 const testAccCheckDigitalOceanCDNConfig_Create = `
 resource "digitalocean_spaces_bucket" "bucket" {
-	name = "%s"
-	region = "ams3"
-	acl = "public-read"
+  name   = "%s"
+  region = "ams3"
+  acl    = "public-read"
 }
 
 resource "digitalocean_cdn" "foobar" {
-	origin = "${digitalocean_spaces_bucket.bucket.bucket_domain_name}"
+  origin = digitalocean_spaces_bucket.bucket.bucket_domain_name
 }`
 
 const testAccCheckDigitalOceanCDNConfig_Create_with_TTL = `
 resource "digitalocean_spaces_bucket" "bucket" {
-	name = "%s"
-	region = "ams3"
-	acl = "public-read"
+  name   = "%s"
+  region = "ams3"
+  acl    = "public-read"
 }
 
 resource "digitalocean_cdn" "foobar" {
-	origin = "${digitalocean_spaces_bucket.bucket.bucket_domain_name}"
-	ttl = %d
+  origin = digitalocean_spaces_bucket.bucket.bucket_domain_name
+  ttl    = %d
 }`
 
 func testAccCheckDigitalOceanCDNConfig_CustomDomain(domain string, spaceName string, certName string) string {
@@ -231,7 +231,7 @@ resource "tls_private_key" "example" {
 resource "tls_self_signed_cert" "example" {
   key_algorithm   = "ECDSA"
   private_key_pem = tls_private_key.example.private_key_pem
-  dns_names = ["foo.%s"]
+  dns_names       = ["foo.%s"]
   subject {
     common_name  = "foo.%s"
     organization = "%s"
@@ -247,15 +247,15 @@ resource "tls_self_signed_cert" "example" {
 }
 
 resource "digitalocean_spaces_bucket" "space" {
-  name = "%s"
+  name   = "%s"
   region = "sfo3"
 }
 
 resource "digitalocean_certificate" "spaces_cert" {
-  name              = "%s"
-  type              = "custom"
-  private_key       = tls_private_key.example.private_key_pem
-  leaf_certificate  = tls_self_signed_cert.example.cert_pem
+  name             = "%s"
+  type             = "custom"
+  private_key      = tls_private_key.example.private_key_pem
+  leaf_certificate = tls_self_signed_cert.example.cert_pem
 
   lifecycle {
     create_before_destroy = true

@@ -285,11 +285,11 @@ func TestAccDigitalOceanLoadbalancer_NonDefaultProject(t *testing.T) {
 
 	projectConfig := `
 
+
 resource "digitalocean_project" "test" {
-  name      = "%s"
+  name = "%s"
 }
 `
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
@@ -554,23 +554,23 @@ func TestAccDigitalOceanLoadbalancer_resizeExpectedFailure(t *testing.T) {
 	rInt := acctest.RandInt()
 
 	lbConfig := `resource "digitalocean_loadbalancer" "foobar" {
-		name   = "loadbalancer-%d"
-		region = "nyc3"
-		size_unit = %d
+  name      = "loadbalancer-%d"
+  region    = "nyc3"
+  size_unit = %d
 
-		forwarding_rule {
-			entry_port     = 80
-			entry_protocol = "http"
+  forwarding_rule {
+    entry_port     = 80
+    entry_protocol = "http"
 
-			target_port     = 80
-			target_protocol = "http"
-		}
+    target_port     = 80
+    target_protocol = "http"
+  }
 
-		healthcheck {
-			port     = 22
-			protocol = "tcp"
-		}
-	}`
+  healthcheck {
+    port     = 22
+    protocol = "tcp"
+  }
+}`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
@@ -784,31 +784,31 @@ func testAccCheckDigitalOceanLoadbalancerExists(n string, loadbalancer *godo.Loa
 func testAccCheckDigitalOceanLoadbalancerConfig_basic(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
-  size      = "s-1vcpu-1gb"
-  image     = "ubuntu-22-04-x64"
-  region    = "nyc3"
+  name   = "foo-%d"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name = "loadbalancer-%d"
+  name   = "loadbalancer-%d"
   region = "nyc3"
 
   forwarding_rule {
-    entry_port = 80
+    entry_port     = 80
     entry_protocol = "http"
 
-    target_port = 80
+    target_port     = 80
     target_protocol = "http"
   }
 
   healthcheck {
-    port = 22
+    port     = 22
     protocol = "tcp"
   }
 
-  enable_proxy_protocol    = true
-  enable_backend_keepalive = true
+  enable_proxy_protocol     = true
+  enable_backend_keepalive  = true
   http_idle_timeout_seconds = 90
 
   droplet_ids = [digitalocean_droplet.foobar.id]
@@ -818,40 +818,40 @@ resource "digitalocean_loadbalancer" "foobar" {
 func testAccCheckDigitalOceanLoadbalancerConfig_updated(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
-  size      = "s-1vcpu-1gb"
-  image     = "ubuntu-22-04-x64"
-  region    = "nyc3"
+  name   = "foo-%d"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
 }
 
 resource "digitalocean_droplet" "foo" {
-  name      = "foo-%d"
-  size      = "s-1vcpu-1gb"
-  image     = "ubuntu-22-04-x64"
-  region    = "nyc3"
+  name   = "foo-%d"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name = "loadbalancer-%d"
+  name   = "loadbalancer-%d"
   region = "nyc3"
 
   forwarding_rule {
-    entry_port = 81
+    entry_port     = 81
     entry_protocol = "http"
 
-    target_port = 81
+    target_port     = 81
     target_protocol = "http"
   }
 
   healthcheck {
-    port = 22
+    port     = 22
     protocol = "tcp"
   }
 
   enable_proxy_protocol            = false
   enable_backend_keepalive         = false
   disable_lets_encrypt_dns_records = true
-  http_idle_timeout_seconds = 120
+  http_idle_timeout_seconds        = 120
 
   droplet_ids = [digitalocean_droplet.foobar.id, digitalocean_droplet.foo.id]
 }`, rInt, rInt, rInt)
@@ -864,27 +864,27 @@ resource "digitalocean_tag" "barbaz" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
-  size      = "s-1vcpu-1gb"
-  image     = "ubuntu-22-04-x64"
-  region    = "nyc3"
-  tags = ["${digitalocean_tag.barbaz.id}"]
+  name   = "foo-%d"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
+  tags   = ["${digitalocean_tag.barbaz.id}"]
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name = "loadbalancer-%d"
+  name   = "loadbalancer-%d"
   region = "nyc3"
 
   forwarding_rule {
-    entry_port = 80
+    entry_port     = 80
     entry_protocol = "http"
 
-    target_port = 80
+    target_port     = 80
     target_protocol = "http"
   }
 
   healthcheck {
-    port = 22
+    port     = 22
     protocol = "tcp"
   }
 
@@ -897,10 +897,10 @@ resource "digitalocean_loadbalancer" "foobar" {
 func testAccCheckDigitalOceanLoadbalancerConfig_minimal(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
-  size      = "s-1vcpu-1gb"
-  image     = "ubuntu-22-04-x64"
-  region    = "nyc3"
+  name   = "foo-%d"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
@@ -909,10 +909,10 @@ resource "digitalocean_loadbalancer" "foobar" {
   size_unit = 1
 
   forwarding_rule {
-    entry_port = 80
+    entry_port     = 80
     entry_protocol = "http"
 
-    target_port = 80
+    target_port     = 80
     target_protocol = "http"
   }
 
@@ -927,16 +927,16 @@ resource "digitalocean_tag" "test" {
 }
 
 resource "digitalocean_loadbalancer" "test" {
-  name = "%s"
-  region = "nyc3"
-  size = "lb-small"
+  name       = "%s"
+  region     = "nyc3"
+  size       = "lb-small"
   project_id = digitalocean_project.test.id
 
   forwarding_rule {
-    entry_port = 80
+    entry_port     = 80
     entry_protocol = "http"
 
-    target_port = 80
+    target_port     = 80
     target_protocol = "http"
   }
 
@@ -947,22 +947,22 @@ resource "digitalocean_loadbalancer" "test" {
 func testAccCheckDigitalOceanLoadbalancerConfig_minimalUDP(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
-  size      = "s-1vcpu-1gb"
-  image     = "ubuntu-22-04-x64"
-  region    = "nyc3"
+  name   = "foo-%d"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name = "loadbalancer-%d"
+  name   = "loadbalancer-%d"
   region = "nyc3"
-  size = "lb-small"
+  size   = "lb-small"
 
   forwarding_rule {
-    entry_port = 80
+    entry_port     = 80
     entry_protocol = "udp"
 
-    target_port = 80
+    target_port     = 80
     target_protocol = "udp"
   }
 
@@ -973,29 +973,29 @@ resource "digitalocean_loadbalancer" "foobar" {
 func testAccCheckDigitalOceanLoadbalancerConfig_stickySessions(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
-  size      = "s-1vcpu-1gb"
-  image     = "ubuntu-22-04-x64"
-  region    = "nyc3"
+  name   = "foo-%d"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name = "loadbalancer-%d"
+  name   = "loadbalancer-%d"
   region = "nyc3"
-  size = "lb-small"
+  size   = "lb-small"
 
   forwarding_rule {
-    entry_port = 80
+    entry_port     = 80
     entry_protocol = "http"
 
-    target_port = 80
+    target_port     = 80
     target_protocol = "http"
   }
 
   sticky_sessions {
-	type = "cookies"
-	cookie_name = "sessioncookie"
-	cookie_ttl_seconds = 1800
+    type               = "cookies"
+    cookie_name        = "sessioncookie"
+    cookie_ttl_seconds = 1800
   }
 
   droplet_ids = ["${digitalocean_droplet.foobar.id}"]
@@ -1005,11 +1005,11 @@ resource "digitalocean_loadbalancer" "foobar" {
 func testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(certName string, rInt int, privateKeyMaterial, leafCert, certChain, certAttribute string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_certificate" "foobar" {
-  name = "%s"
-  private_key = <<EOF
+  name              = "%s"
+  private_key       = <<EOF
 %s
 EOF
-  leaf_certificate = <<EOF
+  leaf_certificate  = <<EOF
 %s
 EOF
   certificate_chain = <<EOF
@@ -1025,8 +1025,8 @@ resource "digitalocean_loadbalancer" "foobar" {
   enable_proxy_protocol  = true
 
   forwarding_rule {
-    entry_port      = 443
-    entry_protocol  = "https"
+    entry_port     = 443
+    entry_protocol = "https"
 
     target_port     = 80
     target_protocol = "http"
@@ -1039,13 +1039,13 @@ resource "digitalocean_loadbalancer" "foobar" {
 func testAccCheckDigitalOceanLoadbalancerConfig_multipleRules(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_loadbalancer" "foobar" {
-  name                   = "%s"
-  region                 = "nyc3"
-  size                 = "lb-small"
+  name   = "%s"
+  region = "nyc3"
+  size   = "lb-small"
 
   forwarding_rule {
-    entry_port      = 443
-    entry_protocol  = "https"
+    entry_port     = 443
+    entry_protocol = "https"
 
     target_port     = 443
     target_protocol = "https"
@@ -1065,13 +1065,13 @@ resource "digitalocean_loadbalancer" "foobar" {
 func testAccCheckDigitalOceanLoadbalancerConfig_multipleRulesUDP(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_loadbalancer" "foobar" {
-  name                   = "%s"
-  region                 = "nyc3"
-  size                 = "lb-small"
+  name   = "%s"
+  region = "nyc3"
+  size   = "lb-small"
 
   forwarding_rule {
-    entry_port      = 443
-    entry_protocol  = "udp"
+    entry_port     = 443
+    entry_protocol = "udp"
 
     target_port     = 443
     target_protocol = "udp"
@@ -1090,32 +1090,32 @@ resource "digitalocean_loadbalancer" "foobar" {
 func testAccCheckDigitalOceanLoadbalancerConfig_WithVPC(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_vpc" "foobar" {
-  name        = "%s"
-  region      = "nyc3"
+  name   = "%s"
+  region = "nyc3"
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name      = "%s"
-  size      = "s-1vcpu-1gb"
-  image     = "ubuntu-22-04-x64"
+  name     = "%s"
+  size     = "s-1vcpu-1gb"
+  image    = "ubuntu-22-04-x64"
   region   = "nyc3"
   vpc_uuid = digitalocean_vpc.foobar.id
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name = "%s"
+  name   = "%s"
   region = "nyc3"
-  size = "lb-small"
+  size   = "lb-small"
 
   forwarding_rule {
-    entry_port = 80
+    entry_port     = 80
     entry_protocol = "http"
 
-    target_port = 80
+    target_port     = 80
     target_protocol = "http"
   }
 
-  vpc_uuid = digitalocean_vpc.foobar.id
+  vpc_uuid    = digitalocean_vpc.foobar.id
   droplet_ids = [digitalocean_droplet.foobar.id]
 }`, acceptance.RandomTestName(), acceptance.RandomTestName(), name)
 }
@@ -1123,27 +1123,27 @@ resource "digitalocean_loadbalancer" "foobar" {
 func testAccCheckDigitalOceanLoadbalancerConfig_Firewall(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name      = "%s"
-  size      = "s-1vcpu-1gb"
-  image     = "ubuntu-22-04-x64"
-  region   = "nyc3"
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name = "%s"
+  name   = "%s"
   region = "nyc3"
-  size = "lb-small"
+  size   = "lb-small"
 
   forwarding_rule {
-    entry_port = 80
+    entry_port     = 80
     entry_protocol = "http"
 
-    target_port = 80
+    target_port     = 80
     target_protocol = "http"
   }
 
   firewall {
-    deny = ["cidr:1.2.0.0/16", "ip:2.3.4.5"]
+    deny  = ["cidr:1.2.0.0/16", "ip:2.3.4.5"]
     allow = ["ip:1.2.3.4", "cidr:2.3.4.0/24"]
   }
 

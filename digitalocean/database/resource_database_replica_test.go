@@ -179,16 +179,17 @@ resource "digitalocean_database_replica" "read-01" {
   name       = "%s"
   region     = "nyc3"
   size       = "db-s-2vcpu-4gb"
-  tags       =	["staging"]
+  tags       = ["staging"]
 }`
 
 const testAccCheckDigitalOceanDatabaseReplicaConfigWithVPC = `
 
+
 resource "digitalocean_database_replica" "read-01" {
-  cluster_id = digitalocean_database_cluster.foobar.id
-  name       = "%s"
-  region     = "nyc1"
-  size       = "db-s-2vcpu-4gb"
-  tags       =	["staging"]
+  cluster_id           = digitalocean_database_cluster.foobar.id
+  name                 = "%s"
+  region               = "nyc1"
+  size                 = "db-s-2vcpu-4gb"
+  tags                 = ["staging"]
   private_network_uuid = digitalocean_vpc.foobar.id
 }`

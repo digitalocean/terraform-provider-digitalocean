@@ -26,7 +26,7 @@ resource "digitalocean_domain" "foo" {
 
 	dataSourceConfig := `
 data "digitalocean_domain" "foobar" {
-  name       = digitalocean_domain.foo.name
+  name = digitalocean_domain.foo.name
 }`
 
 	resource.ParallelTest(t, resource.TestCase{

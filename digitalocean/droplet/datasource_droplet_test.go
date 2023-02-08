@@ -160,8 +160,8 @@ func testAccCheckDataSourceDigitalOceanDropletExists(n string, droplet *godo.Dro
 func testAccCheckDataSourceDigitalOceanDropletConfig_basicByName(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_vpc" "foobar" {
-  name        = "%s"
-  region      = "nyc3"
+  name   = "%s"
+  region = "nyc3"
 }
 
 resource "digitalocean_droplet" "foo" {

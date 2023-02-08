@@ -125,7 +125,7 @@ resource "digitalocean_volume" "foo" {
   region = "nyc3"
   name   = "%s-volume"
   size   = 10
-  tags   = ["foo","bar"]
+  tags   = ["foo", "bar"]
 }`, testName)
 }
 
@@ -135,7 +135,7 @@ resource "digitalocean_volume" "foo" {
   region = "nyc3"
   name   = "%s-volume"
   size   = 10
-  tags   = ["foo","bar"]
+  tags   = ["foo", "bar"]
 }
 
 resource "digitalocean_volume" "bar" {

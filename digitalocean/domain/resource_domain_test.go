@@ -126,11 +126,11 @@ func testAccCheckDigitalOceanDomainExists(n string, domain *godo.Domain) resourc
 
 const testAccCheckDigitalOceanDomainConfig_basic = `
 resource "digitalocean_domain" "foobar" {
-	name       = "%s"
-	ip_address = "192.168.0.10"
+  name       = "%s"
+  ip_address = "192.168.0.10"
 }`
 
 const testAccCheckDigitalOceanDomainConfig_withoutIp = `
 resource "digitalocean_domain" "foobar" {
-	name       = "%s"
+  name = "%s"
 }`

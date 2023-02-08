@@ -17,18 +17,18 @@ resource "digitalocean_domain" "foo" {
 }
 
 resource "digitalocean_record" "mail" {
-  name = "mail"
-  domain = digitalocean_domain.foo.name
-  type = "MX"
+  name     = "mail"
+  domain   = digitalocean_domain.foo.name
+  type     = "MX"
   priority = 10
-  value = "mail.example.com."
+  value    = "mail.example.com."
 }
 
 resource "digitalocean_record" "www" {
-  name = "www"
+  name   = "www"
   domain = digitalocean_domain.foo.name
-  type = "A"
-  value = "192.168.1.1"
+  type   = "A"
+  value  = "192.168.1.1"
 }
 `, name1)
 
@@ -36,7 +36,7 @@ resource "digitalocean_record" "www" {
 data "digitalocean_records" "result" {
   domain = "%s"
   filter {
-    key = "type"
+    key    = "type"
     values = ["A"]
   }
 }

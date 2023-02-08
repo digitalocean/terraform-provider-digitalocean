@@ -19,12 +19,12 @@ func TestAccDataSourceDigitalOceanSpacesBuckets_Basic(t *testing.T) {
 
 	bucketsConfig := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket1" {
-  name = "%s"
+  name   = "%s"
   region = "%s"
 }
 
 resource "digitalocean_spaces_bucket" "bucket2" {
-  name = "%s"
+  name   = "%s"
   region = "%s"
 }
 `, bucketName1, bucketRegion1, bucketName2, bucketRegion2)
@@ -32,7 +32,7 @@ resource "digitalocean_spaces_bucket" "bucket2" {
 	datasourceConfig := fmt.Sprintf(`
 data "digitalocean_spaces_buckets" "result" {
   filter {
-    key = "name"
+    key    = "name"
     values = ["%s"]
   }
 }

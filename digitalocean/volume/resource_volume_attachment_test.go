@@ -219,84 +219,84 @@ func testAccCheckDigitalOceanVolumeAttachmentDestroy(s *terraform.State) error {
 func testAccCheckDigitalOceanVolumeAttachmentConfig_basic(rInt int, vName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foobar" {
-	region      = "nyc1"
-	name        = "%s"
-	size        = 5
-	description = "peace makes plenty"
+  region      = "nyc1"
+  name        = "%s"
+  size        = 5
+  description = "peace makes plenty"
 }
 
 resource "digitalocean_droplet" "foobar" {
-	name               = "baz-%d"
-	size               = "s-1vcpu-1gb"
-	image              = "ubuntu-22-04-x64"
-	region             = "nyc1"
+  name   = "baz-%d"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc1"
 }
 
 resource "digitalocean_volume_attachment" "foobar" {
-	droplet_id = "${digitalocean_droplet.foobar.id}"
-	volume_id = "${digitalocean_volume.foobar.id}"
+  droplet_id = "${digitalocean_droplet.foobar.id}"
+  volume_id  = "${digitalocean_volume.foobar.id}"
 }`, vName, rInt)
 }
 
 func testAccCheckDigitalOceanVolumeAttachmentConfig_multiple(rInt int, vName, vSecondName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foobar" {
-	region      = "nyc1"
-	name        = "%s"
-	size        = 5
-	description = "peace makes plenty"
+  region      = "nyc1"
+  name        = "%s"
+  size        = 5
+  description = "peace makes plenty"
 }
 
 resource "digitalocean_volume" "barfoo" {
-	region      = "nyc1"
-	name        = "%s"
-	size        = 5
-	description = "peace makes plenty"
+  region      = "nyc1"
+  name        = "%s"
+  size        = 5
+  description = "peace makes plenty"
 }
 
 resource "digitalocean_droplet" "foobar" {
-	name               = "baz-%d"
-	size               = "s-1vcpu-1gb"
-	image              = "ubuntu-22-04-x64"
-	region             = "nyc1"
+  name   = "baz-%d"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc1"
 }
 
 resource "digitalocean_volume_attachment" "foobar" {
-	droplet_id = "${digitalocean_droplet.foobar.id}"
-	volume_id = "${digitalocean_volume.foobar.id}"
+  droplet_id = "${digitalocean_droplet.foobar.id}"
+  volume_id  = "${digitalocean_volume.foobar.id}"
 }
 
 resource "digitalocean_volume_attachment" "barfoo" {
-	droplet_id = "${digitalocean_droplet.foobar.id}"
-	volume_id = "${digitalocean_volume.barfoo.id}"
+  droplet_id = "${digitalocean_droplet.foobar.id}"
+  volume_id  = "${digitalocean_volume.barfoo.id}"
 }`, vName, vSecondName, rInt)
 }
 
 func testAccCheckDigitalOceanVolumeAttachmentConfig_multiple_volumes(rInt int, vName, vSecondName, activeVolume string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foobar" {
-	region      = "nyc1"
-	name        = "%s"
-	size        = 5
-	description = "peace makes plenty"
+  region      = "nyc1"
+  name        = "%s"
+  size        = 5
+  description = "peace makes plenty"
 }
 
 resource "digitalocean_volume" "foobar_second" {
-	region      = "nyc1"
-	name        = "%s"
-	size        = 5
-	description = "peace makes plenty"
+  region      = "nyc1"
+  name        = "%s"
+  size        = 5
+  description = "peace makes plenty"
 }
 
 resource "digitalocean_droplet" "foobar" {
-	name               = "baz-%d"
-	size               = "s-1vcpu-1gb"
-	image              = "ubuntu-22-04-x64"
-	region             = "nyc1"
+  name   = "baz-%d"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc1"
 }
 
 resource "digitalocean_volume_attachment" "foobar" {
-	droplet_id = "${digitalocean_droplet.foobar.id}"
-	volume_id = "${digitalocean_volume.%s.id}"
+  droplet_id = digitalocean_droplet.foobar.id
+  volume_id  = digitalocean_volume.%s.id
 }`, vName, vSecondName, rInt, activeVolume)
 }

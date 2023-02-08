@@ -162,27 +162,27 @@ func testAccCheckDigitalOceanVPCExists(resource string) resource.TestCheckFunc {
 
 const testAccCheckDigitalOceanVPCConfig_Basic = `
 resource "digitalocean_vpc" "foobar" {
-	name        = "%s"
-	description = "%s"
-	region      = "nyc3"
+  name        = "%s"
+  description = "%s"
+  region      = "nyc3"
 }
 `
 const testAccCheckDigitalOceanVPCConfig_IPRange = `
 resource "digitalocean_vpc" "foobar" {
-	name     = "%s"
-	region   = "nyc3"
-	ip_range = "10.10.10.0/24"
+  name     = "%s"
+  region   = "nyc3"
+  ip_range = "10.10.10.0/24"
 }
 `
 
 const testAccCheckDigitalOceanVPCConfig_IPRangeRace = `
 resource "digitalocean_vpc" "foo" {
-	name        = "%s"
-	region      = "nyc3"
+  name   = "%s"
+  region = "nyc3"
 }
 
 resource "digitalocean_vpc" "bar" {
-	name        = "%s"
-	region      = "nyc3"
+  name   = "%s"
+  region = "nyc3"
 }
 `

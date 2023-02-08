@@ -202,8 +202,8 @@ func testAccCheckDigitalOceanSpacesBucketPolicyDestroy(s *terraform.State) error
 func testAccDigitalOceanSpacesBucketPolicy(randInt int, policy string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "policy_bucket" {
-  region = "%s"
-  name   = "tf-policy-test-bucket-%d"
+  region        = "%s"
+  name          = "tf-policy-test-bucket-%d"
   force_destroy = true
 }
 
@@ -215,14 +215,15 @@ resource "digitalocean_spaces_bucket_policy" "policy" {
 EOF
 }
 
+
 `, testAccDigitalOceanSpacesBucketPolicy_TestRegion, randInt, policy)
 }
 
 func testAccDigitalOceanSpacesBucketEmptyPolicy(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "policy_bucket" {
-  region = "%s"
-  name   = "tf-policy-test-bucket-%d"
+  region        = "%s"
+  name          = "tf-policy-test-bucket-%d"
   force_destroy = true
 }
 
@@ -231,6 +232,7 @@ resource "digitalocean_spaces_bucket_policy" "policy" {
   bucket = digitalocean_spaces_bucket.policy_bucket.name
   policy = ""
 }
+
 
 `, testAccDigitalOceanSpacesBucketPolicy_TestRegion, randInt)
 }

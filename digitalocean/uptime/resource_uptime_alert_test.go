@@ -16,22 +16,22 @@ data "digitalocean_account" "test" {
 }
 
 resource "digitalocean_uptime_check" "test" {
-	name  = "terraform-test"
-	target = "https://www.landingpage.com"
-	regions = ["us_east", "eu_west"]
+  name    = "terraform-test"
+  target  = "https://www.landingpage.com"
+  regions = ["us_east", "eu_west"]
+}
+resource "digitalocean_uptime_alert" "foobar" {
+  check_id   = digitalocean_uptime_check.test.id
+  name       = "%s"
+  type       = "latency"
+  threshold  = "%s"
+  comparison = "greater_than"
+  notifications {
+    email = [data.digitalocean_account.test.email]
   }
-  resource "digitalocean_uptime_alert" "foobar"  {
-	check_id = "${digitalocean_uptime_check.test.id}"
-	name = "%s"
-  	type = "latency"
-	threshold = %s
-	comparison = "greater_than"
-	notifications {
-		email = [data.digitalocean_account.test.email]
-	}
-	period = "2m"
-  }
-  `
+  period = "2m"
+}
+`
 
 func TestAccDigitalOceanUptimeAlert_Basic(t *testing.T) {
 	originalAlertName := acceptance.RandomTestName()

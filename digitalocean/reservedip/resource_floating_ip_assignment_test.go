@@ -176,10 +176,10 @@ resource "digitalocean_droplet" "foobar" {
 
 var testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroy = `
 resource "digitalocean_droplet" "foobar" {
-  image = "ubuntu-22-04-x64"
-  name = "tf-acc-test"
+  image  = "ubuntu-22-04-x64"
+  name   = "tf-acc-test"
   region = "nyc3"
-  size = "s-1vcpu-1gb"
+  size   = "s-1vcpu-1gb"
 
   lifecycle {
     create_before_destroy = true
@@ -187,7 +187,7 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_floating_ip" "foobar" {
-  region     = "nyc3"
+  region = "nyc3"
 }
 
 resource "digitalocean_floating_ip_assignment" "foobar" {
@@ -202,10 +202,10 @@ resource "digitalocean_floating_ip_assignment" "foobar" {
 
 var testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroyReassign = `
 resource "digitalocean_droplet" "foobar" {
-  image = "ubuntu-18-04-x64"
-  name = "tf-acc-test"
+  image  = "ubuntu-18-04-x64"
+  name   = "tf-acc-test"
   region = "nyc3"
-  size = "s-1vcpu-1gb"
+  size   = "s-1vcpu-1gb"
 
   lifecycle {
     create_before_destroy = true
@@ -213,7 +213,7 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_floating_ip" "foobar" {
-  region     = "nyc3"
+  region = "nyc3"
 }
 
 resource "digitalocean_floating_ip_assignment" "foobar" {

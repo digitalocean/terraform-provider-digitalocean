@@ -26,105 +26,105 @@ slack {
 
 	testAccAlertPolicy = `
 resource "digitalocean_droplet" "web" {
-	image  = "ubuntu-20-04-x64"
-	name   = "web-1"
-	region = "fra1"
-	size   = "s-1vcpu-1gb"
-  }
+  image  = "ubuntu-20-04-x64"
+  name   = "web-1"
+  region = "fra1"
+  size   = "s-1vcpu-1gb"
+}
 
-  resource "digitalocean_monitor_alert" "%s" {
-	alerts  {
-	  email 	= ["benny@digitalocean.com"]
+resource "digitalocean_monitor_alert" "%s" {
+  alerts {
+    email = ["benny@digitalocean.com"]
       %s
-	}
-	window      = "%s"
-	type        = "%s"
-	compare     = "GreaterThan"
-	value       = 95
-	entities    = [digitalocean_droplet.web.id]
-	description = "%s"
   }
+  window      = "%s"
+  type        = "%s"
+  compare     = "GreaterThan"
+  value       = 95
+  entities    = [digitalocean_droplet.web.id]
+  description = "%s"
+}
 `
 
 	testAccAlertPolicySlackEmailAlerts = `
 resource "digitalocean_droplet" "web" {
-	image  = "ubuntu-20-04-x64"
-	name   = "web-1"
-	region = "fra1"
-	size   = "s-1vcpu-1gb"
-  }
+  image  = "ubuntu-20-04-x64"
+  name   = "web-1"
+  region = "fra1"
+  size   = "s-1vcpu-1gb"
+}
 
-  resource "digitalocean_monitor_alert" "%s" {
-	alerts {
-	  email 	= ["benny@digitalocean.com"]
-	  slack {
-		channel = "production-alerts"
-		url		= "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
-	  }
-	}
-	window      = "5m"
-	type        = "v1/insights/droplet/cpu"
-	compare     = "GreaterThan"
-	value       = 95
-	entities    = [digitalocean_droplet.web.id]
-	description = "Alert about CPU usage"
+resource "digitalocean_monitor_alert" "%s" {
+  alerts {
+    email = ["benny@digitalocean.com"]
+    slack {
+      channel = "production-alerts"
+      url     = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
+    }
   }
+  window      = "5m"
+  type        = "v1/insights/droplet/cpu"
+  compare     = "GreaterThan"
+  value       = 95
+  entities    = [digitalocean_droplet.web.id]
+  description = "Alert about CPU usage"
+}
 `
 
 	testAccAlertPolicyWithTag = `
 resource "digitalocean_tag" "test" {
-    name = "%s"
+  name = "%s"
 }
 
 resource "digitalocean_droplet" "web" {
-	image  = "ubuntu-20-04-x64"
-	name   = "web-1"
-	region = "fra1"
-	size   = "s-1vcpu-1gb"
-	tags    = [digitalocean_tag.test.name]
-  }
+  image  = "ubuntu-20-04-x64"
+  name   = "web-1"
+  region = "fra1"
+  size   = "s-1vcpu-1gb"
+  tags   = [digitalocean_tag.test.name]
+}
 
-  resource "digitalocean_monitor_alert" "%s" {
-	alerts  {
-	  email 	= ["benny@digitalocean.com"]
-	}
-	window      = "%s"
-	type        = "%s"
-	compare     = "GreaterThan"
-	value       = 95
-	tags        = [digitalocean_tag.test.name]
-	description = "%s"
+resource "digitalocean_monitor_alert" "%s" {
+  alerts {
+    email = ["benny@digitalocean.com"]
+  }
+  window      = "%s"
+  type        = "%s"
+  compare     = "GreaterThan"
+  value       = 95
+  tags        = [digitalocean_tag.test.name]
+  description = "%s"
 }
 `
 
 	testAccAlertPolicyAddDroplet = `
 resource "digitalocean_droplet" "web" {
-	image  = "ubuntu-20-04-x64"
-	name   = "web-1"
-	region = "fra1"
-	size   = "s-1vcpu-1gb"
-  }
+  image  = "ubuntu-20-04-x64"
+  name   = "web-1"
+  region = "fra1"
+  size   = "s-1vcpu-1gb"
+}
 
 resource "digitalocean_droplet" "web2" {
-	image  = "ubuntu-20-04-x64"
-	name   = "web-2"
-	region = "fra1"
-	size   = "s-1vcpu-1gb"
+  image  = "ubuntu-20-04-x64"
+  name   = "web-2"
+  region = "fra1"
+  size   = "s-1vcpu-1gb"
 }
 
 
 resource "digitalocean_monitor_alert" "%s" {
-	alerts  {
-	  email 	= ["benny@digitalocean.com"]
+  alerts {
+    email = ["benny@digitalocean.com"]
       %s
-	}
-	window      = "%s"
-	type        = "%s"
-	compare     = "GreaterThan"
-	value       = 95
-	entities    = [digitalocean_droplet.web.id, digitalocean_droplet.web2.id]
-	description = "%s"
   }
+  window      = "%s"
+  type        = "%s"
+  compare     = "GreaterThan"
+  value       = 95
+  entities    = [digitalocean_droplet.web.id, digitalocean_droplet.web2.id]
+  description = "%s"
+}
 `
 )
 

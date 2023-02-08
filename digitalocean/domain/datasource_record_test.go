@@ -31,8 +31,8 @@ resource "digitalocean_record" "foo" {
 }`, recordDomain, recordName)
 	dataSourceConfig := `
 data "digitalocean_record" "foobar" {
-  name      = digitalocean_record.foo.name
-  domain    = digitalocean_domain.foo.name
+  name   = digitalocean_record.foo.name
+  domain = digitalocean_domain.foo.name
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
