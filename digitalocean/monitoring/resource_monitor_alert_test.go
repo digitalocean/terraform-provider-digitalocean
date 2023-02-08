@@ -12,13 +12,6 @@ import (
 )
 
 const (
-	slackChannels = `
-slack {
-	channel = "production-alerts"
-	url		= "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
-}
-	`
-
 	multipleSlackChannel = `
 slack {
 	channel = "production-alerts"
