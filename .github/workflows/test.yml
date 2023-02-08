@@ -33,6 +33,9 @@ jobs:
         with:
           only-new-issues: true
 
+      - name: Run terrafmt
+        run: make terrafmt-check
+
       - name: make test
         run: make test
 
