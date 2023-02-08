@@ -9,7 +9,6 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -55,7 +54,7 @@ data "digitalocean_droplet" "foobar" {
 
 func TestAccDataSourceDigitalOceanDroplet_BasicById(t *testing.T) {
 	var droplet godo.Droplet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -85,8 +84,8 @@ func TestAccDataSourceDigitalOceanDroplet_BasicById(t *testing.T) {
 
 func TestAccDataSourceDigitalOceanDroplet_BasicByTag(t *testing.T) {
 	var droplet godo.Droplet
-	name := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
-	tagName := fmt.Sprintf("tf-acc-test-tag-%s", acctest.RandString(10))
+	name := acceptance.RandomTestName()
+	tagName := acceptance.RandomTestName("tag")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },

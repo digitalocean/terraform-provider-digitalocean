@@ -17,9 +17,9 @@ import (
 func TestAccDigitalOceanVolumeAttachment_Basic(t *testing.T) {
 	var (
 		volume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
+		dName   = acceptance.RandomTestName()
 		droplet godo.Droplet
 	)
-	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -27,7 +27,7 @@ func TestAccDigitalOceanVolumeAttachment_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_basic(rInt, volume.Name),
+				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_basic(dName, volume.Name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
@@ -48,9 +48,9 @@ func TestAccDigitalOceanVolumeAttachment_Update(t *testing.T) {
 	var (
 		firstVolume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
 		secondVolume = godo.Volume{Name: fmt.Sprintf("volume-s-%s", acctest.RandString(10))}
+		dName        = acceptance.RandomTestName()
 		droplet      godo.Droplet
 	)
-	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -58,7 +58,7 @@ func TestAccDigitalOceanVolumeAttachment_Update(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_basic(rInt, firstVolume.Name),
+				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_basic(dName, firstVolume.Name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &firstVolume),
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
@@ -72,7 +72,7 @@ func TestAccDigitalOceanVolumeAttachment_Update(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_basic(rInt, secondVolume.Name),
+				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_basic(dName, secondVolume.Name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &secondVolume),
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
@@ -93,9 +93,9 @@ func TestAccDigitalOceanVolumeAttachment_UpdateToSecondVolume(t *testing.T) {
 	var (
 		firstVolume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
 		secondVolume = godo.Volume{Name: fmt.Sprintf("volume-s-%s", acctest.RandString(10))}
+		dName        = acceptance.RandomTestName()
 		droplet      godo.Droplet
 	)
-	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -103,7 +103,7 @@ func TestAccDigitalOceanVolumeAttachment_UpdateToSecondVolume(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_multiple_volumes(rInt, firstVolume.Name, secondVolume.Name, "foobar"),
+				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_multiple_volumes(dName, firstVolume.Name, secondVolume.Name, "foobar"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &firstVolume),
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar_second", &secondVolume),
@@ -118,7 +118,7 @@ func TestAccDigitalOceanVolumeAttachment_UpdateToSecondVolume(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_multiple_volumes(rInt, firstVolume.Name, secondVolume.Name, "foobar_second"),
+				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_multiple_volumes(dName, firstVolume.Name, secondVolume.Name, "foobar_second"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &firstVolume),
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar_second", &secondVolume),
@@ -140,9 +140,9 @@ func TestAccDigitalOceanVolumeAttachment_Multiple(t *testing.T) {
 	var (
 		firstVolume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
 		secondVolume = godo.Volume{Name: fmt.Sprintf("volume-s-%s", acctest.RandString(10))}
+		dName        = acceptance.RandomTestName()
 		droplet      godo.Droplet
 	)
-	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -150,7 +150,7 @@ func TestAccDigitalOceanVolumeAttachment_Multiple(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVolumeAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_multiple(rInt, firstVolume.Name, secondVolume.Name),
+				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_multiple(dName, firstVolume.Name, secondVolume.Name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &firstVolume),
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.barfoo", &secondVolume),
@@ -216,7 +216,7 @@ func testAccCheckDigitalOceanVolumeAttachmentDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckDigitalOceanVolumeAttachmentConfig_basic(rInt int, vName string) string {
+func testAccCheckDigitalOceanVolumeAttachmentConfig_basic(dName, vName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foobar" {
   region      = "nyc1"
@@ -226,7 +226,7 @@ resource "digitalocean_volume" "foobar" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name   = "baz-%d"
+  name   = "%s"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc1"
@@ -235,10 +235,10 @@ resource "digitalocean_droplet" "foobar" {
 resource "digitalocean_volume_attachment" "foobar" {
   droplet_id = digitalocean_droplet.foobar.id
   volume_id  = digitalocean_volume.foobar.id
-}`, vName, rInt)
+}`, vName, dName)
 }
 
-func testAccCheckDigitalOceanVolumeAttachmentConfig_multiple(rInt int, vName, vSecondName string) string {
+func testAccCheckDigitalOceanVolumeAttachmentConfig_multiple(dName, vName, vSecondName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foobar" {
   region      = "nyc1"
@@ -255,7 +255,7 @@ resource "digitalocean_volume" "barfoo" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name   = "baz-%d"
+  name   = "%s"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc1"
@@ -269,10 +269,10 @@ resource "digitalocean_volume_attachment" "foobar" {
 resource "digitalocean_volume_attachment" "barfoo" {
   droplet_id = digitalocean_droplet.foobar.id
   volume_id  = digitalocean_volume.barfoo.id
-}`, vName, vSecondName, rInt)
+}`, vName, vSecondName, dName)
 }
 
-func testAccCheckDigitalOceanVolumeAttachmentConfig_multiple_volumes(rInt int, vName, vSecondName, activeVolume string) string {
+func testAccCheckDigitalOceanVolumeAttachmentConfig_multiple_volumes(dName, vName, vSecondName, activeVolume string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foobar" {
   region      = "nyc1"
@@ -289,7 +289,7 @@ resource "digitalocean_volume" "foobar_second" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name   = "baz-%d"
+  name   = "%s"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc1"
@@ -298,5 +298,5 @@ resource "digitalocean_droplet" "foobar" {
 resource "digitalocean_volume_attachment" "foobar" {
   droplet_id = digitalocean_droplet.foobar.id
   volume_id  = digitalocean_volume.%s.id
-}`, vName, vSecondName, rInt, activeVolume)
+}`, vName, vSecondName, dName, activeVolume)
 }
