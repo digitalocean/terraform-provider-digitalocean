@@ -648,12 +648,12 @@ func TestAccDigitalOceanDroplet_withTimeout(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`resource "digitalocean_droplet" "foobar" {
-  name              = "%s"
-  size              = "s-1vcpu-1gb"
-  image             = "ubuntu-22-04-x64"
-  region            = "nyc3"
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
   timeouts {
-	create = "5s"
+    create = "5s"
   }
 }`, dropletName),
 				ExpectError: regexp.MustCompile(`timeout while waiting for state`),
@@ -674,9 +674,9 @@ func TestAccDigitalOceanDroplet_Regionless(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name              = "%s"
-  size              = "s-1vcpu-1gb"
-  image             = "ubuntu-22-04-x64"
+  name  = "%s"
+  size  = "s-1vcpu-1gb"
+  image = "ubuntu-22-04-x64"
 }`, dropletName),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
@@ -830,7 +830,7 @@ data "digitalocean_image" "foobar" {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "${data.digitalocean_image.foobar.id}"
+  image     = data.digitalocean_image.foobar.id
   region    = "nyc3"
   user_data = "foobar"
 }`, slug, rInt)
@@ -849,14 +849,14 @@ resource "digitalocean_droplet" "foobar" {
   image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
-  ssh_keys  = ["${digitalocean_ssh_key.foobar.id}"]
+  ssh_keys  = [digitalocean_ssh_key.foobar.id]
 }`, rInt, testAccValidPublicKey, rInt)
 }
 
 func testAccCheckDigitalOceanDropletConfig_tag_update(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_tag" "barbaz" {
-  name       = "barbaz"
+  name = "barbaz"
 }
 
 resource "digitalocean_droplet" "foobar" {
@@ -865,7 +865,7 @@ resource "digitalocean_droplet" "foobar" {
   image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
-  tags  = ["${digitalocean_tag.barbaz.id}"]
+  tags      = [digitalocean_tag.barbaz.id]
 }
 `, rInt)
 }
@@ -885,10 +885,10 @@ resource "digitalocean_droplet" "foobar" {
 func testAccCheckDigitalOceanDropletConfig_RenameAndResize(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name     = "baz-%d"
-  size     = "s-1vcpu-2gb"
-  image    = "ubuntu-22-04-x64"
-  region   = "nyc3"
+  name   = "baz-%d"
+  size   = "s-1vcpu-2gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
 }
 `, rInt)
 }
@@ -896,11 +896,11 @@ resource "digitalocean_droplet" "foobar" {
 func testAccCheckDigitalOceanDropletConfig_resize_without_disk(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name     = "foo-%d"
-  size     = "s-1vcpu-2gb"
-  image    = "ubuntu-22-04-x64"
-  region   = "nyc3"
-  user_data = "foobar"
+  name        = "foo-%d"
+  size        = "s-1vcpu-2gb"
+  image       = "ubuntu-22-04-x64"
+  region      = "nyc3"
+  user_data   = "foobar"
   resize_disk = false
 }
 `, rInt)
@@ -909,11 +909,11 @@ resource "digitalocean_droplet" "foobar" {
 func testAccCheckDigitalOceanDropletConfig_resize(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name     = "foo-%d"
-  size     = "s-1vcpu-2gb"
-  image    = "ubuntu-22-04-x64"
-  region   = "nyc3"
-  user_data = "foobar"
+  name        = "foo-%d"
+  size        = "s-1vcpu-2gb"
+  image       = "ubuntu-22-04-x64"
+  region      = "nyc3"
+  user_data   = "foobar"
   resize_disk = true
 }
 `, rInt)
@@ -935,8 +935,8 @@ resource "digitalocean_droplet" "foobar" {
 func testAccCheckDigitalOceanDropletConfig_VPCAndIpv6(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_vpc" "foobar" {
-  name        = "%s"
-  region      = "nyc3"
+  name   = "%s"
+  region = "nyc3"
 }
 
 resource "digitalocean_droplet" "foobar" {
@@ -958,33 +958,33 @@ resource "digitalocean_droplet" "foobar" {
   image      = "ubuntu-22-04-x64"
   region     = "nyc3"
   monitoring = true
- }
+}
  `, rInt)
 }
 
 func testAccCheckDigitalOceanDropletConfig_conditionalVolumes(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "myvol-01" {
-    region      = "sfo3"
-    name        = "tf-acc-test-1-%d"
-    size        = 1
-    description = "an example volume"
+  region      = "sfo3"
+  name        = "tf-acc-test-1-%d"
+  size        = 1
+  description = "an example volume"
 }
 
 resource "digitalocean_volume" "myvol-02" {
-    region      = "sfo3"
-    name        = "tf-acc-test-2-%d"
-    size        = 1
-    description = "an example volume"
+  region      = "sfo3"
+  name        = "tf-acc-test-2-%d"
+  size        = 1
+  description = "an example volume"
 }
 
 resource "digitalocean_droplet" "foobar" {
-  count = 2
-  name = "tf-acc-test-%d-${count.index}"
-  region = "sfo3"
-  image = "ubuntu-22-04-x64"
-  size = "s-1vcpu-1gb"
-  volume_ids = ["${count.index == 0 ? digitalocean_volume.myvol-01.id : digitalocean_volume.myvol-02.id}"]
+  count      = 2
+  name       = "tf-acc-test-%d-${count.index}"
+  region     = "sfo3"
+  image      = "ubuntu-22-04-x64"
+  size       = "s-1vcpu-1gb"
+  volume_ids = [count.index == 0 ? digitalocean_volume.myvol-01.id : digitalocean_volume.myvol-02.id]
 }
 `, rInt, rInt, rInt)
 }
@@ -1021,11 +1021,11 @@ resource "digitalocean_ssh_key" "foobar" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name      = "%s"
-  size      = "s-1vcpu-1gb"
-  image     = "%s"
-  region    = "nyc3"
-  ssh_keys  = [digitalocean_ssh_key.foobar.id]
+  name     = "%s"
+  size     = "s-1vcpu-1gb"
+  image    = "%s"
+  region   = "nyc3"
+  ssh_keys = [digitalocean_ssh_key.foobar.id]
   %s
 }`, keyName, testAccValidPublicKey, dropletName, image, agent)
 }

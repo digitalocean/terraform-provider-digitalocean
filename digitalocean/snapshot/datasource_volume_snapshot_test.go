@@ -19,7 +19,7 @@ func TestAccDataSourceDigitalOceanVolumeSnapshot_basic(t *testing.T) {
 	dataSourceConfig := `
 data "digitalocean_volume_snapshot" "foobar" {
   most_recent = true
-  name = digitalocean_volume_snapshot.foo.name
+  name        = digitalocean_volume_snapshot.foo.name
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -52,7 +52,7 @@ func TestAccDataSourceDigitalOceanVolumeSnapshot_regex(t *testing.T) {
 	dataSourceConfig := `
 data "digitalocean_volume_snapshot" "foobar" {
   most_recent = true
-  name_regex = "^${digitalocean_volume_snapshot.foo.name}"
+  name_regex  = "^${digitalocean_volume_snapshot.foo.name}"
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -161,8 +161,8 @@ resource "digitalocean_volume" "foo" {
 }
 
 resource "digitalocean_volume_snapshot" "foo" {
-  name = "%s-snapshot"
+  name      = "%s-snapshot"
   volume_id = digitalocean_volume.foo.id
-  tags = ["foo","bar"]
+  tags      = ["foo", "bar"]
 }
 `

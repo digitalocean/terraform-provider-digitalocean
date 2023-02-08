@@ -98,21 +98,21 @@ func TestAccDigitalOceanKubernetesCluster_ImportNonDefaultNodePool(t *testing.T)
 	config := fmt.Sprintf(`%s
 
 resource "digitalocean_kubernetes_cluster" "foobar" {
-  name = "%s"
-  region = "lon1"
+  name    = "%s"
+  region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
 
   node_pool {
-    name = "default"
-	size = "s-1vcpu-2gb"
-	node_count = 1
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
   }
 }
 
 resource "digitalocean_kubernetes_node_pool" "barfoo" {
   cluster_id = digitalocean_kubernetes_cluster.foobar.id
-  name = "%s"
-  size = "s-1vcpu-2gb"
+  name       = "%s"
+  size       = "s-1vcpu-2gb"
   node_count = 1
 }
 `, testClusterVersionLatest, testName1, testName2)

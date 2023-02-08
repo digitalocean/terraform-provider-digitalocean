@@ -842,7 +842,7 @@ func testAccCheckDigitalOceanAppExists(n string, app *godo.App) resource.TestChe
 var testAccCheckDigitalOceanAppConfig_basic = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "ams"
 
     alert {
@@ -889,7 +889,7 @@ resource "digitalocean_app" "foobar" {
   }
 
   spec {
-    name = "%s"
+    name   = "%s"
     region = "ams"
 
     service {
@@ -907,7 +907,7 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_addService = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "ams"
 
     alert {
@@ -966,7 +966,7 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_addImage = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "ams"
 
     service {
@@ -989,7 +989,7 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_addInternalPort = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "ams"
 
     service {
@@ -1003,7 +1003,7 @@ resource "digitalocean_app" "foobar" {
         branch         = "main"
       }
 
-	  internal_ports = [ 5000 ]
+      internal_ports = [5000]
     }
   }
 }`
@@ -1011,7 +1011,7 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_addDatabase = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "ams"
 
     alert {
@@ -1049,8 +1049,8 @@ resource "digitalocean_app" "foobar" {
     }
 
     database {
-      name = "test-db"
-      engine = "PG"
+      name       = "test-db"
+      engine     = "PG"
       production = false
     }
   }
@@ -1059,7 +1059,7 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_StaticSite = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "ams"
 
     static_site {
@@ -1088,12 +1088,12 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_function = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "nyc"
 
     function {
-      name              = "example"
-	  source_dir        = "/"
+      name       = "example"
+      source_dir = "/"
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-functions-nodejs-helloworld.git"
         branch         = "master"
@@ -1111,7 +1111,7 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_Envs = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "ams"
 
     service {
@@ -1135,7 +1135,7 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_worker = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "ams"
 
     worker {
@@ -1161,15 +1161,15 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_addJob = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "ams"
 
     job {
       name               = "example-pre-job"
       instance_count     = 1
       instance_size_slug = "basic-xxs"
-      kind = "PRE_DEPLOY"
-      run_command = "echo 'This is a pre-deploy job.'"
+      kind               = "PRE_DEPLOY"
+      run_command        = "echo 'This is a pre-deploy job.'"
 
       image {
         registry_type = "DOCKER_HUB"
@@ -1199,8 +1199,8 @@ resource "digitalocean_app" "foobar" {
       name               = "example-post-job"
       instance_count     = 1
       instance_size_slug = "basic-xxs"
-      kind = "POST_DEPLOY"
-      run_command = "echo 'This is a post-deploy job.'"
+      kind               = "POST_DEPLOY"
+      run_command        = "echo 'This is a post-deploy job.'"
 
       image {
         registry_type = "DOCKER_HUB"
@@ -1213,7 +1213,7 @@ resource "digitalocean_app" "foobar" {
         name = "JobLogs"
         datadog {
           endpoint = "https://example.com"
-          api_key = "test-api-key"
+          api_key  = "test-api-key"
         }
       }
     }
@@ -1223,7 +1223,7 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_Domains = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "ams"
 
     %s
@@ -1245,7 +1245,7 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_CORS = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name = "%s"
+    name   = "%s"
     region = "nyc"
 
     service {

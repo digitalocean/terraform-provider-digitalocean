@@ -590,35 +590,35 @@ func TestAccDigitalOceanRecord_TXT(t *testing.T) {
 func TestAccDigitalOceanRecord_ExpectedErrors(t *testing.T) {
 	var (
 		srvNoPort = `resource "digitalocean_record" "pgsql_default_pub_srv" {
-    domain = "example.com"
+  domain = "example.com"
 
-    type = "SRV"
-    name = "_postgresql_.tcp.example.com"
+  type = "SRV"
+  name = "_postgresql_.tcp.example.com"
 
-    // priority can be 0, but must be set.
-    priority = 0
-    weight = 0
-    value = "srv.example.com"
+  // priority can be 0, but must be set.
+  priority = 0
+  weight   = 0
+  value    = "srv.example.com"
 }`
 		srvNoPrirority = `resource "digitalocean_record" "pgsql_default_pub_srv" {
-    domain = "example.com"
+  domain = "example.com"
 
-    type = "SRV"
-    name = "_postgresql_.tcp.example.com"
+  type = "SRV"
+  name = "_postgresql_.tcp.example.com"
 
-    port   = 3600
-    weight = 0
-    value  = "srv.example.com"
+  port   = 3600
+  weight = 0
+  value  = "srv.example.com"
 }`
 		srvNoWeight = `resource "digitalocean_record" "pgsql_default_pub_srv" {
-    domain = "example.com"
+  domain = "example.com"
 
-    type = "SRV"
-    name = "_postgresql._tcp.example.com"
+  type = "SRV"
+  name = "_postgresql._tcp.example.com"
 
-    port   = 3600
-	priority = 10
-    value  = "srv.example.com"
+  port     = 3600
+  priority = 10
+  value    = "srv.example.com"
 }`
 		mxNoPriority = `resource "digitalocean_record" "foo_record" {
   domain = "example.com"
@@ -641,7 +641,7 @@ func TestAccDigitalOceanRecord_ExpectedErrors(t *testing.T) {
   name  = "cert"
   type  = "CAA"
   value = "letsencrypt.org."
-  flags   = 1
+  flags = 1
 }`
 	)
 
@@ -777,7 +777,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform"
   value = "192.168.0.10"
@@ -791,7 +791,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform.${digitalocean_domain.foobar.name}."
   value = "192.168.0.10"
@@ -805,7 +805,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform"
   value = "192.168.0.11"
@@ -820,7 +820,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform"
   value = "a.foobar-test-terraform.com."
@@ -834,11 +834,11 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foo_record" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
-  name  = "terraform"
-  value = "${digitalocean_domain.foobar.name}."
-  type  = "MX"
+  name     = "terraform"
+  value    = "${digitalocean_domain.foobar.name}."
+  type     = "MX"
   priority = "10"
 }`
 
@@ -849,7 +849,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foo_record" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name     = "terraform"
   value    = "foobar.${digitalocean_domain.foobar.name}."
@@ -864,7 +864,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform"
   value = "a.foobar-test-terraform.net."
@@ -878,7 +878,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform"
   type  = "CAA"
@@ -894,7 +894,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foo_record" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name     = "_service._protocol"
   value    = "foobar.${digitalocean_domain.foobar.name}."
@@ -911,7 +911,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "%s"
   value = "%s"
@@ -926,7 +926,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foo_record" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name     = "terraform"
   value    = "foobar.${digitalocean_domain.foobar.name}."
@@ -941,7 +941,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foo_record" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name     = "_service._protocol"
   value    = "foobar.${digitalocean_domain.foobar.name}."
@@ -958,7 +958,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foo_record" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform"
   type  = "CAA"
@@ -969,24 +969,24 @@ resource "digitalocean_record" "foo_record" {
 
 const testAccCheckDigitalOceanRecordConfig_iodef = `
 resource "digitalocean_domain" "foobar" {
-  name       = "%s"
+  name = "%s"
 }
 resource "digitalocean_record" "CAA_iodef" {
   domain = digitalocean_domain.foobar.name
-  type  = "CAA"
-  tag   = "iodef"
-  flags = "0"
-  name  = "@"
-  value = "mailto:caa-failures@example.com"
+  type   = "CAA"
+  tag    = "iodef"
+  flags  = "0"
+  name   = "@"
+  value  = "mailto:caa-failures@example.com"
 }`
 
 const testAccCheckDigitalOceanRecordTXT = `
 resource "digitalocean_domain" "foobar" {
-  name       = "%s"
+  name = "%s"
 }
 resource "digitalocean_record" "txt" {
   domain = digitalocean_domain.foobar.name
-  type  = "TXT"
-  name  = "%s."
-  value = "v=spf1 a:smtp01.example.com a:mail.example.com -all"
+  type   = "TXT"
+  name   = "%s."
+  value  = "v=spf1 a:smtp01.example.com a:mail.example.com -all"
 }`

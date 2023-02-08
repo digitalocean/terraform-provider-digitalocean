@@ -442,9 +442,9 @@ func generateSpacesName() string {
 
 func fixtureCreateWithDefaults(name string) string {
 	return fmt.Sprintf(`
-		resource "digitalocean_project" "myproj" {
-			name = "%s"
-		}`, name)
+resource "digitalocean_project" "myproj" {
+  name = "%s"
+}`, name)
 }
 
 func fixtureUpdateWithValues(name, description, purpose, environment string) string {
@@ -453,71 +453,71 @@ func fixtureUpdateWithValues(name, description, purpose, environment string) str
 
 func fixtureCreateWithInitialValues(name, description, purpose, environment string) string {
 	return fmt.Sprintf(`
-		resource "digitalocean_project" "myproj" {
-			name = "%s"
-			description = "%s"
-			purpose = "%s"
-			environment = "%s"
-		}`, name, description, purpose, environment)
+resource "digitalocean_project" "myproj" {
+  name        = "%s"
+  description = "%s"
+  purpose     = "%s"
+  environment = "%s"
+}`, name, description, purpose, environment)
 }
 
 func fixtureCreateWithDropletResource(dropletName, name string) string {
 	return fmt.Sprintf(`
-		resource "digitalocean_droplet" "foobar" {
-		  name      = "%s"
-		  size      = "s-1vcpu-1gb"
-		  image     = "ubuntu-22-04-x64"
-		  region    = "nyc3"
-		  user_data = "foobar"
-		}
+resource "digitalocean_droplet" "foobar" {
+  name      = "%s"
+  size      = "s-1vcpu-1gb"
+  image     = "ubuntu-22-04-x64"
+  region    = "nyc3"
+  user_data = "foobar"
+}
 
-		resource "digitalocean_project" "myproj" {
-			name = "%s"
-			resources = ["${digitalocean_droplet.foobar.urn}"]
-		}`, dropletName, name)
+resource "digitalocean_project" "myproj" {
+  name      = "%s"
+  resources = [digitalocean_droplet.foobar.urn]
+}`, dropletName, name)
 
 }
 
 func fixtureCreateWithSpacesResource(spacesBucketName, name string) string {
 	return fmt.Sprintf(`
-		resource "digitalocean_spaces_bucket" "foobar" {
-			name = "%s"
-			acl = "public-read"
-			region = "ams3"
-		}
+resource "digitalocean_spaces_bucket" "foobar" {
+  name   = "%s"
+  acl    = "public-read"
+  region = "ams3"
+}
 
-		resource "digitalocean_project" "myproj" {
-			name = "%s"
-			resources = ["${digitalocean_spaces_bucket.foobar.urn}"]
-		}`, spacesBucketName, name)
+resource "digitalocean_project" "myproj" {
+  name      = "%s"
+  resources = [digitalocean_spaces_bucket.foobar.urn]
+}`, spacesBucketName, name)
 
 }
 
 func fixtureCreateDomainResources(domainBase string) string {
 	return fmt.Sprintf(`
-		resource "digitalocean_domain" "foobar" {
-			count = 30
-			name  = "%s-${count.index}.com"
-		}`, domainBase)
+resource "digitalocean_domain" "foobar" {
+  count = 30
+  name  = "%s-${count.index}.com"
+}`, domainBase)
 }
 
 func fixtureWithManyResources(domainBase string, name string) string {
 	return fmt.Sprintf(`
-		resource "digitalocean_domain" "foobar" {
-			count = 30
-			name  = "%s-${count.index}.com"
-		}
+resource "digitalocean_domain" "foobar" {
+  count = 30
+  name  = "%s-${count.index}.com"
+}
 
-		resource "digitalocean_project" "myproj" {
-			name = "%s"
-			resources = digitalocean_domain.foobar[*].urn
-		}`, domainBase, name)
+resource "digitalocean_project" "myproj" {
+  name      = "%s"
+  resources = digitalocean_domain.foobar[*].urn
+}`, domainBase, name)
 }
 
 func fixtureCreateWithIsDefault(name string, is_default string) string {
 	return fmt.Sprintf(`
-		resource "digitalocean_project" "myproj" {
-			name = "%s"
-			is_default = "%s"
-		}`, name, is_default)
+resource "digitalocean_project" "myproj" {
+  name       = "%s"
+  is_default = "%s"
+}`, name, is_default)
 }

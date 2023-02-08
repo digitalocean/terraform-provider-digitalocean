@@ -539,188 +539,188 @@ func testAccCheckDigitalOceanDatabaseClusterURIPassword(name string, attributeNa
 
 const testAccCheckDigitalOceanDatabaseClusterConfigBasic = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-    node_count = 1
-	tags       = ["production"]
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithUpdate = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-2gb"
-	region     = "nyc1"
-    node_count = 1
-	tags       = ["production"]
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-2gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithMigration = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-1gb"
-	region     = "lon1"
-    node_count = 1
-	tags       = ["production"]
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "lon1"
+  node_count = 1
+  tags       = ["production"]
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithMaintWindow = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
-	tags       = ["production"]
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
 
-	maintenance_window {
-        day  = "friday"
-        hour = "13:00:00"
-	}
+  maintenance_window {
+    day  = "friday"
+    hour = "13:00:00"
+  }
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithSQLMode = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "mysql"
-	version    = "8"
-	size       = "db-s-1vcpu-1gb"
-	region     = "lon1"
-    node_count = 1
-    sql_mode   = "ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE"
+  name       = "%s"
+  engine     = "mysql"
+  version    = "8"
+  size       = "db-s-1vcpu-1gb"
+  region     = "lon1"
+  node_count = 1
+  sql_mode   = "ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE"
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithSQLModeUpdate = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "mysql"
-	version    = "8"
-	size       = "db-s-1vcpu-1gb"
-	region     = "lon1"
-    node_count = 1
-    sql_mode   = "ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE"
+  name       = "%s"
+  engine     = "mysql"
+  version    = "8"
+  size       = "db-s-1vcpu-1gb"
+  region     = "lon1"
+  node_count = 1
+  sql_mode   = "ANSI,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION,NO_ZERO_DATE,NO_ZERO_IN_DATE"
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithRedisSQLModeError = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "redis"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-    node_count = 1
-    sql_mode   = "ANSI"
+  name       = "%s"
+  engine     = "redis"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  sql_mode   = "ANSI"
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterRedisNoVersion = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "redis"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-    node_count = 1
-	tags       = ["production"]
+  name       = "%s"
+  engine     = "redis"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterRedis = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "redis"
-	version    = "%s"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-    node_count = 1
-	tags       = ["production"]
+  name       = "%s"
+  engine     = "redis"
+  version    = "%s"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicy = `
 resource "digitalocean_database_cluster" "foobar" {
-	name            = "%s"
-	engine          = "redis"
-	version         = "5"
-	size            = "db-s-1vcpu-1gb"
-	region          = "nyc1"
-    node_count      = 1
-	tags            = ["production"]
-	eviction_policy = "volatile_random"
+  name            = "%s"
+  engine          = "redis"
+  version         = "5"
+  size            = "db-s-1vcpu-1gb"
+  region          = "nyc1"
+  node_count      = 1
+  tags            = ["production"]
+  eviction_policy = "volatile_random"
 }
 `
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicyUpdate = `
 resource "digitalocean_database_cluster" "foobar" {
-	name            = "%s"
-	engine          = "redis"
-	version         = "5"
-	size            = "db-s-1vcpu-1gb"
-	region          = "nyc1"
-    node_count      = 1
-	tags            = ["production"]
-	eviction_policy = "allkeys_lru"
+  name            = "%s"
+  engine          = "redis"
+  version         = "5"
+  size            = "db-s-1vcpu-1gb"
+  region          = "nyc1"
+  node_count      = 1
+  tags            = ["production"]
+  eviction_policy = "allkeys_lru"
 }
 `
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicyError = `
 resource "digitalocean_database_cluster" "foobar" {
-	name            = "%s"
-	engine          = "pg"
-	version         = "11"
-	size            = "db-s-1vcpu-1gb"
-	region          = "nyc1"
-    node_count      = 1
-	eviction_policy = "allkeys_lru"
+  name            = "%s"
+  engine          = "pg"
+  version         = "11"
+  size            = "db-s-1vcpu-1gb"
+  region          = "nyc1"
+  node_count      = 1
+  eviction_policy = "allkeys_lru"
 }
 `
 
 const testAccCheckDigitalOceanDatabaseClusterConfigTagUpdate = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-    node_count = 1
-	tags       = ["production", "foo"]
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production", "foo"]
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithVPC = `
 resource "digitalocean_vpc" "foobar" {
-  name        = "%s"
-  region      = "nyc1"
+  name   = "%s"
+  region = "nyc1"
 }
 
 resource "digitalocean_database_cluster" "foobar" {
-	name                 = "%s"
-	engine               = "pg"
-	version              = "11"
-	size                 = "db-s-1vcpu-1gb"
-	region               = "nyc1"
-	node_count           = 1
-	tags                 = ["production"]
-	private_network_uuid = digitalocean_vpc.foobar.id
+  name                 = "%s"
+  engine               = "pg"
+  version              = "11"
+  size                 = "db-s-1vcpu-1gb"
+  region               = "nyc1"
+  node_count           = 1
+  tags                 = ["production"]
+  private_network_uuid = digitalocean_vpc.foobar.id
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigMongoDB = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "mongodb"
-	version    = "4"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc3"
-    node_count = 1
+  name       = "%s"
+  engine     = "mongodb"
+  version    = "4"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc3"
+  node_count = 1
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigCustomVersion = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "%s"
-	version    = "%s"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc3"
-    node_count = 1
+  name       = "%s"
+  engine     = "%s"
+  version    = "%s"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc3"
+  node_count = 1
 }`

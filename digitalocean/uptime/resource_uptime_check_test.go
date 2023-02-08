@@ -13,9 +13,9 @@ import (
 
 const testAccCheckDigitalOceanUptimeCheckConfig_Basic = `
 resource "digitalocean_uptime_check" "foobar" {
-	name        = "%s"
-	target      = "%s"
-	regions     = ["%s"]
+  name    = "%s"
+  target  = "%s"
+  regions = ["%s"]
 }
 `
 

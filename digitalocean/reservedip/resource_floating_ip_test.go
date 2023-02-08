@@ -141,8 +141,8 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_floating_ip" "foobar" {
-  droplet_id = "${digitalocean_droplet.foobar.id}"
-  region     = "${digitalocean_droplet.foobar.region}"
+  droplet_id = digitalocean_droplet.foobar.id
+  region     = digitalocean_droplet.foobar.region
 }`, rInt)
 }
 
@@ -158,8 +158,8 @@ resource "digitalocean_droplet" "baz" {
 }
 
 resource "digitalocean_floating_ip" "foobar" {
-  droplet_id = "${digitalocean_droplet.baz.id}"
-  region     = "${digitalocean_droplet.baz.region}"
+  droplet_id = digitalocean_droplet.baz.id
+  region     = digitalocean_droplet.baz.region
 }`, rInt)
 }
 
@@ -175,6 +175,6 @@ resource "digitalocean_droplet" "baz" {
 }
 
 resource "digitalocean_floating_ip" "foobar" {
-  region     = "nyc3"
+  region = "nyc3"
 }`, rInt)
 }

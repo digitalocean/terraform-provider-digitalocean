@@ -666,15 +666,15 @@ resource "digitalocean_loadbalancer" "foo" {
   size   = "%s"
 
   forwarding_rule {
-	entry_port     = 80
-	entry_protocol = "http"
+    entry_port     = 80
+    entry_protocol = "http"
 
-	target_port     = 80
-	target_protocol = "http"
+    target_port     = 80
+    target_protocol = "http"
   }
 
   healthcheck {
-	port     = 22
+    port     = 22
     protocol = "tcp"
   }
 
@@ -700,20 +700,20 @@ resource "digitalocean_droplet" "foo" {
 }
 
 resource "digitalocean_loadbalancer" "foo" {
-  name   = "%s"
-  region = "nyc3"
+  name      = "%s"
+  region    = "nyc3"
   size_unit = "%d"
 
   forwarding_rule {
-	entry_port     = 80
-	entry_protocol = "http"
+    entry_port     = 80
+    entry_protocol = "http"
 
-	target_port     = 80
-	target_protocol = "http"
+    target_port     = 80
+    target_protocol = "http"
   }
 
   healthcheck {
-	port     = 22
+    port     = 22
     protocol = "tcp"
   }
 

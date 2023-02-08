@@ -73,11 +73,11 @@ func testAccCheckDataSourceDigitalOceanCertificateConfig_basic(
 ) string {
 	config := fmt.Sprintf(`
 resource "digitalocean_certificate" "foo" {
-  name = "%s"
-  private_key = <<EOF
+  name              = "%s"
+  private_key       = <<EOF
 %s
 EOF
-  leaf_certificate = <<EOF
+  leaf_certificate  = <<EOF
 %s
 EOF
   certificate_chain = <<EOF

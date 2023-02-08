@@ -14,48 +14,48 @@ func TestAccDataSourceDigitalOceanProjects_Basic(t *testing.T) {
 
 	resourcesConfig := fmt.Sprintf(`
 resource "digitalocean_project" "prod" {
-	name = "%s"
-	environment = "Production"
+  name        = "%s"
+  environment = "Production"
 }
 
 resource "digitalocean_project" "staging" {
-	name = "%s"
-	environment = "Staging"
+  name        = "%s"
+  environment = "Staging"
 }
 `, prodProjectName, stagingProjectName)
 
 	datasourcesConfig := fmt.Sprintf(`
 data "digitalocean_projects" "prod" {
-	filter {
-      key = "environment"
-      values = ["Production"]
-    }
-    filter {
-      key = "is_default"
-      values = ["false"]
-    }
+  filter {
+    key    = "environment"
+    values = ["Production"]
+  }
+  filter {
+    key    = "is_default"
+    values = ["false"]
+  }
 }
 
 data "digitalocean_projects" "staging" {
-	filter {
-      key = "name"
-      values = ["%s"]
-    }
-    filter {
-      key = "is_default"
-      values = ["false"]
-    }
+  filter {
+    key    = "name"
+    values = ["%s"]
+  }
+  filter {
+    key    = "is_default"
+    values = ["false"]
+  }
 }
 
 data "digitalocean_projects" "both" {
-	filter {
-      key = "environment"
-      values = ["Production"]
-    }
-	filter {
-      key = "name"
-      values = ["%s"]
-    }
+  filter {
+    key    = "environment"
+    values = ["Production"]
+  }
+  filter {
+    key    = "name"
+    values = ["%s"]
+  }
 }
 `, stagingProjectName, stagingProjectName)
 	resource.Test(t, resource.TestCase{

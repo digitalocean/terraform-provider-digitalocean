@@ -19,7 +19,7 @@ func TestAccDataSourceDigitalOceanDropletSnapshot_basic(t *testing.T) {
 	dataSourceConfig := `
 data "digitalocean_droplet_snapshot" "foobar" {
   most_recent = true
-  name = digitalocean_droplet_snapshot.foo.name
+  name        = digitalocean_droplet_snapshot.foo.name
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -50,7 +50,7 @@ func TestAccDataSourceDigitalOceanDropletSnapshot_regex(t *testing.T) {
 	dataSourceConfig := fmt.Sprintf(`
 data "digitalocean_droplet_snapshot" "foobar" {
   most_recent = true
-  name_regex = "^%s"
+  name_regex  = "^%s"
 }`, testName)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -87,12 +87,12 @@ resource "digitalocean_droplet" "bar" {
 }
 
 resource "digitalocean_droplet_snapshot" "bar" {
-  name = "%s-snapshot"
-  droplet_id = "${digitalocean_droplet.bar.id}"
+  name       = "%s-snapshot"
+  droplet_id = digitalocean_droplet.bar.id
 }`, testName, testName)
 	dataSourceConfig := `
 data "digitalocean_droplet_snapshot" "foobar" {
-  name = digitalocean_droplet_snapshot.bar.name
+  name   = digitalocean_droplet_snapshot.bar.name
   region = "lon1"
 }`
 
@@ -155,7 +155,7 @@ resource "digitalocean_droplet" "foo" {
 }
 
 resource "digitalocean_droplet_snapshot" "foo" {
-  name = "%s-snapshot"
+  name       = "%s-snapshot"
   droplet_id = digitalocean_droplet.foo.id
 }
 `

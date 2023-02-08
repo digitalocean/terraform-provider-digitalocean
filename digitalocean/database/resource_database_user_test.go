@@ -232,87 +232,87 @@ func testAccCheckDigitalOceanDatabaseUserAttributes(databaseUser *godo.DatabaseU
 
 const testAccCheckDigitalOceanDatabaseUserConfigBasic = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
 
-	maintenance_window {
-        day  = "friday"
-        hour = "13:00:00"
-	}
+  maintenance_window {
+    day  = "friday"
+    hour = "13:00:00"
+  }
 }
 
 resource "digitalocean_database_user" "foobar_user" {
-  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"
 }`
 
 const testAccCheckDigitalOceanDatabaseUserConfigMongo = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "mongodb"
-	version    = "4"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
+  name       = "%s"
+  engine     = "mongodb"
+  version    = "4"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
 
-	maintenance_window {
-        day  = "friday"
-        hour = "13:00:00"
-	}
+  maintenance_window {
+    day  = "friday"
+    hour = "13:00:00"
+  }
 }
 
 resource "digitalocean_database_user" "foobar_user" {
-  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"
 }`
 
 const testAccCheckDigitalOceanDatabaseUserConfigMySQLAuth = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "mysql"
-	version    = "8"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
+  name       = "%s"
+  engine     = "mysql"
+  version    = "8"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
 }
 
 resource "digitalocean_database_user" "foobar_user" {
-  cluster_id = "${digitalocean_database_cluster.foobar.id}"
-  name       = "%s"
+  cluster_id        = digitalocean_database_cluster.foobar.id
+  name              = "%s"
   mysql_auth_plugin = "mysql_native_password"
 }`
 
 const testAccCheckDigitalOceanDatabaseUserConfigMySQLAuthUpdate = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "mysql"
-	version    = "8"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
+  name       = "%s"
+  engine     = "mysql"
+  version    = "8"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
 }
 
 resource "digitalocean_database_user" "foobar_user" {
-  cluster_id = "${digitalocean_database_cluster.foobar.id}"
-  name       = "%s"
+  cluster_id        = digitalocean_database_cluster.foobar.id
+  name              = "%s"
   mysql_auth_plugin = "caching_sha2_password"
 }`
 
 const testAccCheckDigitalOceanDatabaseUserConfigMySQLAuthRemoved = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "mysql"
-	version    = "8"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
+  name       = "%s"
+  engine     = "mysql"
+  version    = "8"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
 }
 
 resource "digitalocean_database_user" "foobar_user" {
-  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"
 }`

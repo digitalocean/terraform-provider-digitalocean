@@ -18,15 +18,15 @@ func TestAccDataSourceDigitalOceanSpacesBucket_Basic(t *testing.T) {
 
 	resourceConfig := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-	name = "%s"
-	region = "%s"
+  name   = "%s"
+  region = "%s"
 }
 `, bucketName, bucketRegion)
 
 	datasourceConfig := fmt.Sprintf(`
 data "digitalocean_spaces_bucket" "bucket" {
-    name = "%s"
-    region = "%s"
+  name   = "%s"
+  region = "%s"
 }
 `, bucketName, bucketRegion)
 
@@ -64,8 +64,8 @@ data "digitalocean_spaces_bucket" "bucket" {
 func TestAccDataSourceDigitalOceanSpacesBucket_NotFound(t *testing.T) {
 	datasourceConfig := `
 data "digitalocean_spaces_bucket" "bucket" {
-    name = "no-such-bucket"
-    region = "nyc3"
+  name   = "no-such-bucket"
+  region = "nyc3"
 }
 `
 
@@ -91,10 +91,10 @@ func TestAccDataSourceDigitalOceanSpacesBucket_RegionError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
-					data "digitalocean_spaces_bucket" "bucket" {
-						name   = "tf-test-bucket"
-						region = "%s"
-					}`, badRegion),
+data "digitalocean_spaces_bucket" "bucket" {
+  name   = "tf-test-bucket"
+  region = "%s"
+}`, badRegion),
 				ExpectError: regexp.MustCompile(`expected region to be one of`),
 			},
 		},

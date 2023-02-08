@@ -14,18 +14,18 @@ func TestAccDataSourceDigitalOceanDomains_Basic(t *testing.T) {
 
 	resourcesConfig := fmt.Sprintf(`
 resource "digitalocean_domain" "foo" {
-  name     = "%s"
+  name = "%s"
 }
 
 resource "digitalocean_domain" "bar" {
-  name     = "%s"
+  name = "%s"
 }
 `, name1, name2)
 
 	datasourceConfig := fmt.Sprintf(`
 data "digitalocean_domains" "result" {
   filter {
-    key = "name"
+    key    = "name"
     values = ["%s"]
   }
 }

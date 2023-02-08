@@ -73,5 +73,5 @@ resource "digitalocean_floating_ip" "foo" {
 }
 
 data "digitalocean_floating_ip" "foobar" {
-  ip_address = "${digitalocean_floating_ip.foo.ip_address}"
+  ip_address = digitalocean_floating_ip.foo.ip_address
 }`

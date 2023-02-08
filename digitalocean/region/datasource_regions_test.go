@@ -17,39 +17,39 @@ data "digitalocean_regions" "all" {
 `
 	configAvailableFilter := `
 data "digitalocean_regions" "filtered" {
-	filter {
-        key = "available"
-        values = ["true"]
-    }
-    sort {
-		key = "slug"
-    }
+  filter {
+    key    = "available"
+    values = ["true"]
+  }
+  sort {
+    key = "slug"
+  }
 }
 `
 
 	configFeaturesFilter := `
 data "digitalocean_regions" "filtered" {
-	filter {
-        key = "features"
-        values = ["private_networking", "backups"]
-    }
-    sort {
-		key = "available"
-		direction = "desc"
-    }
+  filter {
+    key    = "features"
+    values = ["private_networking", "backups"]
+  }
+  sort {
+    key       = "available"
+    direction = "desc"
+  }
 }
 `
 
 	configAllFilters := `
 data "digitalocean_regions" "filtered" {
-	filter {
-        key = "available"
-        values = ["true"]
-    }
-	filter {
-        key = "features"
-        values = ["private_networking", "backups"]
-    }
+  filter {
+    key    = "available"
+    values = ["true"]
+  }
+  filter {
+    key    = "features"
+    values = ["private_networking", "backups"]
+  }
 }
 `
 	resource.ParallelTest(t, resource.TestCase{

@@ -17,7 +17,7 @@ func TestAccDataSourceDigitalOceanImages_Basic(t *testing.T) {
 	config := `
 data "digitalocean_images" "ubuntu" {
   filter {
-    key = "distribution"
+    key    = "distribution"
     values = ["Ubuntu"]
   }
 }

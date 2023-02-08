@@ -129,23 +129,23 @@ func testAccCheckDigitalOceanContainerRegistryDockerCredentialsExists(n string, 
 
 var testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_basic = `
 resource "digitalocean_container_registry" "foobar" {
-	name                   = "%s"
-	subscription_tier_slug = "basic"
+  name                   = "%s"
+  subscription_tier_slug = "basic"
 }
 
 resource "digitalocean_container_registry_docker_credentials" "foobar" {
-	registry_name = digitalocean_container_registry.foobar.name
-	write = true
+  registry_name = digitalocean_container_registry.foobar.name
+  write         = true
 }`
 
 var testAccCheckDigitalOceanContainerRegistryDockerCredentialsConfig_withExpiry = `
 resource "digitalocean_container_registry" "foobar" {
-	name                   = "%s"
-	subscription_tier_slug = "basic"
+  name                   = "%s"
+  subscription_tier_slug = "basic"
 }
 
 resource "digitalocean_container_registry_docker_credentials" "foobar" {
-	registry_name = digitalocean_container_registry.foobar.name
-	write = true
-	expiry_seconds = 3600
+  registry_name  = digitalocean_container_registry.foobar.name
+  write          = true
+  expiry_seconds = 3600
 }`

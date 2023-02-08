@@ -33,14 +33,14 @@ resource "digitalocean_droplet" "foobar" {
 
 	projectResourcesConfigEmpty := `
 resource "digitalocean_project_resources" "barfoo" {
-  project = digitalocean_project.foo.id
+  project   = digitalocean_project.foo.id
   resources = []
 }
 `
 
 	projectResourcesConfigWithDroplet := `
 resource "digitalocean_project_resources" "barfoo" {
-  project = digitalocean_project.foo.id
+  project   = digitalocean_project.foo.id
   resources = [digitalocean_droplet.foobar.urn]
 }
 `
