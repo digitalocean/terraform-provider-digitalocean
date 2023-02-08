@@ -473,7 +473,7 @@ resource "digitalocean_droplet" "foobar" {
 
 resource "digitalocean_project" "myproj" {
   name      = "%s"
-  resources = ["${digitalocean_droplet.foobar.urn}"]
+  resources = [digitalocean_droplet.foobar.urn]
 }`, dropletName, name)
 
 }
@@ -488,7 +488,7 @@ resource "digitalocean_spaces_bucket" "foobar" {
 
 resource "digitalocean_project" "myproj" {
   name      = "%s"
-  resources = ["${digitalocean_spaces_bucket.foobar.urn}"]
+  resources = [digitalocean_spaces_bucket.foobar.urn]
 }`, spacesBucketName, name)
 
 }

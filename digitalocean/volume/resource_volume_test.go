@@ -144,7 +144,7 @@ resource "digitalocean_droplet" "foobar" {
   region             = "nyc1"
   ipv6               = true
   private_networking = true
-  volume_ids         = ["${digitalocean_volume.foobar.id}"]
+  volume_ids         = [digitalocean_volume.foobar.id]
 }`, vName, rInt)
 }
 
@@ -289,7 +289,7 @@ resource "digitalocean_droplet" "foobar" {
   region             = "nyc1"
   ipv6               = true
   private_networking = true
-  volume_ids         = ["${digitalocean_volume.foobar.id}"]
+  volume_ids         = [digitalocean_volume.foobar.id]
 }`, vName, vSize, rInt)
 }
 
@@ -329,14 +329,14 @@ resource "digitalocean_volume" "foo" {
 
 resource "digitalocean_volume_snapshot" "foo" {
   name      = "snapshot-%d"
-  volume_id = "${digitalocean_volume.foo.id}"
+  volume_id = digitalocean_volume.foo.id
 }
 
 resource "digitalocean_volume" "foobar" {
   region      = "nyc1"
   name        = "volume-snap-%d"
-  size        = "${digitalocean_volume_snapshot.foo.min_disk_size}"
-  snapshot_id = "${digitalocean_volume_snapshot.foo.id}"
+  size        = digitalocean_volume_snapshot.foo.min_disk_size
+  snapshot_id = digitalocean_volume_snapshot.foo.id
 }`, rInt, rInt, rInt)
 }
 

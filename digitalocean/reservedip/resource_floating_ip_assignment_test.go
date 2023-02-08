@@ -132,8 +132,8 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_floating_ip_assignment" "foobar" {
-  ip_address = "${digitalocean_floating_ip.foobar.ip_address}"
-  droplet_id = "${digitalocean_droplet.foobar.0.id}"
+  ip_address = digitalocean_floating_ip.foobar.ip_address
+  droplet_id = digitalocean_droplet.foobar[0].id
 }
 `
 
@@ -153,8 +153,8 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_floating_ip_assignment" "foobar" {
-  ip_address = "${digitalocean_floating_ip.foobar.ip_address}"
-  droplet_id = "${digitalocean_droplet.foobar.1.id}"
+  ip_address = digitalocean_floating_ip.foobar.ip_address
+  droplet_id = digitalocean_droplet.foobar[1].id
 }
 `
 
@@ -191,8 +191,8 @@ resource "digitalocean_floating_ip" "foobar" {
 }
 
 resource "digitalocean_floating_ip_assignment" "foobar" {
-  ip_address = "${digitalocean_floating_ip.foobar.id}"
-  droplet_id = "${digitalocean_droplet.foobar.id}"
+  ip_address = digitalocean_floating_ip.foobar.id
+  droplet_id = digitalocean_droplet.foobar.id
 
   lifecycle {
     create_before_destroy = true
@@ -217,8 +217,8 @@ resource "digitalocean_floating_ip" "foobar" {
 }
 
 resource "digitalocean_floating_ip_assignment" "foobar" {
-  ip_address = "${digitalocean_floating_ip.foobar.id}"
-  droplet_id = "${digitalocean_droplet.foobar.id}"
+  ip_address = digitalocean_floating_ip.foobar.id
+  droplet_id = digitalocean_droplet.foobar.id
 
   lifecycle {
     create_before_destroy = true

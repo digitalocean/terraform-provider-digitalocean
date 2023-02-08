@@ -157,6 +157,6 @@ resource "digitalocean_database_cluster" "foobar" {
 }
 
 resource "digitalocean_database_db" "foobar_db" {
-  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"
 }`

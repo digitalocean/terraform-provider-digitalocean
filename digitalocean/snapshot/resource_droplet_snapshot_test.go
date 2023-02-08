@@ -91,8 +91,9 @@ resource "digitalocean_droplet" "foo" {
   region    = "nyc3"
   user_data = "foobar"
 }
+
 resource "digitalocean_droplet_snapshot" "foobar" {
-  droplet_id = "${digitalocean_droplet.foo.id}"
+  droplet_id = digitalocean_droplet.foo.id
   name       = "snapshot-one-%d"
 }
   `

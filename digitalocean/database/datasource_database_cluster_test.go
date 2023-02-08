@@ -107,6 +107,6 @@ resource "digitalocean_database_cluster" "foobar" {
 }
 
 data "digitalocean_database_cluster" "foobar" {
-  name = "${digitalocean_database_cluster.foobar.name}"
+  name = digitalocean_database_cluster.foobar.name
 }
 `

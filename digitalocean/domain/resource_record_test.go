@@ -777,7 +777,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform"
   value = "192.168.0.10"
@@ -791,7 +791,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform.${digitalocean_domain.foobar.name}."
   value = "192.168.0.10"
@@ -805,7 +805,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform"
   value = "192.168.0.11"
@@ -820,7 +820,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform"
   value = "a.foobar-test-terraform.com."
@@ -834,7 +834,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foo_record" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name     = "terraform"
   value    = "${digitalocean_domain.foobar.name}."
@@ -849,7 +849,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foo_record" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name     = "terraform"
   value    = "foobar.${digitalocean_domain.foobar.name}."
@@ -864,7 +864,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform"
   value = "a.foobar-test-terraform.net."
@@ -878,7 +878,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform"
   type  = "CAA"
@@ -894,7 +894,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foo_record" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name     = "_service._protocol"
   value    = "foobar.${digitalocean_domain.foobar.name}."
@@ -911,7 +911,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foobar" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "%s"
   value = "%s"
@@ -926,7 +926,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foo_record" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name     = "terraform"
   value    = "foobar.${digitalocean_domain.foobar.name}."
@@ -941,7 +941,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foo_record" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name     = "_service._protocol"
   value    = "foobar.${digitalocean_domain.foobar.name}."
@@ -958,7 +958,7 @@ resource "digitalocean_domain" "foobar" {
 }
 
 resource "digitalocean_record" "foo_record" {
-  domain = "${digitalocean_domain.foobar.name}"
+  domain = digitalocean_domain.foobar.name
 
   name  = "terraform"
   type  = "CAA"

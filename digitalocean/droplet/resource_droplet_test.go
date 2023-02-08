@@ -830,7 +830,7 @@ data "digitalocean_image" "foobar" {
 resource "digitalocean_droplet" "foobar" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "${data.digitalocean_image.foobar.id}"
+  image     = data.digitalocean_image.foobar.id
   region    = "nyc3"
   user_data = "foobar"
 }`, slug, rInt)
@@ -849,7 +849,7 @@ resource "digitalocean_droplet" "foobar" {
   image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
-  ssh_keys  = ["${digitalocean_ssh_key.foobar.id}"]
+  ssh_keys  = [digitalocean_ssh_key.foobar.id]
 }`, rInt, testAccValidPublicKey, rInt)
 }
 
@@ -865,7 +865,7 @@ resource "digitalocean_droplet" "foobar" {
   image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
-  tags      = ["${digitalocean_tag.barbaz.id}"]
+  tags      = [digitalocean_tag.barbaz.id]
 }
 `, rInt)
 }
@@ -984,7 +984,7 @@ resource "digitalocean_droplet" "foobar" {
   region     = "sfo3"
   image      = "ubuntu-22-04-x64"
   size       = "s-1vcpu-1gb"
-  volume_ids = ["${count.index == 0 ? digitalocean_volume.myvol-01.id : digitalocean_volume.myvol-02.id}"]
+  volume_ids = [count.index == 0 ? digitalocean_volume.myvol-01.id : digitalocean_volume.myvol-02.id]
 }
 `, rInt, rInt, rInt)
 }

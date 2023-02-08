@@ -102,7 +102,7 @@ resource "digitalocean_volume" "foo" {
 
 resource "digitalocean_volume_snapshot" "foobar" {
   name      = "snapshot-%d"
-  volume_id = "${digitalocean_volume.foo.id}"
+  volume_id = digitalocean_volume.foo.id
   tags      = ["foo", "bar"]
 }`
 
@@ -143,6 +143,6 @@ resource "digitalocean_volume" "foo" {
 
 resource "digitalocean_volume_snapshot" "foobar" {
   name      = "snapshot-%d"
-  volume_id = "${digitalocean_volume.foo.id}"
+  volume_id = digitalocean_volume.foo.id
   tags      = ["foo", "bar", "baz"]
 }`

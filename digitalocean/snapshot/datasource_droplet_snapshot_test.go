@@ -88,7 +88,7 @@ resource "digitalocean_droplet" "bar" {
 
 resource "digitalocean_droplet_snapshot" "bar" {
   name       = "%s-snapshot"
-  droplet_id = "${digitalocean_droplet.bar.id}"
+  droplet_id = digitalocean_droplet.bar.id
 }`, testName, testName)
 	dataSourceConfig := `
 data "digitalocean_droplet_snapshot" "foobar" {

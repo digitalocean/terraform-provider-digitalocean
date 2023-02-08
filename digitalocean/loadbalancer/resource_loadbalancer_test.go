@@ -868,7 +868,7 @@ resource "digitalocean_droplet" "foobar" {
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
-  tags   = ["${digitalocean_tag.barbaz.id}"]
+  tags   = [digitalocean_tag.barbaz.id]
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
@@ -888,9 +888,9 @@ resource "digitalocean_loadbalancer" "foobar" {
     protocol = "tcp"
   }
 
-  droplet_tag = "${digitalocean_tag.barbaz.name}"
+  droplet_tag = digitalocean_tag.barbaz.name
 
-  depends_on = ["digitalocean_droplet.foobar"]
+  depends_on = [digitalocean_droplet.foobar]
 }`, rInt, rInt)
 }
 
@@ -916,7 +916,7 @@ resource "digitalocean_loadbalancer" "foobar" {
     target_protocol = "http"
   }
 
-  droplet_ids = ["${digitalocean_droplet.foobar.id}"]
+  droplet_ids = [digitalocean_droplet.foobar.id]
 }`, rInt, rInt)
 }
 
@@ -966,7 +966,7 @@ resource "digitalocean_loadbalancer" "foobar" {
     target_protocol = "udp"
   }
 
-  droplet_ids = ["${digitalocean_droplet.foobar.id}"]
+  droplet_ids = [digitalocean_droplet.foobar.id]
 }`, rInt, rInt)
 }
 
@@ -998,7 +998,7 @@ resource "digitalocean_loadbalancer" "foobar" {
     cookie_ttl_seconds = 1800
   }
 
-  droplet_ids = ["${digitalocean_droplet.foobar.id}"]
+  droplet_ids = [digitalocean_droplet.foobar.id]
 }`, rInt, rInt)
 }
 
@@ -1075,7 +1075,6 @@ resource "digitalocean_loadbalancer" "foobar" {
 
     target_port     = 443
     target_protocol = "udp"
-
   }
 
   forwarding_rule {

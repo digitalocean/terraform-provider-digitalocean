@@ -246,7 +246,7 @@ resource "digitalocean_database_cluster" "foobar" {
 }
 
 resource "digitalocean_database_user" "foobar_user" {
-  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"
 }`
 
@@ -266,7 +266,7 @@ resource "digitalocean_database_cluster" "foobar" {
 }
 
 resource "digitalocean_database_user" "foobar_user" {
-  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"
 }`
 
@@ -281,7 +281,7 @@ resource "digitalocean_database_cluster" "foobar" {
 }
 
 resource "digitalocean_database_user" "foobar_user" {
-  cluster_id        = "${digitalocean_database_cluster.foobar.id}"
+  cluster_id        = digitalocean_database_cluster.foobar.id
   name              = "%s"
   mysql_auth_plugin = "mysql_native_password"
 }`
@@ -297,7 +297,7 @@ resource "digitalocean_database_cluster" "foobar" {
 }
 
 resource "digitalocean_database_user" "foobar_user" {
-  cluster_id        = "${digitalocean_database_cluster.foobar.id}"
+  cluster_id        = digitalocean_database_cluster.foobar.id
   name              = "%s"
   mysql_auth_plugin = "caching_sha2_password"
 }`
@@ -313,6 +313,6 @@ resource "digitalocean_database_cluster" "foobar" {
 }
 
 resource "digitalocean_database_user" "foobar_user" {
-  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"
 }`

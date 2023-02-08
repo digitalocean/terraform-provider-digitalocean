@@ -21,7 +21,7 @@ resource "digitalocean_tag" "foo" {
 }`, tagName)
 	dataSourceConfig := `
 data "digitalocean_tag" "foobar" {
-  name = "${digitalocean_tag.foo.name}"
+  name = digitalocean_tag.foo.name
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
