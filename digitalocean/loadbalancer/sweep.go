@@ -34,7 +34,7 @@ func sweepLoadbalancer(region string) error {
 	}
 
 	for _, l := range lbs {
-		if strings.HasPrefix(l.Name, "loadbalancer-") {
+		if strings.HasPrefix(l.Name, sweep.TestNamePrefix) {
 			log.Printf("Destroying loadbalancer %s", l.Name)
 
 			if _, err := client.LoadBalancers.Delete(context.Background(), l.ID); err != nil {
