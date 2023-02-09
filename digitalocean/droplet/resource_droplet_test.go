@@ -17,7 +17,7 @@ import (
 
 func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 	var droplet godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -25,12 +25,12 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletAttributes(&droplet),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
@@ -59,7 +59,7 @@ func TestAccDigitalOceanDroplet_Basic(t *testing.T) {
 
 func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 	var droplet godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	slug := "ubuntu-22-04-x64"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -68,7 +68,7 @@ func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_withID(rInt, slug),
+				Config: testAccCheckDigitalOceanDropletConfig_withID(name, slug),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 				),
@@ -79,7 +79,7 @@ func TestAccDigitalOceanDroplet_WithID(t *testing.T) {
 
 func TestAccDigitalOceanDroplet_withSSH(t *testing.T) {
 	var droplet godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
 	if err != nil {
 		t.Fatalf("Cannot generate test SSH key pair: %s", err)
@@ -91,12 +91,12 @@ func TestAccDigitalOceanDroplet_withSSH(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_withSSH(rInt, publicKeyMaterial),
+				Config: testAccCheckDigitalOceanDropletConfig_withSSH(name, publicKeyMaterial),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletAttributes(&droplet),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
@@ -113,7 +113,8 @@ func TestAccDigitalOceanDroplet_withSSH(t *testing.T) {
 
 func TestAccDigitalOceanDroplet_Update(t *testing.T) {
 	var droplet godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
+	newName := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -121,22 +122,22 @@ func TestAccDigitalOceanDroplet_Update(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletAttributes(&droplet),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 				),
 			},
 
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_RenameAndResize(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_RenameAndResize(newName),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletRenamedAndResized(&droplet),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("baz-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", newName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "size", "s-1vcpu-2gb"),
 					resource.TestCheckResourceAttr(
@@ -149,7 +150,7 @@ func TestAccDigitalOceanDroplet_Update(t *testing.T) {
 
 func TestAccDigitalOceanDroplet_ResizeWithOutDisk(t *testing.T) {
 	var droplet godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -157,22 +158,22 @@ func TestAccDigitalOceanDroplet_ResizeWithOutDisk(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletAttributes(&droplet),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 				),
 			},
 
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_resize_without_disk(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_resize_without_disk(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletResizeWithOutDisk(&droplet),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "size", "s-1vcpu-2gb"),
 					resource.TestCheckResourceAttr(
@@ -185,7 +186,7 @@ func TestAccDigitalOceanDroplet_ResizeWithOutDisk(t *testing.T) {
 
 func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 	var droplet godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -193,22 +194,22 @@ func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletAttributes(&droplet),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 				),
 			},
 			// Test moving to larger plan with resize_disk = false only increases RAM, not disk.
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_resize_without_disk(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_resize_without_disk(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletResizeWithOutDisk(&droplet),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "size", "s-1vcpu-2gb"),
 					resource.TestCheckResourceAttr(
@@ -217,12 +218,12 @@ func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 			},
 			// Test that we can downgrade a Droplet plan as long as the disk remains the same
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletAttributes(&droplet),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
 					resource.TestCheckResourceAttr(
@@ -231,12 +232,12 @@ func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 			},
 			// Test that resizing resize_disk = true increases the disk
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_resize(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_resize(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletResizeSmaller(&droplet),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "size", "s-1vcpu-2gb"),
 					resource.TestCheckResourceAttr(
@@ -249,7 +250,7 @@ func TestAccDigitalOceanDroplet_ResizeSmaller(t *testing.T) {
 
 func TestAccDigitalOceanDroplet_UpdateUserData(t *testing.T) {
 	var afterCreate, afterUpdate godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -257,21 +258,21 @@ func TestAccDigitalOceanDroplet_UpdateUserData(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &afterCreate),
 					testAccCheckDigitalOceanDropletAttributes(&afterCreate),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 				),
 			},
 
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_userdata_update(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_userdata_update(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &afterUpdate),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar",
 						"user_data",
@@ -286,7 +287,7 @@ func TestAccDigitalOceanDroplet_UpdateUserData(t *testing.T) {
 
 func TestAccDigitalOceanDroplet_UpdateTags(t *testing.T) {
 	var afterCreate, afterUpdate godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -294,21 +295,21 @@ func TestAccDigitalOceanDroplet_UpdateTags(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &afterCreate),
 					testAccCheckDigitalOceanDropletAttributes(&afterCreate),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 				),
 			},
 
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_tag_update(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_tag_update(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &afterUpdate),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar",
 						"tags.#",
@@ -321,7 +322,7 @@ func TestAccDigitalOceanDroplet_UpdateTags(t *testing.T) {
 
 func TestAccDigitalOceanDroplet_VPCAndIpv6(t *testing.T) {
 	var droplet godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -329,7 +330,7 @@ func TestAccDigitalOceanDroplet_VPCAndIpv6(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_VPCAndIpv6(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_VPCAndIpv6(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletAttributes_PrivateNetworkingIpv6(&droplet),
@@ -345,7 +346,7 @@ func TestAccDigitalOceanDroplet_VPCAndIpv6(t *testing.T) {
 
 func TestAccDigitalOceanDroplet_UpdatePrivateNetworkingIpv6(t *testing.T) {
 	var afterCreate, afterUpdate godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -353,22 +354,22 @@ func TestAccDigitalOceanDroplet_UpdatePrivateNetworkingIpv6(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &afterCreate),
 					testAccCheckDigitalOceanDropletAttributes(&afterCreate),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 				),
 			},
 			// For "private_networking," this is now a effectively a no-opt only updating state.
 			// All Droplets are assigned to a VPC by default. The API should still respond successfully.
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &afterUpdate),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "private_networking", "true"),
 					resource.TestCheckResourceAttr(
@@ -381,7 +382,7 @@ func TestAccDigitalOceanDroplet_UpdatePrivateNetworkingIpv6(t *testing.T) {
 
 func TestAccDigitalOceanDroplet_Monitoring(t *testing.T) {
 	var droplet godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -389,7 +390,7 @@ func TestAccDigitalOceanDroplet_Monitoring(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_Monitoring(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_Monitoring(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -403,7 +404,7 @@ func TestAccDigitalOceanDroplet_Monitoring(t *testing.T) {
 func TestAccDigitalOceanDroplet_conditionalVolumes(t *testing.T) {
 	var firstDroplet godo.Droplet
 	var secondDroplet godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -411,7 +412,7 @@ func TestAccDigitalOceanDroplet_conditionalVolumes(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_conditionalVolumes(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_conditionalVolumes(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar.0", &firstDroplet),
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar.1", &secondDroplet),
@@ -428,7 +429,7 @@ func TestAccDigitalOceanDroplet_conditionalVolumes(t *testing.T) {
 
 func TestAccDigitalOceanDroplet_EnableAndDisableBackups(t *testing.T) {
 	var droplet godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -436,19 +437,19 @@ func TestAccDigitalOceanDroplet_EnableAndDisableBackups(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletAttributes(&droplet),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "backups", "false"),
 				),
 			},
 
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_EnableBackups(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_EnableBackups(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -457,7 +458,7 @@ func TestAccDigitalOceanDroplet_EnableAndDisableBackups(t *testing.T) {
 			},
 
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_DisableBackups(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_DisableBackups(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -470,7 +471,7 @@ func TestAccDigitalOceanDroplet_EnableAndDisableBackups(t *testing.T) {
 
 func TestAccDigitalOceanDroplet_EnableAndDisableGracefulShutdown(t *testing.T) {
 	var droplet godo.Droplet
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -478,19 +479,19 @@ func TestAccDigitalOceanDroplet_EnableAndDisableGracefulShutdown(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					testAccCheckDigitalOceanDropletAttributes(&droplet),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "name", fmt.Sprintf("foo-%d", rInt)),
+						"digitalocean_droplet.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "graceful_shutdown", "false"),
 				),
 			},
 
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_EnableGracefulShutdown(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_EnableGracefulShutdown(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -499,7 +500,7 @@ func TestAccDigitalOceanDroplet_EnableAndDisableGracefulShutdown(t *testing.T) {
 			},
 
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_DisableGracefulShutdown(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_DisableGracefulShutdown(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -821,118 +822,118 @@ func testAccCheckDigitalOceanDropletRecreated(t *testing.T,
 	}
 }
 
-func testAccCheckDigitalOceanDropletConfig_withID(rInt int, slug string) string {
+func testAccCheckDigitalOceanDropletConfig_withID(name string, slug string) string {
 	return fmt.Sprintf(`
 data "digitalocean_image" "foobar" {
   slug = "%s"
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
+  name      = "%s"
   size      = "s-1vcpu-1gb"
   image     = data.digitalocean_image.foobar.id
   region    = "nyc3"
   user_data = "foobar"
-}`, slug, rInt)
+}`, slug, name)
 }
 
-func testAccCheckDigitalOceanDropletConfig_withSSH(rInt int, testAccValidPublicKey string) string {
+func testAccCheckDigitalOceanDropletConfig_withSSH(name string, testAccValidPublicKey string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_ssh_key" "foobar" {
-  name       = "foobar-%d"
+  name       = "%s-key"
   public_key = "%s"
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
+  name      = "%s"
   size      = "s-1vcpu-1gb"
   image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
   ssh_keys  = [digitalocean_ssh_key.foobar.id]
-}`, rInt, testAccValidPublicKey, rInt)
+}`, name, testAccValidPublicKey, name)
 }
 
-func testAccCheckDigitalOceanDropletConfig_tag_update(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_tag_update(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_tag" "barbaz" {
   name = "barbaz"
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
+  name      = "%s"
   size      = "s-1vcpu-1gb"
   image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
   tags      = [digitalocean_tag.barbaz.id]
 }
-`, rInt)
+`, name)
 }
 
-func testAccCheckDigitalOceanDropletConfig_userdata_update(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_userdata_update(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
+  name      = "%s"
   size      = "s-1vcpu-1gb"
   image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar foobar"
 }
-`, rInt)
+`, name)
 }
 
-func testAccCheckDigitalOceanDropletConfig_RenameAndResize(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_RenameAndResize(newName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name   = "baz-%d"
+  name   = "%s"
   size   = "s-1vcpu-2gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
 }
-`, rInt)
+`, newName)
 }
 
-func testAccCheckDigitalOceanDropletConfig_resize_without_disk(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_resize_without_disk(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name        = "foo-%d"
+  name        = "%s"
   size        = "s-1vcpu-2gb"
   image       = "ubuntu-22-04-x64"
   region      = "nyc3"
   user_data   = "foobar"
   resize_disk = false
 }
-`, rInt)
+`, name)
 }
 
-func testAccCheckDigitalOceanDropletConfig_resize(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_resize(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name        = "foo-%d"
+  name        = "%s"
   size        = "s-1vcpu-2gb"
   image       = "ubuntu-22-04-x64"
   region      = "nyc3"
   user_data   = "foobar"
   resize_disk = true
 }
-`, rInt)
+`, name)
 }
 
-func testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_PrivateNetworkingIpv6(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name               = "foo-%d"
+  name               = "%s"
   size               = "s-1vcpu-1gb"
   image              = "ubuntu-22-04-x64"
   region             = "nyc3"
   ipv6               = true
   private_networking = true
 }
-`, rInt)
+`, name)
 }
 
-func testAccCheckDigitalOceanDropletConfig_VPCAndIpv6(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_VPCAndIpv6(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_vpc" "foobar" {
   name   = "%s"
@@ -940,77 +941,77 @@ resource "digitalocean_vpc" "foobar" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name     = "foo-%d"
+  name     = "%s"
   size     = "s-1vcpu-1gb"
   image    = "ubuntu-22-04-x64"
   region   = "nyc3"
   ipv6     = true
   vpc_uuid = digitalocean_vpc.foobar.id
 }
-`, acceptance.RandomTestName(), rInt)
+`, acceptance.RandomTestName(), name)
 }
 
-func testAccCheckDigitalOceanDropletConfig_Monitoring(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_Monitoring(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name       = "foo-%d"
+  name       = "%s"
   size       = "s-1vcpu-1gb"
   image      = "ubuntu-22-04-x64"
   region     = "nyc3"
   monitoring = true
 }
- `, rInt)
+ `, name)
 }
 
-func testAccCheckDigitalOceanDropletConfig_conditionalVolumes(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_conditionalVolumes(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "myvol-01" {
   region      = "sfo3"
-  name        = "tf-acc-test-1-%d"
+  name        = "%s-01"
   size        = 1
   description = "an example volume"
 }
 
 resource "digitalocean_volume" "myvol-02" {
   region      = "sfo3"
-  name        = "tf-acc-test-2-%d"
+  name        = "%s-02"
   size        = 1
   description = "an example volume"
 }
 
 resource "digitalocean_droplet" "foobar" {
   count      = 2
-  name       = "tf-acc-test-%d-${count.index}"
+  name       = "%s-${count.index}"
   region     = "sfo3"
   image      = "ubuntu-22-04-x64"
   size       = "s-1vcpu-1gb"
   volume_ids = [count.index == 0 ? digitalocean_volume.myvol-01.id : digitalocean_volume.myvol-02.id]
 }
-`, rInt, rInt, rInt)
+`, name, name, name)
 }
 
-func testAccCheckDigitalOceanDropletConfig_EnableBackups(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_EnableBackups(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
+  name      = "%s"
   size      = "s-1vcpu-1gb"
   image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
   backups   = true
-}`, rInt)
+}`, name)
 }
 
-func testAccCheckDigitalOceanDropletConfig_DisableBackups(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_DisableBackups(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
+  name      = "%s"
   size      = "s-1vcpu-1gb"
   image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
   backups   = false
-}`, rInt)
+}`, name)
 }
 
 func testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, testAccValidPublicKey, dropletName, image, agent string) string {
@@ -1030,26 +1031,26 @@ resource "digitalocean_droplet" "foobar" {
 }`, keyName, testAccValidPublicKey, dropletName, image, agent)
 }
 
-func testAccCheckDigitalOceanDropletConfig_EnableGracefulShutdown(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_EnableGracefulShutdown(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name              = "foo-%d"
+  name              = "%s"
   size              = "s-1vcpu-1gb"
   image             = "ubuntu-22-04-x64"
   region            = "nyc3"
   user_data         = "foobar"
   graceful_shutdown = true
-}`, rInt)
+}`, name)
 }
 
-func testAccCheckDigitalOceanDropletConfig_DisableGracefulShutdown(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_DisableGracefulShutdown(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name              = "foo-%d"
+  name              = "%s"
   size              = "s-1vcpu-1gb"
   image             = "ubuntu-22-04-x64"
   region            = "nyc3"
   user_data         = "foobar"
   graceful_shutdown = false
-}`, rInt)
+}`, name)
 }

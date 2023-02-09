@@ -5,13 +5,12 @@ import (
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceDigitalOceanDroplets_Basic(t *testing.T) {
-	name1 := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
-	name2 := fmt.Sprintf("tf-acc-test-%s", acctest.RandString(10))
+	name1 := acceptance.RandomTestName("01")
+	name2 := acceptance.RandomTestName("02")
 
 	resourcesConfig := fmt.Sprintf(`
 resource "digitalocean_droplet" "foo" {

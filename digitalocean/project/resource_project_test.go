@@ -8,7 +8,6 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -429,15 +428,15 @@ func testAccCheckDigitalOceanProjectExists(resource string) resource.TestCheckFu
 }
 
 func generateProjectName() string {
-	return fmt.Sprintf("tf-proj-test-%d", acctest.RandInt())
+	return acceptance.RandomTestName("project")
 }
 
 func generateDropletName() string {
-	return fmt.Sprintf("tf-proj-test-rsrc-droplet-%d", acctest.RandInt())
+	return acceptance.RandomTestName("droplet")
 }
 
 func generateSpacesName() string {
-	return fmt.Sprintf("tf-proj-test-rsrc-spaces-%d", acctest.RandInt())
+	return acceptance.RandomTestName("space")
 }
 
 func fixtureCreateWithDefaults(name string) string {

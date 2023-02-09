@@ -33,15 +33,18 @@ func sweepDroplets(region string) error {
 	}
 	log.Printf("[DEBUG] Found %d droplets to sweep", len(droplets))
 
+	var swept int
 	for _, d := range droplets {
-		if strings.HasPrefix(d.Name, "foo-") || strings.HasPrefix(d.Name, "bar-") || strings.HasPrefix(d.Name, "baz-") || strings.HasPrefix(d.Name, "tf-acc-test-") || strings.HasPrefix(d.Name, "foobar-") {
+		if strings.HasPrefix(d.Name, sweep.TestNamePrefix) {
 			log.Printf("Destroying Droplet %s", d.Name)
 
 			if _, err := client.Droplets.Delete(context.Background(), d.ID); err != nil {
 				return err
 			}
+			swept++
 		}
 	}
+	log.Printf("[DEBUG] Deleted %d of %d droplets", swept, len(droplets))
 
 	return nil
 }
