@@ -784,7 +784,7 @@ func testAccCheckDigitalOceanLoadbalancerExists(n string, loadbalancer *godo.Loa
 func testAccCheckDigitalOceanLoadbalancerConfig_basic(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name   = "foo-%d"
+  name   = "%s"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
@@ -812,20 +812,20 @@ resource "digitalocean_loadbalancer" "foobar" {
   http_idle_timeout_seconds = 90
 
   droplet_ids = [digitalocean_droplet.foobar.id]
-}`, rInt, rInt)
+}`, acceptance.RandomTestName(), rInt)
 }
 
 func testAccCheckDigitalOceanLoadbalancerConfig_updated(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name   = "foo-%d"
+  name   = "%s"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
 }
 
 resource "digitalocean_droplet" "foo" {
-  name   = "foo-%d"
+  name   = "%s"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
@@ -854,7 +854,7 @@ resource "digitalocean_loadbalancer" "foobar" {
   http_idle_timeout_seconds        = 120
 
   droplet_ids = [digitalocean_droplet.foobar.id, digitalocean_droplet.foo.id]
-}`, rInt, rInt, rInt)
+}`, acceptance.RandomTestName(), acceptance.RandomTestName(), rInt)
 }
 
 func testAccCheckDigitalOceanLoadbalancerConfig_dropletTag(rInt int) string {
@@ -864,7 +864,7 @@ resource "digitalocean_tag" "barbaz" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name   = "foo-%d"
+  name   = "%s"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
@@ -891,13 +891,13 @@ resource "digitalocean_loadbalancer" "foobar" {
   droplet_tag = digitalocean_tag.barbaz.name
 
   depends_on = [digitalocean_droplet.foobar]
-}`, rInt, rInt)
+}`, acceptance.RandomTestName(), rInt)
 }
 
 func testAccCheckDigitalOceanLoadbalancerConfig_minimal(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name   = "foo-%d"
+  name   = "%s"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
@@ -917,7 +917,7 @@ resource "digitalocean_loadbalancer" "foobar" {
   }
 
   droplet_ids = [digitalocean_droplet.foobar.id]
-}`, rInt, rInt)
+}`, acceptance.RandomTestName(), rInt)
 }
 
 func testAccCheckDigitalOceanLoadbalancerConfig_NonDefaultProject(projectName, lbName string) string {
@@ -947,7 +947,7 @@ resource "digitalocean_loadbalancer" "test" {
 func testAccCheckDigitalOceanLoadbalancerConfig_minimalUDP(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name   = "foo-%d"
+  name   = "%s"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
@@ -967,13 +967,13 @@ resource "digitalocean_loadbalancer" "foobar" {
   }
 
   droplet_ids = [digitalocean_droplet.foobar.id]
-}`, rInt, rInt)
+}`, acceptance.RandomTestName(), rInt)
 }
 
 func testAccCheckDigitalOceanLoadbalancerConfig_stickySessions(rInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name   = "foo-%d"
+  name   = "%s"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
@@ -999,7 +999,7 @@ resource "digitalocean_loadbalancer" "foobar" {
   }
 
   droplet_ids = [digitalocean_droplet.foobar.id]
-}`, rInt, rInt)
+}`, acceptance.RandomTestName(), rInt)
 }
 
 func testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(certName string, rInt int, privateKeyMaterial, leafCert, certChain, certAttribute string) string {

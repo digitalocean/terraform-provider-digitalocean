@@ -105,9 +105,9 @@ func testAccCheckDigitalOceanVolumeDestroy(s *terraform.State) error {
 func TestAccDigitalOceanVolume_Droplet(t *testing.T) {
 	var (
 		volume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
+		dName   = acceptance.RandomTestName()
 		droplet godo.Droplet
 	)
-	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -115,7 +115,7 @@ func TestAccDigitalOceanVolume_Droplet(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanVolumeConfig_droplet(rInt, volume.Name),
+				Config: testAccCheckDigitalOceanVolumeConfig_droplet(dName, volume.Name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
@@ -128,7 +128,7 @@ func TestAccDigitalOceanVolume_Droplet(t *testing.T) {
 	})
 }
 
-func testAccCheckDigitalOceanVolumeConfig_droplet(rInt int, vName string) string {
+func testAccCheckDigitalOceanVolumeConfig_droplet(dName, vName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foobar" {
   region      = "nyc1"
@@ -138,14 +138,14 @@ resource "digitalocean_volume" "foobar" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name               = "baz-%d"
+  name               = "%s"
   size               = "s-1vcpu-1gb"
   image              = "ubuntu-22-04-x64"
   region             = "nyc1"
   ipv6               = true
   private_networking = true
   volume_ids         = [digitalocean_volume.foobar.id]
-}`, vName, rInt)
+}`, vName, dName)
 }
 
 func TestAccDigitalOceanVolume_LegacyFilesystemType(t *testing.T) {
@@ -240,9 +240,9 @@ resource "digitalocean_volume" "foobar" {
 func TestAccDigitalOceanVolume_Resize(t *testing.T) {
 	var (
 		volume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
+		dName   = acceptance.RandomTestName()
 		droplet godo.Droplet
 	)
-	rInt := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -250,7 +250,7 @@ func TestAccDigitalOceanVolume_Resize(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVolumeDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanVolumeConfig_resize(rInt, volume.Name, 20),
+				Config: testAccCheckDigitalOceanVolumeConfig_resize(dName, volume.Name, 20),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
@@ -260,7 +260,7 @@ func TestAccDigitalOceanVolume_Resize(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanVolumeConfig_resize(rInt, volume.Name, 50),
+				Config: testAccCheckDigitalOceanVolumeConfig_resize(dName, volume.Name, 50),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
@@ -273,7 +273,7 @@ func TestAccDigitalOceanVolume_Resize(t *testing.T) {
 	})
 }
 
-func testAccCheckDigitalOceanVolumeConfig_resize(rInt int, vName string, vSize int) string {
+func testAccCheckDigitalOceanVolumeConfig_resize(dName string, vName string, vSize int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foobar" {
   region      = "nyc1"
@@ -283,14 +283,14 @@ resource "digitalocean_volume" "foobar" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  name               = "baz-%d"
+  name               = "%s"
   size               = "s-1vcpu-1gb"
   image              = "ubuntu-22-04-x64"
   region             = "nyc1"
   ipv6               = true
   private_networking = true
   volume_ids         = [digitalocean_volume.foobar.id]
-}`, vName, vSize, rInt)
+}`, vName, vSize, dName)
 }
 
 func TestAccDigitalOceanVolume_CreateFromSnapshot(t *testing.T) {

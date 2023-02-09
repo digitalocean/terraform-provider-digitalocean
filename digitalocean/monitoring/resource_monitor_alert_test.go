@@ -27,7 +27,7 @@ slack {
 	testAccAlertPolicy = `
 resource "digitalocean_droplet" "web" {
   image  = "ubuntu-20-04-x64"
-  name   = "web-1"
+  name   = "%s"
   region = "fra1"
   size   = "s-1vcpu-1gb"
 }
@@ -49,7 +49,7 @@ resource "digitalocean_monitor_alert" "%s" {
 	testAccAlertPolicySlackEmailAlerts = `
 resource "digitalocean_droplet" "web" {
   image  = "ubuntu-20-04-x64"
-  name   = "web-1"
+  name   = "%s"
   region = "fra1"
   size   = "s-1vcpu-1gb"
 }
@@ -78,7 +78,7 @@ resource "digitalocean_tag" "test" {
 
 resource "digitalocean_droplet" "web" {
   image  = "ubuntu-20-04-x64"
-  name   = "web-1"
+  name   = "%s"
   region = "fra1"
   size   = "s-1vcpu-1gb"
   tags   = [digitalocean_tag.test.name]
@@ -100,14 +100,14 @@ resource "digitalocean_monitor_alert" "%s" {
 	testAccAlertPolicyAddDroplet = `
 resource "digitalocean_droplet" "web" {
   image  = "ubuntu-20-04-x64"
-  name   = "web-1"
+  name   = "%s"
   region = "fra1"
   size   = "s-1vcpu-1gb"
 }
 
 resource "digitalocean_droplet" "web2" {
   image  = "ubuntu-20-04-x64"
-  name   = "web-2"
+  name   = "%s"
   region = "fra1"
   size   = "s-1vcpu-1gb"
 }
@@ -139,7 +139,7 @@ func TestAccDigitalOceanMonitorAlert(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccAlertPolicy, randName, "", "5m", "v1/insights/droplet/cpu", "Alert about CPU usage"),
+				Config: fmt.Sprintf(testAccAlertPolicy, randName, randName, "", "5m", "v1/insights/droplet/cpu", "Alert about CPU usage"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/cpu"),
 					resource.TestCheckResourceAttr(resourceName, "compare", "GreaterThan"),
@@ -162,7 +162,7 @@ func TestAccDigitalOceanMonitorAlertSlackEmailAlerts(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccAlertPolicySlackEmailAlerts, randName),
+				Config: fmt.Sprintf(testAccAlertPolicySlackEmailAlerts, randName, randName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/cpu"),
 					resource.TestCheckResourceAttr(resourceName, "compare", "GreaterThan"),
@@ -187,7 +187,7 @@ func TestAccDigitalOceanMonitorAlertUpdate(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccAlertPolicy, randName, "", "10m", "v1/insights/droplet/cpu", "Alert about CPU usage"),
+				Config: fmt.Sprintf(testAccAlertPolicy, randName, randName, "", "10m", "v1/insights/droplet/cpu", "Alert about CPU usage"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", "Alert about CPU usage"),
 					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/cpu"),
@@ -200,7 +200,7 @@ func TestAccDigitalOceanMonitorAlertUpdate(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccAlertPolicyAddDroplet, randName, multipleSlackChannel, "5m", "v1/insights/droplet/memory_utilization_percent", "Alert about memory usage"),
+				Config: fmt.Sprintf(testAccAlertPolicyAddDroplet, randName, randName, randName, multipleSlackChannel, "5m", "v1/insights/droplet/memory_utilization_percent", "Alert about memory usage"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "description", "Alert about memory usage"),
 					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/memory_utilization_percent"),
@@ -234,7 +234,7 @@ func TestAccDigitalOceanMonitorAlertWithTag(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccAlertPolicyWithTag, tagName, randName, "5m", "v1/insights/droplet/cpu", "Alert about CPU usage"),
+				Config: fmt.Sprintf(testAccAlertPolicyWithTag, tagName, randName, randName, "5m", "v1/insights/droplet/cpu", "Alert about CPU usage"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "type", "v1/insights/droplet/cpu"),
 					resource.TestCheckResourceAttr(resourceName, "compare", "GreaterThan"),
