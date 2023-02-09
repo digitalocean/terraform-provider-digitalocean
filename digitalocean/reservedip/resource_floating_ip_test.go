@@ -9,7 +9,6 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -39,7 +38,7 @@ func TestAccDigitalOceanFloatingIP_Region(t *testing.T) {
 
 func TestAccDigitalOceanFloatingIP_Droplet(t *testing.T) {
 	var floatingIP godo.FloatingIP
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -47,7 +46,7 @@ func TestAccDigitalOceanFloatingIP_Droplet(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanFloatingIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanFloatingIPConfig_droplet(rInt),
+				Config: testAccCheckDigitalOceanFloatingIPConfig_droplet(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip.foobar", &floatingIP),
 					resource.TestCheckResourceAttr(
@@ -55,7 +54,7 @@ func TestAccDigitalOceanFloatingIP_Droplet(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanFloatingIPConfig_Reassign(rInt),
+				Config: testAccCheckDigitalOceanFloatingIPConfig_Reassign(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip.foobar", &floatingIP),
 					resource.TestCheckResourceAttr(
@@ -63,7 +62,7 @@ func TestAccDigitalOceanFloatingIP_Droplet(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanFloatingIPConfig_Unassign(rInt),
+				Config: testAccCheckDigitalOceanFloatingIPConfig_Unassign(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanFloatingIPExists("digitalocean_floating_ip.foobar", &floatingIP),
 					resource.TestCheckResourceAttr(
@@ -129,10 +128,10 @@ resource "digitalocean_floating_ip" "foobar" {
   region = "nyc3"
 }`
 
-func testAccCheckDigitalOceanFloatingIPConfig_droplet(rInt int) string {
+func testAccCheckDigitalOceanFloatingIPConfig_droplet(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name               = "tf-acc-test-%d"
+  name               = "%s"
   size               = "s-1vcpu-1gb"
   image              = "ubuntu-22-04-x64"
   region             = "nyc3"
@@ -143,13 +142,13 @@ resource "digitalocean_droplet" "foobar" {
 resource "digitalocean_floating_ip" "foobar" {
   droplet_id = digitalocean_droplet.foobar.id
   region     = digitalocean_droplet.foobar.region
-}`, rInt)
+}`, name)
 }
 
-func testAccCheckDigitalOceanFloatingIPConfig_Reassign(rInt int) string {
+func testAccCheckDigitalOceanFloatingIPConfig_Reassign(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "baz" {
-  name               = "tf-acc-test-%d"
+  name               = "%s"
   size               = "s-1vcpu-1gb"
   image              = "ubuntu-22-04-x64"
   region             = "nyc3"
@@ -160,13 +159,13 @@ resource "digitalocean_droplet" "baz" {
 resource "digitalocean_floating_ip" "foobar" {
   droplet_id = digitalocean_droplet.baz.id
   region     = digitalocean_droplet.baz.region
-}`, rInt)
+}`, name)
 }
 
-func testAccCheckDigitalOceanFloatingIPConfig_Unassign(rInt int) string {
+func testAccCheckDigitalOceanFloatingIPConfig_Unassign(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "baz" {
-  name               = "tf-acc-test-%d"
+  name               = "%s"
   size               = "s-1vcpu-1gb"
   image              = "ubuntu-22-04-x64"
   region             = "nyc3"
@@ -176,5 +175,5 @@ resource "digitalocean_droplet" "baz" {
 
 resource "digitalocean_floating_ip" "foobar" {
   region = "nyc3"
-}`, rInt)
+}`, name)
 }

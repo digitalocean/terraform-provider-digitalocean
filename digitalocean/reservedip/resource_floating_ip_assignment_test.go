@@ -177,7 +177,7 @@ resource "digitalocean_droplet" "foobar" {
 var testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroy = `
 resource "digitalocean_droplet" "foobar" {
   image  = "ubuntu-22-04-x64"
-  name   = "tf-acc-test"
+  name   = "tf-acc-test-01"
   region = "nyc3"
   size   = "s-1vcpu-1gb"
 
@@ -203,7 +203,7 @@ resource "digitalocean_floating_ip_assignment" "foobar" {
 var testAccCheckDigitalOceanFloatingIPAssignmentConfig_createBeforeDestroyReassign = `
 resource "digitalocean_droplet" "foobar" {
   image  = "ubuntu-18-04-x64"
-  name   = "tf-acc-test"
+  name   = "tf-acc-test-01"
   region = "nyc3"
   size   = "s-1vcpu-1gb"
 

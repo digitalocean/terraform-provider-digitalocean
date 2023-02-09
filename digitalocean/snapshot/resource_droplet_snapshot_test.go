@@ -15,7 +15,7 @@ import (
 
 func TestAccDigitalOceanDropletSnapshot_Basic(t *testing.T) {
 	var snapshot godo.Snapshot
-	rInt1 := acctest.RandInt()
+	dName := acceptance.RandomTestName()
 	rInt2 := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -24,7 +24,7 @@ func TestAccDigitalOceanDropletSnapshot_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanDropletSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDropletSnapshotConfig_basic, rInt1, rInt2),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDropletSnapshotConfig_basic, dName, rInt2),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDropletSnapshotExists("digitalocean_droplet_snapshot.foobar", &snapshot),
 					resource.TestCheckResourceAttr(
@@ -85,7 +85,7 @@ func testAccCheckDigitalOceanDropletSnapshotDestroy(s *terraform.State) error {
 
 const testAccCheckDigitalOceanDropletSnapshotConfig_basic = `
 resource "digitalocean_droplet" "foo" {
-  name      = "foo-%d"
+  name      = "%s"
   size      = "s-1vcpu-1gb"
   image     = "ubuntu-22-04-x64"
   region    = "nyc3"

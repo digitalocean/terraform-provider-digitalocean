@@ -11,7 +11,7 @@ import (
 
 func TestAccDigitalOceanDropletSnapshot_importBasic(t *testing.T) {
 	resourceName := "digitalocean_droplet_snapshot.foobar"
-	rInt1 := acctest.RandInt()
+	dName := acceptance.RandomTestName()
 	rInt2 := acctest.RandInt()
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -20,7 +20,7 @@ func TestAccDigitalOceanDropletSnapshot_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVolumeSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDropletSnapshotConfig_basic, rInt1, rInt2),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDropletSnapshotConfig_basic, dName, rInt2),
 			},
 
 			{

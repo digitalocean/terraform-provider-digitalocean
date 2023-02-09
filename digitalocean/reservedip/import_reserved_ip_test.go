@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
@@ -31,7 +30,7 @@ func TestAccDigitalOceanReservedIP_importBasicRegion(t *testing.T) {
 
 func TestAccDigitalOceanReservedIP_importBasicDroplet(t *testing.T) {
 	resourceName := "digitalocean_reserved_ip.foobar"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -39,7 +38,7 @@ func TestAccDigitalOceanReservedIP_importBasicDroplet(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanReservedIPDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanReservedIPConfig_droplet(rInt),
+				Config: testAccCheckDigitalOceanReservedIPConfig_droplet(name),
 			},
 
 			{
