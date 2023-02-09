@@ -239,7 +239,7 @@ func TestAccDigitalOceanBucket_Versioning(t *testing.T) {
 		}
 		return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name = "tf-test-bucket-%d"
+  name   = "tf-test-bucket-%d"
   region = "ams3"
 %s
 }
@@ -432,10 +432,10 @@ func TestAccDigitalOceanSpacesBucket_RegionError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
-					resource "digitalocean_spaces_bucket" "bucket" {
-						name   = "tf-test-bucket"
-						region = "%s"
-					}`, badRegion),
+resource "digitalocean_spaces_bucket" "bucket" {
+  name   = "tf-test-bucket"
+  region = "%s"
+}`, badRegion),
 				ExpectError: regexp.MustCompile(`expected region to be one of`),
 			},
 		},
@@ -639,9 +639,9 @@ func testAccBucketName(randInt int) string {
 func testAccDigitalOceanBucketConfig(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-	name = "tf-test-bucket-%d"
-	acl = "public-read"
-	region = "ams3"
+  name   = "tf-test-bucket-%d"
+  acl    = "public-read"
+  region = "ams3"
 }
 `, randInt)
 }
@@ -649,8 +649,8 @@ resource "digitalocean_spaces_bucket" "bucket" {
 func testAccDigitalOceanBucketDestroyedConfig(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-	name = "tf-test-bucket-%d"
-	acl = "public-read"
+  name = "tf-test-bucket-%d"
+  acl  = "public-read"
 }
 `, randInt)
 }
@@ -658,8 +658,8 @@ resource "digitalocean_spaces_bucket" "bucket" {
 func testAccDigitalOceanBucketConfigWithRegion(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-	name = "tf-test-bucket-%d"
-	region = "ams3"
+  name   = "tf-test-bucket-%d"
+  region = "ams3"
 }
 `, randInt)
 }
@@ -667,69 +667,69 @@ resource "digitalocean_spaces_bucket" "bucket" {
 func testAccDigitalOceanBucketConfigImport(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-	name   = "tf-test-bucket-%d"
-	region = "sfo2"
+  name   = "tf-test-bucket-%d"
+  region = "sfo2"
 }
 `, randInt)
 }
 
 var testAccDigitalOceanBucketConfigWithACL = `
 resource "digitalocean_spaces_bucket" "bucket" {
-	name = "tf-test-bucket-%d"
-	acl = "public-read"
+  name = "tf-test-bucket-%d"
+  acl  = "public-read"
 }
 `
 
 var testAccDigitalOceanBucketConfigWithACLUpdate = `
 resource "digitalocean_spaces_bucket" "bucket" {
-	name = "tf-test-bucket-%d"
-	acl = "private"
+  name = "tf-test-bucket-%d"
+  acl  = "private"
 }
 `
 
 var testAccDigitalOceanBucketConfigWithCORS = `
 resource "digitalocean_spaces_bucket" "bucket" {
-	name = "tf-test-bucket-%d"
+  name = "tf-test-bucket-%d"
 }
 `
 
 var testAccDigitalOceanBucketConfigWithCORSUpdate = `
 resource "digitalocean_spaces_bucket" "bucket" {
-	name = "tf-test-bucket-%d"
-	cors_rule {
-			allowed_headers = ["*"]
-			allowed_methods = ["PUT","POST"]
-			allowed_origins = ["https://www.example.com"]
-			max_age_seconds = 3000
-	}
+  name = "tf-test-bucket-%d"
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["PUT", "POST"]
+    allowed_origins = ["https://www.example.com"]
+    max_age_seconds = 3000
+  }
 }
 `
 
 var testAccDigitalOceanBucketConfigWithMultiCORS = `
 resource "digitalocean_spaces_bucket" "bucket" {
-	name = "tf-test-bucket-%d"
+  name = "tf-test-bucket-%d"
 
-	cors_rule {
-			allowed_headers = ["*"]
-			allowed_methods = ["GET"]
-			allowed_origins = ["*"]
-			max_age_seconds = 3000
-	}
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET"]
+    allowed_origins = ["*"]
+    max_age_seconds = 3000
+  }
 
-	cors_rule {
-			allowed_headers = ["*"]
-			allowed_methods = ["PUT", "DELETE", "POST"]
-			allowed_origins = ["https://www.example.com"]
-			max_age_seconds = 3000
-	}
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["PUT", "DELETE", "POST"]
+    allowed_origins = ["https://www.example.com"]
+    max_age_seconds = 3000
+  }
 }
 `
 
 func testAccDigitalOceanSpacesBucketConfigWithLifecycle(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name = "tf-test-bucket-%d"
-  acl  = "private"
+  name   = "tf-test-bucket-%d"
+  acl    = "private"
   region = "ams3"
 
   lifecycle_rule {
@@ -753,8 +753,8 @@ resource "digitalocean_spaces_bucket" "bucket" {
   }
 
   lifecycle_rule {
-    id     = "id3"
-    prefix = "path3/"
+    id      = "id3"
+    prefix  = "path3/"
     enabled = true
 
     abort_incomplete_multipart_upload_days = 30
@@ -766,8 +766,8 @@ resource "digitalocean_spaces_bucket" "bucket" {
 func testAccDigitalOceanSpacesBucketConfigWithLifecycleExpireMarker(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name = "tf-test-bucket-%d"
-  acl  = "private"
+  name   = "tf-test-bucket-%d"
+  acl    = "private"
   region = "ams3"
 
   lifecycle_rule {
@@ -786,8 +786,8 @@ resource "digitalocean_spaces_bucket" "bucket" {
 func testAccDigitalOceanSpacesBucketConfigWithVersioningLifecycle(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name = "tf-test-bucket-%d"
-  acl  = "private"
+  name   = "tf-test-bucket-%d"
+  acl    = "private"
   region = "ams3"
 
   versioning {
@@ -802,7 +802,7 @@ resource "digitalocean_spaces_bucket" "bucket" {
     noncurrent_version_expiration {
       days = 365
     }
- }
+  }
 
   lifecycle_rule {
     id      = "id2"

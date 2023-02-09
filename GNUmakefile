@@ -46,6 +46,15 @@ fmt:
 fmtcheck:
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
+install-terrafmt:
+	@go install github.com/katbyte/terrafmt@latest
+
+terrafmt: install-terrafmt # Formats Terraform configuration blocks in tests.
+	@terrafmt fmt --fmtcompat digitalocean/
+
+terrafmt-check: install-terrafmt # Returns non-0 exit code if terrafmt would make a change.
+	@terrafmt diff --check --fmtcompat digitalocean/
+
 errcheck:
 	@sh -c "'$(CURDIR)/scripts/errcheck.sh'"
 

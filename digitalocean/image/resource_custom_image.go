@@ -312,7 +312,7 @@ func distributeImageToRegions(client *godo.Client, imageId int, regions []interf
 
 // Ref: https://developers.digitalocean.com/documentation/v2/#retrieve-an-existing-image-by-id
 func imagePendingStatuses() []string {
-	return []string{"new", "pending"}
+	return []string{"NEW", "pending"}
 }
 
 // Ref:https://developers.digitalocean.com/documentation/v2/#create-a-custom-image

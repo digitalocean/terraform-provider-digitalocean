@@ -231,10 +231,10 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_RegionError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`data "digitalocean_spaces_bucket_object" "object" {
-										region = "%s"
-										bucket = "foo.digitaloceanspaces.com"
-										key = "test-key"
-									}`, badRegion),
+  region = "%s"
+  bucket = "foo.digitaloceanspaces.com"
+  key    = "test-key"
+}`, badRegion),
 				ExpectError: regexp.MustCompile(`expected region to be one of`),
 			},
 		},
@@ -276,22 +276,22 @@ func testAccCheckDigitalOceanSpacesObjectDataSourceExists(n string, obj *s3.GetO
 func testAccDataSourceDigitalOceanSpacesObjectConfig_basic(randInt int) (string, string) {
 	resources := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-	name   = "tf-object-test-bucket-%d"
-	region = "nyc3"
+  name   = "tf-object-test-bucket-%d"
+  region = "nyc3"
 }
 resource "digitalocean_spaces_bucket_object" "object" {
-	bucket = digitalocean_spaces_bucket.object_bucket.name
-	region = digitalocean_spaces_bucket.object_bucket.region
-	key = "tf-testing-obj-%d"
-	content = "Hello World"
+  bucket  = digitalocean_spaces_bucket.object_bucket.name
+  region  = digitalocean_spaces_bucket.object_bucket.region
+  key     = "tf-testing-obj-%d"
+  content = "Hello World"
 }
 `, randInt, randInt)
 
 	both := fmt.Sprintf(`%s
 data "digitalocean_spaces_bucket_object" "obj" {
-	bucket = "tf-object-test-bucket-%d"
-    region = "nyc3"
-	key = "tf-testing-obj-%d"
+  bucket = "tf-object-test-bucket-%d"
+  region = "nyc3"
+  key    = "tf-testing-obj-%d"
 }
 `, resources, randInt, randInt)
 
@@ -301,23 +301,23 @@ data "digitalocean_spaces_bucket_object" "obj" {
 func testAccDataSourceDigitalOceanSpacesObjectConfig_readableBody(randInt int) (string, string) {
 	resources := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-	name = "tf-object-test-bucket-%d"
-    region = "nyc3"
+  name   = "tf-object-test-bucket-%d"
+  region = "nyc3"
 }
 resource "digitalocean_spaces_bucket_object" "object" {
-	bucket = digitalocean_spaces_bucket.object_bucket.name
-	region = digitalocean_spaces_bucket.object_bucket.region
-	key = "tf-testing-obj-%d-readable"
-	content = "yes"
-	content_type = "text/plain"
+  bucket       = digitalocean_spaces_bucket.object_bucket.name
+  region       = digitalocean_spaces_bucket.object_bucket.region
+  key          = "tf-testing-obj-%d-readable"
+  content      = "yes"
+  content_type = "text/plain"
 }
 `, randInt, randInt)
 
 	both := fmt.Sprintf(`%s
 data "digitalocean_spaces_bucket_object" "obj" {
-	bucket = "tf-object-test-bucket-%d"
-    region = "nyc3"
-	key = "tf-testing-obj-%d-readable"
+  bucket = "tf-object-test-bucket-%d"
+  region = "nyc3"
+  key    = "tf-testing-obj-%d-readable"
 }
 `, resources, randInt, randInt)
 
@@ -327,33 +327,33 @@ data "digitalocean_spaces_bucket_object" "obj" {
 func testAccDataSourceDigitalOceanSpacesObjectConfig_allParams(randInt int) (string, string) {
 	resources := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-	name   = "tf-object-test-bucket-%d"
-	region = "nyc3"
-	versioning {
-		enabled = true
-	}
+  name   = "tf-object-test-bucket-%d"
+  region = "nyc3"
+  versioning {
+    enabled = true
+  }
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
-	bucket = digitalocean_spaces_bucket.object_bucket.name
-	region = digitalocean_spaces_bucket.object_bucket.region
-	key = "tf-testing-obj-%d-all-params"
-	content = <<CONTENT
+  bucket              = digitalocean_spaces_bucket.object_bucket.name
+  region              = digitalocean_spaces_bucket.object_bucket.region
+  key                 = "tf-testing-obj-%d-all-params"
+  content             = <<CONTENT
 {"msg": "Hi there!"}
 CONTENT
-	content_type = "application/unknown"
-	cache_control = "no-cache"
-	content_disposition = "attachment"
-	content_encoding = "identity"
-	content_language = "en-GB"
+  content_type        = "application/unknown"
+  cache_control       = "no-cache"
+  content_disposition = "attachment"
+  content_encoding    = "identity"
+  content_language    = "en-GB"
 }
 `, randInt, randInt)
 
 	both := fmt.Sprintf(`%s
 data "digitalocean_spaces_bucket_object" "obj" {
-	bucket = "tf-object-test-bucket-%d"
-    region = "nyc3"
-	key = "tf-testing-obj-%d-all-params"
+  bucket = "tf-object-test-bucket-%d"
+  region = "nyc3"
+  key    = "tf-testing-obj-%d-all-params"
 }
 `, resources, randInt, randInt)
 
@@ -363,14 +363,14 @@ data "digitalocean_spaces_bucket_object" "obj" {
 func testAccDataSourceDigitalOceanSpacesObjectConfig_leadingSlash(randInt int) (string, string) {
 	resources := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  name = "tf-object-test-bucket-%d"
+  name   = "tf-object-test-bucket-%d"
   region = "nyc3"
 }
 resource "digitalocean_spaces_bucket_object" "object" {
-  bucket = digitalocean_spaces_bucket.object_bucket.name
-  region = digitalocean_spaces_bucket.object_bucket.region
-  key = "//tf-testing-obj-%d-readable"
-  content = "yes"
+  bucket       = digitalocean_spaces_bucket.object_bucket.name
+  region       = digitalocean_spaces_bucket.object_bucket.region
+  key          = "//tf-testing-obj-%d-readable"
+  content      = "yes"
   content_type = "text/plain"
 }
 `, randInt, randInt)
@@ -379,17 +379,17 @@ resource "digitalocean_spaces_bucket_object" "object" {
 data "digitalocean_spaces_bucket_object" "obj1" {
   bucket = "tf-object-test-bucket-%d"
   region = "nyc3"
-  key = "tf-testing-obj-%d-readable"
+  key    = "tf-testing-obj-%d-readable"
 }
 data "digitalocean_spaces_bucket_object" "obj2" {
   bucket = "tf-object-test-bucket-%d"
   region = "nyc3"
-  key = "/tf-testing-obj-%d-readable"
+  key    = "/tf-testing-obj-%d-readable"
 }
 data "digitalocean_spaces_bucket_object" "obj3" {
   bucket = "tf-object-test-bucket-%d"
   region = "nyc3"
-  key = "//tf-testing-obj-%d-readable"
+  key    = "//tf-testing-obj-%d-readable"
 }
 `, resources, randInt, randInt, randInt, randInt, randInt, randInt)
 
@@ -399,22 +399,22 @@ data "digitalocean_spaces_bucket_object" "obj3" {
 func testAccDataSourceDigitalOceanSpacesObjectConfig_multipleSlashes(randInt int) (string, string) {
 	resources := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  name = "tf-object-test-bucket-%d"
+  name   = "tf-object-test-bucket-%d"
   region = "nyc3"
 }
 resource "digitalocean_spaces_bucket_object" "object1" {
-  bucket = digitalocean_spaces_bucket.object_bucket.name
-  region = digitalocean_spaces_bucket.object_bucket.region
-  key = "first//second///third//"
-  content = "yes"
+  bucket       = digitalocean_spaces_bucket.object_bucket.name
+  region       = digitalocean_spaces_bucket.object_bucket.region
+  key          = "first//second///third//"
+  content      = "yes"
   content_type = "text/plain"
 }
 # Without a trailing slash.
 resource "digitalocean_spaces_bucket_object" "object2" {
-  bucket = digitalocean_spaces_bucket.object_bucket.name
-  region = digitalocean_spaces_bucket.object_bucket.region
-  key = "/first////second/third"
-  content = "no"
+  bucket       = digitalocean_spaces_bucket.object_bucket.name
+  region       = digitalocean_spaces_bucket.object_bucket.region
+  key          = "/first////second/third"
+  content      = "no"
   content_type = "text/plain"
 }
 `, randInt)
@@ -423,17 +423,17 @@ resource "digitalocean_spaces_bucket_object" "object2" {
 data "digitalocean_spaces_bucket_object" "obj1" {
   bucket = "tf-object-test-bucket-%d"
   region = "nyc3"
-  key = "first/second/third/"
+  key    = "first/second/third/"
 }
 data "digitalocean_spaces_bucket_object" "obj2" {
   bucket = "tf-object-test-bucket-%d"
   region = "nyc3"
-  key = "first//second///third//"
+  key    = "first//second///third//"
 }
 data "digitalocean_spaces_bucket_object" "obj3" {
   bucket = "tf-object-test-bucket-%d"
   region = "nyc3"
-  key = "first/second/third"
+  key    = "first/second/third"
 }
 `, resources, randInt, randInt, randInt)
 

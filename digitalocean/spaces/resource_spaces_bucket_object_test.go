@@ -393,10 +393,10 @@ func TestAccDigitalOceanSpacesBucketObject_RegionError(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`resource "digitalocean_spaces_bucket_object" "object" {
-										region = "%s"
-										bucket = "foo.digitaloceanspaces.com"
-										key = "test-key"
-									}`, badRegion),
+  region = "%s"
+  bucket = "foo.digitaloceanspaces.com"
+  key    = "test-key"
+}`, badRegion),
 				ExpectError: regexp.MustCompile(`expected region to be one of`),
 			},
 		},
@@ -584,7 +584,7 @@ func testAccDigitalOceanSpacesBucketObjectConfigBasic(bucket, key string) string
 resource "digitalocean_spaces_bucket_object" "object" {
   region = "%s"
   bucket = "%s"
-  key = "%s"
+  key    = "%s"
 }
 `, testAccDigitalOceanSpacesBucketObject_TestRegion, bucket, key)
 }
@@ -592,15 +592,15 @@ resource "digitalocean_spaces_bucket_object" "object" {
 func testAccDigitalOceanSpacesBucketObjectConfigEmpty(randInt int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  region = "%s"
-  name   = "tf-object-test-bucket-%d"
+  region        = "%s"
+  name          = "tf-object-test-bucket-%d"
   force_destroy = true
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
   region = digitalocean_spaces_bucket.object_bucket.region
   bucket = digitalocean_spaces_bucket.object_bucket.name
-  key = "test-key"
+  key    = "test-key"
 }
 `, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt)
 }
@@ -608,8 +608,8 @@ resource "digitalocean_spaces_bucket_object" "object" {
 func testAccDigitalOceanSpacesBucketObjectConfigSource(randInt int, source string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  region = "%s"
-  name   = "tf-object-test-bucket-%d"
+  region        = "%s"
+  name          = "tf-object-test-bucket-%d"
   force_destroy = true
 }
 
@@ -626,8 +626,8 @@ resource "digitalocean_spaces_bucket_object" "object" {
 func testAccDigitalOceanSpacesBucketObjectConfig_withContentCharacteristics(randInt int, source string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  region = "%s"
-  name   = "tf-object-test-bucket-%d"
+  region        = "%s"
+  name          = "tf-object-test-bucket-%d"
   force_destroy = true
 }
 
@@ -646,8 +646,8 @@ resource "digitalocean_spaces_bucket_object" "object" {
 func testAccDigitalOceanSpacesBucketObjectConfigContent(randInt int, content string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  region = "%s"
-  name   = "tf-object-test-bucket-%d"
+  region        = "%s"
+  name          = "tf-object-test-bucket-%d"
   force_destroy = true
 }
 
@@ -663,8 +663,8 @@ resource "digitalocean_spaces_bucket_object" "object" {
 func testAccDigitalOceanSpacesBucketObjectConfigContentBase64(randInt int, contentBase64 string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  region = "%s"
-  name   = "tf-object-test-bucket-%d"
+  region        = "%s"
+  name          = "tf-object-test-bucket-%d"
   force_destroy = true
 }
 
@@ -680,8 +680,8 @@ resource "digitalocean_spaces_bucket_object" "object" {
 func testAccDigitalOceanSpacesBucketObjectConfig_updateable(randInt int, bucketVersioning bool, source string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket_3" {
-  region = "%s"
-  name   = "tf-object-test-bucket-%d"
+  region        = "%s"
+  name          = "tf-object-test-bucket-%d"
   force_destroy = true
 
   versioning {
@@ -702,8 +702,8 @@ resource "digitalocean_spaces_bucket_object" "object" {
 func testAccDigitalOceanSpacesBucketObjectConfig_acl(randInt int, content, acl string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  region = "%s"
-  name   = "tf-object-test-bucket-%d"
+  region        = "%s"
+  name          = "tf-object-test-bucket-%d"
   force_destroy = true
 
   versioning {
@@ -724,15 +724,15 @@ resource "digitalocean_spaces_bucket_object" "object" {
 func testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(randInt int, metadataKey1, metadataValue1, metadataKey2, metadataValue2 string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  region = "%s"
-  name   = "tf-object-test-bucket-%d"
+  region        = "%s"
+  name          = "tf-object-test-bucket-%d"
   force_destroy = true
 }
 
 resource "digitalocean_spaces_bucket_object" "object" {
   region = digitalocean_spaces_bucket.object_bucket.region
-  bucket  = digitalocean_spaces_bucket.object_bucket.name
-  key     = "test-key"
+  bucket = digitalocean_spaces_bucket.object_bucket.name
+  key    = "test-key"
 
   metadata = {
     %[3]s = %[4]q
@@ -745,8 +745,8 @@ resource "digitalocean_spaces_bucket_object" "object" {
 func testAccDigitalOceanSpacesBucketObjectConfig_NonVersioned(randInt int, source string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket_3" {
-  region = "%s"
-  name   = "tf-object-test-bucket-%d"
+  region        = "%s"
+  name          = "tf-object-test-bucket-%d"
   force_destroy = true
 }
 

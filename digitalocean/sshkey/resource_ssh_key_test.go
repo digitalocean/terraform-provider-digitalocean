@@ -104,7 +104,7 @@ func testAccCheckDigitalOceanSSHKeyExists(n string, key *godo.Key) resource.Test
 func testAccCheckDigitalOceanSSHKeyConfig_basic(rInt int, key string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_ssh_key" "foobar" {
-    name = "foobar-%d"
-    public_key = "%s"
+  name       = "foobar-%d"
+  public_key = "%s"
 }`, rInt, key)
 }

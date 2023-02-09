@@ -20,7 +20,7 @@ func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 	resourceConfig := testAccDigitalOceanKubernetesConfigForDataSource(testClusterVersionLatest, rName)
 	dataSourceConfig := `
 data "digitalocean_kubernetes_cluster" "foobar" {
-	name = digitalocean_kubernetes_cluster.foo.name
+  name = digitalocean_kubernetes_cluster.foo.name
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -61,25 +61,25 @@ func testAccDigitalOceanKubernetesConfigForDataSource(version string, rName stri
 	return fmt.Sprintf(`%s
 
 resource "digitalocean_kubernetes_cluster" "foo" {
-	name    	 = "%s"
-	region  	 = "lon1"
-	version 	 = data.digitalocean_kubernetes_versions.test.latest_version
-	tags    	 = ["foo","bar"]
-	auto_upgrade = true
+  name         = "%s"
+  region       = "lon1"
+  version      = data.digitalocean_kubernetes_versions.test.latest_version
+  tags         = ["foo", "bar"]
+  auto_upgrade = true
 
-	node_pool {
-	    name = "default"
-		size  = "s-1vcpu-2gb"
-		node_count = 1
-		tags  = ["one","two"]
-        labels = {
-          priority = "high"
-        }
-	}
-	maintenance_policy {
-		day = "monday"
-		start_time = "00:00"
-	}
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+    tags       = ["one", "two"]
+    labels = {
+      priority = "high"
+    }
+  }
+  maintenance_policy {
+    day        = "monday"
+    start_time = "00:00"
+  }
 }`, version, rName)
 }
 

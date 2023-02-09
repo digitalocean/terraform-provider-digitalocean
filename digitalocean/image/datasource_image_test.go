@@ -88,7 +88,7 @@ func TestAccDigitalOceanImage_PublicSlug(t *testing.T) {
 func testAccCheckDigitalOceanImageConfig_basic(rInt, sInt int) string {
 	return fmt.Sprintf(`
 data "digitalocean_image" "foobar" {
-  name               = "snap-%d-%d"
+  name = "snap-%d-%d"
 }
 `, rInt, sInt)
 }
@@ -96,7 +96,7 @@ data "digitalocean_image" "foobar" {
 func testAccCheckDigitalOceanImageConfig_nonexisting(rInt int) string {
 	return fmt.Sprintf(`
 data "digitalocean_image" "foobar" {
-  name               = "snap-%d-nonexisting"
+  name = "snap-%d-nonexisting"
 }
 `, rInt)
 }
@@ -104,7 +104,7 @@ data "digitalocean_image" "foobar" {
 func testAccCheckDigitalOceanImageConfig_slug(slug string) string {
 	return fmt.Sprintf(`
 data "digitalocean_image" "foobar" {
-  slug               = "%s"
+  slug = "%s"
 }
 `, slug)
 }

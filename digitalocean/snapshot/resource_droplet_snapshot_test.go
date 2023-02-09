@@ -85,14 +85,15 @@ func testAccCheckDigitalOceanDropletSnapshotDestroy(s *terraform.State) error {
 
 const testAccCheckDigitalOceanDropletSnapshotConfig_basic = `
 resource "digitalocean_droplet" "foo" {
-	name      = "foo-%d"
-	size      = "s-1vcpu-1gb"
-	image     = "ubuntu-22-04-x64"
-	region    = "nyc3"
-	user_data = "foobar"
-  }
-  resource "digitalocean_droplet_snapshot" "foobar" {
-	droplet_id = "${digitalocean_droplet.foo.id}"
-	name = "snapshot-one-%d"
-  }
+  name      = "foo-%d"
+  size      = "s-1vcpu-1gb"
+  image     = "ubuntu-22-04-x64"
+  region    = "nyc3"
+  user_data = "foobar"
+}
+
+resource "digitalocean_droplet_snapshot" "foobar" {
+  droplet_id = digitalocean_droplet.foo.id
+  name       = "snapshot-one-%d"
+}
   `

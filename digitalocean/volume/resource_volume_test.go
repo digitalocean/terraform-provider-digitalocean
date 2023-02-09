@@ -51,11 +51,11 @@ func TestAccDigitalOceanVolume_Basic(t *testing.T) {
 
 const testAccCheckDigitalOceanVolumeConfig_basic = `
 resource "digitalocean_volume" "foobar" {
-	region      = "nyc1"
-	name        = "%s"
-	size        = 100
-	description = "peace makes plenty"
-	tags        = ["foo","bar"]
+  region      = "nyc1"
+  name        = "%s"
+  size        = 100
+  description = "peace makes plenty"
+  tags        = ["foo", "bar"]
 }`
 
 func testAccCheckDigitalOceanVolumeExists(rn string, volume *godo.Volume) resource.TestCheckFunc {
@@ -131,10 +131,10 @@ func TestAccDigitalOceanVolume_Droplet(t *testing.T) {
 func testAccCheckDigitalOceanVolumeConfig_droplet(rInt int, vName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foobar" {
-	region      = "nyc1"
-	name        = "%s"
-	size        = 100
-	description = "peace makes plenty"
+  region      = "nyc1"
+  name        = "%s"
+  size        = 100
+  description = "peace makes plenty"
 }
 
 resource "digitalocean_droplet" "foobar" {
@@ -144,7 +144,7 @@ resource "digitalocean_droplet" "foobar" {
   region             = "nyc1"
   ipv6               = true
   private_networking = true
-  volume_ids         = ["${digitalocean_volume.foobar.id}"]
+  volume_ids         = [digitalocean_volume.foobar.id]
 }`, vName, rInt)
 }
 
@@ -182,11 +182,11 @@ func TestAccDigitalOceanVolume_LegacyFilesystemType(t *testing.T) {
 
 const testAccCheckDigitalOceanVolumeConfig_legacy_filesystem_type = `
 resource "digitalocean_volume" "foobar" {
-	region      = "nyc1"
-	name        = "%s"
-	size        = 100
-	description = "peace makes plenty"
-	filesystem_type = "xfs"
+  region          = "nyc1"
+  name            = "%s"
+  size            = 100
+  description     = "peace makes plenty"
+  filesystem_type = "xfs"
 }`
 
 func TestAccDigitalOceanVolume_FilesystemType(t *testing.T) {
@@ -229,12 +229,12 @@ func TestAccDigitalOceanVolume_FilesystemType(t *testing.T) {
 
 const testAccCheckDigitalOceanVolumeConfig_filesystem_type = `
 resource "digitalocean_volume" "foobar" {
-	region      = "nyc1"
-	name        = "%s"
-	size        = 100
-	description = "peace makes plenty"
-	initial_filesystem_type = "xfs"
-	initial_filesystem_label = "label"
+  region                   = "nyc1"
+  name                     = "%s"
+  size                     = 100
+  description              = "peace makes plenty"
+  initial_filesystem_type  = "xfs"
+  initial_filesystem_label = "label"
 }`
 
 func TestAccDigitalOceanVolume_Resize(t *testing.T) {
@@ -276,10 +276,10 @@ func TestAccDigitalOceanVolume_Resize(t *testing.T) {
 func testAccCheckDigitalOceanVolumeConfig_resize(rInt int, vName string, vSize int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foobar" {
-	region      = "nyc1"
-	name        = "%s"
-	size        = %d
-	description = "peace makes plenty"
+  region      = "nyc1"
+  name        = "%s"
+  size        = %d
+  description = "peace makes plenty"
 }
 
 resource "digitalocean_droplet" "foobar" {
@@ -289,7 +289,7 @@ resource "digitalocean_droplet" "foobar" {
   region             = "nyc1"
   ipv6               = true
   private_networking = true
-  volume_ids         = ["${digitalocean_volume.foobar.id}"]
+  volume_ids         = [digitalocean_volume.foobar.id]
 }`, vName, vSize, rInt)
 }
 
@@ -328,15 +328,15 @@ resource "digitalocean_volume" "foo" {
 }
 
 resource "digitalocean_volume_snapshot" "foo" {
-  name = "snapshot-%d"
-  volume_id = "${digitalocean_volume.foo.id}"
+  name      = "snapshot-%d"
+  volume_id = digitalocean_volume.foo.id
 }
 
 resource "digitalocean_volume" "foobar" {
   region      = "nyc1"
   name        = "volume-snap-%d"
-  size        = "${digitalocean_volume_snapshot.foo.min_disk_size}"
-  snapshot_id = "${digitalocean_volume_snapshot.foo.id}"
+  size        = digitalocean_volume_snapshot.foo.min_disk_size
+  snapshot_id = digitalocean_volume_snapshot.foo.id
 }`, rInt, rInt, rInt)
 }
 
@@ -374,9 +374,9 @@ func TestAccDigitalOceanVolume_UpdateTags(t *testing.T) {
 
 const testAccCheckDigitalOceanVolumeConfig_basic_tag_update = `
 resource "digitalocean_volume" "foobar" {
-	region      = "nyc1"
-	name        = "%s"
-	size        = 100
-	description = "peace makes plenty"
-	tags        = ["foo","bar","baz"]
+  region      = "nyc1"
+  name        = "%s"
+  size        = 100
+  description = "peace makes plenty"
+  tags        = ["foo", "bar", "baz"]
 }`

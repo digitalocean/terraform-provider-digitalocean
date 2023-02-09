@@ -93,34 +93,34 @@ func TestAccDataSourceDigitalOceanVPC_ExpectErrors(t *testing.T) {
 
 const testAccCheckDataSourceDigitalOceanVPCConfig_Basic = `
 resource "digitalocean_vpc" "foobar" {
-	name        = "%s"
-	description = "%s"
-	region      = "nyc3"
+  name        = "%s"
+  description = "%s"
+  region      = "nyc3"
 }`
 
 const testAccCheckDataSourceDigitalOceanVPCConfig_RegionDefault = `
 // Create Droplet to ensure default VPC exists
 resource "digitalocean_droplet" "foo" {
-	image  = "ubuntu-18-04-x64"
-	name   = "%s"
-	region = "nyc3"
-	size   = "s-1vcpu-1gb"
-	private_networking = "true"
+  image              = "ubuntu-18-04-x64"
+  name               = "%s"
+  region             = "nyc3"
+  size               = "s-1vcpu-1gb"
+  private_networking = "true"
 }
 
 data "digitalocean_vpc" "foobar" {
-	region = "nyc3"
+  region = "nyc3"
 }
 `
 
 const testAccCheckDataSourceDigitalOceanVPCConfig_MissingRegionDefault = `
 data "digitalocean_vpc" "foobar" {
-	region = "foo"
+  region = "foo"
 }
 `
 
 const testAccCheckDataSourceDigitalOceanVPCConfig_DoesNotExist = `
 data "digitalocean_vpc" "foobar" {
-	name = "%s"
+  name = "%s"
 }
 `

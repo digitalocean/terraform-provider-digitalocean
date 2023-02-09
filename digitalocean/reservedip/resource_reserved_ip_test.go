@@ -175,6 +175,6 @@ resource "digitalocean_droplet" "baz" {
 }
 
 resource "digitalocean_reserved_ip" "foobar" {
-  region     = "nyc3"
+  region = "nyc3"
 }`, rInt)
 }

@@ -112,7 +112,7 @@ data "digitalocean_image" "snapshot" {
 resource "digitalocean_droplet" "from-snapshot" {
   name      = "foo-%d"
   size      = "s-1vcpu-1gb"
-  image     = "${data.digitalocean_image.snapshot.id}"
+  image     = data.digitalocean_image.snapshot.id
   region    = "nyc3"
   user_data = "foobar"
 }`, rInt, rInt)

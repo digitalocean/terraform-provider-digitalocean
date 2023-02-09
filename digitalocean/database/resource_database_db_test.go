@@ -143,20 +143,20 @@ func testAccCheckDigitalOceanDatabaseDBAttributes(databaseDB *godo.DatabaseDB, n
 
 const testAccCheckDigitalOceanDatabaseDBConfigBasic = `
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
 
-	maintenance_window {
-        day  = "friday"
-        hour = "13:00:00"
-	}
+  maintenance_window {
+    day  = "friday"
+    hour = "13:00:00"
+  }
 }
 
 resource "digitalocean_database_db" "foobar_db" {
-  cluster_id = "${digitalocean_database_cluster.foobar.id}"
+  cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"
 }`
