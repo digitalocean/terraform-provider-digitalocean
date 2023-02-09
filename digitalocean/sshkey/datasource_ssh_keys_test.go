@@ -5,18 +5,19 @@ import (
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceDigitalOceanSSHKeys_Basic(t *testing.T) {
 	keyName1 := acceptance.RandomTestName("datasource1")
-	pubKey1, err := testAccGenerateDataSourceDigitalOceanSSHKeyPublic()
+	pubKey1, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
 	if err != nil {
 		t.Fatalf("Unable to generate public key: %v", err)
 		return
 	}
 	keyName2 := acceptance.RandomTestName("datasource2")
-	pubKey2, err := testAccGenerateDataSourceDigitalOceanSSHKeyPublic()
+	pubKey2, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
 	if err != nil {
 		t.Fatalf("Unable to generate public key: %v", err)
 		return

@@ -2,26 +2,23 @@ package sshkey_test
 
 import (
 	"context"
-	"crypto/rand"
-	"crypto/rsa"
 	"fmt"
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-	"golang.org/x/crypto/ssh"
 )
 
 func TestAccDataSourceDigitalOceanSSHKey_Basic(t *testing.T) {
 	var key godo.Key
 	keyName := acceptance.RandomTestName()
 
-	pubKey, err := testAccGenerateDataSourceDigitalOceanSSHKeyPublic()
+	pubKey, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
 	if err != nil {
 		t.Fatalf("Unable to generate public key: %v", err)
 		return
@@ -92,18 +89,4 @@ func testAccCheckDataSourceDigitalOceanSSHKeyExists(n string, key *godo.Key) res
 
 		return nil
 	}
-}
-
-func testAccGenerateDataSourceDigitalOceanSSHKeyPublic() (string, error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
-	if err != nil {
-		return "", fmt.Errorf("Unable to generate key: %v", err)
-	}
-
-	publicKey, err := ssh.NewPublicKey(&privateKey.PublicKey)
-	if err != nil {
-		return "", fmt.Errorf("Unable to generate key: %v", err)
-	}
-
-	return strings.TrimSpace(string(ssh.MarshalAuthorizedKey(publicKey))), nil
 }
