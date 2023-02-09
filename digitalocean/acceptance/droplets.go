@@ -88,11 +88,12 @@ resource "digitalocean_droplet" "foobar" {
 }`, name)
 }
 
-func TakeSnapshotsOfDroplet(rInt int, droplet *godo.Droplet, snapshotsId *[]int) resource.TestCheckFunc {
+// TakeSnapshotsOfDroplet takes three snapshots of the given Droplet. One will have the suffix -1 and two will have -0.
+func TakeSnapshotsOfDroplet(snapName string, droplet *godo.Droplet, snapshotsIDs *[]int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 		for i := 0; i < 3; i++ {
-			err := takeSnapshotOfDroplet(rInt, i%2, droplet)
+			err := takeSnapshotOfDroplet(snapName, i%2, droplet)
 			if err != nil {
 				return err
 			}
@@ -101,14 +102,14 @@ func TakeSnapshotsOfDroplet(rInt int, droplet *godo.Droplet, snapshotsId *[]int)
 		if err != nil {
 			return err
 		}
-		*snapshotsId = retrieveDroplet.SnapshotIDs
+		*snapshotsIDs = retrieveDroplet.SnapshotIDs
 		return nil
 	}
 }
 
-func takeSnapshotOfDroplet(rInt, sInt int, droplet *godo.Droplet) error {
+func takeSnapshotOfDroplet(snapName string, intSuffix int, droplet *godo.Droplet) error {
 	client := TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
-	action, _, err := client.DropletActions.Snapshot(context.Background(), (*droplet).ID, fmt.Sprintf("snap-%d-%d", rInt, sInt))
+	action, _, err := client.DropletActions.Snapshot(context.Background(), (*droplet).ID, fmt.Sprintf("%s-%d", snapName, intSuffix))
 	if err != nil {
 		return err
 	}
