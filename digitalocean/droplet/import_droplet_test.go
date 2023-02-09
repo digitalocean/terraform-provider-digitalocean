@@ -10,14 +10,13 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanDroplet_importBasic(t *testing.T) {
 	resourceName := "digitalocean_droplet.foobar"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -25,7 +24,7 @@ func TestAccDigitalOceanDroplet_importBasic(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 			},
 
 			{
@@ -48,7 +47,7 @@ func TestAccDigitalOceanDroplet_importBasic(t *testing.T) {
 }
 
 func TestAccDigitalOceanDroplet_ImportWithNoImageSlug(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	var droplet godo.Droplet
 	var snapshotId []int
 
@@ -58,14 +57,14 @@ func TestAccDigitalOceanDroplet_ImportWithNoImageSlug(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
-					takeDropletSnapshot(rInt, &droplet, &snapshotId),
+					takeDropletSnapshot(name, &droplet, &snapshotId),
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_fromSnapshot(rInt),
+				Config: testAccCheckDigitalOceanDropletConfig_fromSnapshot(name),
 			},
 			{
 				ResourceName:      "digitalocean_droplet.from-snapshot",
@@ -84,11 +83,11 @@ func TestAccDigitalOceanDroplet_ImportWithNoImageSlug(t *testing.T) {
 	})
 }
 
-func takeDropletSnapshot(rInt int, droplet *godo.Droplet, snapshotId *[]int) resource.TestCheckFunc {
+func takeDropletSnapshot(name string, droplet *godo.Droplet, snapshotId *[]int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
-		action, _, err := client.DropletActions.Snapshot(context.Background(), (*droplet).ID, fmt.Sprintf("snap-%d", rInt))
+		action, _, err := client.DropletActions.Snapshot(context.Background(), (*droplet).ID, name)
 		if err != nil {
 			return err
 		}
@@ -103,17 +102,17 @@ func takeDropletSnapshot(rInt int, droplet *godo.Droplet, snapshotId *[]int) res
 	}
 }
 
-func testAccCheckDigitalOceanDropletConfig_fromSnapshot(rInt int) string {
+func testAccCheckDigitalOceanDropletConfig_fromSnapshot(name string) string {
 	return fmt.Sprintf(`
 data "digitalocean_image" "snapshot" {
-  name = "snap-%d"
+  name = "%s"
 }
 
 resource "digitalocean_droplet" "from-snapshot" {
-  name      = "foo-%d"
+  name      = "%s"
   size      = "s-1vcpu-1gb"
   image     = data.digitalocean_image.snapshot.id
   region    = "nyc3"
   user_data = "foobar"
-}`, rInt, rInt)
+}`, name, name)
 }

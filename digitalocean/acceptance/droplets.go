@@ -77,15 +77,15 @@ func TestAccCheckDigitalOceanDropletExists(n string, droplet *godo.Droplet) reso
 	}
 }
 
-func TestAccCheckDigitalOceanDropletConfig_basic(rInt int) string {
+func TestAccCheckDigitalOceanDropletConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name      = "foo-%d"
+  name      = "%s"
   size      = "s-1vcpu-1gb"
   image     = "ubuntu-22-04-x64"
   region    = "nyc3"
   user_data = "foobar"
-}`, rInt)
+}`, name)
 }
 
 func TakeSnapshotsOfDroplet(rInt int, droplet *godo.Droplet, snapshotsId *[]int) resource.TestCheckFunc {
