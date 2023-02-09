@@ -9,14 +9,13 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanVolumeAttachment_Basic(t *testing.T) {
 	var (
-		volume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
+		volume  = godo.Volume{Name: acceptance.RandomTestName()}
 		dName   = acceptance.RandomTestName()
 		droplet godo.Droplet
 	)
@@ -46,8 +45,8 @@ func TestAccDigitalOceanVolumeAttachment_Basic(t *testing.T) {
 
 func TestAccDigitalOceanVolumeAttachment_Update(t *testing.T) {
 	var (
-		firstVolume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
-		secondVolume = godo.Volume{Name: fmt.Sprintf("volume-s-%s", acctest.RandString(10))}
+		firstVolume  = godo.Volume{Name: acceptance.RandomTestName()}
+		secondVolume = godo.Volume{Name: acceptance.RandomTestName()}
 		dName        = acceptance.RandomTestName()
 		droplet      godo.Droplet
 	)
@@ -91,8 +90,8 @@ func TestAccDigitalOceanVolumeAttachment_Update(t *testing.T) {
 
 func TestAccDigitalOceanVolumeAttachment_UpdateToSecondVolume(t *testing.T) {
 	var (
-		firstVolume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
-		secondVolume = godo.Volume{Name: fmt.Sprintf("volume-s-%s", acctest.RandString(10))}
+		firstVolume  = godo.Volume{Name: acceptance.RandomTestName()}
+		secondVolume = godo.Volume{Name: acceptance.RandomTestName()}
 		dName        = acceptance.RandomTestName()
 		droplet      godo.Droplet
 	)
@@ -138,8 +137,8 @@ func TestAccDigitalOceanVolumeAttachment_UpdateToSecondVolume(t *testing.T) {
 
 func TestAccDigitalOceanVolumeAttachment_Multiple(t *testing.T) {
 	var (
-		firstVolume  = godo.Volume{Name: fmt.Sprintf("volume-%s", acctest.RandString(10))}
-		secondVolume = godo.Volume{Name: fmt.Sprintf("volume-s-%s", acctest.RandString(10))}
+		firstVolume  = godo.Volume{Name: acceptance.RandomTestName()}
+		secondVolume = godo.Volume{Name: acceptance.RandomTestName()}
 		dName        = acceptance.RandomTestName()
 		droplet      godo.Droplet
 	)
