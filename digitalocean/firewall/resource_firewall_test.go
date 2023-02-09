@@ -8,13 +8,12 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanFirewall_AllowOnlyInbound(t *testing.T) {
-	rName := acctest.RandString(10)
+	rName := acceptance.RandomTestName()
 	var firewall godo.Firewall
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -34,7 +33,7 @@ func TestAccDigitalOceanFirewall_AllowOnlyInbound(t *testing.T) {
 }
 
 func TestAccDigitalOceanFirewall_AllowMultipleInbound(t *testing.T) {
-	rName := acctest.RandString(10)
+	rName := acceptance.RandomTestName()
 	var firewall godo.Firewall
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -54,7 +53,7 @@ func TestAccDigitalOceanFirewall_AllowMultipleInbound(t *testing.T) {
 }
 
 func TestAccDigitalOceanFirewall_AllowOnlyOutbound(t *testing.T) {
-	rName := acctest.RandString(10)
+	rName := acceptance.RandomTestName()
 	var firewall godo.Firewall
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -74,7 +73,7 @@ func TestAccDigitalOceanFirewall_AllowOnlyOutbound(t *testing.T) {
 }
 
 func TestAccDigitalOceanFirewall_AllowMultipleOutbound(t *testing.T) {
-	rName := acctest.RandString(10)
+	rName := acceptance.RandomTestName()
 	var firewall godo.Firewall
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -94,8 +93,8 @@ func TestAccDigitalOceanFirewall_AllowMultipleOutbound(t *testing.T) {
 }
 
 func TestAccDigitalOceanFirewall_MultipleInboundAndOutbound(t *testing.T) {
-	rName := acctest.RandString(10)
-	tagName := "tag-" + rName
+	rName := acceptance.RandomTestName()
+	tagName := acceptance.RandomTestName("tag")
 	var firewall godo.Firewall
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -116,7 +115,7 @@ func TestAccDigitalOceanFirewall_MultipleInboundAndOutbound(t *testing.T) {
 }
 
 func TestAccDigitalOceanFirewall_fullPortRange(t *testing.T) {
-	rName := acctest.RandString(10)
+	rName := acceptance.RandomTestName()
 	var firewall godo.Firewall
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -137,7 +136,7 @@ func TestAccDigitalOceanFirewall_fullPortRange(t *testing.T) {
 }
 
 func TestAccDigitalOceanFirewall_icmp(t *testing.T) {
-	rName := acctest.RandString(10)
+	rName := acceptance.RandomTestName()
 	var firewall godo.Firewall
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -159,8 +158,8 @@ func TestAccDigitalOceanFirewall_icmp(t *testing.T) {
 
 func TestAccDigitalOceanFirewall_ImportMultipleRules(t *testing.T) {
 	resourceName := "digitalocean_firewall.foobar"
-	rName := acctest.RandString(10)
-	tagName := "tag-" + rName
+	rName := acceptance.RandomTestName()
+	tagName := acceptance.RandomTestName("tag")
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
@@ -182,7 +181,7 @@ func TestAccDigitalOceanFirewall_ImportMultipleRules(t *testing.T) {
 func testAccDigitalOceanFirewallConfig_OnlyInbound(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_firewall" "foobar" {
-  name = "foobar-%s"
+  name = "%s"
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
@@ -196,7 +195,7 @@ resource "digitalocean_firewall" "foobar" {
 func testAccDigitalOceanFirewallConfig_OnlyOutbound(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_firewall" "foobar" {
-  name = "foobar-%s"
+  name = "%s"
   outbound_rule {
     protocol              = "tcp"
     port_range            = "22"
@@ -210,7 +209,7 @@ resource "digitalocean_firewall" "foobar" {
 func testAccDigitalOceanFirewallConfig_OnlyMultipleInbound(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_firewall" "foobar" {
-  name = "foobar-%s"
+  name = "%s"
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
@@ -229,7 +228,7 @@ resource "digitalocean_firewall" "foobar" {
 func testAccDigitalOceanFirewallConfig_OnlyMultipleOutbound(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_firewall" "foobar" {
-  name = "foobar-%s"
+  name = "%s"
   outbound_rule {
     protocol              = "tcp"
     port_range            = "22"
@@ -252,7 +251,7 @@ resource "digitalocean_tag" "foobar" {
 }
 
 resource "digitalocean_firewall" "foobar" {
-  name = "foobar-%s"
+  name = "%s"
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
@@ -283,7 +282,7 @@ resource "digitalocean_firewall" "foobar" {
 func testAccDigitalOceanFirewallConfig_fullPortRange(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_firewall" "foobar" {
-  name = "foobar-%s"
+  name = "%s"
   inbound_rule {
     protocol         = "tcp"
     port_range       = "all"
@@ -301,7 +300,7 @@ resource "digitalocean_firewall" "foobar" {
 func testAccDigitalOceanFirewallConfig_icmp(rName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_firewall" "foobar" {
-  name = "foobar-%s"
+  name = "%s"
   inbound_rule {
     protocol         = "icmp"
     source_addresses = ["192.168.1.1/32"]
