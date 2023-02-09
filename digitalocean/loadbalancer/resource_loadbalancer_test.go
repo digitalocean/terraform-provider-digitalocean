@@ -544,11 +544,7 @@ func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 	})
 }
 
-// Load balancers can only be resized once an hour. The initial create counts
-// as a "resize" in this context. This test can not perform a resize, but it
-// does ensure that the the PUT includes the expected content by checking for
-// the failure.
-func TestAccDigitalOceanLoadbalancer_resizeExpectedFailure(t *testing.T) {
+func TestAccDigitalOceanLoadbalancer_resize(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
 	name := acceptance.RandomTestName()
 
@@ -587,8 +583,12 @@ func TestAccDigitalOceanLoadbalancer_resizeExpectedFailure(t *testing.T) {
 				),
 			},
 			{
-				Config:      fmt.Sprintf(lbConfig, name, 2),
-				ExpectError: regexp.MustCompile("Load Balancer can only be resized once every hour, last resized at:"),
+				Config: fmt.Sprintf(lbConfig, name, 2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "size_unit", "2"),
+				),
 			},
 		},
 	})
