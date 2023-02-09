@@ -82,9 +82,9 @@ data "digitalocean_volume_snapshot" "foobar" {
 
 func TestAccDataSourceDigitalOceanVolumeSnapshot_region(t *testing.T) {
 	var snapshot godo.Snapshot
-	nyName := acceptance.RandomTestName("ny")
-	lonName := acceptance.RandomTestName("lon")
-	nycResourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVolumeSnapshot_basic, nyName, nyName)
+	dropletName := acceptance.RandomTestName()
+	snapName := acceptance.RandomTestName()
+	nycResourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVolumeSnapshot_basic, dropletName, snapName)
 	lonResourceConfig := fmt.Sprintf(`
 resource "digitalocean_volume" "bar" {
   region      = "lon1"
@@ -96,7 +96,7 @@ resource "digitalocean_volume" "bar" {
 resource "digitalocean_volume_snapshot" "bar" {
   name      = "%s"
   volume_id = digitalocean_volume.bar.id
-}`, lonName, lonName)
+}`, dropletName, snapName)
 	dataSourceConfig := `
 data "digitalocean_volume_snapshot" "foobar" {
   name   = digitalocean_volume_snapshot.bar.name
@@ -114,7 +114,7 @@ data "digitalocean_volume_snapshot" "foobar" {
 				Config: nycResourceConfig + lonResourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanVolumeSnapshotExists("data.digitalocean_volume_snapshot.foobar", &snapshot),
-					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "name", lonName),
+					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "name", snapName),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "size", "0"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "min_disk_size", "100"),
 					resource.TestCheckResourceAttr("data.digitalocean_volume_snapshot.foobar", "regions.#", "1"),
