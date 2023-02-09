@@ -8,14 +8,14 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanVolumeSnapshot_Basic(t *testing.T) {
 	var snapshot godo.Snapshot
-	rInt := acctest.RandInt()
+	volName := acceptance.RandomTestName("volume")
+	snapName := acceptance.RandomTestName("snapshot")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -23,11 +23,11 @@ func TestAccDigitalOceanVolumeSnapshot_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVolumeSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeSnapshotConfig_basic, rInt, rInt),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeSnapshotConfig_basic, volName, snapName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVolumeSnapshotExists("digitalocean_volume_snapshot.foobar", &snapshot),
 					resource.TestCheckResourceAttr(
-						"digitalocean_volume_snapshot.foobar", "name", fmt.Sprintf("snapshot-%d", rInt)),
+						"digitalocean_volume_snapshot.foobar", "name", snapName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_volume_snapshot.foobar", "size", "0"),
 					resource.TestCheckResourceAttr(
@@ -95,20 +95,21 @@ func testAccCheckDigitalOceanVolumeSnapshotDestroy(s *terraform.State) error {
 const testAccCheckDigitalOceanVolumeSnapshotConfig_basic = `
 resource "digitalocean_volume" "foo" {
   region      = "nyc1"
-  name        = "volume-%d"
+  name        = "%s"
   size        = 100
   description = "peace makes plenty"
 }
 
 resource "digitalocean_volume_snapshot" "foobar" {
-  name      = "snapshot-%d"
+  name      = "%s"
   volume_id = digitalocean_volume.foo.id
   tags      = ["foo", "bar"]
 }`
 
 func TestAccDigitalOceanVolumeSnapshot_UpdateTags(t *testing.T) {
 	var snapshot godo.Snapshot
-	rInt := acctest.RandInt()
+	volName := acceptance.RandomTestName("volume")
+	snapName := acceptance.RandomTestName("snapshot")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -116,14 +117,14 @@ func TestAccDigitalOceanVolumeSnapshot_UpdateTags(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVolumeSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeSnapshotConfig_basic, rInt, rInt),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeSnapshotConfig_basic, volName, snapName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVolumeSnapshotExists("digitalocean_volume_snapshot.foobar", &snapshot),
 					resource.TestCheckResourceAttr("digitalocean_volume_snapshot.foobar", "tags.#", "2"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeSnapshotConfig_basic_tag_update, rInt, rInt),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeSnapshotConfig_basic_tag_update, volName, snapName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVolumeSnapshotExists("digitalocean_volume_snapshot.foobar", &snapshot),
 					resource.TestCheckResourceAttr("digitalocean_volume_snapshot.foobar", "tags.#", "3"),
@@ -136,13 +137,13 @@ func TestAccDigitalOceanVolumeSnapshot_UpdateTags(t *testing.T) {
 const testAccCheckDigitalOceanVolumeSnapshotConfig_basic_tag_update = `
 resource "digitalocean_volume" "foo" {
   region      = "nyc1"
-  name        = "volume-%d"
+  name        = "%s"
   size        = 100
   description = "peace makes plenty"
 }
 
 resource "digitalocean_volume_snapshot" "foobar" {
-  name      = "snapshot-%d"
+  name      = "%s"
   volume_id = digitalocean_volume.foo.id
   tags      = ["foo", "bar", "baz"]
 }`
