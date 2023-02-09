@@ -15,6 +15,7 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 	var droplet godo.Droplet
 	var snapshotsId []int
 	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -22,7 +23,7 @@ func TestAccDigitalOceanImage_Basic(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(rInt),
+				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					acceptance.TakeSnapshotsOfDroplet(rInt, &droplet, &snapshotsId),

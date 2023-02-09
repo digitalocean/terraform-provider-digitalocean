@@ -19,7 +19,7 @@ func TestAccDigitalOceanMonitorAlert_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanMonitorAlertDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccAlertPolicy, randName, "", "10m", "v1/insights/droplet/memory_utilization_percent", "Alert about memory usage"),
+				Config: fmt.Sprintf(testAccAlertPolicy, randName, randName, "", "10m", "v1/insights/droplet/memory_utilization_percent", "Alert about memory usage"),
 			},
 			{
 				ResourceName:      resourceName,
