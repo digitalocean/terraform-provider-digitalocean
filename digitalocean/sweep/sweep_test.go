@@ -13,6 +13,7 @@ import (
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/reservedip"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/snapshot"
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/sshkey"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/volume"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
