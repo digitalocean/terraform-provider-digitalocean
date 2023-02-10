@@ -101,7 +101,7 @@ resource "digitalocean_vpc" "foobar" {
 const testAccCheckDataSourceDigitalOceanVPCConfig_RegionDefault = `
 // Create Droplet to ensure default VPC exists
 resource "digitalocean_droplet" "foo" {
-  image              = "ubuntu-18-04-x64"
+  image              = "ubuntu-22-04-x64"
   name               = "%s"
   region             = "nyc3"
   size               = "s-1vcpu-1gb"

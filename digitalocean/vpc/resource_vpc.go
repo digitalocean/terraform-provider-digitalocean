@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -169,7 +170,7 @@ func resourceDigitalOceanVPCDelete(ctx context.Context, d *schema.ResourceData, 
 		resp, err := client.VPCs.Delete(context.Background(), vpcID)
 		if err != nil {
 			// Retry if VPC still contains member resources to prevent race condition
-			if resp.StatusCode == 403 {
+			if resp.StatusCode == http.StatusForbidden {
 				return resource.RetryableError(err)
 			} else {
 				return resource.NonRetryableError(fmt.Errorf("Error deleting VPC: %s", err))

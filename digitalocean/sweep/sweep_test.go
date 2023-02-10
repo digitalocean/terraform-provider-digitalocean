@@ -15,6 +15,7 @@ import (
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/snapshot"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/sshkey"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/volume"
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpc"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
