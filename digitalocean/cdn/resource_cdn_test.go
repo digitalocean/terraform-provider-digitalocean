@@ -7,7 +7,6 @@ import (
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -195,7 +194,7 @@ func testAccCheckDigitalOceanCDNExists(resource string) resource.TestCheckFunc {
 }
 
 func generateBucketName() string {
-	return fmt.Sprintf("tf-cdn-test-bucket-%d", acctest.RandInt())
+	return acceptance.RandomTestName("cdn")
 }
 
 const testAccCheckDigitalOceanCDNConfig_Create = `
