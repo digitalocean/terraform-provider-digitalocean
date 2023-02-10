@@ -34,7 +34,7 @@ func sweepCertificate(region string) error {
 	}
 
 	for _, c := range certs {
-		if strings.HasPrefix(c.Name, "certificate-") {
+		if strings.HasPrefix(c.Name, sweep.TestNamePrefix) {
 			log.Printf("Destroying certificate %s", c.Name)
 
 			if _, err := client.Certificates.Delete(context.Background(), c.ID); err != nil {

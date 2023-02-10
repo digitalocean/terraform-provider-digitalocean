@@ -8,14 +8,13 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/certificate"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanCertificate_Basic(t *testing.T) {
 	var certificate godo.Certificate
-	name := fmt.Sprintf("certificate-%s", acctest.RandString(10))
+	name := acceptance.RandomTestName("certificate")
 
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := acceptance.GenerateTestCertMaterial(t)
 
