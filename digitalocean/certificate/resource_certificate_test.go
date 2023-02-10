@@ -13,7 +13,6 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/certificate"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -48,8 +47,7 @@ func TestResourceExampleInstanceStateUpgradeV0(t *testing.T) {
 
 func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
 	var cert godo.Certificate
-	rInt := acctest.RandInt()
-	name := fmt.Sprintf("certificate-%d", rInt)
+	name := acceptance.RandomTestName("certificate")
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := acceptance.GenerateTestCertMaterial(t)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -58,7 +56,7 @@ func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanCertificateConfig_basic(rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial),
+				Config: testAccCheckDigitalOceanCertificateConfig_basic(name, privateKeyMaterial, leafCertMaterial, certChainMaterial),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanCertificateExists("digitalocean_certificate.foobar", &cert),
 					resource.TestCheckResourceAttr(
@@ -78,7 +76,7 @@ func TestAccDigitalOceanCertificate_Basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanCertificate_ExpectedErrors(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName("certificate")
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := acceptance.GenerateTestCertMaterial(t)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -87,15 +85,15 @@ func TestAccDigitalOceanCertificate_ExpectedErrors(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccCheckDigitalOceanCertificateConfig_customNoLeaf(rInt, privateKeyMaterial, certChainMaterial),
+				Config:      testAccCheckDigitalOceanCertificateConfig_customNoLeaf(name, privateKeyMaterial, certChainMaterial),
 				ExpectError: regexp.MustCompile("`leaf_certificate` is required for when type is `custom` or empty"),
 			},
 			{
-				Config:      testAccCheckDigitalOceanCertificateConfig_customNoKey(rInt, leafCertMaterial, certChainMaterial),
+				Config:      testAccCheckDigitalOceanCertificateConfig_customNoKey(name, leafCertMaterial, certChainMaterial),
 				ExpectError: regexp.MustCompile("`private_key` is required for when type is `custom` or empty"),
 			},
 			{
-				Config:      testAccCheckDigitalOceanCertificateConfig_noDomains(rInt),
+				Config:      testAccCheckDigitalOceanCertificateConfig_noDomains(name),
 				ExpectError: regexp.MustCompile("`domains` is required for when type is `lets_encrypt`"),
 			},
 		},
@@ -146,10 +144,10 @@ func testAccCheckDigitalOceanCertificateExists(n string, cert *godo.Certificate)
 	}
 }
 
-func testAccCheckDigitalOceanCertificateConfig_basic(rInt int, privateKeyMaterial, leafCert, certChain string) string {
+func testAccCheckDigitalOceanCertificateConfig_basic(name, privateKeyMaterial, leafCert, certChain string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_certificate" "foobar" {
-  name              = "certificate-%d"
+  name              = "%s"
   private_key       = <<EOF
 %s
 EOF
@@ -159,39 +157,39 @@ EOF
   certificate_chain = <<EOF
 %s
 EOF
-}`, rInt, privateKeyMaterial, leafCert, certChain)
+}`, name, privateKeyMaterial, leafCert, certChain)
 }
 
-func testAccCheckDigitalOceanCertificateConfig_customNoLeaf(rInt int, privateKeyMaterial, certChain string) string {
+func testAccCheckDigitalOceanCertificateConfig_customNoLeaf(name, privateKeyMaterial, certChain string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_certificate" "foobar" {
-  name              = "certificate-%d"
+  name              = "%s"
   private_key       = <<EOF
 %s
 EOF
   certificate_chain = <<EOF
 %s
 EOF
-}`, rInt, privateKeyMaterial, certChain)
+}`, name, privateKeyMaterial, certChain)
 }
 
-func testAccCheckDigitalOceanCertificateConfig_customNoKey(rInt int, leafCert, certChain string) string {
+func testAccCheckDigitalOceanCertificateConfig_customNoKey(name, leafCert, certChain string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_certificate" "foobar" {
-  name              = "certificate-%d"
+  name              = "%s"
   leaf_certificate  = <<EOF
 %s
 EOF
   certificate_chain = <<EOF
 %s
 EOF
-}`, rInt, leafCert, certChain)
+}`, name, leafCert, certChain)
 }
 
-func testAccCheckDigitalOceanCertificateConfig_noDomains(rInt int) string {
+func testAccCheckDigitalOceanCertificateConfig_noDomains(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_certificate" "foobar" {
-  name = "certificate-%d"
+  name = "%s"
   type = "lets_encrypt"
-}`, rInt)
+}`, name)
 }
