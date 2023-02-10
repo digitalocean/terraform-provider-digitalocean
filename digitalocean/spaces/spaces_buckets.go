@@ -3,6 +3,7 @@ package spaces
 import (
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	awspolicy "github.com/hashicorp/awspolicyequivalence"
@@ -100,10 +101,56 @@ func flattenSpacesBucket(rawBucketMetadata, meta interface{}, extra map[string]i
 	return flattenedBucket, nil
 }
 
+// CompareSpacesBucketPolicy determines the equivalence of two S3 policies
+// using github.com/hashicorp/awspolicyequivalence.PoliciesAreEquivalent
 func CompareSpacesBucketPolicy(policy1, policy2 string) bool {
 	equivalent, err := awspolicy.PoliciesAreEquivalent(policy1, policy2)
 	if err != nil {
 		return false
 	}
 	return equivalent
+}
+
+// spacesBucketForceDelete deletes all objects in a Spaces bucket.
+func spacesBucketForceDelete(svc *s3.S3, bucket string) error {
+	listParams := &s3.ListObjectVersionsInput{
+		Bucket: aws.String(bucket),
+	}
+	resp, err := svc.ListObjectVersions(listParams)
+	if err != nil {
+		return err
+	}
+
+	objectsToDelete := make([]*s3.ObjectIdentifier, 0)
+	if len(resp.DeleteMarkers) != 0 {
+		for _, v := range resp.DeleteMarkers {
+			objectsToDelete = append(objectsToDelete, &s3.ObjectIdentifier{
+				Key:       v.Key,
+				VersionId: v.VersionId,
+			})
+		}
+	}
+
+	if len(resp.Versions) != 0 {
+		for _, v := range resp.Versions {
+			objectsToDelete = append(objectsToDelete, &s3.ObjectIdentifier{
+				Key:       v.Key,
+				VersionId: v.VersionId,
+			})
+		}
+	}
+
+	params := &s3.DeleteObjectsInput{
+		Bucket: aws.String(bucket),
+		Delete: &s3.Delete{
+			Objects: objectsToDelete,
+		},
+	}
+
+	_, err = svc.DeleteObjects(params)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
