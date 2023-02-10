@@ -11,14 +11,13 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	expectedURNRegEx, _ := regexp.Compile(`do:loadbalancer:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
 
@@ -28,11 +27,11 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanLoadbalancerConfig_basic(rInt),
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_basic(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+						"digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -79,7 +78,7 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 
 func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -87,11 +86,11 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanLoadbalancerConfig_basic(rInt),
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_basic(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+						"digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -130,11 +129,11 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanLoadbalancerConfig_updated(rInt),
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_updated(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+						"digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -178,7 +177,7 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 
 func TestAccDigitalOceanLoadbalancer_dropletTag(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -186,11 +185,11 @@ func TestAccDigitalOceanLoadbalancer_dropletTag(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanLoadbalancerConfig_dropletTag(rInt),
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_dropletTag(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+						"digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -224,7 +223,7 @@ func TestAccDigitalOceanLoadbalancer_dropletTag(t *testing.T) {
 
 func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -232,11 +231,11 @@ func TestAccDigitalOceanLoadbalancer_minimal(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanLoadbalancerConfig_minimal(rInt),
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_minimal(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+						"digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -347,7 +346,7 @@ resource "digitalocean_project" "test" {
 
 func TestAccDigitalOceanLoadbalancer_minimalUDP(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -355,11 +354,11 @@ func TestAccDigitalOceanLoadbalancer_minimalUDP(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanLoadbalancerConfig_minimalUDP(rInt),
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_minimalUDP(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+						"digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -401,7 +400,7 @@ func TestAccDigitalOceanLoadbalancer_minimalUDP(t *testing.T) {
 
 func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -409,11 +408,11 @@ func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanLoadbalancerConfig_stickySessions(rInt),
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_stickySessions(name),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+						"digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -455,7 +454,7 @@ func TestAccDigitalOceanLoadbalancer_stickySessions(t *testing.T) {
 
 func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := acceptance.GenerateTestCertMaterial(t)
 	certName := acceptance.RandomTestName()
 
@@ -466,11 +465,11 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(
-					certName, rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_id"),
+					certName, name, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_id"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+						"digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -501,7 +500,7 @@ func TestAccDigitalOceanLoadbalancer_sslTermination(t *testing.T) {
 
 func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := acceptance.GenerateTestCertMaterial(t)
 	certName := acceptance.RandomTestName()
 
@@ -512,11 +511,11 @@ func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(
-					certName, rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_name"),
+					certName, name, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_name"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+						"digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -545,16 +544,12 @@ func TestAccDigitalOceanLoadbalancer_sslCertByName(t *testing.T) {
 	})
 }
 
-// Load balancers can only be resized once an hour. The initial create counts
-// as a "resize" in this context. This test can not perform a resize, but it
-// does ensure that the the PUT includes the expected content by checking for
-// the failure.
-func TestAccDigitalOceanLoadbalancer_resizeExpectedFailure(t *testing.T) {
+func TestAccDigitalOceanLoadbalancer_resize(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	lbConfig := `resource "digitalocean_loadbalancer" "foobar" {
-  name      = "loadbalancer-%d"
+  name      = "%s"
   region    = "nyc3"
   size_unit = %d
 
@@ -578,18 +573,22 @@ func TestAccDigitalOceanLoadbalancer_resizeExpectedFailure(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(lbConfig, rInt, 1),
+				Config: fmt.Sprintf(lbConfig, name, 1),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+						"digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "size_unit", "1"),
 				),
 			},
 			{
-				Config:      fmt.Sprintf(lbConfig, rInt, 2),
-				ExpectError: regexp.MustCompile("Load Balancer can only be resized once every hour, last resized at:"),
+				Config: fmt.Sprintf(lbConfig, name, 2),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "size_unit", "2"),
+				),
 			},
 		},
 	})
@@ -781,7 +780,7 @@ func testAccCheckDigitalOceanLoadbalancerExists(n string, loadbalancer *godo.Loa
 	}
 }
 
-func testAccCheckDigitalOceanLoadbalancerConfig_basic(rInt int) string {
+func testAccCheckDigitalOceanLoadbalancerConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name   = "%s"
@@ -791,7 +790,7 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name   = "loadbalancer-%d"
+  name   = "%s"
   region = "nyc3"
 
   forwarding_rule {
@@ -812,27 +811,27 @@ resource "digitalocean_loadbalancer" "foobar" {
   http_idle_timeout_seconds = 90
 
   droplet_ids = [digitalocean_droplet.foobar.id]
-}`, acceptance.RandomTestName(), rInt)
+}`, name, name)
 }
 
-func testAccCheckDigitalOceanLoadbalancerConfig_updated(rInt int) string {
+func testAccCheckDigitalOceanLoadbalancerConfig_updated(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name   = "%s"
+  name   = "%s-01"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
 }
 
 resource "digitalocean_droplet" "foo" {
-  name   = "%s"
+  name   = "%s-02"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name   = "loadbalancer-%d"
+  name   = "%s"
   region = "nyc3"
 
   forwarding_rule {
@@ -854,10 +853,10 @@ resource "digitalocean_loadbalancer" "foobar" {
   http_idle_timeout_seconds        = 120
 
   droplet_ids = [digitalocean_droplet.foobar.id, digitalocean_droplet.foo.id]
-}`, acceptance.RandomTestName(), acceptance.RandomTestName(), rInt)
+}`, name, name, name)
 }
 
-func testAccCheckDigitalOceanLoadbalancerConfig_dropletTag(rInt int) string {
+func testAccCheckDigitalOceanLoadbalancerConfig_dropletTag(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_tag" "barbaz" {
   name = "sample"
@@ -872,7 +871,7 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name   = "loadbalancer-%d"
+  name   = "%s"
   region = "nyc3"
 
   forwarding_rule {
@@ -891,10 +890,10 @@ resource "digitalocean_loadbalancer" "foobar" {
   droplet_tag = digitalocean_tag.barbaz.name
 
   depends_on = [digitalocean_droplet.foobar]
-}`, acceptance.RandomTestName(), rInt)
+}`, name, name)
 }
 
-func testAccCheckDigitalOceanLoadbalancerConfig_minimal(rInt int) string {
+func testAccCheckDigitalOceanLoadbalancerConfig_minimal(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name   = "%s"
@@ -904,7 +903,7 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name      = "loadbalancer-%d"
+  name      = "%s"
   region    = "nyc3"
   size_unit = 1
 
@@ -917,7 +916,7 @@ resource "digitalocean_loadbalancer" "foobar" {
   }
 
   droplet_ids = [digitalocean_droplet.foobar.id]
-}`, acceptance.RandomTestName(), rInt)
+}`, name, name)
 }
 
 func testAccCheckDigitalOceanLoadbalancerConfig_NonDefaultProject(projectName, lbName string) string {
@@ -944,7 +943,7 @@ resource "digitalocean_loadbalancer" "test" {
 }`, projectName, lbName)
 }
 
-func testAccCheckDigitalOceanLoadbalancerConfig_minimalUDP(rInt int) string {
+func testAccCheckDigitalOceanLoadbalancerConfig_minimalUDP(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name   = "%s"
@@ -954,7 +953,7 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name   = "loadbalancer-%d"
+  name   = "%s"
   region = "nyc3"
   size   = "lb-small"
 
@@ -967,10 +966,10 @@ resource "digitalocean_loadbalancer" "foobar" {
   }
 
   droplet_ids = [digitalocean_droplet.foobar.id]
-}`, acceptance.RandomTestName(), rInt)
+}`, name, name)
 }
 
-func testAccCheckDigitalOceanLoadbalancerConfig_stickySessions(rInt int) string {
+func testAccCheckDigitalOceanLoadbalancerConfig_stickySessions(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name   = "%s"
@@ -980,7 +979,7 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name   = "loadbalancer-%d"
+  name   = "%s"
   region = "nyc3"
   size   = "lb-small"
 
@@ -999,10 +998,10 @@ resource "digitalocean_loadbalancer" "foobar" {
   }
 
   droplet_ids = [digitalocean_droplet.foobar.id]
-}`, acceptance.RandomTestName(), rInt)
+}`, name, name)
 }
 
-func testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(certName string, rInt int, privateKeyMaterial, leafCert, certChain, certAttribute string) string {
+func testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(certName string, name string, privateKeyMaterial, leafCert, certChain, certAttribute string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_certificate" "foobar" {
   name              = "%s"
@@ -1018,7 +1017,7 @@ EOF
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name                   = "loadbalancer-%d"
+  name                   = "%s"
   region                 = "nyc3"
   size                   = "lb-small"
   redirect_http_to_https = true
@@ -1033,7 +1032,7 @@ resource "digitalocean_loadbalancer" "foobar" {
 
     %s = digitalocean_certificate.foobar.id
   }
-}`, certName, privateKeyMaterial, leafCert, certChain, rInt, certAttribute)
+}`, certName, privateKeyMaterial, leafCert, certChain, name, certAttribute)
 }
 
 func testAccCheckDigitalOceanLoadbalancerConfig_multipleRules(rName string) string {
