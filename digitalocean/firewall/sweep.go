@@ -34,7 +34,7 @@ func sweepFirewall(region string) error {
 	}
 
 	for _, f := range fws {
-		if strings.HasPrefix(f.Name, "foobar-") {
+		if strings.HasPrefix(f.Name, sweep.TestNamePrefix) {
 			log.Printf("Destroying firewall %s", f.Name)
 
 			if _, err := client.Firewalls.Delete(context.Background(), f.ID); err != nil {
