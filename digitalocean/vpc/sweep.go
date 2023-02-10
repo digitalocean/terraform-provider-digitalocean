@@ -41,7 +41,7 @@ func sweepVPC(region string) error {
 			log.Printf("[DEBUG] Destroying VPC %s", v.Name)
 			resp, err := client.VPCs.Delete(context.Background(), v.ID)
 			if err != nil {
-				if resp.StatusCode != http.StatusForbidden {
+				if resp.StatusCode == http.StatusForbidden {
 					log.Printf("[DEBUG] Skipping VPC %s; still contains resources", v.Name)
 				} else {
 					return err
