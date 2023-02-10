@@ -208,6 +208,7 @@ func TestAccDigitalOceanProject_CreateWithDropletResource(t *testing.T) {
 	expectedDropletName := generateDropletName()
 
 	createConfig := fixtureCreateWithDropletResource(expectedDropletName, expectedName)
+	destroyConfig := fixtureCreateWithDefaults(expectedName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -221,6 +222,18 @@ func TestAccDigitalOceanProject_CreateWithDropletResource(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_project.myproj", "name", expectedName),
 					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "1"),
+				),
+			},
+			{
+				Config: destroyConfig,
+			},
+			{
+				Config: destroyConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_project.myproj", "name", expectedName),
+					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "0"),
 				),
 			},
 		},
