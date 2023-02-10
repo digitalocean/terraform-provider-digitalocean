@@ -11,6 +11,7 @@ import (
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/firewall"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/project"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/reservedip"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/snapshot"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/sshkey"
