@@ -8,7 +8,6 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -16,7 +15,7 @@ import (
 func TestAccDigitalOceanDropletSnapshot_Basic(t *testing.T) {
 	var snapshot godo.Snapshot
 	dName := acceptance.RandomTestName()
-	rInt2 := acctest.RandInt()
+	snapName := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -24,11 +23,11 @@ func TestAccDigitalOceanDropletSnapshot_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanDropletSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDropletSnapshotConfig_basic, dName, rInt2),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDropletSnapshotConfig_basic, dName, snapName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDropletSnapshotExists("digitalocean_droplet_snapshot.foobar", &snapshot),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("snapshot-one-%d", rInt2)),
+						"digitalocean_droplet_snapshot.foobar", "name", snapName),
 				),
 			},
 		},
@@ -94,6 +93,5 @@ resource "digitalocean_droplet" "foo" {
 
 resource "digitalocean_droplet_snapshot" "foobar" {
   droplet_id = digitalocean_droplet.foo.id
-  name       = "snapshot-one-%d"
-}
-  `
+  name       = "%s"
+}`
