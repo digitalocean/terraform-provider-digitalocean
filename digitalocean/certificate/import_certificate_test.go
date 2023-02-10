@@ -4,14 +4,12 @@ import (
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDigitalOceanCertificate_importBasic(t *testing.T) {
 	resourceName := "digitalocean_certificate.foobar"
-	rInt := acctest.RandInt()
-
+	name := acceptance.RandomTestName("certificate")
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := acceptance.GenerateTestCertMaterial(t)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -20,7 +18,7 @@ func TestAccDigitalOceanCertificate_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanCertificateDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanCertificateConfig_basic(rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial),
+				Config: testAccCheckDigitalOceanCertificateConfig_basic(name, privateKeyMaterial, leafCertMaterial, certChainMaterial),
 			},
 
 			{

@@ -10,14 +10,14 @@ import (
 )
 
 func TestAccDataSourceDigitalOceanSSHKeys_Basic(t *testing.T) {
-	keyName1 := fmt.Sprintf("tf-acc-test1-%s", acctest.RandString(10))
-	pubKey1, err := testAccGenerateDataSourceDigitalOceanSSHKeyPublic()
+	keyName1 := acceptance.RandomTestName("datasource1")
+	pubKey1, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
 	if err != nil {
 		t.Fatalf("Unable to generate public key: %v", err)
 		return
 	}
-	keyName2 := fmt.Sprintf("tf-acc-test2-%s", acctest.RandString(10))
-	pubKey2, err := testAccGenerateDataSourceDigitalOceanSSHKeyPublic()
+	keyName2 := acceptance.RandomTestName("datasource2")
+	pubKey2, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
 	if err != nil {
 		t.Fatalf("Unable to generate public key: %v", err)
 		return
@@ -41,8 +41,13 @@ data "digitalocean_ssh_keys" "result" {
     key       = "name"
     direction = "asc"
   }
+  filter {
+    key    = "name"
+    values = ["%s", "%s"]
+  }
 }
-`)
+`, keyName1, keyName2)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,

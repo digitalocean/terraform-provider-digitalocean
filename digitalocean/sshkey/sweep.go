@@ -1,4 +1,4 @@
-package certificate
+package sshkey
 
 import (
 	"context"
@@ -12,14 +12,14 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("digitalocean_certificate", &resource.Sweeper{
-		Name: "digitalocean_certificate",
-		F:    sweepCertificate,
+	resource.AddTestSweepers("digitalocean_ssh_key", &resource.Sweeper{
+		Name: "digitalocean_ssh_key",
+		F:    sweepSSHKey,
 	})
 
 }
 
-func sweepCertificate(region string) error {
+func sweepSSHKey(region string) error {
 	meta, err := sweep.SharedConfigForRegion(region)
 	if err != nil {
 		return err
@@ -28,16 +28,16 @@ func sweepCertificate(region string) error {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	opt := &godo.ListOptions{PerPage: 200}
-	certs, _, err := client.Certificates.List(context.Background(), opt)
+	keys, _, err := client.Keys.List(context.Background(), opt)
 	if err != nil {
 		return err
 	}
 
-	for _, c := range certs {
-		if strings.HasPrefix(c.Name, sweep.TestNamePrefix) {
-			log.Printf("Destroying certificate %s", c.Name)
+	for _, k := range keys {
+		if strings.HasPrefix(k.Name, sweep.TestNamePrefix) {
+			log.Printf("Destroying SSH key %s", k.Name)
 
-			if _, err := client.Certificates.Delete(context.Background(), c.ID); err != nil {
+			if _, err := client.Keys.DeleteByID(context.Background(), k.ID); err != nil {
 				return err
 			}
 		}
