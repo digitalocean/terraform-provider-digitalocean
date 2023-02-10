@@ -10,7 +10,7 @@ import (
 
 func TestAccDigitalOceanSSHKey_importBasic(t *testing.T) {
 	resourceName := "digitalocean_ssh_key.foobar"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
 	if err != nil {
 		t.Fatalf("Cannot generate test SSH key pair: %s", err)
@@ -22,7 +22,7 @@ func TestAccDigitalOceanSSHKey_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSSHKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanSSHKeyConfig_basic(rInt, publicKeyMaterial),
+				Config: testAccCheckDigitalOceanSSHKeyConfig_basic(name, publicKeyMaterial),
 			},
 
 			{
