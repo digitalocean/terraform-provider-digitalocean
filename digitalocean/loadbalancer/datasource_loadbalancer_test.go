@@ -9,7 +9,6 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -507,10 +506,10 @@ data "digitalocean_loadbalancer" "foobar" {
 func TestAccDataSourceDigitalOceanLoadBalancer_tlsCertByName(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
 	testName := acceptance.RandomTestName()
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := acceptance.GenerateTestCertMaterial(t)
 	resourceConfig := testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(
-		testName+"-cert", rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_name",
+		testName+"-cert", name, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_name",
 	)
 	dataSourceConfig := `
 data "digitalocean_loadbalancer" "foobar" {
@@ -530,7 +529,7 @@ data "digitalocean_loadbalancer" "foobar" {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("data.digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+						"data.digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -562,10 +561,10 @@ data "digitalocean_loadbalancer" "foobar" {
 func TestAccDataSourceDigitalOceanLoadBalancer_tlsCertById(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
 	testName := acceptance.RandomTestName()
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	privateKeyMaterial, leafCertMaterial, certChainMaterial := acceptance.GenerateTestCertMaterial(t)
 	resourceConfig := testAccCheckDigitalOceanLoadbalancerConfig_sslTermination(
-		testName+"-cert", rInt, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_name",
+		testName+"-cert", name, privateKeyMaterial, leafCertMaterial, certChainMaterial, "certificate_name",
 	)
 	dataSourceConfig := `
 data "digitalocean_loadbalancer" "foobar" {
@@ -585,7 +584,7 @@ data "digitalocean_loadbalancer" "foobar" {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("data.digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "name", fmt.Sprintf("loadbalancer-%d", rInt)),
+						"data.digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
