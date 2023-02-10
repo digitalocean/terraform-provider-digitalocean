@@ -16,7 +16,7 @@ import (
 
 func TestAccDigitalOceanSSHKey_Basic(t *testing.T) {
 	var key godo.Key
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
 	if err != nil {
 		t.Fatalf("Cannot generate test SSH key pair: %s", err)
@@ -28,11 +28,11 @@ func TestAccDigitalOceanSSHKey_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSSHKeyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanSSHKeyConfig_basic(rInt, publicKeyMaterial),
+				Config: testAccCheckDigitalOceanSSHKeyConfig_basic(name, publicKeyMaterial),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSSHKeyExists("digitalocean_ssh_key.foobar", &key),
 					resource.TestCheckResourceAttr(
-						"digitalocean_ssh_key.foobar", "name", fmt.Sprintf("foobar-%d", rInt)),
+						"digitalocean_ssh_key.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_ssh_key.foobar", "public_key", publicKeyMaterial),
 				),
@@ -101,10 +101,10 @@ func testAccCheckDigitalOceanSSHKeyExists(n string, key *godo.Key) resource.Test
 	}
 }
 
-func testAccCheckDigitalOceanSSHKeyConfig_basic(rInt int, key string) string {
+func testAccCheckDigitalOceanSSHKeyConfig_basic(name, key string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_ssh_key" "foobar" {
-  name       = "foobar-%d"
+  name       = "%s"
   public_key = "%s"
-}`, rInt, key)
+}`, name, key)
 }
