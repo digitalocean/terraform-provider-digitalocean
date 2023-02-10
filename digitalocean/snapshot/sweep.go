@@ -40,7 +40,7 @@ func testSweepDropletSnapshots(region string) error {
 	}
 
 	for _, s := range snapshots {
-		if strings.HasPrefix(s.Name, "snapshot-") || strings.HasPrefix(s.Name, "snap-") {
+		if strings.HasPrefix(s.Name, sweep.TestNamePrefix) {
 			log.Printf("Destroying Droplet Snapshot %s", s.Name)
 
 			if _, err := client.Snapshots.Delete(context.Background(), s.ID); err != nil {
@@ -67,7 +67,7 @@ func testSweepVolumeSnapshots(region string) error {
 	}
 
 	for _, s := range snapshots {
-		if strings.HasPrefix(s.Name, "snapshot-") {
+		if strings.HasPrefix(s.Name, sweep.TestNamePrefix) {
 			log.Printf("Destroying Volume Snapshot %s", s.Name)
 
 			if _, err := client.Snapshots.Delete(context.Background(), s.ID); err != nil {

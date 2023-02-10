@@ -5,13 +5,13 @@ import (
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDigitalOceanVolumeSnapshot_importBasic(t *testing.T) {
 	resourceName := "digitalocean_volume_snapshot.foobar"
-	rInt := acctest.RandInt()
+	volName := acceptance.RandomTestName("volume")
+	snapName := acceptance.RandomTestName("snapshot")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -19,7 +19,7 @@ func TestAccDigitalOceanVolumeSnapshot_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVolumeSnapshotDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeSnapshotConfig_basic, rInt, rInt),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeSnapshotConfig_basic, volName, snapName),
 			},
 
 			{

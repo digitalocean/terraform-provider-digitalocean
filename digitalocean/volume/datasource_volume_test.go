@@ -15,7 +15,7 @@ import (
 
 func TestAccDataSourceDigitalOceanVolume_Basic(t *testing.T) {
 	var volume godo.Volume
-	testName := acceptance.RandomTestName()
+	testName := acceptance.RandomTestName("volume")
 	resourceConfig := testAccCheckDataSourceDigitalOceanVolumeConfig_basic(testName)
 	dataSourceConfig := `
 data "digitalocean_volume" "foobar" {
@@ -36,7 +36,7 @@ data "digitalocean_volume" "foobar" {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanVolumeExists("data.digitalocean_volume.foobar", &volume),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_volume.foobar", "name", fmt.Sprintf("%s-volume", testName)),
+						"data.digitalocean_volume.foobar", "name", testName),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_volume.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -54,8 +54,8 @@ data "digitalocean_volume" "foobar" {
 
 func TestAccDataSourceDigitalOceanVolume_RegionScoped(t *testing.T) {
 	var volume godo.Volume
-	testName := acceptance.RandomTestName()
-	resourceConfig := testAccCheckDataSourceDigitalOceanVolumeConfig_region_scoped(testName)
+	name := acceptance.RandomTestName()
+	resourceConfig := testAccCheckDataSourceDigitalOceanVolumeConfig_region_scoped(name)
 	dataSourceConfig := `
 data "digitalocean_volume" "foobar" {
   name   = digitalocean_volume.foo.name
@@ -74,7 +74,7 @@ data "digitalocean_volume" "foobar" {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanVolumeExists("data.digitalocean_volume.foobar", &volume),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_volume.foobar", "name", fmt.Sprintf("%s-volume", testName)),
+						"data.digitalocean_volume.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_volume.foobar", "region", "lon1"),
 					resource.TestCheckResourceAttr(
@@ -123,24 +123,24 @@ func testAccCheckDataSourceDigitalOceanVolumeConfig_basic(testName string) strin
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foo" {
   region = "nyc3"
-  name   = "%s-volume"
+  name   = "%s"
   size   = 10
   tags   = ["foo", "bar"]
 }`, testName)
 }
 
-func testAccCheckDataSourceDigitalOceanVolumeConfig_region_scoped(testName string) string {
+func testAccCheckDataSourceDigitalOceanVolumeConfig_region_scoped(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_volume" "foo" {
   region = "nyc3"
-  name   = "%s-volume"
+  name   = "%s"
   size   = 10
   tags   = ["foo", "bar"]
 }
 
 resource "digitalocean_volume" "bar" {
   region = "lon1"
-  name   = "%s-volume"
+  name   = "%s"
   size   = 20
-}`, testName, testName)
+}`, name, name)
 }
