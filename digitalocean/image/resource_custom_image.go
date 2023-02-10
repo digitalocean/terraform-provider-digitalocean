@@ -330,5 +330,6 @@ func validImageDistributions() []string {
 		"RancherOS",
 		"Ubuntu",
 		"Unknown",
+		"Unknown OS",
 	}
 }

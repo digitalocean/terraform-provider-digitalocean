@@ -3,6 +3,7 @@ package image_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strconv"
 	"testing"
 
@@ -25,11 +26,11 @@ func TestAccDigitalOceanCustomImageFull(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanCustomImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regions, "Unknown"),
+				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regions, "Unknown OS"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
+					resource.TestCheckResourceAttr(name, "name", rString),
 					resource.TestCheckResourceAttr(name, "description", fmt.Sprintf("%s-description", rString)),
-					resource.TestCheckResourceAttr(name, "distribution", "Unknown"),
+					resource.TestCheckResourceAttr(name, "distribution", "Unknown OS"),
 					resource.TestCheckResourceAttr(name, "public", "false"),
 					resource.TestCheckResourceAttr(name, "regions.0", "nyc3"),
 					resource.TestCheckResourceAttr(name, "status", "available"),
@@ -45,7 +46,7 @@ func TestAccDigitalOceanCustomImageFull(t *testing.T) {
 			{
 				Config: testAccCheckDigitalOceanCustomImageConfig(rString, updatedString, regions, "CoreOS"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", updatedString)),
+					resource.TestCheckResourceAttr(name, "name", updatedString),
 					resource.TestCheckResourceAttr(name, "description", fmt.Sprintf("%s-description", updatedString)),
 					resource.TestCheckResourceAttr(name, "distribution", "CoreOS"),
 				),
@@ -66,26 +67,26 @@ func TestAccDigitalOceanCustomImageMultiRegion(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanCustomImageDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regions, "Unknown"),
+				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regions, "Unknown OS"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
+					resource.TestCheckResourceAttr(name, "name", rString),
 					resource.TestCheckTypeSetElemAttr(name, "regions.*", "nyc2"),
 					resource.TestCheckTypeSetElemAttr(name, "regions.*", "nyc3"),
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regionsUpdated, "Unknown"),
+				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regionsUpdated, "Unknown OS"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
+					resource.TestCheckResourceAttr(name, "name", rString),
 					resource.TestCheckTypeSetElemAttr(name, "regions.*", "nyc2"),
 					resource.TestCheckTypeSetElemAttr(name, "regions.*", "nyc3"),
 					resource.TestCheckTypeSetElemAttr(name, "regions.*", "tor1"),
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regions, "Unknown"),
+				Config: testAccCheckDigitalOceanCustomImageConfig(rString, rString, regions, "Unknown OS"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(name, "name", fmt.Sprintf("%s-name", rString)),
+					resource.TestCheckResourceAttr(name, "name", rString),
 					resource.TestCheckTypeSetElemAttr(name, "regions.*", "nyc2"),
 					resource.TestCheckTypeSetElemAttr(name, "regions.*", "nyc3"),
 				),
@@ -97,7 +98,7 @@ func TestAccDigitalOceanCustomImageMultiRegion(t *testing.T) {
 func testAccCheckDigitalOceanCustomImageConfig(rName string, name string, regions string, distro string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_custom_image" "%s" {
-  name         = "%s-name"
+  name         = "%s"
   url          = "https://stable.release.flatcar-linux.net/amd64-usr/2605.7.0/flatcar_production_digitalocean_image.bin.bz2"
   regions      = %s
   description  = "%s-description"
@@ -123,12 +124,16 @@ func testAccCheckDigitalOceanCustomImageDestroy(s *terraform.State) error {
 		}
 
 		// Try to find the Image by ID
-		resp, _, err := client.Images.GetByID(context.Background(), id)
+		i, resp, err := client.Images.GetByID(context.Background(), id)
 		if err != nil {
+			if resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+
 			return err
 		}
 
-		if resp.Status != image.ImageDeletedStatus {
+		if i.Status != image.ImageDeletedStatus {
 			return fmt.Errorf("Image %d not destroyed", id)
 		}
 	}
