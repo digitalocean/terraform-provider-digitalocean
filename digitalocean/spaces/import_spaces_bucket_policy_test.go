@@ -6,13 +6,12 @@ import (
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDigitalOceanBucketPolicy_importBasic(t *testing.T) {
 	resourceName := "digitalocean_spaces_bucket_policy.policy"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	bucketPolicy := `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":"*","Action":"s3:*","Resource":"*"}]}`
 
@@ -22,7 +21,7 @@ func TestAccDigitalOceanBucketPolicy_importBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketPolicy(rInt, bucketPolicy),
+				Config: testAccDigitalOceanSpacesBucketPolicy(name, bucketPolicy),
 			},
 
 			{
