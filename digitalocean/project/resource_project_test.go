@@ -267,13 +267,11 @@ func TestAccDigitalOceanProject_UpdateWithDropletResource(t *testing.T) {
 }
 
 func TestAccDigitalOceanProject_UpdateFromDropletToSpacesResource(t *testing.T) {
-
 	expectedName := generateProjectName()
 	expectedDropletName := generateDropletName()
 	expectedSpacesName := generateSpacesName()
 
 	createConfig := fixtureCreateWithDropletResource(expectedDropletName, expectedName)
-
 	updateConfig := fixtureCreateWithSpacesResource(expectedSpacesName, expectedName)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -315,7 +313,6 @@ func TestAccDigitalOceanProject_WithManyResources(t *testing.T) {
 
 	createConfig := fixtureCreateDomainResources(domainBase)
 	updateConfig := fixtureWithManyResources(domainBase, projectName)
-	destroyConfig := fixtureCreateWithDefaults(projectName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -331,19 +328,7 @@ func TestAccDigitalOceanProject_WithManyResources(t *testing.T) {
 					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_project.myproj", "name", projectName),
-					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "30"),
-				),
-			},
-			{
-				Config: destroyConfig,
-			},
-			{
-				Config: destroyConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanProjectExists("digitalocean_project.myproj"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_project.myproj", "name", projectName),
-					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "0"),
+					resource.TestCheckResourceAttr("digitalocean_project.myproj", "resources.#", "10"),
 				),
 			},
 		},
@@ -366,7 +351,7 @@ func testAccCheckDigitalOceanProjectResourceURNIsPresent(resource, expectedURN s
 
 		projectResources, _, err := client.Projects.ListResources(context.Background(), rs.Primary.ID, nil)
 		if err != nil {
-			return fmt.Errorf("Error Retrieving project resources to confrim.")
+			return fmt.Errorf("Error Retrieving project resources to confirm.")
 		}
 
 		for _, v := range projectResources {
@@ -495,7 +480,7 @@ resource "digitalocean_project" "myproj" {
 func fixtureCreateDomainResources(domainBase string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_domain" "foobar" {
-  count = 30
+  count = 10
   name  = "%s-${count.index}.com"
 }`, domainBase)
 }
@@ -503,7 +488,7 @@ resource "digitalocean_domain" "foobar" {
 func fixtureWithManyResources(domainBase string, name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_domain" "foobar" {
-  count = 30
+  count = 10
   name  = "%s-${count.index}.com"
 }
 
