@@ -9,6 +9,7 @@ import (
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/domain"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/droplet"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/firewall"
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/image"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/project"
@@ -16,6 +17,7 @@ import (
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/snapshot"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/sshkey"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/volume"
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpc"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
