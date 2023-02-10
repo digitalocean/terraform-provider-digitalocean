@@ -3,12 +3,16 @@ package cdn
 import (
 	"context"
 	"log"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/certificate"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -185,8 +189,7 @@ func resourceDigitalOceanCDNCreate(ctx context.Context, d *schema.ResourceData, 
 func resourceDigitalOceanCDNRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	cdn, resp, err := client.CDNs.Get(context.Background(), d.Id())
-
+	cdn, resp, err := getCDNWithRetryBackoff(ctx, client, d.Id())
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
 			log.Printf("[DEBUG] CDN  (%s) was not found - removing from state", d.Id())
@@ -215,6 +218,39 @@ func resourceDigitalOceanCDNRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	return nil
+}
+
+func getCDNWithRetryBackoff(ctx context.Context, client *godo.Client, id string) (*godo.CDN, *godo.Response, error) {
+	var (
+		cdn     *godo.CDN
+		resp    *godo.Response
+		timeout = 30 * time.Second
+		err     error
+	)
+	err = resource.RetryContext(ctx, timeout, func() *resource.RetryError {
+		cdn, resp, err = client.CDNs.Get(ctx, id)
+		if err != nil {
+			if util.IsDigitalOceanError(err, http.StatusNotFound, "") {
+				log.Printf("[DEBUG] Received %s, retrying CDN", err.Error())
+				return resource.RetryableError(err)
+			}
+
+			if util.IsDigitalOceanError(err, http.StatusTooManyRequests, "") {
+				log.Printf("[DEBUG] Received %s, backing off", err.Error())
+				time.Sleep(10 * time.Second)
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return cdn, resp, nil
 }
 
 func resourceDigitalOceanCDNUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -263,15 +299,15 @@ func resourceDigitalOceanCDNUpdate(ctx context.Context, d *schema.ResourceData, 
 
 func resourceDigitalOceanCDNDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
-	resourceId := d.Id()
+	resourceID := d.Id()
 
-	_, err := client.CDNs.Delete(context.Background(), resourceId)
+	_, err := client.CDNs.Delete(context.Background(), resourceID)
 	if err != nil {
 		return diag.Errorf("Error deleting CDN: %s", err)
 	}
 
 	d.SetId("")
-	log.Printf("[INFO] CDN deleted, ID: %s", resourceId)
+	log.Printf("[INFO] CDN deleted, ID: %s", resourceID)
 
 	return nil
 }

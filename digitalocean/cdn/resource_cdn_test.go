@@ -181,7 +181,6 @@ func testAccCheckDigitalOceanCDNExists(resource string) resource.TestCheckFunc {
 		}
 
 		foundCDN, _, err := client.CDNs.Get(context.Background(), rs.Primary.ID)
-
 		if err != nil {
 			return err
 		}
@@ -224,12 +223,11 @@ resource "digitalocean_cdn" "foobar" {
 func testAccCheckDigitalOceanCDNConfig_CustomDomain(domain string, spaceName string, certName string) string {
 	return fmt.Sprintf(`
 resource "tls_private_key" "example" {
-  algorithm   = "ECDSA"
-  ecdsa_curve = "P384"
+  algorithm   = "RSA"
 }
 
 resource "tls_self_signed_cert" "example" {
-  key_algorithm   = "ECDSA"
+  key_algorithm   = "RSA"
   private_key_pem = tls_private_key.example.private_key_pem
   dns_names       = ["foo.%s"]
   subject {
