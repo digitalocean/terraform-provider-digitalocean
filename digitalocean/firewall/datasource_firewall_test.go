@@ -34,7 +34,7 @@ data "digitalocean_firewall" "foobar" {
 			{
 				Config: fwCreateConfig + fwDataConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "name", "foobar-"+fwName),
+					resource.TestCheckResourceAttr("data.digitalocean_firewall.foobar", "name", fwName),
 					resource.TestCheckResourceAttrPair("digitalocean_firewall.foobar", "id",
 						"data.digitalocean_firewall.foobar", "firewall_id"),
 					resource.TestCheckResourceAttrPair("digitalocean_firewall.foobar", "droplet_ids",
