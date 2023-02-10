@@ -14,8 +14,9 @@ import (
 
 func TestAccDataSourceDigitalOceanDropletSnapshot_basic(t *testing.T) {
 	var snapshot godo.Snapshot
-	testName := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanDropletSnapshot_basic, testName, testName)
+	dropletName := acceptance.RandomTestName()
+	snapName := acceptance.RandomTestName()
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanDropletSnapshot_basic, dropletName, snapName)
 	dataSourceConfig := `
 data "digitalocean_droplet_snapshot" "foobar" {
   most_recent = true
@@ -33,7 +34,7 @@ data "digitalocean_droplet_snapshot" "foobar" {
 				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanDropletSnapshotExists("data.digitalocean_droplet_snapshot.foobar", &snapshot),
-					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("%s-snapshot", testName)),
+					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", snapName),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "min_disk_size", "25"),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "regions.#", "1"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet_snapshot.foobar", "droplet_id"),
@@ -45,13 +46,14 @@ data "digitalocean_droplet_snapshot" "foobar" {
 
 func TestAccDataSourceDigitalOceanDropletSnapshot_regex(t *testing.T) {
 	var snapshot godo.Snapshot
-	testName := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanDropletSnapshot_basic, testName, testName)
+	dropletName := acceptance.RandomTestName()
+	snapName := acceptance.RandomTestName()
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanDropletSnapshot_basic, dropletName, snapName)
 	dataSourceConfig := fmt.Sprintf(`
 data "digitalocean_droplet_snapshot" "foobar" {
   most_recent = true
   name_regex  = "^%s"
-}`, testName)
+}`, snapName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -64,7 +66,7 @@ data "digitalocean_droplet_snapshot" "foobar" {
 				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanDropletSnapshotExists("data.digitalocean_droplet_snapshot.foobar", &snapshot),
-					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("%s-snapshot", testName)),
+					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", snapName),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "min_disk_size", "25"),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "regions.#", "1"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet_snapshot.foobar", "droplet_id"),
@@ -76,8 +78,9 @@ data "digitalocean_droplet_snapshot" "foobar" {
 
 func TestAccDataSourceDigitalOceanDropletSnapshot_region(t *testing.T) {
 	var snapshot godo.Snapshot
-	testName := acceptance.RandomTestName()
-	nycResourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanDropletSnapshot_basic, testName, testName)
+	dropletName := acceptance.RandomTestName()
+	snapName := acceptance.RandomTestName()
+	nycResourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanDropletSnapshot_basic, dropletName, snapName)
 	lonResourceConfig := fmt.Sprintf(`
 resource "digitalocean_droplet" "bar" {
   region = "lon1"
@@ -87,9 +90,9 @@ resource "digitalocean_droplet" "bar" {
 }
 
 resource "digitalocean_droplet_snapshot" "bar" {
-  name       = "%s-snapshot"
+  name       = "%s"
   droplet_id = digitalocean_droplet.bar.id
-}`, testName, testName)
+}`, dropletName, snapName)
 	dataSourceConfig := `
 data "digitalocean_droplet_snapshot" "foobar" {
   name   = digitalocean_droplet_snapshot.bar.name
@@ -107,7 +110,7 @@ data "digitalocean_droplet_snapshot" "foobar" {
 				Config: nycResourceConfig + lonResourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanDropletSnapshotExists("data.digitalocean_droplet_snapshot.foobar", &snapshot),
-					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", fmt.Sprintf("%s-snapshot", testName)),
+					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "name", snapName),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "min_disk_size", "25"),
 					resource.TestCheckResourceAttr("data.digitalocean_droplet_snapshot.foobar", "regions.#", "1"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet_snapshot.foobar", "droplet_id"),
@@ -155,7 +158,7 @@ resource "digitalocean_droplet" "foo" {
 }
 
 resource "digitalocean_droplet_snapshot" "foo" {
-  name       = "%s-snapshot"
+  name       = "%s"
   droplet_id = digitalocean_droplet.foo.id
 }
 `
