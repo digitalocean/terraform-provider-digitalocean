@@ -6,13 +6,12 @@ import (
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDigitalOceanVolume_importBasic(t *testing.T) {
 	resourceName := "digitalocean_volume.foobar"
-	volumeName := fmt.Sprintf("volume-%s", acctest.RandString(10))
+	volumeName := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },

@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -90,6 +93,10 @@ func ResourceDigitalOceanProject() *schema.Resource {
 				Description: "the resources associated with the project",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Delete: schema.DefaultTimeout(3 * time.Minute),
 		},
 	}
 }
@@ -253,11 +260,9 @@ func resourceDigitalOceanProjectUpdate(ctx context.Context, d *schema.ResourceDa
 
 func resourceDigitalOceanProjectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
-
-	projectId := d.Id()
+	projectID := d.Id()
 
 	if v, ok := d.GetOk("resources"); ok {
-
 		_, err := assignResourcesToDefaultProject(client, v.(*schema.Set))
 		if err != nil {
 			return diag.Errorf("Error assigning resource to default project: %s", err)
@@ -267,19 +272,31 @@ func resourceDigitalOceanProjectDelete(ctx context.Context, d *schema.ResourceDa
 		log.Printf("[DEBUG] Resources assigned to default project.")
 	}
 
-	_, err := client.Projects.Delete(context.Background(), projectId)
+	// Moving resources is async and projects can not be deleted till empty. Retries may be required.
+	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+		_, err := client.Projects.Delete(context.Background(), projectID)
+		if err != nil {
+			if util.IsDigitalOceanError(err, http.StatusPreconditionFailed, "cannot delete a project with resources") {
+				log.Printf("[DEBUG] Received %s, retrying project deletion", err.Error())
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
 	if err != nil {
-		return diag.Errorf("Error deleteing project %s", err)
+		return diag.Errorf("Error deleting project (%s): %s", projectID, err)
 	}
 
 	d.SetId("")
-	log.Printf("[INFO] Project deleted, ID: %s", projectId)
+	log.Printf("[INFO] Project deleted, ID: %s", projectID)
 
 	return nil
 }
 
 func assignResourcesToDefaultProject(client *godo.Client, resources *schema.Set) (*[]interface{}, error) {
-
 	defaultProject, _, defaultProjErr := client.Projects.GetDefault(context.Background())
 	if defaultProjErr != nil {
 		return nil, fmt.Errorf("Error locating default project %s", defaultProjErr)
@@ -288,12 +305,10 @@ func assignResourcesToDefaultProject(client *godo.Client, resources *schema.Set)
 	return assignResourcesToProject(client, defaultProject.ID, resources)
 }
 
-func assignResourcesToProject(client *godo.Client, projectId string, resources *schema.Set) (*[]interface{}, error) {
-
+func assignResourcesToProject(client *godo.Client, projectID string, resources *schema.Set) (*[]interface{}, error) {
 	var urns []interface{}
 
 	for _, resource := range resources.List() {
-
 		if resource == nil {
 			continue
 		}
@@ -305,8 +320,7 @@ func assignResourcesToProject(client *godo.Client, projectId string, resources *
 		urns = append(urns, resource.(string))
 	}
 
-	_, _, err := client.Projects.AssignResources(context.Background(), projectId, urns...)
-
+	_, _, err := client.Projects.AssignResources(context.Background(), projectID, urns...)
 	if err != nil {
 		return nil, fmt.Errorf("Error assigning resources: %s", err)
 	}
