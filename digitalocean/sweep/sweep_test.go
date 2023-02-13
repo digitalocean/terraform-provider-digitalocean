@@ -12,11 +12,13 @@ import (
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/image"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/monitoring"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/project"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/reservedip"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/snapshot"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/spaces"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/sshkey"
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/uptime"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/volume"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpc"
 
