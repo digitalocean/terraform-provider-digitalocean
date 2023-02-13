@@ -223,7 +223,7 @@ resource "digitalocean_cdn" "foobar" {
 func testAccCheckDigitalOceanCDNConfig_CustomDomain(domain string, spaceName string, certName string) string {
 	return fmt.Sprintf(`
 resource "tls_private_key" "example" {
-  algorithm   = "RSA"
+  algorithm = "RSA"
 }
 
 resource "tls_self_signed_cert" "example" {
