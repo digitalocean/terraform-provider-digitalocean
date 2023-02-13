@@ -6,15 +6,14 @@ import (
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/spaces"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceDigitalOceanSpacesBuckets_Basic(t *testing.T) {
-	bucketName1 := testAccBucketName(acctest.RandInt())
+	bucketName1 := acceptance.RandomTestName()
 	bucketRegion1 := "nyc3"
 
-	bucketName2 := testAccBucketName(acctest.RandInt())
+	bucketName2 := acceptance.RandomTestName()
 	bucketRegion2 := "ams3"
 
 	bucketsConfig := fmt.Sprintf(`
