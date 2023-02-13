@@ -165,20 +165,20 @@ resource "digitalocean_vpc" "foobar" {
 
 resource "digitalocean_droplet" "foo" {
   name     = "%s"
-  size     = "s-1vcpu-1gb"
-  image    = "ubuntu-22-04-x64"
+  size     = "%s"
+  image    = "%s"
   region   = "nyc3"
   ipv6     = true
   vpc_uuid = digitalocean_vpc.foobar.id
-}`, acceptance.RandomTestName(), name)
+}`, acceptance.RandomTestName(), name, defaultSize, defaultImage)
 }
 
 func testAccCheckDataSourceDigitalOceanDropletConfig_basicById(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foo" {
   name   = "%s"
-  size   = "s-1vcpu-1gb"
-  image  = "ubuntu-22-04-x64"
+  size   = "%s"
+  image  = "%s"
   region = "nyc3"
   ipv6   = true
 }
@@ -186,7 +186,7 @@ resource "digitalocean_droplet" "foo" {
 data "digitalocean_droplet" "foobar" {
   id = digitalocean_droplet.foo.id
 }
-`, name)
+`, name, defaultSize, defaultImage)
 }
 
 func testAccCheckDataSourceDigitalOceanDropletConfig_basicWithTag(tagName string, name string) string {
@@ -197,13 +197,13 @@ resource "digitalocean_tag" "foo" {
 
 resource "digitalocean_droplet" "foo" {
   name   = "%s"
-  size   = "s-1vcpu-1gb"
-  image  = "ubuntu-22-04-x64"
+  size   = "%s"
+  image  = "%s"
   region = "nyc3"
   ipv6   = true
   tags   = [digitalocean_tag.foo.id]
 }
-`, tagName, name)
+`, tagName, name, defaultSize, defaultImage)
 }
 
 func testAccCheckDataSourceDigitalOceanDropletConfig_basicByTag(tagName string, name string) string {
@@ -214,8 +214,8 @@ resource "digitalocean_tag" "foo" {
 
 resource "digitalocean_droplet" "foo" {
   name   = "%s"
-  size   = "s-1vcpu-1gb"
-  image  = "ubuntu-22-04-x64"
+  size   = "%s"
+  image  = "%s"
   region = "nyc3"
   ipv6   = true
   tags   = [digitalocean_tag.foo.id]
@@ -224,5 +224,5 @@ resource "digitalocean_droplet" "foo" {
 data "digitalocean_droplet" "foobar" {
   tag = digitalocean_tag.foo.id
 }
-`, tagName, name)
+`, tagName, name, defaultSize, defaultImage)
 }

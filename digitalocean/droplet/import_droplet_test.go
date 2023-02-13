@@ -110,9 +110,9 @@ data "digitalocean_image" "snapshot" {
 
 resource "digitalocean_droplet" "from-snapshot" {
   name      = "%s"
-  size      = "s-1vcpu-1gb"
+  size      = "%s"
   image     = data.digitalocean_image.snapshot.id
   region    = "nyc3"
   user_data = "foobar"
-}`, name, name)
+}`, name, name, defaultSize)
 }
