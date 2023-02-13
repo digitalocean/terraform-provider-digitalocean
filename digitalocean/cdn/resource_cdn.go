@@ -301,7 +301,21 @@ func resourceDigitalOceanCDNDelete(ctx context.Context, d *schema.ResourceData, 
 	client := meta.(*config.CombinedConfig).GodoClient()
 	resourceID := d.Id()
 
-	_, err := client.CDNs.Delete(context.Background(), resourceID)
+	timeout := 30 * time.Second
+	err := resource.RetryContext(ctx, timeout, func() *resource.RetryError {
+		_, err := client.CDNs.Delete(context.Background(), resourceID)
+		if err != nil {
+			if util.IsDigitalOceanError(err, http.StatusTooManyRequests, "") {
+				log.Printf("[DEBUG] Received %s, backing off", err.Error())
+				time.Sleep(10 * time.Second)
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
 	if err != nil {
 		return diag.Errorf("Error deleting CDN: %s", err)
 	}
