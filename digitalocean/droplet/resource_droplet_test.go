@@ -553,6 +553,8 @@ func TestAccDigitalOceanDroplet_withDropletAgentSetTrue(t *testing.T) {
 // from the API when creating a Droplet using an OS that does not support the agent
 // if the `droplet_agent` field is explicitly set to false.
 func TestAccDigitalOceanDroplet_withDropletAgentSetFalse(t *testing.T) {
+	t.Skip("All Droplet OSes currently support the Droplet agent")
+
 	var droplet godo.Droplet
 	keyName := acceptance.RandomTestName()
 	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
@@ -587,6 +589,8 @@ func TestAccDigitalOceanDroplet_withDropletAgentSetFalse(t *testing.T) {
 // from the API when creating a Droplet using an OS that does not support the agent
 // if the `droplet_agent` field is not explicitly set.
 func TestAccDigitalOceanDroplet_withDropletAgentNotSet(t *testing.T) {
+	t.Skip("All Droplet OSes currently support the Droplet agent")
+
 	var droplet godo.Droplet
 	keyName := acceptance.RandomTestName()
 	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
@@ -622,6 +626,8 @@ func TestAccDigitalOceanDroplet_withDropletAgentNotSet(t *testing.T) {
 // from the API when creating a Droplet using an OS that does not support the agent
 // if the `droplet_agent` field is explicitly set to true.
 func TestAccDigitalOceanDroplet_withDropletAgentExpectError(t *testing.T) {
+	t.Skip("All Droplet OSes currently support the Droplet agent")
+
 	keyName := acceptance.RandomTestName()
 	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
 	if err != nil {
