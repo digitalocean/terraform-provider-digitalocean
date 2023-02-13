@@ -13,17 +13,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/spaces"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanBucket_basic(t *testing.T) {
-	rInt := acctest.RandInt()
-
 	expectedRegion := "ams3"
-	expectedBucketName := testAccBucketName(rInt)
+	expectedBucketName := acceptance.RandomTestName()
 	expectBucketURN := fmt.Sprintf("do:space:%s", expectedBucketName)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -36,7 +33,7 @@ func TestAccDigitalOceanBucket_basic(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanBucketConfig(rInt),
+				Config: testAccDigitalOceanBucketConfig(expectedBucketName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
 					resource.TestCheckResourceAttr(
@@ -51,7 +48,7 @@ func TestAccDigitalOceanBucket_basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanBucket_region(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -59,7 +56,7 @@ func TestAccDigitalOceanBucket_region(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanBucketConfigWithRegion(rInt),
+				Config: testAccDigitalOceanBucketConfigWithRegion(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
 					resource.TestCheckResourceAttr("digitalocean_spaces_bucket.bucket", "region", "ams3"),
@@ -70,9 +67,9 @@ func TestAccDigitalOceanBucket_region(t *testing.T) {
 }
 
 func TestAccDigitalOceanBucket_UpdateAcl(t *testing.T) {
-	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithACL, ri)
-	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithACLUpdate, ri)
+	name := acceptance.RandomTestName()
+	preConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithACL, name)
+	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithACLUpdate, name)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -100,9 +97,9 @@ func TestAccDigitalOceanBucket_UpdateAcl(t *testing.T) {
 }
 
 func TestAccDigitalOceanBucket_UpdateCors(t *testing.T) {
-	ri := acctest.RandInt()
-	preConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORS, ri)
-	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORSUpdate, ri)
+	name := acceptance.RandomTestName()
+	preConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORS, name)
+	postConfig := fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORSUpdate, name)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -139,7 +136,7 @@ func TestAccDigitalOceanBucket_UpdateCors(t *testing.T) {
 }
 
 func TestAccDigitalOceanBucket_WithCors(t *testing.T) {
-	ri := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -147,7 +144,7 @@ func TestAccDigitalOceanBucket_WithCors(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORSUpdate, ri),
+				Config: fmt.Sprintf(testAccDigitalOceanBucketConfigWithCORSUpdate, name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
 					testAccCheckDigitalOceanBucketCors(
@@ -168,7 +165,7 @@ func TestAccDigitalOceanBucket_WithCors(t *testing.T) {
 }
 
 func TestAccDigitalOceanBucket_WithMultipleCorsRules(t *testing.T) {
-	ri := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -176,7 +173,7 @@ func TestAccDigitalOceanBucket_WithMultipleCorsRules(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccDigitalOceanBucketConfigWithMultiCORS, ri),
+				Config: fmt.Sprintf(testAccDigitalOceanBucketConfigWithMultiCORS, name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
 					testAccCheckDigitalOceanBucketCors(
@@ -206,14 +203,14 @@ func TestAccDigitalOceanBucket_WithMultipleCorsRules(t *testing.T) {
 // not empty" error in Terraform, to check against regresssions.
 // See https://github.com/hashicorp/terraform/pull/2925
 func TestAccDigitalOceanBucket_shouldFailNotFound(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanBucketDestroyedConfig(rInt),
+				Config: testAccDigitalOceanBucketDestroyedConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
 					testAccCheckDigitalOceanDestroyBucket("digitalocean_spaces_bucket.bucket"),
@@ -225,7 +222,7 @@ func TestAccDigitalOceanBucket_shouldFailNotFound(t *testing.T) {
 }
 
 func TestAccDigitalOceanBucket_Versioning(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	resourceName := "digitalocean_spaces_bucket.bucket"
 
 	makeConfig := func(includeClause, versioning bool) string {
@@ -239,11 +236,11 @@ func TestAccDigitalOceanBucket_Versioning(t *testing.T) {
 		}
 		return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name   = "tf-test-bucket-%d"
+  name   = "%s"
   region = "ams3"
 %s
 }
-`, rInt, versioningClause)
+`, name, versioningClause)
 	}
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -301,7 +298,7 @@ resource "digitalocean_spaces_bucket" "bucket" {
 }
 
 func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	resourceName := "digitalocean_spaces_bucket.bucket"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -310,7 +307,7 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketConfigWithLifecycle(rInt),
+				Config: testAccDigitalOceanSpacesBucketConfigWithLifecycle(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists(resourceName),
 					resource.TestCheckResourceAttr(
@@ -344,13 +341,13 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateId:     fmt.Sprintf("ams3,tf-test-bucket-%d", rInt),
+				ImportStateId:     fmt.Sprintf("ams3,%s", name),
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"force_destroy", "acl"},
 			},
 			{
-				Config: testAccDigitalOceanSpacesBucketConfigWithVersioningLifecycle(rInt),
+				Config: testAccDigitalOceanSpacesBucketConfigWithVersioningLifecycle(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists(resourceName),
 					resource.TestCheckResourceAttr(
@@ -370,7 +367,7 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDigitalOceanBucketConfig(rInt),
+				Config: testAccDigitalOceanBucketConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists(resourceName),
 				),
@@ -380,7 +377,7 @@ func TestAccDigitalOceanSpacesBucket_LifecycleBasic(t *testing.T) {
 }
 
 func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	resourceName := "digitalocean_spaces_bucket.bucket"
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -389,7 +386,7 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanBucketDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketConfigWithLifecycleExpireMarker(rInt),
+				Config: testAccDigitalOceanSpacesBucketConfigWithLifecycleExpireMarker(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists(resourceName),
 					resource.TestCheckResourceAttr(
@@ -408,13 +405,13 @@ func TestAccDigitalOceanSpacesBucket_LifecycleExpireMarkerOnly(t *testing.T) {
 			{
 				ResourceName:      resourceName,
 				ImportState:       true,
-				ImportStateId:     fmt.Sprintf("ams3,tf-test-bucket-%d", rInt),
+				ImportStateId:     fmt.Sprintf("ams3,%s", name),
 				ImportStateVerify: true,
 				ImportStateVerifyIgnore: []string{
 					"force_destroy", "acl"},
 			},
 			{
-				Config: testAccDigitalOceanBucketConfig(rInt),
+				Config: testAccDigitalOceanBucketConfig(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists(resourceName),
 				),
@@ -433,9 +430,9 @@ func TestAccDigitalOceanSpacesBucket_RegionError(t *testing.T) {
 			{
 				Config: fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name   = "tf-test-bucket"
+  name   = "%s"
   region = "%s"
-}`, badRegion),
+}`, acceptance.RandomTestName(), badRegion),
 				ExpectError: regexp.MustCompile(`expected region to be one of`),
 			},
 		},
@@ -631,71 +628,66 @@ func testAccCheckDigitalOceanBucketVersioning(n string, versioningStatus string)
 	}
 }
 
-// These need a bit of randomness as the name can only be used once globally
-func testAccBucketName(randInt int) string {
-	return fmt.Sprintf("tf-test-bucket-%d", randInt)
-}
-
-func testAccDigitalOceanBucketConfig(randInt int) string {
+func testAccDigitalOceanBucketConfig(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name   = "tf-test-bucket-%d"
+  name   = "%s"
   acl    = "public-read"
   region = "ams3"
 }
-`, randInt)
+`, name)
 }
 
-func testAccDigitalOceanBucketDestroyedConfig(randInt int) string {
+func testAccDigitalOceanBucketDestroyedConfig(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name = "tf-test-bucket-%d"
+  name = "%s"
   acl  = "public-read"
 }
-`, randInt)
+`, name)
 }
 
-func testAccDigitalOceanBucketConfigWithRegion(randInt int) string {
+func testAccDigitalOceanBucketConfigWithRegion(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name   = "tf-test-bucket-%d"
+  name   = "%s"
   region = "ams3"
 }
-`, randInt)
+`, name)
 }
 
-func testAccDigitalOceanBucketConfigImport(randInt int) string {
+func testAccDigitalOceanBucketConfigImport(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name   = "tf-test-bucket-%d"
-  region = "sfo2"
+  name   = "%s"
+  region = "sfo3"
 }
-`, randInt)
+`, name)
 }
 
 var testAccDigitalOceanBucketConfigWithACL = `
 resource "digitalocean_spaces_bucket" "bucket" {
-  name = "tf-test-bucket-%d"
+  name = "%s"
   acl  = "public-read"
 }
 `
 
 var testAccDigitalOceanBucketConfigWithACLUpdate = `
 resource "digitalocean_spaces_bucket" "bucket" {
-  name = "tf-test-bucket-%d"
+  name = "%s"
   acl  = "private"
 }
 `
 
 var testAccDigitalOceanBucketConfigWithCORS = `
 resource "digitalocean_spaces_bucket" "bucket" {
-  name = "tf-test-bucket-%d"
+  name = "%s"
 }
 `
 
 var testAccDigitalOceanBucketConfigWithCORSUpdate = `
 resource "digitalocean_spaces_bucket" "bucket" {
-  name = "tf-test-bucket-%d"
+  name = "%s"
   cors_rule {
     allowed_headers = ["*"]
     allowed_methods = ["PUT", "POST"]
@@ -707,7 +699,7 @@ resource "digitalocean_spaces_bucket" "bucket" {
 
 var testAccDigitalOceanBucketConfigWithMultiCORS = `
 resource "digitalocean_spaces_bucket" "bucket" {
-  name = "tf-test-bucket-%d"
+  name = "%s"
 
   cors_rule {
     allowed_headers = ["*"]
@@ -725,10 +717,10 @@ resource "digitalocean_spaces_bucket" "bucket" {
 }
 `
 
-func testAccDigitalOceanSpacesBucketConfigWithLifecycle(randInt int) string {
+func testAccDigitalOceanSpacesBucketConfigWithLifecycle(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name   = "tf-test-bucket-%d"
+  name   = "%s"
   acl    = "private"
   region = "ams3"
 
@@ -760,13 +752,13 @@ resource "digitalocean_spaces_bucket" "bucket" {
     abort_incomplete_multipart_upload_days = 30
   }
 }
-`, randInt)
+`, name)
 }
 
-func testAccDigitalOceanSpacesBucketConfigWithLifecycleExpireMarker(randInt int) string {
+func testAccDigitalOceanSpacesBucketConfigWithLifecycleExpireMarker(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name   = "tf-test-bucket-%d"
+  name   = "%s"
   acl    = "private"
   region = "ams3"
 
@@ -780,13 +772,13 @@ resource "digitalocean_spaces_bucket" "bucket" {
     }
   }
 }
-`, randInt)
+`, name)
 }
 
-func testAccDigitalOceanSpacesBucketConfigWithVersioningLifecycle(randInt int) string {
+func testAccDigitalOceanSpacesBucketConfigWithVersioningLifecycle(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
-  name   = "tf-test-bucket-%d"
+  name   = "%s"
   acl    = "private"
   region = "ams3"
 
@@ -814,5 +806,5 @@ resource "digitalocean_spaces_bucket" "bucket" {
     }
   }
 }
-`, randInt)
+`, name)
 }

@@ -16,6 +16,7 @@ import (
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/project"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/reservedip"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/snapshot"
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/spaces"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/sshkey"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/uptime"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/volume"

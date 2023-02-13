@@ -8,14 +8,13 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanSpacesBucketObject_basic(t *testing.T) {
-	rInt := acctest.RandInt()
-	resourceOnlyConf, conf := testAccDataSourceDigitalOceanSpacesObjectConfig_basic(rInt)
+	name := acceptance.RandomTestName()
+	resourceOnlyConf, conf := testAccDataSourceDigitalOceanSpacesObjectConfig_basic(name)
 
 	var rObj s3.GetObjectOutput
 	var dsObj s3.GetObjectOutput
@@ -49,8 +48,8 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_basic(t *testing.T) {
 }
 
 func TestAccDataSourceDigitalOceanSpacesBucketObject_readableBody(t *testing.T) {
-	rInt := acctest.RandInt()
-	resourceOnlyConf, conf := testAccDataSourceDigitalOceanSpacesObjectConfig_readableBody(rInt)
+	name := acceptance.RandomTestName()
+	resourceOnlyConf, conf := testAccDataSourceDigitalOceanSpacesObjectConfig_readableBody(name)
 
 	var rObj s3.GetObjectOutput
 	var dsObj s3.GetObjectOutput
@@ -83,8 +82,8 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_readableBody(t *testing.T) 
 }
 
 func TestAccDataSourceDigitalOceanSpacesBucketObject_allParams(t *testing.T) {
-	rInt := acctest.RandInt()
-	resourceOnlyConf, conf := testAccDataSourceDigitalOceanSpacesObjectConfig_allParams(rInt)
+	name := acceptance.RandomTestName()
+	resourceOnlyConf, conf := testAccDataSourceDigitalOceanSpacesObjectConfig_allParams(name)
 
 	var rObj s3.GetObjectOutput
 	var dsObj s3.GetObjectOutput
@@ -134,8 +133,8 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_LeadingSlash(t *testing.T) 
 	dataSourceName1 := "data.digitalocean_spaces_bucket_object.obj1"
 	dataSourceName2 := "data.digitalocean_spaces_bucket_object.obj2"
 	dataSourceName3 := "data.digitalocean_spaces_bucket_object.obj3"
-	rInt := acctest.RandInt()
-	resourceOnlyConf, conf := testAccDataSourceDigitalOceanSpacesObjectConfig_leadingSlash(rInt)
+	name := acceptance.RandomTestName()
+	resourceOnlyConf, conf := testAccDataSourceDigitalOceanSpacesObjectConfig_leadingSlash(name)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { acceptance.TestAccPreCheck(t) },
@@ -186,8 +185,8 @@ func TestAccDataSourceDigitalOceanSpacesBucketObject_MultipleSlashes(t *testing.
 	dataSourceName1 := "data.digitalocean_spaces_bucket_object.obj1"
 	dataSourceName2 := "data.digitalocean_spaces_bucket_object.obj2"
 	dataSourceName3 := "data.digitalocean_spaces_bucket_object.obj3"
-	rInt := acctest.RandInt()
-	resourceOnlyConf, conf := testAccDataSourceDigitalOceanSpacesObjectConfig_multipleSlashes(rInt)
+	name := acceptance.RandomTestName()
+	resourceOnlyConf, conf := testAccDataSourceDigitalOceanSpacesObjectConfig_multipleSlashes(name)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { acceptance.TestAccPreCheck(t) },
@@ -273,61 +272,61 @@ func testAccCheckDigitalOceanSpacesObjectDataSourceExists(n string, obj *s3.GetO
 	}
 }
 
-func testAccDataSourceDigitalOceanSpacesObjectConfig_basic(randInt int) (string, string) {
+func testAccDataSourceDigitalOceanSpacesObjectConfig_basic(name string) (string, string) {
 	resources := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  name   = "tf-object-test-bucket-%d"
+  name   = "%s"
   region = "nyc3"
 }
 resource "digitalocean_spaces_bucket_object" "object" {
   bucket  = digitalocean_spaces_bucket.object_bucket.name
   region  = digitalocean_spaces_bucket.object_bucket.region
-  key     = "tf-testing-obj-%d"
+  key     = "%s-object"
   content = "Hello World"
 }
-`, randInt, randInt)
+`, name, name)
 
 	both := fmt.Sprintf(`%s
 data "digitalocean_spaces_bucket_object" "obj" {
-  bucket = "tf-object-test-bucket-%d"
+  bucket = "%s"
   region = "nyc3"
-  key    = "tf-testing-obj-%d"
+  key    = "%s-object"
 }
-`, resources, randInt, randInt)
+`, resources, name, name)
 
 	return resources, both
 }
 
-func testAccDataSourceDigitalOceanSpacesObjectConfig_readableBody(randInt int) (string, string) {
+func testAccDataSourceDigitalOceanSpacesObjectConfig_readableBody(name string) (string, string) {
 	resources := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  name   = "tf-object-test-bucket-%d"
+  name   = "%s"
   region = "nyc3"
 }
 resource "digitalocean_spaces_bucket_object" "object" {
   bucket       = digitalocean_spaces_bucket.object_bucket.name
   region       = digitalocean_spaces_bucket.object_bucket.region
-  key          = "tf-testing-obj-%d-readable"
+  key          = "%s-readable"
   content      = "yes"
   content_type = "text/plain"
 }
-`, randInt, randInt)
+`, name, name)
 
 	both := fmt.Sprintf(`%s
 data "digitalocean_spaces_bucket_object" "obj" {
-  bucket = "tf-object-test-bucket-%d"
+  bucket = "%s"
   region = "nyc3"
-  key    = "tf-testing-obj-%d-readable"
+  key    = "%s-readable"
 }
-`, resources, randInt, randInt)
+`, resources, name, name)
 
 	return resources, both
 }
 
-func testAccDataSourceDigitalOceanSpacesObjectConfig_allParams(randInt int) (string, string) {
+func testAccDataSourceDigitalOceanSpacesObjectConfig_allParams(name string) (string, string) {
 	resources := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  name   = "tf-object-test-bucket-%d"
+  name   = "%s"
   region = "nyc3"
   versioning {
     enabled = true
@@ -337,7 +336,7 @@ resource "digitalocean_spaces_bucket" "object_bucket" {
 resource "digitalocean_spaces_bucket_object" "object" {
   bucket              = digitalocean_spaces_bucket.object_bucket.name
   region              = digitalocean_spaces_bucket.object_bucket.region
-  key                 = "tf-testing-obj-%d-all-params"
+  key                 = "%s-all-params"
   content             = <<CONTENT
 {"msg": "Hi there!"}
 CONTENT
@@ -347,59 +346,59 @@ CONTENT
   content_encoding    = "identity"
   content_language    = "en-GB"
 }
-`, randInt, randInt)
+`, name, name)
 
 	both := fmt.Sprintf(`%s
 data "digitalocean_spaces_bucket_object" "obj" {
-  bucket = "tf-object-test-bucket-%d"
+  bucket = "%s"
   region = "nyc3"
-  key    = "tf-testing-obj-%d-all-params"
+  key    = "%s-all-params"
 }
-`, resources, randInt, randInt)
+`, resources, name, name)
 
 	return resources, both
 }
 
-func testAccDataSourceDigitalOceanSpacesObjectConfig_leadingSlash(randInt int) (string, string) {
+func testAccDataSourceDigitalOceanSpacesObjectConfig_leadingSlash(name string) (string, string) {
 	resources := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  name   = "tf-object-test-bucket-%d"
+  name   = "%s"
   region = "nyc3"
 }
 resource "digitalocean_spaces_bucket_object" "object" {
   bucket       = digitalocean_spaces_bucket.object_bucket.name
   region       = digitalocean_spaces_bucket.object_bucket.region
-  key          = "//tf-testing-obj-%d-readable"
+  key          = "//%s-readable"
   content      = "yes"
   content_type = "text/plain"
 }
-`, randInt, randInt)
+`, name, name)
 
 	both := fmt.Sprintf(`%s
 data "digitalocean_spaces_bucket_object" "obj1" {
-  bucket = "tf-object-test-bucket-%d"
+  bucket = "%s"
   region = "nyc3"
-  key    = "tf-testing-obj-%d-readable"
+  key    = "%s-readable"
 }
 data "digitalocean_spaces_bucket_object" "obj2" {
-  bucket = "tf-object-test-bucket-%d"
+  bucket = "%s"
   region = "nyc3"
-  key    = "/tf-testing-obj-%d-readable"
+  key    = "/%s-readable"
 }
 data "digitalocean_spaces_bucket_object" "obj3" {
-  bucket = "tf-object-test-bucket-%d"
+  bucket = "%s"
   region = "nyc3"
-  key    = "//tf-testing-obj-%d-readable"
+  key    = "//%s-readable"
 }
-`, resources, randInt, randInt, randInt, randInt, randInt, randInt)
+`, resources, name, name, name, name, name, name)
 
 	return resources, both
 }
 
-func testAccDataSourceDigitalOceanSpacesObjectConfig_multipleSlashes(randInt int) (string, string) {
+func testAccDataSourceDigitalOceanSpacesObjectConfig_multipleSlashes(name string) (string, string) {
 	resources := fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
-  name   = "tf-object-test-bucket-%d"
+  name   = "%s"
   region = "nyc3"
 }
 resource "digitalocean_spaces_bucket_object" "object1" {
@@ -417,25 +416,25 @@ resource "digitalocean_spaces_bucket_object" "object2" {
   content      = "no"
   content_type = "text/plain"
 }
-`, randInt)
+`, name)
 
 	both := fmt.Sprintf(`%s
 data "digitalocean_spaces_bucket_object" "obj1" {
-  bucket = "tf-object-test-bucket-%d"
+  bucket = "%s"
   region = "nyc3"
   key    = "first/second/third/"
 }
 data "digitalocean_spaces_bucket_object" "obj2" {
-  bucket = "tf-object-test-bucket-%d"
+  bucket = "%s"
   region = "nyc3"
   key    = "first//second///third//"
 }
 data "digitalocean_spaces_bucket_object" "obj3" {
-  bucket = "tf-object-test-bucket-%d"
+  bucket = "%s"
   region = "nyc3"
   key    = "first/second/third"
 }
-`, resources, randInt, randInt, randInt)
+`, resources, name, name, name)
 
 	return resources, both
 }

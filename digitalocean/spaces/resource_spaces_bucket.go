@@ -496,48 +496,8 @@ func resourceDigitalOceanBucketDelete(ctx context.Context, d *schema.ResourceDat
 			if d.Get("force_destroy").(bool) {
 				// bucket may have things delete them
 				log.Printf("[DEBUG] Spaces Bucket attempting to forceDestroy %+v", err)
-
 				bucket := d.Get("name").(string)
-				resp, err := svc.ListObjectVersions(
-					&s3.ListObjectVersionsInput{
-						Bucket: aws.String(bucket),
-					},
-				)
-
-				if err != nil {
-					return diag.Errorf("Error Spaces Bucket list Object Versions err: %s", err)
-				}
-
-				objectsToDelete := make([]*s3.ObjectIdentifier, 0)
-
-				if len(resp.DeleteMarkers) != 0 {
-
-					for _, v := range resp.DeleteMarkers {
-						objectsToDelete = append(objectsToDelete, &s3.ObjectIdentifier{
-							Key:       v.Key,
-							VersionId: v.VersionId,
-						})
-					}
-				}
-
-				if len(resp.Versions) != 0 {
-					for _, v := range resp.Versions {
-						objectsToDelete = append(objectsToDelete, &s3.ObjectIdentifier{
-							Key:       v.Key,
-							VersionId: v.VersionId,
-						})
-					}
-				}
-
-				params := &s3.DeleteObjectsInput{
-					Bucket: aws.String(bucket),
-					Delete: &s3.Delete{
-						Objects: objectsToDelete,
-					},
-				}
-
-				_, err = svc.DeleteObjects(params)
-
+				err := spacesBucketForceDelete(svc, bucket)
 				if err != nil {
 					return diag.Errorf("Error Spaces Bucket force_destroy error deleting: %s", err)
 				}

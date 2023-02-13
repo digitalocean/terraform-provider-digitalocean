@@ -11,7 +11,6 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/spaces"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -21,7 +20,7 @@ const (
 )
 
 func TestAccDigitalOceanBucketPolicy_basic(t *testing.T) {
-	randInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	bucketPolicy := `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":"*","Action":"s3:*","Resource":"*"}]}`
 
@@ -31,7 +30,7 @@ func TestAccDigitalOceanBucketPolicy_basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketPolicy(randInt, bucketPolicy),
+				Config: testAccDigitalOceanSpacesBucketPolicy(name, bucketPolicy),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketPolicy("digitalocean_spaces_bucket_policy.policy", bucketPolicy),
 					resource.TestCheckResourceAttr("digitalocean_spaces_bucket_policy.policy", "region", testAccDigitalOceanSpacesBucketPolicy_TestRegion),
@@ -42,7 +41,7 @@ func TestAccDigitalOceanBucketPolicy_basic(t *testing.T) {
 }
 
 func TestAccDigitalOceanBucketPolicy_update(t *testing.T) {
-	randInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	initialBucketPolicy := `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":"*","Action":"s3:*","Resource":"*"}]}`
 	updatedBucketPolicy := `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":"*","Action":"s3:*","Resource":"*"},{"Effect":"Allow","Principal":"*","Action":"s3:GetObject","Resource":"*"}]}`
@@ -53,14 +52,14 @@ func TestAccDigitalOceanBucketPolicy_update(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketPolicy(randInt, initialBucketPolicy),
+				Config: testAccDigitalOceanSpacesBucketPolicy(name, initialBucketPolicy),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketPolicy("digitalocean_spaces_bucket_policy.policy", initialBucketPolicy),
 					resource.TestCheckResourceAttr("digitalocean_spaces_bucket_policy.policy", "region", testAccDigitalOceanSpacesBucketPolicy_TestRegion),
 				),
 			},
 			{
-				Config: testAccDigitalOceanSpacesBucketPolicy(randInt, updatedBucketPolicy),
+				Config: testAccDigitalOceanSpacesBucketPolicy(name, updatedBucketPolicy),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketPolicy("digitalocean_spaces_bucket_policy.policy", updatedBucketPolicy),
 					resource.TestCheckResourceAttr("digitalocean_spaces_bucket_policy.policy", "region", testAccDigitalOceanSpacesBucketPolicy_TestRegion),
@@ -71,7 +70,7 @@ func TestAccDigitalOceanBucketPolicy_update(t *testing.T) {
 }
 
 func TestAccDigitalOceanBucketPolicy_invalidJson(t *testing.T) {
-	randInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	bucketPolicy := `{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":"*","Action":"s3:*","Resource":"*"}}`
 	expectError := regexp.MustCompile(`"policy" contains an invalid JSON`)
@@ -82,7 +81,7 @@ func TestAccDigitalOceanBucketPolicy_invalidJson(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccDigitalOceanSpacesBucketPolicy(randInt, bucketPolicy),
+				Config:      testAccDigitalOceanSpacesBucketPolicy(name, bucketPolicy),
 				ExpectError: expectError,
 			},
 		},
@@ -90,7 +89,7 @@ func TestAccDigitalOceanBucketPolicy_invalidJson(t *testing.T) {
 }
 
 func TestAccDigitalOceanBucketPolicy_emptyPolicy(t *testing.T) {
-	randInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	expectError := regexp.MustCompile(`policy must not be empty`)
 
@@ -100,7 +99,7 @@ func TestAccDigitalOceanBucketPolicy_emptyPolicy(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketPolicyDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccDigitalOceanSpacesBucketEmptyPolicy(randInt),
+				Config:      testAccDigitalOceanSpacesBucketEmptyPolicy(name),
 				ExpectError: expectError,
 			},
 		},
@@ -199,11 +198,11 @@ func testAccCheckDigitalOceanSpacesBucketPolicyDestroy(s *terraform.State) error
 	return nil
 }
 
-func testAccDigitalOceanSpacesBucketPolicy(randInt int, policy string) string {
+func testAccDigitalOceanSpacesBucketPolicy(name string, policy string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "policy_bucket" {
   region        = "%s"
-  name          = "tf-policy-test-bucket-%d"
+  name          = "%s"
   force_destroy = true
 }
 
@@ -216,14 +215,14 @@ EOF
 }
 
 
-`, testAccDigitalOceanSpacesBucketPolicy_TestRegion, randInt, policy)
+`, testAccDigitalOceanSpacesBucketPolicy_TestRegion, name, policy)
 }
 
-func testAccDigitalOceanSpacesBucketEmptyPolicy(randInt int) string {
+func testAccDigitalOceanSpacesBucketEmptyPolicy(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "policy_bucket" {
   region        = "%s"
-  name          = "tf-policy-test-bucket-%d"
+  name          = "%s"
   force_destroy = true
 }
 
@@ -234,7 +233,7 @@ resource "digitalocean_spaces_bucket_policy" "policy" {
 }
 
 
-`, testAccDigitalOceanSpacesBucketPolicy_TestRegion, randInt)
+`, testAccDigitalOceanSpacesBucketPolicy_TestRegion, name)
 }
 
 func testAccDigitalOceanSpacesBucketUnknownBucket() string {
