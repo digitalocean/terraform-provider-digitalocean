@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
@@ -392,6 +393,16 @@ func TestAccDigitalOceanDatabaseCluster_MongoDBPassword(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "uri"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
 						"digitalocean_database_cluster.foobar", "private_uri"),
+				),
+			},
+			// Pause before running CheckDestroy
+			{
+				Config: " ",
+				Check: resource.TestCheckFunc(
+					func(s *terraform.State) error {
+						time.Sleep(30 * time.Second)
+						return nil
+					},
 				),
 			},
 		},
