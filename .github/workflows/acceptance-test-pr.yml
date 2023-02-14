@@ -1,0 +1,71 @@
+on:
+  repository_dispatch:
+    types: [testacc-command]
+
+name: Acceptance Test PR
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    if:
+      github.event.client_payload.slash_command.sha != '' &&
+      github.event.client_payload.slash_command.pkg != '' &&
+      github.event.client_payload.pull_request.head.sha == github.event.client_payload.slash_command.sha
+
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.client_payload.slash_command.pkg }}-${{ github.event.client_payload.pull_request.number }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Set status pending
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.client_payload.pull_request.head.sha }} \
+            -f state='pending' \
+            -f target_url='https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
+            -f description='Running acceptance tests...' \
+            -f context='acceptance/${{ github.event.client_payload.slash_command.pkg }}'
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19.x
+
+      - name: Checkout PR
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.client_payload.slash_command.sha }}
+
+      - name: Run Acceptance Tests
+        id: run_tests
+        run: make PKG_NAME="${{ github.event.client_payload.slash_command.pkg }}" testacc
+        env:
+          ACCTEST_PARALLELISM: 10
+          DIGITALOCEAN_TOKEN: ${{ secrets.ACCEPTANCE_TESTS_TOKEN }}
+          SPACES_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
+          SPACES_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
+
+      - name: Results
+        if: always()
+        run: |
+          if [[ ${{ steps.run_tests.outcome }} == 'success' ]]; then
+            echo "test_result=success" >> $GITHUB_ENV
+            echo "check_description=Acceptance tests for ${{ github.event.client_payload.slash_command.pkg }} successful" >> $GITHUB_ENV
+          else
+            echo "test_result=failure" >> $GITHUB_ENV
+            echo "check_description=Acceptance tests for ${{ github.event.client_payload.slash_command.pkg }} failed" >> $GITHUB_ENV
+          fi
+
+      - name: Update status on PR
+        if: always()
+        run: |
+          gh api --method POST -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/statuses/${{ github.event.client_payload.pull_request.head.sha }} \
+            -f state='${{ env.test_result }}' \
+            -f target_url='https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
+            -f description='${{ env.check_description }}' \
+            -f context='acceptance/${{ github.event.client_payload.slash_command.pkg }}'
+        env:
+          GH_TOKEN: ${{ github.token }}

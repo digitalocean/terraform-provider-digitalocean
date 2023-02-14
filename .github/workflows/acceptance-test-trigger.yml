@@ -1,0 +1,19 @@
+name: Acceptance Test Trigger
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  testacc-trigger:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Slash Command Dispatch
+        uses: peter-evans/slash-command-dispatch@v1
+        with:
+          token: ${{ secrets.TRIGGER_TOKEN }}
+          issue-type: pull-request
+          commands: testacc
+          named-args: true
+          permission: write

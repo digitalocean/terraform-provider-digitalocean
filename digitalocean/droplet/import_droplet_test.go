@@ -47,11 +47,15 @@ func TestAccDigitalOceanDroplet_importBasic(t *testing.T) {
 }
 
 func TestAccDigitalOceanDroplet_ImportWithNoImageSlug(t *testing.T) {
-	name := acceptance.RandomTestName()
-	var droplet godo.Droplet
-	var snapshotId []int
+	var (
+		droplet         godo.Droplet
+		restoredDroplet godo.Droplet
+		snapshotID      = godo.PtrTo(0)
+		name            = acceptance.RandomTestName()
+		restoredName    = acceptance.RandomTestName("restored")
+	)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
@@ -60,11 +64,24 @@ func TestAccDigitalOceanDroplet_ImportWithNoImageSlug(t *testing.T) {
 				Config: acceptance.TestAccCheckDigitalOceanDropletConfig_basic(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
-					takeDropletSnapshot(name, &droplet, &snapshotId),
+					takeDropletSnapshot(t, name, &droplet, snapshotID),
 				),
 			},
+		},
+	})
+
+	importConfig := testAccCheckDigitalOceanDropletConfig_fromSnapshot(t, restoredName, *snapshotID)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_fromSnapshot(name),
+				Config: importConfig,
+				Check: resource.ComposeTestCheckFunc(
+					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.from-snapshot", &restoredDroplet),
+				),
 			},
 			{
 				ResourceName:      "digitalocean_droplet.from-snapshot",
@@ -76,14 +93,14 @@ func TestAccDigitalOceanDroplet_ImportWithNoImageSlug(t *testing.T) {
 			{
 				Config: " ",
 				Check: resource.ComposeTestCheckFunc(
-					acceptance.DeleteDropletSnapshots(&snapshotId),
+					acceptance.DeleteDropletSnapshots(&[]int{*snapshotID}),
 				),
 			},
 		},
 	})
 }
 
-func takeDropletSnapshot(name string, droplet *godo.Droplet, snapshotId *[]int) resource.TestCheckFunc {
+func takeDropletSnapshot(t *testing.T, name string, droplet *godo.Droplet, snapshotID *int) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
@@ -97,22 +114,18 @@ func takeDropletSnapshot(name string, droplet *godo.Droplet, snapshotId *[]int) 
 		if err != nil {
 			return err
 		}
-		*snapshotId = retrieveDroplet.SnapshotIDs
+
+		*snapshotID = retrieveDroplet.SnapshotIDs[0]
 		return nil
 	}
 }
 
-func testAccCheckDigitalOceanDropletConfig_fromSnapshot(name string) string {
+func testAccCheckDigitalOceanDropletConfig_fromSnapshot(t *testing.T, name string, snapshotID int) string {
 	return fmt.Sprintf(`
-data "digitalocean_image" "snapshot" {
-  name = "%s"
-}
-
 resource "digitalocean_droplet" "from-snapshot" {
-  name      = "%s"
-  size      = "s-1vcpu-1gb"
-  image     = data.digitalocean_image.snapshot.id
-  region    = "nyc3"
-  user_data = "foobar"
-}`, name, name)
+  name   = "%s"
+  size   = "%s"
+  image  = "%d"
+  region = "nyc3"
+}`, name, defaultSize, snapshotID)
 }

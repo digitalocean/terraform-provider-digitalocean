@@ -1,8 +1,8 @@
 TEST?=$$(go list ./... |grep -v 'vendor')
 GOFMT_FILES?=$$(find . -name '*.go' |grep -v vendor)
-PKG_NAME:=digitalocean
-ACCTEST_TIMEOUT:=120m
-ACCTEST_PARALLELISM:=2
+PKG_NAME?=digitalocean
+ACCTEST_TIMEOUT?=120m
+ACCTEST_PARALLELISM?=2
 
 default: build
 
