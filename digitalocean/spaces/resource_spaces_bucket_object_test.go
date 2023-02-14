@@ -14,7 +14,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -48,7 +47,7 @@ func TestAccDigitalOceanSpacesBucketObject_noNameNoKey(t *testing.T) {
 func TestAccDigitalOceanSpacesBucketObject_empty(t *testing.T) {
 	var obj s3.GetObjectOutput
 	resourceName := "digitalocean_spaces_bucket_object.object"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -57,7 +56,7 @@ func TestAccDigitalOceanSpacesBucketObject_empty(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {},
-				Config:    testAccDigitalOceanSpacesBucketObjectConfigEmpty(rInt),
+				Config:    testAccDigitalOceanSpacesBucketObjectConfigEmpty(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj, ""),
@@ -70,7 +69,7 @@ func TestAccDigitalOceanSpacesBucketObject_empty(t *testing.T) {
 func TestAccDigitalOceanSpacesBucketObject_source(t *testing.T) {
 	var obj s3.GetObjectOutput
 	resourceName := "digitalocean_spaces_bucket_object.object"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	source := testAccDigitalOceanSpacesBucketObjectCreateTempFile(t, "{anything will do }")
 	defer os.Remove(source)
@@ -81,7 +80,7 @@ func TestAccDigitalOceanSpacesBucketObject_source(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfigSource(rInt, source),
+				Config: testAccDigitalOceanSpacesBucketObjectConfigSource(name, source),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj, "{anything will do }"),
@@ -94,7 +93,7 @@ func TestAccDigitalOceanSpacesBucketObject_source(t *testing.T) {
 func TestAccDigitalOceanSpacesBucketObject_content(t *testing.T) {
 	var obj s3.GetObjectOutput
 	resourceName := "digitalocean_spaces_bucket_object.object"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -103,7 +102,7 @@ func TestAccDigitalOceanSpacesBucketObject_content(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {},
-				Config:    testAccDigitalOceanSpacesBucketObjectConfigContent(rInt, "some_bucket_content"),
+				Config:    testAccDigitalOceanSpacesBucketObjectConfigContent(name, "some_bucket_content"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj, "some_bucket_content"),
@@ -116,7 +115,7 @@ func TestAccDigitalOceanSpacesBucketObject_content(t *testing.T) {
 func TestAccDigitalOceanSpacesBucketObject_contentBase64(t *testing.T) {
 	var obj s3.GetObjectOutput
 	resourceName := "digitalocean_spaces_bucket_object.object"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -125,7 +124,7 @@ func TestAccDigitalOceanSpacesBucketObject_contentBase64(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				PreConfig: func() {},
-				Config:    testAccDigitalOceanSpacesBucketObjectConfigContentBase64(rInt, base64.StdEncoding.EncodeToString([]byte("some_bucket_content"))),
+				Config:    testAccDigitalOceanSpacesBucketObjectConfigContentBase64(name, base64.StdEncoding.EncodeToString([]byte("some_bucket_content"))),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj, "some_bucket_content"),
@@ -138,7 +137,7 @@ func TestAccDigitalOceanSpacesBucketObject_contentBase64(t *testing.T) {
 func TestAccDigitalOceanSpacesBucketObject_withContentCharacteristics(t *testing.T) {
 	var obj s3.GetObjectOutput
 	resourceName := "digitalocean_spaces_bucket_object.object"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	source := testAccDigitalOceanSpacesBucketObjectCreateTempFile(t, "{anything will do }")
 	defer os.Remove(source)
@@ -149,7 +148,7 @@ func TestAccDigitalOceanSpacesBucketObject_withContentCharacteristics(t *testing
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_withContentCharacteristics(rInt, source),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_withContentCharacteristics(name, source),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj, "{anything will do }"),
@@ -167,6 +166,7 @@ func TestAccDigitalOceanSpacesBucketObject_NonVersioned(t *testing.T) {
 
 	var originalObj s3.GetObjectOutput
 	resourceName := "digitalocean_spaces_bucket_object.object"
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -174,7 +174,7 @@ func TestAccDigitalOceanSpacesBucketObject_NonVersioned(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_NonVersioned(acctest.RandInt(), sourceInitial),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_NonVersioned(name, sourceInitial),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &originalObj),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&originalObj, "initial object state"),
@@ -188,7 +188,7 @@ func TestAccDigitalOceanSpacesBucketObject_NonVersioned(t *testing.T) {
 func TestAccDigitalOceanSpacesBucketObject_updates(t *testing.T) {
 	var originalObj, modifiedObj s3.GetObjectOutput
 	resourceName := "digitalocean_spaces_bucket_object.object"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	sourceInitial := testAccDigitalOceanSpacesBucketObjectCreateTempFile(t, "initial object state")
 	defer os.Remove(sourceInitial)
@@ -201,7 +201,7 @@ func TestAccDigitalOceanSpacesBucketObject_updates(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, false, sourceInitial),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(name, false, sourceInitial),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &originalObj),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&originalObj, "initial object state"),
@@ -209,7 +209,7 @@ func TestAccDigitalOceanSpacesBucketObject_updates(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, false, sourceModified),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(name, false, sourceModified),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &modifiedObj),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&modifiedObj, "modified object"),
@@ -223,7 +223,7 @@ func TestAccDigitalOceanSpacesBucketObject_updates(t *testing.T) {
 func TestAccDigitalOceanSpacesBucketObject_updateSameFile(t *testing.T) {
 	var originalObj, modifiedObj s3.GetObjectOutput
 	resourceName := "digitalocean_spaces_bucket_object.object"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	startingData := "lane 8"
 	changingData := "chicane"
@@ -245,7 +245,7 @@ func TestAccDigitalOceanSpacesBucketObject_updateSameFile(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, false, filename),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(name, false, filename),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &originalObj),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&originalObj, startingData),
@@ -255,7 +255,7 @@ func TestAccDigitalOceanSpacesBucketObject_updateSameFile(t *testing.T) {
 				ExpectNonEmptyPlan: true,
 			},
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, false, filename),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(name, false, filename),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &modifiedObj),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&modifiedObj, changingData),
@@ -269,7 +269,7 @@ func TestAccDigitalOceanSpacesBucketObject_updateSameFile(t *testing.T) {
 func TestAccDigitalOceanSpacesBucketObject_updatesWithVersioning(t *testing.T) {
 	var originalObj, modifiedObj s3.GetObjectOutput
 	resourceName := "digitalocean_spaces_bucket_object.object"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	sourceInitial := testAccDigitalOceanSpacesBucketObjectCreateTempFile(t, "initial versioned object state")
 	defer os.Remove(sourceInitial)
@@ -282,7 +282,7 @@ func TestAccDigitalOceanSpacesBucketObject_updatesWithVersioning(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, true, sourceInitial),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(name, true, sourceInitial),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &originalObj),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&originalObj, "initial versioned object state"),
@@ -290,7 +290,7 @@ func TestAccDigitalOceanSpacesBucketObject_updatesWithVersioning(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(rInt, true, sourceModified),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_updateable(name, true, sourceModified),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &modifiedObj),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&modifiedObj, "modified versioned object"),
@@ -305,7 +305,7 @@ func TestAccDigitalOceanSpacesBucketObject_updatesWithVersioning(t *testing.T) {
 func TestAccDigitalOceanSpacesBucketObject_acl(t *testing.T) {
 	var obj1, obj2, obj3 s3.GetObjectOutput
 	resourceName := "digitalocean_spaces_bucket_object.object"
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -313,7 +313,7 @@ func TestAccDigitalOceanSpacesBucketObject_acl(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_acl(rInt, "some_bucket_content", "private"),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_acl(name, "some_bucket_content", "private"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj1),
 					testAccCheckDigitalOceanSpacesBucketObjectBody(&obj1, "some_bucket_content"),
@@ -322,7 +322,7 @@ func TestAccDigitalOceanSpacesBucketObject_acl(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_acl(rInt, "some_bucket_content", "public-read"),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_acl(name, "some_bucket_content", "public-read"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj2),
 					testAccCheckDigitalOceanSpacesBucketObjectVersionIdEquals(&obj2, &obj1),
@@ -332,7 +332,7 @@ func TestAccDigitalOceanSpacesBucketObject_acl(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_acl(rInt, "changed_some_bucket_content", "private"),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_acl(name, "changed_some_bucket_content", "private"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj3),
 					testAccCheckDigitalOceanSpacesBucketObjectVersionIdDiffers(&obj3, &obj2),
@@ -346,7 +346,7 @@ func TestAccDigitalOceanSpacesBucketObject_acl(t *testing.T) {
 }
 
 func TestAccDigitalOceanSpacesBucketObject_metadata(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 	var obj s3.GetObjectOutput
 	resourceName := "digitalocean_spaces_bucket_object.object"
 
@@ -356,7 +356,7 @@ func TestAccDigitalOceanSpacesBucketObject_metadata(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketObjectDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(rInt, "key1", "value1", "key2", "value2"),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(name, "key1", "value1", "key2", "value2"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					resource.TestCheckResourceAttr(resourceName, "metadata.%", "2"),
@@ -365,7 +365,7 @@ func TestAccDigitalOceanSpacesBucketObject_metadata(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(rInt, "key1", "value1updated", "key3", "value3"),
+				Config: testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(name, "key1", "value1updated", "key3", "value3"),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					resource.TestCheckResourceAttr(resourceName, "metadata.%", "2"),
@@ -374,7 +374,7 @@ func TestAccDigitalOceanSpacesBucketObject_metadata(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDigitalOceanSpacesBucketObjectConfigEmpty(rInt),
+				Config: testAccDigitalOceanSpacesBucketObjectConfigEmpty(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketObjectExists(resourceName, &obj),
 					resource.TestCheckResourceAttr(resourceName, "metadata.%", "0"),
@@ -589,11 +589,11 @@ resource "digitalocean_spaces_bucket_object" "object" {
 `, testAccDigitalOceanSpacesBucketObject_TestRegion, bucket, key)
 }
 
-func testAccDigitalOceanSpacesBucketObjectConfigEmpty(randInt int) string {
+func testAccDigitalOceanSpacesBucketObjectConfigEmpty(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region        = "%s"
-  name          = "tf-object-test-bucket-%d"
+  name          = "%s"
   force_destroy = true
 }
 
@@ -602,14 +602,14 @@ resource "digitalocean_spaces_bucket_object" "object" {
   bucket = digitalocean_spaces_bucket.object_bucket.name
   key    = "test-key"
 }
-`, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt)
+`, testAccDigitalOceanSpacesBucketObject_TestRegion, name)
 }
 
-func testAccDigitalOceanSpacesBucketObjectConfigSource(randInt int, source string) string {
+func testAccDigitalOceanSpacesBucketObjectConfigSource(name string, source string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region        = "%s"
-  name          = "tf-object-test-bucket-%d"
+  name          = "%s"
   force_destroy = true
 }
 
@@ -620,14 +620,14 @@ resource "digitalocean_spaces_bucket_object" "object" {
   source       = "%s"
   content_type = "binary/octet-stream"
 }
-`, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt, source)
+`, testAccDigitalOceanSpacesBucketObject_TestRegion, name, source)
 }
 
-func testAccDigitalOceanSpacesBucketObjectConfig_withContentCharacteristics(randInt int, source string) string {
+func testAccDigitalOceanSpacesBucketObjectConfig_withContentCharacteristics(name string, source string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region        = "%s"
-  name          = "tf-object-test-bucket-%d"
+  name          = "%s"
   force_destroy = true
 }
 
@@ -640,14 +640,14 @@ resource "digitalocean_spaces_bucket_object" "object" {
   content_type     = "binary/octet-stream"
   website_redirect = "http://google.com"
 }
-`, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt, source)
+`, testAccDigitalOceanSpacesBucketObject_TestRegion, name, source)
 }
 
-func testAccDigitalOceanSpacesBucketObjectConfigContent(randInt int, content string) string {
+func testAccDigitalOceanSpacesBucketObjectConfigContent(name string, content string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region        = "%s"
-  name          = "tf-object-test-bucket-%d"
+  name          = "%s"
   force_destroy = true
 }
 
@@ -657,14 +657,14 @@ resource "digitalocean_spaces_bucket_object" "object" {
   key     = "test-key"
   content = "%s"
 }
-`, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt, content)
+`, testAccDigitalOceanSpacesBucketObject_TestRegion, name, content)
 }
 
-func testAccDigitalOceanSpacesBucketObjectConfigContentBase64(randInt int, contentBase64 string) string {
+func testAccDigitalOceanSpacesBucketObjectConfigContentBase64(name string, contentBase64 string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region        = "%s"
-  name          = "tf-object-test-bucket-%d"
+  name          = "%s"
   force_destroy = true
 }
 
@@ -674,14 +674,14 @@ resource "digitalocean_spaces_bucket_object" "object" {
   key            = "test-key"
   content_base64 = "%s"
 }
-`, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt, contentBase64)
+`, testAccDigitalOceanSpacesBucketObject_TestRegion, name, contentBase64)
 }
 
-func testAccDigitalOceanSpacesBucketObjectConfig_updateable(randInt int, bucketVersioning bool, source string) string {
+func testAccDigitalOceanSpacesBucketObjectConfig_updateable(name string, bucketVersioning bool, source string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket_3" {
   region        = "%s"
-  name          = "tf-object-test-bucket-%d"
+  name          = "%s"
   force_destroy = true
 
   versioning {
@@ -696,14 +696,14 @@ resource "digitalocean_spaces_bucket_object" "object" {
   source = "%s"
   etag   = "${filemd5("%s")}"
 }
-`, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt, bucketVersioning, source, source)
+`, testAccDigitalOceanSpacesBucketObject_TestRegion, name, bucketVersioning, source, source)
 }
 
-func testAccDigitalOceanSpacesBucketObjectConfig_acl(randInt int, content, acl string) string {
+func testAccDigitalOceanSpacesBucketObjectConfig_acl(name string, content, acl string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region        = "%s"
-  name          = "tf-object-test-bucket-%d"
+  name          = "%s"
   force_destroy = true
 
   versioning {
@@ -718,14 +718,14 @@ resource "digitalocean_spaces_bucket_object" "object" {
   content = "%s"
   acl     = "%s"
 }
-`, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt, content, acl)
+`, testAccDigitalOceanSpacesBucketObject_TestRegion, name, content, acl)
 }
 
-func testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(randInt int, metadataKey1, metadataValue1, metadataKey2, metadataValue2 string) string {
+func testAccDigitalOceanSpacesBucketObjectConfig_withMetadata(name string, metadataKey1, metadataValue1, metadataKey2, metadataValue2 string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket" {
   region        = "%s"
-  name          = "tf-object-test-bucket-%d"
+  name          = "%s"
   force_destroy = true
 }
 
@@ -739,14 +739,14 @@ resource "digitalocean_spaces_bucket_object" "object" {
     %[5]s = %[6]q
   }
 }
-`, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt, metadataKey1, metadataValue1, metadataKey2, metadataValue2)
+`, testAccDigitalOceanSpacesBucketObject_TestRegion, name, metadataKey1, metadataValue1, metadataKey2, metadataValue2)
 }
 
-func testAccDigitalOceanSpacesBucketObjectConfig_NonVersioned(randInt int, source string) string {
+func testAccDigitalOceanSpacesBucketObjectConfig_NonVersioned(name string, source string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "object_bucket_3" {
   region        = "%s"
-  name          = "tf-object-test-bucket-%d"
+  name          = "%s"
   force_destroy = true
 }
 
@@ -757,5 +757,5 @@ resource "digitalocean_spaces_bucket_object" "object" {
   source = "%s"
   etag   = "${filemd5("%s")}"
 }
-`, testAccDigitalOceanSpacesBucketObject_TestRegion, randInt, source, source)
+`, testAccDigitalOceanSpacesBucketObject_TestRegion, name, source, source)
 }

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/app"
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/cdn"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/certificate"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/database"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/domain"
@@ -16,6 +17,7 @@ import (
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/project"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/reservedip"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/snapshot"
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/spaces"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/sshkey"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/uptime"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/volume"

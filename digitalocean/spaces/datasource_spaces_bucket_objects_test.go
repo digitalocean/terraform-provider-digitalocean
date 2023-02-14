@@ -5,13 +5,12 @@ import (
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDataSourceDigitalOceanSpacesBucketObjects_basic(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { acceptance.TestAccPreCheck(t) },
@@ -19,11 +18,11 @@ func TestAccDataSourceDigitalOceanSpacesBucketObjects_basic(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(rInt), // NOTE: contains no data source
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(name), // NOTE: contains no data source
 				// Does not need Check
 			},
 			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigBasic(rInt),
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigBasic(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.digitalocean_spaces_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.#", "2"),
@@ -36,7 +35,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObjects_basic(t *testing.T) {
 }
 
 func TestAccDataSourceDigitalOceanSpacesBucketObjects_all(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { acceptance.TestAccPreCheck(t) },
@@ -44,11 +43,11 @@ func TestAccDataSourceDigitalOceanSpacesBucketObjects_all(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(rInt), // NOTE: contains no data source
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(name), // NOTE: contains no data source
 				// Does not need Check
 			},
 			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigAll(rInt),
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigAll(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.digitalocean_spaces_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.#", "7"),
@@ -66,7 +65,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObjects_all(t *testing.T) {
 }
 
 func TestAccDataSourceDigitalOceanSpacesBucketObjects_prefixes(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { acceptance.TestAccPreCheck(t) },
@@ -74,11 +73,11 @@ func TestAccDataSourceDigitalOceanSpacesBucketObjects_prefixes(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(rInt), // NOTE: contains no data source
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(name), // NOTE: contains no data source
 				// Does not need Check
 			},
 			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigPrefixes(rInt),
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigPrefixes(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.digitalocean_spaces_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.#", "1"),
@@ -95,7 +94,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObjects_prefixes(t *testing.T) {
 }
 
 func TestAccDataSourceDigitalOceanSpacesBucketObjects_encoded(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { acceptance.TestAccPreCheck(t) },
@@ -103,11 +102,11 @@ func TestAccDataSourceDigitalOceanSpacesBucketObjects_encoded(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigExtraResource(rInt), // NOTE: contains no data source
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigExtraResource(name), // NOTE: contains no data source
 				// Does not need Check
 			},
 			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigEncoded(rInt),
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigEncoded(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.digitalocean_spaces_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.#", "2"),
@@ -120,7 +119,7 @@ func TestAccDataSourceDigitalOceanSpacesBucketObjects_encoded(t *testing.T) {
 }
 
 func TestAccDataSourceDigitalOceanSpacesBucketObjects_maxKeys(t *testing.T) {
-	rInt := acctest.RandInt()
+	name := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:                  func() { acceptance.TestAccPreCheck(t) },
@@ -128,11 +127,11 @@ func TestAccDataSourceDigitalOceanSpacesBucketObjects_maxKeys(t *testing.T) {
 		PreventPostDestroyRefresh: true,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(rInt), // NOTE: contains no data source
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigResources(name), // NOTE: contains no data source
 				// Does not need Check
 			},
 			{
-				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigMaxKeys(rInt),
+				Config: testAccDataSourceDigitalOceanSpacesObjectsConfigMaxKeys(name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesObjectsDataSourceExists("data.digitalocean_spaces_bucket_objects.yesh"),
 					resource.TestCheckResourceAttr("data.digitalocean_spaces_bucket_objects.yesh", "keys.#", "2"),
@@ -159,10 +158,10 @@ func testAccCheckDigitalOceanSpacesObjectsDataSourceExists(addr string) resource
 	}
 }
 
-func testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigResources(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "objects_bucket" {
-  name          = "tf-acc-objects-test-bucket-%d"
+  name          = "%s"
   region        = "nyc3"
   force_destroy = true
 }
@@ -215,10 +214,10 @@ resource "digitalocean_spaces_bucket_object" "object7" {
   key     = "arch/rubicon"
   content = "Devils Garden"
 }
-`, randInt)
+`, name)
 }
 
-func testAccDataSourceDigitalOceanSpacesObjectsConfigBasic(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigBasic(name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -228,10 +227,10 @@ data "digitalocean_spaces_bucket_objects" "yesh" {
   prefix    = "arch/navajo/"
   delimiter = "/"
 }
-`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(name))
 }
 
-func testAccDataSourceDigitalOceanSpacesObjectsConfigAll(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigAll(name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -239,10 +238,10 @@ data "digitalocean_spaces_bucket_objects" "yesh" {
   bucket = digitalocean_spaces_bucket.objects_bucket.name
   region = digitalocean_spaces_bucket.objects_bucket.region
 }
-`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(name))
 }
 
-func testAccDataSourceDigitalOceanSpacesObjectsConfigPrefixes(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigPrefixes(name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -252,10 +251,10 @@ data "digitalocean_spaces_bucket_objects" "yesh" {
   prefix    = "arch/"
   delimiter = "/"
 }
-`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(name))
 }
 
-func testAccDataSourceDigitalOceanSpacesObjectsConfigExtraResource(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigExtraResource(name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -265,10 +264,10 @@ resource "digitalocean_spaces_bucket_object" "object8" {
   key     = "arch/ru b ic on"
   content = "Goose Island"
 }
-`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(name))
 }
 
-func testAccDataSourceDigitalOceanSpacesObjectsConfigEncoded(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigEncoded(name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -278,10 +277,10 @@ data "digitalocean_spaces_bucket_objects" "yesh" {
   encoding_type = "url"
   prefix        = "arch/ru"
 }
-`, testAccDataSourceDigitalOceanSpacesObjectsConfigExtraResource(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigExtraResource(name))
 }
 
-func testAccDataSourceDigitalOceanSpacesObjectsConfigMaxKeys(randInt int) string {
+func testAccDataSourceDigitalOceanSpacesObjectsConfigMaxKeys(name string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -290,5 +289,5 @@ data "digitalocean_spaces_bucket_objects" "yesh" {
   region   = digitalocean_spaces_bucket.objects_bucket.region
   max_keys = 2
 }
-`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(randInt))
+`, testAccDataSourceDigitalOceanSpacesObjectsConfigResources(name))
 }
