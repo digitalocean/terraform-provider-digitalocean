@@ -78,7 +78,7 @@ func TestAccDigitalOceanDatabaseCluster_WithUpdate(t *testing.T) {
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_cluster.foobar", "size", "db-s-1vcpu-1gb"),
+						"digitalocean_database_cluster.foobar", "size", "db-s-1vcpu-2gb"),
 				),
 			},
 			{
@@ -87,7 +87,7 @@ func TestAccDigitalOceanDatabaseCluster_WithUpdate(t *testing.T) {
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_cluster.foobar", "size", "db-s-1vcpu-2gb"),
+						"digitalocean_database_cluster.foobar", "size", "db-s-2vcpu-4gb"),
 				),
 			},
 		},
@@ -551,7 +551,7 @@ resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
   version    = "11"
-  size       = "db-s-1vcpu-2gb"
+  size       = "db-s-2vcpu-4gb"
   region     = "nyc1"
   node_count = 1
   tags       = ["production"]
@@ -562,7 +562,7 @@ resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
   version    = "11"
-  size       = "db-s-1vcpu-1gb"
+  size       = "db-s-1vcpu-2gb"
   region     = "lon1"
   node_count = 1
   tags       = ["production"]
@@ -680,7 +680,7 @@ resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
   version    = "11"
-  size       = "db-s-1vcpu-1gb"
+  size       = "db-s-1vcpu-2gb"
   region     = "nyc1"
   node_count = 1
   tags       = ["production", "foo"]
