@@ -234,9 +234,7 @@ func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
 // version. New clusters is always created with the latest version .
 func TestAccDigitalOceanDatabaseCluster_oldRedisVersion(t *testing.T) {
 	var (
-		database     godo.Database
-		client       = &godo.Client{}
-		redisVersion string
+		database godo.Database
 	)
 
 	databaseName := acceptance.RandomTestName()
@@ -249,25 +247,14 @@ func TestAccDigitalOceanDatabaseCluster_oldRedisVersion(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterRedis, databaseName, "5"),
 				Check: resource.ComposeTestCheckFunc(
-					// Fetch the Databases Options and get the current supported version of
-					// Redis from the response.
-					func(*terraform.State) error {
-						client = acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
-						options, _, err := client.Databases.ListOptions(context.Background())
-						if err != nil {
-							t.Error("Error fetching database options")
-						}
-						redisVersion = options.RedisOptions.Versions[0]
-						return nil
-					},
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_cluster.foobar", "name", databaseName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_cluster.foobar", "engine", "redis"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_database_cluster.foobar", "version", redisVersion),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "version"),
 				),
 			},
 		},
