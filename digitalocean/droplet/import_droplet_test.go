@@ -123,9 +123,9 @@ func takeDropletSnapshot(t *testing.T, name string, droplet *godo.Droplet, snaps
 func testAccCheckDigitalOceanDropletConfig_fromSnapshot(t *testing.T, name string, snapshotID int) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "from-snapshot" {
-  name      = "%s"
-  size      = "%s"
-  image     = "%d"
-  region    = "nyc3"
+  name   = "%s"
+  size   = "%s"
+  image  = "%d"
+  region = "nyc3"
 }`, name, defaultSize, snapshotID)
 }
