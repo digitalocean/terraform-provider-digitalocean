@@ -696,7 +696,7 @@ resource "digitalocean_database_cluster" "foobar" {
   name                 = "%s"
   engine               = "pg"
   version              = "11"
-  size                 = "db-s-1vcpu-1gb"
+  size                 = "db-s-1vcpu-2gb"
   region               = "nyc1"
   node_count           = 1
   tags                 = ["production"]
