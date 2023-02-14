@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -288,7 +289,21 @@ func resourceDigitalOceanCertificateDelete(ctx context.Context, d *schema.Resour
 		return nil
 	}
 
-	_, err = client.Certificates.Delete(context.Background(), cert.ID)
+	timeout := 30 * time.Second
+	err = resource.RetryContext(ctx, timeout, func() *resource.RetryError {
+		_, err = client.Certificates.Delete(context.Background(), cert.ID)
+		if err != nil {
+			if util.IsDigitalOceanError(err, http.StatusForbidden, "Make sure the certificate is not in use before deleting it") {
+				log.Printf("[DEBUG] Received %s, retrying certificate deletion", err.Error())
+				time.Sleep(1 * time.Second)
+				return resource.RetryableError(err)
+			}
+
+			return resource.NonRetryableError(err)
+		}
+
+		return nil
+	})
 	if err != nil {
 		return diag.Errorf("Error deleting Certificate: %s", err)
 	}
