@@ -39,7 +39,7 @@ func TestAccDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 					testAccCheckDigitalOceanDatabaseReplicaExists("digitalocean_database_replica.read-01", &databaseReplica),
 					testAccCheckDigitalOceanDatabaseReplicaAttributes(&databaseReplica, databaseReplicaName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_replica.read-01", "size", "db-s-2vcpu-4gb"),
+						"digitalocean_database_replica.read-01", "size", "db-s-1vcpu-2gb"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_replica.read-01", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
@@ -178,7 +178,7 @@ resource "digitalocean_database_replica" "read-01" {
   cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"
   region     = "nyc3"
-  size       = "db-s-2vcpu-4gb"
+  size       = "db-s-1vcpu-2gb"
   tags       = ["staging"]
 }`
 
@@ -189,7 +189,7 @@ resource "digitalocean_database_replica" "read-01" {
   cluster_id           = digitalocean_database_cluster.foobar.id
   name                 = "%s"
   region               = "nyc1"
-  size                 = "db-s-2vcpu-4gb"
+  size                 = "db-s-1vcpu-2gb"
   tags                 = ["staging"]
   private_network_uuid = digitalocean_vpc.foobar.id
 }`
