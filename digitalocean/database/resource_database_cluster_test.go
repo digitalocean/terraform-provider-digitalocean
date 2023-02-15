@@ -82,6 +82,15 @@ func TestAccDigitalOceanDatabaseCluster_WithUpdate(t *testing.T) {
 				),
 			},
 			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, databaseName),
+				Check: resource.TestCheckFunc(
+					func(s *terraform.State) error {
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithUpdate, databaseName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
