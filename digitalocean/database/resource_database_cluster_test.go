@@ -53,6 +53,8 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "tags.#", "1"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "private_network_uuid"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "project_id"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
 						"digitalocean_database_cluster.foobar", "uri"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
@@ -455,6 +457,31 @@ func TestAccDigitalOceanDatabaseCluster_Upgrade(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_nonDefaultProject(t *testing.T) {
+	var database godo.Database
+	databaseName := acceptance.RandomTestName()
+	projectName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigNonDefaultProject, projectName, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "name", databaseName),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_project.foobar", "id", "digitalocean_database_cluster.foobar", "project_id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDatabaseClusterDestroy(s *terraform.State) error {
 	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
@@ -730,4 +757,19 @@ resource "digitalocean_database_cluster" "foobar" {
   size       = "db-s-1vcpu-1gb"
   region     = "nyc3"
   node_count = 1
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigNonDefaultProject = `
+resource "digitalocean_project" "foobar" {
+  name       = "%s"
+}
+
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-2gb"
+  region     = "nyc1"
+  node_count = 1
+  project_id = digitalocean_project.foobar.id
 }`
