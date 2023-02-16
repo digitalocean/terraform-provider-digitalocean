@@ -5,6 +5,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
@@ -15,7 +16,7 @@ import (
 func TestAccDataSourceDigitalOceanDatabaseCA(t *testing.T) {
 	var database godo.Database
 	databaseName := acceptance.RandomTestName()
-	databaseConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigMongoDB, databaseName)
+	databaseConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, databaseName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -26,6 +27,12 @@ func TestAccDataSourceDigitalOceanDatabaseCA(t *testing.T) {
 				Config: databaseConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					resource.TestCheckFunc(
+						func(s *terraform.State) error {
+							time.Sleep(30 * time.Second)
+							return nil
+						},
+					),
 				),
 			},
 			{
