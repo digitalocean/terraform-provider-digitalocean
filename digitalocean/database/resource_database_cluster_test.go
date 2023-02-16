@@ -761,7 +761,7 @@ resource "digitalocean_database_cluster" "foobar" {
 
 const testAccCheckDigitalOceanDatabaseClusterConfigNonDefaultProject = `
 resource "digitalocean_project" "foobar" {
-  name       = "%s"
+  name = "%s"
 }
 
 resource "digitalocean_database_cluster" "foobar" {
