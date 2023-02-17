@@ -45,6 +45,7 @@ The following attributes are exported:
 * `database` - Name of the cluster's default database.
 * `user` - Username for the cluster's default user.
 * `password` - Password for the cluster's default user.
+* `project_id` - The ID of the project that the database cluster is assigned to.
 
 `maintenance_window` supports the following:
 

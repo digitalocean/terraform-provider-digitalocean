@@ -117,6 +117,11 @@ func DataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"project_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tag.TagsSchema(),
 		},
 	}
@@ -182,6 +187,7 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 			}
 			d.Set("urn", db.URN())
 			d.Set("private_network_uuid", db.PrivateNetworkUUID)
+			d.Set("project_id", db.ProjectID)
 
 			break
 		}

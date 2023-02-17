@@ -69,6 +69,7 @@ The following arguments are supported:
   When this value is changed, a call to the [Upgrade major Version for a Database](https://docs.digitalocean.com/reference/api/api-reference/#operation/databases_update_major_version) API operation is made with the new version.
 * `tags` - (Optional) A list of tag names to be applied to the database cluster.
 * `private_network_uuid` - (Optional) The ID of the VPC where the database cluster will be located.
+* `project_id` - (Optional) The ID of the project that the database cluster is assigned to. If excluded when creating a new database cluster, it will be assigned to your default project.
 * `eviction_policy` - (Optional) A string specifying the eviction policy for a Redis cluster. Valid values are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.
 * `sql_mode` - (Optional) A comma separated string specifying the  SQL modes for a MySQL cluster.
 * `maintenance_window` - (Optional) Defines when the automatic maintenance should be performed for the database cluster.
