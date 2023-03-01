@@ -27,6 +27,7 @@ website/node_modules
 *.test
 *.iml
 .vscode/
+.go-version
 
 website/vendor
 
