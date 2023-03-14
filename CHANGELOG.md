@@ -1,3 +1,41 @@
+# 2.27.0
+
+IMPROVEMENTS:
+
+- `digitalocean_database_cluster`: Support project assignment (#955). - @andrewsomething
+
+BUG FIXES:
+
+- `digitalocean_custom_image`: use correct pending statuses for custom images (#931). - @rsmitty
+
+DOCS:
+
+-  `digitalocean_app`: Fix typo in resource digitalocean_app (#961). - @tobiasehlert
+
+MISC:
+
+- `provider`: Package reorganization (#927). - @andrewsomething
+- `testing`: Use comment trigger to run acceptance tests for PRs. (#929). - @andrewsomething
+- `testing`: Fix formatting of Terraform configs in tests and enforce in PRs using terrafmt (#932). - @andrewsomething
+- `testing`: droplet: Fix acceptance testing (#949). - @andrewsomething
+- `testing`: certificates: Add retry on delete (#951). - @andrewsomething
+- `testing`: cdn: Add test sweeper and retry with backoff (#947). - @andrewsomething
+- `testing`: Add sweeper and use consistent naming for all Spaces buckets in tests (#945). - @andrewsomething
+- `testing`: Add sweeper for uptime and monitoring alerts (#944). - @andrewsomething
+- `testing`: Add sweeper for projects and add retry for project deletion (#943). - @andrewsomething
+- `testing`: Add sweeper for VPCs (#942). - @andrewsomething
+- `testing`: Add sweeper for custom images and fix acceptance tests (#941). - @andrewsomething
+- `testing`: Use consistent naming for all volumes created in tests (#939). - @andrewsomething
+- `testing`: Use consistent naming for all snapshots created in tests (#938). - @andrewsomething
+- `testing`: Use consistent naming for all load balancers created in tests (#937). - @andrewsomething
+- `testing`: Use consistent naming for all firewalls created in tests (#935). - @andrewsomething
+- `testing`: Add sweeper for SSH keys (#940). - @andrewsomething
+- `testing`: Use consistent naming for all certs created in tests (#934). - @andrewsomething
+- `testing`: Use consistent naming for all Droplets created in tests (#933). - @andrewsomething
+- `testing`: Remove unused const to fix linting (#930). - @andrewsomething
+- `testing`: Fix flaky database acceptance tests (#953). - @andrewsomething
+- Remove .go-version and add to .gitignore (#958). - @ChiefMateStarbuck
+
 # 2.26.0
 
 IMPROVEMENTS:
