@@ -36,9 +36,9 @@ resource "digitalocean_app" "golang-sample" {
 ### Static Site Example
 
 ```hcl
-resource "digitalocean_app" "static-ste-example" {
+resource "digitalocean_app" "static-site-example" {
   spec {
-    name   = "static-ste-example"
+    name   = "static-site-example"
     region = "ams"
 
     static_site {
