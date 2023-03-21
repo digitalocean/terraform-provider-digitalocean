@@ -203,6 +203,7 @@ func resourceDigitalOceanDatabaseReplicaRead(ctx context.Context, d *schema.Reso
 	d.Set("tags", tag.FlattenTags(replica.Tags))
 
 	// Computed values
+	d.Set("uuid", replica.ID)
 	d.Set("host", replica.Connection.Host)
 	d.Set("private_host", replica.PrivateConnection.Host)
 	d.Set("port", replica.Connection.Port)
