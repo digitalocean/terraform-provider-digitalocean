@@ -1,3 +1,14 @@
+# 2.27.1
+
+BUG FIXES:
+
+- `digitalocean_database_replica`: Set UUID on read to resolve import issue (#964). - @andrewsomething
+
+MISC:
+
+- dependencies: bump golang.org/x/net (#957). - @dependabot
+- dependencies: bump golang.org/x/crypto (#960). - @dependabot
+
 # 2.27.0
 
 IMPROVEMENTS:
