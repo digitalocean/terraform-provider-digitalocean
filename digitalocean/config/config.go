@@ -6,11 +6,13 @@ import (
 	"log"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"golang.org/x/oauth2"
 )
@@ -23,6 +25,9 @@ type Config struct {
 	SecretKey         string
 	RequestsPerSecond float64
 	TerraformVersion  string
+	HTTPRetryMax      int
+	HTTPRetryWaitMax  float64
+	HTTPRetryWaitMin  float64
 }
 
 type CombinedConfig struct {
@@ -68,7 +73,17 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	})
 
 	userAgent := fmt.Sprintf("Terraform/%s", c.TerraformVersion)
-	client := oauth2.NewClient(oauth2.NoContext, tokenSrc)
+
+	retryableClient := retryablehttp.NewClient()
+	retryableClient.RetryMax = c.HTTPRetryMax
+	retryableClient.RetryWaitMin = time.Duration(c.HTTPRetryWaitMin * float64(time.Second))
+	retryableClient.RetryWaitMax = time.Duration(c.HTTPRetryWaitMax * float64(time.Second))
+
+	client := retryableClient.StandardClient()
+	client.Transport = &oauth2.Transport{
+		Base:   client.Transport,
+		Source: oauth2.ReuseTokenSource(nil, tokenSrc),
+	}
 
 	client.Transport = logging.NewTransport("DigitalOcean", client.Transport)
 

@@ -65,3 +65,16 @@ The following arguments are supported:
 * `requests_per_second` - (Optional) This can be used to override the limit of
   API calls per second and avoid rate limit errors (Defaults to the value of the
   `DIGITALOCEAN_REQUESTS_PER_SECOND` environment variable or `4.0` if unset).
+* `http_retry_max` - (Optional) This can be used to override the maximum number
+  of retries on a failed API request (client errors, 422, 500, 502...), can 
+  be disabled by the `http_retry_wait_min` and `http_retry_wait_max` arguments 
+  (Defaults to the value of the `DIGITALOCEAN_HTTP_RETRY_MAX` environment
+  variable or `0` if unset).
+* `http_retry_wait_min` - (Optional) This can be used to configure the minimum 
+  waiting time (**in seconds**) between failed requests for the backoff strategy
+  (Defaults to the value of the `DIGITALOCEAN_HTTP_RETRY_WAIT_MIN` environment 
+  variable or `1.0` if unset).
+* `http_retry_wait_max` - (Optional) This can be used to configure the maximum
+  waiting time (**in seconds**) between failed requests for the backoff strategy
+  (Defaults to the value of the `DIGITALOCEAN_HTTP_RETRY_WAIT_MAX` environment
+  variable or `30.0` if unset).
