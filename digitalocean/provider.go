@@ -67,6 +67,24 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("SPACES_SECRET_ACCESS_KEY", nil),
 				Description: "The secret access key for Spaces API operations.",
 			},
+			"http_retry_max": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_HTTP_RETRY_MAX", 0),
+				Description: "The maximum number of retries on a failed API request.",
+			},
+			"http_retry_wait_min": {
+				Type:        schema.TypeFloat,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_HTTP_RETRY_WAIT_MIN", 1.0),
+				Description: "The minimum wait time (in seconds) between failed API requests.",
+			},
+			"http_retry_wait_max": {
+				Type:        schema.TypeFloat,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_HTTP_RETRY_WAIT_MAX", 30.0),
+				Description: "The maximum wait time (in seconds) between failed API requests.",
+			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"digitalocean_account":               account.DataSourceDigitalOceanAccount(),
@@ -170,6 +188,9 @@ func providerConfigure(d *schema.ResourceData, terraformVersion string) (interfa
 		APIEndpoint:      d.Get("api_endpoint").(string),
 		AccessID:         d.Get("spaces_access_id").(string),
 		SecretKey:        d.Get("spaces_secret_key").(string),
+		HTTPRetryMax:     d.Get("http_retry_max").(int),
+		HTTPRetryWaitMin: d.Get("http_retry_wait_min").(float64),
+		HTTPRetryWaitMax: d.Get("http_retry_wait_max").(float64),
 		TerraformVersion: terraformVersion,
 	}
 
