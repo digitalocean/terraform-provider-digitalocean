@@ -70,7 +70,7 @@ func Provider() *schema.Provider {
 			"requests_per_second": {
 				Type:        schema.TypeFloat,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_REQUESTS_PER_SECOND", 0.0),
+				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_REQUESTS_PER_SECOND", 4.0),
 				Description: "The rate of requests per second to limit the HTTP client.",
 			},
 		},
