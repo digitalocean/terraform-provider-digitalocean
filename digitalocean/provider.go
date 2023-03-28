@@ -67,6 +67,12 @@ func Provider() *schema.Provider {
 				DefaultFunc: schema.EnvDefaultFunc("SPACES_SECRET_ACCESS_KEY", nil),
 				Description: "The secret access key for Spaces API operations.",
 			},
+			"requests_per_second": {
+				Type:        schema.TypeFloat,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_REQUESTS_PER_SECOND", 0.0),
+				Description: "The rate of requests per second to limit the HTTP client.",
+			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"digitalocean_account":               account.DataSourceDigitalOceanAccount(),
@@ -166,11 +172,12 @@ func Provider() *schema.Provider {
 
 func providerConfigure(d *schema.ResourceData, terraformVersion string) (interface{}, error) {
 	conf := config.Config{
-		Token:            d.Get("token").(string),
-		APIEndpoint:      d.Get("api_endpoint").(string),
-		AccessID:         d.Get("spaces_access_id").(string),
-		SecretKey:        d.Get("spaces_secret_key").(string),
-		TerraformVersion: terraformVersion,
+		Token:             d.Get("token").(string),
+		APIEndpoint:       d.Get("api_endpoint").(string),
+		AccessID:          d.Get("spaces_access_id").(string),
+		SecretKey:         d.Get("spaces_secret_key").(string),
+		RequestsPerSecond: d.Get("requests_per_second").(float64),
+		TerraformVersion:  terraformVersion,
 	}
 
 	if endpoint, ok := d.GetOk("spaces_endpoint"); ok {

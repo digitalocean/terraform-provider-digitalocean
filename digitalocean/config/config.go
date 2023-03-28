@@ -21,6 +21,7 @@ type Config struct {
 	SpacesAPIEndpoint string
 	AccessID          string
 	SecretKey         string
+	RequestsPerSecond float64
 	TerraformVersion  string
 }
 
@@ -71,7 +72,12 @@ func (c *Config) Client() (*CombinedConfig, error) {
 
 	client.Transport = logging.NewTransport("DigitalOcean", client.Transport)
 
-	godoClient, err := godo.New(client, godo.SetUserAgent(userAgent))
+	godoOpts := []godo.ClientOpt{godo.SetUserAgent(userAgent)}
+	if c.RequestsPerSecond > 0.0 {
+		godoOpts = append(godoOpts, godo.SetStaticRateLimit(c.RequestsPerSecond))
+	}
+
+	godoClient, err := godo.New(client, godoOpts...)
 	if err != nil {
 		return nil, err
 	}
