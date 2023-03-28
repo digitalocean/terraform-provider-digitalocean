@@ -63,5 +63,6 @@ The following arguments are supported:
   if unset.) The provider will replace `{{.Region}}` (via Go's templating engine) with the slug
   of the applicable Spaces region.
 * `requests_per_second` - (Optional) This can be used to override the limit of
-  API calls per second and avoid rate limit errors (Defaults to the value of the
-  `DIGITALOCEAN_REQUESTS_PER_SECOND` environment variable or `4.0` if unset).
+  API calls per second and avoid rate limit errors, can be disabled by setting the value
+  to `0.0` (Defaults to the value of the `DIGITALOCEAN_REQUESTS_PER_SECOND` environment 
+  variable or `0.0` if unset).
