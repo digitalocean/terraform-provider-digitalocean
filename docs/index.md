@@ -62,7 +62,7 @@ The following arguments are supported:
   `SPACES_ENDPOINT_URL` environment variable or `https://{{.Region}}.digitaloceanspaces.com`
   if unset.) The provider will replace `{{.Region}}` (via Go's templating engine) with the slug
   of the applicable Spaces region.
-* `requests_per_second` - (Optional) This can be used to override the limit of
-  API calls per second and avoid rate limit errors, can be disabled by setting the value
-  to `0.0` (Defaults to the value of the `DIGITALOCEAN_REQUESTS_PER_SECOND` environment 
+* `requests_per_second` - (Optional) This can be used to enable throttling, overriding the limit
+  of API calls per second to avoid rate limit errors, can be disabled by setting the value
+  to `0.0` (Defaults to the value of the `DIGITALOCEAN_REQUESTS_PER_SECOND` environment
   variable or `0.0` if unset).
