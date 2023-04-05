@@ -63,10 +63,10 @@ The following arguments are supported:
   if unset.) The provider will replace `{{.Region}}` (via Go's templating engine) with the slug
   of the applicable Spaces region.
 * `http_retry_max` - (Optional) This can be used to override the maximum number
-  of retries on a failed API request (client errors, 422, 500, 502...), can 
-  be disabled by the `http_retry_wait_min` and `http_retry_wait_max` arguments 
-  (Defaults to the value of the `DIGITALOCEAN_HTTP_RETRY_MAX` environment
-  variable or `0` if unset).
+  of retries on a failed API request (client errors, 422, 500, 502...), the exponential 
+  backoff can be configured by the `http_retry_wait_min` and `http_retry_wait_max` arguments 
+  (Defaults to the value of the `DIGITALOCEAN_HTTP_RETRY_MAX` environment variable or
+  `0`, which means no retries, if unset).
 * `http_retry_wait_min` - (Optional) This can be used to configure the minimum 
   waiting time (**in seconds**) between failed requests for the backoff strategy
   (Defaults to the value of the `DIGITALOCEAN_HTTP_RETRY_WAIT_MIN` environment 
