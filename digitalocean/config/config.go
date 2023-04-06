@@ -1,9 +1,11 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"log"
+	"net/http"
 	"net/url"
 	"strings"
 	"time"
@@ -72,16 +74,21 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	})
 
 	userAgent := fmt.Sprintf("Terraform/%s", c.TerraformVersion)
+	var client *http.Client
 
-	retryableClient := retryablehttp.NewClient()
-	retryableClient.RetryMax = c.HTTPRetryMax
-	retryableClient.RetryWaitMin = time.Duration(c.HTTPRetryWaitMin * float64(time.Second))
-	retryableClient.RetryWaitMax = time.Duration(c.HTTPRetryWaitMax * float64(time.Second))
+	if c.HTTPRetryMax > 0 {
+		retryableClient := retryablehttp.NewClient()
+		retryableClient.RetryMax = c.HTTPRetryMax
+		retryableClient.RetryWaitMin = time.Duration(c.HTTPRetryWaitMin * float64(time.Second))
+		retryableClient.RetryWaitMax = time.Duration(c.HTTPRetryWaitMax * float64(time.Second))
 
-	client := retryableClient.StandardClient()
-	client.Transport = &oauth2.Transport{
-		Base:   client.Transport,
-		Source: oauth2.ReuseTokenSource(nil, tokenSrc),
+		client = retryableClient.StandardClient()
+		client.Transport = &oauth2.Transport{
+			Base:   client.Transport,
+			Source: oauth2.ReuseTokenSource(nil, tokenSrc),
+		}
+	} else {
+		client = oauth2.NewClient(context.Background(), tokenSrc)
 	}
 
 	client.Transport = logging.NewTransport("DigitalOcean", client.Transport)
