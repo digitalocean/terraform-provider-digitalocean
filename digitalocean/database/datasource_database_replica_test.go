@@ -53,6 +53,8 @@ func TestAccDataSourceDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 						"data.digitalocean_database_replica.my_db_replica", "cluster_id"),
 					resource.TestCheckResourceAttrPair("digitalocean_database_replica.read-01", "name",
 						"data.digitalocean_database_replica.my_db_replica", "name"),
+					resource.TestCheckResourceAttrPair("digitalocean_database_replica.read-01", "uuid",
+						"data.digitalocean_database_replica.my_db_replica", "uuid"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_database_replica.my_db_replica", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
