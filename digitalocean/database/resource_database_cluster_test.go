@@ -384,6 +384,34 @@ func TestAccDigitalOceanDatabaseCluster_WithVPC(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_WithBackupRestore(t *testing.T) {
+	var originalDatabase godo.Database
+	var backupDatabase godo.Database
+
+	originalDatabaseName := acceptance.RandomTestName()
+	backupDatabasename := acceptance.RandomTestName()
+
+	backUpRestoreConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithBackupRestore, originalDatabaseName, backupDatabasename, originalDatabaseName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: backUpRestoreConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &originalDatabase),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&originalDatabase, originalDatabaseName),
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar_backup", &backupDatabase),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&backupDatabase, backupDatabasename),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar_backup", "region", "nyc1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDatabaseCluster_MongoDBPassword(t *testing.T) {
 	var database godo.Database
 	databaseName := acceptance.RandomTestName()
@@ -581,6 +609,35 @@ resource "digitalocean_database_cluster" "foobar" {
   node_count = 1
   tags       = ["production"]
 }`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithBackupRestore = ` 
+resource "digitalocean_database_cluster" "foobar" {
+	name       = "%s"
+	engine     = "pg"
+	version    = "11"
+	size       = "db-s-1vcpu-2gb"
+	region     = "nyc1"
+	node_count = 1
+	tags       = ["production"]
+  }
+
+resource "digitalocean_database_cluster" "foobar_backup" {
+	name       = "%s"
+	engine     = "pg"
+	version    = "11"
+	size       = "db-s-1vcpu-2gb"
+	region     = "nyc1"
+	node_count = 1
+	tags       = ["production"]
+	
+	backup_restore {
+	  database_name  = "%s"
+	}
+
+	depends_on = [
+		digitalocean_database_cluster.foobar
+	  ]
+  }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithUpdate = `
 resource "digitalocean_database_cluster" "foobar" {
