@@ -34,6 +34,7 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the database replica.
+* `uuid` - The UUID of the database replica.
 * `host` - Database replica's hostname.
 * `private_host` - Same as `host`, but only accessible from resources within the account and in the same region.
 * `port` - Network port that the database replica is listening on.

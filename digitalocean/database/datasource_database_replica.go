@@ -26,6 +26,11 @@ func DataSourceDigitalOceanDatabaseReplica() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"uuid": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"region": {
 				Type:     schema.TypeString,
 				Computed: true,
