@@ -612,32 +612,32 @@ resource "digitalocean_database_cluster" "foobar" {
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithBackupRestore = ` 
 resource "digitalocean_database_cluster" "foobar" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-2gb"
-	region     = "nyc1"
-	node_count = 1
-	tags       = ["production"]
-  }
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-2gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+}
 
 resource "digitalocean_database_cluster" "foobar_backup" {
-	name       = "%s"
-	engine     = "pg"
-	version    = "11"
-	size       = "db-s-1vcpu-2gb"
-	region     = "nyc1"
-	node_count = 1
-	tags       = ["production"]
-	
-	backup_restore {
-	  database_name  = "%s"
-	}
+  name       = "%s"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-2gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
 
-	depends_on = [
-		digitalocean_database_cluster.foobar
-	  ]
-  }`
+  backup_restore {
+    database_name = "%s"
+  }
+
+  depends_on = [
+    digitalocean_database_cluster.foobar
+  ]
+}`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithUpdate = `
 resource "digitalocean_database_cluster" "foobar" {
