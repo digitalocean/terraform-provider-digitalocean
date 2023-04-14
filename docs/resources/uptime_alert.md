@@ -43,10 +43,10 @@ The following arguments are supported:
 * `check_id` - (Required) A unique identifier for a check
 * `name` - (Required) A human-friendly display name.
 * `notifications` (Required) - The notification settings for a trigger alert.
-* `type` - The type of health check to perform: 'ping' 'http' 'https'.
-* `threshold` - The comparison operator used against the alert's threshold: "greater_than", "less_than"
-* `comparison` - A boolean value indicating whether the check is enabled/disabled.
-* `period` - Period of time the threshold must be exceeded to trigger the alert: "2m" "3m" "5m" "10m" "15m" "30m" "1h"
+* `type` (Required) - The type of health check to perform. Must be one of `latency`, `down`, `down_global` or `ssl_expiry`.
+* `threshold` - The threshold at which the alert will enter a trigger state. The specific threshold is dependent on the alert type.
+* `comparison` - The comparison operator used against the alert's threshold. Must be one of `greater_than` or `less_than`.
+* `period` - Period of time the threshold must be exceeded to trigger the alert. Must be one of `2m`, `3m`, `5m`, `10m`, `15m`, `30m` or `1h`.
 
 ## Attributes Reference
 
