@@ -171,6 +171,280 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_CreateWithRegistryDisabled(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    				    = "%s"
+  region                    = "nyc1"
+  registry_integration      = false
+  version                   = data.digitalocean_kubernetes_versions.test.latest_version
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+				`, testClusterVersionLatest, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "registry_integration", "false"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ipv4_address", ""),
+					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesCluster_CreateWithRegistryEnabled(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				resource "digitalocean_container_registry" "foobar" {
+					name = "%s"
+				  }
+				`, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/"+rName),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "server_url", "registry.digitalocean.com"),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "subscription_tier_slug", "starter"),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttrSet("digitalocean_container_registry.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_container_registry.foobar", "storage_usage_bytes"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    				    = "%s"
+  region                    = "nyc1"
+  registry_integration      = true
+  version                   = data.digitalocean_kubernetes_versions.test.latest_version
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+				`, testClusterVersionLatest, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "registry_integration", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ipv4_address", ""),
+					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesCluster_CreateWithRegistryDisabledThenEnable(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				resource "digitalocean_container_registry" "foobar" {
+					name = "%s"
+				  }
+				`, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/"+rName),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "server_url", "registry.digitalocean.com"),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "subscription_tier_slug", "starter"),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttrSet("digitalocean_container_registry.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_container_registry.foobar", "storage_usage_bytes"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    				    = "%s"
+  region                    = "nyc1"
+  registry_integration      = false
+  version                   = data.digitalocean_kubernetes_versions.test.latest_version
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+				`, testClusterVersionLatest, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "registry_integration", "false"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ipv4_address", ""),
+					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    				    = "%s"
+  region                    = "nyc1"
+  registry_integration      = true
+  version                   = data.digitalocean_kubernetes_versions.test.latest_version
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+				`, testClusterVersionLatest, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "registry_integration", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ipv4_address", ""),
+					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesCluster_CreateWithRegistryEnabledThenDisable(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(`
+				resource "digitalocean_container_registry" "foobar" {
+					name = "%s"
+				  }
+				`, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/"+rName),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "server_url", "registry.digitalocean.com"),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "subscription_tier_slug", "starter"),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttrSet("digitalocean_container_registry.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_container_registry.foobar", "storage_usage_bytes"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    				    = "%s"
+  region                    = "nyc1"
+  registry_integration      = true
+  version                   = data.digitalocean_kubernetes_versions.test.latest_version
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+				`, testClusterVersionLatest, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "registry_integration", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ipv4_address", ""),
+					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    				    = "%s"
+  region                    = "nyc1"
+  registry_integration      = false
+  version                   = data.digitalocean_kubernetes_versions.test.latest_version
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+				`, testClusterVersionLatest, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "registry_integration", "false"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ipv4_address", ""),
+					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 	rName := acceptance.RandomTestName()
 	var k8s godo.KubernetesCluster
