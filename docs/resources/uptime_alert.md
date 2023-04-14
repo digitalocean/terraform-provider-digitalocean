@@ -48,6 +48,13 @@ The following arguments are supported:
 * `comparison` - The comparison operator used against the alert's threshold. Must be one of `greater_than` or `less_than`.
 * `period` - Period of time the threshold must be exceeded to trigger the alert. Must be one of `2m`, `3m`, `5m`, `10m`, `15m`, `30m` or `1h`.
 
+`notifications` supports the following:
+
+* `email` - List of email addresses to sent notifications to.
+* `slack`
+  * `channel` (Required) - The Slack channel to send alerts to.
+  * `url` (Required) - The webhook URL for Slack.
+
 ## Attributes Reference
 
 The following attributes are exported.
