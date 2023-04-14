@@ -11,26 +11,26 @@ resource. Uptime Alerts provide the ability to add alerts to your [DigitalOcean 
 ### Basic Example
 
 ```hcl
-# Create a new check for the target endpoint in a specifc region
+# Create a new check for the target endpoint in a specific region
 resource "digitalocean_uptime_check" "foobar" {
-  name  = "example-europe-check"
-  target = "https://www.example.com"
+  name    = "example-europe-check"
+  target  = "https://www.example.com"
   regions = ["eu_west"]
 }
 
-
+# Create a latency alert for the uptime check
 resource "digitalocean_uptime_alert" "alert-example" {
-  name  = "latency-alert"
-  check_id = "${digitalocean_uptime_check.foobar.id}"
-  type = "latency"
-	threshold = 300
-	comparison = "greater_than"
-  period = "2m"
+  name       = "latency-alert"
+  check_id   = digitalocean_uptime_check.foobar.id
+  type       = "latency"
+  threshold  = 300
+  comparison = "greater_than"
+  period     = "2m"
   notifications {
     email = ["sammy@digitalocean.com"]
     slack {
-      channel   = "Production Alerts"
-      url       = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
+      channel = "Production Alerts"
+      url     = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
     }
   }
 }
