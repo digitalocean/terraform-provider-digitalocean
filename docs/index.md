@@ -62,3 +62,20 @@ The following arguments are supported:
   `SPACES_ENDPOINT_URL` environment variable or `https://{{.Region}}.digitaloceanspaces.com`
   if unset.) The provider will replace `{{.Region}}` (via Go's templating engine) with the slug
   of the applicable Spaces region.
+* `requests_per_second` - (Optional) This can be used to enable throttling, overriding the limit
+  of API calls per second to avoid rate limit errors, can be disabled by setting the value
+  to `0.0` (Defaults to the value of the `DIGITALOCEAN_REQUESTS_PER_SECOND` environment
+  variable or `0.0` if unset).
+* `http_retry_max` - (Optional) This can be used to override the maximum number
+  of retries on a failed API request (client errors, 422, 500, 502...), the exponential 
+  backoff can be configured by the `http_retry_wait_min` and `http_retry_wait_max` arguments 
+  (Defaults to the value of the `DIGITALOCEAN_HTTP_RETRY_MAX` environment variable or
+  `0`, which means no retries, if unset).
+* `http_retry_wait_min` - (Optional) This can be used to configure the minimum 
+  waiting time (**in seconds**) between failed requests for the backoff strategy
+  (Defaults to the value of the `DIGITALOCEAN_HTTP_RETRY_WAIT_MIN` environment 
+  variable or `1.0` if unset).
+* `http_retry_wait_max` - (Optional) This can be used to configure the maximum
+  waiting time (**in seconds**) between failed requests for the backoff strategy
+  (Defaults to the value of the `DIGITALOCEAN_HTTP_RETRY_WAIT_MAX` environment
+  variable or `30.0` if unset).

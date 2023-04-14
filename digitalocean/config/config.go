@@ -1,16 +1,20 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"log"
+	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/go-retryablehttp"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging"
 	"golang.org/x/oauth2"
 )
@@ -21,7 +25,11 @@ type Config struct {
 	SpacesAPIEndpoint string
 	AccessID          string
 	SecretKey         string
+	RequestsPerSecond float64
 	TerraformVersion  string
+	HTTPRetryMax      int
+	HTTPRetryWaitMax  float64
+	HTTPRetryWaitMin  float64
 }
 
 type CombinedConfig struct {
@@ -67,11 +75,31 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	})
 
 	userAgent := fmt.Sprintf("Terraform/%s", c.TerraformVersion)
-	client := oauth2.NewClient(oauth2.NoContext, tokenSrc)
+	var client *http.Client
+
+	if c.HTTPRetryMax > 0 {
+		retryableClient := retryablehttp.NewClient()
+		retryableClient.RetryMax = c.HTTPRetryMax
+		retryableClient.RetryWaitMin = time.Duration(c.HTTPRetryWaitMin * float64(time.Second))
+		retryableClient.RetryWaitMax = time.Duration(c.HTTPRetryWaitMax * float64(time.Second))
+
+		client = retryableClient.StandardClient()
+		client.Transport = &oauth2.Transport{
+			Base:   client.Transport,
+			Source: oauth2.ReuseTokenSource(nil, tokenSrc),
+		}
+	} else {
+		client = oauth2.NewClient(context.Background(), tokenSrc)
+	}
 
 	client.Transport = logging.NewTransport("DigitalOcean", client.Transport)
 
-	godoClient, err := godo.New(client, godo.SetUserAgent(userAgent))
+	godoOpts := []godo.ClientOpt{godo.SetUserAgent(userAgent)}
+	if c.RequestsPerSecond > 0.0 {
+		godoOpts = append(godoOpts, godo.SetStaticRateLimit(c.RequestsPerSecond))
+	}
+
+	godoClient, err := godo.New(client, godoOpts...)
 	if err != nil {
 		return nil, err
 	}
