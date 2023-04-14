@@ -182,12 +182,11 @@ func TestAccDigitalOceanKubernetesCluster_CreateWithRegistryDisabled(t *testing.
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`%s
-
 resource "digitalocean_kubernetes_cluster" "foobar" {
-  name    				    = "%s"
-  region                    = "nyc1"
-  registry_integration      = false
-  version                   = data.digitalocean_kubernetes_versions.test.latest_version
+  name    			   = "%s"
+  region               = "nyc1"
+  registry_integration = false
+  version              = data.digitalocean_kubernetes_versions.test.latest_version
 
   node_pool {
     name       = "default"
@@ -224,9 +223,9 @@ func TestAccDigitalOceanKubernetesCluster_CreateWithRegistryEnabled(t *testing.T
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
-				resource "digitalocean_container_registry" "foobar" {
-					name = "%s"
-				  }
+resource "digitalocean_container_registry" "foobar" {
+	name = "%s"
+}
 				`, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "name", rName),
@@ -242,10 +241,10 @@ func TestAccDigitalOceanKubernetesCluster_CreateWithRegistryEnabled(t *testing.T
 				Config: fmt.Sprintf(`%s
 
 resource "digitalocean_kubernetes_cluster" "foobar" {
-  name    				    = "%s"
-  region                    = "nyc1"
-  registry_integration      = true
-  version                   = data.digitalocean_kubernetes_versions.test.latest_version
+  name    			   = "%s"
+  region               = "nyc1"
+  registry_integration = true
+  version              = data.digitalocean_kubernetes_versions.test.latest_version
 
   node_pool {
     name       = "default"
@@ -282,9 +281,9 @@ func TestAccDigitalOceanKubernetesCluster_CreateWithRegistryDisabledThenEnable(t
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
-				resource "digitalocean_container_registry" "foobar" {
-					name = "%s"
-				  }
+resource "digitalocean_container_registry" "foobar" {
+	name = "%s"
+}
 				`, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "name", rName),
@@ -300,10 +299,10 @@ func TestAccDigitalOceanKubernetesCluster_CreateWithRegistryDisabledThenEnable(t
 				Config: fmt.Sprintf(`%s
 
 resource "digitalocean_kubernetes_cluster" "foobar" {
-  name    				    = "%s"
-  region                    = "nyc1"
-  registry_integration      = false
-  version                   = data.digitalocean_kubernetes_versions.test.latest_version
+  name    			   = "%s"
+  region               = "nyc1"
+  registry_integration = false
+  version              = data.digitalocean_kubernetes_versions.test.latest_version
 
   node_pool {
     name       = "default"
@@ -329,10 +328,10 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 				Config: fmt.Sprintf(`%s
 
 resource "digitalocean_kubernetes_cluster" "foobar" {
-  name    				    = "%s"
-  region                    = "nyc1"
-  registry_integration      = true
-  version                   = data.digitalocean_kubernetes_versions.test.latest_version
+  name    			   = "%s"
+  region               = "nyc1"
+  registry_integration = true
+  version              = data.digitalocean_kubernetes_versions.test.latest_version
 
   node_pool {
     name       = "default"
@@ -369,9 +368,9 @@ func TestAccDigitalOceanKubernetesCluster_CreateWithRegistryEnabledThenDisable(t
 		Steps: []resource.TestStep{
 			{
 				Config: fmt.Sprintf(`
-				resource "digitalocean_container_registry" "foobar" {
-					name = "%s"
-				  }
+resource "digitalocean_container_registry" "foobar" {
+	name = "%s"
+}
 				`, rName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "name", rName),
@@ -387,10 +386,10 @@ func TestAccDigitalOceanKubernetesCluster_CreateWithRegistryEnabledThenDisable(t
 				Config: fmt.Sprintf(`%s
 
 resource "digitalocean_kubernetes_cluster" "foobar" {
-  name    				    = "%s"
-  region                    = "nyc1"
-  registry_integration      = true
-  version                   = data.digitalocean_kubernetes_versions.test.latest_version
+  name    			   = "%s"
+  region               = "nyc1"
+  registry_integration = true
+  version              = data.digitalocean_kubernetes_versions.test.latest_version
 
   node_pool {
     name       = "default"
@@ -416,10 +415,10 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 				Config: fmt.Sprintf(`%s
 
 resource "digitalocean_kubernetes_cluster" "foobar" {
-  name    				    = "%s"
-  region                    = "nyc1"
-  registry_integration      = false
-  version                   = data.digitalocean_kubernetes_versions.test.latest_version
+  name    			   = "%s"
+  region               = "nyc1"
+  registry_integration = false
+  version              = data.digitalocean_kubernetes_versions.test.latest_version
 
   node_pool {
     name       = "default"
