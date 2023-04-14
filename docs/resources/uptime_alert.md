@@ -4,8 +4,8 @@ page_title: "DigitalOcean: digitalocean_uptime_alert"
 
 # digitalocean_uptime_alert
 
-Provides a [DigitalOcean Uptime Alerts](https://docs.digitalocean.com/reference/api/kafka-beta-api-reference/#operation/uptime_alert_create)
-resource. Uptime Alerts provide the ability to add alerts to your [DigitalOcean Uptime Checks](https://docs.digitalocean.com/reference/api/kafka-beta-api-reference/#tag/Uptime) when your endpoints are slow, unavailable, or SSL certificates are expiring. 
+Provides a [DigitalOcean Uptime Alerts](https://docs.digitalocean.com/reference/api/api-reference/#operation/uptime_alert_create)
+resource. Uptime Alerts provide the ability to add alerts to your [DigitalOcean Uptime Checks](https://docs.digitalocean.com/reference/api/api-reference/#tag/Uptime) when your endpoints are slow, unavailable, or SSL certificates are expiring.
 
 
 ### Basic Example
