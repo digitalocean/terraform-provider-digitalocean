@@ -306,11 +306,6 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		if err != nil {
 			return diag.Errorf("Error enabling registry integration: %s", err)
 		}
-	} else {
-		err = disableRegistryIntegration(client, cluster.ID)
-		if err != nil {
-			return diag.Errorf("Error disabling registry integration: %s", err)
-		}
 	}
 
 	return resourceDigitalOceanKubernetesClusterRead(ctx, d, meta)
