@@ -149,7 +149,7 @@ The following arguments are supported:
 * `auto_upgrade` - (Optional) A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: false
 * `ha` - (Optional) Enable/disable the high availability control plane for a cluster. High availability can only be set when creating a cluster. Any update will create a new cluster. Default: false
-* `registry_integration` - (optional) Enable/disable Digital Ocean docker registry integration when creating the cluster, please make sure that the registry is first created before tryin to enable this, if the registry is not created first then the cluster will be created but it will fail in terraform and the resource will be tainted a later apply will attempt to re-create the cluster. Default: false
+* `registry_integration` - (optional) Enables or disables the DigitalOcean container registry integration for the cluster. This requires that a container registry has first been created for the account. Default: false
 * `node_pool` - (Required) A block representing the cluster's default node pool. Additional node pools may be added to the cluster using the `digitalocean_kubernetes_node_pool` resource. The following arguments may be specified:
   - `name` - (Required) A name for the node pool.
   - `size` - (Required) The slug identifier for the type of Droplet to be used as workers in the node pool.
