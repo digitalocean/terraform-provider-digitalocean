@@ -120,6 +120,9 @@ github.com/hashicorp/go-multierror
 ## explicit; go 1.13
 github.com/hashicorp/go-plugin
 github.com/hashicorp/go-plugin/internal/plugin
+# github.com/hashicorp/go-retryablehttp v0.7.2
+## explicit; go 1.13
+github.com/hashicorp/go-retryablehttp
 # github.com/hashicorp/go-uuid v1.0.2
 ## explicit
 github.com/hashicorp/go-uuid
