@@ -590,13 +590,13 @@ func resourceDigitalOceanKubernetesClusterImportState(d *schema.ResourceData, me
 	return resourceDatas, nil
 }
 
-func enableRegistryIntegration(client *godo.Client, cluster_uuid string) error {
-	_, err := client.Kubernetes.AddRegistry(context.Background(), &godo.KubernetesClusterRegistryRequest{ClusterUUIDs: []string{cluster_uuid}})
+func enableRegistryIntegration(client *godo.Client, clusterUUID string) error {
+	_, err := client.Kubernetes.AddRegistry(context.Background(), &godo.KubernetesClusterRegistryRequest{ClusterUUIDs: []string{clusterUUID}})
 	return err
 }
 
-func disableRegistryIntegration(client *godo.Client, cluster_uuid string) error {
-	_, err := client.Kubernetes.RemoveRegistry(context.Background(), &godo.KubernetesClusterRegistryRequest{ClusterUUIDs: []string{cluster_uuid}})
+func disableRegistryIntegration(client *godo.Client, clusterUUID string) error {
+	_, err := client.Kubernetes.RemoveRegistry(context.Background(), &godo.KubernetesClusterRegistryRequest{ClusterUUIDs: []string{clusterUUID}})
 	return err
 }
 
