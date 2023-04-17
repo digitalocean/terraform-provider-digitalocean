@@ -93,6 +93,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestMatchResourceAttr("digitalocean_kubernetes_cluster.foobar", "urn", expectedURNRegEx),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.start_time"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "registry_integration", "false"),
 				),
 			},
 			// Update: remove default node_pool taints
@@ -165,6 +166,118 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesCluster_CreateWithRegistry(t *testing.T) {
+	var (
+		rName          = acceptance.RandomTestName()
+		k8s            godo.KubernetesCluster
+		registryConfig = fmt.Sprintf(`
+resource "digitalocean_container_registry" "foobar" {
+  name                   = "%s"
+  region                 = "nyc3"
+  subscription_tier_slug = "starter"
+}`, rName)
+	)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			// Create container registry
+			{
+				Config: registryConfig,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "endpoint", "registry.digitalocean.com/"+rName),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "server_url", "registry.digitalocean.com"),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "subscription_tier_slug", "starter"),
+					resource.TestCheckResourceAttr("digitalocean_container_registry.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttrSet("digitalocean_container_registry.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_container_registry.foobar", "storage_usage_bytes"),
+				),
+			},
+			// Create cluster with registry integration enabled
+			{
+				Config: fmt.Sprintf(`%s
+
+%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name                 = "%s"
+  region               = "nyc3"
+  registry_integration = true
+  version              = data.digitalocean_kubernetes_versions.test.latest_version
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+				`, testClusterVersionLatest, registryConfig, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "registry_integration", "true"),
+					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "status"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),
+				),
+			},
+			// Disable registry integration
+			{
+				Config: fmt.Sprintf(`%s
+
+%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    = "%s"
+  region  = "nyc3"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+				`, testClusterVersionLatest, registryConfig, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "registry_integration", "false"),
+				),
+			},
+			// Re-enable registry integration
+			{
+				Config: fmt.Sprintf(`%s
+
+%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name                 = "%s"
+  region               = "nyc3"
+  version              = data.digitalocean_kubernetes_versions.test.latest_version
+  registry_integration = true
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+				`, testClusterVersionLatest, registryConfig, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "registry_integration", "true"),
 				),
 			},
 		},

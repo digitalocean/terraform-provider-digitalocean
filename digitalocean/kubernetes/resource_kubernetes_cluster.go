@@ -61,6 +61,13 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"registry_integration": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: false,
+			},
+
 			"version": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -294,6 +301,13 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
 	}
 
+	if d.Get("registry_integration") == true {
+		err = enableRegistryIntegration(client, cluster.ID)
+		if err != nil {
+			return diag.Errorf("Error enabling registry integration: %s", err)
+		}
+	}
+
 	return resourceDigitalOceanKubernetesClusterRead(ctx, d, meta)
 }
 
@@ -450,6 +464,20 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 		}
 	}
 
+	if d.HasChanges("registry_integration") {
+		if d.Get("registry_integration") == true {
+			err := enableRegistryIntegration(client, d.Id())
+			if err != nil {
+				return diag.Errorf("Error enabling registry integration: %s", err)
+			}
+		} else {
+			err := disableRegistryIntegration(client, d.Id())
+			if err != nil {
+				return diag.Errorf("Error disabling registry integration: %s", err)
+			}
+		}
+	}
+
 	return resourceDigitalOceanKubernetesClusterRead(ctx, d, meta)
 }
 
@@ -560,6 +588,16 @@ func resourceDigitalOceanKubernetesClusterImportState(d *schema.ResourceData, me
 	}
 
 	return resourceDatas, nil
+}
+
+func enableRegistryIntegration(client *godo.Client, cluster_uuid string) error {
+	_, err := client.Kubernetes.AddRegistry(context.Background(), &godo.KubernetesClusterRegistryRequest{ClusterUUIDs: []string{cluster_uuid}})
+	return err
+}
+
+func disableRegistryIntegration(client *godo.Client, cluster_uuid string) error {
+	_, err := client.Kubernetes.RemoveRegistry(context.Background(), &godo.KubernetesClusterRegistryRequest{ClusterUUIDs: []string{cluster_uuid}})
+	return err
 }
 
 func waitForKubernetesClusterCreate(client *godo.Client, d *schema.ResourceData) (*godo.KubernetesCluster, error) {
