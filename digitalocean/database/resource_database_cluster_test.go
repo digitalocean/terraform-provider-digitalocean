@@ -396,6 +396,7 @@ func TestAccDigitalOceanDatabaseCluster_WithBackupRestore(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: backUpRestoreConfig,
