@@ -97,10 +97,8 @@ In addition to the arguments listed above, the following additional attributes a
 
 ## Import
 
-If you are importing an existing Kubernetes cluster, just import the cluster. Importing a cluster also imports
-all of its associated node pools.
-
-If you still need to import a single node pool, then import it by using its `id`, e.g.
+If you are importing an existing Kubernetes cluster with a single node pool, just
+import the cluster. Additional node pools can be imported it by using their `id`, e.g.
 
 ```
 terraform import digitalocean_kubernetes_node_pool.mynodepool 9d76f410-9284-4436-9633-4066852442c8

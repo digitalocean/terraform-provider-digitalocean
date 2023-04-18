@@ -3,8 +3,7 @@ package kubernetes_test
 import (
 	"context"
 	"fmt"
-	"reflect"
-	"sort"
+	"regexp"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -13,6 +12,15 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+)
+
+var (
+	clusterStateIgnore = []string{
+		"kube_config",            // because kube_config was completely different for imported state
+		"node_pool.0.node_count", // because import test failed before DO had started the node in pool
+		"updated_at",             // because removing default tag updates the resource outside of Terraform
+		"registry_integration",   // registry_integration state can not be known via the API
+	}
 )
 
 func TestAccDigitalOceanKubernetesCluster_ImportBasic(t *testing.T) {
@@ -30,15 +38,68 @@ func TestAccDigitalOceanKubernetesCluster_ImportBasic(t *testing.T) {
 				Check: testAccDigitalOceanKubernetesRemoveDefaultNodePoolTag(clusterName),
 			},
 			{
+				ResourceName:            "digitalocean_kubernetes_cluster.foobar",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: clusterStateIgnore,
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesCluster_ImportErrorNonDefaultNodePool(t *testing.T) {
+	testName1 := acceptance.RandomTestName()
+	testName2 := acceptance.RandomTestName()
+
+	config := fmt.Sprintf(testAccDigitalOceanKubernetesCusterWithMultipleNodePools, testClusterVersionLatest, testName1, testName2)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				// Remove the default node pool tag before importing in order to
+				// trigger the multiple node pool import error.
+				Check: testAccDigitalOceanKubernetesRemoveDefaultNodePoolTag(testName1),
+			},
+			{
 				ResourceName:      "digitalocean_kubernetes_cluster.foobar",
 				ImportState:       true,
-				ImportStateVerify: true,
-				ImportStateVerifyIgnore: []string{
-					"kube_config",            // because kube_config was completely different for imported state
-					"node_pool.0.node_count", // because import test failed before DO had started the node in pool
-					"updated_at",             // because removing default tag updates the resource outside of Terraform
-					"registry_integration",   // registry_integration state can not be known via the API
-				},
+				ImportStateVerify: false,
+				ExpectError:       regexp.MustCompile(kubernetes.MultipleNodePoolImportError.Error()),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesCluster_ImportNonDefaultNodePool(t *testing.T) {
+	testName1 := acceptance.RandomTestName()
+	testName2 := acceptance.RandomTestName()
+
+	config := fmt.Sprintf(testAccDigitalOceanKubernetesCusterWithMultipleNodePools, testClusterVersionLatest, testName1, testName2)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+			},
+			{
+				ResourceName:            "digitalocean_kubernetes_cluster.foobar",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: clusterStateIgnore,
+			},
+			// Import the non-default node pool as a separate digitalocean_kubernetes_node_pool resource.
+			{
+				ResourceName:            "digitalocean_kubernetes_node_pool.barfoo",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: clusterStateIgnore,
 			},
 		},
 	})
@@ -92,11 +153,7 @@ func testAccDigitalOceanKubernetesRemoveDefaultNodePoolTag(clusterName string) r
 	}
 }
 
-func TestAccDigitalOceanKubernetesCluster_ImportNonDefaultNodePool(t *testing.T) {
-	testName1 := acceptance.RandomTestName()
-	testName2 := acceptance.RandomTestName()
-
-	config := fmt.Sprintf(`%s
+const testAccDigitalOceanKubernetesCusterWithMultipleNodePools = `%s
 
 resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
@@ -116,37 +173,4 @@ resource "digitalocean_kubernetes_node_pool" "barfoo" {
   size       = "s-1vcpu-2gb"
   node_count = 1
 }
-`, testClusterVersionLatest, testName1, testName2)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
-		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: config,
-			},
-			{
-				ResourceName: "digitalocean_kubernetes_cluster.foobar",
-				ImportState:  true,
-				ImportStateCheck: func(s []*terraform.InstanceState) error {
-					if len(s) != 2 {
-						return fmt.Errorf("expected 2 states: %#v", s)
-					}
-
-					actualNames := []string{s[0].Attributes["name"], s[1].Attributes["name"]}
-					expectedNames := []string{testName1, testName2}
-					sort.Strings(actualNames)
-					sort.Strings(expectedNames)
-
-					if !reflect.DeepEqual(actualNames, expectedNames) {
-						return fmt.Errorf("expected name attributes for cluster and node pools to match: expected=%#v, actual=%#v, s=%#v",
-							expectedNames, actualNames, s)
-					}
-
-					return nil
-				},
-			},
-		},
-	})
-}
+`
