@@ -898,13 +898,10 @@ provider "kubernetes" {
   token = digitalocean_kubernetes_cluster.foobar.kube_config[0].token
 }
 
-resource "kubernetes_service_account" "tiller" {
+resource "kubernetes_namespace" "example" {
   metadata {
-    name      = "tiller"
-    namespace = "kube-system"
+    name = "example-namespace"
   }
-
-  automount_service_account_token = true
 }
 `, testClusterVersion, rName)
 }
