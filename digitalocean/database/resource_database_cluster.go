@@ -281,14 +281,6 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 
 	if v, ok := d.GetOk("backup_restore"); ok {
 		opts.BackupRestore = expandBackupRestore(v.([]interface{}))
-		originalDBName := opts.BackupRestore.DatabaseName
-		// waits for a a back up to be created before forking
-		err := waitForDatabaseBackups(client, d, originalDBName)
-		if err != nil {
-			d.SetId("")
-			return diag.Errorf("Error retrieving database cluster backups: %s", err)
-		}
-
 	}
 
 	log.Printf("[DEBUG] database cluster create configuration: %#v", opts)
@@ -560,58 +552,6 @@ func waitForDatabaseCluster(client *godo.Client, d *schema.ResourceData, status 
 	}
 
 	return nil, fmt.Errorf("Timeout waiting to database cluster to become %s", status)
-}
-
-func waitForDatabaseBackups(client *godo.Client, d *schema.ResourceData, originalDatabaseName string) error {
-	var (
-		tickerInterval = 15 * time.Second
-		timeoutSeconds = d.Timeout(schema.TimeoutDelete).Seconds()
-		timeout        = int(timeoutSeconds / tickerInterval.Seconds())
-		n              = 0
-		ticker         = time.NewTicker(tickerInterval)
-	)
-	databases, _, err := client.Databases.List(context.Background(), nil)
-	if err != nil {
-		return fmt.Errorf("Error retrieving backups from original cluster")
-	}
-
-	// gets original database's ID
-	var originalDatabaseID string
-	for _, db := range databases {
-		if db.Name == originalDatabaseName {
-			originalDatabaseID = db.ID
-		}
-	}
-
-	if originalDatabaseID == "" {
-		return fmt.Errorf("Error retrieving backups from cluster")
-	}
-
-	for range ticker.C {
-		backups, resp, err := client.Databases.ListBackups(context.Background(), originalDatabaseID, nil)
-		if resp.StatusCode == 412 {
-			continue
-		}
-
-		if err != nil {
-			ticker.Stop()
-			return fmt.Errorf("Error retrieving backups from cluster")
-		}
-
-		if len(backups) >= 1 {
-			ticker.Stop()
-			return nil
-		}
-
-		if n > timeout {
-			ticker.Stop()
-			break
-		}
-
-		n++
-	}
-
-	return fmt.Errorf("Timeout waiting for database cluster to have a backup to be restored from")
 }
 
 func expandMaintWindowOpts(config []interface{}) *godo.DatabaseUpdateMaintenanceRequest {

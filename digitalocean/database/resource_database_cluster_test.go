@@ -391,7 +391,8 @@ func TestAccDigitalOceanDatabaseCluster_WithBackupRestore(t *testing.T) {
 	originalDatabaseName := acceptance.RandomTestName()
 	backupDatabasename := acceptance.RandomTestName()
 
-	backUpRestoreConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithBackupRestore, originalDatabaseName, backupDatabasename, originalDatabaseName)
+	originalDatabaseConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, originalDatabaseName)
+	backUpRestoreConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithBackupRestore, backupDatabasename, originalDatabaseName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -399,10 +400,21 @@ func TestAccDigitalOceanDatabaseCluster_WithBackupRestore(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: backUpRestoreConfig,
+				Config: originalDatabaseConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &originalDatabase),
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&originalDatabase, originalDatabaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "region", "nyc1"),
+					func(s *terraform.State) error {
+						err := waitForDatabaseBackups(originalDatabaseName)
+						return err
+					},
+				),
+			},
+			{
+				Config: originalDatabaseConfig + backUpRestoreConfig,
+				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar_backup", &backupDatabase),
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&backupDatabase, backupDatabasename),
 					resource.TestCheckResourceAttr(
@@ -600,6 +612,61 @@ func testAccCheckDigitalOceanDatabaseClusterURIPassword(name string, attributeNa
 	}
 }
 
+func waitForDatabaseBackups(originalDatabaseName string) error {
+	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
+
+	var (
+		tickerInterval = 10 * time.Second
+		timeoutSeconds = 300.0
+		timeout        = int(timeoutSeconds / tickerInterval.Seconds())
+		n              = 0
+		ticker         = time.NewTicker(tickerInterval)
+	)
+
+	databases, _, err := client.Databases.List(context.Background(), nil)
+	if err != nil {
+		return fmt.Errorf("Error retrieving backups from original cluster")
+	}
+
+	// gets original database's ID
+	var originalDatabaseID string
+	for _, db := range databases {
+		if db.Name == originalDatabaseName {
+			originalDatabaseID = db.ID
+		}
+	}
+
+	if originalDatabaseID == "" {
+		return fmt.Errorf("Error retrieving backups from cluster")
+	}
+
+	for range ticker.C {
+		backups, resp, err := client.Databases.ListBackups(context.Background(), originalDatabaseID, nil)
+		if resp.StatusCode == 412 {
+			continue
+		}
+
+		if err != nil {
+			ticker.Stop()
+			return fmt.Errorf("Error retrieving backups from cluster")
+		}
+
+		if len(backups) >= 1 {
+			ticker.Stop()
+			return nil
+		}
+
+		if n > timeout {
+			ticker.Stop()
+			break
+		}
+
+		n++
+	}
+
+	return fmt.Errorf("Timeout waiting for database cluster to have a backup to be restored from")
+}
+
 const testAccCheckDigitalOceanDatabaseClusterConfigBasic = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
@@ -611,17 +678,7 @@ resource "digitalocean_database_cluster" "foobar" {
   tags       = ["production"]
 }`
 
-const testAccCheckDigitalOceanDatabaseClusterConfigWithBackupRestore = ` 
-resource "digitalocean_database_cluster" "foobar" {
-  name       = "%s"
-  engine     = "pg"
-  version    = "11"
-  size       = "db-s-1vcpu-2gb"
-  region     = "nyc1"
-  node_count = 1
-  tags       = ["production"]
-}
-
+const testAccCheckDigitalOceanDatabaseClusterConfigWithBackupRestore = `
 resource "digitalocean_database_cluster" "foobar_backup" {
   name       = "%s"
   engine     = "pg"
@@ -634,10 +691,6 @@ resource "digitalocean_database_cluster" "foobar_backup" {
   backup_restore {
     database_name = "%s"
   }
-
-  depends_on = [
-    digitalocean_database_cluster.foobar
-  ]
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithUpdate = `
