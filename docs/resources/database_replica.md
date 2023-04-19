@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `cluster_id` - (Required) The ID of the original source database cluster.
 * `name` - (Required) The name for the database replica.
-* `size` - (Required) Database Droplet size associated with the replica (ex. `db-s-1vcpu-1gb`).
+* `size` - (Required) Database Droplet size associated with the replica (ex. `db-s-1vcpu-1gb`). Note that when resizing an existing replica, its size can only be increased. Decreasing its size is not supported.
 * `region` - (Required) DigitalOcean region where the replica will reside.
 * `tags` - (Optional) A list of tag names to be applied to the database replica.
 * `private_network_uuid` - (Optional) The ID of the VPC where the database replica will be located.
