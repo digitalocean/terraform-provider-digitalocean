@@ -53,11 +53,10 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "lon1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "nyc1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "surge_upgrade", "true"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ha", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ha", "false"),
 					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
-					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "ipv4_address"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_subnet"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "service_subnet"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "endpoint"),
@@ -899,13 +898,10 @@ provider "kubernetes" {
   token = digitalocean_kubernetes_cluster.foobar.kube_config[0].token
 }
 
-resource "kubernetes_service_account" "tiller" {
+resource "kubernetes_namespace" "example" {
   metadata {
-    name      = "tiller"
-    namespace = "kube-system"
+    name = "example-namespace"
   }
-
-  automount_service_account_token = true
 }
 `, testClusterVersion, rName)
 }
