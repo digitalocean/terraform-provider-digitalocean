@@ -56,6 +56,37 @@ resource "digitalocean_database_cluster" "mongodb-example" {
 }
 ```
 
+## Create a new database cluster based on a backup of an existing cluster.
+```hcl
+resource "digitalocean_database_cluster" "doby" {
+  name       = "dobydb"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-2gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+}
+
+resource "digitalocean_database_cluster" "doby_backup" {
+  name       = "dobydupe"
+  engine     = "pg"
+  version    = "11"
+  size       = "db-s-1vcpu-2gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+  
+  backup_restore {
+    database_name  = "dobydb"
+  }
+
+  depends_on = [
+    digitalocean_database_cluster.doby
+  ]
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -78,6 +109,13 @@ The following arguments are supported:
 
 * `day` - (Required) The day of the week on which to apply maintenance updates.
 * `hour` - (Required) The hour in UTC at which maintenance updates will be applied in 24 hour format.
+
+* `backup_restore` - (Optional) Create a new database cluster based on a backup of an existing cluster.
+
+`backup_restore` supports the following:
+
+* `database_name` - (Required) The name of an existing database cluster from which the backup will be restored.
+* `backup_created_at` - (Optional) The timestamp of an existing database cluster backup in ISO8601 combined date and time format. The most recent backup will be used if excluded.
 
 This resource supports [customized create timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
 

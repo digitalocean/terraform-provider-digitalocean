@@ -191,6 +191,24 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 			},
 
 			"tags": tag.TagsSchema(),
+
+			"backup_restore": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"database_name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"backup_created_at": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -259,6 +277,10 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 
 	if v, ok := d.GetOk("project_id"); ok {
 		opts.ProjectID = v.(string)
+	}
+
+	if v, ok := d.GetOk("backup_restore"); ok {
+		opts.BackupRestore = expandBackupRestore(v.([]interface{}))
 	}
 
 	log.Printf("[DEBUG] database cluster create configuration: %#v", opts)
@@ -611,4 +633,15 @@ func buildMongoDBConnectionURI(conn *godo.DatabaseConnection, d *schema.Resource
 	uri.User = userInfo
 
 	return uri.String(), nil
+}
+
+func expandBackupRestore(config []interface{}) *godo.DatabaseBackupRestore {
+	backupRestoreConfig := config[0].(map[string]interface{})
+
+	backupRestore := &godo.DatabaseBackupRestore{
+		DatabaseName:    backupRestoreConfig["database_name"].(string),
+		BackupCreatedAt: backupRestoreConfig["backup_created_at"].(string),
+	}
+
+	return backupRestore
 }
