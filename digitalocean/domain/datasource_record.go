@@ -79,17 +79,7 @@ func dataSourceDigitalOceanRecordRead(ctx context.Context, d *schema.ResourceDat
 	domain := d.Get("domain").(string)
 	name := d.Get("name").(string)
 
-	opts := &godo.ListOptions{}
-
-	records, resp, err := client.Domains.Records(context.Background(), domain, opts)
-	if err != nil {
-		if resp != nil && resp.StatusCode == 404 {
-			return diag.Errorf("domain not found: %s", err)
-		}
-		return diag.Errorf("Error retrieving domain: %s", err)
-	}
-
-	record, err := findRecordByName(records, name)
+	record, err := findRecordByName(client, domain, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -108,18 +98,38 @@ func dataSourceDigitalOceanRecordRead(ctx context.Context, d *schema.ResourceDat
 	return nil
 }
 
-func findRecordByName(records []godo.DomainRecord, name string) (*godo.DomainRecord, error) {
-	results := make([]godo.DomainRecord, 0)
-	for _, v := range records {
-		if v.Name == name {
-			results = append(results, v)
+func findRecordByName(client *godo.Client, domain, name string) (*godo.DomainRecord, error) {
+	opts := &godo.ListOptions{
+		Page:    1,
+		PerPage: 200,
+	}
+
+	for {
+		records, resp, err := client.Domains.Records(context.Background(), domain, opts)
+		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				return nil, fmt.Errorf("domain not found: %s", err)
+			}
+			return nil, fmt.Errorf("error retrieving domain: %s", err)
 		}
+
+		for _, r := range records {
+			if r.Name == name {
+				return &r, nil
+			}
+		}
+
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving records: %s", err)
+		}
+
+		opts.Page = page + 1
 	}
-	if len(results) == 1 {
-		return &results[0], nil
-	}
-	if len(results) == 0 {
-		return nil, fmt.Errorf("no records found with name %s", name)
-	}
-	return nil, fmt.Errorf("too many records found (found %d, expected 1)", len(results))
+
+	return nil, fmt.Errorf("no records found with name %s", name)
 }
