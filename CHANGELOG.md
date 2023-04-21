@@ -1,3 +1,24 @@
+# 2.28.0
+
+IMPROVEMENTS:
+
+- `provider`: Add godo's rate limiter configuration & retryable http client (#967). - @DanielHLelis
+- `digitalocean_kubernetes_cluster`: Support container registry integration (#963). - @mohsenSy
+- `digitalocean_database_replica`: Add support for resizing replicas (#977). - @andrewsomething
+- `digitalocean_database_cluster`: Add backup-restore functionality to db create (#970). - @danaelhe
+
+BUG FIXES:
+
+- `digitalocean_record`: Handle pagination in data source (#979). - @andrewsomething
+- `digitalocean_kubernetes_cluster`: Require importing additional node pools manually (#976). - @andrewsomething
+- `digitalocean_database_replica`: Add uuid to data source schema (#969). - @andrewsomething
+
+MISC:
+
+- `docs`: Fix inconsistencies in `digitalocean_uptime_alert` documentation #972 - @nicwortel
+- `docs`: Use correct links in uptime docs. #973 - @andrewsomething
+- `provider`: Update Terraform SDK to v2.26.1. #975 - @andrewsomething
+
 # 2.27.1
 
 BUG FIXES:
