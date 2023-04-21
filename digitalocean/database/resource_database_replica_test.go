@@ -105,6 +105,58 @@ func TestAccDigitalOceanDatabaseReplica_WithVPC(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseReplica_Resize(t *testing.T) {
+	var databaseReplica godo.DatabaseReplica
+	var database godo.Database
+
+	databaseName := acceptance.RandomTestName()
+	databaseReplicaName := acceptance.RandomTestName()
+
+	databaseConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, databaseName)
+	replicaConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigBasic, databaseReplicaName)
+	resizedConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigResized, databaseReplicaName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseReplicaDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: databaseConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+				),
+			},
+			{
+				Config: databaseConfig + replicaConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseReplicaExists("digitalocean_database_replica.read-01", &databaseReplica),
+					testAccCheckDigitalOceanDatabaseReplicaAttributes(&databaseReplica, databaseReplicaName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_replica.read-01", "size", "db-s-1vcpu-2gb"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_replica.read-01", "name", databaseReplicaName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_replica.read-01", "uuid"),
+				),
+			},
+			{
+				Config: databaseConfig + resizedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseReplicaExists("digitalocean_database_replica.read-01", &databaseReplica),
+					testAccCheckDigitalOceanDatabaseReplicaAttributes(&databaseReplica, databaseReplicaName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_replica.read-01", "size", "db-s-2vcpu-4gb"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_replica.read-01", "name", databaseReplicaName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_replica.read-01", "uuid"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDatabaseReplicaDestroy(s *terraform.State) error {
 	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
@@ -179,6 +231,15 @@ resource "digitalocean_database_replica" "read-01" {
   name       = "%s"
   region     = "nyc3"
   size       = "db-s-1vcpu-2gb"
+  tags       = ["staging"]
+}`
+
+const testAccCheckDigitalOceanDatabaseReplicaConfigResized = `
+resource "digitalocean_database_replica" "read-01" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
+  region     = "nyc3"
+  size       = "db-s-2vcpu-4gb"
   tags       = ["staging"]
 }`
 

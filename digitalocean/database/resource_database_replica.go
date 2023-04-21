@@ -22,6 +22,7 @@ func ResourceDigitalOceanDatabaseReplica() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanDatabaseReplicaCreate,
 		ReadContext:   resourceDigitalOceanDatabaseReplicaRead,
+		UpdateContext: resourceDigitalOceanDatabaseReplicaUpdate,
 		DeleteContext: resourceDigitalOceanDatabaseReplicaDelete,
 		Importer: &schema.ResourceImporter{
 			State: resourceDigitalOceanDatabaseReplicaImport,
@@ -58,7 +59,6 @@ func ResourceDigitalOceanDatabaseReplica() *schema.Resource {
 			"size": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 
 			"private_network_uuid": {
@@ -215,6 +215,37 @@ func resourceDigitalOceanDatabaseReplicaRead(ctx context.Context, d *schema.Reso
 	d.Set("private_network_uuid", replica.PrivateNetworkUUID)
 
 	return nil
+}
+
+func resourceDigitalOceanDatabaseReplicaUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*config.CombinedConfig).GodoClient()
+	clusterID := d.Get("cluster_id").(string)
+	replicaID := d.Get("uuid").(string)
+	replicaName := d.Get("name").(string)
+
+	if d.HasChanges("size") {
+		opts := &godo.DatabaseResizeRequest{
+			SizeSlug: d.Get("size").(string),
+			NumNodes: 1, // Read-only replicas only support a single node configuration.
+		}
+
+		resp, err := client.Databases.Resize(context.Background(), replicaID, opts)
+		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				d.SetId("")
+				return nil
+			}
+
+			return diag.Errorf("Error resizing database replica: %s", err)
+		}
+
+		_, err = waitForDatabaseReplica(client, clusterID, "online", replicaName)
+		if err != nil {
+			return diag.Errorf("Error resizing database replica: %s", err)
+		}
+	}
+
+	return resourceDigitalOceanDatabaseReplicaRead(ctx, d, meta)
 }
 
 func resourceDigitalOceanDatabaseReplicaImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
