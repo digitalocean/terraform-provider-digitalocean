@@ -14,6 +14,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -148,6 +149,7 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 
 			"ipv6_address": {
 				Type:     schema.TypeString,
+				Optional: true,
 				Computed: true,
 			},
 
@@ -220,6 +222,22 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 		},
+
+		CustomizeDiff: customdiff.All(
+			// If the `ipv6` attribute is changed to `true`, we need to mark the
+			// `ipv6_address` attribute as changing in the plan. If not, the plan
+			// will become inconsistent once the address is known when referenced
+			// in another resource such as a domain record, e.g.:
+			// https://github.com/digitalocean/terraform-provider-digitalocean/issues/981
+			customdiff.IfValueChange("ipv6",
+				func(ctx context.Context, old, new, meta interface{}) bool {
+					return !old.(bool) && new.(bool)
+				},
+				customdiff.ComputedIf("ipv6_address", func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+					return d.Get("ipv6").(bool)
+				}),
+			),
+		),
 	}
 }
 
