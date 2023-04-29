@@ -95,6 +95,11 @@ func ResourceDigitalOceanCustomImage() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+		},
+
 		// Images can not currently be removed from a region.
 		CustomizeDiff: customdiff.ForceNewIfChange("regions", func(ctx context.Context, old, new, meta interface{}) bool {
 			remove, _ := util.GetSetChanges(old.(*schema.Set), new.(*schema.Set))
@@ -256,7 +261,7 @@ func waitForImage(ctx context.Context, d *schema.ResourceData, target string, pe
 		Pending:    pending,
 		Target:     []string{target},
 		Refresh:    imageStateRefreshFunc(ctx, d, attribute, meta),
-		Timeout:    120 * time.Minute,
+		Timeout:    d.Timeout(schema.TimeoutCreate),
 		Delay:      1 * time.Second,
 		MinTimeout: 60 * time.Second,
 	}
