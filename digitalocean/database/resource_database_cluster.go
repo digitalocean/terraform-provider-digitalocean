@@ -521,7 +521,7 @@ func resourceDigitalOceanDatabaseClusterDelete(ctx context.Context, d *schema.Re
 func waitForDatabaseCluster(client *godo.Client, d *schema.ResourceData, status string) (*godo.Database, error) {
 	var (
 		tickerInterval = 15 * time.Second
-		timeoutSeconds = d.Timeout(schema.TimeoutDelete).Seconds()
+		timeoutSeconds = d.Timeout(schema.TimeoutCreate).Seconds()
 		timeout        = int(timeoutSeconds / tickerInterval.Seconds())
 		n              = 0
 		ticker         = time.NewTicker(tickerInterval)
@@ -543,7 +543,7 @@ func waitForDatabaseCluster(client *godo.Client, d *schema.ResourceData, status 
 			return database, nil
 		}
 
-		if n > timeout {
+		if n >= timeout {
 			ticker.Stop()
 			break
 		}
