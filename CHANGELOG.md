@@ -1,3 +1,11 @@
+# 2.28.1
+
+BUG FIXES:
+
+- `digitalocean_database_cluster`: Fix custom create timeouts (#987). - @andrewsomething
+- `digitalocean_droplet`: Prevent inconsistent plan when enabling IPv6 (#982). - @andrewsomething
+- `digitalocean_custom_image`: use custom create timeout (#985). - @andrewsomething
+
 # 2.28.0
 
 IMPROVEMENTS:
