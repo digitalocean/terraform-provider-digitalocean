@@ -100,6 +100,7 @@ func Provider() *schema.Provider {
 			"digitalocean_database_cluster":      database.DataSourceDigitalOceanDatabaseCluster(),
 			"digitalocean_database_ca":           database.DataSourceDigitalOceanDatabaseCA(),
 			"digitalocean_database_replica":      database.DataSourceDigitalOceanDatabaseReplica(),
+			"digitalocean_database_user":         database.DataSourceDigitalOceanDatabaseUser(),
 			"digitalocean_domain":                domain.DataSourceDigitalOceanDomain(),
 			"digitalocean_domains":               domain.DataSourceDigitalOceanDomains(),
 			"digitalocean_droplet":               droplet.DataSourceDigitalOceanDroplet(),
