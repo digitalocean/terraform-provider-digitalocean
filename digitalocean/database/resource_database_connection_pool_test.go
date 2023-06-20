@@ -264,12 +264,12 @@ resource "digitalocean_database_cluster" "foobar" {
 }
 
 resource "digitalocean_database_connection_pool" "pool-01" {
-  cluster_id = digitalocean_database_cluster.foobar.id
-  name       = "%s"
-  mode       = "transaction"
-  size       = 10
-  db_name    = "defaultdb"
-  user       = "doadmin"
+  cluster_id     = digitalocean_database_cluster.foobar.id
+  name           = "%s"
+  mode           = "transaction"
+  size           = 10
+  db_name        = "defaultdb"
+  user           = "doadmin"
   skip_if_exists = true
 }`
 
