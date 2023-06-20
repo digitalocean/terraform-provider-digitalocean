@@ -150,6 +150,47 @@ func testAccCheckDigitalOceanDatabaseConnectionPoolDestroy(s *terraform.State) e
 	return nil
 }
 
+func TestAccDigitalOceanDatabaseConnectionPool_SkipIfExistIsPassed(t *testing.T) {
+	databaseName := acceptance.RandomTestName()
+	databaseConnectionPoolName := acceptance.RandomTestName()
+	var databaseConnectionPool godo.DatabasePool
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseConnectionPoolDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseConnectionPoolConfigBasicSkipIfExists, databaseName, databaseConnectionPoolName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseConnectionPoolExists("digitalocean_database_connection_pool.pool-01", &databaseConnectionPool),
+					testAccCheckDigitalOceanDatabaseConnectionPoolAttributes(&databaseConnectionPool, databaseConnectionPoolName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_connection_pool.pool-01", "name", databaseConnectionPoolName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_connection_pool.pool-01", "size", "10"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_connection_pool.pool-01", "mode", "transaction"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_connection_pool.pool-01", "db_name", "defaultdb"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_connection_pool.pool-01", "user", "doadmin"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_connection_pool.pool-01", "host"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_connection_pool.pool-01", "private_host"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_connection_pool.pool-01", "port"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_connection_pool.pool-01", "uri"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_connection_pool.pool-01", "private_uri"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDatabaseConnectionPoolExists(n string, database *godo.DatabasePool) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -197,7 +238,7 @@ const testAccCheckDigitalOceanDatabaseConnectionPoolConfigBasic = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "14"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
@@ -212,11 +253,31 @@ resource "digitalocean_database_connection_pool" "pool-01" {
   user       = "doadmin"
 }`
 
+const testAccCheckDigitalOceanDatabaseConnectionPoolConfigBasicSkipIfExists = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "pg"
+  version    = "14"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+}
+
+resource "digitalocean_database_connection_pool" "pool-01" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
+  mode       = "transaction"
+  size       = 10
+  db_name    = "defaultdb"
+  user       = "doadmin"
+  skip_if_exists = true
+}`
+
 const testAccCheckDigitalOceanDatabaseConnectionPoolConfigUpdated = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
