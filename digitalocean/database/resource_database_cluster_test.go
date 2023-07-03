@@ -464,8 +464,8 @@ func TestAccDigitalOceanDatabaseCluster_MongoDBPassword(t *testing.T) {
 func TestAccDigitalOceanDatabaseCluster_Upgrade(t *testing.T) {
 	var database godo.Database
 	databaseName := acceptance.RandomTestName()
-	previousPGVersion := "13"
-	latestPGVersion := "14"
+	previousPGVersion := "14"
+	latestPGVersion := "15"
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -671,7 +671,7 @@ const testAccCheckDigitalOceanDatabaseClusterConfigBasic = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-2gb"
   region     = "nyc1"
   node_count = 1
@@ -682,7 +682,7 @@ const testAccCheckDigitalOceanDatabaseClusterConfigWithBackupRestore = `
 resource "digitalocean_database_cluster" "foobar_backup" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-2gb"
   region     = "nyc1"
   node_count = 1
@@ -697,7 +697,7 @@ const testAccCheckDigitalOceanDatabaseClusterConfigWithUpdate = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-2vcpu-4gb"
   region     = "nyc1"
   node_count = 1
@@ -708,7 +708,7 @@ const testAccCheckDigitalOceanDatabaseClusterConfigWithMigration = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-2gb"
   region     = "lon1"
   node_count = 1
@@ -719,7 +719,7 @@ const testAccCheckDigitalOceanDatabaseClusterConfigWithMaintWindow = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
@@ -814,7 +814,7 @@ const testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicyError = `
 resource "digitalocean_database_cluster" "foobar" {
   name            = "%s"
   engine          = "pg"
-  version         = "11"
+  version         = "15"
   size            = "db-s-1vcpu-1gb"
   region          = "nyc1"
   node_count      = 1
@@ -826,7 +826,7 @@ const testAccCheckDigitalOceanDatabaseClusterConfigTagUpdate = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-2gb"
   region     = "nyc1"
   node_count = 1
@@ -842,7 +842,7 @@ resource "digitalocean_vpc" "foobar" {
 resource "digitalocean_database_cluster" "foobar" {
   name                 = "%s"
   engine               = "pg"
-  version              = "11"
+  version              = "15"
   size                 = "db-s-1vcpu-2gb"
   region               = "nyc1"
   node_count           = 1
@@ -878,7 +878,7 @@ resource "digitalocean_project" "foobar" {
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-2gb"
   region     = "nyc1"
   node_count = 1
