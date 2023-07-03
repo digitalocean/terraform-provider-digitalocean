@@ -89,7 +89,7 @@ const testAccCheckDataSourceDigitalOceanDatabaseClusterConfigBasic = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
@@ -101,7 +101,7 @@ const testAccCheckDataSourceDigitalOceanDatabaseClusterConfigWithDatasource = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
