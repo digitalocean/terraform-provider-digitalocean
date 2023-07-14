@@ -93,6 +93,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.start_time"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "registry_integration", "false"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "destroy_all_associated_resources", "false"),
 				),
 			},
 			// Update: remove default node_pool taints
@@ -735,6 +736,27 @@ func TestAccDigitalOceanKubernetesCluster_UpgradeVersion(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_DestroyAssociated(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfigDestroyAssociated(testClusterVersionPrevious, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttrPair("digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "destroy_all_associated_resources", "true"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDigitalOceanKubernetesConfigBasic(testClusterVersion string, rName string) string {
 	return fmt.Sprintf(`%s
 
@@ -901,6 +923,24 @@ provider "kubernetes" {
 resource "kubernetes_namespace" "example" {
   metadata {
     name = "example-namespace"
+  }
+}
+`, testClusterVersion, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigDestroyAssociated(testClusterVersion string, rName string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name                             = "%s"
+  region                           = "nyc1"
+  version                          = data.digitalocean_kubernetes_versions.test.latest_version
+  destroy_all_associated_resources = true
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
   }
 }
 `, testClusterVersion, rName)

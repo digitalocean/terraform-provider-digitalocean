@@ -169,6 +169,12 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"destroy_all_associated_resources": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -487,15 +493,37 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 
 func resourceDigitalOceanKubernetesClusterDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
+	destroyAssociatedResources := d.Get("destroy_all_associated_resources").(bool)
 
-	resp, err := client.Kubernetes.Delete(context.Background(), d.Id())
-	if err != nil {
-		if resp != nil && resp.StatusCode == 404 {
-			d.SetId("")
-			return nil
+	if destroyAssociatedResources {
+		log.Printf("[WARN] destroy_all_associated_resources set to true. All resources (load balancers, volumes, and volume snapshots) associated with the cluster will be destroyed.")
+
+		list, _, err := client.Kubernetes.ListAssociatedResourcesForDeletion(ctx, d.Id())
+		if err != nil {
+			return diag.Errorf("Failed to list associated resources: %s", err)
 		}
 
-		return diag.Errorf("Unable to delete cluster: %s", err)
+		log.Printf("[WARN] The following resources will be destroyed: %s", godo.Stringify(list))
+
+		resp, err := client.Kubernetes.DeleteDangerous(ctx, d.Id())
+		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				d.SetId("")
+				return nil
+			}
+
+			return diag.Errorf("Unable to delete cluster: %s", err)
+		}
+	} else {
+		resp, err := client.Kubernetes.Delete(ctx, d.Id())
+		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				d.SetId("")
+				return nil
+			}
+
+			return diag.Errorf("Unable to delete cluster: %s", err)
+		}
 	}
 
 	d.SetId("")
