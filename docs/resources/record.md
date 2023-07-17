@@ -70,4 +70,5 @@ Records can be imported using the domain name and record `id` when joined with a
 ```
 terraform import digitalocean_record.example_record example.com,12345678
 ```
-PS: You can get the `id` of the records from the API/CLI because it is not visible on the UI. Run the follow command on the CLI to display the `id` of a particular DNS record `doctl compute domain records list`
+
+~>  You find the `id` of the records [using the DigitalOcean API](https://docs.digitalocean.com/reference/api/api-reference/#operation/domains_list_records) or CLI. Run the follow command to list the IDs for all DNS records on a domain: `doctl compute domain records list <domain.name>`
