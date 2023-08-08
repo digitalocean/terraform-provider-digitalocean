@@ -2,9 +2,9 @@ module github.com/digitalocean/terraform-provider-digitalocean
 
 require (
 	github.com/aws/aws-sdk-go v1.42.18
-	github.com/digitalocean/godo v1.95.0
+	github.com/digitalocean/godo v1.100.1-0.20230803192756-bc798b06c70f
 	github.com/hashicorp/awspolicyequivalence v1.5.0
-	github.com/hashicorp/go-retryablehttp v0.7.2
+	github.com/hashicorp/go-retryablehttp v0.7.4
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/go-version v1.6.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.26.1
