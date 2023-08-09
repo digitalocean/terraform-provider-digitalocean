@@ -16,12 +16,13 @@ import (
 	"time"
 
 	"github.com/google/go-querystring/query"
+	"github.com/hashicorp/go-retryablehttp"
 	"golang.org/x/oauth2"
 	"golang.org/x/time/rate"
 )
 
 const (
-	libraryVersion = "1.95.0"
+	libraryVersion = "1.101.0"
 	defaultBaseURL = "https://api.digitalocean.com/"
 	userAgent      = "godo/" + libraryVersion
 	mediaType      = "application/json"
@@ -81,7 +82,6 @@ type Client struct {
 	Storage           StorageService
 	StorageActions    StorageActionsService
 	Tags              TagsService
-	Tokens            TokensService
 	UptimeChecks      UptimeChecksService
 	VPCs              VPCsService
 
@@ -93,6 +93,29 @@ type Client struct {
 
 	// Optional rate limiter to ensure QoS.
 	rateLimiter *rate.Limiter
+
+	// Optional retry values. Setting the RetryConfig.RetryMax value enables automatically retrying requests
+	// that fail with 429 or 500-level response codes using the go-retryablehttp client
+	RetryConfig RetryConfig
+}
+
+// RetryConfig sets the values used for enabling retries and backoffs for
+// requests that fail with 429 or 500-level response codes using the go-retryablehttp client.
+// RetryConfig.RetryMax must be configured to enable this behavior. RetryConfig.RetryWaitMin and
+// RetryConfig.RetryWaitMax are optional, with the default values being 1.0 and 30.0, respectively.
+//
+// You can use
+//
+//	godo.PtrTo(1.0)
+//
+// to explicitly set the RetryWaitMin and RetryWaitMax values.
+//
+// Note: Opting to use the go-retryablehttp client will overwrite any custom HTTP client passed into New().
+// Only the custom HTTP client's custom transport and timeout will be maintained.
+type RetryConfig struct {
+	RetryMax     int
+	RetryWaitMin *float64 // Minimum time to wait
+	RetryWaitMax *float64 // Maximum time to wait
 }
 
 // RequestCompletionCallback defines the type of the request callback function
@@ -252,7 +275,6 @@ func NewClient(httpClient *http.Client) *Client {
 	c.Storage = &StorageServiceOp{client: c}
 	c.StorageActions = &StorageActionsServiceOp{client: c}
 	c.Tags = &TagsServiceOp{client: c}
-	c.Tokens = &TokensServiceOp{client: c}
 	c.UptimeChecks = &UptimeChecksServiceOp{client: c}
 	c.VPCs = &VPCsServiceOp{client: c}
 
@@ -271,6 +293,33 @@ func New(httpClient *http.Client, opts ...ClientOpt) (*Client, error) {
 		if err := opt(c); err != nil {
 			return nil, err
 		}
+	}
+
+	// if retryMax is set it will use the retryablehttp client.
+	if c.RetryConfig.RetryMax > 0 {
+		retryableClient := retryablehttp.NewClient()
+		retryableClient.RetryMax = c.RetryConfig.RetryMax
+
+		if c.RetryConfig.RetryWaitMin != nil {
+			retryableClient.RetryWaitMin = time.Duration(*c.RetryConfig.RetryWaitMin * float64(time.Second))
+		}
+		if c.RetryConfig.RetryWaitMax != nil {
+			retryableClient.RetryWaitMax = time.Duration(*c.RetryConfig.RetryWaitMax * float64(time.Second))
+		}
+
+		// if timeout is set, it is maintained before overwriting client with StandardClient()
+		retryableClient.HTTPClient.Timeout = c.client.Timeout
+
+		var source *oauth2.Transport
+		if _, ok := c.client.Transport.(*oauth2.Transport); ok {
+			source = c.client.Transport.(*oauth2.Transport)
+		}
+		c.client = retryableClient.StandardClient()
+		c.client.Transport = &oauth2.Transport{
+			Base:   c.client.Transport,
+			Source: source.Source,
+		}
+
 	}
 
 	return c, nil
@@ -313,6 +362,17 @@ func SetRequestHeaders(headers map[string]string) ClientOpt {
 func SetStaticRateLimit(rps float64) ClientOpt {
 	return func(c *Client) error {
 		c.rateLimiter = rate.NewLimiter(rate.Limit(rps), 1)
+		return nil
+	}
+}
+
+// WithRetryAndBackoffs sets retry values. Setting the RetryConfig.RetryMax value enables automatically retrying requests
+// that fail with 429 or 500-level response codes using the go-retryablehttp client
+func WithRetryAndBackoffs(retryConfig RetryConfig) ClientOpt {
+	return func(c *Client) error {
+		c.RetryConfig.RetryMax = retryConfig.RetryMax
+		c.RetryConfig.RetryWaitMax = retryConfig.RetryWaitMax
+		c.RetryConfig.RetryWaitMin = retryConfig.RetryWaitMin
 		return nil
 	}
 }
@@ -442,7 +502,7 @@ func (c *Client) Do(ctx context.Context, req *http.Request, v interface{}) (*Res
 		return response, err
 	}
 
-	if v != nil {
+	if resp.StatusCode != http.StatusNoContent && v != nil {
 		if w, ok := v.(io.Writer); ok {
 			_, err = io.Copy(w, resp.Body)
 			if err != nil {
