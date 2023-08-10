@@ -77,7 +77,6 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	var godoOpts []godo.ClientOpt
 
 	client = oauth2.NewClient(context.Background(), tokenSrc)
-	client.Transport = logging.NewTransport("DigitalOcean", client.Transport)
 
 	if c.HTTPRetryMax > 0 {
 		retryConfig := godo.RetryConfig{
@@ -101,6 +100,10 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	}
 
 	godoClient, err := godo.New(client, godoOpts...)
+	clientTransport := logging.NewTransport("DigitalOcean", client.Transport)
+
+	godoClient.Client.Transport = clientTransport
+
 	if err != nil {
 		return nil, err
 	}
