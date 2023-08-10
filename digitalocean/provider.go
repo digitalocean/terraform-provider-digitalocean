@@ -76,7 +76,7 @@ func Provider() *schema.Provider {
 			"http_retry_max": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_HTTP_RETRY_MAX", 0),
+				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_HTTP_RETRY_MAX", 4),
 				Description: "The maximum number of retries on a failed API request.",
 			},
 			"http_retry_wait_min": {
