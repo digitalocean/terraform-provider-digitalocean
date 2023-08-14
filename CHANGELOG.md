@@ -1,3 +1,24 @@
+# 2.29.0
+
+FEATURES:
+
+- **New Data Source:** `digitalocean_database_user` (#989). - @lezgomatt
+
+IMPROVEMENTS:
+
+- `digitalocean_kubernetes_cluster`: Add destroy_all_associated_resources option (#1007). - @andrewsomething
+
+BUG FIXES:
+
+- `digitalocean_spaces_bucket`: Update `retryOnAwsCode` to five minutes (#999). - @danaelhe 
+
+MISC:
+
+- `docs`: Note how to get `id` for record import (#1004) - @nimboya
+- `provider`: Bump Go version to 1.20.x (#975). - @andrewsomething
+- `testing`: Update Postgres versions in acceptance tests (#1002). - @andrewsomething
+- `provider`: build(deps): bump google.golang.org/grpc from 1.51.0 to 1.53.0 (#1003). - @dependabot[bot]
+
 # 2.28.1
 
 BUG FIXES:

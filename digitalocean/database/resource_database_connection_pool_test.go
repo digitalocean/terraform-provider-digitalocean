@@ -238,7 +238,7 @@ const testAccCheckDigitalOceanDatabaseConnectionPoolConfigBasic = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "14"
+  version    = "15"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
@@ -295,7 +295,7 @@ const testAccCheckDigitalOceanDatabaseConnectionPoolConfigBad = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
@@ -314,7 +314,7 @@ const testAccCheckDigitalOceanDatabaseConnectionPoolConfigInboundUser = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
