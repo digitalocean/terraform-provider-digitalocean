@@ -80,7 +80,7 @@ func (c *Config) Client() (*CombinedConfig, error) {
 
 	if c.HTTPRetryMax > 0 {
 		retryConfig := godo.RetryConfig{
-			RetryMax:     3,
+			RetryMax:     c.HTTPRetryMax,
 			RetryWaitMin: godo.PtrTo(c.HTTPRetryWaitMin),
 			RetryWaitMax: godo.PtrTo(c.HTTPRetryWaitMax),
 		}
