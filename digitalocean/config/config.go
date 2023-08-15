@@ -102,7 +102,7 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	godoClient, err := godo.New(client, godoOpts...)
 	clientTransport := logging.NewTransport("DigitalOcean", client.Transport)
 
-	godoClient.Client.Transport = clientTransport
+	godoClient.HTTPClient.Transport = clientTransport
 
 	if err != nil {
 		return nil, err
