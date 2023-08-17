@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -83,6 +84,7 @@ func (c *Config) Client() (*CombinedConfig, error) {
 			RetryMax:     c.HTTPRetryMax,
 			RetryWaitMin: godo.PtrTo(c.HTTPRetryWaitMin),
 			RetryWaitMax: godo.PtrTo(c.HTTPRetryWaitMax),
+			Logger:       log.New(os.Stderr, "", log.LstdFlags),
 		}
 
 		godoOpts = []godo.ClientOpt{godo.WithRetryAndBackoffs(retryConfig)}
@@ -100,7 +102,7 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	}
 
 	godoClient, err := godo.New(client, godoOpts...)
-	clientTransport := logging.NewTransport("DigitalOcean", client.Transport)
+	clientTransport := logging.NewTransport("DigitalOcean", godoClient.HTTPClient.Transport)
 
 	godoClient.HTTPClient.Transport = clientTransport
 
