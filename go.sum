@@ -41,6 +41,8 @@ github.com/digitalocean/godo v1.101.0 h1:gtnKn+TdW7e1y42q3ms86GXWWC/4kHttKJyTFZq
 github.com/digitalocean/godo v1.101.0/go.mod h1:SaUYccN7r+CO1QtsbXGypAsgobDrmSfVMJESEfXgoEg=
 github.com/digitalocean/godo v1.102.0 h1:iXkLEHmrBi5n9TAbRcKM0182NwXYrp1xCj//7vMRFs4=
 github.com/digitalocean/godo v1.102.0/go.mod h1:SaUYccN7r+CO1QtsbXGypAsgobDrmSfVMJESEfXgoEg=
+github.com/digitalocean/godo v1.102.1 h1:BrNePwIXjQWjOJXVTBqkURMjm70BRR0qXbRKfHNBF24=
+github.com/digitalocean/godo v1.102.1/go.mod h1:SaUYccN7r+CO1QtsbXGypAsgobDrmSfVMJESEfXgoEg=
 github.com/emirpasic/gods v1.12.0 h1:QAUIPSaCu4G+POclxeqb3F+WPpdKqFGlw36+yOzGlrg=
 github.com/emirpasic/gods v1.12.0/go.mod h1:YfzfFFoVP/catgzJb4IKIqXjX78Ha8FMSDh3ymbK86o=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
