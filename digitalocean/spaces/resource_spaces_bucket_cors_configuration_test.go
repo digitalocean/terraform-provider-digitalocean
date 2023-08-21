@@ -258,9 +258,9 @@ func testAccCheckDigitalOceanSpacesBucketCorsConfigurationDestroy(s *terraform.S
 func testAccSpacesBucketCORSConfigurationConfig_basic(rName string, region string, origin string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "foobar" {
-	name   = %s
-	region = %s
-  }
+  name   = %s
+  region = %s
+}
 
 resource "digitalocean_spaces_bucket_cors_configuration" "test" {
   bucket = digitalocean_spaces_bucket.foobar.id
@@ -277,14 +277,14 @@ resource "digitalocean_spaces_bucket_cors_configuration" "test" {
 func testAccSpacesBucketCORSConfigurationConfig_completeSingleRule(rName string, region string, Name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "foobar" {
-	region        = "%s"
-	name          = "%s"
-	force_destroy = true
-	}
+  region        = "%s"
+  name          = "%s"
+  force_destroy = true
+}
 
 resource "digitalocean_spaces_bucket_cors_configuration" "test" {
-	bucket = digitalocean_spaces_bucket.foobar.id
-	region = "nyc3"
+  bucket = digitalocean_spaces_bucket.foobar.id
+  region = "nyc3"
 
   cors_rule {
     allowed_headers = ["*"]
@@ -301,14 +301,14 @@ resource "digitalocean_spaces_bucket_cors_configuration" "test" {
 func testAccSpacesBucketCORSConfigurationConfig_multipleRules(rName string, region string, Name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "foobar" {
-	region        = "%s"
-	name          = "%s"
-	force_destroy = true
-	}
+  region        = "%s"
+  name          = "%s"
+  force_destroy = true
+}
 
 resource "digitalocean_spaces_bucket_cors_configuration" "test" {
-	bucket = digitalocean_spaces_bucket.foobar.id
-	region = "nyc3"
+  bucket = digitalocean_spaces_bucket.foobar.id
+  region = "nyc3"
 
   cors_rule {
     allowed_headers = ["*"]
