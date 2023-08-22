@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -88,11 +87,6 @@ func (c *Config) Client() (*CombinedConfig, error) {
 		}
 
 		godoOpts = []godo.ClientOpt{godo.WithRetryAndBackoffs(retryConfig)}
-
-		client.Transport = &oauth2.Transport{
-			Base:   client.Transport,
-			Source: oauth2.ReuseTokenSource(nil, tokenSrc),
-		}
 	}
 
 	godoOpts = append(godoOpts, godo.SetUserAgent(userAgent))
