@@ -84,7 +84,7 @@ func (c *Config) Client() (*CombinedConfig, error) {
 			RetryMax:     c.HTTPRetryMax,
 			RetryWaitMin: godo.PtrTo(c.HTTPRetryWaitMin),
 			RetryWaitMax: godo.PtrTo(c.HTTPRetryWaitMax),
-			Logger:       log.New(os.Stderr, "", log.LstdFlags),
+			Logger:       log.Default(),
 		}
 
 		godoOpts = []godo.ClientOpt{godo.WithRetryAndBackoffs(retryConfig)}
