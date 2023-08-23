@@ -36,28 +36,35 @@ func ResourceDigitalOceanBucketCorsConfiguration() *schema.Resource {
 				ValidateFunc: validation.StringInSlice(SpacesRegions, true),
 			},
 			"cors_rule": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "A container holding a list of elements describing allowed methods for a specific origin.",
+				Type:     schema.TypeSet,
+				Required: true,
+				MaxItems: 100,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
+						"allowed_headers": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
 						"allowed_methods": {
-							Type:        schema.TypeList,
-							Required:    true,
-							Description: "A list of HTTP methods (e.g. GET) which are allowed from the specified origin.",
-							Elem:        &schema.Schema{Type: schema.TypeString},
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
 						"allowed_origins": {
-							Type:        schema.TypeList,
-							Required:    true,
-							Description: "A list of hosts from which requests using the specified methods are allowed. A host may contain one wildcard (e.g. http://*.example.com).",
-							Elem:        &schema.Schema{Type: schema.TypeString},
+							Type:     schema.TypeSet,
+							Required: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
 						},
-						"allowed_headers": {
-							Type:        schema.TypeList,
-							Optional:    true,
-							Description: "A list of headers that will be included in the CORS preflight request's Access-Control-Request-Headers. A header may contain one wildcard (e.g. x-amz-*).",
-							Elem:        &schema.Schema{Type: schema.TypeString},
+						"expose_headers": {
+							Type:     schema.TypeSet,
+							Optional: true,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+						},
+						"id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringLenBetween(0, 255),
 						},
 						"max_age_seconds": {
 							Type:     schema.TypeInt,
@@ -77,16 +84,11 @@ func resourceDigitalOceanBucketCorsConfigurationCreate(ctx context.Context, d *s
 	}
 
 	bucket := d.Get("bucket").(string)
-	rawCors := d.Get("cors_rule").([]interface{})
-
-	if len(rawCors) == 0 {
-		return diag.Errorf("Spaces bucket CORS must not be empty")
-	}
 
 	input := &s3.PutBucketCorsInput{
 		Bucket: aws.String(bucket),
 		CORSConfiguration: &s3.CORSConfiguration{
-			CORSRules: expandBucketCorsConfigurationCorsRules(rawCors, bucket),
+			CORSRules: expandBucketCorsConfigurationCorsRules(d.Get("cors_rule").(*schema.Set).List()),
 		},
 	}
 
@@ -101,7 +103,7 @@ func resourceDigitalOceanBucketCorsConfigurationCreate(ctx context.Context, d *s
 	}
 
 	d.SetId(bucket)
-	return resourceDigitalOceanBucketPolicyRead(ctx, d, meta)
+	return resourceDigitalOceanBucketCorsConfigurationRead(ctx, d, meta)
 }
 
 func resourceDigitalOceanBucketCorsConfigurationRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -153,42 +155,6 @@ func resourceBucketCorsConfigurationDelete(ctx context.Context, d *schema.Resour
 	}
 	return nil
 
-}
-
-func expandBucketCorsConfigurationCorsRules(rawCors []interface{}, bucketName string) []*s3.CORSRule {
-	if len(rawCors) == 0 {
-		return nil
-	}
-
-	rules := make([]*s3.CORSRule, 0, len(rawCors))
-	for _, cors := range rawCors {
-		corsMap := cors.(map[string]interface{})
-		r := &s3.CORSRule{}
-		for k, v := range corsMap {
-			log.Printf("[DEBUG] Spaces bucket: %s, put CORS: %#v, %#v", bucketName, k, v)
-			if k == "max_age_seconds" {
-				r.MaxAgeSeconds = aws.Int64(int64(v.(int)))
-			} else {
-				vMap := make([]*string, len(v.([]interface{})))
-				for i, vv := range v.([]interface{}) {
-					str := vv.(string)
-					vMap[i] = aws.String(str)
-				}
-				switch k {
-				case "allowed_headers":
-					r.AllowedHeaders = vMap
-				case "allowed_methods":
-					r.AllowedMethods = vMap
-				case "allowed_origins":
-					r.AllowedOrigins = vMap
-				case "expose_headers":
-					r.ExposeHeaders = vMap
-				}
-			}
-		}
-		rules = append(rules, r)
-	}
-	return rules
 }
 
 func s3connFromSpacesBucketCorsResourceData(d *schema.ResourceData, meta interface{}) (*s3.S3, error) {
@@ -254,6 +220,68 @@ func flattenStringList(list []*string) []interface{} {
 	vs := make([]interface{}, 0, len(list))
 	for _, v := range list {
 		vs = append(vs, *v)
+	}
+	return vs
+}
+
+func expandBucketCorsConfigurationCorsRules(l []interface{}) []*s3.CORSRule {
+	if len(l) == 0 {
+		return nil
+	}
+
+	var rules []*s3.CORSRule
+
+	for _, tfMapRaw := range l {
+		tfMap, ok := tfMapRaw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		rule := &s3.CORSRule{}
+
+		if v, ok := tfMap["allowed_headers"].(*schema.Set); ok && v.Len() > 0 {
+			rule.AllowedHeaders = expandStringSet(v)
+		}
+
+		if v, ok := tfMap["allowed_methods"].(*schema.Set); ok && v.Len() > 0 {
+			rule.AllowedMethods = expandStringSet(v)
+		}
+
+		if v, ok := tfMap["allowed_origins"].(*schema.Set); ok && v.Len() > 0 {
+			rule.AllowedOrigins = expandStringSet(v)
+		}
+
+		if v, ok := tfMap["expose_headers"].(*schema.Set); ok && v.Len() > 0 {
+			rule.ExposeHeaders = expandStringSet(v)
+		}
+
+		if v, ok := tfMap["id"].(string); ok && v != "" {
+			rule.ID = aws.String(v)
+		}
+
+		if v, ok := tfMap["max_age_seconds"].(int); ok {
+			rule.MaxAgeSeconds = aws.Int64(int64(v))
+		}
+
+		rules = append(rules, rule)
+	}
+
+	return rules
+}
+
+// expandStringSet takes the result of schema.Set of strings and returns a []*string
+func expandStringSet(configured *schema.Set) []*string {
+	return expandStringList(configured.List()) // nosemgrep:ci.helper-schema-Set-extraneous-ExpandStringList-with-List
+}
+
+// ExpandStringList the result of flatmap.Expand for an array of strings
+// and returns a []*string. Empty strings are skipped.
+func expandStringList(configured []interface{}) []*string {
+	vs := make([]*string, 0, len(configured))
+	for _, v := range configured {
+		if v, ok := v.(string); ok && v != "" { // v != "" may not do anything since in []interface{}, empty string will be nil so !ok
+			vs = append(vs, aws.String(v))
+		}
 	}
 	return vs
 }
