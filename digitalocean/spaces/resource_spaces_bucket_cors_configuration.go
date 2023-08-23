@@ -80,7 +80,7 @@ func ResourceDigitalOceanBucketCorsConfiguration() *schema.Resource {
 func resourceDigitalOceanBucketCorsConfigurationCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	conn, err := s3connFromSpacesBucketCorsResourceData(d, meta)
 	if err != nil {
-		return diag.Errorf("Error occurred while creating new Spaces bucket policy: %s", err)
+		return diag.Errorf("Error occurred while configuring CORS for Spaces bucket: %s", err)
 	}
 
 	bucket := d.Get("bucket").(string)
