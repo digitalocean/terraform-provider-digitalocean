@@ -209,6 +209,12 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 					},
 				},
 			},
+
+			"number_of_databases": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 128),
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -245,6 +251,7 @@ func validateExclusiveAttributes() schema.CustomizeDiffFunc {
 		engine := diff.Get("engine")
 		_, hasEvictionPolicy := diff.GetOk("eviction_policy")
 		_, hasSqlMode := diff.GetOk("sql_mode")
+		_, hasNumberOfDatabases := diff.GetOk("number_of_databases")
 
 		if hasSqlMode && engine != mysqlDBEngineSlug {
 			return fmt.Errorf("sql_mode is only supported for MySQL Database Clusters")
@@ -252,6 +259,10 @@ func validateExclusiveAttributes() schema.CustomizeDiffFunc {
 
 		if hasEvictionPolicy && engine != redisDBEngineSlug {
 			return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
+		}
+
+		if hasNumberOfDatabases && engine != redisDBEngineSlug {
+			return fmt.Errorf("number_of_databases is only supported for Redis Database Clusters")
 		}
 
 		return nil
@@ -334,6 +345,13 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 		_, err := client.Databases.SetSQLMode(context.Background(), d.Id(), mode.(string))
 		if err != nil {
 			return diag.Errorf("Error adding SQL mode for database cluster: %s", err)
+		}
+	}
+
+	if numberOfDatabases, ok := d.GetOk("number_of_databases"); ok {
+		_, err := client.Databases.UpdateRedisConfig(context.Background(), d.Id(), &godo.RedisConfig{RedisNumberOfDatabases: numberOfDatabases.(*int)})
+		if err != nil {
+			return diag.Errorf("Error adding number of databases for database cluster: %s", err)
 		}
 	}
 
@@ -443,6 +461,16 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 		}
 	}
 
+	if d.HasChange("number_of_databases") {
+		if numberOfDatabases, ok := d.GetOk("number_of_databases"); ok {
+			n := numberOfDatabases.(int)
+			_, err := client.Databases.UpdateRedisConfig(context.Background(), d.Id(), &godo.RedisConfig{RedisNumberOfDatabases: &n})
+			if err != nil {
+				return diag.Errorf("Error updating number of databases for database cluster: %s", err)
+			}
+		}
+	}
+
 	return resourceDigitalOceanDatabaseClusterRead(ctx, d, meta)
 }
 
@@ -491,6 +519,15 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 		}
 
 		d.Set("sql_mode", mode)
+	}
+
+	if _, ok := d.GetOk("number_of_databases"); ok {
+		config, _, err := client.Databases.GetRedisConfig(context.Background(), d.Id())
+		if err != nil {
+			return diag.Errorf("Error retrieving number of databases for database cluster: %s", err)
+		}
+
+		d.Set("number_of_databases", config.RedisNumberOfDatabases)
 	}
 
 	// Computed values

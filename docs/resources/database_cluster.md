@@ -104,6 +104,7 @@ The following arguments are supported:
 * `eviction_policy` - (Optional) A string specifying the eviction policy for a Redis cluster. Valid values are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.
 * `sql_mode` - (Optional) A comma separated string specifying the  SQL modes for a MySQL cluster.
 * `maintenance_window` - (Optional) Defines when the automatic maintenance should be performed for the database cluster.
+* `number_of_databases` - (Optional) Set number of redis databases. Valid values are between 1 and 128. Default value is 16.
 
 `maintenance_window` supports the following:
 

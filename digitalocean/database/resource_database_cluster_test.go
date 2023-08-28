@@ -330,6 +330,63 @@ func TestAccDigitalOceanDatabaseCluster_CheckEvictionPolicySupport(t *testing.T)
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_RedisWithNumberOfDatabases(t *testing.T) {
+	var database godo.Database
+	databaseName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			// Create with a number of databases
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithNumberOfDatabases, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "number_of_databases", "32"),
+				),
+			},
+			// Update number of databases
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithNumberOfDatabasesUpdate, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "number_of_databases", "128"),
+				),
+			},
+			// Remove number of databases
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterRedis, databaseName, "6"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDatabaseCluster_CheckNumberOfDatabasesSupport(t *testing.T) {
+	databaseName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithNumberOfDatabasesError, databaseName),
+				ExpectError: regexp.MustCompile(`number_of_databases is only supported for Redis`),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDatabaseCluster_TagUpdate(t *testing.T) {
 	var database godo.Database
 	databaseName := acceptance.RandomTestName()
@@ -819,6 +876,44 @@ resource "digitalocean_database_cluster" "foobar" {
   region          = "nyc1"
   node_count      = 1
   eviction_policy = "allkeys_lru"
+}
+`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithNumberOfDatabases = `
+resource "digitalocean_database_cluster" "foobar" {
+  name                = "%s"
+  engine              = "redis"
+  version             = "5"
+  size                = "db-s-1vcpu-1gb"
+  region              = "nyc1"
+  node_count          = 1
+  tags                = ["production"]
+  number_of_databases = 32
+}
+`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithNumberOfDatabasesUpdate = `
+resource "digitalocean_database_cluster" "foobar" {
+  name                = "%s"
+  engine              = "redis"
+  version             = "5"
+  size                = "db-s-1vcpu-1gb"
+  region              = "nyc1"
+  node_count          = 1
+  tags                = ["production"]
+  number_of_databases = 128
+}
+`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithNumberOfDatabasesError = `
+resource "digitalocean_database_cluster" "foobar" {
+  name                = "%s"
+  engine              = "pg"
+  version             = "15"
+  size                = "db-s-1vcpu-1gb"
+  region              = "nyc1"
+  node_count          = 1
+  number_of_databases = 128
 }
 `
 
