@@ -18,7 +18,7 @@ const (
 	testAccDigitalOceanSpacesBucketCorsConfiguration_TestRegion = "nyc3"
 )
 
-func TestAccDigitalOceanBucketCorsConfiguration_basic(t *testing.T) {
+func TestAccDigitalOceanSpacesBucketCorsConfiguration_basic(t *testing.T) {
 	name := acceptance.RandomTestName()
 	ctx := context.Background()
 	region := testAccDigitalOceanSpacesBucketCorsConfiguration_TestRegion
@@ -46,7 +46,7 @@ func TestAccDigitalOceanBucketCorsConfiguration_basic(t *testing.T) {
 	})
 }
 
-func TestAccS3BucketCorsConfiguration_SingleRule(t *testing.T) {
+func TestAccDigitalOceanSpacesBucketCorsConfiguration_SingleRule(t *testing.T) {
 	resourceName := "digitalocean_spaces_bucket_cors_configuration.test"
 	rName := acceptance.RandomTestName()
 	ctx := context.Background()
@@ -83,7 +83,7 @@ func TestAccS3BucketCorsConfiguration_SingleRule(t *testing.T) {
 	})
 }
 
-func TestAccS3BucketCorsConfiguration_MultipleRules(t *testing.T) {
+func TestAccDigitalOceanSpacesBucketCorsConfiguration_MultipleRules(t *testing.T) {
 	resourceName := "digitalocean_spaces_bucket_cors_configuration.test"
 	rName := acceptance.RandomTestName()
 	ctx := context.Background()
@@ -122,7 +122,7 @@ func TestAccS3BucketCorsConfiguration_MultipleRules(t *testing.T) {
 	})
 }
 
-func TestAccS3BucketCorsConfiguration_update(t *testing.T) {
+func TestAccDigitalOceanSpacesBucketCorsConfiguration_update(t *testing.T) {
 	resourceName := "digitalocean_spaces_bucket_cors_configuration.test"
 	rName := acceptance.RandomTestName()
 	ctx := context.Background()

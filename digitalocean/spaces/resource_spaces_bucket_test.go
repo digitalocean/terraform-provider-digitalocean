@@ -111,7 +111,7 @@ func TestAccDigitalOceanBucket_UpdateCors(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanBucketExists("digitalocean_spaces_bucket.bucket"),
 					resource.TestCheckNoResourceAttr(
-						"digitalocean_spaces_bucket.bucket", "cors_rule"),
+						"digitalocean_spaces_bucket.bucket", "cors_rule.#"),
 				),
 			},
 			{
