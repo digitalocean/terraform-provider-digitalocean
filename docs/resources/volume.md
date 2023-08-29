@@ -50,7 +50,7 @@ resource "digitalocean_volume" "foobar" {
 The following arguments are supported:
 
 * `region` - (Required) The region that the block storage volume will be created in.
-* `name` - (Required) A name for the block storage volume. Must be lowercase and be composed only of numbers, letters and "-", up to a limit of 64 characters.
+* `name` - (Required) A name for the block storage volume. Must be lowercase and be composed only of numbers, letters and "-", up to a limit of 64 characters. The name must begin with a letter.
 * `size` - (Required) The size of the block storage volume in GiB. If updated, can only be expanded.
 * `description` - (Optional) A free-form text field up to a limit of 1024 bytes to describe a block storage volume.
 * `snapshot_id` - (Optional) The ID of an existing volume snapshot from which the new volume will be created. If supplied, the region and size will be limitied on creation to that of the referenced snapshot
