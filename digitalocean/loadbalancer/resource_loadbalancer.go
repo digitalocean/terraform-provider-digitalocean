@@ -403,6 +403,12 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 					},
 				},
 			},
+			"type": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "the type of the load balancer (GLOBAL or REGIONAL)",
+			},
 		},
 	}
 }
@@ -493,6 +499,10 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 		opts.VPCUUID = v.(string)
 	}
 
+	if v, ok := d.GetOk("type"); ok {
+		opts.Type = v.(string)
+	}
+
 	return opts, nil
 }
 
@@ -556,6 +566,7 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 	d.Set("http_idle_timeout_seconds", loadbalancer.HTTPIdleTimeoutSeconds)
 	d.Set("project_id", loadbalancer.ProjectID)
+	d.Set("type", loadbalancer.Type)
 
 	if loadbalancer.SizeUnit > 0 {
 		d.Set("size_unit", loadbalancer.SizeUnit)
@@ -591,7 +602,6 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	}
 
 	return nil
-
 }
 
 func resourceDigitalOceanLoadbalancerUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
