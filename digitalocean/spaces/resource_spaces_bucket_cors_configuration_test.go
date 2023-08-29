@@ -61,7 +61,7 @@ func TestAccS3BucketCorsConfiguration_SingleRule(t *testing.T) {
 				Config: testAccSpacesBucketCORSConfigurationConfig_completeSingleRule(rName, region, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketCorsConfigurationExists(ctx, resourceName),
-					resource.TestCheckResourceAttrPair(resourceName, "bucket", "digitalocean_spaces_bucket.test", "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "bucket", "digitalocean_spaces_bucket.foobar", "id"),
 					resource.TestCheckResourceAttr(resourceName, "cors_rule.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "cors_rule.*", map[string]string{
 						"allowed_headers.#": "1",
@@ -98,7 +98,7 @@ func TestAccS3BucketCorsConfiguration_MultipleRules(t *testing.T) {
 				Config: testAccSpacesBucketCORSConfigurationConfig_multipleRules(rName, region, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketCorsConfigurationExists(ctx, resourceName),
-					resource.TestCheckResourceAttrPair(resourceName, "bucket", "digitalocean_spaces_bucket.test", "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "bucket", "digitalocean_spaces_bucket.foobar", "id"),
 					resource.TestCheckResourceAttr(resourceName, "cors_rule.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "cors_rule.*", map[string]string{
 						"allowed_headers.#": "1",
@@ -137,7 +137,7 @@ func TestAccS3BucketCorsConfiguration_update(t *testing.T) {
 				Config: testAccSpacesBucketCORSConfigurationConfig_completeSingleRule(rName, region, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketCorsConfigurationExists(ctx, resourceName),
-					resource.TestCheckResourceAttrPair(resourceName, "bucket", "digitalocean_spaces_bucket.test", "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "bucket", "digitalocean_spaces_bucket.foobar", "id"),
 					resource.TestCheckResourceAttr(resourceName, "cors_rule.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "cors_rule.*", map[string]string{
 						"allowed_headers.#": "1",
@@ -153,7 +153,7 @@ func TestAccS3BucketCorsConfiguration_update(t *testing.T) {
 				Config: testAccSpacesBucketCORSConfigurationConfig_multipleRules(rName, region, rName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanSpacesBucketCorsConfigurationExists(ctx, resourceName),
-					resource.TestCheckResourceAttrPair(resourceName, "bucket", "digitalocean_spaces_bucket.test", "id"),
+					resource.TestCheckResourceAttrPair(resourceName, "bucket", "digitalocean_spaces_bucket.foobar", "id"),
 					resource.TestCheckResourceAttr(resourceName, "cors_rule.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "cors_rule.*", map[string]string{
 						"allowed_headers.#": "1",
