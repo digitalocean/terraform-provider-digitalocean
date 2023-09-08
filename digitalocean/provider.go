@@ -76,7 +76,7 @@ func Provider() *schema.Provider {
 			"http_retry_max": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_HTTP_RETRY_MAX", 0),
+				DefaultFunc: schema.EnvDefaultFunc("DIGITALOCEAN_HTTP_RETRY_MAX", 4),
 				Description: "The maximum number of retries on a failed API request.",
 			},
 			"http_retry_wait_min": {
@@ -162,6 +162,7 @@ func Provider() *schema.Provider {
 			"digitalocean_reserved_ip":                           reservedip.ResourceDigitalOceanReservedIP(),
 			"digitalocean_reserved_ip_assignment":                reservedip.ResourceDigitalOceanReservedIPAssignment(),
 			"digitalocean_spaces_bucket":                         spaces.ResourceDigitalOceanBucket(),
+			"digitalocean_spaces_bucket_cors_configuration":      spaces.ResourceDigitalOceanBucketCorsConfiguration(),
 			"digitalocean_spaces_bucket_object":                  spaces.ResourceDigitalOceanSpacesBucketObject(),
 			"digitalocean_spaces_bucket_policy":                  spaces.ResourceDigitalOceanSpacesBucketPolicy(),
 			"digitalocean_ssh_key":                               sshkey.ResourceDigitalOceanSSHKey(),

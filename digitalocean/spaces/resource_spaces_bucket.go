@@ -62,6 +62,7 @@ func ResourceDigitalOceanBucket() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "A container holding a list of elements describing allowed methods for a specific origin.",
+				Deprecated:  "Terraform will only perform drift detection if a configuration value is provided. Use the resource `digitalocean_spaces_bucket_cors_configuration` instead.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"allowed_methods": {
