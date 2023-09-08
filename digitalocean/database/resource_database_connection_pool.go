@@ -136,8 +136,10 @@ func resourceDigitalOceanDatabaseConnectionPoolRead(ctx context.Context, d *sche
 	pool, resp, err := client.Databases.GetPool(context.Background(), clusterID, poolName)
 	if err != nil {
 		// If the pool is somehow already destroyed, mark as
-		// successfully gone
-		if resp.StatusCode == 404 {
+		// successfully gone.
+		// If this is a newly created pool, return the error instead
+		// as this is recoverable.
+		if resp != nil && resp.StatusCode == 404 && !d.IsNewResource() {
 			d.SetId("")
 			return nil
 		}

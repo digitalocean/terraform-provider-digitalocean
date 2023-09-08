@@ -111,8 +111,10 @@ func resourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.Resourc
 	user, resp, err := client.Databases.GetUser(context.Background(), clusterID, name)
 	if err != nil {
 		// If the database user is somehow already destroyed, mark as
-		// successfully gone
-		if resp != nil && resp.StatusCode == 404 {
+		// successfully gone.
+		// If this is a newly created user, return the error instead
+		// as this is recoverable.
+		if resp != nil && resp.StatusCode == 404 && !d.IsNewResource() {
 			d.SetId("")
 			return nil
 		}
