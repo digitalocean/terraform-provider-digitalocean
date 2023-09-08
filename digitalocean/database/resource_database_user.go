@@ -9,10 +9,13 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/internal/mutexkv"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
+
+var mutexKV = mutexkv.NewMutexKV()
 
 func ResourceDigitalOceanDatabaseUser() *schema.Resource {
 	return &schema.Resource{
@@ -77,6 +80,11 @@ func resourceDigitalOceanDatabaseUserCreate(ctx context.Context, d *schema.Resou
 			AuthPlugin: v.(string),
 		}
 	}
+
+	// Prevent parallel creation of users for same cluster.
+	key := fmt.Sprintf("digitalocean_database_cluster/%s/users", clusterID)
+	mutexKV.Lock(key)
+	defer mutexKV.Unlock(key)
 
 	log.Printf("[DEBUG] Database User create configuration: %#v", opts)
 	user, _, err := client.Databases.CreateUser(context.Background(), clusterID, opts)
@@ -154,6 +162,11 @@ func resourceDigitalOceanDatabaseUserDelete(ctx context.Context, d *schema.Resou
 	client := meta.(*config.CombinedConfig).GodoClient()
 	clusterID := d.Get("cluster_id").(string)
 	name := d.Get("name").(string)
+
+	// Prevent parallel deletion of users for same cluster.
+	key := fmt.Sprintf("digitalocean_database_cluster/%s/users", clusterID)
+	mutexKV.Lock(key)
+	defer mutexKV.Unlock(key)
 
 	log.Printf("[INFO] Deleting Database User: %s", d.Id())
 	_, err := client.Databases.DeleteUser(context.Background(), clusterID, name)
