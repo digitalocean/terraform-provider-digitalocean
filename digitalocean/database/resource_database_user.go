@@ -95,11 +95,9 @@ func resourceDigitalOceanDatabaseUserCreate(ctx context.Context, d *schema.Resou
 	d.SetId(makeDatabaseUserID(clusterID, user.Name))
 	log.Printf("[INFO] Database User Name: %s", user.Name)
 
-	// MongoDB clusters only return the password in response to the initial POST.
-	// So we need to set it here before any subsequent GETs.
-	d.Set("password", user.Password)
+	setDatabaseUserAttributes(d, user)
 
-	return resourceDigitalOceanDatabaseUserRead(ctx, d, meta)
+	return nil
 }
 
 func resourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -120,8 +118,21 @@ func resourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.Resourc
 		return diag.Errorf("Error retrieving Database User: %s", err)
 	}
 
-	d.Set("role", user.Role)
-	// This will be blank for MongoDB clusters. Don't overwrite the password set on create.
+	setDatabaseUserAttributes(d, user)
+
+	return nil
+}
+
+func setDatabaseUserAttributes(d *schema.ResourceData, user *godo.DatabaseUser) {
+	// Default to "normal" when not set.
+	if user.Role == "" {
+		d.Set("role", "normal")
+	} else {
+		d.Set("role", user.Role)
+	}
+
+	// This will be blank when GETing MongoDB clusters post-create.
+	// Don't overwrite the password set on create.
 	if user.Password != "" {
 		d.Set("password", user.Password)
 	}
@@ -129,8 +140,6 @@ func resourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.Resourc
 	if user.MySQLSettings != nil {
 		d.Set("mysql_auth_plugin", user.MySQLSettings.AuthPlugin)
 	}
-
-	return nil
 }
 
 func resourceDigitalOceanDatabaseUserUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
