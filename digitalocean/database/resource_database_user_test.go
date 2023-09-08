@@ -78,6 +78,46 @@ func TestAccDigitalOceanDatabaseUser_MongoDB(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseUser_MongoDBMultiUser(t *testing.T) {
+	databaseClusterName := acceptance.RandomTestName()
+	users := []string{"foo", "bar", "baz", "one", "two"}
+	config := fmt.Sprintf(testAccCheckDigitalOceanDatabaseUserConfigMongoMultiUser,
+		databaseClusterName,
+		users[0], users[0],
+		users[1], users[1],
+		users[2], users[2],
+		users[3], users[3],
+		users[4], users[4],
+	)
+	userResourceNames := make(map[string]string, len(users))
+	for _, u := range users {
+		userResourceNames[u] = fmt.Sprintf("digitalocean_database_user.%s", u)
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						userResourceNames[users[0]], "name", users[0]),
+					resource.TestCheckResourceAttr(
+						userResourceNames[users[1]], "name", users[1]),
+					resource.TestCheckResourceAttr(
+						userResourceNames[users[2]], "name", users[2]),
+					resource.TestCheckResourceAttr(
+						userResourceNames[users[3]], "name", users[3]),
+					resource.TestCheckResourceAttr(
+						userResourceNames[users[4]], "name", users[4]),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDatabaseUser_MySQLAuth(t *testing.T) {
 	var databaseUser godo.DatabaseUser
 	databaseClusterName := acceptance.RandomTestName()
@@ -268,6 +308,41 @@ resource "digitalocean_database_cluster" "foobar" {
 resource "digitalocean_database_user" "foobar_user" {
   cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"
+}`
+
+const testAccCheckDigitalOceanDatabaseUserConfigMongoMultiUser = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "mongodb"
+  version    = "4"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+}
+
+resource "digitalocean_database_user" "%s" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
+}
+
+resource "digitalocean_database_user" "%s" {
+	cluster_id = digitalocean_database_cluster.foobar.id
+	name       = "%s"
+}
+
+resource "digitalocean_database_user" "%s" {
+	cluster_id = digitalocean_database_cluster.foobar.id
+	name       = "%s"
+}
+
+resource "digitalocean_database_user" "%s" {
+	cluster_id = digitalocean_database_cluster.foobar.id
+	name       = "%s"
+}
+
+resource "digitalocean_database_user" "%s" {
+	cluster_id = digitalocean_database_cluster.foobar.id
+	name       = "%s"
 }`
 
 const testAccCheckDigitalOceanDatabaseUserConfigMySQLAuth = `
