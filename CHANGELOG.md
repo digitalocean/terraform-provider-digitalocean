@@ -1,3 +1,27 @@
+# 2.30.0
+
+FEATURES:
+
+- **New Resource:** `digitalocean_spaces_bucket_cors_configuration` (#1021) - @danaelhe 
+
+IMPROVEMENTS:
+
+- `provider`: Enable retries for requests that fail with a 429 or 500-level error by default (#1016). - @danaelhe
+
+BUG FIXES:
+
+- `digitalocean_database_user`: Prevent creating multiple users for the same cluster in parallel (#1027). - @andrewsomething
+- `digitalocean_database_user`:  Remove unneeded GET request post-create (#1028). - @andrewsomething
+
+MISC:
+
+- `docs`: Make it clear that volume name has to start with a letter (#1024). - @ahasna
+- `docs`: Update Postgres version in example (#1014). - @danaelhe
+- `provider`: Bump Go version to v1.21.0 (#1025). - @andrewsomething 
+- `provider`: Update godo to v1.102.1 (#1020). - @danaelhe
+- `provider`: Update godo dependency to v1.102.0 (#1018). - @danaelhe
+- `provider`: Update godo dependency to v1.101.0 (#1017.) - @danaelhe
+
 # 2.29.0
 
 FEATURES:
