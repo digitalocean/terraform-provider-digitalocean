@@ -326,23 +326,23 @@ resource "digitalocean_database_user" "%s" {
 }
 
 resource "digitalocean_database_user" "%s" {
-	cluster_id = digitalocean_database_cluster.foobar.id
-	name       = "%s"
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
 }
 
 resource "digitalocean_database_user" "%s" {
-	cluster_id = digitalocean_database_cluster.foobar.id
-	name       = "%s"
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
 }
 
 resource "digitalocean_database_user" "%s" {
-	cluster_id = digitalocean_database_cluster.foobar.id
-	name       = "%s"
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
 }
 
 resource "digitalocean_database_user" "%s" {
-	cluster_id = digitalocean_database_cluster.foobar.id
-	name       = "%s"
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
 }`
 
 const testAccCheckDigitalOceanDatabaseUserConfigMySQLAuth = `
