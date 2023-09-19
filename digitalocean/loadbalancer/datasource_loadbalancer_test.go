@@ -659,7 +659,7 @@ resource "digitalocean_tag" "foo" {
 
 resource "digitalocean_droplet" "foo" {
   count              = 2
-  image              = "ubuntu-18-04-x64"
+  image              = "ubuntu-22-04-x64"
   name               = "%s-${count.index}"
   region             = "nyc3"
   size               = "s-1vcpu-1gb"
@@ -699,7 +699,7 @@ resource "digitalocean_tag" "foo" {
 
 resource "digitalocean_droplet" "foo" {
   count              = 2
-  image              = "ubuntu-18-04-x64"
+  image              = "ubuntu-22-04-x64"
   name               = "%s-${count.index}"
   region             = "nyc3"
   size               = "s-1vcpu-1gb"
