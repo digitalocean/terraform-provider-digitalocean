@@ -146,6 +146,7 @@ func Provider() *schema.Provider {
 			"digitalocean_database_firewall":                     database.ResourceDigitalOceanDatabaseFirewall(),
 			"digitalocean_database_replica":                      database.ResourceDigitalOceanDatabaseReplica(),
 			"digitalocean_database_user":                         database.ResourceDigitalOceanDatabaseUser(),
+			"digitalocean_database_redis_config":                 database.ResourceDigitalOceanDatabaseRedisConfig(),
 			"digitalocean_domain":                                domain.ResourceDigitalOceanDomain(),
 			"digitalocean_droplet":                               droplet.ResourceDigitalOceanDroplet(),
 			"digitalocean_droplet_snapshot":                      snapshot.ResourceDigitalOceanDropletSnapshot(),
