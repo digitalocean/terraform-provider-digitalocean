@@ -35,6 +35,8 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "type", "REGIONAL"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "size_unit", "1"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
@@ -94,6 +96,8 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "type", "REGIONAL"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "size_unit", "1"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
@@ -136,6 +140,8 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "type", "REGIONAL"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "size_unit", "1"),
 					resource.TestCheckResourceAttr(
@@ -792,6 +798,7 @@ resource "digitalocean_droplet" "foobar" {
 resource "digitalocean_loadbalancer" "foobar" {
   name   = "%s"
   region = "nyc3"
+  type   = "REGIONAL"
 
   forwarding_rule {
     entry_port     = 80
@@ -833,6 +840,7 @@ resource "digitalocean_droplet" "foo" {
 resource "digitalocean_loadbalancer" "foobar" {
   name   = "%s"
   region = "nyc3"
+  type   = "REGIONAL"
 
   forwarding_rule {
     entry_port     = 81

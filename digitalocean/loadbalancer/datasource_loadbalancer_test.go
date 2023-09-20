@@ -42,6 +42,8 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "size_unit", "1"),
 					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "type", ""),
+					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(
 						"data.digitalocean_loadbalancer.foobar",
@@ -110,6 +112,8 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "size_unit", "1"),
 					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "type", ""),
+					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(
 						"data.digitalocean_loadbalancer.foobar",
@@ -174,6 +178,8 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "size_unit", "6"),
 					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "type", ""),
+					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(
 						"data.digitalocean_loadbalancer.foobar",
@@ -235,6 +241,8 @@ data "digitalocean_loadbalancer" "foobar" {
 						"data.digitalocean_loadbalancer.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "size_unit", "6"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "type", ""),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(
@@ -651,7 +659,7 @@ resource "digitalocean_tag" "foo" {
 
 resource "digitalocean_droplet" "foo" {
   count              = 2
-  image              = "ubuntu-18-04-x64"
+  image              = "ubuntu-22-04-x64"
   name               = "%s-${count.index}"
   region             = "nyc3"
   size               = "s-1vcpu-1gb"
@@ -663,6 +671,7 @@ resource "digitalocean_loadbalancer" "foo" {
   name   = "%s"
   region = "nyc3"
   size   = "%s"
+  type   = "REGIONAL"
 
   forwarding_rule {
     entry_port     = 80
@@ -690,7 +699,7 @@ resource "digitalocean_tag" "foo" {
 
 resource "digitalocean_droplet" "foo" {
   count              = 2
-  image              = "ubuntu-18-04-x64"
+  image              = "ubuntu-22-04-x64"
   name               = "%s-${count.index}"
   region             = "nyc3"
   size               = "s-1vcpu-1gb"
