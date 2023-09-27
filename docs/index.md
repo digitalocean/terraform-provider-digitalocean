@@ -16,7 +16,7 @@ Use the navigation to the left to read about the available resources.
 terraform {
   required_providers {
     digitalocean = {
-      source = "digitalocean/digitalocean"
+      source  = "digitalocean/digitalocean"
       version = "~> 2.0"
     }
   }

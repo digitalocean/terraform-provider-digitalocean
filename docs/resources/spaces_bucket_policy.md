@@ -49,23 +49,23 @@ resource "digitalocean_spaces_bucket_policy" "foobar" {
   region = digitalocean_spaces_bucket.foobar.region
   bucket = digitalocean_spaces_bucket.foobar.name
   policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "IPAllow",
-            "Effect": "Deny",
-            "Principal": "*",
-            "Action": "s3:*",
-            "Resource": [
-                "arn:aws:s3:::${digitalocean_spaces_bucket.foobar.name}",
-                "arn:aws:s3:::${digitalocean_spaces_bucket.foobar.name}/*"
-            ],
-            "Condition": {
-                "NotIpAddress": {
-                    "aws:SourceIp": "54.240.143.0/24"
-                }
-            }
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Sid" : "IPAllow",
+        "Effect" : "Deny",
+        "Principal" : "*",
+        "Action" : "s3:*",
+        "Resource" : [
+          "arn:aws:s3:::${digitalocean_spaces_bucket.foobar.name}",
+          "arn:aws:s3:::${digitalocean_spaces_bucket.foobar.name}/*"
+        ],
+        "Condition" : {
+          "NotIpAddress" : {
+            "aws:SourceIp" : "54.240.143.0/24"
+          }
         }
+      }
     ]
   })
 }

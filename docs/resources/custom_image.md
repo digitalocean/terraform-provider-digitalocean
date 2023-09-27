@@ -20,17 +20,17 @@ Image documentation for [additional requirements](https://www.digitalocean.com/d
 
 ```hcl
 resource "digitalocean_custom_image" "flatcar" {
-  name   = "flatcar"
-  url = "https://stable.release.flatcar-linux.net/amd64-usr/2605.7.0/flatcar_production_digitalocean_image.bin.bz2"
+  name    = "flatcar"
+  url     = "https://stable.release.flatcar-linux.net/amd64-usr/2605.7.0/flatcar_production_digitalocean_image.bin.bz2"
   regions = ["nyc3"]
 }
 
 resource "digitalocean_droplet" "example" {
-  image     = digitalocean_custom_image.flatcar.id
-  name      = "example-01"
-  region    = "nyc3"
-  size      = "s-1vcpu-1gb"
-  ssh_keys  = [12345]
+  image    = digitalocean_custom_image.flatcar.id
+  name     = "example-01"
+  region   = "nyc3"
+  size     = "s-1vcpu-1gb"
+  ssh_keys = [12345]
 }
 ```
 
