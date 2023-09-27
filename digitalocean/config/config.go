@@ -18,16 +18,15 @@ import (
 )
 
 type Config struct {
-	Token             string
-	APIEndpoint       string
-	SpacesAPIEndpoint string
-	AccessID          string
-	SecretKey         string
-	RequestsPerSecond float64
-	TerraformVersion  string
-	HTTPRetryMax      int
-	HTTPRetryWaitMax  float64
-	HTTPRetryWaitMin  float64
+	Token             *string  `tfsdk:"token"`
+	APIEndpoint       *string  `tfsdk:"api_endpoint"`
+	SpacesAPIEndpoint *string  `tfsdk:"spaces_endpoint"`
+	AccessID          *string  `tfsdk:"spaces_access_id"`
+	SecretKey         *string  `tfsdk:"spaces_secret_key"`
+	RequestsPerSecond *float64 `tfsdk:"requests_per_second"`
+	HTTPRetryMax      *int     `tfsdk:"http_retry_max"`
+	HTTPRetryWaitMax  *float64 `tfsdk:"http_retry_wait_min"`
+	HTTPRetryWaitMin  *float64 `tfsdk:"http_retry_wait_max"`
 }
 
 type CombinedConfig struct {
@@ -67,22 +66,22 @@ func (c *CombinedConfig) SpacesClient(region string) (*session.Session, error) {
 }
 
 // Client() returns a new client for accessing digital ocean.
-func (c *Config) Client() (*CombinedConfig, error) {
+func (c *Config) Client(terraformVersion string) (*CombinedConfig, error) {
 	tokenSrc := oauth2.StaticTokenSource(&oauth2.Token{
-		AccessToken: c.Token,
+		AccessToken: *c.Token,
 	})
 
-	userAgent := fmt.Sprintf("Terraform/%s", c.TerraformVersion)
+	userAgent := fmt.Sprintf("Terraform/%s", terraformVersion)
 	var client *http.Client
 	var godoOpts []godo.ClientOpt
 
 	client = oauth2.NewClient(context.Background(), tokenSrc)
 
-	if c.HTTPRetryMax > 0 {
+	if c.HTTPRetryMax != nil && *c.HTTPRetryMax > 0 {
 		retryConfig := godo.RetryConfig{
-			RetryMax:     c.HTTPRetryMax,
-			RetryWaitMin: godo.PtrTo(c.HTTPRetryWaitMin),
-			RetryWaitMax: godo.PtrTo(c.HTTPRetryWaitMax),
+			RetryMax:     *c.HTTPRetryMax,
+			RetryWaitMin: *godo.PtrTo(c.HTTPRetryWaitMin),
+			RetryWaitMax: *godo.PtrTo(c.HTTPRetryWaitMax),
 			Logger:       log.Default(),
 		}
 
@@ -91,8 +90,8 @@ func (c *Config) Client() (*CombinedConfig, error) {
 
 	godoOpts = append(godoOpts, godo.SetUserAgent(userAgent))
 
-	if c.RequestsPerSecond > 0.0 {
-		godoOpts = append(godoOpts, godo.SetStaticRateLimit(c.RequestsPerSecond))
+	if c.RequestsPerSecond != nil && *c.RequestsPerSecond > 0.0 {
+		godoOpts = append(godoOpts, godo.SetStaticRateLimit(*c.RequestsPerSecond))
 	}
 
 	godoClient, err := godo.New(client, godoOpts...)
@@ -104,15 +103,18 @@ func (c *Config) Client() (*CombinedConfig, error) {
 		return nil, err
 	}
 
-	apiURL, err := url.Parse(c.APIEndpoint)
+	apiURL, err := url.Parse(*c.APIEndpoint)
 	if err != nil {
 		return nil, err
 	}
 	godoClient.BaseURL = apiURL
 
-	spacesEndpointTemplate, err := template.New("spaces").Parse(c.SpacesAPIEndpoint)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse spaces_endpoint '%s' as template: %s", c.SpacesAPIEndpoint, err)
+	var spacesEndpointTemplate *template.Template
+	if c.SpacesAPIEndpoint != nil {
+		spacesEndpointTemplate, err = template.New("spaces").Parse(*c.SpacesAPIEndpoint)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse spaces_endpoint '%s' as template: %s", c.SpacesAPIEndpoint, err)
+		}
 	}
 
 	log.Printf("[INFO] DigitalOcean Client configured for URL: %s", godoClient.BaseURL.String())
@@ -120,7 +122,7 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	return &CombinedConfig{
 		client:                 godoClient,
 		spacesEndpointTemplate: spacesEndpointTemplate,
-		accessID:               c.AccessID,
-		secretKey:              c.SecretKey,
+		accessID:               *c.AccessID,
+		secretKey:              *c.SecretKey,
 	}, nil
 }

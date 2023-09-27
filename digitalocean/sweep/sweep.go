@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 )
 
@@ -36,15 +37,15 @@ func SharedConfigForRegion(region string) (interface{}, error) {
 	}
 
 	conf := config.Config{
-		Token:             os.Getenv("DIGITALOCEAN_TOKEN"),
-		APIEndpoint:       apiEndpoint,
-		SpacesAPIEndpoint: spacesEndpoint,
-		AccessID:          spacesAccessKeyID,
-		SecretKey:         spacesSecretAccessKey,
+		Token:             godo.PtrTo(os.Getenv("DIGITALOCEAN_TOKEN")),
+		APIEndpoint:       godo.PtrTo(apiEndpoint),
+		SpacesAPIEndpoint: godo.PtrTo(spacesEndpoint),
+		AccessID:          godo.PtrTo(spacesAccessKeyID),
+		SecretKey:         godo.PtrTo(spacesSecretAccessKey),
 	}
 
 	// configures a default client for the region, using the above env vars
-	client, err := conf.Client()
+	client, err := conf.Client("sweep")
 	if err != nil {
 		return nil, fmt.Errorf("error getting DigitalOcean client")
 	}

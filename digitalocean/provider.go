@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/account"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/app"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/cdn"
@@ -192,20 +193,19 @@ func Provider() *schema.Provider {
 
 func providerConfigure(d *schema.ResourceData, terraformVersion string) (interface{}, error) {
 	conf := config.Config{
-		Token:             d.Get("token").(string),
-		APIEndpoint:       d.Get("api_endpoint").(string),
-		AccessID:          d.Get("spaces_access_id").(string),
-		SecretKey:         d.Get("spaces_secret_key").(string),
-		RequestsPerSecond: d.Get("requests_per_second").(float64),
-		HTTPRetryMax:      d.Get("http_retry_max").(int),
-		HTTPRetryWaitMin:  d.Get("http_retry_wait_min").(float64),
-		HTTPRetryWaitMax:  d.Get("http_retry_wait_max").(float64),
-		TerraformVersion:  terraformVersion,
+		Token:             godo.PtrTo(d.Get("token").(string)),
+		APIEndpoint:       godo.PtrTo(d.Get("api_endpoint").(string)),
+		AccessID:          godo.PtrTo(d.Get("spaces_access_id").(string)),
+		SecretKey:         godo.PtrTo(d.Get("spaces_secret_key").(string)),
+		RequestsPerSecond: godo.PtrTo(d.Get("requests_per_second").(float64)),
+		HTTPRetryMax:      godo.PtrTo(d.Get("http_retry_max").(int)),
+		HTTPRetryWaitMin:  godo.PtrTo(d.Get("http_retry_wait_min").(float64)),
+		HTTPRetryWaitMax:  godo.PtrTo(d.Get("http_retry_wait_max").(float64)),
 	}
 
 	if endpoint, ok := d.GetOk("spaces_endpoint"); ok {
-		conf.SpacesAPIEndpoint = endpoint.(string)
+		conf.SpacesAPIEndpoint = godo.PtrTo(endpoint.(string))
 	}
 
-	return conf.Client()
+	return conf.Client(terraformVersion)
 }
