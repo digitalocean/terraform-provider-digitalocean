@@ -71,8 +71,8 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   version      = data.digitalocean_kubernetes_versions.example.latest_version
 
   maintenance_policy {
-    start_time  = "04:00"
-    day         = "sunday"
+    start_time = "04:00"
+    day        = "sunday"
   }
 
   node_pool {
@@ -107,8 +107,8 @@ data "digitalocean_kubernetes_cluster" "example" {
 }
 
 provider "kubernetes" {
-  host             = data.digitalocean_kubernetes_cluster.example.endpoint
-  token            = data.digitalocean_kubernetes_cluster.example.kube_config[0].token
+  host  = data.digitalocean_kubernetes_cluster.example.endpoint
+  token = data.digitalocean_kubernetes_cluster.example.kube_config[0].token
   cluster_ca_certificate = base64decode(
     data.digitalocean_kubernetes_cluster.example.kube_config[0].cluster_ca_certificate
   )
@@ -124,7 +124,7 @@ initializing the provider.
 
 ```hcl
 provider "kubernetes" {
-  host                   = data.digitalocean_kubernetes_cluster.foo.endpoint
+  host = data.digitalocean_kubernetes_cluster.foo.endpoint
   cluster_ca_certificate = base64decode(
     data.digitalocean_kubernetes_cluster.foo.kube_config[0].cluster_ca_certificate
   )

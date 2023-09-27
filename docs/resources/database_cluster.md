@@ -76,9 +76,9 @@ resource "digitalocean_database_cluster" "doby_backup" {
   region     = "nyc1"
   node_count = 1
   tags       = ["production"]
-  
+
   backup_restore {
-    database_name  = "dobydb"
+    database_name = "dobydb"
   }
 
   depends_on = [

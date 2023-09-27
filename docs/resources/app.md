@@ -60,8 +60,8 @@ resource "digitalocean_app" "static-site-example" {
 ```hcl
 resource "digitalocean_app" "mono-repo-example" {
   spec {
-    name    = "mono-repo-example"
-    region  = "ams"
+    name   = "mono-repo-example"
+    region = "ams"
     domain {
       name = "foo.example.com"
     }

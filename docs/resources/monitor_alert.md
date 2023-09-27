@@ -26,8 +26,8 @@ resource "digitalocean_monitor_alert" "cpu_alert" {
   alerts {
     email = ["sammy@digitalocean.com"]
     slack {
-      channel   = "Production Alerts"
-      url       = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
+      channel = "Production Alerts"
+      url     = "https://hooks.slack.com/services/T1234567/AAAAAAAA/ZZZZZZ"
     }
   }
   window      = "5m"

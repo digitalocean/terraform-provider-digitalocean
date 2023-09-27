@@ -21,8 +21,8 @@ also uses the regular expression `match_by` mode in order to match domains by su
 ```hcl
 data "digitalocean_domains" "examples" {
   filter {
-    key    = "name"
-    values = ["example\\.com$"]
+    key      = "name"
+    values   = ["example\\.com$"]
     match_by = "re"
   }
 }
