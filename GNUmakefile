@@ -51,9 +51,11 @@ install-terrafmt:
 
 terrafmt: install-terrafmt # Formats Terraform configuration blocks in tests.
 	@terrafmt fmt --fmtcompat digitalocean/
+	@terrafmt fmt --fmtcompat docs/
 
 terrafmt-check: install-terrafmt # Returns non-0 exit code if terrafmt would make a change.
 	@terrafmt diff --check --fmtcompat digitalocean/
+	@terrafmt diff --check --fmtcompat docs/
 
 errcheck:
 	@sh -c "'$(CURDIR)/scripts/errcheck.sh'"
