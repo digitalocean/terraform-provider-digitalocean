@@ -27,7 +27,7 @@ func TestAccDigitalOceanBucket_importBasic(t *testing.T) {
 				ImportState:             true,
 				ImportStateVerify:       true,
 				ImportStateIdPrefix:     fmt.Sprintf("%s,", "sfo3"),
-				ImportStateVerifyIgnore: []string{"acl", "force_destroy"},
+				ImportStateVerifyIgnore: []string{"acl"},
 			},
 			// Test importing non-existent resource provides expected error.
 			{

@@ -739,6 +739,8 @@ func resourceDigitalOceanBucketImport(d *schema.ResourceData, meta interface{}) 
 		return nil, fmt.Errorf("importing a Spaces bucket requires the format: <region>,<name>")
 	}
 
+	d.Set("force_destroy", false)
+
 	return []*schema.ResourceData{d}, nil
 }
 
