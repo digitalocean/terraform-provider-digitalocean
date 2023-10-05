@@ -558,7 +558,6 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("ip", loadbalancer.IP)
 	d.Set("status", loadbalancer.Status)
 	d.Set("algorithm", loadbalancer.Algorithm)
-	d.Set("region", loadbalancer.Region.Slug)
 	d.Set("redirect_http_to_https", loadbalancer.RedirectHttpToHttps)
 	d.Set("enable_proxy_protocol", loadbalancer.EnableProxyProtocol)
 	d.Set("enable_backend_keepalive", loadbalancer.EnableBackendKeepalive)
@@ -571,6 +570,10 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 		d.Set("size_unit", loadbalancer.SizeUnit)
 	} else {
 		d.Set("size", loadbalancer.SizeSlug)
+	}
+
+	if loadbalancer.Region != nil {
+		d.Set("region", loadbalancer.Region.Slug)
 	}
 
 	d.Set("disable_lets_encrypt_dns_records", loadbalancer.DisableLetsEncryptDNSRecords)
