@@ -27,7 +27,7 @@ resource "digitalocean_database_cluster" "postgres-example" {
 }
 ```
 
-### Create a new user for PostgreSQL database replica 
+### Create a new user for a PostgreSQL database replica 
 ```hcl
 resource "digitalocean_database_cluster" "postgres-example" {
   name       = "example-postgres-cluster"
