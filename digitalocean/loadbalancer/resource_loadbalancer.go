@@ -81,6 +81,10 @@ func ResourceDigitalOceanLoadbalancer() *schema.Resource {
 				}
 			}
 
+			if err := loadbalancerDiffFunction(ctx, diff, v); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
@@ -111,6 +115,29 @@ func resourceDigitalOceanLoadBalancerV1() map[string]*schema.Schema {
 	loadBalancerV1Schema["forwarding_rule"].Elem.(*schema.Resource).Schema = forwardingRuleSchema
 
 	return loadBalancerV1Schema
+}
+
+func loadbalancerDiffFunction(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
+	typ, typSet := d.GetOk("type")
+	region, regionSet := d.GetOk("region")
+
+	if !typSet && !regionSet {
+		return fmt.Errorf("missing 'region' value")
+	}
+
+	typStr := typ.(string)
+	switch strings.ToUpper(typStr) {
+	case "GLOBAL":
+		if regionSet && region.(string) != "" {
+			return fmt.Errorf("'region' must be empty or not set when 'type' is '%s'", typStr)
+		}
+	case "REGIONAL":
+		if !regionSet || region.(string) == "" {
+			return fmt.Errorf("'region' must be set and not be empty when 'type' is '%s'", typStr)
+		}
+	}
+
+	return nil
 }
 
 func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
