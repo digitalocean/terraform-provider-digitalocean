@@ -404,10 +404,11 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				},
 			},
 			"type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "the type of the load balancer (GLOBAL or REGIONAL)",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{"REGIONAL", "GLOBAL"}, true),
+				Description:  "the type of the load balancer (GLOBAL or REGIONAL)",
 			},
 		},
 	}
