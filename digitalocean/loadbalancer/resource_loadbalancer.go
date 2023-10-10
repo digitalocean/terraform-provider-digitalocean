@@ -81,7 +81,7 @@ func ResourceDigitalOceanLoadbalancer() *schema.Resource {
 				}
 			}
 
-			if err := loadbalancerDiffFunction(ctx, diff, v); err != nil {
+			if err := loadbalancerDiffCheck(ctx, diff, v); err != nil {
 				return err
 			}
 
@@ -117,7 +117,7 @@ func resourceDigitalOceanLoadBalancerV1() map[string]*schema.Schema {
 	return loadBalancerV1Schema
 }
 
-func loadbalancerDiffFunction(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
+func loadbalancerDiffCheck(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
 	typ, typSet := d.GetOk("type")
 	region, regionSet := d.GetOk("region")
 
