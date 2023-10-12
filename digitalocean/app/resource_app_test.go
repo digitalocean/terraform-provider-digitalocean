@@ -1219,19 +1219,19 @@ resource "digitalocean_app" "foobar" {
     }
 
     job {
-        name               = "example-failed-job"
-        instance_count     = 1
-        instance_size_slug = "basic-xxs"
-        kind               = "FAILED_DEPLOY"
-        run_command        = "echo 'This is a failed deploy job.'"
+      name               = "example-failed-job"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+      kind               = "FAILED_DEPLOY"
+      run_command        = "echo 'This is a failed deploy job.'"
 
-        image {
-          registry_type = "DOCKER_HUB"
-          registry      = "frolvlad"
-          repository    = "alpine-bash"
-          tag           = "latest"
-        }
+      image {
+        registry_type = "DOCKER_HUB"
+        registry      = "frolvlad"
+        repository    = "alpine-bash"
+        tag           = "latest"
       }
+    }
   }
 }`
 
