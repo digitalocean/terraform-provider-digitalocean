@@ -221,7 +221,14 @@ func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration)
 				return fmt.Errorf("Error trying to read app deployment state: %s", err)
 			}
 
-			allSuccessful := deployment.Progress.SuccessSteps == deployment.Progress.TotalSteps
+			allSuccessful := true
+			for _, step := range deployment.Progress.Steps {
+				if step.Status != godo.DeploymentProgressStepStatus_Success {
+					allSuccessful = false
+					break
+				}
+			}
+
 			if allSuccessful {
 				ticker.Stop()
 				return nil
