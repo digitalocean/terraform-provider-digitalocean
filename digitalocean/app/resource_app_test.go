@@ -181,6 +181,10 @@ func TestAccDigitalOceanApp_Job(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.job.1.log_destination.0.datadog.0.endpoint", "https://example.com"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.job.1.log_destination.0.datadog.0.api_key", "test-api-key"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.2.name", "example-failed-job"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.2.kind", "FAILED_DEPLOY"),
 				),
 			},
 		},
@@ -1189,10 +1193,6 @@ resource "digitalocean_app" "foobar" {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
         branch         = "main"
       }
-
-      routes {
-        path = "/"
-      }
     }
 
     job {
@@ -1217,6 +1217,21 @@ resource "digitalocean_app" "foobar" {
         }
       }
     }
+
+    job {
+        name               = "example-failed-job"
+        instance_count     = 1
+        instance_size_slug = "basic-xxs"
+        kind               = "FAILED_DEPLOY"
+        run_command        = "echo 'This is a failed deploy job.'"
+
+        image {
+          registry_type = "DOCKER_HUB"
+          registry      = "frolvlad"
+          repository    = "alpine-bash"
+          tag           = "latest"
+        }
+      }
   }
 }`
 
