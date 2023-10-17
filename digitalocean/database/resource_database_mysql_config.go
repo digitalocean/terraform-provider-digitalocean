@@ -295,7 +295,7 @@ func updateMySQLConfig(ctx context.Context, d *schema.ResourceData, client *godo
 	}
 
 	if v, ok := d.GetOk("long_query_time"); ok {
-		opts.LongQueryTime = godo.PtrTo(v.(float32))
+		opts.LongQueryTime = godo.PtrTo(float32(v.(float64)))
 	}
 
 	if v, ok := d.GetOk("backup_hour"); ok {
