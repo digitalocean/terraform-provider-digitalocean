@@ -24,6 +24,13 @@ func TestAccDigitalOceanDatabaseMySQLConfig_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_database_mysql_config.foobar", "default_time_zone", "UTC"),
 				),
 			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseMySQLConfigConfigBasic, dbConfig, 15, "SYSTEM"),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("digitalocean_database_mysql_config.foobar", "connect_timeout", "15"),
+					resource.TestCheckResourceAttr("digitalocean_database_mysql_config.foobar", "default_time_zone", "SYSTEM"),
+				),
+			},
 		},
 	})
 }
