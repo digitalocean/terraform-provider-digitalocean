@@ -148,7 +148,7 @@ func Provider() *schema.Provider {
 			"digitalocean_database_user":                         database.ResourceDigitalOceanDatabaseUser(),
 			"digitalocean_database_redis_config":                 database.ResourceDigitalOceanDatabaseRedisConfig(),
 			"digitalocean_database_mysql_config":                 database.ResourceDigitalOceanDatabaseMySQLConfig(),
-      "digitalocean_database_kafka_topic":                  database.ResourceDigitalOceanDatabaseKafkaTopic(),
+			"digitalocean_database_kafka_topic":                  database.ResourceDigitalOceanDatabaseKafkaTopic(),
 			"digitalocean_domain":                                domain.ResourceDigitalOceanDomain(),
 			"digitalocean_droplet":                               droplet.ResourceDigitalOceanDroplet(),
 			"digitalocean_droplet_snapshot":                      snapshot.ResourceDigitalOceanDropletSnapshot(),
