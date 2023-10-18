@@ -27,10 +27,6 @@ func TestAccDigitalOceanApp_Image(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.routes.0.preserve_path_prefix", "false"),
-					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry_type", "DOCKER_HUB"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry", "caddy"),
@@ -38,6 +34,12 @@ func TestAccDigitalOceanApp_Image(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.image.0.repository", "caddy"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.image.0.tag", "2.2.1-alpine"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.name", "image-service"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.preserve_path_prefix", "false"),
 				),
 			},
 		},
@@ -72,9 +74,11 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "basic-xxs"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.routes.0.preserve_path_prefix", "false"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.name", "go-service"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.git.0.repo_clone_url",
 						"https://github.com/digitalocean/sample-golang.git"),
@@ -105,15 +109,19 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.name", "go-service"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/go"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/go"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.routes.0.preserve_path_prefix", "false"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.name", "go-service"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.1.name", "python-service"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.1.routes.0.path", "/python"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.1.match.0.path.0.prefix", "/python"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.1.routes.0.preserve_path_prefix", "true"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.1.component.0.preserve_path_prefix", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.1.component.0.name", "python-service"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "85"),
 					resource.TestCheckResourceAttr(
@@ -133,9 +141,11 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.routes.0.preserve_path_prefix", "false"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.name", "go-service"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.database.0.name", "test-db"),
 					resource.TestCheckResourceAttr(
@@ -214,9 +224,9 @@ func TestAccDigitalOceanApp_StaticSite(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.static_site.0.catchall_document", "404.html"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.static_site.0.routes.0.path", "/"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.static_site.0.routes.0.preserve_path_prefix", "false"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.preserve_path_prefix", "false"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.static_site.0.build_command", "bundle exec jekyll build -d ./public"),
 					resource.TestCheckResourceAttr(
@@ -529,7 +539,7 @@ func TestAccDigitalOceanApp_Function(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.function.0.source_dir", "/"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.function.0.routes.0.path", "/api"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/api"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.function.0.git.0.repo_clone_url",
 						"https://github.com/digitalocean/sample-functions-nodejs-helloworld.git"),
@@ -541,17 +551,17 @@ func TestAccDigitalOceanApp_Function(t *testing.T) {
 				Config: updatedFnConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.function.0.cors.0.allow_origins.0.prefix", "https://example.com"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_origins.0.prefix", "https://example.com"),
 					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.function.0.cors.0.allow_methods.*", "GET"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_methods.*", "GET"),
 					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.function.0.cors.0.allow_headers.*", "X-Custom-Header"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_headers.*", "X-Custom-Header"),
 					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.function.0.cors.0.expose_headers.*", "Content-Encoding"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.expose_headers.*", "Content-Encoding"),
 					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.function.0.cors.0.expose_headers.*", "ETag"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.expose_headers.*", "ETag"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.function.0.cors.0.max_age", "1h"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.max_age", "1h"),
 				),
 			},
 		},
@@ -737,7 +747,7 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_origins.0.exact", "https://example.com"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_origins.0.exact", "https://example.com"),
 				),
 			},
 			{
@@ -745,7 +755,7 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_origins.0.prefix", "https://example.com"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_origins.0.prefix", "https://example.com"),
 				),
 			},
 			{
@@ -753,7 +763,7 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_origins.0.regex", "https://[0-9a-z]*.digitalocean.com"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_origins.0.regex", "https://[0-9a-z]*.digitalocean.com"),
 				),
 			},
 			{
@@ -761,23 +771,23 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_origins.0.prefix", "https://example.com"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_origins.0.prefix", "https://example.com"),
 					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_methods.*", "GET"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_methods.*", "GET"),
 					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_methods.*", "PUT"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_methods.*", "PUT"),
 					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_headers.*", "X-Custom-Header"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_headers.*", "X-Custom-Header"),
 					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_headers.*", "Upgrade-Insecure-Requests"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_headers.*", "Upgrade-Insecure-Requests"),
 					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.cors.0.expose_headers.*", "Content-Encoding"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.expose_headers.*", "Content-Encoding"),
 					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.cors.0.expose_headers.*", "ETag"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.expose_headers.*", "ETag"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.cors.0.max_age", "1h"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.max_age", "1h"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.cors.0.allow_credentials", "true"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_credentials", "true"),
 				),
 			},
 		},
@@ -929,10 +939,6 @@ resource "digitalocean_app" "foobar" {
         branch         = "main"
       }
 
-      routes {
-        path = "/go"
-      }
-
       alert {
         value    = 85
         operator = "GREATER_THAN"
@@ -958,10 +964,30 @@ resource "digitalocean_app" "foobar" {
         repo_clone_url = "https://github.com/digitalocean/sample-python.git"
         branch         = "main"
       }
+    }
 
-      routes {
-        path                 = "/python"
-        preserve_path_prefix = true
+    ingress {
+      rule {
+        component {
+          name = "go-service"
+        }
+        match {
+          path {
+            prefix = "/go"
+          }
+        }
+      }
+
+      rule {
+        component {
+          name                 = "python-service"
+          preserve_path_prefix = true
+        }
+        match {
+          path {
+            prefix = "/python"
+          }
+        }
       }
     }
   }
@@ -1033,10 +1059,6 @@ resource "digitalocean_app" "foobar" {
         branch         = "main"
       }
 
-      routes {
-        path = "/"
-      }
-
       alert {
         value    = 85
         operator = "GREATER_THAN"
@@ -1048,6 +1070,19 @@ resource "digitalocean_app" "foobar" {
         name = "ServiceLogs"
         papertrail {
           endpoint = "syslog+tls://example.com:12345"
+        }
+      }
+    }
+
+    ingress {
+      rule {
+        component {
+          name = "go-service"
+        }
+        match {
+          path {
+            prefix = "/"
+          }
         }
       }
     }
@@ -1077,14 +1112,6 @@ resource "digitalocean_app" "foobar" {
         repo_clone_url = "https://github.com/digitalocean/sample-jekyll.git"
         branch         = "main"
       }
-
-      routes {
-        path = "/"
-      }
-
-      routes {
-        path = "/foo"
-      }
     }
   }
 }`
@@ -1102,12 +1129,22 @@ resource "digitalocean_app" "foobar" {
         repo_clone_url = "https://github.com/digitalocean/sample-functions-nodejs-helloworld.git"
         branch         = "master"
       }
-      routes {
-        path = "/api"
+    }
+
+    ingress {
+      rule {
+        component {
+          name = "example"
+        }
+
+        match {
+          path {
+            prefix = "/api"
+          }
+        }
+
+        %s
       }
-
-%s
-
     }
   }
 }`
@@ -1269,11 +1306,25 @@ resource "digitalocean_app" "foobar" {
       instance_count     = 1
       instance_size_slug = "basic-xxs"
 
-      %s
-
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
         branch         = "main"
+      }
+    }
+
+    ingress {
+      rule {
+        component {
+          name = "go-service"
+        }
+
+        match {
+          path {
+            prefix = "/"
+          }
+        }
+
+        %s
       }
     }
   }
