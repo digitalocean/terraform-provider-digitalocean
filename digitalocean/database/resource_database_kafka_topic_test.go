@@ -57,8 +57,8 @@ const testAccCheckDigitalOceanDatabaseKafkaTopicBasic = `
 %s
 
 resource "digitalocean_database_kafka_topic" "foobar" {
-  cluster_id         = digitalocean_database_cluster.foobar.id
-  name       		 = "%s"
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
 }`
 
 const testAccCheckDigitalOceanDatabaseKafkaTopicComplete = `
@@ -66,12 +66,12 @@ const testAccCheckDigitalOceanDatabaseKafkaTopicComplete = `
 
 resource "digitalocean_database_kafka_topic" "foobaz" {
   cluster_id         = digitalocean_database_cluster.foobar.id
-  name       		 = "%s"
+  name               = "%s"
   partition_count    = %d
   replication_factor = %d
   config = {
-	cleanup_policy = "%s"
-	compression_type = "%s"
-	delete_retention_ms = %d
+    cleanup_policy      = "%s"
+    compression_type    = "%s"
+    delete_retention_ms = %d
   }
 }`
