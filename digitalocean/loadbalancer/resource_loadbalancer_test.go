@@ -11,6 +11,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -735,6 +736,101 @@ func TestAccDigitalOceanLoadbalancer_Firewall(t *testing.T) {
 			},
 		},
 	})
+}
+
+func TestLoadbalancerDiffCheck(t *testing.T) {
+	cases := []struct {
+		name         string
+		attrs        map[string]interface{}
+		expectError  bool
+		errorMessage string
+	}{
+		{
+			name:         "Missing type and region",
+			expectError:  true,
+			errorMessage: "missing 'region' value",
+		},
+		{
+			name:        "Missing type",
+			expectError: false,
+			attrs: map[string]interface{}{
+				"region": "nyc3",
+			},
+		},
+		{
+			name:         "Empty region",
+			expectError:  true,
+			errorMessage: "missing 'region' value",
+			attrs: map[string]interface{}{
+				"region": "",
+			},
+		},
+		{
+			name:         "Regional type without region",
+			expectError:  true,
+			errorMessage: "'region' must be set and not be empty when 'type' is 'REGIONAL'",
+			attrs: map[string]interface{}{
+				"type": "REGIONAL",
+			},
+		},
+		{
+			name:         "Regional type with empty region",
+			expectError:  true,
+			errorMessage: "'region' must be set and not be empty when 'type' is 'REGIONAL'",
+			attrs: map[string]interface{}{
+				"type":   "REGIONAL",
+				"region": "",
+			},
+		},
+		{
+			name:        "Regional type with region",
+			expectError: false,
+			attrs: map[string]interface{}{
+				"type":   "REGIONAL",
+				"region": "nyc3",
+			},
+		},
+		{
+			name:        "Global type without region",
+			expectError: false,
+			attrs: map[string]interface{}{
+				"type": "GLOBAL",
+			},
+		},
+		{
+			name:        "Global type with empty region",
+			expectError: false,
+			attrs: map[string]interface{}{
+				"type":   "GLOBAL",
+				"region": "",
+			},
+		},
+		{
+			name:         "Global type with region",
+			expectError:  true,
+			errorMessage: "'region' must be empty or not set when 'type' is 'GLOBAL'",
+			attrs: map[string]interface{}{
+				"type":   "GLOBAL",
+				"region": "nyc3",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var s *terraform.InstanceState
+			conf := terraform.NewResourceConfigRaw(c.attrs)
+
+			r := loadbalancer.ResourceDigitalOceanLoadbalancer()
+			_, err := r.Diff(context.Background(), s, conf, nil)
+
+			if c.expectError {
+				if err.Error() != c.errorMessage {
+					t.Fatalf("Expected %s, got %s", c.errorMessage, err)
+				}
+			}
+		})
+	}
 }
 
 func testAccCheckDigitalOceanLoadbalancerDestroy(s *terraform.State) error {

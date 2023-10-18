@@ -81,6 +81,10 @@ func ResourceDigitalOceanLoadbalancer() *schema.Resource {
 				}
 			}
 
+			if err := loadbalancerDiffCheck(ctx, diff, v); err != nil {
+				return err
+			}
+
 			return nil
 		},
 	}
@@ -113,12 +117,35 @@ func resourceDigitalOceanLoadBalancerV1() map[string]*schema.Schema {
 	return loadBalancerV1Schema
 }
 
+func loadbalancerDiffCheck(ctx context.Context, d *schema.ResourceDiff, v interface{}) error {
+	typ, typSet := d.GetOk("type")
+	region, regionSet := d.GetOk("region")
+
+	if !typSet && !regionSet {
+		return fmt.Errorf("missing 'region' value")
+	}
+
+	typStr := typ.(string)
+	switch strings.ToUpper(typStr) {
+	case "GLOBAL":
+		if regionSet && region.(string) != "" {
+			return fmt.Errorf("'region' must be empty or not set when 'type' is '%s'", typStr)
+		}
+	case "REGIONAL":
+		if !regionSet || region.(string) == "" {
+			return fmt.Errorf("'region' must be set and not be empty when 'type' is '%s'", typStr)
+		}
+	}
+
+	return nil
+}
+
 func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"region": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: true,
 				StateFunc: func(val interface{}) string {
 					// DO API V2 region slug is always lowercase
@@ -404,10 +431,11 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				},
 			},
 			"type": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				ForceNew:    true,
-				Description: "the type of the load balancer (GLOBAL or REGIONAL)",
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{"REGIONAL", "GLOBAL"}, true),
+				Description:  "the type of the load balancer (GLOBAL or REGIONAL)",
 			},
 		},
 	}
