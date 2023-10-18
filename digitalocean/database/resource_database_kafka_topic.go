@@ -312,7 +312,7 @@ func resourceDigitalOceanDatabaseKafkaTopicCreate(ctx context.Context, d *schema
 	log.Printf("[DEBUG] Database kafka topic create configuration: %#v", opts)
 	topic, _, err := client.Databases.CreateTopic(context.Background(), clusterID, opts)
 	if err != nil {
-		return diag.Errorf("Error creating database kafak topic: %s", err)
+		return diag.Errorf("Error creating database kafka topic: %s", err)
 	}
 
 	d.SetId(makeDatabaseTopicID(clusterID, topic.Name))
@@ -341,7 +341,7 @@ func resourceDigitalOceanDatabaseKafkaTopicUpdate(ctx context.Context, d *schema
 	log.Printf("[DEBUG] Database kafka topic update configuration: %#v", opts)
 	_, err := client.Databases.UpdateTopic(context.Background(), clusterID, topicName, opts)
 	if err != nil {
-		return diag.Errorf("Error updating database Kafka topic: %s", err)
+		return diag.Errorf("Error updating database kafka topic: %s", err)
 	}
 
 	return resourceDigitalOceanDatabaseKafkaTopicRead(ctx, d, meta)
