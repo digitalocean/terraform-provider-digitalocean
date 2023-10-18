@@ -62,7 +62,7 @@ func ResourceDigitalOceanDatabaseKafkaTopic() *schema.Resource {
 							ValidateFunc: validation.StringInSlice([]string{
 								"delete",
 								"compact",
-								"compact,delete",
+								"compact_delete",
 							}, false),
 						},
 						"compression_type": {
