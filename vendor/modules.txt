@@ -58,8 +58,8 @@ github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/digitalocean/godo v1.102.1
-## explicit; go 1.18
+# github.com/digitalocean/godo v1.105.0
+## explicit; go 1.20
 github.com/digitalocean/godo
 github.com/digitalocean/godo/metrics
 # github.com/fatih/color v1.13.0
@@ -248,8 +248,8 @@ github.com/oklog/run
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
-# github.com/stretchr/testify v1.7.2
-## explicit; go 1.13
+# github.com/stretchr/testify v1.8.4
+## explicit; go 1.20
 github.com/stretchr/testify/assert
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit

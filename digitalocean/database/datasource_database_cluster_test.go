@@ -46,6 +46,8 @@ func TestAccDataSourceDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"data.digitalocean_database_cluster.foobar", "private_network_uuid"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_database_cluster.foobar", "project_id"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_database_cluster.foobar", "storage_size_mib"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
 						"digitalocean_database_cluster.foobar", "uri"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
@@ -94,6 +96,7 @@ resource "digitalocean_database_cluster" "foobar" {
   region     = "nyc1"
   node_count = 1
   tags       = ["production"]
+  storage_size_mib = 10240
 }
 `
 
@@ -106,6 +109,7 @@ resource "digitalocean_database_cluster" "foobar" {
   region     = "nyc1"
   node_count = 1
   tags       = ["production"]
+  storage_size_mib = 10240
 }
 
 data "digitalocean_database_cluster" "foobar" {

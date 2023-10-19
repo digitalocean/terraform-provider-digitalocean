@@ -55,6 +55,8 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "private_network_uuid"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "project_id"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "storage_size_mib"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
 						"digitalocean_database_cluster.foobar", "uri"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
@@ -99,6 +101,37 @@ func TestAccDigitalOceanDatabaseCluster_WithUpdate(t *testing.T) {
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_cluster.foobar", "size", "db-s-2vcpu-4gb"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDatabaseCluster_WithAdditionalStorage(t *testing.T) {
+	var database godo.Database
+	databaseName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "storage_size_mib", "30720"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithAdditionalStorage, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "storage_size_mib", "61440"),
 				),
 			},
 		},
@@ -702,6 +735,18 @@ resource "digitalocean_database_cluster" "foobar" {
   region     = "nyc1"
   node_count = 1
   tags       = ["production"]
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithAdditionalStorage = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "pg"
+  version    = "15"
+  size       = "db-s-1vcpu-2gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+  storage_size_mib = 61440
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithMigration = `
