@@ -529,9 +529,10 @@ func appSpecServicesSchema() *schema.Resource {
 			},
 		},
 		"routes": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
+			Type:       schema.TypeList,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Service level routes are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecRouteSchema(),
 			},
@@ -542,9 +543,10 @@ func appSpecServicesSchema() *schema.Resource {
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
 		"cors": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:       schema.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			Deprecated: "Service level CORS rules are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecCORSSchema(),
 			},
@@ -583,17 +585,19 @@ func appSpecStaticSiteSchema() *schema.Resource {
 			Description: "The name of the document to use as the fallback for any requests to documents that are not found when serving this static site.",
 		},
 		"routes": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
+			Type:       schema.TypeList,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Service level routes are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecRouteSchema(),
 			},
 		},
 		"cors": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:       schema.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			Deprecated: "Service level CORS rules are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecCORSSchema(),
 			},
@@ -698,17 +702,19 @@ func appSpecJobSchema() *schema.Resource {
 func appSpecFunctionsSchema() *schema.Resource {
 	functionsSchema := map[string]*schema.Schema{
 		"routes": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
+			Type:       schema.TypeList,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Service level routes are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecRouteSchema(),
 			},
 		},
 		"cors": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:       schema.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			Deprecated: "Service level CORS rules are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecCORSSchema(),
 			},

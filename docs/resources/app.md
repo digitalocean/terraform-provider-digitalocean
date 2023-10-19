@@ -237,7 +237,7 @@ A `service` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
-* `routes` - An HTTP paths that should be routed to this component.
+* `routes` - (Deprecated - use `ingress`) An HTTP paths that should be routed to this component.
   - `path` - Paths must start with `/` and must be unique within the app.
   - `preserve_path_prefix` -  An optional flag to preserve the path that is forwarded to the backend service.
 * `health_check` - A health check to determine the availability of this component.
@@ -247,16 +247,7 @@ A `service` can contain:
   - `timeout_seconds` - The number of seconds after which the check times out.
   - `success_threshold` - The number of successful health checks before considered healthy.
   - `failure_threshold` - The number of failed health checks before considered unhealthy.
-* `cors` - The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
-	- `allow_origins` - The `Access-Control-Allow-Origin` can be
-    - `exact` - The `Access-Control-Allow-Origin` header will be set to the client's origin only if the client's origin exactly matches the value you provide.
-    - `prefix` -  The `Access-Control-Allow-Origin` header will be set to the client's origin if the beginning of the client's origin matches the value you provide.
-    - `regex` - The `Access-Control-Allow-Origin` header will be set to the client's origin if the client’s origin matches the regex you provide, in [RE2 style syntax](https://github.com/google/re2/wiki/Syntax).
-  - `allow_headers` - The set of allowed HTTP request headers. This configures the `Access-Control-Allow-Headers` header.
-  - `max_age` - An optional duration specifying how long browsers can cache the results of a preflight request. This configures the Access-Control-Max-Age header. Example: `5h30m`.
-  - `expose_headers` - The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
-  - `allow_methods` - The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
-  - `allow_credentials` - Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+* `cors` - (Deprecated - use `ingress`) The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
 * `alert` - Describes an alert policy for the component.
   - `rule` - The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
   - `value` - The threshold for the type of the warning.
@@ -300,19 +291,10 @@ A `static_site` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
-* `routes` - An HTTP paths that should be routed to this component.
+* `routes` - (Deprecated - use `ingress`) An HTTP paths that should be routed to this component.
   - `path` - Paths must start with `/` and must be unique within the app.
   - `preserve_path_prefix` -  An optional flag to preserve the path that is forwarded to the backend service.
-* `cors` - The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
-	- `allow_origins` - The `Access-Control-Allow-Origin` can be
-    - `exact` - The `Access-Control-Allow-Origin` header will be set to the client's origin only if the client's origin exactly matches the value you provide.
-    - `prefix` -  The `Access-Control-Allow-Origin` header will be set to the client's origin if the beginning of the client's origin matches the value you provide.
-    - `regex` - The `Access-Control-Allow-Origin` header will be set to the client's origin if the client’s origin matches the regex you provide, in [RE2 style syntax](https://github.com/google/re2/wiki/Syntax).
-  - `allow_headers` - The set of allowed HTTP request headers. This configures the `Access-Control-Allow-Headers` header.
-  - `max_age` - An optional duration specifying how long browsers can cache the results of a preflight request. This configures the Access-Control-Max-Age header. Example: `5h30m`.
-  - `expose_headers` - The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
-  - `allow_methods` - The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
-  - `allow_credentials` - Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+* `cors` - (Deprecated - use `ingress`) The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
 
 A `worker` can contain:
 
@@ -438,19 +420,10 @@ A `function` component can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
-* `routes` - An HTTP paths that should be routed to this component.
+* `routes` - (Deprecated - use `ingress`) An HTTP paths that should be routed to this component.
   - `path` - Paths must start with `/` and must be unique within the app.
   - `preserve_path_prefix` -  An optional flag to preserve the path that is forwarded to the backend service.
-* `cors` - The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
-	- `allow_origins` - The `Access-Control-Allow-Origin` can be
-    - `exact` - The `Access-Control-Allow-Origin` header will be set to the client's origin only if the client's origin exactly matches the value you provide.
-    - `prefix` -  The `Access-Control-Allow-Origin` header will be set to the client's origin if the beginning of the client's origin matches the value you provide.
-    - `regex` - The `Access-Control-Allow-Origin` header will be set to the client's origin if the client’s origin matches the regex you provide, in [RE2 style syntax](https://github.com/google/re2/wiki/Syntax).
-  - `allow_headers` - The set of allowed HTTP request headers. This configures the `Access-Control-Allow-Headers` header.
-  - `max_age` - An optional duration specifying how long browsers can cache the results of a preflight request. This configures the Access-Control-Max-Age header. Example: `5h30m`.
-  - `expose_headers` - The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
-  - `allow_methods` - The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
-  - `allow_credentials` - Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+* `cors` - (Deprecated - use `ingress`) The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
 * `alert` - Describes an alert policy for the component.
   - `rule` - The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
   - `value` - The threshold for the type of the warning.
