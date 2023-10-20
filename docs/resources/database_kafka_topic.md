@@ -11,10 +11,10 @@ Provides a DigitalOcean Kafka topic for Kafka clusters.
 ### Create a new Kafka topic
 ```hcl
 resource "digitalocean_database_kafka_topic" "topic-01" {
-  cluster_id            = digitalocean_database_cluster.kafka-example.id
-  name                  = "topic-01"
-  partition_count       = 3
-  replication_factor    = 2
+  cluster_id         = digitalocean_database_cluster.kafka-example.id
+  name               = "topic-01"
+  partition_count    = 3
+  replication_factor = 2
   config {
     cleanup_policy                      = "compact"
     compression_type                    = "uncompressed"
