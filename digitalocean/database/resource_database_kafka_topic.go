@@ -319,7 +319,7 @@ func resourceDigitalOceanDatabaseKafkaTopicCreate(ctx context.Context, d *schema
 		return diag.Errorf("Error creating database kafka topic: %s", err)
 	}
 
-	d.SetId(makeDatabaseTopicID(clusterID, topic.Name))
+	d.SetId(makeKafkaTopicID(clusterID, topic.Name))
 	log.Printf("[INFO] Database kafka topic name: %s", topic.Name)
 
 	return resourceDigitalOceanDatabaseKafkaTopicRead(ctx, d, meta)
@@ -425,7 +425,7 @@ func flattenTopicConfig(config *godo.TopicConfig) []map[string]interface{} {
 	return result
 }
 
-func makeDatabaseTopicID(clusterID string, name string) string {
+func makeKafkaTopicID(clusterID string, name string) string {
 	return fmt.Sprintf("%s/topic/%s", clusterID, name)
 }
 
@@ -582,11 +582,11 @@ func getTopicConfig(raw []interface{}) *godo.TopicConfig {
 func resourceDigitalOceanDatabaseKafkaTopicImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	if strings.Contains(d.Id(), ",") {
 		s := strings.Split(d.Id(), ",")
-		d.SetId(makeDatabaseTopicID(s[0], s[1]))
+		d.SetId(makeKafkaTopicID(s[0], s[1]))
 		d.Set("cluster_id", s[0])
 		d.Set("name", s[1])
 	} else {
-		return nil, errors.New("must use the ID of the source database cluster and the name of the topic joined with a comma (e.g. `id,name`)")
+		return nil, errors.New("must use the ID of the source kafka cluster and the name of the topic joined with a comma (e.g. `id,name`)")
 	}
 
 	return []*schema.ResourceData{d}, nil

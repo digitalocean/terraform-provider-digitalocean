@@ -31,6 +31,50 @@ func TestAccDigitalOceanDatabaseKafkaTopic(t *testing.T) {
 						"digitalocean_database_kafka_topic.foobar", "replication_factor", "2"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_kafka_topic.foobar", "partition_count", "3"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.cleanup_policy"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.compression_type"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.delete_retention_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.file_delete_delay_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.flush_messages"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.flush_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.index_interval_bytes"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.max_compaction_lag_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.message_down_conversion_enable"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.message_format_version"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.message_timestamp_difference_max_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.message_timestamp_type"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.min_cleanable_dirty_ratio"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.min_compaction_lag_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.min_insync_replicas"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.retention_bytes"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.retention_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.segment_bytes"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.segment_index_bytes"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.segment_jitter_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.segment_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.unclean_leader_election_enable"),
 				),
 			},
 			{
@@ -50,6 +94,50 @@ func TestAccDigitalOceanDatabaseKafkaTopic(t *testing.T) {
 						"digitalocean_database_kafka_topic.foobar", "config.0.compression_type", "snappy"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_kafka_topic.foobar", "config.0.delete_retention_ms", "80000"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.cleanup_policy"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.compression_type"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.delete_retention_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.file_delete_delay_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.flush_messages"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.flush_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.index_interval_bytes"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.max_compaction_lag_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.message_down_conversion_enable"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.message_format_version"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.message_timestamp_difference_max_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.message_timestamp_type"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.min_cleanable_dirty_ratio"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.min_compaction_lag_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.min_insync_replicas"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.retention_bytes"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.retention_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.segment_bytes"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.segment_index_bytes"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.segment_jitter_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.segment_ms"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_kafka_topic.foobar", "config.0.unclean_leader_election_enable"),
 				),
 			},
 		},
