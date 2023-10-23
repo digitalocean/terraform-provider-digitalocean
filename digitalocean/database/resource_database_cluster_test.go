@@ -829,6 +829,17 @@ resource "digitalocean_database_cluster" "foobar" {
   tags       = ["production"]
 }`
 
+const testAccCheckDigitalOceanDatabaseClusterKafka = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "kafka"
+  version    = "%s"
+  size       = "db-s-1vcpu-2gb"
+  region     = "nyc1"
+  node_count = 3
+  tags       = ["production"]
+}`
+
 const testAccCheckDigitalOceanDatabaseClusterMySQL = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"

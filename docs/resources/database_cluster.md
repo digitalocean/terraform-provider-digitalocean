@@ -44,6 +44,18 @@ resource "digitalocean_database_cluster" "redis-example" {
 }
 ```
 
+### Create a new Kafka database cluster
+```hcl
+resource "digitalocean_database_cluster" "kafka-example" {
+  name       = "example-kafka-cluster"
+  engine     = "kafka"
+  version    = "3.5"
+  size       = "db-s-1vcpu-2gb"
+  region     = "nyc1"
+  node_count = 3
+}
+```
+
 ### Create a new MongoDB database cluster
 ```hcl
 resource "digitalocean_database_cluster" "mongodb-example" {
@@ -92,10 +104,10 @@ resource "digitalocean_database_cluster" "doby_backup" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the database cluster.
-* `engine` - (Required) Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, or `mongodb` for MongoDB).
+* `engine` - (Required) Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, `mongodb` for MongoDB, or `kafka` for Kafka).
 * `size` - (Required) Database Droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`). See here for a [list of valid size slugs](https://docs.digitalocean.com/reference/api/api-reference/#tag/Databases).
 * `region` - (Required) DigitalOcean region where the cluster will reside.
-* `node_count` - (Required) Number of nodes that will be included in the cluster.
+* `node_count` - (Required) Number of nodes that will be included in the cluster. For `kafka` clusters, this must be 3.
 * `version` - (Required) Engine version used by the cluster (ex. `14` for PostgreSQL 14).
   When this value is changed, a call to the [Upgrade major Version for a Database](https://docs.digitalocean.com/reference/api/api-reference/#operation/databases_update_major_version) API operation is made with the new version.
 * `tags` - (Optional) A list of tag names to be applied to the database cluster.
