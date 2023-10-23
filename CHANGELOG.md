@@ -1,3 +1,31 @@
+# 2.31.0
+
+FEATURES:
+
+- **New Resource:** `digitalocean_database_kafka_topic` (#1052) - @dweinshenker
+- **New Resource:** `digitalocean_database_mysql_config` (#1051) - @kallydev
+- **New Resource:** `digitalocean_database_redis_config` (#1037) - @andrewsomething
+
+IMPROVEMENTS:
+
+- `digitalocean_database_cluster`: Add support for Scalable Storage (#1054). - @dweinshenker
+- `digitalocean_app`: Add support for ingress for component routing, rewrites, and redirects (#1053). - @andrewsomething
+- `digitalocean_loadbalancer`: Add support type param (#1023). - @asaha2
+
+BUG FIXES:
+
+- `digitalocean_loadbalancer`: no region field needed for global lb type (#1046). - @apinonformoso
+- `digitalocean_loadbalancer`: Parse nil region for global lb (#1043). - @asaha2
+- `digitalocean_app`: Rework deployment logic (#1048). - @davidsbond
+- `digitalocean_spaces_bucket`: set force_destroy false on import (#1041). - @andrewsomething
+
+MISC:
+
+- `build(deps)`: bump golang.org/x/net from 0.14.0 to 0.17.0 (#1050). - @dependabot[bot]
+- `docs`: Clarify Database Docs for Referencing DB Replicas (#1045). - @danaelhe
+- `testing`: Use terrafmt on docs directory (#1036). - @andrewsomething 
+- `docs`: Update Droplet example (#1035). - @danaelhe
+
 # 2.30.0
 
 FEATURES:
