@@ -129,7 +129,7 @@ func resourceDigitalOceanUptimeAlertCreate(ctx context.Context, d *schema.Resour
 		Name:          d.Get("name").(string),
 		Type:          d.Get("type").(string),
 		Notifications: expandNotifications(d.Get("notifications").([]interface{})),
-		Comparison:    d.Get("comparison").(string),
+		Comparison:    godo.UptimeAlertComp(d.Get("comparison").(string)),
 		Threshold:     d.Get("threshold").(int),
 		Period:        d.Get("period").(string),
 	}
@@ -167,7 +167,7 @@ func resourceDigitalOceanUptimeAlertUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	if v, ok := d.GetOk("comparison"); ok {
-		opts.Comparison = v.(string)
+		opts.Comparison = godo.UptimeAlertComp(v.(string))
 	}
 	if v, ok := d.GetOk("threshold"); ok {
 		opts.Threshold = v.(int)
