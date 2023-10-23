@@ -104,6 +104,7 @@ The following arguments are supported:
 * `eviction_policy` - (Optional) A string specifying the eviction policy for a Redis cluster. Valid values are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.
 * `sql_mode` - (Optional) A comma separated string specifying the  SQL modes for a MySQL cluster.
 * `maintenance_window` - (Optional) Defines when the automatic maintenance should be performed for the database cluster.
+* `storage_size_mib` - (Optional) Defines the disk size, in MiB, allocated to the cluster. This can be adjusted on MySQL and PostreSQL clusters based on predefined ranges for each slug/droplet size.
 
 `maintenance_window` supports the following:
 

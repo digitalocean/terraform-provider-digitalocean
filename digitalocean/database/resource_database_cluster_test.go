@@ -739,13 +739,13 @@ resource "digitalocean_database_cluster" "foobar" {
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithAdditionalStorage = `
 resource "digitalocean_database_cluster" "foobar" {
-  name       = "%s"
-  engine     = "pg"
-  version    = "15"
-  size       = "db-s-1vcpu-2gb"
-  region     = "nyc1"
-  node_count = 1
-  tags       = ["production"]
+  name             = "%s"
+  engine           = "pg"
+  version          = "15"
+  size             = "db-s-1vcpu-2gb"
+  region           = "nyc1"
+  node_count       = 1
+  tags             = ["production"]
   storage_size_mib = 61440
 }`
 
