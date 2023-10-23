@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -123,6 +124,11 @@ func DataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 			},
 
 			"tags": tag.TagsSchema(),
+
+			"storage_size_mib": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -174,6 +180,7 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 			d.Set("region", db.RegionSlug)
 			d.Set("node_count", db.NumNodes)
 			d.Set("tags", tag.FlattenTags(db.Tags))
+			d.Set("storage_size_mib", strconv.FormatUint(db.StorageSizeMib, 10))
 
 			if _, ok := d.GetOk("maintenance_window"); ok {
 				if err := d.Set("maintenance_window", flattenMaintWindowOpts(*db.MaintenanceWindow)); err != nil {

@@ -209,6 +209,12 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 					},
 				},
 			},
+
+			"storage_size_mib": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -283,6 +289,13 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 		opts.BackupRestore = expandBackupRestore(v.([]interface{}))
 	}
 
+	if v, ok := d.GetOk("storage_size_mib"); ok {
+		v, err := strconv.ParseUint(v.(string), 10, 64)
+		if err == nil {
+			opts.StorageSizeMib = v
+		}
+	}
+
 	log.Printf("[DEBUG] database cluster create configuration: %#v", opts)
 	database, _, err := client.Databases.Create(context.Background(), opts)
 	if err != nil {
@@ -343,12 +356,17 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	if d.HasChanges("size", "node_count") {
+	if d.HasChanges("size", "node_count", "storage_size_mib") {
 		opts := &godo.DatabaseResizeRequest{
 			SizeSlug: d.Get("size").(string),
 			NumNodes: d.Get("node_count").(int),
 		}
-
+		if v, ok := d.GetOk("storage_size_mib"); ok {
+			v, err := strconv.ParseUint(v.(string), 10, 64)
+			if err == nil {
+				opts.StorageSizeMib = v
+			}
+		}
 		resp, err := client.Databases.Resize(context.Background(), d.Id(), opts)
 		if err != nil {
 			// If the database is somehow already destroyed, mark as
@@ -467,6 +485,7 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	d.Set("size", database.SizeSlug)
 	d.Set("region", database.RegionSlug)
 	d.Set("node_count", database.NumNodes)
+	d.Set("storage_size_mib", strconv.FormatUint(database.StorageSizeMib, 10))
 	d.Set("tags", tag.FlattenTags(database.Tags))
 
 	if _, ok := d.GetOk("maintenance_window"); ok {
