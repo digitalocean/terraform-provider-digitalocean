@@ -136,7 +136,7 @@ func resourceDigitalOceanDatabaseUserCreate(ctx context.Context, d *schema.Resou
 	d.SetId(makeDatabaseUserID(clusterID, user.Name))
 	log.Printf("[INFO] Database User Name: %s", user.Name)
 
-	// set userSettings only on create, due to Create responses including `settings` but Get responses not including them
+	// set userSettings only on CreateUser, due to CreateUser responses including `settings` but GetUser responses not including `settings`
 	if err := d.Set("settings", flattenUserSettings(user.Settings)); err != nil {
 		return diag.Errorf("Error setting user settings: %#v", err)
 	}
@@ -164,11 +164,12 @@ func resourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.Resourc
 		return diag.Errorf("Error retrieving Database User: %s", err)
 	}
 
-	diagErr := setDatabaseUserAttributes(d, user)
-	return diagErr
+	setDatabaseUserAttributes(d, user)
+
+	return nil
 }
 
-func setDatabaseUserAttributes(d *schema.ResourceData, user *godo.DatabaseUser) diag.Diagnostics {
+func setDatabaseUserAttributes(d *schema.ResourceData, user *godo.DatabaseUser) {
 	// Default to "normal" when not set.
 	if user.Role == "" {
 		d.Set("role", "normal")
@@ -185,8 +186,6 @@ func setDatabaseUserAttributes(d *schema.ResourceData, user *godo.DatabaseUser) 
 	if user.MySQLSettings != nil {
 		d.Set("mysql_auth_plugin", user.MySQLSettings.AuthPlugin)
 	}
-
-	return nil
 }
 
 func resourceDigitalOceanDatabaseUserUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
