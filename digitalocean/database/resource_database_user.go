@@ -60,14 +60,11 @@ func ResourceDigitalOceanDatabaseUser() *schema.Resource {
 						"acl": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							Elem:     userACLSchema(),
 						},
 					},
 				},
 			},
-
-			// Computed Properties
 			"role": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -139,6 +136,11 @@ func resourceDigitalOceanDatabaseUserCreate(ctx context.Context, d *schema.Resou
 	d.SetId(makeDatabaseUserID(clusterID, user.Name))
 	log.Printf("[INFO] Database User Name: %s", user.Name)
 
+	// set userSettings only on create, due to Create responses including `settings` but Get responses not including them
+	if err := d.Set("settings", flattenUserSettings(user.Settings)); err != nil {
+		return diag.Errorf("Error setting user settings: %#v", err)
+	}
+
 	setDatabaseUserAttributes(d, user)
 
 	return nil
@@ -182,10 +184,6 @@ func setDatabaseUserAttributes(d *schema.ResourceData, user *godo.DatabaseUser) 
 
 	if user.MySQLSettings != nil {
 		d.Set("mysql_auth_plugin", user.MySQLSettings.AuthPlugin)
-	}
-
-	if err := d.Set("settings", flattenUserSettings(d, user.Settings)); err != nil {
-		return diag.Errorf("Error setting user settings: %#v", err)
 	}
 
 	return nil
@@ -278,15 +276,11 @@ func expandUserACLs(rawACLs []interface{}) []*godo.KafkaACL {
 	return acls
 }
 
-func flattenUserSettings(d *schema.ResourceData, settings *godo.DatabaseUserSettings) []map[string]interface{} {
+func flattenUserSettings(settings *godo.DatabaseUserSettings) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0, 1)
 	if settings != nil {
 		r := make(map[string]interface{})
-		if len((*settings).ACL) > 0 {
-			if _, ok := d.GetOk("settings.0.acl"); ok {
-				r["acl"] = flattenUserACLs((*settings).ACL)
-			}
-		}
+		r["acl"] = flattenUserACLs(settings.ACL)
 		result = append(result, r)
 	}
 	return result
