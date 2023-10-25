@@ -76,7 +76,7 @@ resource "digitalocean_database_user" "foobar_user" {
       permission = "produce"
     }
     acl {
-      topic      = "topic-1"
+      topic      = "topic-2"
       permission = "produceconsume"
     }
     acl {
