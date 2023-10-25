@@ -52,6 +52,20 @@ func ResourceDigitalOceanDatabaseUser() *schema.Resource {
 					return old == godo.SQLAuthPluginCachingSHA2 && new == ""
 				},
 			},
+			"settings": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"acl": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							Elem:     userACLSchema(),
+						},
+					},
+				},
+			},
 
 			// Computed Properties
 			"role": {
@@ -62,6 +76,32 @@ func ResourceDigitalOceanDatabaseUser() *schema.Resource {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
+			},
+		},
+	}
+}
+
+func userACLSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"topic": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+			"permission": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"admin",
+					"consume",
+					"produce",
+					"produceconsume",
+				}, false),
 			},
 		},
 	}
@@ -79,6 +119,10 @@ func resourceDigitalOceanDatabaseUserCreate(ctx context.Context, d *schema.Resou
 		opts.MySQLSettings = &godo.DatabaseMySQLUserSettings{
 			AuthPlugin: v.(string),
 		}
+	}
+
+	if v, ok := d.GetOk("settings"); ok {
+		opts.Settings = expandUserSettings(v.([]interface{}))
 	}
 
 	// Prevent parallel creation of users for same cluster.
@@ -118,12 +162,11 @@ func resourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.Resourc
 		return diag.Errorf("Error retrieving Database User: %s", err)
 	}
 
-	setDatabaseUserAttributes(d, user)
-
-	return nil
+	diagErr := setDatabaseUserAttributes(d, user)
+	return diagErr
 }
 
-func setDatabaseUserAttributes(d *schema.ResourceData, user *godo.DatabaseUser) {
+func setDatabaseUserAttributes(d *schema.ResourceData, user *godo.DatabaseUser) diag.Diagnostics {
 	// Default to "normal" when not set.
 	if user.Role == "" {
 		d.Set("role", "normal")
@@ -140,6 +183,12 @@ func setDatabaseUserAttributes(d *schema.ResourceData, user *godo.DatabaseUser) 
 	if user.MySQLSettings != nil {
 		d.Set("mysql_auth_plugin", user.MySQLSettings.AuthPlugin)
 	}
+
+	if err := d.Set("settings", flattenUserSettings(d, user.Settings)); err != nil {
+		return diag.Errorf("Error setting user settings: %#v", err)
+	}
+
+	return nil
 }
 
 func resourceDigitalOceanDatabaseUserUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -202,4 +251,66 @@ func resourceDigitalOceanDatabaseUserImport(d *schema.ResourceData, meta interfa
 
 func makeDatabaseUserID(clusterID string, name string) string {
 	return fmt.Sprintf("%s/user/%s", clusterID, name)
+}
+
+func expandUserSettings(raw []interface{}) *godo.DatabaseUserSettings {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.DatabaseUserSettings{}
+	}
+	userSettingsConfig := raw[0].(map[string]interface{})
+
+	userSettings := &godo.DatabaseUserSettings{
+		ACL: expandUserACLs(userSettingsConfig["acl"].([]interface{})),
+	}
+	return userSettings
+}
+
+func expandUserACLs(rawACLs []interface{}) []*godo.KafkaACL {
+	acls := make([]*godo.KafkaACL, 0, len(rawACLs))
+	for _, rawACL := range rawACLs {
+		a := rawACL.(map[string]interface{})
+		acl := &godo.KafkaACL{
+			Topic:      a["topic"].(string),
+			Permission: a["permission"].(string),
+		}
+		acls = append(acls, acl)
+	}
+	return acls
+}
+
+func flattenUserSettings(d *schema.ResourceData, settings *godo.DatabaseUserSettings) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, 1)
+	if settings != nil {
+		r := make(map[string]interface{})
+		if len((*settings).ACL) > 0 {
+			if _, ok := d.GetOk("settings.0.acl"); ok {
+				r["acl"] = flattenUserACLs((*settings).ACL)
+			}
+		}
+		result = append(result, r)
+	}
+	return result
+}
+
+func flattenUserACLs(acls []*godo.KafkaACL) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(acls))
+	for i, acl := range acls {
+		item := make(map[string]interface{})
+		item["id"] = acl.ID
+		item["topic"] = acl.Topic
+		item["permission"] = normalizePermission(acl.Permission)
+		result[i] = item
+	}
+	return result
+}
+
+func normalizePermission(p string) string {
+	pLower := strings.ToLower(p)
+	switch pLower {
+	case "admin", "produce", "consume":
+		return pLower
+	case "produceconsume", "produce_consume", "readwrite", "read_write":
+		return "produceconsume"
+	}
+	return ""
 }
