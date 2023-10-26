@@ -298,6 +298,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ha", "false"),
 				),
 			},
 			{
@@ -310,6 +311,7 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 					resource.TestCheckTypeSetElemAttr("digitalocean_kubernetes_cluster.foobar", "tags.*", "two"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.labels.%", "0"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "surge_upgrade", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ha", "true"),
 				),
 			},
 		},
@@ -865,6 +867,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name          = "%s"
   region        = "lon1"
   surge_upgrade = true
+  ha            = true
   version       = data.digitalocean_kubernetes_versions.test.latest_version
   tags          = ["one", "two"]
 

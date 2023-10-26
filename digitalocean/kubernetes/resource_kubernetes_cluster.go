@@ -62,7 +62,6 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-				ForceNew: true,
 			},
 
 			"registry_integration": {
@@ -416,13 +415,14 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy") {
+	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha") {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
 			Name:         d.Get("name").(string),
 			Tags:         tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
-			AutoUpgrade:  godo.Bool(d.Get("auto_upgrade").(bool)),
+			AutoUpgrade:  godo.PtrTo(d.Get("auto_upgrade").(bool)),
 			SurgeUpgrade: d.Get("surge_upgrade").(bool),
+			HA:           godo.PtrTo(d.Get("ha").(bool)),
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {
