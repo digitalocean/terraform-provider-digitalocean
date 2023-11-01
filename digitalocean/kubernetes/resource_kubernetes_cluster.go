@@ -400,11 +400,9 @@ func digitaloceanKubernetesClusterRead(
 		}
 	}
 	if expiresAt.IsZero() || expiresAt.Before(time.Now()) {
-		creds, resp, err := client.Kubernetes.GetCredentials(context.Background(), cluster.ID, &godo.KubernetesClusterCredentialsGetRequest{})
+		creds, _, err := client.Kubernetes.GetCredentials(context.Background(), cluster.ID, &godo.KubernetesClusterCredentialsGetRequest{})
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
-				return diag.Errorf("Unable to fetch Kubernetes credentials: %s", err)
-			}
+			return diag.Errorf("Unable to fetch Kubernetes credentials: %s", err)
 		}
 		d.Set("kube_config", flattenCredentials(cluster.Name, cluster.RegionSlug, creds))
 	}
@@ -676,6 +674,10 @@ type kubernetesConfigUserData struct {
 }
 
 func flattenCredentials(name string, region string, creds *godo.KubernetesClusterCredentials) []interface{} {
+	if creds == nil {
+		return nil
+	}
+
 	raw := map[string]interface{}{
 		"cluster_ca_certificate": base64.StdEncoding.EncodeToString(creds.CertificateAuthorityData),
 		"host":                   creds.Server,
