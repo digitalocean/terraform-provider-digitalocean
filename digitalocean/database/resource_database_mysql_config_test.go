@@ -18,17 +18,19 @@ func TestAccDigitalOceanDatabaseMySQLConfig_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseMySQLConfigConfigBasic, dbConfig, 10, "UTC"),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseMySQLConfigConfigBasic, dbConfig, 10, "UTC", false),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_database_mysql_config.foobar", "connect_timeout", "10"),
 					resource.TestCheckResourceAttr("digitalocean_database_mysql_config.foobar", "default_time_zone", "UTC"),
+					resource.TestCheckResourceAttr("digitalocean_database_mysql_config.foobar", "sql_require_primary_key", "false"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseMySQLConfigConfigBasic, dbConfig, 15, "SYSTEM"),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseMySQLConfigConfigBasic, dbConfig, 15, "SYSTEM", false),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_database_mysql_config.foobar", "connect_timeout", "15"),
 					resource.TestCheckResourceAttr("digitalocean_database_mysql_config.foobar", "default_time_zone", "SYSTEM"),
+					resource.TestCheckResourceAttr("digitalocean_database_mysql_config.foobar", "sql_require_primary_key", "false"),
 				),
 			},
 		},
@@ -39,7 +41,8 @@ const testAccCheckDigitalOceanDatabaseMySQLConfigConfigBasic = `
 %s
 
 resource "digitalocean_database_mysql_config" "foobar" {
-  cluster_id        = digitalocean_database_cluster.foobar.id
-  connect_timeout   = %d
-  default_time_zone = "%s"
+  cluster_id              = digitalocean_database_cluster.foobar.id
+  connect_timeout         = %d
+  default_time_zone       = "%s"
+  sql_require_primary_key = "%t"
 }`
