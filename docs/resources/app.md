@@ -158,6 +158,7 @@ The following arguments are supported:
 * `spec` - (Required) A DigitalOcean App spec describing the app.
  - `name` - (Required) The name of the app. Must be unique across all apps in the same account.
  - `region` - The slug for the DigitalOcean data center region hosting the app.
+ - `features` - A list of the features applied to the app. The default buildpack can be overridden here. List of available buildpacks can be found using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/reference/apps/list-buildpacks/)
  - `domain` - Describes a domain where the application will be made available.
      * `name` - The hostname for the domain.
      * `type` - The domain type, which can be one of the following:
