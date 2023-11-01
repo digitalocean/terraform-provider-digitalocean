@@ -148,7 +148,7 @@ The following arguments are supported:
 * `vpc_uuid` - (Optional) The ID of the VPC where the Kubernetes cluster will be located.
 * `auto_upgrade` - (Optional) A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: false
-* `ha` - (Optional) Enable/disable the high availability control plane for a cluster. High availability can only be set when creating a cluster. Any update will create a new cluster. Default: false
+* `ha` - (Optional) Enable/disable the high availability control plane for a cluster. Once enabled for a cluster, high availability cannot be disabled. Default: false
 * `registry_integration` - (optional) Enables or disables the DigitalOcean container registry integration for the cluster. This requires that a container registry has first been created for the account. Default: false
 * `node_pool` - (Required) A block representing the cluster's default node pool. Additional node pools may be added to the cluster using the `digitalocean_kubernetes_node_pool` resource. The following arguments may be specified:
   - `name` - (Required) A name for the node pool.
