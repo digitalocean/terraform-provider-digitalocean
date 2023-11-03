@@ -947,7 +947,7 @@ resource "digitalocean_app" "foobar" {
 	features = ["buildpack-stack=ubuntu-18"]
 
     service {
-      name               = "go-service-with-timeout"
+      name               = "go-service-with-features"
       instance_size_slug = "basic-xxs"
 
       git {
