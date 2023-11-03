@@ -942,9 +942,9 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_withFeatures = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name   = "%s"
-    region = "ams"
-	features = ["buildpack-stack=ubuntu-18"]
+    name     = "%s"
+    region   = "ams"
+    features = ["buildpack-stack=ubuntu-18"]
 
     service {
       name               = "go-service-with-features"
