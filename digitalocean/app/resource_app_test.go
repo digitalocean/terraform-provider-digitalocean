@@ -853,6 +853,27 @@ func testAccCheckDigitalOceanAppExists(n string, app *godo.App) resource.TestChe
 	}
 }
 
+func TestAccDigitalOceanApp_Features(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withFeatures, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.features.0", "buildpack-stack=ubuntu-18"),
+				),
+			},
+		},
+	})
+}
+
 var testAccCheckDigitalOceanAppConfig_basic = `
 resource "digitalocean_app" "foobar" {
   spec {
@@ -908,6 +929,25 @@ resource "digitalocean_app" "foobar" {
 
     service {
       name               = "go-service-with-timeout"
+      instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_withFeatures = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name     = "%s"
+    region   = "ams"
+    features = ["buildpack-stack=ubuntu-18"]
+
+    service {
+      name               = "go-service-with-features"
       instance_size_slug = "basic-xxs"
 
       git {

@@ -41,6 +41,12 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Computed: true,
 			Elem:     appSpecDomainSchema(),
 		},
+		"features": {
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Elem:        &schema.Schema{Type: schema.TypeString},
+			Description: "List of features which is applied to the app",
+		},
 		"domains": {
 			Type:       schema.TypeSet,
 			Optional:   true,
@@ -1003,6 +1009,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 	appSpec := &godo.AppSpec{
 		Name:        appSpecConfig["name"].(string),
 		Region:      appSpecConfig["region"].(string),
+		Features:    expandAppSpecFeatures(appSpecConfig["features"].(*schema.Set)),
 		Services:    expandAppSpecServices(appSpecConfig["service"].([]interface{})),
 		StaticSites: expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
 		Workers:     expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
@@ -1033,6 +1040,7 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 		r := make(map[string]interface{})
 		r["name"] = (*spec).Name
 		r["region"] = (*spec).Region
+		r["features"] = (*spec).Features
 
 		if len((*spec).Domains) > 0 {
 			r["domains"] = flattenAppDomainSpec((*spec).Domains)
@@ -1710,6 +1718,18 @@ func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec) []map[string]int
 	}
 
 	return result
+}
+
+func expandAppSpecFeatures(featuresConfig *schema.Set) []string {
+	features := []string{}
+
+	for _, feature := range featuresConfig.List() {
+		if featureString, ok := feature.(string); ok {
+			features = append(features, featureString)
+		}
+	}
+
+	return features
 }
 
 func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
