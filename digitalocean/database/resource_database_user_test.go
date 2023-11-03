@@ -177,6 +177,57 @@ func TestAccDigitalOceanDatabaseUser_MySQLAuth(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseUser_KafkaACLs(t *testing.T) {
+	var databaseUser godo.DatabaseUser
+	databaseClusterName := acceptance.RandomTestName()
+	databaseUserName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseUserConfigKafkaACL, databaseClusterName, databaseUserName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseUserExists("digitalocean_database_user.foobar_user", &databaseUser),
+					testAccCheckDigitalOceanDatabaseUserAttributes(&databaseUser, databaseUserName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "name", databaseUserName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "role"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "password"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.0.id"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.0.topic", "topic-1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.0.permission", "admin"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.1.id"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.1.topic", "topic-2"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.1.permission", "produceconsume"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.2.id"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.2.topic", "topic-*"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.2.permission", "produce"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.3.id"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.3.topic", "topic-*"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.3.permission", "consume"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDatabaseUserDestroy(s *terraform.State) error {
 	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
@@ -359,6 +410,39 @@ resource "digitalocean_database_user" "foobar_user" {
   cluster_id        = digitalocean_database_cluster.foobar.id
   name              = "%s"
   mysql_auth_plugin = "mysql_native_password"
+}`
+
+const testAccCheckDigitalOceanDatabaseUserConfigKafkaACL = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "kafka"
+  version    = "3.5"
+  size       = "db-s-1vcpu-2gb"
+  region     = "nyc1"
+  node_count = 3
+}
+
+resource "digitalocean_database_user" "foobar_user" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
+  settings {
+    acl {
+      topic      = "topic-1"
+      permission = "admin"
+    }
+    acl {
+      topic      = "topic-2"
+      permission = "produceconsume"
+    }
+    acl {
+      topic      = "topic-*"
+      permission = "produce"
+    }
+    acl {
+      topic      = "topic-*"
+      permission = "consume"
+    }
+  }
 }`
 
 const testAccCheckDigitalOceanDatabaseUserConfigMySQLAuthUpdate = `
