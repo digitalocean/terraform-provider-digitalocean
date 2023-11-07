@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 	"time"
 
@@ -655,8 +656,13 @@ func resourceDigitalOceanLoadbalancerDelete(ctx context.Context, d *schema.Resou
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	log.Printf("[INFO] Deleting Load Balancer: %s", d.Id())
-	_, err := client.LoadBalancers.Delete(context.Background(), d.Id())
+	resp, err := client.LoadBalancers.Delete(context.Background(), d.Id())
 	if err != nil {
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			d.SetId("")
+			return nil
+		}
+
 		return diag.Errorf("Error deleting Load Balancer: %s", err)
 	}
 
