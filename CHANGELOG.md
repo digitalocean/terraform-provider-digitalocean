@@ -1,3 +1,22 @@
+# 2.32.0
+
+IMPROVEMENTS:
+
+- `digitalocean_app`: Support `features` in App spec (#1066). - @T-jegou
+- `digitalocean_database_user`: Add support for Kafka Topic User ACL management (#1056). - @dweinshenker
+- `digitalocean_kubernetes_cluster`: Support enabling HA post-create (#1058). - @andrewsomething
+
+BUG FIXES:
+
+- `digitalocean_loadbalancer`: ignore 404 on delete (#1067). - @andrewsomething
+- `digitalocean_database_mysql_config`: Use GetOkExists for bools (#1063). - @andrewsomething
+- `digitalocean_kubernetes_cluster`: Handle error from GetCredentials and protect against panic (#1064). - @andrewsomething
+
+MISC:
+
+- `provider`: Bump godo to v1.105.1 (#1071). - @andrewsomething
+- `provider`: bump google.golang.org/grpc from 1.53.0 to 1.56.3 (#1057). - @dependabot[bot]
+
 # 2.31.0
 
 FEATURES:
