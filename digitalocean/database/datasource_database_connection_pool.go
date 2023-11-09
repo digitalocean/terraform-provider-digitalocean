@@ -37,7 +37,7 @@ func DataSourceDigitalOceanDatabaseConnectionPool() *schema.Resource {
 			},
 
 			"size": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Computed: true,
 			},
 
