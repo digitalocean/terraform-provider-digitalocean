@@ -4,7 +4,7 @@ page_title: "DigitalOcean: digitalocean_database_connection_pool"
 
 # digitalocean\_database\_connection\_pool
 
-Provides information on a DigitalOcean database connection pool.
+Provides information on a DigitalOcean PostgreSQL database connection pool.
 
 ## Example Usage
 
