@@ -900,7 +900,7 @@ resource "digitalocean_app" "foobar" {
       health_check {
         http_path       = "/"
         timeout_seconds = 10
-		port            = 1234
+        port            = 1234
       }
 
       alert {
