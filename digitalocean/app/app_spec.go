@@ -320,6 +320,12 @@ func appSpecRouteSchema() map[string]*schema.Schema {
 
 func appSpecHealthCheckSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"port": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Description:  "The health check will be performed on this port instead of component's HTTP port.",
+			ValidateFunc: validation.IntBetween(1, 65535),
+		},
 		"http_path": {
 			Type:        schema.TypeString,
 			Optional:    true,
