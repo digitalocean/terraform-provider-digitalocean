@@ -8,6 +8,7 @@ BUG FIXES:
 
 - #1078 - @nemcikjan - fix: added missing option to set port on health_check
 - #1076 - @dweinshenker - Remove unclean_leader_election_enable for kafka topic configuration
+- #1080 - @danaelhe - Apps: Reference Port in expandAppHealthCheck and flattenAppHealthCheck 
 
 MISC:
 
