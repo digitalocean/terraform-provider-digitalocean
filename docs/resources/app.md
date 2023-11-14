@@ -248,6 +248,7 @@ A `service` can contain:
   - `timeout_seconds` - The number of seconds after which the check times out.
   - `success_threshold` - The number of successful health checks before considered healthy.
   - `failure_threshold` - The number of failed health checks before considered unhealthy.
+  - `port` - The health check will be performed on this port instead of component's HTTP port.
 * `cors` - (Deprecated - use `ingress`) The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
 * `alert` - Describes an alert policy for the component.
   - `rule` - The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
