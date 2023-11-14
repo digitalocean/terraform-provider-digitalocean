@@ -89,6 +89,8 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.timeout_seconds", "10"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.port", "1234"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "75"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.operator", "GREATER_THAN"),
@@ -898,6 +900,7 @@ resource "digitalocean_app" "foobar" {
       health_check {
         http_path       = "/"
         timeout_seconds = 10
+		port            = 1234
       }
 
       alert {
