@@ -323,7 +323,7 @@ func appSpecHealthCheckSchema() map[string]*schema.Schema {
 		"port": {
 			Type:         schema.TypeInt,
 			Optional:     true,
-			Description:  "The health check will be performed on this port instead of component's HTTP port.",
+			Description:  "The port on which the health check will be performed. If not set, the health check will be performed on the component's http_port.",
 			ValidateFunc: validation.IntBetween(1, 65535),
 		},
 		"http_path": {
@@ -1465,6 +1465,7 @@ func expandAppHealthCheck(config []interface{}) *godo.AppServiceSpecHealthCheck 
 		TimeoutSeconds:      int32(healthCheckConfig["timeout_seconds"].(int)),
 		SuccessThreshold:    int32(healthCheckConfig["success_threshold"].(int)),
 		FailureThreshold:    int32(healthCheckConfig["failure_threshold"].(int)),
+		Port:                int64(healthCheckConfig["port"].(int)),
 	}
 
 	return healthCheck
@@ -1482,6 +1483,7 @@ func flattenAppHealthCheck(check *godo.AppServiceSpecHealthCheck) []interface{} 
 		r["timeout_seconds"] = check.TimeoutSeconds
 		r["success_threshold"] = check.SuccessThreshold
 		r["failure_threshold"] = check.FailureThreshold
+		r["port"] = check.Port
 
 		result = append(result, r)
 	}
