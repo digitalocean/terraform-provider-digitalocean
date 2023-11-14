@@ -73,8 +73,6 @@ func TestAccDigitalOceanDatabaseKafkaTopic(t *testing.T) {
 						"digitalocean_database_kafka_topic.foobar", "config.0.segment_jitter_ms"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_kafka_topic.foobar", "config.0.segment_ms"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_kafka_topic.foobar", "config.0.unclean_leader_election_enable"),
 				),
 			},
 			{
@@ -136,8 +134,6 @@ func TestAccDigitalOceanDatabaseKafkaTopic(t *testing.T) {
 						"digitalocean_database_kafka_topic.foobar", "config.0.segment_jitter_ms"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_kafka_topic.foobar", "config.0.segment_ms"),
-					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_kafka_topic.foobar", "config.0.unclean_leader_election_enable"),
 				),
 			},
 		},

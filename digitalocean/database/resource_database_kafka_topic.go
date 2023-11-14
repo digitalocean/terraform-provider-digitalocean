@@ -284,11 +284,6 @@ func ResourceDigitalOceanDatabaseKafkaTopic() *schema.Resource {
 							Computed:     true,
 							ValidateFunc: validateUint64(),
 						},
-						"unclean_leader_election_enable": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
-						},
 					},
 				},
 			},
@@ -419,7 +414,6 @@ func flattenTopicConfig(config *godo.TopicConfig) []map[string]interface{} {
 	item["segment_index_bytes"] = strconv.FormatUint(*config.SegmentIndexBytes, 10)
 	item["segment_jitter_ms"] = strconv.FormatUint(*config.SegmentJitterMS, 10)
 	item["segment_ms"] = strconv.FormatUint(*config.SegmentMS, 10)
-	item["unclean_leader_election_enable"] = *config.UncleanLeaderElectionEnable
 	result = append(result, item)
 
 	return result
@@ -570,9 +564,6 @@ func getTopicConfig(raw []interface{}) *godo.TopicConfig {
 			if err == nil {
 				res.SegmentMS = godo.PtrTo(v)
 			}
-		}
-		if v, ok := cfg["unclean_leader_election_enable"]; ok {
-			res.UncleanLeaderElectionEnable = godo.PtrTo(v.(bool))
 		}
 	}
 
