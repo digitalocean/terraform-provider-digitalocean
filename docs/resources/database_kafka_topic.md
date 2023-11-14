@@ -39,7 +39,6 @@ resource "digitalocean_database_kafka_topic" "topic-01" {
     segment_index_bytes                 = 10485760
     segment_jitter_ms                   = 0
     segment_ms                          = 604800000
-    unclean_leader_election_enable      = true
   }
 }
 
@@ -91,7 +90,6 @@ The following arguments are supported:
 * `segment_index_bytes` - (Optional) The maximum size, in bytes, of the offset index.
 * `segment_jitter_ms` - (Optional) The maximum time, in ms, subtracted from the scheduled segment disk flush time to avoid the thundering herd problem for segment flushing.
 * `segment_ms` - (Optional) The maximum time, in ms, before the topic log will flush to disk.
-* `unclean_leader_election_enable` - (Optional) Determines whether to allow nodes that are not part of the in-sync replica set (IRS) to be elected as leader. Note: setting this to "true" could result in data loss.
 
 
 
