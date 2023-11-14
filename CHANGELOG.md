@@ -11,7 +11,6 @@ BUG FIXES:
 - #1080 - @danaelhe - Apps: Reference Port in expandAppHealthCheck and flattenAppHealthCheck
 - #1074 - @T-jegou - Fixing Case Handling for Volume Resource
 
-MISC:
 
 # 2.32.0
 
