@@ -1,3 +1,16 @@
+# 2.33.0
+
+IMPROVEMENTS:
+
+- #1073 - @T-jegou - Add `digitalocean_database_connection_pool` datasource
+
+BUG FIXES:
+
+- #1078 - @nemcikjan - fix: added missing option to set port on health_check
+- #1076 - @dweinshenker - Remove unclean_leader_election_enable for kafka topic configuration
+
+MISC:
+
 # 2.32.0
 
 IMPROVEMENTS:
