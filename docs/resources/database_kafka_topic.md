@@ -46,7 +46,7 @@ resource "digitalocean_database_cluster" "kafka-example" {
   name       = "example-kafka-cluster"
   engine     = "kafka"
   version    = "3.5"
-  size       = "db-s-1vcpu-2gb"
+  size       = "db-s-2vcpu-2gb"
   region     = "nyc1"
   node_count = 3
   tags       = ["production"]
@@ -82,7 +82,7 @@ The following arguments are supported:
 * `message_timestamp_difference_max_ms` - (Optional) The maximum difference, in ms, between the timestamp specific in a message and when the broker receives the message.
 * `message_timestamp_type` - (Optional) Specifies which timestamp to use for the message. This may be one of "create_time" or "log_append_time".
 * `min_cleanable_dirty_ratio` - (Optional) A scale between 0.0 and 1.0 which controls the frequency of the compactor. Larger values mean more frequent compactions. This is often paired with `max_compaction_lag_ms` to control the compactor frequency.
-* `min_insync_replicas` - (Optional) The number of replicas that must acknowledge a write before it is considered successful. -1 is a special setting to indicate that all nodes must ack a message before a write is considered successful.
+* `min_insync_replicas` - (Optional) The number of replicas that must acknowledge a write before it is considered successful. -1 is a special setting to indicate that all nodes must ack a message before a write is considered successful. Default is 1, indicating at least 1 replica must acknowledge a write to be considered successful.
 * `preallocate` - (Optional) Determines whether to preallocate a file on disk when creating a new log segment within a topic.
 * `retention_bytes` - (Optional) The maximum size, in bytes, of a topic before messages are deleted. -1 is a special setting indicating that this setting has no limit.
 * `retention_ms` - (Optional) The maximum time, in ms, that a topic log file is retained before deleting it. -1 is a special setting indicating that this setting has no limit.

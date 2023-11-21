@@ -122,6 +122,8 @@ func TestAccDigitalOceanDatabaseKafkaTopic(t *testing.T) {
 						"digitalocean_database_kafka_topic.foobar", "config.0.min_compaction_lag_ms"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_kafka_topic.foobar", "config.0.min_insync_replicas"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_kafka_topic.foobar", "config.0.min_insync_replicas", "1"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_kafka_topic.foobar", "config.0.retention_bytes"),
 					resource.TestCheckResourceAttrSet(
