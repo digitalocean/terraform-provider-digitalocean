@@ -239,8 +239,8 @@ func ResourceDigitalOceanDatabaseKafkaTopic() *schema.Resource {
 						},
 						"min_insync_replicas": {
 							Type:         schema.TypeInt,
+							Default:      1,
 							Optional:     true,
-							Computed:     true,
 							ValidateFunc: validation.IntAtLeast(1),
 						},
 						"preallocate": {

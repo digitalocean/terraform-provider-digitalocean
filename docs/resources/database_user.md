@@ -103,7 +103,7 @@ The `settings` block is documented below.
 
 An individual ACL includes the following:
 
-* `topic` - (Required) A regex for matching the topic(s) that this ACL should apply to.
+* `topic` - (Required) A regex for matching the topic(s) that this ACL should apply to. The regex can assume one of 3 patterns: "*", "<prefix>*", or "<literal>". "*" is a special value indicating a wildcard that matches on all topics. "<prefix>*" defines a regex that matches all topics with the prefix. "<literal>" performs an exact match on a topic name and only applies to that topic.
 * `permission` - (Required) The permission level applied to the ACL. This includes "admin", "consume", "produce", and "produceconsume". "admin" allows for producing and consuming as well as add/delete/update permission for topics. "consume" allows only for reading topic messages. "produce" allows only for writing topic messages. "produceconsume" allows for both reading and writing topic messages.
 
 ## Attributes Reference
