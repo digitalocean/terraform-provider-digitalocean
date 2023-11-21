@@ -417,7 +417,7 @@ resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "kafka"
   version    = "3.5"
-  size       = "db-s-1vcpu-2gb"
+  size       = "db-s-2vcpu-2gb"
   region     = "nyc1"
   node_count = 3
 }
