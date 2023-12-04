@@ -242,7 +242,7 @@ resource "digitalocean_spaces_bucket" "bucket" {
 }
 
 resource "digitalocean_cdn" "foobar" {
-  origin = digitalocean_spaces_bucket.bucket.bucket_domain_name
+  origin           = digitalocean_spaces_bucket.bucket.bucket_domain_name
   certificate_name = "needs-cloudflare-cert"
 }`
 
