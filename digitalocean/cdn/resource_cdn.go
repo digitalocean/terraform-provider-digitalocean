@@ -17,6 +17,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+var (
+	needsCloudflareCert = "needs-cloudflare-cert"
+)
+
 func ResourceDigitalOceanCDN() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanCDNCreate,
@@ -142,12 +146,15 @@ func resourceDigitalOceanCDNCreate(ctx context.Context, d *schema.ResourceData, 
 	if name, nameOk := d.GetOk("certificate_name"); nameOk {
 		certName := name.(string)
 		if certName != "" {
-			cert, err := certificate.FindCertificateByName(client, certName)
-			if err != nil {
-				return diag.FromErr(err)
+			if certName == needsCloudflareCert {
+				cdnRequest.CertificateID = needsCloudflareCert
+			} else {
+				cert, err := certificate.FindCertificateByName(client, certName)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				cdnRequest.CertificateID = cert.ID
 			}
-
-			cdnRequest.CertificateID = cert.ID
 		}
 	}
 
