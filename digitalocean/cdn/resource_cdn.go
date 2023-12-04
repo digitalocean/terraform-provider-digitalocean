@@ -284,12 +284,16 @@ func resourceDigitalOceanCDNUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		certName := d.Get("certificate_name").(string)
 		if certName != "" {
-			cert, err := certificate.FindCertificateByName(client, certName)
-			if err != nil {
-				return diag.FromErr(err)
-			}
+			if certName == needsCloudflareCert {
+				cdnUpdateRequest.CertificateID = needsCloudflareCert
+			} else {
+				cert, err := certificate.FindCertificateByName(client, certName)
+				if err != nil {
+					return diag.FromErr(err)
+				}
 
-			cdnUpdateRequest.CertificateID = cert.ID
+				cdnUpdateRequest.CertificateID = cert.ID
+			}
 		}
 
 		_, _, err := client.CDNs.UpdateCustomDomain(context.Background(), d.Id(), cdnUpdateRequest)
