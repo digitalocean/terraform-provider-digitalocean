@@ -39,10 +39,10 @@ func TestAccDigitalOceanCDN_Create(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanCDN_CreateWithNeedsCloudflareCert(t *testing.T) {
+func TestAccDigitalOceanCDN_CreateWithNeedCloudflareCert(t *testing.T) {
 
 	bucketName := generateBucketName()
-	cdnCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_CreateWithNeedsCloudflareCert, bucketName)
+	cdnCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_CreateWithNeedCloudflareCert, bucketName)
 
 	expectedOrigin := bucketName + originSuffix
 	expectedTTL := "3600"
@@ -234,7 +234,7 @@ resource "digitalocean_cdn" "foobar" {
   origin = digitalocean_spaces_bucket.bucket.bucket_domain_name
 }`
 
-const testAccCheckDigitalOceanCDNConfig_CreateWithNeedsCloudflareCert = `
+const testAccCheckDigitalOceanCDNConfig_CreateWithNeedCloudflareCert = `
 resource "digitalocean_spaces_bucket" "bucket" {
   name   = "%s"
   region = "ams3"
@@ -243,7 +243,7 @@ resource "digitalocean_spaces_bucket" "bucket" {
 
 resource "digitalocean_cdn" "foobar" {
   origin           = digitalocean_spaces_bucket.bucket.bucket_domain_name
-  certificate_name = "needs-cloudflare-cert"
+  certificate_name = "need-cloudflare-cert"
 }`
 
 const testAccCheckDigitalOceanCDNConfig_Create_with_TTL = `
