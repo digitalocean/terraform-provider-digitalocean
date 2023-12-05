@@ -59,7 +59,7 @@ func TestAccDigitalOceanCDN_CreateWithNeedCloudflareCert(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_cdn.foobar", "origin", expectedOrigin),
 					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "ttl", expectedTTL),
-					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "certificate_name", "need-cloudflare-cert"),
+					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "certificate_name", "needs-cloudflare-cert"),
 				),
 			},
 		},
@@ -243,7 +243,7 @@ resource "digitalocean_spaces_bucket" "bucket" {
 
 resource "digitalocean_cdn" "foobar" {
   origin           = digitalocean_spaces_bucket.bucket.bucket_domain_name
-  certificate_name = "need-cloudflare-cert"
+  certificate_name = "needs-cloudflare-cert"
 }`
 
 const testAccCheckDigitalOceanCDNConfig_Create_with_TTL = `
