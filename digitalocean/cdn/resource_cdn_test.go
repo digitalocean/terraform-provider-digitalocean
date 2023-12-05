@@ -39,6 +39,33 @@ func TestAccDigitalOceanCDN_Create(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanCDN_CreateWithNeedCloudflareCert(t *testing.T) {
+
+	bucketName := generateBucketName()
+	cdnCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_CreateWithNeedCloudflareCert, bucketName)
+
+	expectedOrigin := bucketName + originSuffix
+	expectedTTL := "3600"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanCDNDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: cdnCreateConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanCDNExists("digitalocean_cdn.foobar"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_cdn.foobar", "origin", expectedOrigin),
+					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "ttl", expectedTTL),
+					resource.TestCheckResourceAttr("digitalocean_cdn.foobar", "certificate_name", "needs-cloudflare-cert"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanCDN_Create_with_TTL(t *testing.T) {
 
 	bucketName := generateBucketName()
@@ -205,6 +232,18 @@ resource "digitalocean_spaces_bucket" "bucket" {
 
 resource "digitalocean_cdn" "foobar" {
   origin = digitalocean_spaces_bucket.bucket.bucket_domain_name
+}`
+
+const testAccCheckDigitalOceanCDNConfig_CreateWithNeedCloudflareCert = `
+resource "digitalocean_spaces_bucket" "bucket" {
+  name   = "%s"
+  region = "ams3"
+  acl    = "public-read"
+}
+
+resource "digitalocean_cdn" "foobar" {
+  origin           = digitalocean_spaces_bucket.bucket.bucket_domain_name
+  certificate_name = "needs-cloudflare-cert"
 }`
 
 const testAccCheckDigitalOceanCDNConfig_Create_with_TTL = `
