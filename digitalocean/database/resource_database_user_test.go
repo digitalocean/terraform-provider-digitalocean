@@ -181,7 +181,6 @@ func TestAccDigitalOceanDatabaseUser_KafkaACLs(t *testing.T) {
 	var databaseUser godo.DatabaseUser
 	databaseClusterName := acceptance.RandomTestName()
 	databaseUserName := acceptance.RandomTestName()
-
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
@@ -222,6 +221,25 @@ func TestAccDigitalOceanDatabaseUser_KafkaACLs(t *testing.T) {
 						"digitalocean_database_user.foobar_user", "settings.0.acl.3.topic", "topic-*"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_user.foobar_user", "settings.0.acl.3.permission", "consume"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseUserConfigKafkaACLUpdate, databaseClusterName, databaseUserName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseUserExists("digitalocean_database_user.foobar_user", &databaseUser),
+					testAccCheckDigitalOceanDatabaseUserAttributes(&databaseUser, databaseUserName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "name", databaseUserName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "role"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "password"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.0.id"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.0.topic", "topic-1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.acl.0.permission", "produceconsume"),
 				),
 			},
 		},
@@ -441,6 +459,27 @@ resource "digitalocean_database_user" "foobar_user" {
     acl {
       topic      = "topic-*"
       permission = "consume"
+    }
+  }
+}`
+
+const testAccCheckDigitalOceanDatabaseUserConfigKafkaACLUpdate = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "kafka"
+  version    = "3.5"
+  size       = "db-s-2vcpu-2gb"
+  region     = "nyc1"
+  node_count = 3
+}
+
+resource "digitalocean_database_user" "foobar_user" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
+  settings {
+    acl {
+      topic      = "topic-1"
+      permission = "produceconsume"
     }
   }
 }`

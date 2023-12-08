@@ -88,13 +88,11 @@ func userACLSchema() *schema.Resource {
 			"topic": {
 				Type:         schema.TypeString,
 				Required:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
 			"permission": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"admin",
 					"consume",
@@ -209,6 +207,16 @@ func resourceDigitalOceanDatabaseUserUpdate(ctx context.Context, d *schema.Resou
 		_, _, err := client.Databases.ResetUserAuth(context.Background(), d.Get("cluster_id").(string), d.Get("name").(string), authReq)
 		if err != nil {
 			return diag.Errorf("Error updating mysql_auth_plugin for DatabaseUser: %s", err)
+		}
+	}
+	if d.HasChange("settings") {
+		updateReq := &godo.DatabaseUpdateUserRequest{}
+		if v, ok := d.GetOk("settings"); ok {
+			updateReq.Settings = expandUserSettings(v.([]interface{}))
+		}
+		_, _, err := client.Databases.UpdateUser(context.Background(), d.Get("cluster_id").(string), d.Get("name").(string), updateReq)
+		if err != nil {
+			return diag.Errorf("Error updating settings for DatabaseUser: %s", err)
 		}
 	}
 
