@@ -1,3 +1,15 @@
+# 2.34.0
+
+IMPROVEMENTS:
+
+- `digitalocean_database_user`: Support updating ACL settings (#1090). - @dweinshenker
+
+BUG FIXES:
+
+- `digitalocean_cdn`: Add Support for "needs-cloudflare-cert" (#1089). - @danaelhe
+- `digitalocean_spaces_bucket`: blr1 is a supported region (#1085). - @andrewsomething
+- `digitalocean_database_kafka_topic`: Kafka topic + user ACL management doc fixes (#1082). - @dweinshenker
+
 # 2.33.0
 
 IMPROVEMENTS:
