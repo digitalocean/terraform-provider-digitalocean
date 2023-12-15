@@ -781,7 +781,7 @@ resource "digitalocean_database_cluster" "foobar" {
 
   maintenance_window {
     day  = "friday"
-    hour = "13:00:00"
+    hour = "13:00"
   }
 }`
 
