@@ -3,6 +3,7 @@ package cdn_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
@@ -40,9 +41,13 @@ func TestAccDigitalOceanCDN_Create(t *testing.T) {
 }
 
 func TestAccDigitalOceanCDN_CreateWithNeedCloudflareCert(t *testing.T) {
+	domain := os.Getenv("DO_TEST_SUBDOMAIN")
+	if domain == "" {
+		t.Skip("Test requires an active DO manage sub domain. Set DO_TEST_SUBDOMAIN")
+	}
 
 	bucketName := generateBucketName()
-	cdnCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_CreateWithNeedCloudflareCert, bucketName)
+	cdnCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanCDNConfig_CreateWithNeedCloudflareCert, bucketName, domain)
 
 	expectedOrigin := bucketName + originSuffix
 	expectedTTL := "3600"
@@ -244,6 +249,7 @@ resource "digitalocean_spaces_bucket" "bucket" {
 resource "digitalocean_cdn" "foobar" {
   origin           = digitalocean_spaces_bucket.bucket.bucket_domain_name
   certificate_name = "needs-cloudflare-cert"
+  custom_domain    = "%s"
 }`
 
 const testAccCheckDigitalOceanCDNConfig_Create_with_TTL = `
