@@ -212,7 +212,7 @@ func resourceDigitalOceanCDNRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("created_at", cdn.CreatedAt.UTC().String())
 	d.Set("custom_domain", cdn.CustomDomain)
 
-	if cdn.CertificateID != "" {
+	if cdn.CertificateID != "" && cdn.CertificateID != needsCloudflareCert {
 		// When the certificate type is lets_encrypt, the certificate
 		// ID will change when it's renewed, so we have to rely on the
 		// certificate name as the primary identifier instead.
@@ -222,6 +222,11 @@ func resourceDigitalOceanCDNRead(ctx context.Context, d *schema.ResourceData, me
 		}
 		d.Set("certificate_id", cert.Name)
 		d.Set("certificate_name", cert.Name)
+	}
+
+	if cdn.CertificateID == needsCloudflareCert {
+		d.Set("certificate_id", cdn.CertificateID)
+		d.Set("certificate_name", cdn.CertificateID)
 	}
 
 	return nil
