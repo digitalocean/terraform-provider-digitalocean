@@ -115,6 +115,7 @@ func TestAccDigitalOceanDatabaseReplica_Resize(t *testing.T) {
 	databaseConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, databaseName)
 	replicaConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigBasic, databaseReplicaName)
 	resizedConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigResized, databaseReplicaName)
+	resizedWithStorageConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseReplicaConfigResizedWithStorage, databaseReplicaName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -135,6 +136,8 @@ func TestAccDigitalOceanDatabaseReplica_Resize(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_replica.read-01", "size", "db-s-1vcpu-2gb"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_database_replica.read-01", "storage_size_mib", "30720"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_database_replica.read-01", "name", databaseReplicaName),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_replica.read-01", "uuid"),
@@ -148,7 +151,24 @@ func TestAccDigitalOceanDatabaseReplica_Resize(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_replica.read-01", "size", "db-s-2vcpu-4gb"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_database_replica.read-01", "storage_size_mib", "61440"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_database_replica.read-01", "name", databaseReplicaName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_replica.read-01", "uuid"),
+				),
+			},
+			{
+				Config: databaseConfig + resizedWithStorageConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseReplicaExists("digitalocean_database_replica.read-01", &databaseReplica),
+					testAccCheckDigitalOceanDatabaseReplicaAttributes(&databaseReplica, databaseReplicaName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_replica.read-01", "size", "db-s-2vcpu-4gb"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_replica.read-01", "name", databaseReplicaName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_replica.read-01", "storage_size_mib", "71680"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_replica.read-01", "uuid"),
 				),
@@ -240,6 +260,17 @@ resource "digitalocean_database_replica" "read-01" {
   name       = "%s"
   region     = "nyc3"
   size       = "db-s-2vcpu-4gb"
+  storage_size_mib = 61440
+  tags       = ["staging"]
+}`
+
+const testAccCheckDigitalOceanDatabaseReplicaConfigResizedWithStorage = `
+resource "digitalocean_database_replica" "read-01" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
+  region     = "nyc3"
+  size       = "db-s-2vcpu-4gb"
+  storage_size_mib = 71680
   tags       = ["staging"]
 }`
 
