@@ -34,6 +34,10 @@ func TestAccDataSourceDigitalOceanDatabaseUser_Basic(t *testing.T) {
 						"digitalocean_database_user.foobar_user", "role"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_user.foobar_user", "password"),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_database_user.foobar_user", "access_cert"),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_database_user.foobar_user", "access_key"),
 				),
 			},
 			{
@@ -45,6 +49,10 @@ func TestAccDataSourceDigitalOceanDatabaseUser_Basic(t *testing.T) {
 						"data.digitalocean_database_user.foobar_user", "role"),
 					resource.TestCheckResourceAttrPair("digitalocean_database_user.foobar_user", "password",
 						"data.digitalocean_database_user.foobar_user", "password"),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_database_user.foobar_user", "access_cert"),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_database_user.foobar_user", "access_key"),
 				),
 			},
 		},

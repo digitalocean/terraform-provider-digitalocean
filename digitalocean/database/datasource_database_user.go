@@ -32,6 +32,16 @@ func DataSourceDigitalOceanDatabaseUser() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+			"access_cert": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+			"access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 			"mysql_auth_plugin": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -73,6 +83,13 @@ func dataSourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.Resou
 
 	if user.MySQLSettings != nil {
 		d.Set("mysql_auth_plugin", user.MySQLSettings.AuthPlugin)
+	}
+
+	if user.AccessCert != "" {
+		d.Set("access_cert", user.AccessCert)
+	}
+	if user.AccessKey != "" {
+		d.Set("access_key", user.AccessKey)
 	}
 
 	if err := d.Set("settings", flattenUserSettings(user.Settings)); err != nil {
