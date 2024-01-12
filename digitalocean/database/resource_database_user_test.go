@@ -363,7 +363,7 @@ const testAccCheckDigitalOceanDatabaseUserConfigMongo = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "mongodb"
-  version    = "4"
+  version    = "6"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
@@ -383,7 +383,7 @@ const testAccCheckDigitalOceanDatabaseUserConfigMongoMultiUser = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "mongodb"
-  version    = "4"
+  version    = "6"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1

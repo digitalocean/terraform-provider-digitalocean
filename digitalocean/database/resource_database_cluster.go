@@ -364,7 +364,11 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 			SizeSlug: d.Get("size").(string),
 			NumNodes: d.Get("node_count").(int),
 		}
-		if v, ok := d.GetOk("storage_size_mib"); ok {
+
+		// only include the storage_size_mib in the resize request if it has changed
+		// this avoids invalid values when plans sizes are increasing that require higher base levels of storage
+		// excluding this parameter will utilize default base storage levels for the given plan size
+		if v, ok := d.GetOk("storage_size_mib"); ok && d.HasChange("storage_size_mib") {
 			v, err := strconv.ParseUint(v.(string), 10, 64)
 			if err == nil {
 				opts.StorageSizeMib = v
