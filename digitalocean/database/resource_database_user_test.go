@@ -35,6 +35,12 @@ func TestAccDigitalOceanDatabaseUser_Basic(t *testing.T) {
 						"digitalocean_database_user.foobar_user", "role"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_user.foobar_user", "password"),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_database_user.foobar_user", "mysql_auth_plugin"),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_database_user.foobar_user", "access_cert"),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_database_user.foobar_user", "access_key"),
 				),
 			},
 			{
@@ -198,6 +204,10 @@ func TestAccDigitalOceanDatabaseUser_KafkaACLs(t *testing.T) {
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_user.foobar_user", "password"),
 					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "access_cert"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "access_key"),
+					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_user.foobar_user", "settings.0.acl.0.id"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_user.foobar_user", "settings.0.acl.0.topic", "topic-1"),
@@ -234,6 +244,10 @@ func TestAccDigitalOceanDatabaseUser_KafkaACLs(t *testing.T) {
 						"digitalocean_database_user.foobar_user", "role"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_user.foobar_user", "password"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "access_cert"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "access_key"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_user.foobar_user", "settings.0.acl.0.id"),
 					resource.TestCheckResourceAttr(
