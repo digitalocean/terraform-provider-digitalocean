@@ -256,22 +256,22 @@ resource "digitalocean_database_replica" "read-01" {
 
 const testAccCheckDigitalOceanDatabaseReplicaConfigResized = `
 resource "digitalocean_database_replica" "read-01" {
-  cluster_id = digitalocean_database_cluster.foobar.id
-  name       = "%s"
-  region     = "nyc3"
-  size       = "db-s-2vcpu-4gb"
+  cluster_id       = digitalocean_database_cluster.foobar.id
+  name             = "%s"
+  region           = "nyc3"
+  size             = "db-s-2vcpu-4gb"
   storage_size_mib = 61440
-  tags       = ["staging"]
+  tags             = ["staging"]
 }`
 
 const testAccCheckDigitalOceanDatabaseReplicaConfigResizedWithStorage = `
 resource "digitalocean_database_replica" "read-01" {
-  cluster_id = digitalocean_database_cluster.foobar.id
-  name       = "%s"
-  region     = "nyc3"
-  size       = "db-s-2vcpu-4gb"
+  cluster_id       = digitalocean_database_cluster.foobar.id
+  name             = "%s"
+  region           = "nyc3"
+  size             = "db-s-2vcpu-4gb"
   storage_size_mib = 71680
-  tags       = ["staging"]
+  tags             = ["staging"]
 }`
 
 const testAccCheckDigitalOceanDatabaseReplicaConfigWithVPC = `
