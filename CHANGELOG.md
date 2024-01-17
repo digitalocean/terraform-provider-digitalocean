@@ -1,3 +1,11 @@
+# 2.34.1
+
+BUG FIXES:
+
+- `digitalocean_cdn`: handle 'needs-cloudflare-cert' case in read func (#1095). - @andrewsomething
+- `digitalocean_database_cluster`: ignore seconds in maintenance_window.hour (#1094). - @andrewsomething
+- build(deps): bump golang.org/x/crypto from 0.14.0 to 0.17.0 (#1096). - @dependabot[bot]
+
 # 2.34.0
 
 IMPROVEMENTS:

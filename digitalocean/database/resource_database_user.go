@@ -74,6 +74,16 @@ func ResourceDigitalOceanDatabaseUser() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+			"access_cert": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+			"access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 		},
 	}
 }
@@ -185,6 +195,14 @@ func setDatabaseUserAttributes(d *schema.ResourceData, user *godo.DatabaseUser) 
 
 	if user.MySQLSettings != nil {
 		d.Set("mysql_auth_plugin", user.MySQLSettings.AuthPlugin)
+	}
+
+	// This is only set for kafka users
+	if user.AccessCert != "" {
+		d.Set("access_cert", user.AccessCert)
+	}
+	if user.AccessKey != "" {
+		d.Set("access_key", user.AccessKey)
 	}
 }
 

@@ -112,6 +112,8 @@ In addition to the above arguments, the following attributes are exported:
 
 * `role` - Role for the database user. The value will be either "primary" or "normal".
 * `password` - Password for the database user.
+* `access_cert` - Access certificate for TLS client authentication. (Kafka only)
+* `access_key` - Access key for TLS client authentication. (Kafka only)
 
 For individual ACLs for Kafka topics, the following attributes are exported:
 * `id` - An identifier for the ACL, this will be automatically assigned when you create an ACL entry

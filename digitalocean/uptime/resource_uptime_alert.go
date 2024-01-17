@@ -73,7 +73,7 @@ func ResourceDigitalOceanUptimeAlert() *schema.Resource {
 					"10m",
 					"15m",
 					"30m",
-					"1hr",
+					"1h",
 				}, false),
 				Optional: true,
 			},
