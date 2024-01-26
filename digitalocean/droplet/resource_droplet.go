@@ -598,7 +598,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 				"Error waiting for private networking to be enabled on for droplet (%s): %s", d.Id(), err)
 		}
 	}
-	
+
 	// As there is no way to disable IPv6, we only check if it needs to be enabled
 	if d.HasChange("ipv6") && d.Get("ipv6").(bool) {
 		_, _, err = client.DropletActions.EnableIPv6(context.Background(), id)
