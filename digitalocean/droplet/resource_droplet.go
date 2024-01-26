@@ -592,6 +592,13 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
+	// User is trying to disable IpV6, error out that this is not possible 
+	// (It might be better to set ForceNew = true if this condition happens)
+	if d.HasChange("ipv6") && d.Get("ipv6").(bool) == false {
+		return diag.Errorf(
+			"IPv6 Cannot be disabled. Destroy the instance and re-deploy with IPv6 set to false (%s)", d.Id())
+	}
+	
 	// As there is no way to disable IPv6, we only check if it needs to be enabled
 	if d.HasChange("ipv6") && d.Get("ipv6").(bool) {
 		_, _, err = client.DropletActions.EnableIPv6(context.Background(), id)
