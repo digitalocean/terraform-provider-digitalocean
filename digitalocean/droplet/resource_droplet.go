@@ -237,6 +237,13 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 					return d.Get("ipv6").(bool)
 				}),
 			),
+			// Forces replacement when IPv6 has attribute changes to `false`
+			// https://github.com/digitalocean/terraform-provider-digitalocean/issues/1104
+			customdiff.ForceNewIfChange("ipv6",
+				func(ctx context.Context, old, new, meta interface{}) bool {
+					return old.(bool) && !new.(bool)
+				},
+			),
 		),
 	}
 }
@@ -590,13 +597,6 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 			return diag.Errorf(
 				"Error waiting for private networking to be enabled on for droplet (%s): %s", d.Id(), err)
 		}
-	}
-
-	// User is trying to disable IpV6, error out that this is not possible 
-	// (It might be better to set ForceNew = true if this condition happens)
-	if d.HasChange("ipv6") && d.Get("ipv6").(bool) == false {
-		return diag.Errorf(
-			"IPv6 Cannot be disabled. Destroy the instance and re-deploy with IPv6 set to false (%s)", d.Id())
 	}
 	
 	// As there is no way to disable IPv6, we only check if it needs to be enabled
