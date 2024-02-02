@@ -237,6 +237,13 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 					return d.Get("ipv6").(bool)
 				}),
 			),
+			// Forces replacement when IPv6 has attribute changes to `false`
+			// https://github.com/digitalocean/terraform-provider-digitalocean/issues/1104
+			customdiff.ForceNewIfChange("ipv6",
+				func(ctx context.Context, old, new, meta interface{}) bool {
+					return old.(bool) && !new.(bool)
+				},
+			),
 		),
 	}
 }
