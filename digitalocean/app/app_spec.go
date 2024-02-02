@@ -221,6 +221,7 @@ func appSpecImageSourceSchema() map[string]*schema.Schema {
 				"UNSPECIFIED",
 				"DOCKER_HUB",
 				"DOCR",
+				"GHCR",
 			}, false),
 			Description: "The registry type.",
 		},
