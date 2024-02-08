@@ -34,10 +34,12 @@ The following arguments are supported:
    Defaults to false. If set to `true`, you can configure monitor alert policies
    [monitor alert resource](/providers/digitalocean/digitalocean/latest/docs/resources/monitor_alert)
 * `ipv6` - (Optional) Boolean controlling if IPv6 is enabled. Defaults to false.
+   Once enabled for a Droplet, IPv6 can not be disabled. When enabling IPv6 on
+   an existing Droplet, [additional OS-level configuration](https://docs.digitalocean.com/products/networking/ipv6/how-to/enable/#on-existing-droplets)
+   is required.
 * `vpc_uuid` - (Optional) The ID of the VPC where the Droplet will be located.
 * `private_networking` - (Optional) **Deprecated** Boolean controlling if private networking
   is enabled. This parameter has been deprecated. Use `vpc_uuid` instead to specify a VPC network for the Droplet. If no `vpc_uuid` is provided, the Droplet will be placed in your account's default VPC for the region.
-
 * `ssh_keys` - (Optional) A list of SSH key IDs or fingerprints to enable in
    the format `[12345, 123456]`. To retrieve this info, use the
    [DigitalOcean API](https://docs.digitalocean.com/reference/api/api-reference/#tag/SSH-Keys)
