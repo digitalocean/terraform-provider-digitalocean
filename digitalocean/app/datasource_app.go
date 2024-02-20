@@ -31,10 +31,7 @@ func DataSourceDigitalOceanApp() *schema.Resource {
 			},
 			"project_id": {
 				Type:         schema.TypeString,
-				Optional:     true,
-				ForceNew:     true,
 				Computed:     true,
-				ValidateFunc: validation.NoZeroValues,
 			},
 			"live_url": {
 				Type:     schema.TypeString,
