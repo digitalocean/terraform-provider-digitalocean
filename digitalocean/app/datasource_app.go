@@ -29,8 +29,8 @@ func DataSourceDigitalOceanApp() *schema.Resource {
 				Description: "The default URL to access the App",
 			},
 			"project_id": {
-				Type:         schema.TypeString,
-				Computed:     true,
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"live_url": {
 				Type:     schema.TypeString,
