@@ -10,6 +10,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceDigitalOceanApp() *schema.Resource {
@@ -31,6 +32,14 @@ func ResourceDigitalOceanApp() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: appSpecSchema(true),
 				},
+			},
+
+			"project_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			// Computed attributes
@@ -84,6 +93,10 @@ func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, 
 	appCreateRequest := &godo.AppCreateRequest{}
 	appCreateRequest.Spec = expandAppSpec(d.Get("spec").([]interface{}))
 
+	if v, ok := d.GetOk("project_id"); ok {
+		appCreateRequest.ProjectID = v.(string)
+	}
+
 	log.Printf("[DEBUG] App create request: %#v", appCreateRequest)
 	app, _, err := client.Apps.Create(context.Background(), appCreateRequest)
 	if err != nil {
@@ -91,6 +104,7 @@ func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	d.SetId(app.ID)
+	d.Set("project_id", app.ProjectID)
 	log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
 	timeout := d.Timeout(schema.TimeoutCreate)
 	err = waitForAppDeployment(client, app.ID, timeout)
@@ -122,6 +136,7 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("updated_at", app.UpdatedAt.UTC().String())
 	d.Set("created_at", app.CreatedAt.UTC().String())
 	d.Set("urn", app.URN())
+	d.Set("project_id", app.ProjectID)
 
 	if err := d.Set("spec", flattenAppSpec(d, app.Spec)); err != nil {
 		return diag.Errorf("Error setting app spec: %#v", err)
@@ -144,7 +159,7 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	if d.HasChange("spec") {
+	if d.HasChanges("spec", "project_id") {
 		appUpdateRequest := &godo.AppUpdateRequest{}
 		appUpdateRequest.Spec = expandAppSpec(d.Get("spec").([]interface{}))
 

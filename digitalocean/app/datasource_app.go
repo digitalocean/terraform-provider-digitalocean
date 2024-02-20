@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func DataSourceDigitalOceanApp() *schema.Resource {
@@ -27,6 +28,13 @@ func DataSourceDigitalOceanApp() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The default URL to access the App",
+			},
+			"project_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 			"live_url": {
 				Type:     schema.TypeString,
