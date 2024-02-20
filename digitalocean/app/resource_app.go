@@ -158,7 +158,7 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	if d.HasChanges("spec") {
+	if d.HasChange("spec") {
 		appUpdateRequest := &godo.AppUpdateRequest{}
 		appUpdateRequest.Spec = expandAppSpec(d.Get("spec").([]interface{}))
 
