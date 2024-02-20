@@ -104,7 +104,7 @@ func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	d.SetId(app.ID)
-	d.Set("project_id", app.ProjectID)
+
 	log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
 	timeout := d.Timeout(schema.TimeoutCreate)
 	err = waitForAppDeployment(client, app.ID, timeout)
@@ -159,7 +159,7 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	if d.HasChanges("spec", "project_id") {
+	if d.HasChanges("spec") {
 		appUpdateRequest := &godo.AppUpdateRequest{}
 		appUpdateRequest.Spec = expandAppSpec(d.Get("spec").([]interface{}))
 
