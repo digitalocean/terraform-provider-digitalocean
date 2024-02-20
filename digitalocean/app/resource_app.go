@@ -104,7 +104,6 @@ func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	d.SetId(app.ID)
-
 	log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
 	timeout := d.Timeout(schema.TimeoutCreate)
 	err = waitForAppDeployment(client, app.ID, timeout)
