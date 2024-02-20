@@ -1405,22 +1405,22 @@ resource "digitalocean_project" "foobar" {
 }
 
 resource "digitalocean_app" "foobar" {
-	project_id = digitalocean_project.foobar.id
-	spec {
-	  name   = "%s"
-	  region = "ams"
-  
-	  static_site {
-		name              = "sample-jekyll"
-		build_command     = "bundle exec jekyll build -d ./public"
-		output_dir        = "/public"
-		environment_slug  = "jekyll"
-		catchall_document = "404.html"
-  
-		git {
-		  repo_clone_url = "https://github.com/digitalocean/sample-jekyll.git"
-		  branch         = "main"
-		}
-	  }
-	}
-  }`
+  project_id = digitalocean_project.foobar.id
+  spec {
+    name   = "%s"
+    region = "ams"
+
+    static_site {
+      name              = "sample-jekyll"
+      build_command     = "bundle exec jekyll build -d ./public"
+      output_dir        = "/public"
+      environment_slug  = "jekyll"
+      catchall_document = "404.html"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-jekyll.git"
+        branch         = "main"
+      }
+    }
+  }
+}`
