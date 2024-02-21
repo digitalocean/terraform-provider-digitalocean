@@ -1,3 +1,19 @@
+# 2.35.0
+
+IMPROVEMENTS: 
+- #1113 - @danaelhe - Apps: Support Project Assignment
+- #1109 - @andrewsomething - apps: Add GHCR as a supported registry type.
+- #1103 - @dweinshenker - Support scalable storage settings separately for read-replica vs. primary
+- #1102 - @moreinhardt - database: Add access_cert and access_key for kafka users
+
+BUG FIXES:
+- #1100 - @danaelhe - uptime_alert: 1hr -> 1h
+
+MISC:
+- #1111 - @andrewsomething - droplet: Document and warn that enabling IPv6 requires OS-level config changes.
+- #1108 - @andrewsomething - redis config: allow setting timeout to 0
+- #1105 - @danktec - Force replacement if user tries to disable IPv6 on a droplet
+
 # 2.34.1
 
 BUG FIXES:
