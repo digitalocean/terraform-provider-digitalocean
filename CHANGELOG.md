@@ -1,4 +1,4 @@
-# 2.34.2
+# 2.35.0
 
 IMPROVEMENTS: 
 - #1113 - @danaelhe - Apps: Support Project Assignment
