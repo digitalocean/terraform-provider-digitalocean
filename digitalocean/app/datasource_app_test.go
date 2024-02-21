@@ -35,6 +35,8 @@ func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
 						"data.digitalocean_app.foobar", "spec.0.name", appName),
 					resource.TestCheckResourceAttrPair("digitalocean_app.foobar", "default_ingress",
 						"data.digitalocean_app.foobar", "default_ingress"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_app.foobar", "project_id"),
 					resource.TestCheckResourceAttrPair("digitalocean_app.foobar", "live_url",
 						"data.digitalocean_app.foobar", "live_url"),
 					resource.TestCheckResourceAttrPair("digitalocean_app.foobar", "active_deployment_id",

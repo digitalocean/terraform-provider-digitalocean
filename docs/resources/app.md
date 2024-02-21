@@ -200,6 +200,7 @@ The following arguments are supported:
            * `expose_headers` - The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
            * `allow_methods` - The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
            * `allow_credentials` - Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
+* `project_id` - The ID of the project that the app is assigned to.
 
 A spec can contain multiple components.
 

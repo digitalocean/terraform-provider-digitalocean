@@ -61,6 +61,8 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_app.foobar", "project_id"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "default_ingress"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_url"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "active_deployment_id"),
@@ -876,6 +878,30 @@ func TestAccDigitalOceanApp_Features(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_nonDefaultProject(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+	projectName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_NonDefaultProject, projectName, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_project.foobar", "id", "digitalocean_app.foobar", "project_id"),
+				),
+			},
+		},
+	})
+}
+
 var testAccCheckDigitalOceanAppConfig_basic = `
 resource "digitalocean_app" "foobar" {
   spec {
@@ -1368,6 +1394,32 @@ resource "digitalocean_app" "foobar" {
         }
 
         %s
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_NonDefaultProject = `
+resource "digitalocean_project" "foobar" {
+  name = "%s"
+}
+
+resource "digitalocean_app" "foobar" {
+  project_id = digitalocean_project.foobar.id
+  spec {
+    name   = "%s"
+    region = "ams"
+
+    static_site {
+      name              = "sample-jekyll"
+      build_command     = "bundle exec jekyll build -d ./public"
+      output_dir        = "/public"
+      environment_slug  = "jekyll"
+      catchall_document = "404.html"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-jekyll.git"
+        branch         = "main"
       }
     }
   }
