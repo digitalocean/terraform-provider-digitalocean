@@ -94,35 +94,21 @@ func dataSourceDigitalOceanCertificateRead(ctx context.Context, d *schema.Resour
 
 func FindCertificateByName(client *godo.Client, name string) (*godo.Certificate, error) {
 	opts := &godo.ListOptions{
-		Page:    1,
-		PerPage: 200,
+		Name: name,
 	}
 
-	for {
-		certs, resp, err := client.Certificates.List(context.Background(), opts)
-		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			return nil, nil
-		}
-		if err != nil {
-			return nil, fmt.Errorf("Error retrieving certificates: %s", err)
-		}
+	certs, resp, err := client.Certificates.List(context.Background(), opts)
+	if resp != nil && resp.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("Error retrieving certificates: %s", err)
+	}
 
-		for _, cert := range certs {
-			if cert.Name == name {
-				return &cert, nil
-			}
+	for _, cert := range certs {
+		if cert.Name == name {
+			return &cert, nil
 		}
-
-		if resp.Links == nil || resp.Links.IsLastPage() {
-			break
-		}
-
-		page, err := resp.Links.CurrentPage()
-		if err != nil {
-			return nil, fmt.Errorf("Error retrieving certificates: %s", err)
-		}
-
-		opts.Page = page + 1
 	}
 
 	return nil, fmt.Errorf("Certificate %s not found", name)

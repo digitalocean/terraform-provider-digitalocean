@@ -72,4 +72,7 @@ replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110
 
 replace github.com/keybase/go-crypto v0.0.0-20190523171820-b785b22cc757 => github.com/keybase/go-crypto v0.0.0-20190416182011-b785b22cc757
 
+//todo: remove before merge
+replace github.com/digitalocean/godo v1.108.0 => /Users/deepaks/Desktop/gocode/godo
+
 go 1.21
