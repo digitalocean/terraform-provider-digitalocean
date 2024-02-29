@@ -102,5 +102,10 @@ func FindCertificateByName(client *godo.Client, name string) (*godo.Certificate,
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving certificates: %s", err)
 	}
-	return cert, err
+
+	if len(cert) == 0 {
+		return nil, fmt.Errorf("certificate not found")
+	}
+
+	return &cert[0], err
 }
