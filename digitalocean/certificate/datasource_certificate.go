@@ -95,12 +95,12 @@ func dataSourceDigitalOceanCertificateRead(ctx context.Context, d *schema.Resour
 func FindCertificateByName(client *godo.Client, name string) (*godo.Certificate, error) {
 
 	cert, resp, err := client.Certificates.ListByName(context.Background(), name, nil)
-	if resp != nil && resp.StatusCode == http.StatusNotFound {
-		return nil, nil
-	}
-
 	if err != nil {
 		return nil, fmt.Errorf("Error retrieving certificates: %s", err)
+	}
+
+	if resp != nil && resp.StatusCode == http.StatusNotFound {
+		return nil, nil
 	}
 
 	if len(cert) == 0 {
