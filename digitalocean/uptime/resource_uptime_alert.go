@@ -2,7 +2,9 @@ package uptime
 
 import (
 	"context"
+	"errors"
 	"log"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -20,7 +22,7 @@ func ResourceDigitalOceanUptimeAlert() *schema.Resource {
 		UpdateContext: resourceDigitalOceanUptimeAlertUpdate,
 		DeleteContext: resourceDigitalOceanUptimeAlertDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: resourceDigitalOceanUptimeAlertImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -240,4 +242,17 @@ func flattenNotifications(alerts *godo.Notifications) []interface{} {
 			"slack": monitoring.FlattenSlack(alerts.Slack),
 		},
 	}
+}
+
+func resourceDigitalOceanUptimeAlertImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if strings.Contains(d.Id(), ",") {
+		s := strings.Split(d.Id(), ",")
+
+		d.SetId(s[1])
+		d.Set("check_id", s[0])
+	} else {
+		return nil, errors.New("must use the IDs of the check and alert joined with a comma (e.g. `check_id,alert_id`)")
+	}
+
+	return []*schema.ResourceData{d}, nil
 }
