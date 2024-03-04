@@ -63,8 +63,8 @@ The following attributes are exported.
 
 ## Import
 
-Uptime alerts can be imported using the both IDs of the alert's parent check and its
-own separated by a comma in the format: `check_id,alert_id`. For example:
+Uptime alerts can be imported using both the ID of the alert's parent check and
+its own separated by a comma in the format: `check_id,alert_id`. For example:
 
 ```shell
 terraform import digitalocean_uptime_alert.target 94a7d216-d821-11ee-a327-33d3239ffc4b,5a4981aa-9653-4bd1-bef5-d6bff52042e4
