@@ -1,3 +1,15 @@
+# 2.36.0
+
+IMPROVEMENTS:
+- #1115 - @guptado - [NETPROD-3585] Optimised fetching certificates by name
+
+BUG FIXES:
+- #1116 - @andrewsomething - certificates: handle missing certificate.
+- #1119 - @andrewsomething - uptime alerts: fix importing existing alerts
+
+MISC:
+- #1120 - @andrewsomething - docs: apps can be added to projects.
+
 # 2.35.0
 
 IMPROVEMENTS: 
