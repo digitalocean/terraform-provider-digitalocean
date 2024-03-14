@@ -93,8 +93,7 @@ The following arguments are supported:
 * `region` - (Required) The region to start in
 * `size` - (Optional) The size of the Load Balancer. It must be either `lb-small`, `lb-medium`, or `lb-large`. Defaults to `lb-small`. Only one of `size` or `size_unit` may be provided.
 * `size_unit` - (Optional) The size of the Load Balancer. It must be in the range (1, 100). Defaults to `1`. Only one of `size` or `size_unit` may be provided.
-* `algorithm` - (Optional) The load balancing algorithm used to determine
-which backend Droplet will be selected by a client. It must be either `round_robin`
+* `algorithm` - (Optional) **Deprecated** This field has been deprecated. You can no longer specify an algorithm for load balancers.
 or `least_connections`. The default value is `round_robin`.
 * `forwarding_rule` - (Required) A list of `forwarding_rule` to be assigned to the
 Load Balancer. The `forwarding_rule` block is documented below.
