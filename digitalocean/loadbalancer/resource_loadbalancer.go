@@ -200,6 +200,7 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 					"round_robin",
 					"least_connections",
 				}, false),
+				Deprecated: "This field has been deprecated. You can no longer specify an algorithm for load balancers.",
 			},
 
 			"forwarding_rule": {

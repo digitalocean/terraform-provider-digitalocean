@@ -60,6 +60,7 @@ func DataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "algorithm used to determine which backend Droplet will be selected by a client",
+				Deprecated:  "This field has been deprecated. You can no longer specify an algorithm for load balancers.",
 			},
 			"status": {
 				Type:        schema.TypeString,
