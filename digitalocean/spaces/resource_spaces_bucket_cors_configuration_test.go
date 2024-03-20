@@ -46,6 +46,35 @@ func TestAccDigitalOceanSpacesBucketCorsConfiguration_basic(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanSpacesBucketCorsConfiguration_multipleAllowedOrigins(t *testing.T) {
+	name := acceptance.RandomTestName()
+	ctx := context.Background()
+	region := testAccDigitalOceanSpacesBucketCorsConfiguration_TestRegion
+	resourceName := "digitalocean_spaces_bucket_cors_configuration.test"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketCorsConfigurationDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccSpacesBucketCORSConfigurationConfig_multipleAllowedOrigins(name, region, "https://www.example.com", "https://*.redacted-domain.com"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanSpacesBucketCorsConfigurationExists(ctx, resourceName),
+					resource.TestCheckResourceAttr(resourceName, "cors_rule.#", "1"),
+					resource.TestCheckTypeSetElemNestedAttrs(resourceName, "cors_rule.*", map[string]string{
+						"allowed_methods.#": "1",
+						"allowed_origins.#": "2",
+					}),
+					resource.TestCheckTypeSetElemAttr(resourceName, "cors_rule.*.allowed_methods.*", "PUT"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "cors_rule.*.allowed_origins.*", "https://www.example.com"),
+					resource.TestCheckTypeSetElemAttr(resourceName, "cors_rule.*.allowed_origins.*", "https://*.redacted-domain.com"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanSpacesBucketCorsConfiguration_SingleRule(t *testing.T) {
 	resourceName := "digitalocean_spaces_bucket_cors_configuration.test"
 	rName := acceptance.RandomTestName()
@@ -272,6 +301,25 @@ resource "digitalocean_spaces_bucket_cors_configuration" "test" {
   }
 }
 `, rName, region, origin)
+}
+
+func testAccSpacesBucketCORSConfigurationConfig_multipleAllowedOrigins(rName string, region string, origin string, origin2 string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_spaces_bucket" "foobar" {
+  name   = "%s"
+  region = "%s"
+}
+
+resource "digitalocean_spaces_bucket_cors_configuration" "test" {
+  bucket = digitalocean_spaces_bucket.foobar.id
+  region = "nyc3"
+
+  cors_rule {
+    allowed_methods = ["PUT"]
+    allowed_origins = ["%s", "%s"]
+  }
+}
+`, rName, region, origin, origin2)
 }
 
 func testAccSpacesBucketCORSConfigurationConfig_completeSingleRule(rName string, region string, Name string) string {
