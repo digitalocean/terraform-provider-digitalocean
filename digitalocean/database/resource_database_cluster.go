@@ -22,6 +22,10 @@ const (
 	mongoDBEngineSlug = "mongodb"
 	mysqlDBEngineSlug = "mysql"
 	redisDBEngineSlug = "redis"
+	kafkaDBEngineSlug = "kafka"
+
+	kafkaPublicSSLPort  = 25073
+	kafkaPrivateSSLPort = 25080
 )
 
 func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
@@ -307,7 +311,7 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 
 	// MongoDB clusters only return the password in response to the initial POST.
 	// We need to set it here before any subsequent GETs.
-	if database.EngineSlug == mongoDBEngineSlug {
+	if database.EngineSlug == mongoDBEngineSlug || database.EngineSlug == kafkaDBEngineSlug {
 		err = setDatabaseConnectionInfo(database, d)
 		if err != nil {
 			return diag.Errorf("Error setting connection info for database cluster: %s", err)
@@ -609,8 +613,12 @@ func flattenMaintWindowOpts(opts godo.DatabaseMaintenanceWindow) []map[string]in
 func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) error {
 	if database.Connection != nil {
 		d.Set("host", database.Connection.Host)
-		d.Set("port", database.Connection.Port)
-		d.Set("uri", database.Connection.URI)
+		if database.EngineSlug == kafkaDBEngineSlug {
+			// default for kafka will be Public SASL port, consistent with UI
+			d.Set("port", 25073)
+		} else {
+			d.Set("port", database.Connection.Port)
+		}
 		d.Set("database", database.Connection.Database)
 		d.Set("user", database.Connection.User)
 		if database.EngineSlug == mongoDBEngineSlug {
@@ -621,6 +629,9 @@ func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) 
 			if err != nil {
 				return err
 			}
+			d.Set("uri", uri)
+		} else if database.EngineSlug == kafkaDBEngineSlug {
+			uri := buildKafkaConnectionURI(database.Connection, kafkaPublicSSLPort)
 			d.Set("uri", uri)
 		} else {
 			d.Set("password", database.Connection.Password)
@@ -635,6 +646,9 @@ func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) 
 			if err != nil {
 				return err
 			}
+			d.Set("private_uri", uri)
+		} else if database.EngineSlug == kafkaDBEngineSlug {
+			uri := buildKafkaConnectionURI(database.PrivateConnection, kafkaPrivateSSLPort)
 			d.Set("private_uri", uri)
 		} else {
 			d.Set("private_uri", database.PrivateConnection.URI)
@@ -659,6 +673,16 @@ func buildMongoDBConnectionURI(conn *godo.DatabaseConnection, d *schema.Resource
 	uri.User = userInfo
 
 	return uri.String(), nil
+}
+
+// DO API returns null values for uri and private uri for Kafka clusters.
+// buildKafkaConnectionURI sets the uri and private uri using connection's host.
+func buildKafkaConnectionURI(conn *godo.DatabaseConnection, port int) string {
+	host := conn.Host
+
+	uri := fmt.Sprintf("%s:%d", host, port)
+
+	return uri
 }
 
 func expandBackupRestore(config []interface{}) *godo.DatabaseBackupRestore {

@@ -141,7 +141,9 @@ In addition to the above arguments, the following attributes are exported:
 * `host` - Database cluster's hostname.
 * `private_host` - Same as `host`, but only accessible from resources within the account and in the same region.
 * `port` - Network port that the database cluster is listening on.
+> Note: For kafka clusters, this is set to be the default public SASL port of 25073.
 * `uri` - The full URI for connecting to the database cluster.
+> Note: Documentation for connecting to clusters can be found here: [Kafka](https://docs.digitalocean.com/products/databases/kafka/how-to/connect/#connect-via-sasl), [PostgreSQL](https://docs.digitalocean.com/products/databases/postgresql/how-to/connect/), [MySQL](https://docs.digitalocean.com/products/databases/mysql/how-to/connect/), [Redis](https://docs.digitalocean.com/products/databases/redis/how-to/connect/), and [MongoDB](https://docs.digitalocean.com/products/databases/mongodb/how-to/connect/).
 * `private_uri` - Same as `uri`, but only accessible from resources within the account and in the same region.
 * `database` - Name of the cluster's default database.
 * `user` - Username for the cluster's default user.
