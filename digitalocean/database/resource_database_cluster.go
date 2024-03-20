@@ -615,7 +615,7 @@ func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) 
 		d.Set("host", database.Connection.Host)
 		if database.EngineSlug == kafkaDBEngineSlug {
 			// default for kafka will be Public SASL port, consistent with UI
-			d.Set("port", 25073)
+			d.Set("port", kafkaPublicSSLPort)
 		} else {
 			d.Set("port", database.Connection.Port)
 		}
