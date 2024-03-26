@@ -73,7 +73,7 @@ resource "digitalocean_database_cluster" "mongodb-example" {
 resource "digitalocean_database_cluster" "doby" {
   name       = "dobydb"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-2gb"
   region     = "nyc1"
   node_count = 1
@@ -83,7 +83,7 @@ resource "digitalocean_database_cluster" "doby" {
 resource "digitalocean_database_cluster" "doby_backup" {
   name       = "dobydupe"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-2gb"
   region     = "nyc1"
   node_count = 1
