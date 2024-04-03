@@ -443,7 +443,7 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 
 			"domains": {
 				Type:        schema.TypeSet,
-				Required:    false,
+				Optional:    true,
 				Computed:    true,
 				MinItems:    1,
 				Description: "the list of domains required to ingress traffic to global load balancer",
