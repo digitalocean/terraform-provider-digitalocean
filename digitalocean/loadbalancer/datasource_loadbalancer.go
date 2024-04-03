@@ -254,6 +254,98 @@ func DataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Computed:    true,
 				Description: "the type of the load balancer (GLOBAL or REGIONAL)",
 			},
+			"domains": {
+				Type:        schema.TypeSet,
+				Required:    false,
+				Computed:    true,
+				MinItems:    1,
+				Description: "the list of domains required to ingress traffic to global load balancer",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+							Description:  "domain name",
+						},
+						"is_managed": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "flag indicating if domain is managed by DigitalOcean",
+						},
+						"certificate_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.NoZeroValues,
+							Description:  "certificate ID for TLS handshaking",
+						},
+						"verification_error_reasons": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Optional:    true,
+							Description: "list of domain verification errors",
+						},
+						"ssl_validation_error_reasons": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Optional:    true,
+							Description: "list of domain SSL validation errors",
+						},
+					},
+				},
+			},
+			"glb_settings": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				MaxItems:    1,
+				Description: "configuration options for global load balancer",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"target_protocol": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"http",
+								"https",
+							}, false),
+							Description: "target protocol rules",
+						},
+						"target_port": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntInSlice([]int{80, 443}),
+							Description:  "target port rules",
+						},
+						"cdn": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: "CDN specific configurations",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"is_enabled": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Default:     false,
+										Description: "cache enable flag",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"target_load_balancer_ids": {
+				Type:        schema.TypeSet,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Optional:    true,
+				Computed:    true,
+				Description: "list of load balancer IDs to put behind a global load balancer",
+			},
 		},
 	}
 }
@@ -355,6 +447,23 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 
 	if err := d.Set("firewall", flattenLBFirewall(foundLoadbalancer.Firewall)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting Load Balancer firewall - error: %#v", err)
+	}
+
+	domains, err := flattenDomains(foundLoadbalancer.Domains)
+	if err != nil {
+		return diag.Errorf("[DEBUG] Error building Load Balancer domains - error: %#v", err)
+	}
+
+	if err := d.Set("domains", domains); err != nil {
+		return diag.Errorf("[DEBUG] Error setting Load Balancer domains - error: %#v", err)
+	}
+
+	if err := d.Set("glb_settings", flattenGLBSettings(foundLoadbalancer.GLBSettings)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting Load Balancer glb settings - error: %#v", err)
+	}
+
+	if err := d.Set("target_load_balancer_ids", flattenLoadBalancerIds(foundLoadbalancer.TargetLoadBalancerIDs)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting target Load Balancer ids - error: %#v", err)
 	}
 
 	return nil

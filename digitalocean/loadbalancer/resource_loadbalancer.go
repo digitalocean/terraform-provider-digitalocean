@@ -432,12 +432,108 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 					},
 				},
 			},
+
 			"type": {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"REGIONAL", "GLOBAL"}, true),
 				Description:  "the type of the load balancer (GLOBAL or REGIONAL)",
+			},
+
+			"domains": {
+				Type:        schema.TypeSet,
+				Required:    false,
+				Computed:    true,
+				MinItems:    1,
+				Description: "the list of domains required to ingress traffic to global load balancer",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.NoZeroValues,
+							Description:  "domain name",
+						},
+						"is_managed": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "flag indicating if domain is managed by DigitalOcean",
+						},
+						"certificate_id": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.NoZeroValues,
+							Description:  "certificate ID for TLS handshaking",
+						},
+						"verification_error_reasons": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Optional:    true,
+							Description: "list of domain verification errors",
+						},
+						"ssl_validation_error_reasons": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Optional:    true,
+							Description: "list of domain SSL validation errors",
+						},
+					},
+				},
+			},
+
+			"glb_settings": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				MaxItems:    1,
+				Description: "configuration options for global load balancer",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"target_protocol": {
+							Type:     schema.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"http",
+								"https",
+							}, false),
+							Description: "target protocol rules",
+						},
+						"target_port": {
+							Type:         schema.TypeInt,
+							Required:     true,
+							ValidateFunc: validation.IntInSlice([]int{80, 443}),
+							Description:  "target port rules",
+						},
+						"cdn": {
+							Type:        schema.TypeList,
+							Optional:    true,
+							MaxItems:    1,
+							Description: "CDN specific configurations",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"is_enabled": {
+										Type:        schema.TypeBool,
+										Optional:    true,
+										Default:     false,
+										Description: "cache enable flag",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"target_load_balancer_ids": {
+				Type:        schema.TypeSet,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Optional:    true,
+				Computed:    true,
+				Description: "list of load balancer IDs to put behind a global load balancer",
 			},
 		},
 	}
@@ -531,6 +627,28 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 
 	if v, ok := d.GetOk("type"); ok {
 		opts.Type = v.(string)
+	}
+
+	if v, ok := d.GetOk("domains"); ok {
+		domains, err := expandDomains(v.(*schema.Set).List())
+		if err != nil {
+			return nil, err
+		}
+
+		opts.Domains = domains
+	}
+
+	if v, ok := d.GetOk("glb_settings"); ok {
+		opts.GLBSettings = expandGLBSettings(v.([]interface{}))
+	}
+
+	if v, ok := d.GetOk("target_load_balancer_ids"); ok {
+		var lbIDs []string
+		for _, id := range v.(*schema.Set).List() {
+			lbIDs = append(lbIDs, id.(string))
+		}
+
+		opts.TargetLoadBalancerIDs = lbIDs
 	}
 
 	return opts, nil

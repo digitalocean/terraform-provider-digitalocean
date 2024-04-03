@@ -256,3 +256,92 @@ func flattenForwardingRules(client *godo.Client, rules []godo.ForwardingRule) ([
 
 	return result, nil
 }
+
+func expandDomains(config []interface{}) ([]*godo.LBDomain, error) {
+	domains := make([]*godo.LBDomain, 0, len(config))
+
+	for _, rawDomain := range config {
+		domain := rawDomain.(map[string]interface{})
+		r := &godo.LBDomain{Name: domain["name"].(string)}
+
+		if v, ok := domain["is_managed"]; ok {
+			r.IsManaged = v.(bool)
+		}
+
+		if v, ok := domain["certificate_id"]; ok {
+			r.CertificateID = v.(string)
+		}
+
+		domains = append(domains, r)
+	}
+
+	return domains, nil
+}
+
+func expandGLBSettings(config []interface{}) *godo.GLBSettings {
+	glbConfig := config[0].(map[string]interface{})
+
+	glbSettings := &godo.GLBSettings{
+		TargetProtocol: glbConfig["target_protocol"].(string),
+		TargetPort:     uint32(glbConfig["target_port"].(int)),
+	}
+
+	if v, ok := glbConfig["cdn"]; ok {
+		cdnConfig := v.(map[string]interface{})
+		glbSettings.CDN = &godo.CDNSettings{
+			IsEnabled: cdnConfig["is_enabled"].(bool),
+		}
+	}
+
+	return glbSettings
+}
+
+func flattenDomains(domains []*godo.LBDomain) ([]map[string]interface{}, error) {
+	if len(domains) == 0 {
+		return nil, nil
+	}
+
+	result := make([]map[string]interface{}, 0, 1)
+	for _, domain := range domains {
+		r := make(map[string]interface{})
+
+		r["name"] = (*domain).Name
+		r["is_managed"] = (*domain).IsManaged
+		r["certificate_id"] = (*domain).CertificateID
+		r["verification_error_reasons"] = (*domain).VerificationErrorReasons
+		r["ssl_validation_error_reasons"] = (*domain).SSLValidationErrorReasons
+
+		result = append(result, r)
+	}
+
+	return result, nil
+}
+
+func flattenGLBSettings(settings *godo.GLBSettings) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, 1)
+
+	if settings != nil {
+		r := make(map[string]interface{})
+
+		r["target_protocol"] = (*settings).TargetProtocol
+		r["target_port"] = (*settings).TargetPort
+
+		if settings.CDN != nil {
+			r["cdn"] = map[string]interface{}{
+				"is_enabled": (*settings).CDN.IsEnabled,
+			}
+		}
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
+func flattenLoadBalancerIds(list []string) *schema.Set {
+	flatSet := schema.NewSet(schema.HashString, []interface{}{})
+	for _, v := range list {
+		flatSet.Add(v)
+	}
+	return flatSet
+}
