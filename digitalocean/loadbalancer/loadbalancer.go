@@ -287,9 +287,10 @@ func expandGLBSettings(config []interface{}) *godo.GLBSettings {
 	}
 
 	if v, ok := glbConfig["cdn"]; ok {
-		cdnConfig := v.(map[string]interface{})
-		glbSettings.CDN = &godo.CDNSettings{
-			IsEnabled: cdnConfig["is_enabled"].(bool),
+		if raw := v.([]interface{}); len(raw) > 0 {
+			glbSettings.CDN = &godo.CDNSettings{
+				IsEnabled: raw[0].(map[string]interface{})["is_enabled"].(bool),
+			}
 		}
 	}
 
@@ -327,8 +328,10 @@ func flattenGLBSettings(settings *godo.GLBSettings) []map[string]interface{} {
 		r["target_port"] = (*settings).TargetPort
 
 		if settings.CDN != nil {
-			r["cdn"] = map[string]interface{}{
-				"is_enabled": (*settings).CDN.IsEnabled,
+			r["cdn"] = []interface{}{
+				map[string]interface{}{
+					"is_enabled": (*settings).CDN.IsEnabled,
+				},
 			}
 		}
 

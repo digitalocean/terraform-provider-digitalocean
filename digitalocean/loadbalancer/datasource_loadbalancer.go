@@ -404,7 +404,9 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 	d.SetId(foundLoadbalancer.ID)
 	d.Set("name", foundLoadbalancer.Name)
 	d.Set("urn", foundLoadbalancer.URN())
-	d.Set("region", foundLoadbalancer.Region.Slug)
+	if foundLoadbalancer.Region != nil {
+		d.Set("region", foundLoadbalancer.Region.Slug)
+	}
 	if foundLoadbalancer.SizeUnit > 0 {
 		d.Set("size_unit", foundLoadbalancer.SizeUnit)
 	} else if foundLoadbalancer.SizeSlug != "" {

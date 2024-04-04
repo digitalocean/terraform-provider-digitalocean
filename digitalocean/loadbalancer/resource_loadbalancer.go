@@ -204,9 +204,10 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 			},
 
 			"forwarding_rule": {
-				Type:     schema.TypeSet,
-				Required: true,
-				MinItems: 1,
+				Type:          schema.TypeSet,
+				Optional:      true,
+				ConflictsWith: []string{"glb_settings"},
+				MinItems:      1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"entry_protocol": {
@@ -486,11 +487,12 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 			},
 
 			"glb_settings": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Computed:    true,
-				MaxItems:    1,
-				Description: "configuration options for global load balancer",
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{"forwarding_rule"},
+				Description:   "configuration options for global load balancer",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"target_protocol": {
