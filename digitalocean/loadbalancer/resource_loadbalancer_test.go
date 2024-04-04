@@ -1353,8 +1353,8 @@ resource "digitalocean_loadbalancer" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "lorem" {
-  name   = "global-%s"
-  type   = "GLOBAL"
+  name = "global-%s"
+  type = "GLOBAL"
 
   healthcheck {
     port     = 80
@@ -1364,23 +1364,23 @@ resource "digitalocean_loadbalancer" "lorem" {
 
   glb_settings {
     target_protocol = "http"
-    target_port = "80"
+    target_port     = "80"
     cdn {
       is_enabled = true
     }
   }
 
   domains {
-    name           = "test.github.io"
-    is_managed     = false
+    name       = "test.github.io"
+    is_managed = false
   }
 
   domains {
-    name           = "test-2.github.io"
-    is_managed     = false
+    name       = "test-2.github.io"
+    is_managed = false
   }
 
-  droplet_ids = [digitalocean_droplet.foobar.id]
+  droplet_ids              = [digitalocean_droplet.foobar.id]
   target_load_balancer_ids = [digitalocean_loadbalancer.foobar.id]
 }`, name, name, name)
 }
@@ -1420,8 +1420,8 @@ resource "digitalocean_loadbalancer" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "lorem" {
-  name   = "global-%s"
-  type   = "GLOBAL"
+  name = "global-%s"
+  type = "GLOBAL"
 
   healthcheck {
     port     = 80
@@ -1431,23 +1431,23 @@ resource "digitalocean_loadbalancer" "lorem" {
 
   glb_settings {
     target_protocol = "http"
-    target_port = "80"
+    target_port     = "80"
     cdn {
       is_enabled = false
     }
   }
 
   domains {
-    name           = "test-updated.github.io"
-    is_managed     = false
+    name       = "test-updated.github.io"
+    is_managed = false
   }
 
   domains {
-    name           = "test-updated-2.github.io"
-    is_managed     = false
+    name       = "test-updated-2.github.io"
+    is_managed = false
   }
 
-  droplet_ids = [digitalocean_droplet.foobar.id]
+  droplet_ids              = [digitalocean_droplet.foobar.id]
   target_load_balancer_ids = [digitalocean_loadbalancer.foobar.id]
 }`, name, name, name)
 }

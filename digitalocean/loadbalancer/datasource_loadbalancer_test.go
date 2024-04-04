@@ -783,8 +783,8 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "lorem" {
-  name   = "%s"
-  type   = "GLOBAL"
+  name = "%s"
+  type = "GLOBAL"
 
   healthcheck {
     port     = 80
@@ -794,20 +794,20 @@ resource "digitalocean_loadbalancer" "lorem" {
 
   glb_settings {
     target_protocol = "http"
-    target_port = "80"
+    target_port     = "80"
     cdn {
       is_enabled = true
     }
   }
 
   domains {
-    name           = "test.github.io"
-    is_managed     = false
+    name       = "test.github.io"
+    is_managed = false
   }
 
   domains {
-    name           = "test-2.github.io"
-    is_managed     = false
+    name       = "test-2.github.io"
+    is_managed = false
   }
 
   droplet_ids = [digitalocean_droplet.foobar.id]
