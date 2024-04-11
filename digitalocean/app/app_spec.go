@@ -255,6 +255,12 @@ func appSpecImageSourceSchema() map[string]*schema.Schema {
 				},
 			},
 		},
+		"registry_credentials": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Access credentials for third-party registries",
+			Sensitive:   true,
+		},
 	}
 }
 
@@ -1377,10 +1383,11 @@ func expandAppImageSourceSpec(config []interface{}) *godo.ImageSourceSpec {
 	imageSourceConfig := config[0].(map[string]interface{})
 
 	imageSource := &godo.ImageSourceSpec{
-		RegistryType: godo.ImageSourceSpecRegistryType(imageSourceConfig["registry_type"].(string)),
-		Registry:     imageSourceConfig["registry"].(string),
-		Repository:   imageSourceConfig["repository"].(string),
-		Tag:          imageSourceConfig["tag"].(string),
+		RegistryType:        godo.ImageSourceSpecRegistryType(imageSourceConfig["registry_type"].(string)),
+		Registry:            imageSourceConfig["registry"].(string),
+		Repository:          imageSourceConfig["repository"].(string),
+		Tag:                 imageSourceConfig["tag"].(string),
+		RegistryCredentials: imageSourceConfig["registry_credentials"].(string),
 	}
 
 	docrPush := imageSourceConfig["deploy_on_push"].([]interface{})
@@ -1403,6 +1410,7 @@ func flattenAppImageSourceSpec(i *godo.ImageSourceSpec) []interface{} {
 		r["registry"] = (*i).Registry
 		r["repository"] = (*i).Repository
 		r["tag"] = (*i).Tag
+		r["registry_credentials"] = (*i).RegistryCredentials
 
 		if i.DeployOnPush != nil {
 			docrPush := make([]interface{}, 1)
