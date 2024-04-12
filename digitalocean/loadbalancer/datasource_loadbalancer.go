@@ -250,48 +250,45 @@ func DataSourceDigitalOceanLoadbalancer() *schema.Resource {
 			},
 			"type": {
 				Type:        schema.TypeString,
-				Optional:    true,
 				Computed:    true,
 				Description: "the type of the load balancer (GLOBAL or REGIONAL)",
 			},
 			"domains": {
 				Type:        schema.TypeSet,
-				Optional:    true,
 				Computed:    true,
-				MinItems:    1,
 				Description: "the list of domains required to ingress traffic to global load balancer",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
-							Type:         schema.TypeString,
-							Required:     true,
-							ValidateFunc: validation.NoZeroValues,
-							Description:  "domain name",
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "domain name",
 						},
 						"is_managed": {
 							Type:        schema.TypeBool,
-							Optional:    true,
-							Default:     false,
+							Computed:    true,
 							Description: "flag indicating if domain is managed by DigitalOcean",
 						},
 						"certificate_id": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.NoZeroValues,
-							Description:  "certificate ID for TLS handshaking",
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "certificate ID for TLS handshaking",
+						},
+						"certificate_name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "name of certificate required for TLS handshaking",
 						},
 						"verification_error_reasons": {
 							Type:        schema.TypeList,
 							Computed:    true,
 							Elem:        &schema.Schema{Type: schema.TypeString},
-							Optional:    true,
 							Description: "list of domain verification errors",
 						},
 						"ssl_validation_error_reasons": {
 							Type:        schema.TypeList,
 							Computed:    true,
 							Elem:        &schema.Schema{Type: schema.TypeString},
-							Optional:    true,
 							Description: "list of domain SSL validation errors",
 						},
 					},
@@ -299,38 +296,29 @@ func DataSourceDigitalOceanLoadbalancer() *schema.Resource {
 			},
 			"glb_settings": {
 				Type:        schema.TypeList,
-				Optional:    true,
 				Computed:    true,
-				MaxItems:    1,
 				Description: "configuration options for global load balancer",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"target_protocol": {
-							Type:     schema.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"http",
-								"https",
-							}, false),
+							Type:        schema.TypeString,
+							Computed:    true,
 							Description: "target protocol rules",
 						},
 						"target_port": {
-							Type:         schema.TypeInt,
-							Required:     true,
-							ValidateFunc: validation.IntInSlice([]int{80, 443}),
-							Description:  "target port rules",
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "target port rules",
 						},
 						"cdn": {
 							Type:        schema.TypeList,
-							Optional:    true,
-							MaxItems:    1,
+							Computed:    true,
 							Description: "CDN specific configurations",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"is_enabled": {
 										Type:        schema.TypeBool,
-										Optional:    true,
-										Default:     false,
+										Computed:    true,
 										Description: "cache enable flag",
 									},
 								},
@@ -342,7 +330,6 @@ func DataSourceDigitalOceanLoadbalancer() *schema.Resource {
 			"target_load_balancer_ids": {
 				Type:        schema.TypeSet,
 				Elem:        &schema.Schema{Type: schema.TypeString},
-				Optional:    true,
 				Computed:    true,
 				Description: "list of load balancer IDs to put behind a global load balancer",
 			},
@@ -451,7 +438,7 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 		return diag.Errorf("[DEBUG] Error setting Load Balancer firewall - error: %#v", err)
 	}
 
-	domains, err := flattenDomains(foundLoadbalancer.Domains)
+	domains, err := flattenDomains(client, foundLoadbalancer.Domains)
 	if err != nil {
 		return diag.Errorf("[DEBUG] Error building Load Balancer domains - error: %#v", err)
 	}

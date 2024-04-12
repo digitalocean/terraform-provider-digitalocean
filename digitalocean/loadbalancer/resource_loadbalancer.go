@@ -462,24 +462,23 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 							Default:     false,
 							Description: "flag indicating if domain is managed by DigitalOcean",
 						},
-						"certificate_id": {
+						"certificate_name": {
 							Type:         schema.TypeString,
 							Optional:     true,
+							Computed:     true,
 							ValidateFunc: validation.NoZeroValues,
-							Description:  "certificate ID for TLS handshaking",
+							Description:  "name of certificate required for TLS handshaking",
 						},
 						"verification_error_reasons": {
 							Type:        schema.TypeList,
 							Computed:    true,
 							Elem:        &schema.Schema{Type: schema.TypeString},
-							Optional:    true,
 							Description: "list of domain verification errors",
 						},
 						"ssl_validation_error_reasons": {
 							Type:        schema.TypeList,
 							Computed:    true,
 							Elem:        &schema.Schema{Type: schema.TypeString},
-							Optional:    true,
 							Description: "list of domain SSL validation errors",
 						},
 					},
@@ -632,7 +631,7 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 	}
 
 	if v, ok := d.GetOk("domains"); ok {
-		domains, err := expandDomains(v.(*schema.Set).List())
+		domains, err := expandDomains(client, v.(*schema.Set).List())
 		if err != nil {
 			return nil, err
 		}

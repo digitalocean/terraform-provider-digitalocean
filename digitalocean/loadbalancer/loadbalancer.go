@@ -257,7 +257,7 @@ func flattenForwardingRules(client *godo.Client, rules []godo.ForwardingRule) ([
 	return result, nil
 }
 
-func expandDomains(config []interface{}) ([]*godo.LBDomain, error) {
+func expandDomains(client *godo.Client, config []interface{}) ([]*godo.LBDomain, error) {
 	domains := make([]*godo.LBDomain, 0, len(config))
 
 	for _, rawDomain := range config {
@@ -268,10 +268,16 @@ func expandDomains(config []interface{}) ([]*godo.LBDomain, error) {
 			r.IsManaged = v.(bool)
 		}
 
-		if v, ok := domain["certificate_id"]; ok {
-			r.CertificateID = v.(string)
+		if v, ok := domain["certificate_name"]; ok {
+			certName := v.(string)
+			if certName != "" {
+				cert, err := certificate.FindCertificateByName(client, certName)
+				if err != nil {
+					return nil, err
+				}
+				r.CertificateID = cert.ID
+			}
 		}
-
 		domains = append(domains, r)
 	}
 
@@ -297,7 +303,7 @@ func expandGLBSettings(config []interface{}) *godo.GLBSettings {
 	return glbSettings
 }
 
-func flattenDomains(domains []*godo.LBDomain) ([]map[string]interface{}, error) {
+func flattenDomains(client *godo.Client, domains []*godo.LBDomain) ([]map[string]interface{}, error) {
 	if len(domains) == 0 {
 		return nil, nil
 	}
@@ -312,9 +318,19 @@ func flattenDomains(domains []*godo.LBDomain) ([]map[string]interface{}, error) 
 		r["verification_error_reasons"] = (*domain).VerificationErrorReasons
 		r["ssl_validation_error_reasons"] = (*domain).SSLValidationErrorReasons
 
+		if domain.CertificateID != "" {
+			// When the certificate type is lets_encrypt, the certificate
+			// ID will change when it's renewed, so we have to rely on the
+			// certificate name as the primary identifier instead.
+			cert, _, err := client.Certificates.Get(context.Background(), domain.CertificateID)
+			if err != nil {
+				return nil, err
+			}
+			r["certificate_id"] = cert.Name
+			r["certificate_name"] = cert.Name
+		}
 		result = append(result, r)
 	}
-
 	return result, nil
 }
 
