@@ -628,6 +628,15 @@ func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) 
 		}
 	}
 
+	if database.UIConnection != nil {
+		d.Set("host", database.UIConnection.Host)
+		d.Set("port", database.UIConnection.Port)
+		d.Set("uri", database.UIConnection.URI)
+		d.Set("database", database.UIConnection.Database)
+		d.Set("user", database.UIConnection.User)
+		d.Set("password", database.UIConnection.Password)
+	}
+
 	if database.PrivateConnection != nil {
 		d.Set("private_host", database.PrivateConnection.Host)
 		if database.EngineSlug == mongoDBEngineSlug {
