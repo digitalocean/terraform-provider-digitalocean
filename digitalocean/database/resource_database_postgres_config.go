@@ -80,6 +80,13 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 			"default_toast_compression": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						"lz4",
+						"pglz",
+					},
+					false,
+				),
 			},
 			"idle_in_transaction_session_timeout": {
 				Type:     schema.TypeInt,
@@ -96,10 +103,26 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 			"log_error_verbosity": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						"TERSE",
+						"DEFAULT",
+						"VERBOSE",
+					},
+					false,
+				),
 			},
 			"log_line_prefix": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						"pid=%p,user=%u,db=%d,app=%a,client=%h",
+						"%m [%p] %q[user=%u,db=%d,app=%a]",
+						"%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h",
+					},
+					false,
+				),
 			},
 			"log_min_duration_statement": {
 				Type:     schema.TypeInt,
@@ -180,14 +203,36 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 			"track_commit_timestamp": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						"off",
+						"on",
+					},
+					false,
+				),
 			},
 			"track_functions": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						"all",
+						"pl",
+						"none",
+					},
+					false,
+				),
 			},
 			"track_io_timing": {
 				Type:     schema.TypeString,
 				Optional: true,
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						"off",
+						"on",
+					},
+					false,
+				),
 			},
 			"max_wal_senders": {
 				Type:     schema.TypeInt,
@@ -204,6 +249,10 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 			"shared_buffers_percentage": {
 				Type:     schema.TypeFloat,
 				Optional: true,
+				ValidateFunc: validation.FloatBetween(
+					20.0,
+					60.0,
+				),
 			},
 			"pgbouncer": {
 				Type:     schema.TypeList,
