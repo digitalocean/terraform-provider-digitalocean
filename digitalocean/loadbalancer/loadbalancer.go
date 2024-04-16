@@ -256,3 +256,111 @@ func flattenForwardingRules(client *godo.Client, rules []godo.ForwardingRule) ([
 
 	return result, nil
 }
+
+func expandDomains(client *godo.Client, config []interface{}) ([]*godo.LBDomain, error) {
+	domains := make([]*godo.LBDomain, 0, len(config))
+
+	for _, rawDomain := range config {
+		domain := rawDomain.(map[string]interface{})
+		r := &godo.LBDomain{Name: domain["name"].(string)}
+
+		if v, ok := domain["is_managed"]; ok {
+			r.IsManaged = v.(bool)
+		}
+
+		if v, ok := domain["certificate_name"]; ok {
+			certName := v.(string)
+			if certName != "" {
+				cert, err := certificate.FindCertificateByName(client, certName)
+				if err != nil {
+					return nil, err
+				}
+				r.CertificateID = cert.ID
+			}
+		}
+		domains = append(domains, r)
+	}
+
+	return domains, nil
+}
+
+func expandGLBSettings(config []interface{}) *godo.GLBSettings {
+	glbConfig := config[0].(map[string]interface{})
+
+	glbSettings := &godo.GLBSettings{
+		TargetProtocol: glbConfig["target_protocol"].(string),
+		TargetPort:     uint32(glbConfig["target_port"].(int)),
+	}
+
+	if v, ok := glbConfig["cdn"]; ok {
+		if raw := v.([]interface{}); len(raw) > 0 {
+			glbSettings.CDN = &godo.CDNSettings{
+				IsEnabled: raw[0].(map[string]interface{})["is_enabled"].(bool),
+			}
+		}
+	}
+
+	return glbSettings
+}
+
+func flattenDomains(client *godo.Client, domains []*godo.LBDomain) ([]map[string]interface{}, error) {
+	if len(domains) == 0 {
+		return nil, nil
+	}
+
+	result := make([]map[string]interface{}, 0, 1)
+	for _, domain := range domains {
+		r := make(map[string]interface{})
+
+		r["name"] = (*domain).Name
+		r["is_managed"] = (*domain).IsManaged
+		r["certificate_id"] = (*domain).CertificateID
+		r["verification_error_reasons"] = (*domain).VerificationErrorReasons
+		r["ssl_validation_error_reasons"] = (*domain).SSLValidationErrorReasons
+
+		if domain.CertificateID != "" {
+			// When the certificate type is lets_encrypt, the certificate
+			// ID will change when it's renewed, so we have to rely on the
+			// certificate name as the primary identifier instead.
+			cert, _, err := client.Certificates.Get(context.Background(), domain.CertificateID)
+			if err != nil {
+				return nil, err
+			}
+			r["certificate_id"] = cert.Name
+			r["certificate_name"] = cert.Name
+		}
+		result = append(result, r)
+	}
+	return result, nil
+}
+
+func flattenGLBSettings(settings *godo.GLBSettings) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0, 1)
+
+	if settings != nil {
+		r := make(map[string]interface{})
+
+		r["target_protocol"] = (*settings).TargetProtocol
+		r["target_port"] = (*settings).TargetPort
+
+		if settings.CDN != nil {
+			r["cdn"] = []interface{}{
+				map[string]interface{}{
+					"is_enabled": (*settings).CDN.IsEnabled,
+				},
+			}
+		}
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
+func flattenLoadBalancerIds(list []string) *schema.Set {
+	flatSet := schema.NewSet(schema.HashString, []interface{}{})
+	for _, v := range list {
+		flatSet.Add(v)
+	}
+	return flatSet
+}

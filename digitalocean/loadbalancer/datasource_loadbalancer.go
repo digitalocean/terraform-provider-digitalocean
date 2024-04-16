@@ -250,9 +250,88 @@ func DataSourceDigitalOceanLoadbalancer() *schema.Resource {
 			},
 			"type": {
 				Type:        schema.TypeString,
-				Optional:    true,
 				Computed:    true,
 				Description: "the type of the load balancer (GLOBAL or REGIONAL)",
+			},
+			"domains": {
+				Type:        schema.TypeSet,
+				Computed:    true,
+				Description: "the list of domains required to ingress traffic to global load balancer",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "domain name",
+						},
+						"is_managed": {
+							Type:        schema.TypeBool,
+							Computed:    true,
+							Description: "flag indicating if domain is managed by DigitalOcean",
+						},
+						"certificate_id": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "certificate ID for TLS handshaking",
+						},
+						"certificate_name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "name of certificate required for TLS handshaking",
+						},
+						"verification_error_reasons": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Description: "list of domain verification errors",
+						},
+						"ssl_validation_error_reasons": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Description: "list of domain SSL validation errors",
+						},
+					},
+				},
+			},
+			"glb_settings": {
+				Type:        schema.TypeList,
+				Computed:    true,
+				Description: "configuration options for global load balancer",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"target_protocol": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "target protocol rules",
+						},
+						"target_port": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "target port rules",
+						},
+						"cdn": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Description: "CDN specific configurations",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"is_enabled": {
+										Type:        schema.TypeBool,
+										Computed:    true,
+										Description: "cache enable flag",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			"target_load_balancer_ids": {
+				Type:        schema.TypeSet,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Computed:    true,
+				Description: "list of load balancer IDs to put behind a global load balancer",
 			},
 		},
 	}
@@ -312,7 +391,9 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 	d.SetId(foundLoadbalancer.ID)
 	d.Set("name", foundLoadbalancer.Name)
 	d.Set("urn", foundLoadbalancer.URN())
-	d.Set("region", foundLoadbalancer.Region.Slug)
+	if foundLoadbalancer.Region != nil {
+		d.Set("region", foundLoadbalancer.Region.Slug)
+	}
 	if foundLoadbalancer.SizeUnit > 0 {
 		d.Set("size_unit", foundLoadbalancer.SizeUnit)
 	} else if foundLoadbalancer.SizeSlug != "" {
@@ -355,6 +436,23 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 
 	if err := d.Set("firewall", flattenLBFirewall(foundLoadbalancer.Firewall)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting Load Balancer firewall - error: %#v", err)
+	}
+
+	domains, err := flattenDomains(client, foundLoadbalancer.Domains)
+	if err != nil {
+		return diag.Errorf("[DEBUG] Error building Load Balancer domains - error: %#v", err)
+	}
+
+	if err := d.Set("domains", domains); err != nil {
+		return diag.Errorf("[DEBUG] Error setting Load Balancer domains - error: %#v", err)
+	}
+
+	if err := d.Set("glb_settings", flattenGLBSettings(foundLoadbalancer.GLBSettings)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting Load Balancer glb settings - error: %#v", err)
+	}
+
+	if err := d.Set("target_load_balancer_ids", flattenLoadBalancerIds(foundLoadbalancer.TargetLoadBalancerIDs)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting target Load Balancer ids - error: %#v", err)
 	}
 
 	return nil
