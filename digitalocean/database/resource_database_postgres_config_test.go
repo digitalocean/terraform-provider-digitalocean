@@ -43,9 +43,9 @@ const testAccCheckDigitalOceanDatabasePostgreSQLConfigConfigBasic = `
 %s
 
 resource "digitalocean_database_postgresql_config" "foobar" {
-  cluster_id                 = digitalocean_database_cluster.foobar.id
-  jit                        = %t
-  timezone                   = "%s"
-  shared_buffers_percentage  = %f
-  work_mem                   = %d
+  cluster_id                = digitalocean_database_cluster.foobar.id
+  jit                       = %t
+  timezone                  = "%s"
+  shared_buffers_percentage = %f
+  work_mem                  = %d
 }`
