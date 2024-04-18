@@ -47,5 +47,5 @@ resource "digitalocean_database_postgresql_config" "foobar" {
   timezone                  = "%s"
   shared_buffers_percentage = %f
   work_mem                  = %d
-  jit						= %t
+  jit                       = %t
 }`
