@@ -31,62 +31,77 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 			"autovacuum_freeze_max_age": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"autovacuum_max_workers": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"autovacuum_naptime": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"autovacuum_vacuum_threshold": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"autovacuum_analyze_threshold": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"autovacuum_vacuum_scale_factor": {
 				Type:     schema.TypeFloat,
 				Optional: true,
+				Computed: true,
 			},
 			"autovacuum_analyze_scale_factor": {
 				Type:     schema.TypeFloat,
 				Optional: true,
+				Computed: true,
 			},
 			"autovacuum_vacuum_cost_delay": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"autovacuum_vacuum_cost_limit": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"bgwriter_delay": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"bgwriter_flush_after": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"bgwriter_lru_maxpages": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"bgwriter_lru_multiplier": {
 				Type:     schema.TypeFloat,
 				Optional: true,
+				Computed: true,
 			},
 			"deadlock_timeout": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"default_toast_compression": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						"lz4",
@@ -98,18 +113,22 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 			"idle_in_transaction_session_timeout": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"jit": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Computed: true,
 			},
 			"log_autovacuum_min_duration": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"log_error_verbosity": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						"TERSE",
@@ -122,6 +141,7 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 			"log_line_prefix": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						"pid=%p,user=%u,db=%d,app=%a,client=%h",
@@ -134,82 +154,102 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 			"log_min_duration_statement": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"max_files_per_process": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"max_prepared_transactions": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"max_pred_locks_per_transaction": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"max_locks_per_transaction": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"max_stack_depth": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"max_standby_archive_delay": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"max_standby_streaming_delay": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"max_replication_slots": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"max_logical_replication_workers": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"max_parallel_workers": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"max_parallel_workers_per_gather": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"max_worker_processes": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"pg_partman_bgw_role": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"pg_partman_bgw_interval": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"pg_stat_statements_track": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"temp_file_limit": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"timezone": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 			},
 			"track_activity_query_size": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"track_commit_timestamp": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						"off",
@@ -221,6 +261,7 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 			"track_functions": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						"all",
@@ -233,6 +274,7 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 			"track_io_timing": {
 				Type:     schema.TypeString,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.StringInSlice(
 					[]string{
 						"off",
@@ -244,18 +286,22 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 			"max_wal_senders": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"wal_sender_timeout": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"wal_writer_delay": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"shared_buffers_percentage": {
 				Type:     schema.TypeFloat,
 				Optional: true,
+				Computed: true,
 				ValidateFunc: validation.FloatBetween(
 					20.0,
 					60.0,
@@ -264,31 +310,83 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 			"pgbouncer": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						// ... Define the fields for PostgreSQLBouncerConfig here
+						"server_reset_query_always": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"ignore_startup_parameters": {
+							Type:     schema.TypeSet,
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Optional: true,
+							Computed: true,
+						},
+						"min_pool_size": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"server_lifetime": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"server_idle_timeout": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"autodb_pool_size": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"autodb_pool_mode": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"autodb_max_db_connections": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
+						"autodb_idle_timeout": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Computed: true,
+						},
 					},
 				},
 			},
 			"backup_hour": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"backup_minute": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"work_mem": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 			"timescaledb": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						// ... Define the fields for PostgreSQLTimeScaleDBConfig here
-					},
+						"timescaledb": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						}},
 				},
 			},
 		},
@@ -344,11 +442,11 @@ func updatePostgreSQLConfig(ctx context.Context, d *schema.ResourceData, client 
 	}
 
 	if v, ok := d.GetOk("autovacuum_vacuum_scale_factor"); ok {
-		opts.AutovacuumVacuumScaleFactor = godo.PtrTo(v.(float32))
+		opts.AutovacuumVacuumScaleFactor = godo.PtrTo(float32(v.(float64)))
 	}
 
 	if v, ok := d.GetOk("autovacuum_analyze_scale_factor"); ok {
-		opts.AutovacuumAnalyzeScaleFactor = godo.PtrTo(v.(float32))
+		opts.AutovacuumAnalyzeScaleFactor = godo.PtrTo(float32(v.(float64)))
 	}
 
 	if v, ok := d.GetOk("autovacuum_vacuum_cost_delay"); ok {
@@ -372,7 +470,7 @@ func updatePostgreSQLConfig(ctx context.Context, d *schema.ResourceData, client 
 	}
 
 	if v, ok := d.GetOk("bgwriter_lru_multiplier"); ok {
-		opts.BGWriterLRUMultiplier = godo.PtrTo(v.(float32))
+		opts.BGWriterLRUMultiplier = godo.PtrTo(float32(v.(float64)))
 	}
 
 	if v, ok := d.GetOk("deadlock_timeout"); ok {
@@ -504,11 +602,11 @@ func updatePostgreSQLConfig(ctx context.Context, d *schema.ResourceData, client 
 	}
 
 	if v, ok := d.GetOk("shared_buffers_percentage"); ok {
-		opts.SharedBuffersPercentage = godo.PtrTo(v.(float32))
+		opts.SharedBuffersPercentage = godo.PtrTo(float32(v.(float64)))
 	}
 
 	if v, ok := d.GetOk("pgbouncer"); ok {
-		opts.PgBouncer = godo.PtrTo(v.(godo.PostgreSQLBouncerConfig))
+		opts.PgBouncer = expandPgBouncer(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("backup_hour"); ok {
@@ -524,7 +622,7 @@ func updatePostgreSQLConfig(ctx context.Context, d *schema.ResourceData, client 
 	}
 
 	if v, ok := d.GetOk("timescaledb"); ok {
-		opts.TimeScaleDB = godo.PtrTo(v.(godo.PostgreSQLTimeScaleDBConfig))
+		opts.TimeScaleDB = expandTimeScaleDB(v.([]interface{}))
 	}
 
 	log.Printf("[DEBUG] PostgreSQL configuration: %s", godo.Stringify(opts))
@@ -596,11 +694,21 @@ func resourceDigitalOceanDatabasePostgreSQLConfigRead(ctx context.Context, d *sc
 	d.Set("wal_sender_timeout", config.WalSenderTimeout)
 	d.Set("wal_writer_delay", config.WalWriterDelay)
 	d.Set("shared_buffers_percentage", config.SharedBuffersPercentage)
-	d.Set("pgbouncer", config.PgBouncer)
 	d.Set("backup_hour", config.BackupHour)
 	d.Set("backup_minute", config.BackupMinute)
 	d.Set("work_mem", config.WorkMem)
-	d.Set("timescaledb", config.TimeScaleDB)
+
+	if _, ok := d.GetOk("pgbouncer"); ok {
+		if err := d.Set("pgbouncer", flattenPGBouncerOpts(*config.PgBouncer)); err != nil {
+			return diag.Errorf("[DEBUG] Error setting pgbouncer - error: %#v", err)
+		}
+	}
+
+	if _, ok := d.GetOk("timescaledb"); ok {
+		if err := d.Set("timescaledb", flattenTimeScaleDBOpts(*config.TimeScaleDB)); err != nil {
+			return diag.Errorf("[DEBUG] Error setting timescaledb - error: %#v", err)
+		}
+	}
 
 	return nil
 }
@@ -630,4 +738,62 @@ func resourceDigitalOceanDatabasePostgreSQLConfigImport(d *schema.ResourceData, 
 
 func makeDatabasePostgreSQLConfigID(clusterID string) string {
 	return fmt.Sprintf("%s/postgresql-config", clusterID)
+}
+
+func expandPgBouncer(config []interface{}) *godo.PostgreSQLBouncerConfig {
+	configMap := config[0].(map[string]interface{})
+
+	pgBouncerConfig := &godo.PostgreSQLBouncerConfig{
+		ServerResetQueryAlways:  godo.PtrTo(configMap["server_reset_query_always"].(bool)),
+		IgnoreStartupParameters: godo.PtrTo(configMap["ignore_startup_parameters"].([]string)),
+		MinPoolSize:             godo.PtrTo(configMap["min_pool_size"].(int)),
+		ServerLifetime:          godo.PtrTo(configMap["server_lifetime"].(int)),
+		ServerIdleTimeout:       godo.PtrTo(configMap["server_idle_timeout"].(int)),
+		AutodbPoolSize:          godo.PtrTo(configMap["autodb_pool_size"].(int)),
+		AutodbPoolMode:          godo.PtrTo(configMap["autodb_pool_mode"].(string)),
+		AutodbMaxDbConnections:  godo.PtrTo(configMap["autodb_max_db_connections"].(int)),
+		AutodbIdleTimeout:       godo.PtrTo(configMap["autodb_idle_timeout"].(int)),
+	}
+
+	return pgBouncerConfig
+}
+
+func expandTimeScaleDB(config []interface{}) *godo.PostgreSQLTimeScaleDBConfig {
+	configMap := config[0].(map[string]interface{})
+
+	timeScaleDBConfig := &godo.PostgreSQLTimeScaleDBConfig{
+		MaxBackgroundWorkers: godo.PtrTo(configMap["max_background_workers"].(int)),
+	}
+
+	return timeScaleDBConfig
+}
+
+func flattenPGBouncerOpts(opts godo.PostgreSQLBouncerConfig) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	item := make(map[string]interface{})
+
+	item["server_reset_query_always"] = opts.ServerResetQueryAlways
+	item["ignore_startup_parameters"] = opts.IgnoreStartupParameters
+	item["min_pool_size"] = opts.MinPoolSize
+	item["server_lifetime"] = opts.ServerLifetime
+	item["server_idle_timeout"] = opts.ServerIdleTimeout
+	item["autodb_pool_size"] = opts.AutodbPoolSize
+	item["autodb_pool_mode"] = opts.AutodbPoolMode
+	item["autodb_max_db_connections"] = opts.AutodbMaxDbConnections
+	item["autodb_idle_timeout"] = opts.AutodbIdleTimeout
+
+	result = append(result, item)
+
+	return result
+}
+
+func flattenTimeScaleDBOpts(opts godo.PostgreSQLTimeScaleDBConfig) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	item := make(map[string]interface{})
+
+	item["max_background_workers"] = opts.MaxBackgroundWorkers
+
+	result = append(result, item)
+
+	return result
 }

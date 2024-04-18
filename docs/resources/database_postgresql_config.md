@@ -14,15 +14,14 @@ options for a DigitalOcean managed PostgreSQL database cluster.
 ```hcl
 resource "digitalocean_database_postgresql_config" "example" {
   cluster_id      = digitalocean_database_cluster.example.id
-  connect_timeout = 10
-  time_zone       = "UTC"
+  timezone       = "UTC"
   work_mem        = 16
 }
 
 resource "digitalocean_database_cluster" "example" {
   name       = "example-postgresql-cluster"
   engine     = "pg"
-  version    = "8"
+  version    = "15"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
