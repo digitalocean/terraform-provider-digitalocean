@@ -10,7 +10,7 @@ import (
 
 func TestAccDigitalOceanDatabasePostgreSQLConfig_Basic(t *testing.T) {
 	name := acceptance.RandomTestName()
-	dbConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterPostgreSQL, name, "8.5")
+	dbConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterPostgreSQL, name, "15")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
