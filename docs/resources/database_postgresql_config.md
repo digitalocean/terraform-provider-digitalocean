@@ -13,9 +13,9 @@ options for a DigitalOcean managed PostgreSQL database cluster.
 
 ```hcl
 resource "digitalocean_database_postgresql_config" "example" {
-  cluster_id      = digitalocean_database_cluster.example.id
-  timezone       = "UTC"
-  work_mem        = 16
+  cluster_id = digitalocean_database_cluster.example.id
+  timezone   = "UTC"
+  work_mem   = 16
 }
 
 resource "digitalocean_database_cluster" "example" {
