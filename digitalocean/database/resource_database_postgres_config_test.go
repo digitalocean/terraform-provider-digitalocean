@@ -18,18 +18,18 @@ func TestAccDigitalOceanDatabasePostgreSQLConfig_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabasePostgreSQLConfigConfigBasic, dbConfig, "UTC", 30.5, 32),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabasePostgreSQLConfigConfigBasic, dbConfig, "UTC", 30.5, 32, false),
 				Check: resource.ComposeTestCheckFunc(
-					//resource.TestCheckResourceAttr("digitalocean_database_postgresql_config.foobar", "jit", "false"),
+					resource.TestCheckResourceAttr("digitalocean_database_postgresql_config.foobar", "jit", "false"),
 					resource.TestCheckResourceAttr("digitalocean_database_postgresql_config.foobar", "timezone", "UTC"),
 					resource.TestCheckResourceAttr("digitalocean_database_postgresql_config.foobar", "shared_buffers_percentage", "30.5"),
 					resource.TestCheckResourceAttr("digitalocean_database_postgresql_config.foobar", "work_mem", "32"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabasePostgreSQLConfigConfigBasic, dbConfig, "UTC", 20.0, 16),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabasePostgreSQLConfigConfigBasic, dbConfig, "UTC", 20.0, 16, true),
 				Check: resource.ComposeTestCheckFunc(
-					//resource.TestCheckResourceAttr("digitalocean_database_postgresql_config.foobar", "jit", "true"),
+					resource.TestCheckResourceAttr("digitalocean_database_postgresql_config.foobar", "jit", "true"),
 					resource.TestCheckResourceAttr("digitalocean_database_postgresql_config.foobar", "timezone", "UTC"),
 					resource.TestCheckResourceAttr("digitalocean_database_postgresql_config.foobar", "shared_buffers_percentage", "20"),
 					resource.TestCheckResourceAttr("digitalocean_database_postgresql_config.foobar", "work_mem", "16"),
@@ -47,4 +47,5 @@ resource "digitalocean_database_postgresql_config" "foobar" {
   timezone                  = "%s"
   shared_buffers_percentage = %f
   work_mem                  = %d
+  jit						= %t
 }`
