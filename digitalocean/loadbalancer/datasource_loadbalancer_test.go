@@ -620,6 +620,49 @@ data "digitalocean_loadbalancer" "foobar" {
 		},
 	})
 }
+func TestAccDataSourceDigitalOceanGlobalLoadBalancer(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	testName := acceptance.RandomTestName()
+	resourceConfig := testAccCheckDataSourceDigitalOceanGlobalLoadBalancerConfig(testName)
+	dataSourceConfig := `
+data "digitalocean_loadbalancer" "foobar" {
+  name = digitalocean_loadbalancer.lorem.name
+}`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceDigitalOceanLoadBalancerExists("data.digitalocean_loadbalancer.foobar", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "name", testName),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "type", "GLOBAL"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.target_protocol", "HTTP"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.target_port", "80"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.cdn.0.is_enabled", "true"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "domains.#", "2"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "domains.1.name", "test.github.io"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "domains.0.name", "test-2.github.io"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "droplet_ids.#", "1"),
+				),
+			},
+		},
+	})
+}
 
 func testAccCheckDataSourceDigitalOceanLoadBalancerExists(n string, loadbalancer *godo.LoadBalancer) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
@@ -728,4 +771,45 @@ resource "digitalocean_loadbalancer" "foo" {
   droplet_tag = digitalocean_tag.foo.id
   depends_on  = ["digitalocean_droplet.foo"]
 }`, testName, testName, testName, sizeUnit)
+}
+
+func testAccCheckDataSourceDigitalOceanGlobalLoadBalancerConfig(name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "blr1"
+}
+
+resource "digitalocean_loadbalancer" "lorem" {
+  name = "%s"
+  type = "GLOBAL"
+
+  healthcheck {
+    port     = 80
+    protocol = "http"
+    path     = "/"
+  }
+
+  glb_settings {
+    target_protocol = "http"
+    target_port     = "80"
+    cdn {
+      is_enabled = true
+    }
+  }
+
+  domains {
+    name       = "test.github.io"
+    is_managed = false
+  }
+
+  domains {
+    name       = "test-2.github.io"
+    is_managed = false
+  }
+
+  droplet_ids = [digitalocean_droplet.foobar.id]
+}`, name, name)
 }
