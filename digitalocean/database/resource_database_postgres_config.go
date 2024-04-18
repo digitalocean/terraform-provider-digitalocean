@@ -14,6 +14,13 @@ import (
 
 func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 	return &schema.Resource{
+		CreateContext: resourceDigitalOceanDatabasePostgreSQLConfigCreate,
+		ReadContext:   resourceDigitalOceanDatabasePostgreSQLConfigRead,
+		UpdateContext: resourceDigitalOceanDatabasePostgreSQLConfigUpdate,
+		DeleteContext: resourceDigitalOceanDatabasePostgreSQLConfigDelete,
+		Importer: &schema.ResourceImporter{
+			State: resourceDigitalOceanDatabasePostgreSQLConfigImport,
+		},
 		Schema: map[string]*schema.Schema{
 			"cluster_id": {
 				Type:         schema.TypeString,
