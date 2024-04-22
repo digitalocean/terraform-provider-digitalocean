@@ -225,11 +225,9 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 				return diag.Errorf("Error setting connection info for database cluster: %s", err)
 			}
 
-			if db.EngineSlug == opensearchEngineSlug {
-				uiErr := setUIConnectionInfo(&db, d)
-				if uiErr != nil {
-					return diag.Errorf("Error setting ui connection info for database cluster: %s", err)
-				}
+			uiErr := setUIConnectionInfo(&db, d)
+			if uiErr != nil {
+				return diag.Errorf("Error setting ui connection info for database cluster: %s", err)
 			}
 
 			d.Set("urn", db.URN())

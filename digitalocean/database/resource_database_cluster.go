@@ -19,10 +19,9 @@ import (
 )
 
 const (
-	mongoDBEngineSlug    = "mongodb"
-	mysqlDBEngineSlug    = "mysql"
-	redisDBEngineSlug    = "redis"
-	opensearchEngineSlug = "opensearch"
+	mongoDBEngineSlug = "mongodb"
+	mysqlDBEngineSlug = "mysql"
+	redisDBEngineSlug = "redis"
 )
 
 func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
@@ -558,12 +557,11 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 		return diag.Errorf("Error setting connection info for database cluster: %s", err)
 	}
 
-	if database.EngineSlug == opensearchEngineSlug {
-		uiErr := setUIConnectionInfo(database, d)
-		if uiErr != nil {
-			return diag.Errorf("Error setting ui connection info for database cluster: %s", err)
-		}
+	uiErr := setUIConnectionInfo(database, d)
+	if uiErr != nil {
+		return diag.Errorf("Error setting ui connection info for database cluster: %s", err)
 	}
+
 	d.Set("urn", database.URN())
 	d.Set("private_network_uuid", database.PrivateNetworkUUID)
 	d.Set("project_id", database.ProjectID)
