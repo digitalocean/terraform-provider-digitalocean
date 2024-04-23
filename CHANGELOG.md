@@ -1,3 +1,17 @@
+# 2.37.0
+
+IMPROVEMENTS:
+- #1139 - @linuxluigi - Add PostgreSQL configuration resource and test
+- #1133 - @asaha2 - Add config options for global load balancers
+
+BUG FIXES:
+- #1127 - @danaelhe - Load Balancer: Deprecate "algorithm" attribute
+
+MISC:
+- #1128 - @danaelhe - Update database_firewall example
+- #1125 - @dependabot[bot] - build(deps): bump google.golang.org/protobuf from 1.31.0 to 1.33.0
+- #1137 - @andrewsomething - apps: included registry_credentials option for images
+
 # 2.36.0
 
 IMPROVEMENTS:
