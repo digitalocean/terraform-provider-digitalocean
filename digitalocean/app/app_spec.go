@@ -257,7 +257,7 @@ func appSpecImageSourceSchema() map[string]*schema.Schema {
 		},
 		"registry_credentials": {
 			Type:        schema.TypeString,
-			Required:    true,
+			Optional:    true,
 			Description: "Access credentials for third-party registries",
 			Sensitive:   true,
 		},
