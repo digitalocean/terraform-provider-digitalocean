@@ -1,3 +1,8 @@
+# 2.37.1
+
+BUG FIXES:
+- #1148 - @danaelhe - Apps: Mark registry_credentials as optional
+
 # 2.37.0
 
 IMPROVEMENTS:
