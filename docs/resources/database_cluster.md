@@ -147,6 +147,16 @@ In addition to the above arguments, the following attributes are exported:
 * `user` - Username for the cluster's default user.
 * `password` - Password for the cluster's default user.
 
+OpenSearch clusters will have the following additional attributes with connection
+details for their dashboard:
+
+* `ui_host` - Hostname for the OpenSearch dashboard.
+* `ui_port` - Network port that the OpenSearch dashboard is listening on.
+* `ui_uri` - The full URI for connecting to the OpenSearch dashboard.
+* `ui_database` - Name of the OpenSearch dashboard db.
+* `ui_user` - Username for OpenSearch dashboard's default user.
+* `ui_password` - Password for the OpenSearch dashboard's default user.
+
 ## Import
 
 Database clusters can be imported using the `id` returned from DigitalOcean, e.g.

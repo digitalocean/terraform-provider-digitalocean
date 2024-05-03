@@ -38,22 +38,26 @@ The following attributes are exported:
 * `maintenance_window` - Defines when the automatic maintenance should be performed for the database cluster.
 * `private_network_uuid` - The ID of the VPC where the database cluster is located.
 * `host` - Database cluster's hostname.
-* `ui_host` - Opensearch Dashboard hostname.
 * `private_host` - Same as `host`, but only accessible from resources within the account and in the same region.
 * `port` - Network port that the database cluster is listening on.
-* `ui_port` - Network port that the opensearch dashboard is listening on.
 * `uri` - The full URI for connecting to the database cluster.
-* `ui_uri` - The full URI for connecting to the opensearch cluster/ 
 * `private_uri` - Same as `uri`, but only accessible from resources within the account and in the same region.
 * `database` - Name of the cluster's default database.
-* `ui_database` -  Name of the opensearch dashboard.
 * `user` - Username for the cluster's default user.
-* `ui_user` - Username for opensearch dashboard's default user.
 * `password` - Password for the cluster's default user.
-* `ui_password` - Password for the opensearch dashboard's default user.
 * `project_id` - The ID of the project that the database cluster is assigned to.
 
 `maintenance_window` supports the following:
 
 * `day` - The day of the week on which to apply maintenance updates.
 * `hour` - The hour in UTC at which maintenance updates will be applied in 24 hour format.
+
+OpenSearch clusters will have the following additional attributes with connection
+details for their dashboard:
+
+* `ui_host` - Hostname for the OpenSearch dashboard.
+* `ui_port` - Network port that the OpenSearch dashboard is listening on.
+* `ui_uri` - The full URI for connecting to the OpenSearch dashboard.
+* `ui_database` - Name of the OpenSearch dashboard db.
+* `ui_user` - Username for OpenSearch dashboard's default user.
+* `ui_password` - Password for the OpenSearch dashboard's default user.
