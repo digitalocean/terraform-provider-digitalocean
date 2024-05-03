@@ -1,4 +1,9 @@
-# 2.37.0
+## 2.37.1
+
+BUG FIXES:
+- #1148 - @danaelhe - Apps: Mark registry_credentials as optional
+
+## 2.37.0
 
 IMPROVEMENTS:
 - #1139 - @linuxluigi - Add PostgreSQL configuration resource and test
@@ -12,7 +17,7 @@ MISC:
 - #1125 - @dependabot[bot] - build(deps): bump google.golang.org/protobuf from 1.31.0 to 1.33.0
 - #1137 - @andrewsomething - apps: included registry_credentials option for images
 
-# 2.36.0
+## 2.36.0
 
 IMPROVEMENTS:
 - #1115 - @guptado - [NETPROD-3585] Optimised fetching certificates by name
@@ -24,7 +29,7 @@ BUG FIXES:
 MISC:
 - #1120 - @andrewsomething - docs: apps can be added to projects.
 
-# 2.35.0
+## 2.35.0
 
 IMPROVEMENTS: 
 - #1113 - @danaelhe - Apps: Support Project Assignment
@@ -40,7 +45,7 @@ MISC:
 - #1108 - @andrewsomething - redis config: allow setting timeout to 0
 - #1105 - @danktec - Force replacement if user tries to disable IPv6 on a droplet
 
-# 2.34.1
+## 2.34.1
 
 BUG FIXES:
 
@@ -48,7 +53,7 @@ BUG FIXES:
 - `digitalocean_database_cluster`: ignore seconds in maintenance_window.hour (#1094). - @andrewsomething
 - build(deps): bump golang.org/x/crypto from 0.14.0 to 0.17.0 (#1096). - @dependabot[bot]
 
-# 2.34.0
+## 2.34.0
 
 IMPROVEMENTS:
 
@@ -60,7 +65,7 @@ BUG FIXES:
 - `digitalocean_spaces_bucket`: blr1 is a supported region (#1085). - @andrewsomething
 - `digitalocean_database_kafka_topic`: Kafka topic + user ACL management doc fixes (#1082). - @dweinshenker
 
-# 2.33.0
+## 2.33.0
 
 IMPROVEMENTS:
 
@@ -74,7 +79,7 @@ BUG FIXES:
 - #1074 - @T-jegou - Fixing Case Handling for Volume Resource
 
 
-# 2.32.0
+## 2.32.0
 
 IMPROVEMENTS:
 
@@ -93,7 +98,7 @@ MISC:
 - `provider`: Bump godo to v1.105.1 (#1071). - @andrewsomething
 - `provider`: bump google.golang.org/grpc from 1.53.0 to 1.56.3 (#1057). - @dependabot[bot]
 
-# 2.31.0
+## 2.31.0
 
 FEATURES:
 
@@ -121,7 +126,7 @@ MISC:
 - `testing`: Use terrafmt on docs directory (#1036). - @andrewsomething 
 - `docs`: Update Droplet example (#1035). - @danaelhe
 
-# 2.30.0
+## 2.30.0
 
 FEATURES:
 
@@ -145,7 +150,7 @@ MISC:
 - `provider`: Update godo dependency to v1.102.0 (#1018). - @danaelhe
 - `provider`: Update godo dependency to v1.101.0 (#1017.) - @danaelhe
 
-# 2.29.0
+## 2.29.0
 
 FEATURES:
 
@@ -166,7 +171,7 @@ MISC:
 - `testing`: Update Postgres versions in acceptance tests (#1002). - @andrewsomething
 - `provider`: build(deps): bump google.golang.org/grpc from 1.51.0 to 1.53.0 (#1003). - @dependabot[bot]
 
-# 2.28.1
+## 2.28.1
 
 BUG FIXES:
 
@@ -174,7 +179,7 @@ BUG FIXES:
 - `digitalocean_droplet`: Prevent inconsistent plan when enabling IPv6 (#982). - @andrewsomething
 - `digitalocean_custom_image`: use custom create timeout (#985). - @andrewsomething
 
-# 2.28.0
+## 2.28.0
 
 IMPROVEMENTS:
 
@@ -195,7 +200,7 @@ MISC:
 - `docs`: Use correct links in uptime docs. #973 - @andrewsomething
 - `provider`: Update Terraform SDK to v2.26.1. #975 - @andrewsomething
 
-# 2.27.1
+## 2.27.1
 
 BUG FIXES:
 
@@ -206,7 +211,7 @@ MISC:
 - dependencies: bump golang.org/x/net (#957). - @dependabot
 - dependencies: bump golang.org/x/crypto (#960). - @dependabot
 
-# 2.27.0
+## 2.27.0
 
 IMPROVEMENTS:
 
@@ -244,7 +249,7 @@ MISC:
 - `testing`: Fix flaky database acceptance tests (#953). - @andrewsomething
 - Remove .go-version and add to .gitignore (#958). - @ChiefMateStarbuck
 
-# 2.26.0
+## 2.26.0
 
 IMPROVEMENTS:
 
@@ -261,19 +266,19 @@ MISC:
 - `docs`: Fix typo in README (#920) - @mbardelmeijer
 - `docs`: Add releasing notes & missing changelog entries (#922) - @scotchneat
 
-# 2.25.2
+## 2.25.2
 
 IMPROVEMENTS:
 
 - `database_replica`: add retry on db replica create (#907) - @DMW2151
 
-# 2.25.1
+## 2.25.1
 
 IMPROVEMENTS:
 
 - `monitoring`: Support HTTP idle timeout & Project ID (#897) - @StephenVarela
 
-# 2.24.0
+## 2.24.0
 
 IMPROVEMENTS:
 
@@ -286,7 +291,7 @@ MISC:
 
 - `docs`: Fix reference in documentation of project_resources (#890) - @Lavode
 
-# 2.23.0 (September 27, 2022)
+## 2.23.0 (September 27, 2022)
 
 IMPROVEMENTS:
 
@@ -301,13 +306,13 @@ MISC:
 
 - Upgrade to Go 1.19  ([#884](https://github.com/digitalocean/terraform-provider-digitalocean/pull/884)). - @andrewsomething
 
-# 2.22.3 (September 12, 2022)
+## 2.22.3 (September 12, 2022)
 
 BUG FIXES:
 
 - `digitalocean_droplet`: Fix configurable timeouts for Droplet creates ([#867](https://github.com/digitalocean/terraform-provider-digitalocean/pull/867)). - @andrewsomething
 
-# 2.22.2 (August 31, 2022)
+## 2.22.2 (August 31, 2022)
 
 IMPROVEMENTS:
 
@@ -318,7 +323,7 @@ MISC:
 - `digitalocean_database_cluster`: Suppress diffs on forced Redis version upgrades ([#873](https://github.com/digitalocean/terraform-provider-digitalocean/pull/873)) - @scotchneat
 - `docs`: fix app spec link([#871](https://github.com/digitalocean/terraform-provider-digitalocean/pull/871)) - @jkpe
 
-# 2.22.1 (August 16, 2022)
+## 2.22.1 (August 16, 2022)
 
 BUG FIXES:
 
