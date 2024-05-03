@@ -1,3 +1,19 @@
+## 2.38.0
+
+IMPROVEMENTS:
+
+- #1140 - @bhardwajRahul - Terraform Provider updates for OpenSearch
+
+BUG FIXES:
+
+- #1150 - @danaelhe - Project: Remove project from state if tf project creation plan fails
+
+MISC:
+
+- #1145 - @yordis - chore: fix header of changelog
+- #1144 - @yordis - chore: remove go.mod replace for old unused pkg
+- #1142 - @dependabot[bot] - build(deps): bump golang.org/x/net from 0.17.0 to 0.23.0
+
 ## 2.37.1
 
 BUG FIXES:
