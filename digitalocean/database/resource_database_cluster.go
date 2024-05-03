@@ -150,6 +150,11 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"private_host": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -160,7 +165,18 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_port": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"uri": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"ui_uri": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -177,12 +193,28 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_database": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"user": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
+			"ui_user": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"password": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"ui_password": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -524,6 +556,12 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	if err != nil {
 		return diag.Errorf("Error setting connection info for database cluster: %s", err)
 	}
+
+	uiErr := setUIConnectionInfo(database, d)
+	if uiErr != nil {
+		return diag.Errorf("Error setting ui connection info for database cluster: %s", err)
+	}
+
 	d.Set("urn", database.URN())
 	d.Set("private_network_uuid", database.PrivateNetworkUUID)
 	d.Set("project_id", database.ProjectID)
@@ -639,6 +677,19 @@ func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) 
 		} else {
 			d.Set("private_uri", database.PrivateConnection.URI)
 		}
+	}
+
+	return nil
+}
+
+func setUIConnectionInfo(database *godo.Database, d *schema.ResourceData) error {
+	if database.UIConnection != nil {
+		d.Set("ui_host", database.UIConnection.Host)
+		d.Set("ui_port", database.UIConnection.Port)
+		d.Set("ui_uri", database.UIConnection.URI)
+		d.Set("ui_database", database.UIConnection.Database)
+		d.Set("ui_user", database.UIConnection.User)
+		d.Set("ui_password", database.UIConnection.Password)
 	}
 
 	return nil

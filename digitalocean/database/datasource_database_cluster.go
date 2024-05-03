@@ -70,6 +70,11 @@ func DataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"private_host": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -80,13 +85,30 @@ func DataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_port": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"password": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
+			"ui_password": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"uri": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"ui_uri": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -103,7 +125,17 @@ func DataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_database": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"user": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"ui_user": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -192,6 +224,12 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 			if err != nil {
 				return diag.Errorf("Error setting connection info for database cluster: %s", err)
 			}
+
+			uiErr := setUIConnectionInfo(&db, d)
+			if uiErr != nil {
+				return diag.Errorf("Error setting ui connection info for database cluster: %s", err)
+			}
+
 			d.Set("urn", db.URN())
 			d.Set("private_network_uuid", db.PrivateNetworkUUID)
 			d.Set("project_id", db.ProjectID)
