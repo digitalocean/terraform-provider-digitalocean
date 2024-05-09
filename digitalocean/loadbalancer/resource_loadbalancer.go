@@ -509,6 +509,20 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 							ValidateFunc: validation.IntInSlice([]int{80, 443}),
 							Description:  "target port rules",
 						},
+						"region_priorities": {
+							Type:        schema.TypeMap,
+							Optional:    true,
+							Description: "region priority map",
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"failover_threshold": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(1, 99),
+							Description:  "fail-over threshold",
+						},
 						"cdn": {
 							Type:        schema.TypeList,
 							Optional:    true,

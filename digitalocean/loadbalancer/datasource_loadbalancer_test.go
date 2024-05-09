@@ -651,6 +651,12 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.cdn.0.is_enabled", "true"),
 					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.region_priorities.%", "2"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.region_priorities.nyc1", "1"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.region_priorities.nyc2", "2"),
+					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "domains.#", "2"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "domains.1.name", "test.github.io"),
@@ -798,6 +804,11 @@ resource "digitalocean_loadbalancer" "lorem" {
     cdn {
       is_enabled = true
     }
+    region_priorities = {
+      nyc1 = 1
+      nyc2 = 2
+    }
+    failover_threshold = 10
   }
 
   domains {
