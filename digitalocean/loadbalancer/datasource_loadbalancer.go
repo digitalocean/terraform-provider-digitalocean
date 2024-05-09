@@ -310,6 +310,19 @@ func DataSourceDigitalOceanLoadbalancer() *schema.Resource {
 							Computed:    true,
 							Description: "target port rules",
 						},
+						"region_priorities": {
+							Type:        schema.TypeMap,
+							Computed:    true,
+							Description: "region priority map",
+							Elem: &schema.Schema{
+								Type: schema.TypeInt,
+							},
+						},
+						"failover_threshold": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "fail-over threshold",
+						},
 						"cdn": {
 							Type:        schema.TypeList,
 							Computed:    true,

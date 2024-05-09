@@ -300,6 +300,16 @@ func expandGLBSettings(config []interface{}) *godo.GLBSettings {
 		}
 	}
 
+	if v, ok := glbConfig["region_priorities"]; ok {
+		for region, priority := range v.(map[string]interface{}) {
+			if glbSettings.RegionPriorities == nil {
+				glbSettings.RegionPriorities = make(map[string]uint32)
+			}
+			glbSettings.RegionPriorities[region] = uint32(priority.(int))
+		}
+		glbSettings.FailoverThreshold = uint32(glbConfig["failover_threshold"].(int))
+	}
+
 	return glbSettings
 }
 
@@ -349,6 +359,15 @@ func flattenGLBSettings(settings *godo.GLBSettings) []map[string]interface{} {
 					"is_enabled": (*settings).CDN.IsEnabled,
 				},
 			}
+		}
+
+		if len(settings.RegionPriorities) > 0 {
+			pMap := make(map[string]interface{})
+			for region, priority := range settings.RegionPriorities {
+				pMap[region] = priority
+			}
+			r["region_priorities"] = pMap
+			r["failover_threshold"] = (*settings).FailoverThreshold
 		}
 
 		result = append(result, r)

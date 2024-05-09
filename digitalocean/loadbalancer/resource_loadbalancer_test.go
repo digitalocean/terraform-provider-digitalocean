@@ -883,6 +883,12 @@ func TestAccDigitalOceanGlobalLoadbalancer(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.lorem", "glb_settings.0.cdn.0.is_enabled", "false"),
 					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.region_priorities.%", "2"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.region_priorities.nyc1", "1"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.region_priorities.nyc2", "2"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.lorem", "domains.#", "2"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.lorem", "domains.1.name", "test-updated.github.io"),
@@ -1435,6 +1441,11 @@ resource "digitalocean_loadbalancer" "lorem" {
     cdn {
       is_enabled = false
     }
+    region_priorities = {
+      nyc1 = 1
+      nyc2 = 2
+    }
+    failover_threshold = 10
   }
 
   domains {
