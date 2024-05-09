@@ -29,7 +29,7 @@ jobs:
         run: make vet
 
       - name: Lint with golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: make lint
         with:
           only-new-issues: true
 
