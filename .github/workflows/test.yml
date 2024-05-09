@@ -29,9 +29,7 @@ jobs:
         run: make vet
 
       - name: Lint with golangci-lint
-        uses: make lint
-        with:
-          only-new-issues: true
+        run: make lint
 
       - name: Run terrafmt
         run: make terrafmt-check
