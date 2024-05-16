@@ -26,6 +26,11 @@ func ResourceDigitalOceanVPC() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The ID of the VPC Peering",
+			},
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -41,6 +46,16 @@ func ResourceDigitalOceanVPC() *schema.Resource {
 					Type: schema.TypeString,
 				},
 				ValidateFunc: validateVPCIDs,
+			},
+			"status": {
+				Type:        schema.TypeBool,
+				Computed:    true,
+				Description: "The status of the VPC Peering",
+			},
+			"created_at": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The date and time of when the VPC was created",
 			},
 		},
 

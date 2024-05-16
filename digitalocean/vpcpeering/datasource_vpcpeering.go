@@ -18,33 +18,35 @@ func DataSourceDigitalOceanVPCPeering() *schema.Resource {
 			"id": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				Description:  "The ID of the VPC Peering",
 				ValidateFunc: validation.NoZeroValues,
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"name": {
 				Type:         schema.TypeString,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				Description:  "The name of the VPC Peering",
 				ValidateFunc: validation.NoZeroValues,
+				ExactlyOneOf: []string{"id", "name"},
 			},
 			"vpc_ids": {
 				Type:        schema.TypeList,
 				Optional:    true,
+				Computed:    true,
 				Description: "The list of VPCs to be peered",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				// ValidateFunc: validateVPCIDs,
 			},
 			"status": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The status of the VPC Peering",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 			"created_at": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "The creation time of the VPC Peering",
+				Type:     schema.TypeString,
+				Computed: true,
 			},
 		},
 	}
