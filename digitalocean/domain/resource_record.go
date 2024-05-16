@@ -183,6 +183,7 @@ func resourceDigitalOceanRecordCreate(ctx context.Context, d *schema.ResourceDat
 func resourceDigitalOceanRecordRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 	domain := d.Get("domain").(string)
+	ttl := d.Get("ttl")
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return diag.Errorf("invalid record ID: %v", err)
@@ -198,6 +199,20 @@ func resourceDigitalOceanRecordRead(ctx context.Context, d *schema.ResourceData,
 		}
 
 		return diag.FromErr(err)
+	}
+
+	var warn = []diag.Diagnostic{}
+
+	if ttl != rec.TTL {
+		ttlChangeWarn := fmt.Sprintf("TTL for Record ID %d changed from %d to %d. This may be due to multiple records with the same fqdn are required to have the same TTL. For reference, see rfc2181, section 5.2: https://www.rfc-editor.org/rfc/rfc2181#section-5.", rec.ID, ttl, rec.TTL)
+
+		warn = []diag.Diagnostic{
+			{
+				Severity: diag.Warning,
+				Summary:  "digitalocean_record TTL changed",
+				Detail:   ttlChangeWarn,
+			},
+		}
 	}
 
 	if t := rec.Type; t == "CNAME" || t == "MX" || t == "NS" || t == "SRV" || t == "CAA" {
@@ -220,7 +235,7 @@ func resourceDigitalOceanRecordRead(ctx context.Context, d *schema.ResourceData,
 	log.Printf("[DEBUG] Constructed FQDN: %s", en)
 	d.Set("fqdn", en)
 
-	return nil
+	return warn
 }
 
 func resourceDigitalOceanRecordImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
