@@ -176,7 +176,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_attachment":                     volume.ResourceDigitalOceanVolumeAttachment(),
 			"digitalocean_volume_snapshot":                       snapshot.ResourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_vpc":                                   vpc.ResourceDigitalOceanVPC(),
-			"digitalocean_vpcpeering":                            vpcpeering.DataSourceDigitalOceanVPCPeering(),
+			"digitalocean_vpcpeering":                            vpcpeering.ResourceDigitalOceanVPCPeering(),
 			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
 		},
 	}
