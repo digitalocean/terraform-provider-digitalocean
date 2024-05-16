@@ -15,6 +15,12 @@ func DataSourceDigitalOceanVPCPeering() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceDigitalOceanVPCPeeringRead,
 		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Description:  "The ID of the VPC Peering",
+				ValidateFunc: validation.NoZeroValues,
+			},
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -23,12 +29,22 @@ func DataSourceDigitalOceanVPCPeering() *schema.Resource {
 			},
 			"vpc_ids": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				Description: "The list of VPCs to be peered",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				ValidateFunc: validateVPCIDs,
+				// ValidateFunc: validateVPCIDs,
+			},
+			"status": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The status of the VPC Peering",
+			},
+			"created_at": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The creation time of the VPC Peering",
 			},
 		},
 	}

@@ -9,14 +9,11 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/digitalocean/terraform-provider-digitalocean/internal/mutexkv"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
-
-var mutexKV = mutexkv.NewMutexKV()
 
 func ResourceDigitalOceanVPC() *schema.Resource {
 	return &schema.Resource{
@@ -36,9 +33,10 @@ func ResourceDigitalOceanVPC() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			"vpc_ids": {
-				Type:         schema.TypeList,
-				Required:     true,
-				Description:  "The list of VPCs to be peered",
+				Type:        schema.TypeList,
+				Required:    true,
+				ForceNew:    true,
+				Description: "The list of VPCs to be peered",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -56,11 +54,16 @@ func resourceDigitalOceanVPCPeeringCreate(ctx context.Context, d *schema.Resourc
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	name := d.Get("name").(string)
-	vpcIDs := d.Get("vpc_ids").([]string)
+	vpcIDs := d.Get("vpc_ids").([]any)
+
+	vpcIDStrings := make([]string, len(vpcIDs))
+	for i, v := range vpcIDs {
+		vpcIDStrings[i] = v.(string)
+	}
 
 	vpcPeeringRequest := &godo.VPCPeeringCreateRequest{
-		Name: name,
-		VPCIDs: vpcIDs,
+		Name:   name,
+		VPCIDs: vpcIDStrings,
 	}
 
 	log.Printf("[DEBUG] VPC Peering create request: %#v", vpcPeeringRequest)
@@ -78,7 +81,7 @@ func resourceDigitalOceanVPCPeeringCreate(ctx context.Context, d *schema.Resourc
 func resourceDigitalOceanVPCPeeringUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	if d.HasChanges("name") {
+	if d.HasChange("name") {
 		vpcPeeringUpdateRequest := &godo.VPCPeeringUpdateRequest{
 			Name: d.Get("name").(string),
 		}
@@ -103,7 +106,7 @@ func resourceDigitalOceanVPCPeeringDelete(ctx context.Context, d *schema.Resourc
 			if resp.StatusCode == http.StatusForbidden {
 				return retry.RetryableError(err)
 			} else {
-				return retry.NonRetryableError(fmt.Errorf("Error deleting VPC Peering: %s", err))
+				return retry.NonRetryableError(fmt.Errorf("error deleting VPC Peering: %s", err))
 			}
 		}
 
@@ -127,7 +130,7 @@ func resourceDigitalOceanVPCPeeringRead(ctx context.Context, d *schema.ResourceD
 
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
-			log.Printf("[DEBUG] VPC Peering  (%s) was not found - removing from state", d.Id())
+			log.Printf("[DEBUG] VPC Peering (%s) was not found - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
