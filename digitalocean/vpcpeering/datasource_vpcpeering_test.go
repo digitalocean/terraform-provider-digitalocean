@@ -65,8 +65,8 @@ func TestAccDataSourceDigitalOceanVPCPeering_ExpectErrors(t *testing.T) {
 
 const testAccCheckDataSourceDigitalOceanVPCPeeringConfig_Basic = `
 resource "digitalocean_vpcpeering" "foobar" {
-  name        = "%s"
-  vpc_ids     = %s
+  name    = "%s"
+  vpc_ids = %s
 }
 `
 

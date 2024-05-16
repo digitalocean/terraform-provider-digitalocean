@@ -48,14 +48,14 @@ func ResourceDigitalOceanVPC() *schema.Resource {
 				ValidateFunc: validateVPCIDs,
 			},
 			"status": {
-				Type:        schema.TypeBool,
+				Type:        schema.TypeString,
 				Computed:    true,
 				Description: "The status of the VPC Peering",
 			},
 			"created_at": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The date and time of when the VPC was created",
+				Description: "The date and time when the VPC was created",
 			},
 		},
 
@@ -118,11 +118,10 @@ func resourceDigitalOceanVPCPeeringDelete(ctx context.Context, d *schema.Resourc
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		resp, err := client.VPCs.DeleteVPCPeering(context.Background(), vpcPeeringID)
 		if err != nil {
-			if resp.StatusCode == http.StatusForbidden {
+			if resp != nil && resp.StatusCode == http.StatusForbidden {
 				return retry.RetryableError(err)
-			} else {
-				return retry.NonRetryableError(fmt.Errorf("error deleting VPC Peering: %s", err))
 			}
+			return retry.NonRetryableError(fmt.Errorf("error deleting VPC Peering: %s", err))
 		}
 
 		d.SetId("")
@@ -133,16 +132,14 @@ func resourceDigitalOceanVPCPeeringDelete(ctx context.Context, d *schema.Resourc
 
 	if err != nil {
 		return diag.FromErr(err)
-	} else {
-		return nil
 	}
+	return nil
 }
 
-func resourceDigitalOceanVPCPeeringRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanVPCPeeringRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	vpcPeering, resp, err := client.VPCs.GetVPCPeering(context.Background(), d.Id())
-
 	if err != nil {
 		if resp != nil && resp.StatusCode == 404 {
 			log.Printf("[DEBUG] VPC Peering (%s) was not found - removing from state", d.Id())
