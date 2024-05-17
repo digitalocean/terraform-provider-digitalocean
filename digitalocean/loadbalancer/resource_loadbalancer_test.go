@@ -11,6 +11,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -737,6 +738,172 @@ func TestAccDigitalOceanLoadbalancer_Firewall(t *testing.T) {
 	})
 }
 
+func TestLoadbalancerDiffCheck(t *testing.T) {
+	cases := []struct {
+		name         string
+		attrs        map[string]interface{}
+		expectError  bool
+		errorMessage string
+	}{
+		{
+			name:         "Missing type and region",
+			expectError:  true,
+			errorMessage: "missing 'region' value",
+		},
+		{
+			name:        "Missing type",
+			expectError: false,
+			attrs: map[string]interface{}{
+				"region": "nyc3",
+			},
+		},
+		{
+			name:         "Empty region",
+			expectError:  true,
+			errorMessage: "missing 'region' value",
+			attrs: map[string]interface{}{
+				"region": "",
+			},
+		},
+		{
+			name:         "Regional type without region",
+			expectError:  true,
+			errorMessage: "'region' must be set and not be empty when 'type' is 'REGIONAL'",
+			attrs: map[string]interface{}{
+				"type": "REGIONAL",
+			},
+		},
+		{
+			name:         "Regional type with empty region",
+			expectError:  true,
+			errorMessage: "'region' must be set and not be empty when 'type' is 'REGIONAL'",
+			attrs: map[string]interface{}{
+				"type":   "REGIONAL",
+				"region": "",
+			},
+		},
+		{
+			name:        "Regional type with region",
+			expectError: false,
+			attrs: map[string]interface{}{
+				"type":   "REGIONAL",
+				"region": "nyc3",
+			},
+		},
+		{
+			name:        "Global type without region",
+			expectError: false,
+			attrs: map[string]interface{}{
+				"type": "GLOBAL",
+			},
+		},
+		{
+			name:        "Global type with empty region",
+			expectError: false,
+			attrs: map[string]interface{}{
+				"type":   "GLOBAL",
+				"region": "",
+			},
+		},
+		{
+			name:         "Global type with region",
+			expectError:  true,
+			errorMessage: "'region' must be empty or not set when 'type' is 'GLOBAL'",
+			attrs: map[string]interface{}{
+				"type":   "GLOBAL",
+				"region": "nyc3",
+			},
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var s *terraform.InstanceState
+			conf := terraform.NewResourceConfigRaw(c.attrs)
+
+			r := loadbalancer.ResourceDigitalOceanLoadbalancer()
+			_, err := r.Diff(context.Background(), s, conf, nil)
+
+			if c.expectError {
+				if err.Error() != c.errorMessage {
+					t.Fatalf("Expected %s, got %s", c.errorMessage, err)
+				}
+			}
+		})
+	}
+}
+
+func TestAccDigitalOceanGlobalLoadbalancer(t *testing.T) {
+	var loadbalancer godo.LoadBalancer
+	name := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanGlobalLoadbalancerConfig_basic(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.lorem", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "name", "global-"+name),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "type", "GLOBAL"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "glb_settings.0.target_protocol", "http"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "glb_settings.0.target_port", "80"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "glb_settings.0.cdn.0.is_enabled", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "domains.#", "2"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "domains.1.name", "test.github.io"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "domains.0.name", "test-2.github.io"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "droplet_ids.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "target_load_balancer_ids.#", "1"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanGlobalLoadbalancerConfig_updated(name),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.lorem", &loadbalancer),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "name", "global-"+name),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "type", "GLOBAL"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "glb_settings.0.target_protocol", "http"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "glb_settings.0.target_port", "80"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "glb_settings.0.cdn.0.is_enabled", "false"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.region_priorities.%", "2"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.region_priorities.nyc1", "1"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.region_priorities.nyc2", "2"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "domains.#", "2"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "domains.1.name", "test-updated.github.io"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "domains.0.name", "test-updated-2.github.io"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "droplet_ids.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.lorem", "target_load_balancer_ids.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanLoadbalancerDestroy(s *terraform.State) error {
 	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
@@ -1155,4 +1322,143 @@ resource "digitalocean_loadbalancer" "foobar" {
 
   droplet_ids = [digitalocean_droplet.foobar.id]
 }`, acceptance.RandomTestName(), name)
+}
+
+func testAccCheckDigitalOceanGlobalLoadbalancerConfig_basic(name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "blr1"
+}
+
+resource "digitalocean_loadbalancer" "foobar" {
+  name   = "%s"
+  region = "blr1"
+  type   = "REGIONAL"
+
+  forwarding_rule {
+    entry_port     = 80
+    entry_protocol = "http"
+
+    target_port     = 80
+    target_protocol = "http"
+  }
+
+  healthcheck {
+    port     = 22
+    protocol = "tcp"
+  }
+
+  enable_proxy_protocol     = true
+  enable_backend_keepalive  = true
+  http_idle_timeout_seconds = 90
+
+  droplet_ids = [digitalocean_droplet.foobar.id]
+}
+
+resource "digitalocean_loadbalancer" "lorem" {
+  name = "global-%s"
+  type = "GLOBAL"
+
+  healthcheck {
+    port     = 80
+    protocol = "http"
+    path     = "/"
+  }
+
+  glb_settings {
+    target_protocol = "http"
+    target_port     = "80"
+    cdn {
+      is_enabled = true
+    }
+  }
+
+  domains {
+    name       = "test.github.io"
+    is_managed = false
+  }
+
+  domains {
+    name       = "test-2.github.io"
+    is_managed = false
+  }
+
+  droplet_ids              = [digitalocean_droplet.foobar.id]
+  target_load_balancer_ids = [digitalocean_loadbalancer.foobar.id]
+}`, name, name, name)
+}
+
+func testAccCheckDigitalOceanGlobalLoadbalancerConfig_updated(name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "blr1"
+}
+
+resource "digitalocean_loadbalancer" "foobar" {
+  name   = "%s"
+  region = "blr1"
+  type   = "REGIONAL"
+
+  forwarding_rule {
+    entry_port     = 80
+    entry_protocol = "http"
+
+    target_port     = 80
+    target_protocol = "http"
+  }
+
+  healthcheck {
+    port     = 22
+    protocol = "tcp"
+  }
+
+  enable_proxy_protocol     = true
+  enable_backend_keepalive  = true
+  http_idle_timeout_seconds = 90
+
+  droplet_ids = [digitalocean_droplet.foobar.id]
+}
+
+resource "digitalocean_loadbalancer" "lorem" {
+  name = "global-%s"
+  type = "GLOBAL"
+
+  healthcheck {
+    port     = 80
+    protocol = "http"
+    path     = "/"
+  }
+
+  glb_settings {
+    target_protocol = "http"
+    target_port     = "80"
+    cdn {
+      is_enabled = false
+    }
+    region_priorities = {
+      nyc1 = 1
+      nyc2 = 2
+    }
+    failover_threshold = 10
+  }
+
+  domains {
+    name       = "test-updated.github.io"
+    is_managed = false
+  }
+
+  domains {
+    name       = "test-updated-2.github.io"
+    is_managed = false
+  }
+
+  droplet_ids              = [digitalocean_droplet.foobar.id]
+  target_load_balancer_ids = [digitalocean_loadbalancer.foobar.id]
+}`, name, name, name)
 }

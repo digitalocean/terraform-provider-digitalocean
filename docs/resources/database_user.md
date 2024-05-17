@@ -20,10 +20,70 @@ resource "digitalocean_database_user" "user-example" {
 resource "digitalocean_database_cluster" "postgres-example" {
   name       = "example-postgres-cluster"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
+}
+```
+
+### Create a new user for a PostgreSQL database replica 
+```hcl
+resource "digitalocean_database_cluster" "postgres-example" {
+  name       = "example-postgres-cluster"
+  engine     = "pg"
+  version    = "15"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+}
+
+resource "digitalocean_database_replica" "replica-example" {
+  cluster_id = digitalocean_database_cluster.postgres-example.id
+  name       = "replica-example"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+}
+
+resource "digitalocean_database_user" "user-example" {
+  cluster_id = digitalocean_database_replica.replica-example.uuid
+  name       = "foobar"
+}
+```
+
+### Create a new user for a Kafka database cluster 
+```hcl
+resource "digitalocean_database_cluster" "kafka-example" {
+  name       = "example-kafka-cluster"
+  engine     = "kafka"
+  version    = "3.5"
+  size       = "db-s-2vcpu-2gb"
+  region     = "nyc1"
+  node_count = 3
+}
+
+resource "digitalocean_database_kafka_topic" "foobar_topic" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "topic-1"
+}
+
+resource "digitalocean_database_user" "foobar_user" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "example-user"
+  settings {
+    acl {
+      topic      = "topic-1"
+      permission = "produce"
+    }
+    acl {
+      topic      = "topic-2"
+      permission = "produceconsume"
+    }
+    acl {
+      topic      = "topic-*"
+      permission = "consume"
+    }
+  }
 }
 ```
 
@@ -34,6 +94,17 @@ The following arguments are supported:
 * `cluster_id` - (Required) The ID of the original source database cluster.
 * `name` - (Required) The name for the database user.
 * `mysql_auth_plugin` - (Optional) The authentication method to use for connections to the MySQL user account. The valid values are `mysql_native_password` or `caching_sha2_password` (this is the default).
+* `settings` - (Optional) Contains optional settings for the user.
+The `settings` block is documented below.
+
+`settings` supports the following:
+
+* `acl` - (Optional) A set of ACLs (Access Control Lists) specifying permission on topics with a Kafka cluster. The properties of an individual ACL are described below:
+
+An individual ACL includes the following:
+
+* `topic` - (Required) A regex for matching the topic(s) that this ACL should apply to. The regex can assume one of 3 patterns: "*", "<prefix>*", or "<literal>". "*" is a special value indicating a wildcard that matches on all topics. "<prefix>*" defines a regex that matches all topics with the prefix. "<literal>" performs an exact match on a topic name and only applies to that topic.
+* `permission` - (Required) The permission level applied to the ACL. This includes "admin", "consume", "produce", and "produceconsume". "admin" allows for producing and consuming as well as add/delete/update permission for topics. "consume" allows only for reading topic messages. "produce" allows only for writing topic messages. "produceconsume" allows for both reading and writing topic messages.
 
 ## Attributes Reference
 
@@ -41,6 +112,11 @@ In addition to the above arguments, the following attributes are exported:
 
 * `role` - Role for the database user. The value will be either "primary" or "normal".
 * `password` - Password for the database user.
+* `access_cert` - Access certificate for TLS client authentication. (Kafka only)
+* `access_key` - Access key for TLS client authentication. (Kafka only)
+
+For individual ACLs for Kafka topics, the following attributes are exported:
+* `id` - An identifier for the ACL, this will be automatically assigned when you create an ACL entry
 
 ## Import
 

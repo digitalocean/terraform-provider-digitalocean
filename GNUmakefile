@@ -35,7 +35,7 @@ goimports:
 	@find . -name '*.go' | grep -v vendor | grep -v generator-resource-id | while read f; do goimports -w "$$f"; done
 
 install-golangci-lint:
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.56.2
 
 lint: install-golangci-lint
 	@golangci-lint run -v ./...

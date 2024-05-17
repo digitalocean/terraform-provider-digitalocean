@@ -1,4 +1,148 @@
-# 2.30.0
+## 2.38.0
+
+IMPROVEMENTS:
+
+- #1140 - @bhardwajRahul - Terraform Provider updates for OpenSearch
+
+BUG FIXES:
+
+- #1150 - @danaelhe - Project: Remove project from state if tf project creation plan fails
+
+MISC:
+
+- #1145 - @yordis - chore: fix header of changelog
+- #1144 - @yordis - chore: remove go.mod replace for old unused pkg
+- #1142 - @dependabot[bot] - build(deps): bump golang.org/x/net from 0.17.0 to 0.23.0
+
+## 2.37.1
+
+BUG FIXES:
+- #1148 - @danaelhe - Apps: Mark registry_credentials as optional
+
+## 2.37.0
+
+IMPROVEMENTS:
+- #1139 - @linuxluigi - Add PostgreSQL configuration resource and test
+- #1133 - @asaha2 - Add config options for global load balancers
+
+BUG FIXES:
+- #1127 - @danaelhe - Load Balancer: Deprecate "algorithm" attribute
+
+MISC:
+- #1128 - @danaelhe - Update database_firewall example
+- #1125 - @dependabot[bot] - build(deps): bump google.golang.org/protobuf from 1.31.0 to 1.33.0
+- #1137 - @andrewsomething - apps: included registry_credentials option for images
+
+## 2.36.0
+
+IMPROVEMENTS:
+- #1115 - @guptado - [NETPROD-3585] Optimised fetching certificates by name
+
+BUG FIXES:
+- #1116 - @andrewsomething - certificates: handle missing certificate.
+- #1119 - @andrewsomething - uptime alerts: fix importing existing alerts
+
+MISC:
+- #1120 - @andrewsomething - docs: apps can be added to projects.
+
+## 2.35.0
+
+IMPROVEMENTS: 
+- #1113 - @danaelhe - Apps: Support Project Assignment
+- #1109 - @andrewsomething - apps: Add GHCR as a supported registry type.
+- #1103 - @dweinshenker - Support scalable storage settings separately for read-replica vs. primary
+- #1102 - @moreinhardt - database: Add access_cert and access_key for kafka users
+
+BUG FIXES:
+- #1100 - @danaelhe - uptime_alert: 1hr -> 1h
+
+MISC:
+- #1111 - @andrewsomething - droplet: Document and warn that enabling IPv6 requires OS-level config changes.
+- #1108 - @andrewsomething - redis config: allow setting timeout to 0
+- #1105 - @danktec - Force replacement if user tries to disable IPv6 on a droplet
+
+## 2.34.1
+
+BUG FIXES:
+
+- `digitalocean_cdn`: handle 'needs-cloudflare-cert' case in read func (#1095). - @andrewsomething
+- `digitalocean_database_cluster`: ignore seconds in maintenance_window.hour (#1094). - @andrewsomething
+- build(deps): bump golang.org/x/crypto from 0.14.0 to 0.17.0 (#1096). - @dependabot[bot]
+
+## 2.34.0
+
+IMPROVEMENTS:
+
+- `digitalocean_database_user`: Support updating ACL settings (#1090). - @dweinshenker
+
+BUG FIXES:
+
+- `digitalocean_cdn`: Add Support for "needs-cloudflare-cert" (#1089). - @danaelhe
+- `digitalocean_spaces_bucket`: blr1 is a supported region (#1085). - @andrewsomething
+- `digitalocean_database_kafka_topic`: Kafka topic + user ACL management doc fixes (#1082). - @dweinshenker
+
+## 2.33.0
+
+IMPROVEMENTS:
+
+- #1073 - @T-jegou - Add `digitalocean_database_connection_pool` datasource
+
+BUG FIXES:
+
+- #1078 - @nemcikjan - fix: added missing option to set port on health_check
+- #1076 - @dweinshenker - Remove unclean_leader_election_enable for kafka topic configuration
+- #1080 - @danaelhe - Apps: Reference Port in expandAppHealthCheck and flattenAppHealthCheck
+- #1074 - @T-jegou - Fixing Case Handling for Volume Resource
+
+
+## 2.32.0
+
+IMPROVEMENTS:
+
+- `digitalocean_app`: Support `features` in App spec (#1066). - @T-jegou
+- `digitalocean_database_user`: Add support for Kafka Topic User ACL management (#1056). - @dweinshenker
+- `digitalocean_kubernetes_cluster`: Support enabling HA post-create (#1058). - @andrewsomething
+
+BUG FIXES:
+
+- `digitalocean_loadbalancer`: ignore 404 on delete (#1067). - @andrewsomething
+- `digitalocean_database_mysql_config`: Use GetOkExists for bools (#1063). - @andrewsomething
+- `digitalocean_kubernetes_cluster`: Handle error from GetCredentials and protect against panic (#1064). - @andrewsomething
+
+MISC:
+
+- `provider`: Bump godo to v1.105.1 (#1071). - @andrewsomething
+- `provider`: bump google.golang.org/grpc from 1.53.0 to 1.56.3 (#1057). - @dependabot[bot]
+
+## 2.31.0
+
+FEATURES:
+
+- **New Resource:** `digitalocean_database_kafka_topic` (#1052) - @dweinshenker
+- **New Resource:** `digitalocean_database_mysql_config` (#1051) - @kallydev
+- **New Resource:** `digitalocean_database_redis_config` (#1037) - @andrewsomething
+
+IMPROVEMENTS:
+
+- `digitalocean_database_cluster`: Add support for Scalable Storage (#1054). - @dweinshenker
+- `digitalocean_app`: Add support for ingress for component routing, rewrites, and redirects (#1053). - @andrewsomething
+- `digitalocean_loadbalancer`: Add support type param (#1023). - @asaha2
+
+BUG FIXES:
+
+- `digitalocean_loadbalancer`: no region field needed for global lb type (#1046). - @apinonformoso
+- `digitalocean_loadbalancer`: Parse nil region for global lb (#1043). - @asaha2
+- `digitalocean_app`: Rework deployment logic (#1048). - @davidsbond
+- `digitalocean_spaces_bucket`: set force_destroy false on import (#1041). - @andrewsomething
+
+MISC:
+
+- `build(deps)`: bump golang.org/x/net from 0.14.0 to 0.17.0 (#1050). - @dependabot[bot]
+- `docs`: Clarify Database Docs for Referencing DB Replicas (#1045). - @danaelhe
+- `testing`: Use terrafmt on docs directory (#1036). - @andrewsomething 
+- `docs`: Update Droplet example (#1035). - @danaelhe
+
+## 2.30.0
 
 FEATURES:
 
@@ -22,7 +166,7 @@ MISC:
 - `provider`: Update godo dependency to v1.102.0 (#1018). - @danaelhe
 - `provider`: Update godo dependency to v1.101.0 (#1017.) - @danaelhe
 
-# 2.29.0
+## 2.29.0
 
 FEATURES:
 
@@ -43,7 +187,7 @@ MISC:
 - `testing`: Update Postgres versions in acceptance tests (#1002). - @andrewsomething
 - `provider`: build(deps): bump google.golang.org/grpc from 1.51.0 to 1.53.0 (#1003). - @dependabot[bot]
 
-# 2.28.1
+## 2.28.1
 
 BUG FIXES:
 
@@ -51,7 +195,7 @@ BUG FIXES:
 - `digitalocean_droplet`: Prevent inconsistent plan when enabling IPv6 (#982). - @andrewsomething
 - `digitalocean_custom_image`: use custom create timeout (#985). - @andrewsomething
 
-# 2.28.0
+## 2.28.0
 
 IMPROVEMENTS:
 
@@ -72,7 +216,7 @@ MISC:
 - `docs`: Use correct links in uptime docs. #973 - @andrewsomething
 - `provider`: Update Terraform SDK to v2.26.1. #975 - @andrewsomething
 
-# 2.27.1
+## 2.27.1
 
 BUG FIXES:
 
@@ -83,7 +227,7 @@ MISC:
 - dependencies: bump golang.org/x/net (#957). - @dependabot
 - dependencies: bump golang.org/x/crypto (#960). - @dependabot
 
-# 2.27.0
+## 2.27.0
 
 IMPROVEMENTS:
 
@@ -121,7 +265,7 @@ MISC:
 - `testing`: Fix flaky database acceptance tests (#953). - @andrewsomething
 - Remove .go-version and add to .gitignore (#958). - @ChiefMateStarbuck
 
-# 2.26.0
+## 2.26.0
 
 IMPROVEMENTS:
 
@@ -138,19 +282,19 @@ MISC:
 - `docs`: Fix typo in README (#920) - @mbardelmeijer
 - `docs`: Add releasing notes & missing changelog entries (#922) - @scotchneat
 
-# 2.25.2
+## 2.25.2
 
 IMPROVEMENTS:
 
 - `database_replica`: add retry on db replica create (#907) - @DMW2151
 
-# 2.25.1
+## 2.25.1
 
 IMPROVEMENTS:
 
 - `monitoring`: Support HTTP idle timeout & Project ID (#897) - @StephenVarela
 
-# 2.24.0
+## 2.24.0
 
 IMPROVEMENTS:
 
@@ -163,7 +307,7 @@ MISC:
 
 - `docs`: Fix reference in documentation of project_resources (#890) - @Lavode
 
-# 2.23.0 (September 27, 2022)
+## 2.23.0 (September 27, 2022)
 
 IMPROVEMENTS:
 
@@ -178,13 +322,13 @@ MISC:
 
 - Upgrade to Go 1.19  ([#884](https://github.com/digitalocean/terraform-provider-digitalocean/pull/884)). - @andrewsomething
 
-# 2.22.3 (September 12, 2022)
+## 2.22.3 (September 12, 2022)
 
 BUG FIXES:
 
 - `digitalocean_droplet`: Fix configurable timeouts for Droplet creates ([#867](https://github.com/digitalocean/terraform-provider-digitalocean/pull/867)). - @andrewsomething
 
-# 2.22.2 (August 31, 2022)
+## 2.22.2 (August 31, 2022)
 
 IMPROVEMENTS:
 
@@ -195,7 +339,7 @@ MISC:
 - `digitalocean_database_cluster`: Suppress diffs on forced Redis version upgrades ([#873](https://github.com/digitalocean/terraform-provider-digitalocean/pull/873)) - @scotchneat
 - `docs`: fix app spec link([#871](https://github.com/digitalocean/terraform-provider-digitalocean/pull/871)) - @jkpe
 
-# 2.22.1 (August 16, 2022)
+## 2.22.1 (August 16, 2022)
 
 BUG FIXES:
 

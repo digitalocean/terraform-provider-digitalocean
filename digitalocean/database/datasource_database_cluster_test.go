@@ -46,6 +46,8 @@ func TestAccDataSourceDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"data.digitalocean_database_cluster.foobar", "private_network_uuid"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_database_cluster.foobar", "project_id"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_database_cluster.foobar", "storage_size_mib"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
 						"digitalocean_database_cluster.foobar", "uri"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
@@ -87,25 +89,27 @@ func testAccCheckDataSourceDigitalOceanDatabaseClusterExists(n string, databaseC
 
 const testAccCheckDataSourceDigitalOceanDatabaseClusterConfigBasic = `
 resource "digitalocean_database_cluster" "foobar" {
-  name       = "%s"
-  engine     = "pg"
-  version    = "15"
-  size       = "db-s-1vcpu-1gb"
-  region     = "nyc1"
-  node_count = 1
-  tags       = ["production"]
+  name             = "%s"
+  engine           = "pg"
+  version          = "15"
+  size             = "db-s-1vcpu-1gb"
+  region           = "nyc1"
+  node_count       = 1
+  tags             = ["production"]
+  storage_size_mib = 10240
 }
 `
 
 const testAccCheckDataSourceDigitalOceanDatabaseClusterConfigWithDatasource = `
 resource "digitalocean_database_cluster" "foobar" {
-  name       = "%s"
-  engine     = "pg"
-  version    = "15"
-  size       = "db-s-1vcpu-1gb"
-  region     = "nyc1"
-  node_count = 1
-  tags       = ["production"]
+  name             = "%s"
+  engine           = "pg"
+  version          = "15"
+  size             = "db-s-1vcpu-1gb"
+  region           = "nyc1"
+  node_count       = 1
+  tags             = ["production"]
+  storage_size_mib = 10240
 }
 
 data "digitalocean_database_cluster" "foobar" {

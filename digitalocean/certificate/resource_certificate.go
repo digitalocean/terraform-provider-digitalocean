@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -251,15 +252,15 @@ func resourceDigitalOceanCertificateRead(ctx context.Context, d *schema.Resource
 	// certificate name as the primary identifier instead.
 	log.Printf("[INFO] Reading the details of the Certificate %s", d.Id())
 	cert, err := FindCertificateByName(client, d.Id())
-	if err != nil {
-		return diag.Errorf("Error retrieving Certificate: %s", err)
-	}
-
 	// check if the certificate no longer exists.
-	if cert == nil {
+	if cert == nil && strings.Contains(err.Error(), "not found") {
 		log.Printf("[WARN] DigitalOcean Certificate (%s) not found", d.Id())
 		d.SetId("")
 		return nil
+	}
+
+	if err != nil {
+		return diag.Errorf("Error retrieving Certificate: %s", err)
 	}
 
 	d.Set("name", cert.Name)

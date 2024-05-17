@@ -134,7 +134,7 @@ func resourceDigitalOceanVolumeCreate(ctx context.Context, d *schema.ResourceDat
 	}
 
 	if v, ok := d.GetOk("region"); ok {
-		opts.Region = v.(string)
+		opts.Region = strings.ToLower(v.(string))
 	}
 	if v, ok := d.GetOk("size"); ok {
 		opts.SizeGigaBytes = int64(v.(int))
@@ -168,7 +168,7 @@ func resourceDigitalOceanVolumeUpdate(ctx context.Context, d *schema.ResourceDat
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	id := d.Id()
-	region := d.Get("region").(string)
+	region := strings.ToLower(d.Get("region").(string))
 
 	if d.HasChange("size") {
 		size := d.Get("size").(int)

@@ -17,6 +17,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+var (
+	needsCloudflareCert = "needs-cloudflare-cert"
+)
+
 func ResourceDigitalOceanCDN() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanCDNCreate,
@@ -142,12 +146,15 @@ func resourceDigitalOceanCDNCreate(ctx context.Context, d *schema.ResourceData, 
 	if name, nameOk := d.GetOk("certificate_name"); nameOk {
 		certName := name.(string)
 		if certName != "" {
-			cert, err := certificate.FindCertificateByName(client, certName)
-			if err != nil {
-				return diag.FromErr(err)
+			if certName == needsCloudflareCert {
+				cdnRequest.CertificateID = needsCloudflareCert
+			} else {
+				cert, err := certificate.FindCertificateByName(client, certName)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				cdnRequest.CertificateID = cert.ID
 			}
-
-			cdnRequest.CertificateID = cert.ID
 		}
 	}
 
@@ -205,7 +212,7 @@ func resourceDigitalOceanCDNRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("created_at", cdn.CreatedAt.UTC().String())
 	d.Set("custom_domain", cdn.CustomDomain)
 
-	if cdn.CertificateID != "" {
+	if cdn.CertificateID != "" && cdn.CertificateID != needsCloudflareCert {
 		// When the certificate type is lets_encrypt, the certificate
 		// ID will change when it's renewed, so we have to rely on the
 		// certificate name as the primary identifier instead.
@@ -215,6 +222,11 @@ func resourceDigitalOceanCDNRead(ctx context.Context, d *schema.ResourceData, me
 		}
 		d.Set("certificate_id", cert.Name)
 		d.Set("certificate_name", cert.Name)
+	}
+
+	if cdn.CertificateID == needsCloudflareCert {
+		d.Set("certificate_id", cdn.CertificateID)
+		d.Set("certificate_name", cdn.CertificateID)
 	}
 
 	return nil
@@ -277,12 +289,16 @@ func resourceDigitalOceanCDNUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		certName := d.Get("certificate_name").(string)
 		if certName != "" {
-			cert, err := certificate.FindCertificateByName(client, certName)
-			if err != nil {
-				return diag.FromErr(err)
-			}
+			if certName == needsCloudflareCert {
+				cdnUpdateRequest.CertificateID = needsCloudflareCert
+			} else {
+				cert, err := certificate.FindCertificateByName(client, certName)
+				if err != nil {
+					return diag.FromErr(err)
+				}
 
-			cdnUpdateRequest.CertificateID = cert.ID
+				cdnUpdateRequest.CertificateID = cert.ID
+			}
 		}
 
 		_, _, err := client.CDNs.UpdateCustomDomain(context.Background(), d.Id(), cdnUpdateRequest)

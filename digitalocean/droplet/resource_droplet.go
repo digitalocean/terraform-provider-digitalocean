@@ -237,6 +237,13 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 					return d.Get("ipv6").(bool)
 				}),
 			),
+			// Forces replacement when IPv6 has attribute changes to `false`
+			// https://github.com/digitalocean/terraform-provider-digitalocean/issues/1104
+			customdiff.ForceNewIfChange("ipv6",
+				func(ctx context.Context, old, new, meta interface{}) bool {
+					return old.(bool) && !new.(bool)
+				},
+			),
 		),
 	}
 }
@@ -464,6 +471,7 @@ func FindIPv4AddrByType(d *godo.Droplet, addrType string) string {
 
 func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
+	var warnings []diag.Diagnostic
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
@@ -595,7 +603,6 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 	// As there is no way to disable IPv6, we only check if it needs to be enabled
 	if d.HasChange("ipv6") && d.Get("ipv6").(bool) {
 		_, _, err = client.DropletActions.EnableIPv6(context.Background(), id)
-
 		if err != nil {
 			return diag.Errorf(
 				"Error turning on ipv6 for droplet (%s): %s", d.Id(), err)
@@ -609,6 +616,12 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 			return diag.Errorf(
 				"Error waiting for ipv6 to be turned on for droplet (%s): %s", d.Id(), err)
 		}
+
+		warnings = append(warnings, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Enabling IPv6 requires additional OS-level configuration",
+			Detail:   "When enabling IPv6 on an existing Droplet, additional OS-level configuration is required. For more info, see: \nhttps://docs.digitalocean.com/products/networking/ipv6/how-to/enable/#on-existing-droplets",
+		})
 	}
 
 	if d.HasChange("tags") {
@@ -654,7 +667,12 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	return resourceDigitalOceanDropletRead(ctx, d, meta)
+	readErr := resourceDigitalOceanDropletRead(ctx, d, meta)
+	if readErr != nil {
+		readErr = append(warnings, readErr...)
+	}
+
+	return warnings
 }
 
 func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

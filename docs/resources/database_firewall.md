@@ -30,7 +30,7 @@ resource "digitalocean_database_firewall" "example-fw" {
 resource "digitalocean_database_cluster" "postgres-example" {
   name       = "example-postgres-cluster"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
@@ -59,10 +59,40 @@ resource "digitalocean_droplet" "web" {
 resource "digitalocean_database_cluster" "postgres-example" {
   name       = "example-postgres-cluster"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
+}
+```
+
+### Create a new database firewall for a database replica
+
+```hcl
+resource "digitalocean_database_cluster" "postgres-example" {
+  name       = "example-postgres-cluster"
+  engine     = "pg"
+  version    = "15"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+}
+
+resource "digitalocean_database_replica" "replica-example" {
+  cluster_id = digitalocean_database_cluster.postgres-example.id
+  name       = "replica-example"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+}
+
+# Create firewall rule for database replica
+resource "digitalocean_database_firewall" "example-fw" {
+  cluster_id = digitalocean_database_replica.replica-example.uuid
+
+  rule {
+    type  = "ip_addr"
+    value = "192.168.1.1"
+  }
 }
 ```
 
