@@ -32,13 +32,14 @@ func DataSourceDigitalOceanVPCPeering() *schema.Resource {
 				ExactlyOneOf: []string{"id", "name"},
 			},
 			"vpc_ids": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Optional:    true,
 				Computed:    true,
 				Description: "The list of VPCs to be peered",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
+				Set: schema.HashString,
 			},
 			"status": {
 				Type:     schema.TypeString,

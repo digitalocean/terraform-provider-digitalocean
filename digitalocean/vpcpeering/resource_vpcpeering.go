@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceDigitalOceanVPC() *schema.Resource {
+func ResourceDigitalOceanVPCPeering() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanVPCPeeringCreate,
 		ReadContext:   resourceDigitalOceanVPCPeeringRead,
@@ -38,14 +38,14 @@ func ResourceDigitalOceanVPC() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 			"vpc_ids": {
-				Type:        schema.TypeList,
+				Type:        schema.TypeSet,
 				Required:    true,
 				ForceNew:    true,
 				Description: "The list of VPCs to be peered",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
-				ValidateFunc: validateVPCIDs,
+				Set: schema.HashString,
 			},
 			"status": {
 				Type:        schema.TypeString,
@@ -69,16 +69,20 @@ func resourceDigitalOceanVPCPeeringCreate(ctx context.Context, d *schema.Resourc
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	name := d.Get("name").(string)
-	vpcIDs := d.Get("vpc_ids").([]any)
+	vpcIDs := d.Get("vpc_ids").(*schema.Set).List()
 
-	vpcIDStrings := make([]string, len(vpcIDs))
+	vpcIDsString := make([]string, len(vpcIDs))
 	for i, v := range vpcIDs {
-		vpcIDStrings[i] = v.(string)
+		vpcIDsString[i] = v.(string)
+	}
+
+	if err := validateVPCIDs(vpcIDsString); err != nil {
+		return diag.Errorf("Error creating VPC Peering: %s", err)
 	}
 
 	vpcPeeringRequest := &godo.VPCPeeringCreateRequest{
 		Name:   name,
-		VPCIDs: vpcIDStrings,
+		VPCIDs: vpcIDsString,
 	}
 
 	log.Printf("[DEBUG] VPC Peering create request: %#v", vpcPeeringRequest)
@@ -124,6 +128,10 @@ func resourceDigitalOceanVPCPeeringDelete(ctx context.Context, d *schema.Resourc
 			return retry.NonRetryableError(fmt.Errorf("error deleting VPC Peering: %s", err))
 		}
 
+		if err := waitForVPCPeeringDeletion(ctx, client, vpcPeeringID, d.Timeout(schema.TimeoutDelete)); err != nil {
+			return retry.NonRetryableError(err)
+		}
+
 		d.SetId("")
 		log.Printf("[INFO] VPC Peering deleted, ID: %s", vpcPeeringID)
 
@@ -158,20 +166,39 @@ func resourceDigitalOceanVPCPeeringRead(ctx context.Context, d *schema.ResourceD
 	return nil
 }
 
-func validateVPCIDs(val any, key string) ([]string, []error) {
-	v := val.([]any)
-	if len(v) != 2 {
-		return nil, []error{fmt.Errorf("%q must contain exactly 2 VPC IDs, got %d", key, len(v))}
+func validateVPCIDs(val []string) error {
+	if len(val) != 2 {
+		return fmt.Errorf("'vpc_ids' must contain exactly 2 VPC IDs, got %d", len(val))
 	}
 
 	vpcIDMap := make(map[string]struct{})
-	for _, id := range v {
-		vpcID := id.(string)
+	for _, id := range val {
+		vpcID := id
 		if _, ok := vpcIDMap[vpcID]; ok {
-			return nil, []error{fmt.Errorf("%q must contain unique VPC IDs, duplicate found: %s", key, vpcID)}
+			return fmt.Errorf("'vpc_ids' must contain unique VPC IDs, duplicate found: %s", vpcID)
 		}
 		vpcIDMap[vpcID] = struct{}{}
 	}
 
-	return nil, nil
+	return nil
+}
+
+func waitForVPCPeeringDeletion(ctx context.Context, client *godo.Client, vpcPeeringID string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for {
+		_, resp, err := client.VPCs.GetVPCPeering(ctx, vpcPeeringID)
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				// VPC peering is fully deleted
+				return nil
+			}
+			return fmt.Errorf("error checking VPC Peering status: %s", err)
+		}
+
+		if time.Now().After(deadline) {
+			return fmt.Errorf("timed out waiting for VPC Peering to be deleted")
+		}
+
+		time.Sleep(2 * time.Second)
+	}
 }
