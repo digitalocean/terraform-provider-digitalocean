@@ -51,3 +51,13 @@ The following attributes are exported:
 
 * `day` - The day of the week on which to apply maintenance updates.
 * `hour` - The hour in UTC at which maintenance updates will be applied in 24 hour format.
+
+OpenSearch clusters will have the following additional attributes with connection
+details for their dashboard:
+
+* `ui_host` - Hostname for the OpenSearch dashboard.
+* `ui_port` - Network port that the OpenSearch dashboard is listening on.
+* `ui_uri` - The full URI for connecting to the OpenSearch dashboard.
+* `ui_database` - Name of the OpenSearch dashboard db.
+* `ui_user` - Username for OpenSearch dashboard's default user.
+* `ui_password` - Password for the OpenSearch dashboard's default user.

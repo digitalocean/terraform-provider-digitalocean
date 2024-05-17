@@ -127,8 +127,19 @@ func resourceDigitalOceanProjectCreate(ctx context.Context, d *schema.ResourceDa
 	if v, ok := d.GetOk("resources"); ok {
 
 		resources, err := assignResourcesToProject(client, project.ID, v.(*schema.Set))
+
 		if err != nil {
-			return diag.Errorf("Error creating project: %s", err)
+
+			if project.ID != "" {
+				_, err := client.Projects.Delete(context.Background(), project.ID)
+				if err != nil {
+					log.Printf("[DEBUG] Adding resources to project unsuccessful and project deletion unsuccessful: %s", project.ID)
+				}
+
+				log.Printf("[DEBUG] Adding resources to project unsuccessful, project deleted: %s", project.ID)
+			}
+
+			return diag.Errorf("Error creating Project: %s", err)
 		}
 
 		d.Set("resources", resources)

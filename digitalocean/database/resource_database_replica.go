@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -122,6 +123,12 @@ func ResourceDigitalOceanDatabaseReplica() *schema.Resource {
 				},
 				Set: util.HashStringIgnoreCase,
 			},
+
+			"storage_size_mib": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -139,6 +146,13 @@ func resourceDigitalOceanDatabaseReplicaCreate(ctx context.Context, d *schema.Re
 
 	if v, ok := d.GetOk("private_network_uuid"); ok {
 		opts.PrivateNetworkUUID = v.(string)
+	}
+
+	if v, ok := d.GetOk("storage_size_mib"); ok {
+		v, err := strconv.ParseUint(v.(string), 10, 64)
+		if err == nil {
+			opts.StorageSizeMib = v
+		}
 	}
 
 	log.Printf("[DEBUG] DatabaseReplica create configuration: %#v", opts)
@@ -213,6 +227,7 @@ func resourceDigitalOceanDatabaseReplicaRead(ctx context.Context, d *schema.Reso
 	d.Set("user", replica.Connection.User)
 	d.Set("password", replica.Connection.Password)
 	d.Set("private_network_uuid", replica.PrivateNetworkUUID)
+	d.Set("storage_size_mib", strconv.FormatUint(replica.StorageSizeMib, 10))
 
 	return nil
 }
@@ -223,10 +238,17 @@ func resourceDigitalOceanDatabaseReplicaUpdate(ctx context.Context, d *schema.Re
 	replicaID := d.Get("uuid").(string)
 	replicaName := d.Get("name").(string)
 
-	if d.HasChanges("size") {
+	if d.HasChanges("size", "storage_size_mib") {
 		opts := &godo.DatabaseResizeRequest{
 			SizeSlug: d.Get("size").(string),
 			NumNodes: 1, // Read-only replicas only support a single node configuration.
+		}
+
+		if v, ok := d.GetOk("storage_size_mib"); ok {
+			v, err := strconv.ParseUint(v.(string), 10, 64)
+			if err == nil {
+				opts.StorageSizeMib = v
+			}
 		}
 
 		resp, err := client.Databases.Resize(context.Background(), replicaID, opts)

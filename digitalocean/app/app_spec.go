@@ -2,6 +2,7 @@ package app
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -39,6 +40,12 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Optional: true,
 			Computed: true,
 			Elem:     appSpecDomainSchema(),
+		},
+		"features": {
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Elem:        &schema.Schema{Type: schema.TypeString},
+			Description: "List of features which is applied to the app",
 		},
 		"domains": {
 			Type:       schema.TypeSet,
@@ -89,6 +96,13 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Optional: true,
 			Elem:     appSpecAppLevelAlerts(),
 			Set:      schema.HashResource(appSpecAppLevelAlerts()),
+		},
+		"ingress": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Computed: true,
+			MaxItems: 1,
+			Elem:     appSpecIngressSchema(),
 		},
 	}
 
@@ -207,6 +221,7 @@ func appSpecImageSourceSchema() map[string]*schema.Schema {
 				"UNSPECIFIED",
 				"DOCKER_HUB",
 				"DOCR",
+				"GHCR",
 			}, false),
 			Description: "The registry type.",
 		},
@@ -239,6 +254,12 @@ func appSpecImageSourceSchema() map[string]*schema.Schema {
 					},
 				},
 			},
+		},
+		"registry_credentials": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Access credentials for third-party registries",
+			Sensitive:   true,
 		},
 	}
 }
@@ -306,6 +327,12 @@ func appSpecRouteSchema() map[string]*schema.Schema {
 
 func appSpecHealthCheckSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
+		"port": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			Description:  "The port on which the health check will be performed. If not set, the health check will be performed on the component's http_port.",
+			ValidateFunc: validation.IntBetween(1, 65535),
+		},
 		"http_path": {
 			Type:        schema.TypeString,
 			Optional:    true,
@@ -521,9 +548,10 @@ func appSpecServicesSchema() *schema.Resource {
 			},
 		},
 		"routes": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
+			Type:       schema.TypeList,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Service level routes are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecRouteSchema(),
 			},
@@ -534,9 +562,10 @@ func appSpecServicesSchema() *schema.Resource {
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
 		"cors": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:       schema.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			Deprecated: "Service level CORS rules are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecCORSSchema(),
 			},
@@ -575,17 +604,19 @@ func appSpecStaticSiteSchema() *schema.Resource {
 			Description: "The name of the document to use as the fallback for any requests to documents that are not found when serving this static site.",
 		},
 		"routes": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
+			Type:       schema.TypeList,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Service level routes are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecRouteSchema(),
 			},
 		},
 		"cors": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:       schema.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			Deprecated: "Service level CORS rules are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecCORSSchema(),
 			},
@@ -690,17 +721,19 @@ func appSpecJobSchema() *schema.Resource {
 func appSpecFunctionsSchema() *schema.Resource {
 	functionsSchema := map[string]*schema.Schema{
 		"routes": {
-			Type:     schema.TypeList,
-			Optional: true,
-			Computed: true,
+			Type:       schema.TypeList,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "Service level routes are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecRouteSchema(),
 			},
 		},
 		"cors": {
-			Type:     schema.TypeList,
-			Optional: true,
-			MaxItems: 1,
+			Type:       schema.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			Deprecated: "Service level CORS rules are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecCORSSchema(),
 			},
@@ -875,6 +908,111 @@ func appSpecDatabaseSchema() *schema.Resource {
 	}
 }
 
+func appSpecIngressSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"rule": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"match": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"path": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Computed: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"prefix": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Computed: true,
+												},
+											},
+										},
+									},
+								},
+							},
+						},
+						"cors": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: appSpecCORSSchema(),
+							},
+						},
+						"component": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Computed: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"name": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+									},
+									"preserve_path_prefix": {
+										Type:     schema.TypeBool,
+										Optional: true,
+										Computed: true,
+									},
+									"rewrite": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"redirect": {
+							Type:     schema.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"uri": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"authority": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"port": {
+										Type:     schema.TypeInt,
+										Optional: true,
+									},
+									"scheme": {
+										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"redirect_code": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										Default:  http.StatusFound,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func expandAppSpec(config []interface{}) *godo.AppSpec {
 	if len(config) == 0 || config[0] == nil {
 		return &godo.AppSpec{}
@@ -884,6 +1022,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 	appSpec := &godo.AppSpec{
 		Name:        appSpecConfig["name"].(string),
 		Region:      appSpecConfig["region"].(string),
+		Features:    expandAppSpecFeatures(appSpecConfig["features"].(*schema.Set)),
 		Services:    expandAppSpecServices(appSpecConfig["service"].([]interface{})),
 		StaticSites: expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
 		Workers:     expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
@@ -892,6 +1031,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		Databases:   expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
 		Envs:        expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
 		Alerts:      expandAppAlerts(appSpecConfig["alert"].(*schema.Set).List()),
+		Ingress:     expandAppIngress(appSpecConfig["ingress"].([]interface{})),
 	}
 
 	// Prefer the `domain` block over `domains` if it is set.
@@ -913,6 +1053,7 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 		r := make(map[string]interface{})
 		r["name"] = (*spec).Name
 		r["region"] = (*spec).Region
+		r["features"] = (*spec).Features
 
 		if len((*spec).Domains) > 0 {
 			r["domains"] = flattenAppDomainSpec((*spec).Domains)
@@ -951,6 +1092,10 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 
 		if len((*spec).Alerts) > 0 {
 			r["alert"] = flattenAppAlerts((*spec).Alerts)
+		}
+
+		if (*spec).Ingress != nil {
+			r["ingress"] = flattenAppIngress((*spec).Ingress)
 		}
 
 		result = append(result, r)
@@ -1238,10 +1383,11 @@ func expandAppImageSourceSpec(config []interface{}) *godo.ImageSourceSpec {
 	imageSourceConfig := config[0].(map[string]interface{})
 
 	imageSource := &godo.ImageSourceSpec{
-		RegistryType: godo.ImageSourceSpecRegistryType(imageSourceConfig["registry_type"].(string)),
-		Registry:     imageSourceConfig["registry"].(string),
-		Repository:   imageSourceConfig["repository"].(string),
-		Tag:          imageSourceConfig["tag"].(string),
+		RegistryType:        godo.ImageSourceSpecRegistryType(imageSourceConfig["registry_type"].(string)),
+		Registry:            imageSourceConfig["registry"].(string),
+		Repository:          imageSourceConfig["repository"].(string),
+		Tag:                 imageSourceConfig["tag"].(string),
+		RegistryCredentials: imageSourceConfig["registry_credentials"].(string),
 	}
 
 	docrPush := imageSourceConfig["deploy_on_push"].([]interface{})
@@ -1264,6 +1410,7 @@ func flattenAppImageSourceSpec(i *godo.ImageSourceSpec) []interface{} {
 		r["registry"] = (*i).Registry
 		r["repository"] = (*i).Repository
 		r["tag"] = (*i).Tag
+		r["registry_credentials"] = (*i).RegistryCredentials
 
 		if i.DeployOnPush != nil {
 			docrPush := make([]interface{}, 1)
@@ -1327,6 +1474,7 @@ func expandAppHealthCheck(config []interface{}) *godo.AppServiceSpecHealthCheck 
 		TimeoutSeconds:      int32(healthCheckConfig["timeout_seconds"].(int)),
 		SuccessThreshold:    int32(healthCheckConfig["success_threshold"].(int)),
 		FailureThreshold:    int32(healthCheckConfig["failure_threshold"].(int)),
+		Port:                int64(healthCheckConfig["port"].(int)),
 	}
 
 	return healthCheck
@@ -1344,6 +1492,7 @@ func flattenAppHealthCheck(check *godo.AppServiceSpecHealthCheck) []interface{} 
 		r["timeout_seconds"] = check.TimeoutSeconds
 		r["success_threshold"] = check.SuccessThreshold
 		r["failure_threshold"] = check.FailureThreshold
+		r["port"] = check.Port
 
 		result = append(result, r)
 	}
@@ -1586,6 +1735,18 @@ func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec) []map[string]int
 	}
 
 	return result
+}
+
+func expandAppSpecFeatures(featuresConfig *schema.Set) []string {
+	features := []string{}
+
+	for _, feature := range featuresConfig.List() {
+		if featureString, ok := feature.(string); ok {
+			features = append(features, featureString)
+		}
+	}
+
+	return features
 }
 
 func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
@@ -1874,7 +2035,7 @@ func flattenAppSpecDatabases(databases []*godo.AppDatabaseSpec) []map[string]int
 
 func expandAppCORSPolicy(config []interface{}) *godo.AppCORSPolicy {
 	if len(config) == 0 || config[0] == nil {
-		return &godo.AppCORSPolicy{}
+		return nil
 	}
 
 	appCORSConfig := config[0].(map[string]interface{})
@@ -1917,8 +2078,8 @@ func expandAppCORSPolicy(config []interface{}) *godo.AppCORSPolicy {
 	}
 }
 
-func flattenAppCORSPolicy(policy *godo.AppCORSPolicy) []interface{} {
-	result := make([]interface{}, 0)
+func flattenAppCORSPolicy(policy *godo.AppCORSPolicy) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
 
 	if policy != nil {
 		r := make(map[string]interface{})
@@ -1945,6 +2106,164 @@ func flattenAppCORSPolicy(policy *godo.AppCORSPolicy) []interface{} {
 		r["expose_headers"] = policy.ExposeHeaders
 		r["max_age"] = policy.MaxAge
 		r["allow_credentials"] = policy.AllowCredentials
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
+func expandAppIngress(config []interface{}) *godo.AppIngressSpec {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+
+	ingress := &godo.AppIngressSpec{}
+	ingressConfig := config[0].(map[string]interface{})
+	rules := ingressConfig["rule"].([]interface{})
+
+	for _, r := range rules {
+		rule := r.(map[string]interface{})
+		result := &godo.AppIngressSpecRule{
+			Match:     expandAppIngressMatch(rule["match"].([]interface{})),
+			Component: expandAppIngressComponent(rule["component"].([]interface{})),
+			Redirect:  expandAppIngressRedirect(rule["redirect"].([]interface{})),
+			CORS:      expandAppCORSPolicy(rule["cors"].([]interface{})),
+		}
+
+		ingress.Rules = append(ingress.Rules, result)
+	}
+
+	return ingress
+}
+
+func expandAppIngressComponent(config []interface{}) *godo.AppIngressSpecRuleRoutingComponent {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+
+	component := config[0].(map[string]interface{})
+
+	return &godo.AppIngressSpecRuleRoutingComponent{
+		Name:               component["name"].(string),
+		PreservePathPrefix: component["preserve_path_prefix"].(bool),
+		Rewrite:            component["rewrite"].(string),
+	}
+}
+
+func expandAppIngressRedirect(config []interface{}) *godo.AppIngressSpecRuleRoutingRedirect {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+
+	redirect := config[0].(map[string]interface{})
+
+	return &godo.AppIngressSpecRuleRoutingRedirect{
+		Uri:          redirect["uri"].(string),
+		Authority:    redirect["authority"].(string),
+		Port:         int64(redirect["port"].(int)),
+		Scheme:       redirect["scheme"].(string),
+		RedirectCode: int64(redirect["redirect_code"].(int)),
+	}
+}
+
+func expandAppIngressMatch(config []interface{}) *godo.AppIngressSpecRuleMatch {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+
+	match := config[0].(map[string]interface{})
+	path := match["path"].([]interface{})[0].(map[string]interface{})
+
+	return &godo.AppIngressSpecRuleMatch{
+		Path: &godo.AppIngressSpecRuleStringMatch{
+			Prefix: path["prefix"].(string),
+		},
+	}
+}
+
+func flattenAppIngress(ingress *godo.AppIngressSpec) []map[string]interface{} {
+	if ingress != nil {
+		rules := make([]map[string]interface{}, 0)
+
+		for _, r := range ingress.Rules {
+			rules = append(rules, flattenAppIngressRule(r))
+		}
+
+		return []map[string]interface{}{
+			{
+				"rule": rules,
+			},
+		}
+	}
+
+	return nil
+}
+
+func flattenAppIngressRule(rule *godo.AppIngressSpecRule) map[string]interface{} {
+	result := make(map[string]interface{}, 0)
+
+	if rule != nil {
+		r := make(map[string]interface{})
+
+		r["component"] = flattenAppIngressRuleComponent(rule.Component)
+		r["match"] = flattenAppIngressRuleMatch(rule.Match)
+		r["cors"] = flattenAppCORSPolicy(rule.CORS)
+		r["redirect"] = flattenAppIngressRuleRedirect(rule.Redirect)
+
+		result = r
+	}
+
+	return result
+}
+
+func flattenAppIngressRuleComponent(component *godo.AppIngressSpecRuleRoutingComponent) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+
+	if component != nil {
+		r := make(map[string]interface{})
+
+		r["name"] = component.Name
+		r["preserve_path_prefix"] = component.PreservePathPrefix
+		r["rewrite"] = component.Rewrite
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
+func flattenAppIngressRuleMatch(match *godo.AppIngressSpecRuleMatch) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+
+	if match != nil {
+		r := make(map[string]interface{})
+
+		pathResult := make([]map[string]interface{}, 0)
+		path := make(map[string]interface{})
+		if match.Path != nil {
+			path["prefix"] = match.Path.Prefix
+		}
+		pathResult = append(pathResult, path)
+		r["path"] = pathResult
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
+func flattenAppIngressRuleRedirect(redirect *godo.AppIngressSpecRuleRoutingRedirect) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+
+	if redirect != nil {
+		r := make(map[string]interface{})
+
+		r["uri"] = redirect.Uri
+		r["authority"] = redirect.Authority
+		r["port"] = redirect.Port
+		r["scheme"] = redirect.Scheme
+		r["redirect_code"] = redirect.RedirectCode
 
 		result = append(result, r)
 	}

@@ -93,6 +93,11 @@ func DataSourceDigitalOceanDatabaseReplica() *schema.Resource {
 				},
 				Set: util.HashStringIgnoreCase,
 			},
+
+			"storage_size_mib": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }

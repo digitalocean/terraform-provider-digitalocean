@@ -10,6 +10,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceDigitalOceanApp() *schema.Resource {
@@ -31,6 +32,14 @@ func ResourceDigitalOceanApp() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: appSpecSchema(true),
 				},
+			},
+
+			"project_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				ValidateFunc: validation.NoZeroValues,
 			},
 
 			// Computed attributes
@@ -84,6 +93,10 @@ func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, 
 	appCreateRequest := &godo.AppCreateRequest{}
 	appCreateRequest.Spec = expandAppSpec(d.Get("spec").([]interface{}))
 
+	if v, ok := d.GetOk("project_id"); ok {
+		appCreateRequest.ProjectID = v.(string)
+	}
+
 	log.Printf("[DEBUG] App create request: %#v", appCreateRequest)
 	app, _, err := client.Apps.Create(context.Background(), appCreateRequest)
 	if err != nil {
@@ -122,6 +135,7 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("updated_at", app.UpdatedAt.UTC().String())
 	d.Set("created_at", app.CreatedAt.UTC().String())
 	d.Set("urn", app.URN())
+	d.Set("project_id", app.ProjectID)
 
 	if err := d.Set("spec", flattenAppSpec(d, app.Spec)); err != nil {
 		return diag.Errorf("Error setting app spec: %#v", err)
@@ -221,7 +235,14 @@ func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration)
 				return fmt.Errorf("Error trying to read app deployment state: %s", err)
 			}
 
-			allSuccessful := deployment.Progress.SuccessSteps == deployment.Progress.TotalSteps
+			allSuccessful := true
+			for _, step := range deployment.Progress.Steps {
+				if step.Status != godo.DeploymentProgressStepStatus_Success {
+					allSuccessful = false
+					break
+				}
+			}
+
 			if allSuccessful {
 				ticker.Stop()
 				return nil

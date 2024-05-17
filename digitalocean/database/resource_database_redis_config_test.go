@@ -33,12 +33,12 @@ func TestAccDigitalOceanDatabaseRedisConfig_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseRedisConfigConfigBasic, dbConfig, "allkeys-lru", 600, "KEA"),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseRedisConfigConfigBasic, dbConfig, "allkeys-lru", 0, "KEA"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_redis_config.foobar", "maxmemory_policy", "allkeys-lru"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_redis_config.foobar", "timeout", "600"),
+						"digitalocean_database_redis_config.foobar", "timeout", "0"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_redis_config.foobar", "notify_keyspace_events", "KEA"),
 					resource.TestCheckResourceAttr(

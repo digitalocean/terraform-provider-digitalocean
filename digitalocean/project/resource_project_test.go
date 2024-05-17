@@ -3,6 +3,7 @@ package project_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -240,6 +241,27 @@ func TestAccDigitalOceanProject_CreateWithDropletResource(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanProject_CreateWithUnacceptedResourceExpectError(t *testing.T) {
+
+	expectedName := generateProjectName()
+	vpcName := acceptance.RandomTestName()
+	vpcDesc := "A description for the VPC"
+
+	createConfig := fixtureCreateWithUnacceptedResource(vpcName, vpcDesc, expectedName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanProjectDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      createConfig,
+				ExpectError: regexp.MustCompile(`Error creating Project: Error assigning resources`),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanProject_UpdateWithDropletResource(t *testing.T) {
 
 	expectedName := generateProjectName()
@@ -472,6 +494,21 @@ resource "digitalocean_project" "myproj" {
   name      = "%s"
   resources = [digitalocean_droplet.foobar.urn]
 }`, dropletName, name)
+
+}
+
+func fixtureCreateWithUnacceptedResource(vpcName, vpcDesc, name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_vpc" "foobar" {
+  name        = "%s"
+  description = "%s"
+  region      = "nyc3"
+}
+
+resource "digitalocean_project" "myproj" {
+  name      = "%s"
+  resources = [digitalocean_vpc.foobar.urn]
+}`, vpcName, vpcDesc, name)
 
 }
 

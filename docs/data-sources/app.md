@@ -35,6 +35,7 @@ The following attributes are exported:
 * `updated_at` - The date and time of when the app was last updated.
 * `created_at` - The date and time of when the app was created.
 * `spec` - A DigitalOcean App spec describing the app.
+* `project_id` - The ID of the project that the app is assigned to.
 
 A spec can contain multiple components.
 

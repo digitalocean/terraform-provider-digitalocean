@@ -104,9 +104,12 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 							// Prevent a diff when seconds in response, e.g: "13:00" -> "13:00:00"
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								newSplit := strings.Split(new, ":")
+								oldSplit := strings.Split(old, ":")
 								if len(newSplit) == 3 {
-									newTrimed := strings.Join(newSplit[:2], ":")
-									return newTrimed == old
+									new = strings.Join(newSplit[:2], ":")
+								}
+								if len(oldSplit) == 3 {
+									old = strings.Join(oldSplit[:2], ":")
 								}
 								return old == new
 							},
@@ -147,6 +150,11 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"private_host": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -157,7 +165,18 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_port": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"uri": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"ui_uri": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -174,12 +193,28 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_database": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"user": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
+			"ui_user": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"password": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"ui_password": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -208,6 +243,12 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"storage_size_mib": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 		},
 
@@ -283,6 +324,13 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 		opts.BackupRestore = expandBackupRestore(v.([]interface{}))
 	}
 
+	if v, ok := d.GetOk("storage_size_mib"); ok {
+		v, err := strconv.ParseUint(v.(string), 10, 64)
+		if err == nil {
+			opts.StorageSizeMib = v
+		}
+	}
+
 	log.Printf("[DEBUG] database cluster create configuration: %#v", opts)
 	database, _, err := client.Databases.Create(context.Background(), opts)
 	if err != nil {
@@ -343,12 +391,21 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	if d.HasChanges("size", "node_count") {
+	if d.HasChanges("size", "node_count", "storage_size_mib") {
 		opts := &godo.DatabaseResizeRequest{
 			SizeSlug: d.Get("size").(string),
 			NumNodes: d.Get("node_count").(int),
 		}
 
+		// only include the storage_size_mib in the resize request if it has changed
+		// this avoids invalid values when plans sizes are increasing that require higher base levels of storage
+		// excluding this parameter will utilize default base storage levels for the given plan size
+		if v, ok := d.GetOk("storage_size_mib"); ok && d.HasChange("storage_size_mib") {
+			v, err := strconv.ParseUint(v.(string), 10, 64)
+			if err == nil {
+				opts.StorageSizeMib = v
+			}
+		}
 		resp, err := client.Databases.Resize(context.Background(), d.Id(), opts)
 		if err != nil {
 			// If the database is somehow already destroyed, mark as
@@ -467,6 +524,7 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	d.Set("size", database.SizeSlug)
 	d.Set("region", database.RegionSlug)
 	d.Set("node_count", database.NumNodes)
+	d.Set("storage_size_mib", strconv.FormatUint(database.StorageSizeMib, 10))
 	d.Set("tags", tag.FlattenTags(database.Tags))
 
 	if _, ok := d.GetOk("maintenance_window"); ok {
@@ -498,6 +556,12 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	if err != nil {
 		return diag.Errorf("Error setting connection info for database cluster: %s", err)
 	}
+
+	uiErr := setUIConnectionInfo(database, d)
+	if uiErr != nil {
+		return diag.Errorf("Error setting ui connection info for database cluster: %s", err)
+	}
+
 	d.Set("urn", database.URN())
 	d.Set("private_network_uuid", database.PrivateNetworkUUID)
 	d.Set("project_id", database.ProjectID)
@@ -613,6 +677,19 @@ func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) 
 		} else {
 			d.Set("private_uri", database.PrivateConnection.URI)
 		}
+	}
+
+	return nil
+}
+
+func setUIConnectionInfo(database *godo.Database, d *schema.ResourceData) error {
+	if database.UIConnection != nil {
+		d.Set("ui_host", database.UIConnection.Host)
+		d.Set("ui_port", database.UIConnection.Port)
+		d.Set("ui_uri", database.UIConnection.URI)
+		d.Set("ui_database", database.UIConnection.Database)
+		d.Set("ui_user", database.UIConnection.User)
+		d.Set("ui_password", database.UIConnection.Password)
 	}
 
 	return nil
