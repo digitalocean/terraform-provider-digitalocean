@@ -12,7 +12,7 @@ import (
 func TestAccDigitalOceanVPCPeering_importBasic(t *testing.T) {
 	resourceName := "digitalocean_vpcpeering.foobar"
 	vpcPeeringName := acceptance.RandomTestName()
-	vpcPeeringCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCPeeringConfig_Basic, vpcPeeringName, `["foo", "bar"]`)
+	vpcPeeringCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCPeeringConfig_Basic, vpcPeeringName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
