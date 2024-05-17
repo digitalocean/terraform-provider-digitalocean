@@ -9,10 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceDigitalOceanVPC_ByName(t *testing.T) {
+func TestAccDataSourceDigitalOceanVPCPeering_ByName(t *testing.T) {
 	vpcPeeringName := acceptance.RandomTestName()
-	vpcIDs := `["foo", "bar"]`
-	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCPeeringConfig_Basic, vpcPeeringName, vpcIDs)
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCPeeringConfig_Basic, vpcPeeringName)
 	dataSourceConfig := `
 data "digitalocean_vpcpeering" "foobar" {
   name = digitalocean_vpcpeering.foobar.name
@@ -33,10 +32,10 @@ data "digitalocean_vpcpeering" "foobar" {
 						"digitalocean_vpcpeering.foobar", "name", vpcPeeringName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpcpeering.foobar", "vpc_ids.#", "2"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_vpcpeering.foobar", "vpc_ids.0", "foo"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_vpcpeering.foobar", "vpc_ids.1", "bar"),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_vpcpeering.foobar", "vpc_ids.0", "digitalocean_vpc.tf-vpc1", "id"),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_vpcpeering.foobar", "vpc_ids.1", "digitalocean_vpc.tf-vpc2", "id"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpcpeering.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
@@ -64,9 +63,26 @@ func TestAccDataSourceDigitalOceanVPCPeering_ExpectErrors(t *testing.T) {
 }
 
 const testAccCheckDataSourceDigitalOceanVPCPeeringConfig_Basic = `
+resource "digitalocean_vpc" "tf-vpc1" {
+  name   = "tf-vpc1"
+  region = "s2r1"
+}
+
+resource "digitalocean_vpc" "tf-vpc2" {
+  name   = "tf-vpc2"
+  region = "s2r1"
+}
+
 resource "digitalocean_vpcpeering" "foobar" {
-  name    = "%s"
-  vpc_ids = %s
+  name = "%s"
+  vpc_ids = [
+    digitalocean_vpc.tf-vpc1.id,
+    digitalocean_vpc.tf-vpc2.id
+  ]
+  depends_on = [
+    digitalocean_vpc.tf-vpc1,
+    digitalocean_vpc.tf-vpc2
+  ]
 }
 `
 
