@@ -134,7 +134,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_snapshot":          snapshot.DataSourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_volume":                   volume.DataSourceDigitalOceanVolume(),
 			"digitalocean_vpc":                      vpc.DataSourceDigitalOceanVPC(),
-			"digitalocean_vpcpeering":            vpcpeering.DataSourceDigitalOceanVPCPeering(),
+			"digitalocean_vpcpeering":               vpcpeering.DataSourceDigitalOceanVPCPeering(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
