@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -13,11 +14,10 @@ import (
 
 func TestAccDigitalOceanVPCPeering_Basic(t *testing.T) {
 	vpcPeeringName := acceptance.RandomTestName()
-	vpcIDs := `["foo", "bar"]`
-	vpcPeeringCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCPeeringConfig_Basic, vpcPeeringName, vpcIDs)
+	vpcPeeringCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCPeeringConfig_Basic, vpcPeeringName)
 
 	updateVPCPeeringName := acceptance.RandomTestName()
-	vpcPeeringUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCPeeringConfig_Basic, updateVPCPeeringName, vpcIDs)
+	vpcPeeringUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCPeeringConfig_Basic, updateVPCPeeringName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -32,10 +32,10 @@ func TestAccDigitalOceanVPCPeering_Basic(t *testing.T) {
 						"digitalocean_vpcpeering.foobar", "name", vpcPeeringName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpcpeering.foobar", "vpc_ids.#", "2"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_vpcpeering.foobar", "vpc_ids.0", "foo"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_vpcpeering.foobar", "vpc_ids.1", "bar"),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_vpcpeering.foobar", "vpc_ids.0", "digitalocean_vpc.tf-vpc1", "id"),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_vpcpeering.foobar", "vpc_ids.1", "digitalocean_vpc.tf-vpc2", "id"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpcpeering.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
@@ -44,6 +44,10 @@ func TestAccDigitalOceanVPCPeering_Basic(t *testing.T) {
 			},
 			{
 				Config: vpcPeeringUpdateConfig,
+				PreConfig: func() {
+					// Wait a few seconds for the VPC Peeing to become active
+					time.Sleep(3 * time.Second)
+				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVPCPeeringExists("digitalocean_vpcpeering.foobar"),
 					resource.TestCheckResourceAttr(
@@ -101,8 +105,25 @@ func testAccCheckDigitalOceanVPCPeeringExists(resource string) resource.TestChec
 }
 
 const testAccCheckDigitalOceanVPCPeeringConfig_Basic = `
+resource "digitalocean_vpc" "tf-vpc1" {
+  name   = "tf-vpc1"
+  region = "s2r1"
+}
+
+resource "digitalocean_vpc" "tf-vpc2" {
+  name   = "tf-vpc2"
+  region = "s2r1"
+}
+
 resource "digitalocean_vpcpeering" "foobar" {
-  name    = "%s"
-  vpc_ids = %s
+  name = "%s"
+  vpc_ids = [
+    digitalocean_vpc.tf-vpc1.id,
+    digitalocean_vpc.tf-vpc2.id
+  ]
+  depends_on = [
+    digitalocean_vpc.tf-vpc1,
+    digitalocean_vpc.tf-vpc2
+  ]
 }
 `
