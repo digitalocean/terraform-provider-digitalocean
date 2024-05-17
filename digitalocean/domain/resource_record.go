@@ -204,7 +204,7 @@ func resourceDigitalOceanRecordRead(ctx context.Context, d *schema.ResourceData,
 	var warn = []diag.Diagnostic{}
 
 	if ttl != rec.TTL {
-		ttlChangeWarn := fmt.Sprintf("TTL for Record ID %d changed from %d to %d. This may be due to multiple records with the same fqdn are required to have the same TTL. For reference, see rfc2181, section 5.2: https://www.rfc-editor.org/rfc/rfc2181#section-5.", rec.ID, ttl, rec.TTL)
+		ttlChangeWarn := fmt.Sprintf("The TTL for record ID %d changed from %d to %d. DNS requires that multiple records with the same FQDN share the same TTL. If inconsistent TTLs are provided, DigitalOcean will rectify them automatically.\n\nFor reference, see RFC 2181, section 5.2: https://www.rfc-editor.org/rfc/rfc2181#section-5.", rec.ID, ttl, rec.TTL)
 
 		warn = []diag.Diagnostic{
 			{
