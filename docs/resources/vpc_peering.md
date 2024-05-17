@@ -13,7 +13,7 @@ VPC to communicate with each other privately.
 
 ```hcl
 resource "digitalocean_vpcpeering" "example" {
-  name    = "example-peering"
+  name = "example-peering"
   vpc_ids = [
     digitalocean_vpc.vpc1.id,
     digitalocean_vpc.vpc2.id
@@ -38,7 +38,7 @@ resource "digitalocean_vpc" "vpc2" {
 }
 
 resource "digitalocean_vpcpeering" "example" {
-  name    = "example-peering"
+  name = "example-peering"
   vpc_ids = [
     digitalocean_vpc.vpc1.id,
     digitalocean_vpc.vpc2.id
