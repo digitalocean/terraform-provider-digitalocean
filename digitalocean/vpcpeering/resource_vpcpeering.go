@@ -88,6 +88,20 @@ func resourceDigitalOceanVPCPeeringCreate(ctx context.Context, d *schema.Resourc
 	}
 
 	d.SetId(vpcPeering.ID)
+
+	log.Printf("[DEBUG] Waiting for VPC Peering (%s) to become active", d.Get("name"))
+	stateConf := &retry.StateChangeConf{
+		Delay:      10 * time.Millisecond,
+		Pending:    []string{"PROVISIONING"},
+		Target:     []string{"ACTIVE"},
+		Refresh:    vpcPeeringStateRefreshFunc(client, d.Id()),
+		Timeout:    10 * time.Minute,
+		MinTimeout: 2 * time.Second,
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return diag.Errorf("error waiting for VPC Peering (%s) to become active: %s", d.Get("name"), err)
+	}
+
 	log.Printf("[INFO] VPC Peering created, ID: %s", d.Id())
 
 	return resourceDigitalOceanVPCPeeringRead(ctx, d, meta)
@@ -127,10 +141,10 @@ func resourceDigitalOceanVPCPeeringDelete(ctx context.Context, d *schema.Resourc
 		log.Printf("[DEBUG] Waiting for VPC Peering (%s) to be deleted", d.Get("name"))
 		stateConf := &retry.StateChangeConf{
 			Pending:    []string{"DELETING"},
-			Target:     []string{"DELETED"},
+			Target:     []string{http.StatusText(http.StatusNotFound)},
 			Refresh:    vpcPeeringStateRefreshFunc(client, d.Id()),
 			Timeout:    10 * time.Minute,
-			MinTimeout: 15 * time.Second,
+			MinTimeout: 2 * time.Second,
 		}
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return retry.NonRetryableError(fmt.Errorf("error waiting for VPC Peering (%s) to be deleted: %s", d.Get("name"), err))
@@ -175,8 +189,7 @@ func vpcPeeringStateRefreshFunc(client *godo.Client, vpcPeeringId string) retry.
 		vpcPeering, resp, err := client.VPCs.GetVPCPeering(context.Background(), vpcPeeringId)
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				// VPC peering is fully deleted
-				return vpcPeering, "DELETED", nil
+				return vpcPeering, http.StatusText(resp.StatusCode), nil
 			}
 			return nil, "", fmt.Errorf("error issuing read request in vpcPeeringStateRefreshFunc to DigitalOcean for VPC Peering '%s': %s", vpcPeeringId, err)
 		}
