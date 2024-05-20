@@ -14,6 +14,30 @@ VPC Peerings may be looked up by `id` or `name`.
 
 ## Example Usage
 
+### VPC Peering By Id
+
+```hcl
+data "digitalocean_vpcpeering" "example" {
+  id = "example-id"
+}
+```
+
+Reuse the data about a VPC Peering in other resources:
+
+```hcl
+data "digitalocean_vpcpeering" "example" {
+  id = "example-id"
+}
+
+resource "digitalocean_droplet" "example" {
+  name     = "example-01"
+  size     = "s-1vcpu-1gb"
+  image    = "ubuntu-18-04-x64"
+  region   = "nyc3"
+  vpc_uuid = data.digitalocean_vpcpeering.example.vpc_ids[0]
+}
+```
+
 ### VPC Peering By Name
 
 ```hcl
@@ -44,7 +68,6 @@ The following arguments are supported and are mutually exclusive:
 
 * `id` - The unique identifier of an existing VPC Peering.
 * `name` - The name of an existing VPC Peering.
-* `vpc_ids` - The list IDs of existing VPCs.
 
 ## Attributes Reference
 
