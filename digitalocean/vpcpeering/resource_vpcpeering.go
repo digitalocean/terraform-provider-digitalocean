@@ -76,10 +76,6 @@ func resourceDigitalOceanVPCPeeringCreate(ctx context.Context, d *schema.Resourc
 		vpcIDsString[i] = v.(string)
 	}
 
-	if err := validateVPCIDs(vpcIDsString); err != nil {
-		return diag.Errorf("Error creating VPC Peering: %s", err)
-	}
-
 	vpcPeeringRequest := &godo.VPCPeeringCreateRequest{
 		Name:   name,
 		VPCIDs: vpcIDsString,
@@ -162,23 +158,6 @@ func resourceDigitalOceanVPCPeeringRead(ctx context.Context, d *schema.ResourceD
 	d.Set("status", vpcPeering.Status)
 	d.Set("vpc_ids", vpcPeering.VPCIDs)
 	d.Set("created_at", vpcPeering.CreatedAt.UTC().String())
-
-	return nil
-}
-
-func validateVPCIDs(val []string) error {
-	if len(val) != 2 {
-		return fmt.Errorf("'vpc_ids' must contain exactly 2 VPC IDs, got %d", len(val))
-	}
-
-	vpcIDMap := make(map[string]struct{})
-	for _, id := range val {
-		vpcID := id
-		if _, ok := vpcIDMap[vpcID]; ok {
-			return fmt.Errorf("'vpc_ids' must contain unique VPC IDs, duplicate found: %s", vpcID)
-		}
-		vpcIDMap[vpcID] = struct{}{}
-	}
 
 	return nil
 }
