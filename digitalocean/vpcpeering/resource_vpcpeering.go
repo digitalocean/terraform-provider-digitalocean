@@ -124,8 +124,16 @@ func resourceDigitalOceanVPCPeeringDelete(ctx context.Context, d *schema.Resourc
 			return retry.NonRetryableError(fmt.Errorf("error deleting VPC Peering: %s", err))
 		}
 
-		if err := waitForVPCPeeringDeletion(ctx, client, vpcPeeringID, d.Timeout(schema.TimeoutDelete)); err != nil {
-			return retry.NonRetryableError(err)
+		log.Printf("[DEBUG] Waiting for VPC Peering (%s) to be deleted", d.Get("name"))
+		stateConf := &retry.StateChangeConf{
+			Pending:    []string{"DELETING"},
+			Target:     []string{"DELETED"},
+			Refresh:    vpcPeeringStateRefreshFunc(client, d.Id()),
+			Timeout:    10 * time.Minute,
+			MinTimeout: 15 * time.Second,
+		}
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return retry.NonRetryableError(fmt.Errorf("error waiting for VPC Peering (%s) to be deleted: %s", d.Get("name"), err))
 		}
 
 		d.SetId("")
@@ -162,22 +170,17 @@ func resourceDigitalOceanVPCPeeringRead(ctx context.Context, d *schema.ResourceD
 	return nil
 }
 
-func waitForVPCPeeringDeletion(ctx context.Context, client *godo.Client, vpcPeeringID string, timeout time.Duration) error {
-	deadline := time.Now().Add(timeout)
-	for {
-		_, resp, err := client.VPCs.GetVPCPeering(ctx, vpcPeeringID)
+func vpcPeeringStateRefreshFunc(client *godo.Client, vpcPeeringId string) retry.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		vpcPeering, resp, err := client.VPCs.GetVPCPeering(context.Background(), vpcPeeringId)
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				// VPC peering is fully deleted
-				return nil
+				return vpcPeering, "DELETED", nil
 			}
-			return fmt.Errorf("error checking VPC Peering status: %s", err)
+			return nil, "", fmt.Errorf("error issuing read request in vpcPeeringStateRefreshFunc to DigitalOcean for VPC Peering '%s': %s", vpcPeeringId, err)
 		}
 
-		if time.Now().After(deadline) {
-			return fmt.Errorf("timed out waiting for VPC Peering to be deleted")
-		}
-
-		time.Sleep(2 * time.Second)
+		return vpcPeering, vpcPeering.Status, nil
 	}
 }
