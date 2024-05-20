@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -13,6 +14,7 @@ import (
 )
 
 func TestAccDigitalOceanVPCPeering_Basic(t *testing.T) {
+	var vpcPeering godo.VPCPeering
 	vpcPeeringName := acceptance.RandomTestName()
 	vpcPeeringCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanVPCPeeringConfig_Basic, vpcPeeringName)
 
@@ -27,15 +29,15 @@ func TestAccDigitalOceanVPCPeering_Basic(t *testing.T) {
 			{
 				Config: vpcPeeringCreateConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanVPCPeeringExists("digitalocean_vpcpeering.foobar"),
+					testAccCheckDigitalOceanVPCPeeringExists("digitalocean_vpcpeering.foobar", &vpcPeering),
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpcpeering.foobar", "name", vpcPeeringName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpcpeering.foobar", "vpc_ids.#", "2"),
 					resource.TestCheckResourceAttrPair(
-						"digitalocean_vpcpeering.foobar", "vpc_ids.0", "digitalocean_vpc.tf-vpc1", "id"),
+						"digitalocean_vpcpeering.foobar", "vpc_ids.0", "digitalocean_vpc.vpc1", "id"),
 					resource.TestCheckResourceAttrPair(
-						"digitalocean_vpcpeering.foobar", "vpc_ids.1", "digitalocean_vpc.tf-vpc2", "id"),
+						"digitalocean_vpcpeering.foobar", "vpc_ids.1", "digitalocean_vpc.vpc2", "id"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpcpeering.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
@@ -49,7 +51,7 @@ func TestAccDigitalOceanVPCPeering_Basic(t *testing.T) {
 					time.Sleep(3 * time.Second)
 				},
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanVPCPeeringExists("digitalocean_vpcpeering.foobar"),
+					testAccCheckDigitalOceanVPCPeeringExists("digitalocean_vpcpeering.foobar", &vpcPeering),
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpcpeering.foobar", "name", updateVPCPeeringName),
 				),
@@ -76,7 +78,7 @@ func testAccCheckDigitalOceanVPCPeeringDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckDigitalOceanVPCPeeringExists(resource string) resource.TestCheckFunc {
+func testAccCheckDigitalOceanVPCPeeringExists(resource string, vpcPeering *godo.VPCPeering) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
@@ -100,30 +102,32 @@ func testAccCheckDigitalOceanVPCPeeringExists(resource string) resource.TestChec
 			return fmt.Errorf("Resource not found: %s : %s", resource, rs.Primary.ID)
 		}
 
+		*vpcPeering = *foundVPCPeering
+
 		return nil
 	}
 }
 
 const testAccCheckDigitalOceanVPCPeeringConfig_Basic = `
-resource "digitalocean_vpc" "tf-vpc1" {
-  name   = "tf-vpc1"
-  region = "s2r1"
+resource "digitalocean_vpc" "vpc1" {
+  name   = "vpc1"
+  region = "nyc3"
 }
 
-resource "digitalocean_vpc" "tf-vpc2" {
-  name   = "tf-vpc2"
-  region = "s2r1"
+resource "digitalocean_vpc" "vpc2" {
+  name   = "vpc2"
+  region = "nyc3"
 }
 
 resource "digitalocean_vpcpeering" "foobar" {
   name = "%s"
   vpc_ids = [
-    digitalocean_vpc.tf-vpc1.id,
-    digitalocean_vpc.tf-vpc2.id
+    digitalocean_vpc.vpc1.id,
+    digitalocean_vpc.vpc2.id
   ]
   depends_on = [
-    digitalocean_vpc.tf-vpc1,
-    digitalocean_vpc.tf-vpc2
+    digitalocean_vpc.vpc1,
+    digitalocean_vpc.vpc2
   ]
 }
 `

@@ -78,6 +78,10 @@ func dataSourceDigitalOceanVPCPeeringRead(ctx context.Context, d *schema.Resourc
 		foundVPCPeering = vpcPeering
 	}
 
+	if foundVPCPeering == nil {
+		return diag.Errorf("Error retrieving VPC Peering: %s", fmt.Errorf("vpc peering not found"))
+	}
+
 	d.SetId(foundVPCPeering.ID)
 	d.Set("name", foundVPCPeering.Name)
 	d.Set("vpc_ids", foundVPCPeering.VPCIDs)

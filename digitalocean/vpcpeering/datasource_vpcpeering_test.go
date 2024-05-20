@@ -5,13 +5,57 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceDigitalOceanVPCPeering_ByName(t *testing.T) {
+func TestAccDataSourceDigitalOceanVPCPeering_ByID(t *testing.T) {
+	var vpcPeering godo.VPCPeering
 	vpcPeeringName := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCPeeringConfig_Basic, vpcPeeringName)
+	vpcName1 := acceptance.RandomTestName()
+	vpcName2 := acceptance.RandomTestName()
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCPeeringConfig_Basic, vpcName1, vpcName2, vpcPeeringName)
+	dataSourceConfig := `
+data "digitalocean_vpcpeering" "foobar" {
+  id = digitalocean_vpcpeering.foobar.id
+}`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVPCPeeringExists("data.digitalocean_vpcpeering.foobar", &vpcPeering),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_vpcpeering.foobar", "name", vpcPeeringName),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_vpcpeering.foobar", "vpc_ids.#", "2"),
+					resource.TestCheckResourceAttrPair(
+						"data.digitalocean_vpcpeering.foobar", "vpc_ids.0", "digitalocean_vpc.vpc1", "id"),
+					resource.TestCheckResourceAttrPair(
+						"data.digitalocean_vpcpeering.foobar", "vpc_ids.1", "digitalocean_vpc.vpc2", "id"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_vpcpeering.foobar", "created_at"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_vpcpeering.foobar", "status"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceDigitalOceanVPCPeering_ByName(t *testing.T) {
+	var vpcPeering godo.VPCPeering
+	vpcPeeringName := acceptance.RandomTestName()
+	vpcName1 := acceptance.RandomTestName()
+	vpcName2 := acceptance.RandomTestName()
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanVPCPeeringConfig_Basic, vpcName1, vpcName2, vpcPeeringName)
 	dataSourceConfig := `
 data "digitalocean_vpcpeering" "foobar" {
   name = digitalocean_vpcpeering.foobar.name
@@ -27,15 +71,15 @@ data "digitalocean_vpcpeering" "foobar" {
 			{
 				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanVPCPeeringExists("data.digitalocean_vpcpeering.foobar"),
+					testAccCheckDigitalOceanVPCPeeringExists("data.digitalocean_vpcpeering.foobar", &vpcPeering),
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpcpeering.foobar", "name", vpcPeeringName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_vpcpeering.foobar", "vpc_ids.#", "2"),
 					resource.TestCheckResourceAttrPair(
-						"digitalocean_vpcpeering.foobar", "vpc_ids.0", "digitalocean_vpc.tf-vpc1", "id"),
+						"digitalocean_vpcpeering.foobar", "vpc_ids.0", "digitalocean_vpc.vpc1", "id"),
 					resource.TestCheckResourceAttrPair(
-						"digitalocean_vpcpeering.foobar", "vpc_ids.1", "digitalocean_vpc.tf-vpc2", "id"),
+						"digitalocean_vpcpeering.foobar", "vpc_ids.1", "digitalocean_vpc.vpc2", "id"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpcpeering.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
@@ -56,38 +100,38 @@ func TestAccDataSourceDigitalOceanVPCPeering_ExpectErrors(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config:      vpcPeeringNotExist,
-				ExpectError: regexp.MustCompile(`no VPC Peerings found with name`),
+				ExpectError: regexp.MustCompile(`Error retrieving VPC Peering`),
 			},
 		},
 	})
 }
 
 const testAccCheckDataSourceDigitalOceanVPCPeeringConfig_Basic = `
-resource "digitalocean_vpc" "tf-vpc1" {
-  name   = "tf-vpc1"
-  region = "s2r1"
+resource "digitalocean_vpc" "vpc1" {
+  name   = "%s"
+  region = "nyc3"
 }
 
-resource "digitalocean_vpc" "tf-vpc2" {
-  name   = "tf-vpc2"
-  region = "s2r1"
+resource "digitalocean_vpc" "vpc2" {
+  name   = "%s"
+  region = "nyc3"
 }
 
 resource "digitalocean_vpcpeering" "foobar" {
   name = "%s"
   vpc_ids = [
-    digitalocean_vpc.tf-vpc1.id,
-    digitalocean_vpc.tf-vpc2.id
+    digitalocean_vpc.vpc1.id,
+    digitalocean_vpc.vpc2.id
   ]
   depends_on = [
-    digitalocean_vpc.tf-vpc1,
-    digitalocean_vpc.tf-vpc2
+    digitalocean_vpc.vpc1,
+    digitalocean_vpc.vpc2
   ]
 }
 `
 
 const testAccCheckDataSourceDigitalOceanVPCPeeringConfig_DoesNotExist = `
 data "digitalocean_vpcpeering" "foobar" {
-  name = "%s"
+  id = "%s"
 }
 `
