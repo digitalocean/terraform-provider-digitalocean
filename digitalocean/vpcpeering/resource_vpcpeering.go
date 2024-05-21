@@ -101,7 +101,7 @@ func resourceDigitalOceanVPCPeeringCreate(ctx context.Context, d *schema.Resourc
 			Pending:    []string{"PROVISIONING"},
 			Target:     []string{"ACTIVE"},
 			Refresh:    vpcPeeringStateRefreshFunc(client, d.Id()),
-			Timeout:    10 * time.Minute,
+			Timeout:    2 * time.Minute,
 			MinTimeout: 5 * time.Second,
 		}
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
@@ -153,10 +153,11 @@ func resourceDigitalOceanVPCPeeringDelete(ctx context.Context, d *schema.Resourc
 
 		log.Printf("[DEBUG] Waiting for VPC Peering (%s) to be deleted", d.Get("name"))
 		stateConf := &retry.StateChangeConf{
+			Delay:      5 * time.Second,
 			Pending:    []string{"DELETING"},
 			Target:     []string{http.StatusText(http.StatusNotFound)},
 			Refresh:    vpcPeeringStateRefreshFunc(client, d.Id()),
-			Timeout:    10 * time.Minute,
+			Timeout:    2 * time.Minute,
 			MinTimeout: 5 * time.Second,
 		}
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {

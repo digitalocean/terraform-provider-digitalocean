@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
@@ -46,10 +45,6 @@ func TestAccDigitalOceanVPCPeering_Basic(t *testing.T) {
 			},
 			{
 				Config: vpcPeeringUpdateConfig,
-				PreConfig: func() {
-					// Wait a few seconds for the VPC Peeing to become active
-					time.Sleep(3 * time.Second)
-				},
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVPCPeeringExists("digitalocean_vpcpeering.foobar", &vpcPeering),
 					resource.TestCheckResourceAttr(
