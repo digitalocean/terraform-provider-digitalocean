@@ -60,6 +60,7 @@ func ResourceDigitalOceanVPCPeering() *schema.Resource {
 		},
 
 		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Minute),
 			Delete: schema.DefaultTimeout(2 * time.Minute),
 		},
 	}
@@ -82,24 +83,36 @@ func resourceDigitalOceanVPCPeeringCreate(ctx context.Context, d *schema.Resourc
 	}
 
 	log.Printf("[DEBUG] VPC Peering create request: %#v", vpcPeeringRequest)
-	vpcPeering, _, err := client.VPCs.CreateVPCPeering(context.Background(), vpcPeeringRequest)
+
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		vpcPeering, resp, err := client.VPCs.CreateVPCPeering(context.Background(), vpcPeeringRequest)
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusForbidden {
+				return retry.RetryableError(err)
+			}
+			return retry.NonRetryableError(fmt.Errorf("error creating VPC Peering: %s", err))
+		}
+
+		d.SetId(vpcPeering.ID)
+
+		log.Printf("[DEBUG] Waiting for VPC Peering (%s) to become active", d.Get("name"))
+		stateConf := &retry.StateChangeConf{
+			Delay:      10 * time.Millisecond,
+			Pending:    []string{"PROVISIONING"},
+			Target:     []string{"ACTIVE"},
+			Refresh:    vpcPeeringStateRefreshFunc(client, d.Id()),
+			Timeout:    10 * time.Minute,
+			MinTimeout: 2 * time.Second,
+		}
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return retry.NonRetryableError(fmt.Errorf("error waiting for VPC Peering (%s) to become active: %s", d.Get("name"), err))
+		}
+
+		return nil
+	})
+
 	if err != nil {
-		return diag.Errorf("Error creating VPC Peering: %s", err)
-	}
-
-	d.SetId(vpcPeering.ID)
-
-	log.Printf("[DEBUG] Waiting for VPC Peering (%s) to become active", d.Get("name"))
-	stateConf := &retry.StateChangeConf{
-		Delay:      10 * time.Millisecond,
-		Pending:    []string{"PROVISIONING"},
-		Target:     []string{"ACTIVE"},
-		Refresh:    vpcPeeringStateRefreshFunc(client, d.Id()),
-		Timeout:    10 * time.Minute,
-		MinTimeout: 2 * time.Second,
-	}
-	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return diag.Errorf("error waiting for VPC Peering (%s) to become active: %s", d.Get("name"), err)
+		return diag.FromErr(err)
 	}
 
 	log.Printf("[INFO] VPC Peering created, ID: %s", d.Id())
