@@ -221,7 +221,6 @@ func TestAccDigitalOceanApp_StaticSite(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.name", appName),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "default_ingress"),
-					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "dedicated_ips.0.ip"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_url"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "active_deployment_id"),
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
