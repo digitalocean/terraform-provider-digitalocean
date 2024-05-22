@@ -79,7 +79,7 @@ func dataSourceDigitalOceanVPCPeeringRead(ctx context.Context, d *schema.Resourc
 	}
 
 	if foundVPCPeering == nil {
-		return diag.Errorf("Error retrieving VPC Peering: %s", fmt.Errorf("vpc peering not found"))
+		return diag.Errorf("Bad Request: %s", fmt.Errorf("'name' or 'id' must be provided"))
 	}
 
 	d.SetId(foundVPCPeering.ID)
@@ -123,17 +123,11 @@ func listVPCPeerings(client *godo.Client) ([]*godo.VPCPeering, error) {
 }
 
 func findVPCPeeringByName(vpcPeerings []*godo.VPCPeering, name string) (*godo.VPCPeering, error) {
-	results := make([]*godo.VPCPeering, 0)
 	for _, v := range vpcPeerings {
 		if v.Name == name {
-			results = append(results, v)
+			return v, nil
 		}
 	}
-	if len(results) == 1 {
-		return results[0], nil
-	} else if len(results) == 0 {
-		return nil, fmt.Errorf("no VPC Peerings found with name %s", name)
-	}
 
-	return nil, fmt.Errorf("too many VPC Peerings found with name %s (found %d, expected 1)", name, len(results))
+	return nil, fmt.Errorf("no VPC Peerings found with name %s", name)
 }

@@ -85,11 +85,8 @@ func resourceDigitalOceanVPCPeeringCreate(ctx context.Context, d *schema.Resourc
 	log.Printf("[DEBUG] VPC Peering create request: %#v", vpcPeeringRequest)
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		vpcPeering, resp, err := client.VPCs.CreateVPCPeering(context.Background(), vpcPeeringRequest)
+		vpcPeering, _, err := client.VPCs.CreateVPCPeering(context.Background(), vpcPeeringRequest)
 		if err != nil {
-			if resp != nil && resp.StatusCode == http.StatusForbidden {
-				return retry.RetryableError(err)
-			}
 			return retry.NonRetryableError(fmt.Errorf("error creating VPC Peering: %s", err))
 		}
 
