@@ -1247,9 +1247,9 @@ resource "digitalocean_app" "foobar" {
       }
     }
 
-	egress {
-		type = "DEDICATED_IP"
-	}
+    egress {
+      type = "DEDICATED_IP"
+    }
   }
 }`
 
