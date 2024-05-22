@@ -49,6 +49,35 @@ func ResourceDigitalOceanApp() *schema.Resource {
 				Description: "The default URL to access the App",
 			},
 
+			"dedicated_ips": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				Description: "The dedicated egress IP addresses associated with the app.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ip": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Optional:    true,
+							Description: "The IP address of the dedicated egress IP.",
+						},
+						"id": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Optional:    true,
+							Description: "The ID of the dedicated egress IP.",
+						},
+						"status": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Optional:    true,
+							Description: "The status of the dedicated egress IP: 'UNKNOWN', 'ASSIGNING', 'ASSIGNED', or 'REMOVED'",
+						},
+					},
+				},
+			},
+
 			"live_url": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -137,6 +166,10 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("urn", app.URN())
 	d.Set("project_id", app.ProjectID)
 
+	if app.DedicatedIps != nil {
+		d.Set("dedicated_ips", appDedicatedIps(d, app))
+	}
+
 	if err := d.Set("spec", flattenAppSpec(d, app.Spec)); err != nil {
 		return diag.Errorf("Error setting app spec: %#v", err)
 	}
@@ -153,6 +186,19 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	return nil
+}
+
+func appDedicatedIps(d *schema.ResourceData, app *godo.App) []interface{} {
+	remote := make([]interface{}, 0, len(app.DedicatedIps))
+	for _, change := range app.DedicatedIps {
+		rawChange := map[string]interface{}{
+			"ip":     change.Ip,
+			"id":     change.ID,
+			"status": change.Status,
+		}
+		remote = append(remote, rawChange)
+	}
+	return remote
 }
 
 func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

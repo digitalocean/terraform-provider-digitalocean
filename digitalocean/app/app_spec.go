@@ -44,6 +44,7 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 		"features": {
 			Type:        schema.TypeSet,
 			Optional:    true,
+			Computed:    true,
 			Elem:        &schema.Schema{Type: schema.TypeString},
 			Description: "List of features which is applied to the app",
 		},
@@ -57,6 +58,7 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 		"service": {
 			Type:     schema.TypeList,
 			Optional: true,
+			Computed: true,
 			MinItems: 1,
 			Elem:     appSpecServicesSchema(),
 		},
@@ -103,6 +105,23 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Computed: true,
 			MaxItems: 1,
 			Elem:     appSpecIngressSchema(),
+		},
+		"egress": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"type": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "The app egress type.",
+						ValidateFunc: validation.StringInSlice([]string{
+							"AUTOASSIGN",
+							"DEDICATED_IP",
+						}, false),
+					},
+				},
+			},
 		},
 	}
 
@@ -559,6 +578,7 @@ func appSpecServicesSchema() *schema.Resource {
 		"internal_ports": {
 			Type:     schema.TypeSet,
 			Optional: true,
+			Computed: true,
 			Elem:     &schema.Schema{Type: schema.TypeInt},
 		},
 		"cors": {
@@ -1032,6 +1052,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		Envs:        expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
 		Alerts:      expandAppAlerts(appSpecConfig["alert"].(*schema.Set).List()),
 		Ingress:     expandAppIngress(appSpecConfig["ingress"].([]interface{})),
+		Egress:      expandAppEgress(appSpecConfig["egress"].([]interface{})),
 	}
 
 	// Prefer the `domain` block over `domains` if it is set.
@@ -1096,6 +1117,10 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 
 		if (*spec).Ingress != nil {
 			r["ingress"] = flattenAppIngress((*spec).Ingress)
+		}
+
+		if (*spec).Egress != nil {
+			r["egress"] = flattenAppEgress((*spec).Egress)
 		}
 
 		result = append(result, r)
@@ -2137,6 +2162,17 @@ func expandAppIngress(config []interface{}) *godo.AppIngressSpec {
 	return ingress
 }
 
+func expandAppEgress(config []interface{}) *godo.AppEgressSpec {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+	egressConfig := config[0].(map[string]interface{})
+
+	return &godo.AppEgressSpec{
+		Type: godo.AppEgressSpecType(egressConfig["type"].(string)),
+	}
+}
+
 func expandAppIngressComponent(config []interface{}) *godo.AppIngressSpecRuleRoutingComponent {
 	if len(config) == 0 || config[0] == nil {
 		return nil
@@ -2180,6 +2216,20 @@ func expandAppIngressMatch(config []interface{}) *godo.AppIngressSpecRuleMatch {
 			Prefix: path["prefix"].(string),
 		},
 	}
+}
+
+func flattenAppEgress(egress *godo.AppEgressSpec) []map[string]interface{} {
+	if egress != nil {
+		result := make([]map[string]interface{}, 0)
+		item := make(map[string]interface{})
+
+		item["type"] = egress.Type
+		result = append(result, item)
+
+		return result
+	}
+
+	return nil
 }
 
 func flattenAppIngress(ingress *godo.AppIngressSpec) []map[string]interface{} {
