@@ -18,7 +18,7 @@ func init() {
 		F:    sweepVPC,
 		Dependencies: []string{
 			"digitalocean_droplet",
-			"digitalocean_vpcpeering",
+			"digitalocean_vpc_peering",
 		},
 	})
 }

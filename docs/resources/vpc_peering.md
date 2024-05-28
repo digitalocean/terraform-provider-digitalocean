@@ -1,10 +1,10 @@
 ---
-page_title: "DigitalOcean: digitalocean_vpcpeering"
+page_title: "DigitalOcean: digitalocean_vpc_peering"
 ---
 
-# digitalocean_vpcpeering
+# digitalocean_vpc_peering
 
-Provides a [DigitalOcean VPC Peering](#digitalocean_vpcpeering) resource.
+Provides a [DigitalOcean VPC Peering](#digitalocean_vpc_peering) resource.
 
 VPC Peerings are used to connect two VPC networks allowing resources in each 
 VPC to communicate with each other privately.
@@ -12,7 +12,7 @@ VPC to communicate with each other privately.
 ## Example Usage
 
 ```hcl
-resource "digitalocean_vpcpeering" "example" {
+resource "digitalocean_vpc_peering" "example" {
   name = "example-peering"
   vpc_ids = [
     digitalocean_vpc.vpc1.id,
@@ -37,7 +37,7 @@ resource "digitalocean_vpc" "vpc2" {
   region = "nyc3"
 }
 
-resource "digitalocean_vpcpeering" "example" {
+resource "digitalocean_vpc_peering" "example" {
   name = "example-peering"
   vpc_ids = [
     digitalocean_vpc.vpc1.id,
@@ -82,5 +82,5 @@ In addition to the above arguments, the following attributes are exported:
 A VPC Peering can be imported using its `id`, e.g.
 
 ```
-terraform import digitalocean_vpcpeering.example 771ad360-c017-4b4e-a34e-73934f5f0190
+terraform import digitalocean_vpc_peering.example 771ad360-c017-4b4e-a34e-73934f5f0190
 ```

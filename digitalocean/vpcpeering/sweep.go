@@ -16,8 +16,8 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("digitalocean_vpcpeering", &resource.Sweeper{
-		Name: "digitalocean_vpcpeering",
+	resource.AddTestSweepers("digitalocean_vpc_peering", &resource.Sweeper{
+		Name: "digitalocean_vpc_peering",
 		F:    sweepVPCPeering,
 	})
 }

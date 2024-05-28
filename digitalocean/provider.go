@@ -134,7 +134,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_snapshot":          snapshot.DataSourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_volume":                   volume.DataSourceDigitalOceanVolume(),
 			"digitalocean_vpc":                      vpc.DataSourceDigitalOceanVPC(),
-			"digitalocean_vpcpeering":               vpcpeering.DataSourceDigitalOceanVPCPeering(),
+			"digitalocean_vpc_peering":              vpcpeering.DataSourceDigitalOceanVPCPeering(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -180,7 +180,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_attachment":                     volume.ResourceDigitalOceanVolumeAttachment(),
 			"digitalocean_volume_snapshot":                       snapshot.ResourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_vpc":                                   vpc.ResourceDigitalOceanVPC(),
-			"digitalocean_vpcpeering":                            vpcpeering.ResourceDigitalOceanVPCPeering(),
+			"digitalocean_vpc_peering":                           vpcpeering.ResourceDigitalOceanVPCPeering(),
 			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
 		},
 	}

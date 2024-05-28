@@ -28,27 +28,27 @@ func TestAccDigitalOceanVPCPeering_Basic(t *testing.T) {
 			{
 				Config: vpcPeeringCreateConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanVPCPeeringExists("digitalocean_vpcpeering.foobar", &vpcPeering),
+					testAccCheckDigitalOceanVPCPeeringExists("digitalocean_vpc_peering.foobar", &vpcPeering),
 					resource.TestCheckResourceAttr(
-						"digitalocean_vpcpeering.foobar", "name", vpcPeeringName),
+						"digitalocean_vpc_peering.foobar", "name", vpcPeeringName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_vpcpeering.foobar", "vpc_ids.#", "2"),
+						"digitalocean_vpc_peering.foobar", "vpc_ids.#", "2"),
 					resource.TestCheckResourceAttrPair(
-						"digitalocean_vpcpeering.foobar", "vpc_ids.0", "digitalocean_vpc.vpc1", "id"),
+						"digitalocean_vpc_peering.foobar", "vpc_ids.0", "digitalocean_vpc.vpc1", "id"),
 					resource.TestCheckResourceAttrPair(
-						"digitalocean_vpcpeering.foobar", "vpc_ids.1", "digitalocean_vpc.vpc2", "id"),
+						"digitalocean_vpc_peering.foobar", "vpc_ids.1", "digitalocean_vpc.vpc2", "id"),
 					resource.TestCheckResourceAttrSet(
-						"digitalocean_vpcpeering.foobar", "created_at"),
+						"digitalocean_vpc_peering.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
-						"digitalocean_vpcpeering.foobar", "status"),
+						"digitalocean_vpc_peering.foobar", "status"),
 				),
 			},
 			{
 				Config: vpcPeeringUpdateConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanVPCPeeringExists("digitalocean_vpcpeering.foobar", &vpcPeering),
+					testAccCheckDigitalOceanVPCPeeringExists("digitalocean_vpc_peering.foobar", &vpcPeering),
 					resource.TestCheckResourceAttr(
-						"digitalocean_vpcpeering.foobar", "name", updateVPCPeeringName),
+						"digitalocean_vpc_peering.foobar", "name", updateVPCPeeringName),
 				),
 			},
 		},
@@ -60,7 +60,7 @@ func testAccCheckDigitalOceanVPCPeeringDestroy(s *terraform.State) error {
 
 	for _, rs := range s.RootModule().Resources {
 
-		if rs.Type != "digitalocean_vpcpeering" {
+		if rs.Type != "digitalocean_vpc_peering" {
 			continue
 		}
 
@@ -114,7 +114,7 @@ resource "digitalocean_vpc" "vpc2" {
   region = "nyc3"
 }
 
-resource "digitalocean_vpcpeering" "foobar" {
+resource "digitalocean_vpc_peering" "foobar" {
   name = "%s"
   vpc_ids = [
     digitalocean_vpc.vpc1.id,

@@ -1,8 +1,8 @@
 ---
-page_title: "DigitalOcean: digitalocean_vpcpeering"
+page_title: "DigitalOcean: digitalocean_vpc_peering"
 ---
 
-# digitalocean_vpcpeering
+# digitalocean_vpc_peering
 
 Retrieve information about a VPC Peering for use in other resources.
 
@@ -17,7 +17,7 @@ VPC Peerings may be looked up by `id` or `name`.
 ### VPC Peering By Id
 
 ```hcl
-data "digitalocean_vpcpeering" "example" {
+data "digitalocean_vpc_peering" "example" {
   id = "example-id"
 }
 ```
@@ -25,7 +25,7 @@ data "digitalocean_vpcpeering" "example" {
 Reuse the data about a VPC Peering in other resources:
 
 ```hcl
-data "digitalocean_vpcpeering" "example" {
+data "digitalocean_vpc_peering" "example" {
   id = "example-id"
 }
 
@@ -34,14 +34,14 @@ resource "digitalocean_droplet" "example" {
   size     = "s-1vcpu-1gb"
   image    = "ubuntu-18-04-x64"
   region   = "nyc3"
-  vpc_uuid = data.digitalocean_vpcpeering.example.vpc_ids[0]
+  vpc_uuid = data.digitalocean_vpc_peering.example.vpc_ids[0]
 }
 ```
 
 ### VPC Peering By Name
 
 ```hcl
-data "digitalocean_vpcpeering" "example" {
+data "digitalocean_vpc_peering" "example" {
   name = "example-peering"
 }
 ```
@@ -49,7 +49,7 @@ data "digitalocean_vpcpeering" "example" {
 Reuse the data about a VPC Peering in other resources:
 
 ```hcl
-data "digitalocean_vpcpeering" "example" {
+data "digitalocean_vpc_peering" "example" {
   name = "example-peering"
 }
 
@@ -58,7 +58,7 @@ resource "digitalocean_droplet" "example" {
   size     = "s-1vcpu-1gb"
   image    = "ubuntu-18-04-x64"
   region   = "nyc3"
-  vpc_uuid = data.digitalocean_vpcpeering.example.vpc_ids[0]
+  vpc_uuid = data.digitalocean_vpc_peering.example.vpc_ids[0]
 }
 ```
 
