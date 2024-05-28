@@ -1,3 +1,18 @@
+## 2.39.0
+
+IMPROVEMENTS:
+
+- #1164 - @danaelhe - Apps: Add egress/dedicated IPs support
+- #1160 - @apinonformoso - [VPC-3361] Add VPC Peering resource
+- #1157 - @danaelhe - Record: Add warning if TTL has changed
+- #1155 - @asaha2 - Add support for GLB active-passive failover config
+
+BUG FIXES:
+- #1156 - @danaelhe - CI: Fix golangci linter failure
+
+MISC:
+- #1159 - @apinonformoso - chore: upgraded godo to latest version
+
 ## 2.38.0
 
 IMPROVEMENTS:
