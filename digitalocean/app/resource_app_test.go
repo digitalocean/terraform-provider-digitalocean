@@ -269,6 +269,7 @@ func TestAccDigitalOceanApp_Egress(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.static_site.0.catchall_document", "404.html"),
+					resource.TestCheckResourceAttr("digitalocean_app.foobar", "spec.0.egress.0.type", "DEDICATED_IP"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/"),
 					resource.TestCheckResourceAttr(
