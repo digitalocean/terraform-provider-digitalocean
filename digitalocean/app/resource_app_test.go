@@ -246,6 +246,49 @@ func TestAccDigitalOceanApp_StaticSite(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_Egress(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Egress, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "default_ingress"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "dedicated_ips.0.ip"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_url"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "active_deployment_id"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.static_site.0.catchall_document", "404.html"),
+					resource.TestCheckResourceAttr("digitalocean_app.foobar", "spec.0.egress.0.type", "DEDICATED_IP"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.static_site.0.build_command", "bundle exec jekyll build -d ./public"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.static_site.0.output_dir", "/public"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.static_site.0.git.0.repo_clone_url",
+						"https://github.com/digitalocean/sample-jekyll.git"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.static_site.0.git.0.branch", "main"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanApp_InternalPort(t *testing.T) {
 	var app godo.App
 	appName := acceptance.RandomTestName()
@@ -1181,6 +1224,31 @@ resource "digitalocean_app" "foobar" {
         repo_clone_url = "https://github.com/digitalocean/sample-jekyll.git"
         branch         = "main"
       }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_Egress = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "ams"
+
+    static_site {
+      name              = "sample-jekyll"
+      build_command     = "bundle exec jekyll build -d ./public"
+      output_dir        = "/public"
+      environment_slug  = "jekyll"
+      catchall_document = "404.html"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-jekyll.git"
+        branch         = "main"
+      }
+    }
+
+    egress {
+      type = "DEDICATED_IP"
     }
   }
 }`
