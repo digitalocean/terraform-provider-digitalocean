@@ -26,7 +26,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/uptime"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/volume"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpc"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpcpeering"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpc_peering"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
