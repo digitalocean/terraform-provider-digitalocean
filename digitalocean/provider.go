@@ -26,6 +26,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/uptime"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/volume"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpc"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpcpeering"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -133,6 +134,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_snapshot":          snapshot.DataSourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_volume":                   volume.DataSourceDigitalOceanVolume(),
 			"digitalocean_vpc":                      vpc.DataSourceDigitalOceanVPC(),
+			"digitalocean_vpc_peering":              vpcpeering.DataSourceDigitalOceanVPCPeering(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -178,6 +180,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_attachment":                     volume.ResourceDigitalOceanVolumeAttachment(),
 			"digitalocean_volume_snapshot":                       snapshot.ResourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_vpc":                                   vpc.ResourceDigitalOceanVPC(),
+			"digitalocean_vpc_peering":                           vpcpeering.ResourceDigitalOceanVPCPeering(),
 			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
 		},
 	}
