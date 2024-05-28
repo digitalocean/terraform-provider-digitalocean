@@ -175,6 +175,8 @@ The following arguments are supported:
  - `alert` - Describes an alert policy for the app.
      * `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DOMAIN_FAILED`, or `DOMAIN_LIVE`.
      * `disabled` - Determines whether or not the alert is disabled (default: `false`).
+ - `egress` - Specification for app egress configurations.
+      * `type` - The app egress type: `AUTOASSIGN`, `DEDICATED_IP`
  - `ingress` - Specification for component routing, rewrites, and redirects.
      * `rule` - Rules for configuring HTTP ingress for component routes, CORS, rewrites, and redirects.
          - `component` - The component to route to. Only one of `component` or `redirect` may be set.

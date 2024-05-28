@@ -29,6 +29,10 @@ output "default_ingress" {
 The following attributes are exported:
 
 * `default_ingress` - The default URL to access the app.
+* `dedicated_ips` - A list of dedicated egress IP addresses associated with the app.
+  - `ip` - The IP address of the dedicated egress IP.
+  - `id` - The ID of the dedicated egress IP.
+  - `status` - The status of the dedicated egress IP.
 * `live_url` - The live URL of the app.
 * `active_deployment_id` - The ID the app's currently active deployment.
 * `urn` - The uniform resource identifier for the app.
