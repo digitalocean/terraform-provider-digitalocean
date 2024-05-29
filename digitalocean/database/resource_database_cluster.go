@@ -19,7 +19,6 @@ import (
 )
 
 const (
-	mongoDBEngineSlug = "mongodb"
 	mysqlDBEngineSlug = "mysql"
 	redisDBEngineSlug = "redis"
 )
