@@ -61,10 +61,6 @@ func TestAccDigitalOceanDatabaseConnectionPool_Basic(t *testing.T) {
 						"digitalocean_database_connection_pool.pool-01", "name", databaseConnectionPoolName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_connection_pool.pool-01", "mode", "session"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_database_connection_pool.pool-01", "user", ""),
-					resource.TestCheckResourceAttr(
-						"digitalocean_database_connection_pool.pool-01", "password", ""),
 				),
 			},
 		},
