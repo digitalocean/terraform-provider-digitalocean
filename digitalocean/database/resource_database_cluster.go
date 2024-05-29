@@ -337,13 +337,9 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 		return diag.Errorf("Error creating database cluster: %s", err)
 	}
 
-	// MongoDB clusters only return the password in response to the initial POST.
-	// We need to set it here before any subsequent GETs.
-	if database.EngineSlug == mongoDBEngineSlug {
-		err = setDatabaseConnectionInfo(database, d)
-		if err != nil {
-			return diag.Errorf("Error setting connection info for database cluster: %s", err)
-		}
+	err = setDatabaseConnectionInfo(database, d)
+	if err != nil {
+		return diag.Errorf("Error setting connection info for database cluster: %s", err)
 	}
 
 	d.SetId(database.ID)
@@ -644,39 +640,53 @@ func flattenMaintWindowOpts(opts godo.DatabaseMaintenanceWindow) []map[string]in
 	return result
 }
 
+func buildDBConnectionURI(database *godo.Database, d *schema.ResourceData) (string, error) {
+	if database.EngineSlug == mongoDBEngineSlug {
+		return buildMongoDBConnectionURI(database.Connection, d)
+	}
+
+	return database.Connection.URI, nil
+}
+
+func buildDBPrivateURI(database *godo.Database, d *schema.ResourceData) (string, error) {
+	if database.EngineSlug == mongoDBEngineSlug {
+		uri, err := buildMongoDBConnectionURI(database.PrivateConnection, d)
+		if err != nil {
+			return "", err
+		}
+		return uri, nil
+	}
+
+	return database.PrivateConnection.URI, nil
+}
+
 func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) error {
 	if database.Connection != nil {
 		d.Set("host", database.Connection.Host)
 		d.Set("port", database.Connection.Port)
-		d.Set("uri", database.Connection.URI)
+
+		uri, err := buildDBConnectionURI(database, d)
+		if err != nil {
+			return err
+		}
+
+		d.Set("uri", uri)
 		d.Set("database", database.Connection.Database)
 		d.Set("user", database.Connection.User)
-		if database.EngineSlug == mongoDBEngineSlug {
-			if database.Connection.Password != "" {
-				d.Set("password", database.Connection.Password)
-			}
-			uri, err := buildMongoDBConnectionURI(database.Connection, d)
-			if err != nil {
-				return err
-			}
-			d.Set("uri", uri)
-		} else {
+		if database.Connection.Password != "" {
 			d.Set("password", database.Connection.Password)
-			d.Set("uri", database.Connection.URI)
 		}
 	}
 
 	if database.PrivateConnection != nil {
 		d.Set("private_host", database.PrivateConnection.Host)
-		if database.EngineSlug == mongoDBEngineSlug {
-			uri, err := buildMongoDBConnectionURI(database.PrivateConnection, d)
-			if err != nil {
-				return err
-			}
-			d.Set("private_uri", uri)
-		} else {
-			d.Set("private_uri", database.PrivateConnection.URI)
+
+		privateUri, err := buildDBPrivateURI(database, d)
+		if err != nil {
+			return err
 		}
+
+		d.Set("private_uri", privateUri)
 	}
 
 	return nil
