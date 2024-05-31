@@ -1,3 +1,10 @@
+## 2.39.1
+
+BUG FIXES:
+
+- #1166 - @razum90 - Databases: Save DB password from initial POST request
+- #1169 - @andrewsomething - dbaas:  ensure password is always retained in connection URIs, replicas, and connection pools.
+
 ## 2.39.0
 
 IMPROVEMENTS:
