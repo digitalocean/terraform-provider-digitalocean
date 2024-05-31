@@ -171,11 +171,17 @@ func resourceDigitalOceanDatabaseReplicaCreate(ctx context.Context, d *schema.Re
 			}
 		}
 		replicaCluster = rc
+
 		return nil
 	})
 
 	if err != nil {
 		return diag.FromErr(err)
+	}
+
+	err = setReplicaConnectionInfo(replicaCluster, d)
+	if err != nil {
+		return diag.Errorf("Error building connection URI: %s", err)
 	}
 
 	replica, err := waitForDatabaseReplica(client, clusterId, "online", replicaCluster.Name)
@@ -218,16 +224,46 @@ func resourceDigitalOceanDatabaseReplicaRead(ctx context.Context, d *schema.Reso
 
 	// Computed values
 	d.Set("uuid", replica.ID)
-	d.Set("host", replica.Connection.Host)
-	d.Set("private_host", replica.PrivateConnection.Host)
-	d.Set("port", replica.Connection.Port)
-	d.Set("uri", replica.Connection.URI)
-	d.Set("private_uri", replica.PrivateConnection.URI)
-	d.Set("database", replica.Connection.Database)
-	d.Set("user", replica.Connection.User)
-	d.Set("password", replica.Connection.Password)
 	d.Set("private_network_uuid", replica.PrivateNetworkUUID)
 	d.Set("storage_size_mib", strconv.FormatUint(replica.StorageSizeMib, 10))
+
+	err = setReplicaConnectionInfo(replica, d)
+	if err != nil {
+		return diag.Errorf("Error building connection URI: %s", err)
+	}
+
+	return nil
+}
+
+func setReplicaConnectionInfo(replica *godo.DatabaseReplica, d *schema.ResourceData) error {
+	if replica.Connection != nil {
+		d.Set("host", replica.Connection.Host)
+		d.Set("port", replica.Connection.Port)
+		d.Set("database", replica.Connection.Database)
+		d.Set("user", replica.Connection.User)
+
+		if replica.Connection.Password != "" {
+			d.Set("password", replica.Connection.Password)
+		}
+
+		uri, err := buildDBConnectionURI(replica.Connection, d)
+		if err != nil {
+			return err
+		}
+
+		d.Set("uri", uri)
+	}
+
+	if replica.PrivateConnection != nil {
+		d.Set("private_host", replica.PrivateConnection.Host)
+
+		privateURI, err := buildDBConnectionURI(replica.PrivateConnection, d)
+		if err != nil {
+			return err
+		}
+
+		d.Set("private_uri", privateURI)
+	}
 
 	return nil
 }

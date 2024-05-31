@@ -126,6 +126,11 @@ func resourceDigitalOceanDatabaseConnectionPoolCreate(ctx context.Context, d *sc
 	d.SetId(createConnectionPoolID(clusterID, pool.Name))
 	log.Printf("[INFO] DatabaseConnectionPool Name: %s", pool.Name)
 
+	err = setConnectionPoolInfo(pool, d)
+	if err != nil {
+		return diag.Errorf("Error building connection URI: %s", err)
+	}
+
 	return resourceDigitalOceanDatabaseConnectionPoolRead(ctx, d, meta)
 }
 
@@ -153,13 +158,41 @@ func resourceDigitalOceanDatabaseConnectionPoolRead(ctx context.Context, d *sche
 	d.Set("size", pool.Size)
 	d.Set("db_name", pool.Database)
 
-	// Computed values
-	d.Set("host", pool.Connection.Host)
-	d.Set("private_host", pool.PrivateConnection.Host)
-	d.Set("port", pool.Connection.Port)
-	d.Set("uri", pool.Connection.URI)
-	d.Set("private_uri", pool.PrivateConnection.URI)
-	d.Set("password", pool.Connection.Password)
+	err = setConnectionPoolInfo(pool, d)
+	if err != nil {
+		return diag.Errorf("Error building connection URI: %s", err)
+	}
+
+	return nil
+}
+
+func setConnectionPoolInfo(pool *godo.DatabasePool, d *schema.ResourceData) error {
+	if pool.Connection != nil {
+		d.Set("host", pool.Connection.Host)
+		d.Set("port", pool.Connection.Port)
+
+		if pool.Connection.Password != "" {
+			d.Set("password", pool.Connection.Password)
+		}
+
+		uri, err := buildDBConnectionURI(pool.Connection, d)
+		if err != nil {
+			return err
+		}
+
+		d.Set("uri", uri)
+	}
+
+	if pool.PrivateConnection != nil {
+		d.Set("private_host", pool.PrivateConnection.Host)
+
+		privateURI, err := buildDBConnectionURI(pool.PrivateConnection, d)
+		if err != nil {
+			return err
+		}
+
+		d.Set("private_uri", privateURI)
+	}
 
 	return nil
 }

@@ -19,7 +19,6 @@ import (
 )
 
 const (
-	mongoDBEngineSlug = "mongodb"
 	mysqlDBEngineSlug = "mysql"
 	redisDBEngineSlug = "redis"
 )
@@ -640,32 +639,12 @@ func flattenMaintWindowOpts(opts godo.DatabaseMaintenanceWindow) []map[string]in
 	return result
 }
 
-func buildDBConnectionURI(database *godo.Database, d *schema.ResourceData) (string, error) {
-	if database.EngineSlug == mongoDBEngineSlug {
-		return buildMongoDBConnectionURI(database.Connection, d)
-	}
-
-	return database.Connection.URI, nil
-}
-
-func buildDBPrivateURI(database *godo.Database, d *schema.ResourceData) (string, error) {
-	if database.EngineSlug == mongoDBEngineSlug {
-		uri, err := buildMongoDBConnectionURI(database.PrivateConnection, d)
-		if err != nil {
-			return "", err
-		}
-		return uri, nil
-	}
-
-	return database.PrivateConnection.URI, nil
-}
-
 func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) error {
 	if database.Connection != nil {
 		d.Set("host", database.Connection.Host)
 		d.Set("port", database.Connection.Port)
 
-		uri, err := buildDBConnectionURI(database, d)
+		uri, err := buildDBConnectionURI(database.Connection, d)
 		if err != nil {
 			return err
 		}
@@ -681,7 +660,7 @@ func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) 
 	if database.PrivateConnection != nil {
 		d.Set("private_host", database.PrivateConnection.Host)
 
-		privateUri, err := buildDBPrivateURI(database, d)
+		privateUri, err := buildDBPrivateURI(database.PrivateConnection, d)
 		if err != nil {
 			return err
 		}
@@ -705,11 +684,17 @@ func setUIConnectionInfo(database *godo.Database, d *schema.ResourceData) error 
 	return nil
 }
 
+// buildDBConnectionURI constructs a connection URI using the password stored in state.
+//
 // MongoDB clusters only return their password in response to the initial POST.
 // The host for the cluster is not known until it becomes available. In order to
 // build a usable connection URI, we must save the password and then add it to
 // the URL returned latter.
-func buildMongoDBConnectionURI(conn *godo.DatabaseConnection, d *schema.ResourceData) (string, error) {
+//
+// This also protects against the password being removed from the URI if the user
+// switches to using a read-only token. All database engines redact the password
+// in that case
+func buildDBConnectionURI(conn *godo.DatabaseConnection, d *schema.ResourceData) (string, error) {
 	password := d.Get("password")
 	uri, err := url.Parse(conn.URI)
 	if err != nil {
@@ -720,6 +705,10 @@ func buildMongoDBConnectionURI(conn *godo.DatabaseConnection, d *schema.Resource
 	uri.User = userInfo
 
 	return uri.String(), nil
+}
+
+func buildDBPrivateURI(conn *godo.DatabaseConnection, d *schema.ResourceData) (string, error) {
+	return buildDBConnectionURI(conn, d)
 }
 
 func expandBackupRestore(config []interface{}) *godo.DatabaseBackupRestore {
