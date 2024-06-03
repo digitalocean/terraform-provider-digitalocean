@@ -1,3 +1,9 @@
+## 2.39.2
+
+MISC:
+
+- #1171 - @apinonformoso - docs: add vpc peering alpha only note
+
 ## 2.39.1
 
 BUG FIXES:
