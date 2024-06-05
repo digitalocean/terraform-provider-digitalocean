@@ -121,6 +121,10 @@ the backend service. Default value is `false`.
 **NOTE**: this is a closed beta feature and not available for public use.
 * `target_load_balancer_ids` (Optional) - A list of Load Balancer IDs to be attached behind a Global Load Balancer.
 **NOTE**: this is a closed beta feature and not available for public use.
+* `type` - (Optional) The type of the Load Balancer. It must be either of `REGIONAL` or `GLOBAL`. Defaults to `REGIONAL`.
+**NOTE**: non-`REGIONAL` type may be part of closed beta feature and not available for public use.
+* `network` - (Optional) The type of network the Load Balancer is accessible from. It must be either of `INTERNAL` or `EXTERNAL`. Defaults to `EXTERNAL`.
+**NOTE**: non-`EXTERNAL` type may be part of closed beta feature and not available for public use.
 
 `forwarding_rule` supports the following:
 
