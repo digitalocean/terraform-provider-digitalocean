@@ -665,7 +665,7 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "droplet_ids.#", "1"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "network_type", ""),
+						"data.digitalocean_loadbalancer.foobar", "network", ""),
 				),
 			},
 		},
@@ -791,9 +791,9 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "lorem" {
-  name         = "%s"
-  type         = "GLOBAL"
-  network_type = "EXTERNAL"
+  name    = "%s"
+  type    = "GLOBAL"
+  network = "EXTERNAL"
 
   healthcheck {
     port     = 80
