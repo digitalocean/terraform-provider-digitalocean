@@ -73,6 +73,8 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "http_idle_timeout_seconds", "90"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_loadbalancer.foobar", "project_id"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "network", "EXTERNAL"),
 				),
 			},
 		},
@@ -131,6 +133,8 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "http_idle_timeout_seconds", "90"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_loadbalancer.foobar", "project_id"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "network", "EXTERNAL"),
 				),
 			},
 			{
@@ -176,6 +180,8 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "http_idle_timeout_seconds", "120"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_loadbalancer.foobar", "project_id"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "network", "EXTERNAL"),
 				),
 			},
 		},
@@ -963,9 +969,10 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name   = "%s"
-  region = "nyc3"
-  type   = "REGIONAL"
+  name    = "%s"
+  region  = "nyc3"
+  type    = "REGIONAL"
+  network = "EXTERNAL"
 
   forwarding_rule {
     entry_port     = 80
@@ -1005,9 +1012,10 @@ resource "digitalocean_droplet" "foo" {
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name   = "%s"
-  region = "nyc3"
-  type   = "REGIONAL"
+  name    = "%s"
+  region  = "nyc3"
+  type    = "REGIONAL"
+  network = "EXTERNAL"
 
   forwarding_rule {
     entry_port     = 81

@@ -550,6 +550,14 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Computed:    true,
 				Description: "list of load balancer IDs to put behind a global load balancer",
 			},
+
+			"network": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{"EXTERNAL", "INTERNAL"}, true),
+				Description:  "the type of network the load balancer is accessible from (EXTERNAL or INTERNAL)",
+			},
 		},
 	}
 }
@@ -664,6 +672,10 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 		}
 
 		opts.TargetLoadBalancerIDs = lbIDs
+	}
+
+	if v, ok := d.GetOk("network"); ok {
+		opts.Network = v.(string)
 	}
 
 	return opts, nil
