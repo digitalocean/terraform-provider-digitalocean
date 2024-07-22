@@ -233,6 +233,7 @@ A `service` can contain:
   - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`.
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
+  - `registry_credentials` - The credentials required to access a private Docker Hub or GitHub registry, in the following syntax `<username>:<token>`.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
       - `enabled` - Whether to automatically deploy images pushed to DOCR.
@@ -326,6 +327,7 @@ A `worker` can contain:
   - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`.
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
+  - `registry_credentials` - The credentials required to access a private Docker Hub or GitHub registry, in the following syntax `<username>:<token>`.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
       - `enabled` - Whether to automatically deploy images pushed to DOCR.
@@ -380,6 +382,7 @@ A `job` can contain:
   - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`.
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
+  - `registry_credentials` - The credentials required to access a private Docker Hub or GitHub registry, in the following syntax `<username>:<token>`.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
       - `enabled` - Whether to automatically deploy images pushed to DOCR.
