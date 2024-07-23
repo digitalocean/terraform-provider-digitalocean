@@ -894,6 +894,8 @@ func appSpecDatabaseSchema() *schema.Resource {
 					"PG",
 					"REDIS",
 					"MONGODB",
+					"KAFKA",
+					"OPENSEARCH",
 				}, false),
 				Description: "The database engine to use.",
 			},
