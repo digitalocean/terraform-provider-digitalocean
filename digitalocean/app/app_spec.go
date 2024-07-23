@@ -2063,17 +2063,20 @@ func expandAppCORSPolicy(config []interface{}) *godo.AppCORSPolicy {
 
 	appCORSConfig := config[0].(map[string]interface{})
 	allowOriginsConfig := appCORSConfig["allow_origins"].([]interface{})
-	allowOriginsMap := allowOriginsConfig[0].(map[string]interface{})
 
 	var allowOrigins []*godo.AppStringMatch
-	if allowOriginsMap["exact"] != "" {
-		allowOrigins = append(allowOrigins, &godo.AppStringMatch{Exact: allowOriginsMap["exact"].(string)})
-	}
-	if allowOriginsMap["prefix"] != "" {
-		allowOrigins = append(allowOrigins, &godo.AppStringMatch{Prefix: allowOriginsMap["prefix"].(string)})
-	}
-	if allowOriginsMap["regex"] != "" {
-		allowOrigins = append(allowOrigins, &godo.AppStringMatch{Regex: allowOriginsMap["regex"].(string)})
+	if len(allowOriginsConfig) > 0 {
+		allowOriginsMap := allowOriginsConfig[0].(map[string]interface{})
+
+		if allowOriginsMap["exact"] != "" {
+			allowOrigins = append(allowOrigins, &godo.AppStringMatch{Exact: allowOriginsMap["exact"].(string)})
+		}
+		if allowOriginsMap["prefix"] != "" {
+			allowOrigins = append(allowOrigins, &godo.AppStringMatch{Prefix: allowOriginsMap["prefix"].(string)})
+		}
+		if allowOriginsMap["regex"] != "" {
+			allowOrigins = append(allowOrigins, &godo.AppStringMatch{Regex: allowOriginsMap["regex"].(string)})
+		}
 	}
 
 	var allowMethods []string
