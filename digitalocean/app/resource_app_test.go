@@ -800,20 +800,6 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: noAllowedOriginsConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
-					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_methods.*", "GET"),
-					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_methods.*", "PUT"),
-					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_headers.*", "X-Custom-Header"),
-					resource.TestCheckTypeSetElemAttr(
-						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_headers.*", "Upgrade-Insecure-Requests"),
-				),
-			},
-			{
 				Config: allowedOrginExactConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
@@ -835,6 +821,20 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_origins.0.regex", "https://[0-9a-z]*.digitalocean.com"),
+				),
+			},
+			{
+				Config: noAllowedOriginsConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_methods.*", "GET"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_methods.*", "PUT"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_headers.*", "X-Custom-Header"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_headers.*", "Upgrade-Insecure-Requests"),
 				),
 			},
 			{

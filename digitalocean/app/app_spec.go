@@ -2127,9 +2127,15 @@ func flattenAppCORSPolicy(policy *godo.AppCORSPolicy) []map[string]interface{} {
 			r["allow_origins"] = append(allowOriginsResult, allowOrigins)
 		}
 
-		r["allow_methods"] = policy.AllowMethods
-		r["allow_headers"] = policy.AllowHeaders
-		r["expose_headers"] = policy.ExposeHeaders
+		if len(policy.AllowMethods) > 0 {
+			r["allow_methods"] = policy.AllowMethods
+		}
+		if len(policy.AllowHeaders) > 0 {
+			r["allow_headers"] = policy.AllowHeaders
+		}
+		if len(policy.ExposeHeaders) > 0 {
+			r["expose_headers"] = policy.ExposeHeaders
+		}
 		r["max_age"] = policy.MaxAge
 		r["allow_credentials"] = policy.AllowCredentials
 
