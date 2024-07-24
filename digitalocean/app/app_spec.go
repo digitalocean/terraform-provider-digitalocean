@@ -400,7 +400,8 @@ func appSpecCORSSchema() map[string]*schema.Schema {
 					"prefix": {
 						Type:        schema.TypeString,
 						Optional:    true,
-						Description: "Prefix-based match. ",
+						Description: "Prefix-based match.",
+						Deprecated:  "Prefix-based matching has been deprecated in favor of regex-based matching.",
 					},
 					"regex": {
 						Type:        schema.TypeString,
