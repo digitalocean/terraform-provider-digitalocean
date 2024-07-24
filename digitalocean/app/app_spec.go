@@ -44,6 +44,7 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 		"features": {
 			Type:        schema.TypeSet,
 			Optional:    true,
+			Computed:    true,
 			Elem:        &schema.Schema{Type: schema.TypeString},
 			Description: "List of features which is applied to the app",
 		},
