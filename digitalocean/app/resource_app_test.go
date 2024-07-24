@@ -742,14 +742,6 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
        }
 `
 
-	allowedOrginPrefix := `
-       cors {
-         allow_origins {
-           prefix = "https://example.com"
-         }
-       }
-`
-
 	allowedOrginRegex := `
        cors {
          allow_origins {
@@ -758,10 +750,17 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
        }
 `
 
+	noAllowedOrigins := `
+       cors {
+         allow_methods     = ["GET", "PUT"]
+         allow_headers     = ["X-Custom-Header", "Upgrade-Insecure-Requests"]
+       }
+`
+
 	fullConfig := `
        cors {
          allow_origins {
-           prefix = "https://example.com"
+           exact = "https://example.com"
          }
          allow_methods     = ["GET", "PUT"]
          allow_headers     = ["X-Custom-Header", "Upgrade-Insecure-Requests"]
@@ -774,11 +773,11 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 	allowedOrginExactConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
 		appName, allowedOrginExact,
 	)
-	allowedOrginPrefixConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
-		appName, allowedOrginPrefix,
-	)
 	allowedOrginRegexConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
 		appName, allowedOrginRegex,
+	)
+	noAllowedOriginsConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
+		appName, noAllowedOrigins,
 	)
 	updatedConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
 		appName, fullConfig,
@@ -798,14 +797,6 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 				),
 			},
 			{
-				Config: allowedOrginPrefixConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_origins.0.prefix", "https://example.com"),
-				),
-			},
-			{
 				Config: allowedOrginRegexConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
@@ -814,11 +805,25 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 				),
 			},
 			{
+				Config: noAllowedOriginsConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_methods.*", "GET"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_methods.*", "PUT"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_headers.*", "X-Custom-Header"),
+					resource.TestCheckTypeSetElemAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_headers.*", "Upgrade-Insecure-Requests"),
+				),
+			},
+			{
 				Config: updatedConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_origins.0.prefix", "https://example.com"),
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_origins.0.exact", "https://example.com"),
 					resource.TestCheckTypeSetElemAttr(
 						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.cors.0.allow_methods.*", "GET"),
 					resource.TestCheckTypeSetElemAttr(

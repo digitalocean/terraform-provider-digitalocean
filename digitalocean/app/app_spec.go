@@ -44,6 +44,7 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 		"features": {
 			Type:        schema.TypeSet,
 			Optional:    true,
+			Computed:    true,
 			Elem:        &schema.Schema{Type: schema.TypeString},
 			Description: "List of features which is applied to the app",
 		},
@@ -400,7 +401,8 @@ func appSpecCORSSchema() map[string]*schema.Schema {
 					"prefix": {
 						Type:        schema.TypeString,
 						Optional:    true,
-						Description: "Prefix-based match. ",
+						Description: "Prefix-based match.",
+						Deprecated:  "Prefix-based matching has been deprecated in favor of regex-based matching.",
 					},
 					"regex": {
 						Type:        schema.TypeString,
@@ -2063,17 +2065,20 @@ func expandAppCORSPolicy(config []interface{}) *godo.AppCORSPolicy {
 
 	appCORSConfig := config[0].(map[string]interface{})
 	allowOriginsConfig := appCORSConfig["allow_origins"].([]interface{})
-	allowOriginsMap := allowOriginsConfig[0].(map[string]interface{})
 
 	var allowOrigins []*godo.AppStringMatch
-	if allowOriginsMap["exact"] != "" {
-		allowOrigins = append(allowOrigins, &godo.AppStringMatch{Exact: allowOriginsMap["exact"].(string)})
-	}
-	if allowOriginsMap["prefix"] != "" {
-		allowOrigins = append(allowOrigins, &godo.AppStringMatch{Prefix: allowOriginsMap["prefix"].(string)})
-	}
-	if allowOriginsMap["regex"] != "" {
-		allowOrigins = append(allowOrigins, &godo.AppStringMatch{Regex: allowOriginsMap["regex"].(string)})
+	if len(allowOriginsConfig) > 0 {
+		allowOriginsMap := allowOriginsConfig[0].(map[string]interface{})
+
+		if allowOriginsMap["exact"] != "" {
+			allowOrigins = append(allowOrigins, &godo.AppStringMatch{Exact: allowOriginsMap["exact"].(string)})
+		}
+		if allowOriginsMap["prefix"] != "" {
+			allowOrigins = append(allowOrigins, &godo.AppStringMatch{Prefix: allowOriginsMap["prefix"].(string)})
+		}
+		if allowOriginsMap["regex"] != "" {
+			allowOrigins = append(allowOrigins, &godo.AppStringMatch{Regex: allowOriginsMap["regex"].(string)})
+		}
 	}
 
 	var allowMethods []string
@@ -2124,9 +2129,15 @@ func flattenAppCORSPolicy(policy *godo.AppCORSPolicy) []map[string]interface{} {
 			r["allow_origins"] = append(allowOriginsResult, allowOrigins)
 		}
 
-		r["allow_methods"] = policy.AllowMethods
-		r["allow_headers"] = policy.AllowHeaders
-		r["expose_headers"] = policy.ExposeHeaders
+		if len(policy.AllowMethods) > 0 {
+			r["allow_methods"] = policy.AllowMethods
+		}
+		if len(policy.AllowHeaders) > 0 {
+			r["allow_headers"] = policy.AllowHeaders
+		}
+		if len(policy.ExposeHeaders) > 0 {
+			r["expose_headers"] = policy.ExposeHeaders
+		}
 		r["max_age"] = policy.MaxAge
 		r["allow_credentials"] = policy.AllowCredentials
 
