@@ -219,6 +219,7 @@ func resourceDigitalOceanDatabaseReplicaRead(ctx context.Context, d *schema.Reso
 		return diag.Errorf("Error retrieving DatabaseReplica: %s", err)
 	}
 
+	d.Set("size", replica.Size)
 	d.Set("region", replica.Region)
 	d.Set("tags", tag.FlattenTags(replica.Tags))
 
