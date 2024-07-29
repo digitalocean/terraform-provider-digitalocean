@@ -174,6 +174,8 @@ func appSpecAppLevelAlerts() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(godo.AppAlertSpecRule_DeploymentFailed),
 					string(godo.AppAlertSpecRule_DeploymentLive),
+					string(godo.AppAlertSpecRule_DeploymentStarted),
+					string(godo.AppAlertSpecRule_DeploymentCanceled),
 					string(godo.AppAlertSpecRule_DomainFailed),
 					string(godo.AppAlertSpecRule_DomainLive),
 				}, false),
