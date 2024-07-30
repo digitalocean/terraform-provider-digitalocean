@@ -1,18 +1,5 @@
 # Change Log
 
-## [v1.119.0] - 2024-07-24
-
-- #704 - @ElanHasson - APPS-9133 - Add support for OPENSEARCH as a database engine option
-- #703 - @dependabot[bot] - Bump github.com/hashicorp/go-retryablehttp from 0.7.4 to 0.7.7
-- #699 - @ElanHasson - APPS-8790 Add support to App Platform Log Forwarding for an OpenSearch DBaaS cluster destination.
-
-## [v1.118.0] - 2024-06-04
-
-**Note**: This release contains features in closed beta (#700).
-
-- #701 - @llDrLove - Rename control plane permission to control plane firewall
-- #700 - @bbassingthwaite - Add ProxyProtocol to LoadBalancer HealthCheck
-
 ## [v1.117.0] - 2024-06-04
 
 - #696 - @llDrLove - Support specifying control plane firewall rules when creating or updating DOKS clusters
