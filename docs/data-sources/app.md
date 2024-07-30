@@ -88,6 +88,12 @@ A `service` can contain:
   - `timeout_seconds` - The number of seconds after which the check times out.
   - `success_threshold` - The number of successful health checks before considered healthy.
   - `failure_threshold` - The number of failed health checks before considered unhealthy.
+* `autoscaling` - Configuration for automatically scaling this component based on metrics.
+  - `min_instance_count` - The minimum amount of instances for this component. Must be less than max_instance_count.
+  - `max_instance_count` - The maximum amount of instances for this component. Must be more than min_instance_count.
+  - `metrics` - The metrics that the component is scaled on.
+    - `cpu` - Settings for scaling the component based on CPU utilization.
+      - `percent` - The average target CPU utilization for the component.
 
 A `static_site` can contain:
 

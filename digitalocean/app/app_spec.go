@@ -445,6 +445,50 @@ func appSpecCORSSchema() map[string]*schema.Schema {
 	}
 }
 
+func appSpecAutoscalingSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"min_instance_count": {
+			Type:         schema.TypeInt,
+			Optional:     false,
+			ValidateFunc: validation.IntAtLeast(1),
+			Description:  "The minimum amount of instances for this component. Must be less than max_instance_count.",
+		},
+		"max_instance_count": {
+			Type:         schema.TypeInt,
+			Optional:     false,
+			ValidateFunc: validation.IntAtLeast(1),
+			Description:  "The maximum amount of instances for this component. Must be more than min_instance_count.",
+		},
+		"metrics": {
+			Type:        schema.TypeList,
+			MaxItems:    1,
+			MinItems:    1,
+			Optional:    false,
+			Description: "The metrics that the component is scaled on.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"cpu": {
+						Type:        schema.TypeList,
+						MaxItems:    1,
+						Optional:    true,
+						Description: "Settings for scaling the component based on CPU utilization.",
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"percent": {
+									Type:         schema.TypeInt,
+									ValidateFunc: validation.IntBetween(1, 100),
+									Required:     true,
+									Description:  "The average target CPU utilization for the component.",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func appSpecComponentBase(componentType appSpecComponentType) map[string]*schema.Schema {
 	baseSchema := map[string]*schema.Schema{
 		"name": {
@@ -590,6 +634,14 @@ func appSpecServicesSchema() *schema.Resource {
 			Deprecated: "Service level CORS rules are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecCORSSchema(),
+			},
+		},
+		"autoscaling": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecAutoscalingSchema(),
 			},
 		},
 	}
@@ -1264,6 +1316,57 @@ func flattenAppLogDestinations(destinations []*godo.AppLogDestinationSpec) []map
 	return result
 }
 
+func expandAppAutoscaling(config []interface{}) *godo.AppAutoscalingSpec {
+	autoscalingConfig := config[0].(map[string]interface{})
+
+	autoscalingSpec := &godo.AppAutoscalingSpec{
+		MinInstanceCount: int64(autoscalingConfig["min_instance_count"].(int)),
+		MaxInstanceCount: int64(autoscalingConfig["max_instance_count"].(int)),
+		Metrics:          expandAppAutoscalingMetrics(autoscalingConfig["metrics"].([]interface{})),
+	}
+
+	return autoscalingSpec
+}
+
+func expandAppAutoscalingMetrics(config []interface{}) *godo.AppAutoscalingSpecMetrics {
+	metrics := &godo.AppAutoscalingSpecMetrics{}
+
+	for _, rawMetric := range config {
+		metric := rawMetric.(map[string]interface{})
+		cpu := metric["cpu"].([]interface{})
+		if len(cpu) > 0 {
+			cpuMetric := cpu[0].(map[string]interface{})
+			metrics.CPU = &godo.AppAutoscalingSpecMetricCPU{
+				Percent: int64(cpuMetric["percent"].(int)),
+			}
+		}
+	}
+
+	return metrics
+}
+
+func flattenAppAutoscaling(autoscaling *godo.AppAutoscalingSpec) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+
+	if autoscaling != nil {
+		r := make(map[string]interface{})
+		r["min_instance_count"] = autoscaling.MinInstanceCount
+		r["max_instance_count"] = autoscaling.MaxInstanceCount
+		metrics := make(map[string]interface{})
+		if autoscaling.Metrics.CPU != nil {
+			cpuMetric := make([]map[string]interface{}, 1)
+			cpuMetric[0] = make(map[string]interface{})
+			cpuMetric[0]["percent"] = autoscaling.Metrics.CPU.Percent
+			metrics["cpu"] = cpuMetric
+		}
+		metricsList := make([]map[string]interface{}, 1)
+		metricsList[0] = metrics
+		r["metrics"] = metricsList
+	}
+
+	return result
+}
+
 // expandAppDomainSpec has been deprecated in favor of expandAppSpecDomains.
 func expandAppDomainSpec(config []interface{}) []*godo.AppDomainSpec {
 	appDomains := make([]*godo.AppDomainSpec, 0, len(config))
@@ -1649,6 +1752,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.LogDestinations = expandAppLogDestinations(logDestinations)
 		}
 
+		autoscaling := service["autoscaling"].([]interface{})
+		if len(autoscaling) > 0 {
+			s.Autoscaling = expandAppAutoscaling(autoscaling)
+		}
+
 		appServices = append(appServices, s)
 	}
 
@@ -1681,6 +1789,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["cors"] = flattenAppCORSPolicy(s.CORS)
 		r["alert"] = flattenAppAlerts(s.Alerts)
 		r["log_destination"] = flattenAppLogDestinations(s.LogDestinations)
+		r["autoscaling"] = flattenAppAutoscaling(s.Autoscaling)
 
 		result[i] = r
 	}
