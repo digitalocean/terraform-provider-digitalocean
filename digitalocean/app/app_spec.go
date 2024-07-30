@@ -449,13 +449,13 @@ func appSpecAutoscalingSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"min_instance_count": {
 			Type:         schema.TypeInt,
-			Optional:     false,
+			Required:     true,
 			ValidateFunc: validation.IntAtLeast(1),
 			Description:  "The minimum amount of instances for this component. Must be less than max_instance_count.",
 		},
 		"max_instance_count": {
 			Type:         schema.TypeInt,
-			Optional:     false,
+			Required:     true,
 			ValidateFunc: validation.IntAtLeast(1),
 			Description:  "The maximum amount of instances for this component. Must be more than min_instance_count.",
 		},
@@ -463,7 +463,7 @@ func appSpecAutoscalingSchema() map[string]*schema.Schema {
 			Type:        schema.TypeList,
 			MaxItems:    1,
 			MinItems:    1,
-			Optional:    false,
+			Required:    true,
 			Description: "The metrics that the component is scaled on.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
@@ -593,7 +593,6 @@ func appSpecServicesSchema() *schema.Resource {
 		"instance_count": {
 			Type:        schema.TypeInt,
 			Optional:    true,
-			Default:     1,
 			Description: "The amount of instances that this component should be scaled to.",
 		},
 		"health_check": {
@@ -729,7 +728,6 @@ func appSpecWorkerSchema() *schema.Resource {
 		"instance_count": {
 			Type:        schema.TypeInt,
 			Optional:    true,
-			Default:     1,
 			Description: "The amount of instances that this component should be scaled to.",
 		},
 	}
@@ -766,7 +764,6 @@ func appSpecJobSchema() *schema.Resource {
 		"instance_count": {
 			Type:        schema.TypeInt,
 			Optional:    true,
-			Default:     1,
 			Description: "The amount of instances that this component should be scaled to.",
 		},
 		"kind": {
