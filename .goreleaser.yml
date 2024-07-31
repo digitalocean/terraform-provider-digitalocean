@@ -3,6 +3,7 @@
 #
 # Artifacts must be produced matching the layout described at:
 # https://www.terraform.io/docs/registry/providers/publishing.html
+version: 2
 before:
   hooks:
     - go mod tidy
@@ -52,4 +53,4 @@ signs:
 release:
   draft: true
 changelog:
-  skip: true
+  disable: true

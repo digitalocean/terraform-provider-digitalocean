@@ -233,6 +233,7 @@ A `service` can contain:
   - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`.
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
+  - `registry_credentials` - The credentials required to access a private Docker Hub or GitHub registry, in the following syntax `<username>:<token>`.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
       - `enabled` - Whether to automatically deploy images pushed to DOCR.
@@ -268,7 +269,13 @@ A `service` can contain:
     - `api_key` - Datadog API key.
   - `logtail` - Logtail configuration.
     - `token` - Logtail token.
-
+* `autoscaling` - Configuration for automatically scaling this component based on metrics.
+  - `min_instance_count` - The minimum amount of instances for this component. Must be less than max_instance_count.
+  - `max_instance_count` - The maximum amount of instances for this component. Must be more than min_instance_count.
+  - `metrics` - The metrics that the component is scaled on.
+    - `cpu` - Settings for scaling the component based on CPU utilization.
+      - `percent` - The average target CPU utilization for the component.
+      
 A `static_site` can contain:
 
 * `name` - The name of the component.
@@ -326,6 +333,7 @@ A `worker` can contain:
   - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`.
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
+  - `registry_credentials` - The credentials required to access a private Docker Hub or GitHub registry, in the following syntax `<username>:<token>`.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
       - `enabled` - Whether to automatically deploy images pushed to DOCR.
@@ -380,6 +388,7 @@ A `job` can contain:
   - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`.
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
+  - `registry_credentials` - The credentials required to access a private Docker Hub or GitHub registry, in the following syntax `<username>:<token>`.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
       - `enabled` - Whether to automatically deploy images pushed to DOCR.
@@ -448,7 +457,7 @@ A `function` component can contain:
 A `database` can contain:
 
 * `name` - The name of the component.
-* `engine` - The database engine to use (`MYSQL`, `PG`, `REDIS`, or `MONGODB`).
+* `engine` - The database engine to use (`MYSQL`, `PG`, `REDIS`, `MONGODB`, `KAFKA`, or `OPENSEARCH`).
 * `version` - The version of the database engine.
 * `production` - Whether this is a production or dev database.
 * `cluster_name` - The name of the underlying DigitalOcean DBaaS cluster. This is required for production databases. For dev databases, if `cluster_name` is not set, a new cluster will be provisioned.

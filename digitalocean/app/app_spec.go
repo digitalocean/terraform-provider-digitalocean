@@ -44,6 +44,7 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 		"features": {
 			Type:        schema.TypeSet,
 			Optional:    true,
+			Computed:    true,
 			Elem:        &schema.Schema{Type: schema.TypeString},
 			Description: "List of features which is applied to the app",
 		},
@@ -173,6 +174,8 @@ func appSpecAppLevelAlerts() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(godo.AppAlertSpecRule_DeploymentFailed),
 					string(godo.AppAlertSpecRule_DeploymentLive),
+					string(godo.AppAlertSpecRule_DeploymentStarted),
+					string(godo.AppAlertSpecRule_DeploymentCanceled),
 					string(godo.AppAlertSpecRule_DomainFailed),
 					string(godo.AppAlertSpecRule_DomainLive),
 				}, false),
@@ -400,7 +403,8 @@ func appSpecCORSSchema() map[string]*schema.Schema {
 					"prefix": {
 						Type:        schema.TypeString,
 						Optional:    true,
-						Description: "Prefix-based match. ",
+						Description: "Prefix-based match.",
+						Deprecated:  "Prefix-based matching has been deprecated in favor of regex-based matching.",
 					},
 					"regex": {
 						Type:        schema.TypeString,
@@ -437,6 +441,50 @@ func appSpecCORSSchema() map[string]*schema.Schema {
 			Type:        schema.TypeBool,
 			Optional:    true,
 			Description: "Whether browsers should expose the response to the client-side JavaScript code when the request’s credentials mode is `include`. This configures the Access-Control-Allow-Credentials header.",
+		},
+	}
+}
+
+func appSpecAutoscalingSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"min_instance_count": {
+			Type:         schema.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+			Description:  "The minimum amount of instances for this component. Must be less than max_instance_count.",
+		},
+		"max_instance_count": {
+			Type:         schema.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntAtLeast(1),
+			Description:  "The maximum amount of instances for this component. Must be more than min_instance_count.",
+		},
+		"metrics": {
+			Type:        schema.TypeList,
+			MaxItems:    1,
+			MinItems:    1,
+			Required:    true,
+			Description: "The metrics that the component is scaled on.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"cpu": {
+						Type:        schema.TypeList,
+						MaxItems:    1,
+						Optional:    true,
+						Description: "Settings for scaling the component based on CPU utilization.",
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"percent": {
+									Type:         schema.TypeInt,
+									ValidateFunc: validation.IntBetween(1, 100),
+									Required:     true,
+									Description:  "The average target CPU utilization for the component.",
+								},
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -545,7 +593,6 @@ func appSpecServicesSchema() *schema.Resource {
 		"instance_count": {
 			Type:        schema.TypeInt,
 			Optional:    true,
-			Default:     1,
 			Description: "The amount of instances that this component should be scaled to.",
 		},
 		"health_check": {
@@ -586,6 +633,14 @@ func appSpecServicesSchema() *schema.Resource {
 			Deprecated: "Service level CORS rules are deprecated in favor of ingresses",
 			Elem: &schema.Resource{
 				Schema: appSpecCORSSchema(),
+			},
+		},
+		"autoscaling": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecAutoscalingSchema(),
 			},
 		},
 	}
@@ -673,7 +728,6 @@ func appSpecWorkerSchema() *schema.Resource {
 		"instance_count": {
 			Type:        schema.TypeInt,
 			Optional:    true,
-			Default:     1,
 			Description: "The amount of instances that this component should be scaled to.",
 		},
 	}
@@ -710,7 +764,6 @@ func appSpecJobSchema() *schema.Resource {
 		"instance_count": {
 			Type:        schema.TypeInt,
 			Optional:    true,
-			Default:     1,
 			Description: "The amount of instances that this component should be scaled to.",
 		},
 		"kind": {
@@ -894,6 +947,8 @@ func appSpecDatabaseSchema() *schema.Resource {
 					"PG",
 					"REDIS",
 					"MONGODB",
+					"KAFKA",
+					"OPENSEARCH",
 				}, false),
 				Description: "The database engine to use.",
 			},
@@ -1253,6 +1308,59 @@ func flattenAppLogDestinations(destinations []*godo.AppLogDestinationSpec) []map
 		}
 
 		result[i] = r
+	}
+
+	return result
+}
+
+func expandAppAutoscaling(config []interface{}) *godo.AppAutoscalingSpec {
+	autoscalingConfig := config[0].(map[string]interface{})
+
+	autoscalingSpec := &godo.AppAutoscalingSpec{
+		MinInstanceCount: int64(autoscalingConfig["min_instance_count"].(int)),
+		MaxInstanceCount: int64(autoscalingConfig["max_instance_count"].(int)),
+		Metrics:          expandAppAutoscalingMetrics(autoscalingConfig["metrics"].([]interface{})),
+	}
+
+	return autoscalingSpec
+}
+
+func expandAppAutoscalingMetrics(config []interface{}) *godo.AppAutoscalingSpecMetrics {
+	metrics := &godo.AppAutoscalingSpecMetrics{}
+
+	for _, rawMetric := range config {
+		metric := rawMetric.(map[string]interface{})
+		cpu := metric["cpu"].([]interface{})
+		if len(cpu) > 0 {
+			cpuMetric := cpu[0].(map[string]interface{})
+			metrics.CPU = &godo.AppAutoscalingSpecMetricCPU{
+				Percent: int64(cpuMetric["percent"].(int)),
+			}
+		}
+	}
+
+	return metrics
+}
+
+func flattenAppAutoscaling(autoscaling *godo.AppAutoscalingSpec) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+
+	if autoscaling != nil {
+		r := make(map[string]interface{})
+		r["min_instance_count"] = autoscaling.MinInstanceCount
+		r["max_instance_count"] = autoscaling.MaxInstanceCount
+		metrics := make(map[string]interface{})
+		if autoscaling.Metrics.CPU != nil {
+			cpuMetric := make([]map[string]interface{}, 1)
+			cpuMetric[0] = make(map[string]interface{})
+			cpuMetric[0]["percent"] = autoscaling.Metrics.CPU.Percent
+			metrics["cpu"] = cpuMetric
+		}
+		metricsList := make([]map[string]interface{}, 1)
+		metricsList[0] = metrics
+		r["metrics"] = metricsList
+
+		result = append(result, r)
 	}
 
 	return result
@@ -1643,6 +1751,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.LogDestinations = expandAppLogDestinations(logDestinations)
 		}
 
+		autoscaling := service["autoscaling"].([]interface{})
+		if len(autoscaling) > 0 {
+			s.Autoscaling = expandAppAutoscaling(autoscaling)
+		}
+
 		appServices = append(appServices, s)
 	}
 
@@ -1675,6 +1788,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["cors"] = flattenAppCORSPolicy(s.CORS)
 		r["alert"] = flattenAppAlerts(s.Alerts)
 		r["log_destination"] = flattenAppLogDestinations(s.LogDestinations)
+		r["autoscaling"] = flattenAppAutoscaling(s.Autoscaling)
 
 		result[i] = r
 	}
@@ -2063,17 +2177,20 @@ func expandAppCORSPolicy(config []interface{}) *godo.AppCORSPolicy {
 
 	appCORSConfig := config[0].(map[string]interface{})
 	allowOriginsConfig := appCORSConfig["allow_origins"].([]interface{})
-	allowOriginsMap := allowOriginsConfig[0].(map[string]interface{})
 
 	var allowOrigins []*godo.AppStringMatch
-	if allowOriginsMap["exact"] != "" {
-		allowOrigins = append(allowOrigins, &godo.AppStringMatch{Exact: allowOriginsMap["exact"].(string)})
-	}
-	if allowOriginsMap["prefix"] != "" {
-		allowOrigins = append(allowOrigins, &godo.AppStringMatch{Prefix: allowOriginsMap["prefix"].(string)})
-	}
-	if allowOriginsMap["regex"] != "" {
-		allowOrigins = append(allowOrigins, &godo.AppStringMatch{Regex: allowOriginsMap["regex"].(string)})
+	if len(allowOriginsConfig) > 0 {
+		allowOriginsMap := allowOriginsConfig[0].(map[string]interface{})
+
+		if allowOriginsMap["exact"] != "" {
+			allowOrigins = append(allowOrigins, &godo.AppStringMatch{Exact: allowOriginsMap["exact"].(string)})
+		}
+		if allowOriginsMap["prefix"] != "" {
+			allowOrigins = append(allowOrigins, &godo.AppStringMatch{Prefix: allowOriginsMap["prefix"].(string)})
+		}
+		if allowOriginsMap["regex"] != "" {
+			allowOrigins = append(allowOrigins, &godo.AppStringMatch{Regex: allowOriginsMap["regex"].(string)})
+		}
 	}
 
 	var allowMethods []string
@@ -2124,9 +2241,15 @@ func flattenAppCORSPolicy(policy *godo.AppCORSPolicy) []map[string]interface{} {
 			r["allow_origins"] = append(allowOriginsResult, allowOrigins)
 		}
 
-		r["allow_methods"] = policy.AllowMethods
-		r["allow_headers"] = policy.AllowHeaders
-		r["expose_headers"] = policy.ExposeHeaders
+		if len(policy.AllowMethods) > 0 {
+			r["allow_methods"] = policy.AllowMethods
+		}
+		if len(policy.AllowHeaders) > 0 {
+			r["allow_headers"] = policy.AllowHeaders
+		}
+		if len(policy.ExposeHeaders) > 0 {
+			r["expose_headers"] = policy.ExposeHeaders
+		}
 		r["max_age"] = policy.MaxAge
 		r["allow_credentials"] = policy.AllowCredentials
 

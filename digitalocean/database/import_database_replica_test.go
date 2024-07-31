@@ -40,8 +40,6 @@ func TestAccDigitalOceanDatabaseReplica_importBasic(t *testing.T) {
 				ImportStateVerify: true,
 				// Requires passing both the cluster ID and replica name
 				ImportStateIdFunc: testAccDatabaseReplicaImportID(resourceName),
-				// The DO API does not return the size on read, but it is required on create
-				ImportStateVerifyIgnore: []string{"size"},
 			},
 			// Test importing non-existent resource provides expected error.
 			{
