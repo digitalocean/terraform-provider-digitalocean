@@ -1359,6 +1359,8 @@ func flattenAppAutoscaling(autoscaling *godo.AppAutoscalingSpec) []map[string]in
 		metricsList := make([]map[string]interface{}, 1)
 		metricsList[0] = metrics
 		r["metrics"] = metricsList
+
+		result = append(result, r)
 	}
 
 	return result
