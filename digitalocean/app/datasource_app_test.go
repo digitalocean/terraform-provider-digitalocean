@@ -74,12 +74,6 @@ func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.name", "ServiceLogs"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.papertrail.0.endpoint", "syslog+tls://example.com:12345"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.autoscaling.0.min_instance_count", "2"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.autoscaling.0.max_instance_count", "15"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.autoscaling.0.metrics.0.cpu.0.percent", "60"),
 				),
 			},
 			{

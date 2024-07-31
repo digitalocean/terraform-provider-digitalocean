@@ -950,6 +950,54 @@ func TestAccDigitalOceanApp_nonDefaultProject(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_autoScale(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_autoScale, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_app.foobar", "project_id"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "default_ingress"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_url"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "active_deployment_id"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "urn"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "created_at"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "apps-d-1vcpu-0.5gb"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.name", "go-service"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.git.0.repo_clone_url",
+						"https://github.com/digitalocean/sample-golang.git"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.git.0.branch", "main"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.autoscaling.0.min_instance_count", "2"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.autoscaling.0.max_instance_count", "4"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.autoscaling.0.metrics.0.cpu.0.percent", "60"),
+				),
+			},
+		},
+	})
+}
+
 var testAccCheckDigitalOceanAppConfig_basic = `
 resource "digitalocean_app" "foobar" {
   spec {
@@ -988,16 +1036,6 @@ resource "digitalocean_app" "foobar" {
         name = "ServiceLogs"
         papertrail {
           endpoint = "syslog+tls://example.com:12345"
-        }
-      }
-
-      autoscaling {
-        min_instance_count = 2
-        max_instance_count = 15
-        metrics {
-          cpu {
-            percent = 60
-          }
         }
       }
     }
@@ -1503,6 +1541,35 @@ resource "digitalocean_app" "foobar" {
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-jekyll.git"
         branch         = "main"
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_autoScale = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "nyc"
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_size_slug = "apps-d-1vcpu-0.5gb"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+
+      autoscaling {
+        min_instance_count = 2
+        max_instance_count = 4
+        metrics {
+          cpu {
+            percent = 60
+          }
+        }
       }
     }
   }
