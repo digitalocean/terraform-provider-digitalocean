@@ -991,15 +991,15 @@ resource "digitalocean_app" "foobar" {
         }
       }
 
-	  autoscaling {
-		min_instance_count = 2
-		max_instance_count = 15
-		metrics {
-		  cpu {
-			percent = 60
-		  }
-		}
-	  }
+      autoscaling {
+        min_instance_count = 2
+        max_instance_count = 15
+        metrics {
+          cpu {
+            percent = 60
+          }
+        }
+      }
     }
   }
 }`
