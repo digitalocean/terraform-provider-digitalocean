@@ -58,7 +58,7 @@ The following attributes are exported:
 * `urn` - The uniform resource name of the Droplet
 * `region` - The region the Droplet is running in.
 * `image` - The Droplet image ID or slug.
-* `size` - The unique slug that indentifies the type of Droplet.
+* `size` - The unique slug that identifies the type of Droplet.
 * `disk` - The size of the Droplets disk in GB.
 * `vcpus` - The number of the Droplets virtual CPUs.
 * `memory` - The amount of the Droplets memory in MB.

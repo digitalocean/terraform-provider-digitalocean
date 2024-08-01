@@ -363,7 +363,7 @@ func resourceDigitalOceanDatabaseKafkaTopicRead(ctx context.Context, d *schema.R
 
 	d.Set("state", topic.State)
 	d.Set("replication_factor", topic.ReplicationFactor)
-	// updating 'partition_count' is async, the number of partitions returned in the API will not be updated immeadiately in the response
+	// updating 'partition_count' is async, the number of partitions returned in the API will not be updated immediately in the response
 	// setting this property to the current state rather than the number of `partitions` returned in the GetTopic response
 	d.Set("partition_count", d.Get("partition_count").(int))
 

@@ -7,10 +7,11 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 )
 
 func TestAccDigitalOceanApp_Image(t *testing.T) {
@@ -734,7 +735,7 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 	var app godo.App
 	appName := acceptance.RandomTestName()
 
-	allowedOrginExact := `
+	allowedOriginExact := `
        cors {
          allow_origins {
            exact = "https://example.com"
@@ -742,7 +743,7 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
        }
 `
 
-	allowedOrginRegex := `
+	allowedOriginRegex := `
        cors {
          allow_origins {
            regex = "https://[0-9a-z]*.digitalocean.com"
@@ -770,11 +771,11 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
        }
 `
 
-	allowedOrginExactConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
-		appName, allowedOrginExact,
+	allowedOriginExactConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
+		appName, allowedOriginExact,
 	)
-	allowedOrginRegexConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
-		appName, allowedOrginRegex,
+	allowedOriginRegexConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
+		appName, allowedOriginRegex,
 	)
 	noAllowedOriginsConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
 		appName, noAllowedOrigins,
@@ -789,7 +790,7 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: allowedOrginExactConfig,
+				Config: allowedOriginExactConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
@@ -797,7 +798,7 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 				),
 			},
 			{
-				Config: allowedOrginRegexConfig,
+				Config: allowedOriginRegexConfig,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(

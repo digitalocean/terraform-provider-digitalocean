@@ -655,7 +655,7 @@ IMPROVEMENTS:
 * Run tests on pull_request not pull_request_target. ([#589](https://github.com/digitalocean/terraform-provider-digitalocean/pull/589))
 * kubernetes - enable surge upgrades by default during cluster creation ([#584](https://github.com/digitalocean/terraform-provider-digitalocean/pull/584))
 * Assign and remove project resources without unnecessary churn (Fixes: #585). ([#586](https://github.com/digitalocean/terraform-provider-digitalocean/pull/586))
-* dbaas replica: Add missing attrbutes to docs. ([#588](https://github.com/digitalocean/terraform-provider-digitalocean/pull/588))
+* dbaas replica: Add missing attributes to docs. ([#588](https://github.com/digitalocean/terraform-provider-digitalocean/pull/588))
 * Bump Kubernetes version used in documentation ([#583](https://github.com/digitalocean/terraform-provider-digitalocean/pull/583))
 
 BUG FIXES:
@@ -728,7 +728,7 @@ BUG FIXES:
 
 NOTES:
 
-* DigitalOcean Container Registry is now in general availablity and requires a [subscription plan](https://www.digitalocean.com/docs/container-registry/#plans-and-pricing). As a result, the `digitalocean_container_registry` resource now requires setting a `subscription_tier_slug`.
+* DigitalOcean Container Registry is now in general availability and requires a [subscription plan](https://www.digitalocean.com/docs/container-registry/#plans-and-pricing). As a result, the `digitalocean_container_registry` resource now requires setting a `subscription_tier_slug`.
 
 IMPROVEMENTS:
 
@@ -756,7 +756,7 @@ BUG FIXES:
 NOTES:
 
 * This release uses v2.0.3 of the Terraform Plugin SDK and now only supports Terraform v0.12 and higher.
-* The `certificate_id` attribute of the `digitalocean_cdn` and `digitalocean_loadbalancer` resources has been deprecated in favor of `certificate_name`. It will become a read-only computed attrbute in a future release.
+* The `certificate_id` attribute of the `digitalocean_cdn` and `digitalocean_loadbalancer` resources has been deprecated in favor of `certificate_name`. It will become a read-only computed attribute in a future release.
 
 FEATURES:
 

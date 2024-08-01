@@ -1056,12 +1056,12 @@ users:
 		Token:                    "97ae2bbcfd85c34155a56b822ffa73909d6770b28eb7e5dfa78fa83e02ffc60f",
 		ExpiresAt:                time.Now(),
 	}
-	kubeConfigRenderd, err := kubernetes.RenderKubeconfig("test-cluster", "lon1", &creds)
+	kubeConfigRendered, err := kubernetes.RenderKubeconfig("test-cluster", "lon1", &creds)
 	if err != nil {
 		t.Errorf("error calling renderKubeconfig: %s", err)
 
 	}
-	got := string(kubeConfigRenderd)
+	got := string(kubeConfigRendered)
 
 	if !reflect.DeepEqual(got, expected) {
 		t.Errorf("renderKubeconfig returned %+v\n, expected %+v\n", got, expected)

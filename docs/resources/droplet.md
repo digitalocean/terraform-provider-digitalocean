@@ -27,7 +27,7 @@ The following arguments are supported:
 * `image` - (Required) The Droplet image ID or slug. This could be either image ID or droplet snapshot ID.
 * `name` - (Required) The Droplet name.
 * `region` - The region where the Droplet will be created.
-* `size` - (Required) The unique slug that indentifies the type of Droplet. You can find a list of available slugs on [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#tag/Sizes).
+* `size` - (Required) The unique slug that identifies the type of Droplet. You can find a list of available slugs on [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#tag/Sizes).
 * `backups` - (Optional) Boolean controlling if backups are made. Defaults to
    false.
 * `monitoring` - (Optional) Boolean controlling whether monitoring agent is installed.

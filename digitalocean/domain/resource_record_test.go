@@ -600,7 +600,7 @@ func TestAccDigitalOceanRecord_ExpectedErrors(t *testing.T) {
   weight   = 0
   value    = "srv.example.com"
 }`
-		srvNoPrirority = `resource "digitalocean_record" "pgsql_default_pub_srv" {
+		srvNoPriority = `resource "digitalocean_record" "pgsql_default_pub_srv" {
   domain = "example.com"
 
   type = "SRV"
@@ -655,7 +655,7 @@ func TestAccDigitalOceanRecord_ExpectedErrors(t *testing.T) {
 				ExpectError: regexp.MustCompile("`port` is required for when type is `SRV`"),
 			},
 			{
-				Config:      srvNoPrirority,
+				Config:      srvNoPriority,
 				ExpectError: regexp.MustCompile("`priority` is required for when type is `SRV`"),
 			},
 			{
