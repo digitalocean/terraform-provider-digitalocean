@@ -1,3 +1,26 @@
+## 2.40.0
+
+IMPROVEMENTS:
+
+- #1189 - @moritzbruder - digitalocean_app: Service Autoscaling
+- #1188 - @andrewsomething - apps: support DEPLOYMENT_STARTED and DEPLOYMENT_CANCELLED alerts.
+- #1182 - @andrewsomething - apps: support additional database engines
+- #1173 - @asaha2 - Support load balancers network type
+
+BUG FIXES:
+
+- #1186 - @andrewsomething - databases: set replica size to state on read.
+- #1184 - @andrewsomething - apps: protect against panic when CORS has no allow_origins
+
+MISC:
+
+- #1192 - @halkeye - fix: run https://github.com/crate-ci/typos --write-changes to fix up typos
+- #1177 - @cotyhamilton - Update kubernetes_cluster surge_upgrade default in docs
+- #1180 - @andrewsomething - apps: document registry_credentials argument.
+- #1178 - @andrewsomething - Update for goreleaser 2.0
+- #1174 - @dependabot[bot] - build(deps): bump github.com/hashicorp/go-retryablehttp from 0.7.4 to 0.7.7
+
+
 ## 2.39.2
 
 MISC:
