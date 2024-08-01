@@ -126,7 +126,7 @@ func resourceDigitalOceanVolumeSnapshotRead(ctx context.Context, d *schema.Resou
 func resourceDigitalOceanVolumeSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	log.Printf("[INFO] Deleting snaphot: %s", d.Id())
+	log.Printf("[INFO] Deleting snapshot: %s", d.Id())
 	_, err := client.Snapshots.Delete(context.Background(), d.Id())
 	if err != nil {
 		return diag.Errorf("Error deleting snapshot: %s", err)

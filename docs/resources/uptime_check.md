@@ -11,7 +11,7 @@ resource. Uptime Checks provide the ability to monitor your endpoints from aroun
 ### Basic Example
 
 ```hcl
-# Create a new check for the target endpoint in a specifc region
+# Create a new check for the target endpoint in a specific region
 resource "digitalocean_uptime_check" "foobar" {
   name    = "example-europe-check"
   target  = "https://www.example.com"

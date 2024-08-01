@@ -47,7 +47,7 @@ func ResourceDigitalOceanDatabaseUser() *schema.Resource {
 					godo.SQLAuthPluginNative,
 					godo.SQLAuthPluginCachingSHA2,
 				}, false),
-				// Prevent diffs when default is used and not specificed in the config.
+				// Prevent diffs when default is used and not specified in the config.
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					return old == godo.SQLAuthPluginCachingSHA2 && new == ""
 				},

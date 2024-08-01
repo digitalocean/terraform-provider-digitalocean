@@ -66,7 +66,7 @@ The following arguments are supported:
 
 `config` supports the following:
 
-* `cleanup_policy` - (Optional) The topic cleanup policy that decribes whether messages should be deleted, compacted, or both when retention policies are violated.
+* `cleanup_policy` - (Optional) The topic cleanup policy that describes whether messages should be deleted, compacted, or both when retention policies are violated.
   This may be one of "delete", "compact", or "compact_delete".
 * `compression_type` - (Optional) The topic compression codecs used for a given topic.
   This may be one of "uncompressed", "gzip", "snappy", "lz4", "producer", "zstd". "uncompressed" indicates that there is no compression and "producer" retains the original compression codec set by the producer.
