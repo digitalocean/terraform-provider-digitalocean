@@ -48,4 +48,7 @@ resource "digitalocean_database_postgresql_config" "foobar" {
   shared_buffers_percentage = %f
   work_mem                  = %d
   jit                       = %t
+  timescaledb {
+    max_background_workers = 1
+  }
 }`
