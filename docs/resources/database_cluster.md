@@ -68,6 +68,18 @@ resource "digitalocean_database_cluster" "mongodb-example" {
 }
 ```
 
+### Create a new OpenSearch database cluster
+```hcl
+resource "digitalocean_database_cluster" "opensearch-example" {
+  name       = "example-opensearch-cluster"
+  engine     = "opensearch"
+  version    = "2"
+  size       = "db-s-1vcpu-2gb"
+  region     = "nyc3"
+  node_count = 1
+}
+```
+
 ## Create a new database cluster based on a backup of an existing cluster.
 ```hcl
 resource "digitalocean_database_cluster" "doby" {
