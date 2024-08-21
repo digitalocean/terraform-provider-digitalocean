@@ -247,6 +247,11 @@ A `function` component can contain:
     - `api_key` - Datadog API key.
   - `logtail` - Logtail configuration.
     - `token` - Logtail token.
+  - `opensearch` - OpenSearch configuration
+    - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+    - `basic_auth` - OpenSearch basic auth
+    - `index_name` - The index name to use for the logs. If not set, the default index name is \"logs\".
+
 
 A `database` can contain:
 
