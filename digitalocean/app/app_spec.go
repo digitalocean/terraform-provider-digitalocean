@@ -1,7 +1,6 @@
 package app
 
 import (
-	"errors"
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -884,7 +883,7 @@ func appSpecLogDestinations() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"endpoint": {
 							Type:        schema.TypeString,
-							Required:    false,
+							Optional:    true,
 							Description: "OpenSearch endpoint.",
 						},
 						"basic_auth": {
@@ -910,12 +909,12 @@ func appSpecLogDestinations() *schema.Resource {
 						},
 						"index_name": {
 							Type:        schema.TypeString,
-							Required:    false,
+							Optional:    true,
 							Description: "OpenSearch index name.",
 						},
 						"cluster_name": {
 							Type:        schema.TypeString,
-							Required:    false,
+							Optional:    true,
 							Description: "OpenSearch cluster name.",
 						},
 					},
@@ -1300,7 +1299,7 @@ func expandAppLogDestinations(config []interface{}) []*godo.AppLogDestinationSpe
 				d.OpenSearch = &godo.AppLogDestinationSpecOpenSearch{
 					Endpoint: (openSearchConfig["endpoint"].(string)),
 					BasicAuth: &godo.OpenSearchBasicAuth{
-						Username: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["username"].(string)),
+						User:     (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["user"].(string)),
 						Password: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["password"].(string)),
 					},
 					IndexName: (openSearchConfig["index_name"].(string)),
@@ -1310,7 +1309,7 @@ func expandAppLogDestinations(config []interface{}) []*godo.AppLogDestinationSpe
 			if openSearchConfig["cluster_name"] != nil {
 				d.OpenSearch = &godo.AppLogDestinationSpecOpenSearch{
 					BasicAuth: &godo.OpenSearchBasicAuth{
-						Username: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["username"].(string)),
+						User:     (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["user"].(string)),
 						Password: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["password"].(string)),
 					},
 					IndexName:   (openSearchConfig["index_name"].(string)),
@@ -1395,7 +1394,7 @@ func flattenAppLogDestinations(destinations []*godo.AppLogDestinationSpec) []map
 					"index_name": d.OpenSearch.IndexName,
 					"basic_auth": []interface{}{
 						map[string]string{
-							"user": d.OpenSearch.BasicAuth.user,
+							"user": d.OpenSearch.BasicAuth.User,
 						},
 					},
 				}
@@ -1407,7 +1406,7 @@ func flattenAppLogDestinations(destinations []*godo.AppLogDestinationSpec) []map
 					"index_name":   d.OpenSearch.IndexName,
 					"basic_auth": []interface{}{
 						map[string]string{
-							"user": d.OpenSearch.BasicAuth.user,
+							"user": d.OpenSearch.BasicAuth.User,
 						},
 					},
 				}
