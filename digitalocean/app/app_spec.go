@@ -1,12 +1,12 @@
 package app
 
 import (
-	"log"
-	"net/http"
-
+	"errors"
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"log"
+	"net/http"
 )
 
 type appSpecComponentType string
@@ -884,7 +884,7 @@ func appSpecLogDestinations() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"endpoint": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Required:    false,
 							Description: "OpenSearch endpoint.",
 						},
 						"basic_auth": {
@@ -894,10 +894,10 @@ func appSpecLogDestinations() *schema.Resource {
 							MaxItems:    1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
-									"username": {
+									"user": {
 										Type:        schema.TypeString,
 										Required:    true,
-										Description: "Username for basic authentication.",
+										Description: "user for basic authentication.",
 									},
 									"password": {
 										Type:        schema.TypeString,
@@ -908,13 +908,19 @@ func appSpecLogDestinations() *schema.Resource {
 								},
 							},
 						},
-						"index_name":{
+						"index_name": {
 							Type:        schema.TypeString,
-							Required:    true,
+							Required:    false,
 							Description: "OpenSearch index name.",
-						}
-					}
-			}},
+						},
+						"cluster_name": {
+							Type:        schema.TypeString,
+							Required:    false,
+							Description: "OpenSearch cluster name.",
+						},
+					},
+				},
+			},
 			"papertrail": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -1286,13 +1292,31 @@ func expandAppLogDestinations(config []interface{}) []*godo.AppLogDestinationSpe
 		open_search := destination["opensearch"].([]interface{})
 		if len(open_search) > 0 {
 			openSearchConfig := open_search[0].(map[string]interface{})
-			d.OpenSearch = &godo.AppLogDestinationSpecOpenSearch{
-				Endpoint: (openSearchConfig["endpoint"].(string)),
-				BasicAuth: &godo.OpenSearchBasicAuth{
-					Username: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["username"].(string)),
-					Password: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["password"].(string)),
-				},
-				IndexName: (openSearchConfig["index_name"].(string)),
+			if openSearchConfig["endpoint"] != nil && openSearchConfig["cluster_name"] != nil {
+				panic("cluster_name is not allowed when endpoint is set")
+			}
+
+			if openSearchConfig["endpoint"] != nil {
+				d.OpenSearch = &godo.AppLogDestinationSpecOpenSearch{
+					Endpoint: (openSearchConfig["endpoint"].(string)),
+					BasicAuth: &godo.OpenSearchBasicAuth{
+						Username: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["username"].(string)),
+						Password: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["password"].(string)),
+					},
+					IndexName: (openSearchConfig["index_name"].(string)),
+				}
+			}
+
+			if openSearchConfig["cluster_name"] != nil {
+				d.OpenSearch = &godo.AppLogDestinationSpecOpenSearch{
+					BasicAuth: &godo.OpenSearchBasicAuth{
+						Username: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["username"].(string)),
+						Password: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["password"].(string)),
+					},
+					IndexName:   (openSearchConfig["index_name"].(string)),
+					ClusterName: (openSearchConfig["cluster_name"].(string)),
+				}
+			}
 		}
 
 		papertrail := destination["papertrail"].([]interface{})
@@ -1360,21 +1384,38 @@ func flattenAppLogDestinations(destinations []*godo.AppLogDestinationSpec) []map
 		}
 
 		if d.OpenSearch != nil {
-			openSearch := make([]interface{}, 1)
-			openSearch[0] = map[string]interface{}{
-				"endpoint":   d.OpenSearch.Endpoint,
-				"index_name": d.OpenSearch.IndexName,
-				"basic_auth": []interface{}{
-					map[string]string{
-						"username": d.OpenSearch.BasicAuth.Username,
-						"password": d.OpenSearch.BasicAuth.Password,
-					},
-				},
+			if d.OpenSearch.Endpoint != "" && d.OpenSearch.ClusterName != "" {
+				panic("cluster_name is not allowed when endpoint is set")
 			}
+			openSearch := make([]interface{}, 1)
+
+			if d.OpenSearch.Endpoint != "" {
+				openSearch[0] = map[string]interface{}{
+					"endpoint":   d.OpenSearch.Endpoint,
+					"index_name": d.OpenSearch.IndexName,
+					"basic_auth": []interface{}{
+						map[string]string{
+							"user": d.OpenSearch.BasicAuth.user,
+						},
+					},
+				}
+			}
+
+			if d.OpenSearch.ClusterName != "" {
+				openSearch[0] = map[string]interface{}{
+					"cluster_name": d.OpenSearch.ClusterName,
+					"index_name":   d.OpenSearch.IndexName,
+					"basic_auth": []interface{}{
+						map[string]string{
+							"user": d.OpenSearch.BasicAuth.user,
+						},
+					},
+				}
+			}
+
 			r["opensearch"] = openSearch
 		}
 
-		
 		result[i] = r
 	}
 
