@@ -1,11 +1,12 @@
 package app
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"log"
-	"net/http"
 )
 
 type appSpecComponentType string
