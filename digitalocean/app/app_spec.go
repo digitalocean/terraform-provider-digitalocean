@@ -901,7 +901,7 @@ func appSpecLogDestinations() *schema.Resource {
 									},
 									"password": {
 										Type:        schema.TypeString,
-										Required:    true,
+										Optional:    true,
 										Sensitive:   true,
 										Description: "Password for basic authentication.",
 									},
@@ -1308,10 +1308,12 @@ func expandAppLogDestinations(config []interface{}) []*godo.AppLogDestinationSpe
 			}
 
 			if openSearchConfig["cluster_name"] != nil {
+				if openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["password"] != nil {
+					panic("password is not allowed when cluster_name is set")
+				}
 				d.OpenSearch = &godo.AppLogDestinationSpecOpenSearch{
 					BasicAuth: &godo.OpenSearchBasicAuth{
-						User:     (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["user"].(string)),
-						Password: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["password"].(string)),
+						User: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["user"].(string)),
 					},
 					IndexName:   (openSearchConfig["index_name"].(string)),
 					ClusterName: (openSearchConfig["cluster_name"].(string)),
@@ -1402,6 +1404,9 @@ func flattenAppLogDestinations(destinations []*godo.AppLogDestinationSpec) []map
 			}
 
 			if d.OpenSearch.ClusterName != "" {
+				if d.OpenSearch.BasicAuth.Password != "" {
+					panic("password is not allowed when cluster_name is set")
+				}
 				openSearch[0] = map[string]interface{}{
 					"cluster_name": d.OpenSearch.ClusterName,
 					"index_name":   d.OpenSearch.IndexName,
