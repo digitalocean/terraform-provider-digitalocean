@@ -1365,39 +1365,21 @@ func flattenAppLogDestinations(destinations []*godo.AppLogDestinationSpec) []map
 		}
 
 		if d.OpenSearch != nil {
-			if d.OpenSearch.Endpoint != "" && d.OpenSearch.ClusterName != "" {
-				panic("cluster_name is not allowed when endpoint is set")
-			}
 			openSearch := make([]interface{}, 1)
 
-			if d.OpenSearch.Endpoint != "" {
-				openSearch[0] = map[string]interface{}{
-					"endpoint":   d.OpenSearch.Endpoint,
-					"index_name": d.OpenSearch.IndexName,
-					"basic_auth": []interface{}{
-						map[string]string{
-							"user": d.OpenSearch.BasicAuth.User,
-						},
+			openSearch[0] = map[string]interface{}{
+				"endpoint":     d.OpenSearch.Endpoint,
+				"cluster_name": d.OpenSearch.ClusterName,
+				"index_name":   d.OpenSearch.IndexName,
+				"basic_auth": []interface{}{
+					map[string]string{
+						"user":     d.OpenSearch.BasicAuth.User,
+						"password": d.OpenSearch.BasicAuth.Password,
 					},
-				}
+				},
 			}
 
-			if d.OpenSearch.ClusterName != "" {
-				if d.OpenSearch.BasicAuth.Password != "" {
-					panic("password is not allowed when cluster_name is set")
-				}
-				openSearch[0] = map[string]interface{}{
-					"cluster_name": d.OpenSearch.ClusterName,
-					"index_name":   d.OpenSearch.IndexName,
-					"basic_auth": []interface{}{
-						map[string]string{
-							"user": d.OpenSearch.BasicAuth.User,
-						},
-					},
-				}
-			}
-
-			r["opensearch"] = openSearch
+			r["open_search"] = openSearch
 		}
 
 		result[i] = r
