@@ -1292,32 +1292,11 @@ func expandAppLogDestinations(config []interface{}) []*godo.AppLogDestinationSpe
 		open_search := destination["open_search"].([]interface{})
 		if len(open_search) > 0 {
 			openSearchConfig := open_search[0].(map[string]interface{})
-			if openSearchConfig["endpoint"] != nil && openSearchConfig["cluster_name"] != nil {
-				panic("cluster_name is not allowed when endpoint is set")
-			}
-
-			if openSearchConfig["endpoint"] != nil {
-				d.OpenSearch = &godo.AppLogDestinationSpecOpenSearch{
-					Endpoint: (openSearchConfig["endpoint"].(string)),
-					BasicAuth: &godo.OpenSearchBasicAuth{
-						User:     (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["user"].(string)),
-						Password: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["password"].(string)),
-					},
-					IndexName: (openSearchConfig["index_name"].(string)),
-				}
-			}
-
-			if openSearchConfig["cluster_name"] != nil {
-				if openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["password"] != nil {
-					panic("password is not allowed when cluster_name is set")
-				}
-				d.OpenSearch = &godo.AppLogDestinationSpecOpenSearch{
-					BasicAuth: &godo.OpenSearchBasicAuth{
-						User: (openSearchConfig["basic_auth"].([]interface{})[0].(map[string]interface{})["user"].(string)),
-					},
-					IndexName:   (openSearchConfig["index_name"].(string)),
-					ClusterName: (openSearchConfig["cluster_name"].(string)),
-				}
+			d.OpenSearch = &godo.AppLogDestinationSpecOpenSearch{
+				Endpoint:    (openSearchConfig["endpoint"].(string)),
+				BasicAuth:   expandAppOpensearchBasicAuth(openSearchConfig["basic_auth"].([]interface{})),
+				IndexName:   (openSearchConfig["index_name"].(string)),
+				ClusterName: (openSearchConfig["cluster_name"].(string)),
 			}
 		}
 
