@@ -1392,8 +1392,8 @@ func expandAppOpensearchBasicAuth(config []interface{}) *godo.OpenSearchBasicAut
 	basicAuthConfig := config[0].(map[string]interface{})
 
 	basicAuth := &godo.OpenSearchBasicAuth{
-		User:     string(basicAuthConfig["user"].(string)),
-		Password: string(basicAuthConfig["password"].(string)),
+		User:     basicAuthConfig["user"].(string),
+		Password: basicAuthConfig["password"].(string),
 	}
 
 	return basicAuth
