@@ -151,6 +151,39 @@ resource "digitalocean_app" "mono-repo-example" {
 }
 ```
 
+### Log Destination Example with Opensearch
+```
+resource "digitalocean_app" "golang-sample" {
+  spec {
+    name   = "golang-sample"
+    region = "ams"
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "professional-xs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+
+      log_destination {
+        name = "MyLogs"
+        open_search {
+          endpoint = "https://something:1234"
+          basic_auth {
+            user = "user"
+            password = "hi"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:

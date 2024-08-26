@@ -1388,6 +1388,17 @@ func flattenAppLogDestinations(destinations []*godo.AppLogDestinationSpec) []map
 	return result
 }
 
+func expandAppOpensearchBasicAuth(config []interface{}) *godo.OpenSearchBasicAuth {
+	basicAuthConfig := config[0].(map[string]interface{})
+
+	basicAuth := &godo.OpenSearchBasicAuth{
+		User:     string(basicAuthConfig["user"].(string)),
+		Password: string(basicAuthConfig["password"].(string)),
+	}
+
+	return basicAuth
+}
+
 func expandAppAutoscaling(config []interface{}) *godo.AppAutoscalingSpec {
 	autoscalingConfig := config[0].(map[string]interface{})
 
