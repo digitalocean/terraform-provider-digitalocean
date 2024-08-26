@@ -251,6 +251,7 @@ A `function` component can contain:
     - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
     - `basic_auth` - OpenSearch basic auth
     - `index_name` - The index name to use for the logs. If not set, the default index name is \"logs\".
+    -`cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
 
 
 A `database` can contain:
