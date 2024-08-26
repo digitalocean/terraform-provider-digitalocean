@@ -1289,7 +1289,7 @@ func expandAppLogDestinations(config []interface{}) []*godo.AppLogDestinationSpe
 			Name: (destination["name"].(string)),
 		}
 
-		open_search := destination["opensearch"].([]interface{})
+		open_search := destination["open_search"].([]interface{})
 		if len(open_search) > 0 {
 			openSearchConfig := open_search[0].(map[string]interface{})
 			if openSearchConfig["endpoint"] != nil && openSearchConfig["cluster_name"] != nil {
