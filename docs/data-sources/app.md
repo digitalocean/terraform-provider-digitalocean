@@ -250,6 +250,8 @@ A `function` component can contain:
   - `opensearch` - OpenSearch configuration
     - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
     - `basic_auth` - OpenSearch basic auth
+        - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to doadmin when cluster_name is set.
+        - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
     - `index_name` - The index name to use for the logs. If not set, the default index name is \"logs\".
     -`cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
 
