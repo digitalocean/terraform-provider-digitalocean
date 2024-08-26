@@ -896,7 +896,7 @@ func appSpecLogDestinations() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"user": {
 										Type:        schema.TypeString,
-										Required:    true,
+										Optional:    true,
 										Description: "user for basic authentication.",
 									},
 									"password": {
