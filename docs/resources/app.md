@@ -151,6 +151,39 @@ resource "digitalocean_app" "mono-repo-example" {
 }
 ```
 
+### Log Destination Example with Opensearch
+```
+resource "digitalocean_app" "golang-sample" {
+  spec {
+    name   = "golang-sample"
+    region = "ams"
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "professional-xs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+
+      log_destination {
+        name = "MyLogs"
+        open_search {
+          endpoint = "https://something:1234"
+          basic_auth {
+            user = "user"
+            password = "hi"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -454,6 +487,14 @@ A `function` component can contain:
     - `api_key` - Datadog API key.
   - `logtail` - Logtail configuration.
     - `token` - Logtail token.
+  - `opensearch` - OpenSearch configuration
+    - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+    - `basic_auth` - OpenSearch basic auth
+        - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to doadmin when cluster_name is set.
+        - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
+    - `index_name` - The index name to use for the logs. If not set, the default index name is \"logs\".
+    -`cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
+
 
 A `database` can contain:
 
