@@ -61,14 +61,14 @@ For example:
 
 ```hcl
 data "digitalocean_kubernetes_versions" "example" {
-  version_prefix = "1.22."
+  version_prefix = "1.30."
 }
 
 resource "digitalocean_kubernetes_cluster" "foo" {
   name         = "foo"
   region       = "nyc1"
   auto_upgrade = true
-  version      = data.digitalocean_kubernetes_versions.example.latest_version
+  version      = data.digitalocean_kubernetes_versions.example.version_prefix
 
   maintenance_policy {
     start_time = "04:00"
