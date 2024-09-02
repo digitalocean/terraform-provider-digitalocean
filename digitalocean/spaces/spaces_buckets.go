@@ -12,7 +12,7 @@ import (
 
 var (
 	// SpacesRegions is a list of DigitalOcean regions that support Spaces.
-	SpacesRegions = []string{"ams3", "blr1", "fra1", "nyc3", "sfo2", "sfo3", "sgp1", "syd1"}
+	SpacesRegions = []string{"ams3", "blr1", "fra1", "nyc3", "sfo2", "sfo3", "sgp1", "syd1", "lon1"}
 )
 
 type bucketMetadataStruct struct {
