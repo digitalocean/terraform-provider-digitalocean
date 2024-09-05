@@ -381,9 +381,11 @@ func ResourceDigitalOceanDatabasePostgreSQLConfig() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
+				MinItems: 1,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"timescaledb": {
+						"max_background_workers": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						}},

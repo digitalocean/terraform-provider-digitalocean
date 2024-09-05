@@ -875,6 +875,52 @@ func appSpecLogDestinations() *schema.Resource {
 				Required:    true,
 				Description: "Name of the log destination",
 			},
+			"open_search": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "OpenSearch configuration.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"endpoint": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "OpenSearch endpoint.",
+						},
+						"basic_auth": {
+							Type:        schema.TypeList,
+							Required:    true,
+							Description: "Basic authentication details.",
+							MaxItems:    1,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"user": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Description: "user for basic authentication.",
+									},
+									"password": {
+										Type:        schema.TypeString,
+										Optional:    true,
+										Sensitive:   true,
+										Description: "Password for basic authentication.",
+									},
+								},
+							},
+						},
+						"index_name": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "OpenSearch index name.",
+						},
+						"cluster_name": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "OpenSearch cluster name.",
+						},
+					},
+				},
+			},
 			"papertrail": {
 				Type:        schema.TypeList,
 				Optional:    true,
@@ -1243,6 +1289,17 @@ func expandAppLogDestinations(config []interface{}) []*godo.AppLogDestinationSpe
 			Name: (destination["name"].(string)),
 		}
 
+		open_search := destination["open_search"].([]interface{})
+		if len(open_search) > 0 {
+			openSearchConfig := open_search[0].(map[string]interface{})
+			d.OpenSearch = &godo.AppLogDestinationSpecOpenSearch{
+				Endpoint:    (openSearchConfig["endpoint"].(string)),
+				BasicAuth:   expandAppOpensearchBasicAuth(openSearchConfig["basic_auth"].([]interface{})),
+				IndexName:   (openSearchConfig["index_name"].(string)),
+				ClusterName: (openSearchConfig["cluster_name"].(string)),
+			}
+		}
+
 		papertrail := destination["papertrail"].([]interface{})
 		if len(papertrail) > 0 {
 			papertrailConfig := papertrail[0].(map[string]interface{})
@@ -1307,10 +1364,39 @@ func flattenAppLogDestinations(destinations []*godo.AppLogDestinationSpec) []map
 			r["logtail"] = logtail
 		}
 
+		if d.OpenSearch != nil {
+			openSearch := make([]interface{}, 1)
+
+			openSearch[0] = map[string]interface{}{
+				"endpoint":     d.OpenSearch.Endpoint,
+				"cluster_name": d.OpenSearch.ClusterName,
+				"index_name":   d.OpenSearch.IndexName,
+				"basic_auth": []interface{}{
+					map[string]string{
+						"user":     d.OpenSearch.BasicAuth.User,
+						"password": d.OpenSearch.BasicAuth.Password,
+					},
+				},
+			}
+
+			r["open_search"] = openSearch
+		}
+
 		result[i] = r
 	}
 
 	return result
+}
+
+func expandAppOpensearchBasicAuth(config []interface{}) *godo.OpenSearchBasicAuth {
+	basicAuthConfig := config[0].(map[string]interface{})
+
+	basicAuth := &godo.OpenSearchBasicAuth{
+		User:     basicAuthConfig["user"].(string),
+		Password: basicAuthConfig["password"].(string),
+	}
+
+	return basicAuth
 }
 
 func expandAppAutoscaling(config []interface{}) *godo.AppAutoscalingSpec {
