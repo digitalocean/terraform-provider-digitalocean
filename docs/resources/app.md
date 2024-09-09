@@ -20,7 +20,6 @@ resource "digitalocean_app" "golang-sample" {
 
     service {
       name               = "go-service"
-      environment_slug   = "go"
       instance_count     = 1
       instance_size_slug = "professional-xs"
 
@@ -73,8 +72,7 @@ resource "digitalocean_app" "mono-repo-example" {
     # Build a Go project in the api/ directory that listens on port 3000
     # and serves it at https://foo.example.com/api
     service {
-      name               = "api"
-      environment_slug   = "go"
+      name               = "go-api"
       instance_count     = 2
       instance_size_slug = "professional-xs"
 
@@ -160,7 +158,6 @@ resource "digitalocean_app" "golang-sample" {
 
     service {
       name               = "go-service"
-      environment_slug   = "go"
       instance_count     = 1
       instance_size_slug = "professional-xs"
 
