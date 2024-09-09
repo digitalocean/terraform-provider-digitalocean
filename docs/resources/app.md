@@ -21,7 +21,7 @@ resource "digitalocean_app" "golang-sample" {
     service {
       name               = "go-service"
       instance_count     = 1
-      instance_size_slug = "professional-xs"
+      instance_size_slug = "apps-s-1vcpu-1gb"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
@@ -74,7 +74,7 @@ resource "digitalocean_app" "mono-repo-example" {
     service {
       name               = "go-api"
       instance_count     = 2
-      instance_size_slug = "professional-xs"
+      instance_size_slug = "apps-s-1vcpu-1gb"
 
       github {
         branch         = "main"
@@ -159,7 +159,7 @@ resource "digitalocean_app" "golang-sample" {
     service {
       name               = "go-service"
       instance_count     = 1
-      instance_size_slug = "professional-xs"
+      instance_size_slug = "apps-s-1vcpu-1gb"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
