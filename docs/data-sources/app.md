@@ -34,6 +34,7 @@ The following attributes are exported:
   - `id` - The ID of the dedicated egress IP.
   - `status` - The status of the dedicated egress IP.
 * `live_url` - The live URL of the app.
+* `live_domain` - The live domain of the app.
 * `active_deployment_id` - The ID the app's currently active deployment.
 * `urn` - The uniform resource identifier for the app.
 * `updated_at` - The date and time of when the app was last updated.
