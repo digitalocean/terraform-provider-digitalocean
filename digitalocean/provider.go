@@ -153,6 +153,7 @@ func Provider() *schema.Provider {
 			"digitalocean_database_postgresql_config":            database.ResourceDigitalOceanDatabasePostgreSQLConfig(),
 			"digitalocean_database_mysql_config":                 database.ResourceDigitalOceanDatabaseMySQLConfig(),
 			"digitalocean_database_kafka_topic":                  database.ResourceDigitalOceanDatabaseKafkaTopic(),
+			"digitalocean_database_logsink":                      database.ResourceDigitalOceanDatabaseLogsink(),
 			"digitalocean_domain":                                domain.ResourceDigitalOceanDomain(),
 			"digitalocean_droplet":                               droplet.ResourceDigitalOceanDroplet(),
 			"digitalocean_droplet_snapshot":                      snapshot.ResourceDigitalOceanDropletSnapshot(),
