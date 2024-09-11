@@ -27,6 +27,8 @@ func TestAccDigitalOceanApp_Image(t *testing.T) {
 				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_addImage, appName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_url"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_domain"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry_type", "DOCKER_HUB"),
 					resource.TestCheckResourceAttr(

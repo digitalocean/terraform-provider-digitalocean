@@ -64,6 +64,10 @@ func DataSourceDigitalOceanApp() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"live_domain": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"active_deployment_id": {
 				Type:        schema.TypeString,
 				Computed:    true,

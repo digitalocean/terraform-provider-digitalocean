@@ -83,6 +83,11 @@ func ResourceDigitalOceanApp() *schema.Resource {
 				Computed: true,
 			},
 
+			"live_domain": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			// TODO: The full Deployment should be a data source, not a resource
 			// specify the app id for the active deployment, include a deployment
 			// id for a specific one
@@ -161,6 +166,7 @@ func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, me
 	d.SetId(app.ID)
 	d.Set("default_ingress", app.DefaultIngress)
 	d.Set("live_url", app.LiveURL)
+	d.Set("live_domain", app.LiveDomain)
 	d.Set("updated_at", app.UpdatedAt.UTC().String())
 	d.Set("created_at", app.CreatedAt.UTC().String())
 	d.Set("urn", app.URN())
