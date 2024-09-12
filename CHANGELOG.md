@@ -1,3 +1,23 @@
+## 2.41.0
+
+IMPROVEMENTS:
+
+- #1209 - @andrewsomething - apps: expose live_domain computed attribute.
+- #1202 - @zoispag - Add support for Spaces in LON1
+- #1200 - @GiovanniColonni - Added support for opensearch configuration on log_destination block
+
+BUG FIXES:
+
+- #1204 - @andrewsomething - ssh: protect against database race condition in create
+- #1193 - @linuxluigi - Fix Postgres Config TimescaleDB configuration
+
+MISC:
+
+- #1208 - @andrewsomething - apps: update examples to remove environment_slug
+- #1203 - @andrewsomething - dbaas: Use standardized name prefix in tests.
+- #1198 - @seano-vs - Add opensearch to cluster reference
+- #1197 - @stooj - fix(docs): include newly supported alerts
+
 ## 2.40.0
 
 IMPROVEMENTS:
