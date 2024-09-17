@@ -871,6 +871,17 @@ resource "digitalocean_database_cluster" "foobar" {
   tags       = ["production"]
 }`
 
+const testAccCheckDigitalOceanDatabaseClusterMongoDB = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "mongodb"
+  version    = "%s"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+}`
+
 const testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicy = `
 resource "digitalocean_database_cluster" "foobar" {
   name            = "%s"
