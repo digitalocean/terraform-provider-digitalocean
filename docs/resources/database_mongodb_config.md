@@ -13,7 +13,7 @@ options for a DigitalOcean managed MongoDB database cluster.
 
 ```hcl
 resource "digitalocean_database_mongodb_config" "example" {
-  cluster_id        = digitalocean_database_cluster.example.id
+  cluster_id                         = digitalocean_database_cluster.example.id
   default_read_concern               = "majority"
   default_write_concern              = "majority"
   transaction_lifetime_limit_seconds = 100

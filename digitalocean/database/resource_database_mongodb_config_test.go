@@ -39,7 +39,7 @@ const testAccCheckDigitalOceanDatabaseMongoDBConfigConfigBasic = `
 %s
 
 resource "digitalocean_database_mongodb_config" "foobar" {
-  cluster_id              			 = digitalocean_database_cluster.foobar.id
+  cluster_id                         = digitalocean_database_cluster.foobar.id
   default_read_concern               = "%s"
   transaction_lifetime_limit_seconds = %d
 }`
