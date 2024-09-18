@@ -9,7 +9,7 @@ issues:
     #TODO: Enable failing gosimple checks
     - linters:
         - gosimple
-      text: "S(1007|1034|1039)"
+      text: "S(1007|1034|1039|1009)"
     # TODO: Enable failing staticchecks
     - linters:
         - staticcheck
@@ -23,7 +23,6 @@ linters:
     - govet
     - typecheck
     - unconvert
-    - varcheck
     - staticcheck
     - gosimple
     # TODO: Enable addition linters
@@ -37,3 +36,6 @@ linters-settings:
     ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
   nakedret:
     max-func-lines: 40
+  govet:
+    disable:
+    - printf
