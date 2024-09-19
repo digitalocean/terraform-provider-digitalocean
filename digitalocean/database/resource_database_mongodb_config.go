@@ -28,7 +28,7 @@ func ResourceDigitalOceanDatabaseMongoDBConfig() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
-			"connect_default_read_concern": {
+			"default_read_concern": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
