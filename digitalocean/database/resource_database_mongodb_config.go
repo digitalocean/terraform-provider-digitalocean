@@ -38,8 +38,11 @@ func ResourceDigitalOceanDatabaseMongoDBConfig() *schema.Resource {
 						"available",
 						"majority",
 					},
-					false,
+					true,
 				),
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					return strings.EqualFold(old, new)
+				},
 			},
 			"default_write_concern": {
 				Type:     schema.TypeString,
