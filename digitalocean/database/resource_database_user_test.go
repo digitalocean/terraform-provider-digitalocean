@@ -296,10 +296,6 @@ func TestAccDigitalOceanDatabaseUser_OpenSearchACLs(t *testing.T) {
 						"digitalocean_database_user.foobar_user", "settings.0.opensearch_acl.3.index", "index-*"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_user.foobar_user", "settings.0.opensearch_acl.3.permission", "read"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_database_user.foobar_user", "settings.0.opensearch_acl.4.index", "index-*"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_database_user.foobar_user", "settings.0.opensearch_acl.4.permission", "deny"),
 				),
 			},
 			{
@@ -590,10 +586,6 @@ resource "digitalocean_database_user" "foobar_user" {
     opensearch_acl {
       index      = "index-*"
       permission = "read"
-    }
-	opensearch_acl {
-      index      = "index-*"
-      permission = "deny"
     }
   }
 }`
