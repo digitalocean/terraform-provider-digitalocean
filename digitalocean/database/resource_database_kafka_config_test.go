@@ -41,8 +41,8 @@ const testAccCheckDigitalOceanDatabaseKafkaConfigConfigBasic = `
 %s
 
 resource "digitalocean_database_kafka_config" "foobar" {
-  cluster_id                         = digitalocean_database_cluster.foobar.id
-  group_initial_rebalance_delay_ms = %d
-  log_message_downconversion_enable" = %t
+  cluster_id                              = digitalocean_database_cluster.foobar.id
+  group_initial_rebalance_delay_ms        = %d
+  log_message_downconversion_enable       = %t
   log_message_timestamp_difference_max_ms = %s
 }`
