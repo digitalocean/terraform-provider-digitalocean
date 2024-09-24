@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math/big"
 	"strconv"
 
 	"github.com/digitalocean/godo"
@@ -55,16 +56,14 @@ func ResourceDigitalOceanDatabaseKafkaConfig() *schema.Resource {
 				Computed: true,
 			},
 			"log_cleaner_min_compaction_lag_ms": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(0),
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"log_flush_interval_ms": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				// ValidateFunc: validation.IntAtLeast(0),
 			},
 			"log_index_interval_bytes": {
 				Type:     schema.TypeInt,
@@ -80,7 +79,6 @@ func ResourceDigitalOceanDatabaseKafkaConfig() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
-				// ValidateFunc: validation.IntAtLeast(0),
 			},
 			"log_preallocate": {
 				Type:     schema.TypeBool,
@@ -88,10 +86,9 @@ func ResourceDigitalOceanDatabaseKafkaConfig() *schema.Resource {
 				Computed: true,
 			},
 			"log_retention_bytes": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(-1),
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"log_retention_hours": {
 				Type:     schema.TypeInt,
@@ -99,16 +96,14 @@ func ResourceDigitalOceanDatabaseKafkaConfig() *schema.Resource {
 				Computed: true,
 			},
 			"log_retention_ms": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(-1),
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"log_roll_jitter_ms": {
-				Type:         schema.TypeInt,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.IntAtLeast(0),
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
 			},
 			"log_segment_delete_delay_ms": {
 				Type:     schema.TypeInt,
@@ -173,7 +168,8 @@ func updateKafkaConfig(ctx context.Context, d *schema.ResourceData, client *godo
 	}
 
 	if v, ok := d.GetOk("log_cleaner_min_compaction_lag_ms"); ok {
-		opts.LogCleanerMinCompactionLagMs = godo.PtrTo(int64(v.(int)))
+		uintVal, _ := strconv.ParseUint(v.(string), 10, 64)
+		opts.LogCleanerMinCompactionLagMs = godo.PtrTo(uintVal)
 	}
 
 	if v, ok := d.GetOk("log_flush_interval_ms"); ok {
@@ -199,7 +195,8 @@ func updateKafkaConfig(ctx context.Context, d *schema.ResourceData, client *godo
 	}
 
 	if v, ok := d.GetOk("log_retention_bytes"); ok {
-		opts.LogRetentionBytes = godo.PtrTo(int64(v.(int)))
+		bigInt, _ := new(big.Int).SetString(v.(string), 10)
+		opts.LogRetentionBytes = bigInt
 	}
 
 	if v, ok := d.GetOk("log_retention_hours"); ok {
@@ -207,11 +204,13 @@ func updateKafkaConfig(ctx context.Context, d *schema.ResourceData, client *godo
 	}
 
 	if v, ok := d.GetOk("log_retention_ms"); ok {
-		opts.LogRetentionMs = godo.PtrTo(int64(v.(int)))
+		bigInt, _ := new(big.Int).SetString(v.(string), 10)
+		opts.LogRetentionMs = bigInt
 	}
 
 	if v, ok := d.GetOk("log_roll_jitter_ms"); ok {
-		opts.LogRollJitterMs = godo.PtrTo(int64(v.(int)))
+		uintVal, _ := strconv.ParseUint(v.(string), 10, 64)
+		opts.LogRollJitterMs = godo.PtrTo(uintVal)
 	}
 
 	if v, ok := d.GetOk("log_segment_delete_delay_ms"); ok {
