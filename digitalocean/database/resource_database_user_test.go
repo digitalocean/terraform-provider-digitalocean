@@ -560,7 +560,7 @@ resource "digitalocean_database_user" "foobar_user" {
 const testAccCheckDigitalOceanDatabaseUserConfigOpenSearchACL = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
-  engine     = "openserach"
+  engine     = "opensearch"
   version    = "2"
   size       = "db-s-2vcpu-2gb"
   region     = "nyc1"
