@@ -62,6 +62,11 @@ func ResourceDigitalOceanDatabaseUser() *schema.Resource {
 							Optional: true,
 							Elem:     userACLSchema(),
 						},
+						"opensearch_acl": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     userOpenSearchACLSchema(),
+						},
 					},
 				},
 			},
@@ -108,6 +113,29 @@ func userACLSchema() *schema.Resource {
 					"consume",
 					"produce",
 					"produceconsume",
+				}, false),
+			},
+		},
+	}
+}
+
+func userOpenSearchACLSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"index": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
+			"permission": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"deny",
+					"admin",
+					"read",
+					"write",
+					"readwrite",
 				}, false),
 			},
 		},
@@ -285,7 +313,8 @@ func expandUserSettings(raw []interface{}) *godo.DatabaseUserSettings {
 	userSettingsConfig := raw[0].(map[string]interface{})
 
 	userSettings := &godo.DatabaseUserSettings{
-		ACL: expandUserACLs(userSettingsConfig["acl"].([]interface{})),
+		ACL:           expandUserACLs(userSettingsConfig["acl"].([]interface{})),
+		OpenSearchACL: expandOpenSearchUserACLs(userSettingsConfig["opensearch_acl"].([]interface{})),
 	}
 	return userSettings
 }
@@ -303,11 +332,25 @@ func expandUserACLs(rawACLs []interface{}) []*godo.KafkaACL {
 	return acls
 }
 
+func expandOpenSearchUserACLs(rawACLs []interface{}) []*godo.OpenSearchACL {
+	acls := make([]*godo.OpenSearchACL, 0, len(rawACLs))
+	for _, rawACL := range rawACLs {
+		a := rawACL.(map[string]interface{})
+		acl := &godo.OpenSearchACL{
+			Index:      a["index"].(string),
+			Permission: a["permission"].(string),
+		}
+		acls = append(acls, acl)
+	}
+	return acls
+}
+
 func flattenUserSettings(settings *godo.DatabaseUserSettings) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0, 1)
 	if settings != nil {
 		r := make(map[string]interface{})
 		r["acl"] = flattenUserACLs(settings.ACL)
+		r["opensearch_acl"] = flattenOpenSearchUserACLs(settings.OpenSearchACL)
 		result = append(result, r)
 	}
 	return result
@@ -325,6 +368,17 @@ func flattenUserACLs(acls []*godo.KafkaACL) []map[string]interface{} {
 	return result
 }
 
+func flattenOpenSearchUserACLs(acls []*godo.OpenSearchACL) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(acls))
+	for i, acl := range acls {
+		item := make(map[string]interface{})
+		item["index"] = acl.Index
+		item["permission"] = normalizeOpenSearchPermission(acl.Permission)
+		result[i] = item
+	}
+	return result
+}
+
 func normalizePermission(p string) string {
 	pLower := strings.ToLower(p)
 	switch pLower {
@@ -332,6 +386,17 @@ func normalizePermission(p string) string {
 		return pLower
 	case "produceconsume", "produce_consume", "readwrite", "read_write":
 		return "produceconsume"
+	}
+	return ""
+}
+
+func normalizeOpenSearchPermission(p string) string {
+	pLower := strings.ToLower(p)
+	switch pLower {
+	case "admin", "deny", "read", "write":
+		return pLower
+	case "readwrite", "read_write":
+		return "readwrite"
 	}
 	return ""
 }
