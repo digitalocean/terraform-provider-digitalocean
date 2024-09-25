@@ -29,7 +29,7 @@ linters:
     # - deadcode
     # - errcheck
     # - ineffassign
-    # - unused
+    - unused
 
 linters-settings:
   errcheck:

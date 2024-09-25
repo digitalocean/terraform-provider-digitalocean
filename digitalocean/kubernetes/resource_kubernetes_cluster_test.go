@@ -881,25 +881,6 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 `, testClusterVersion, rName)
 }
 
-func testAccDigitalOceanKubernetesConfigBasic5(testClusterVersion string, rName string) string {
-	return fmt.Sprintf(`%s
-
-resource "digitalocean_kubernetes_cluster" "foobar" {
-  name    = "%s"
-  region  = "lon1"
-  version = data.digitalocean_kubernetes_versions.test.latest_version
-  tags    = ["one", "two"]
-
-  node_pool {
-    name       = "default"
-    size       = "s-2vcpu-4gb"
-    node_count = 1
-    tags       = ["foo", "bar"]
-  }
-}
-`, testClusterVersion, rName)
-}
-
 func testAccDigitalOceanKubernetesConfig_KubernetesProviderInteroperability(testClusterVersion string, rName string) string {
 	return fmt.Sprintf(`%s
 
