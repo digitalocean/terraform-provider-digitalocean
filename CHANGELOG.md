@@ -2,6 +2,8 @@
 
 IMPROVEMENTS:
 
+- #1218 - @loosla - [databases]: add support for Kafka advanced configuration
+- #1215 - @bhardwajRahul - Update Terraform provider to include new opensearch acl changes
 - #1212 - @loosla - [databases]: add support for MongoDB advanced configuration
 
 MISC:
