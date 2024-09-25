@@ -255,6 +255,11 @@ func resourceDigitalOceanBucketCreate(ctx context.Context, d *schema.ResourceDat
 
 		return nil
 	})
+
+	if err != nil {
+		return diag.Errorf("Error waiting for Spaces bucket: %s", err)
+	}
+
 	log.Println("Bucket created")
 
 	d.SetId(d.Get("name").(string))
