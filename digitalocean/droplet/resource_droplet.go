@@ -669,7 +669,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 	readErr := resourceDigitalOceanDropletRead(ctx, d, meta)
 	if readErr != nil {
-		readErr = append(warnings, readErr...)
+		warnings = append(warnings, readErr...)
 	}
 
 	return warnings
