@@ -285,7 +285,7 @@ func TestAccDigitalOceanDatabaseUser_OpenSearchACLs(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_user.foobar_user", "settings.0.opensearch_acl.0.permission", "admin"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_user.foobar_user", "settings.0.opensearch_acl.1.index", "topic-2"),
+						"digitalocean_database_user.foobar_user", "settings.0.opensearch_acl.1.index", "index-2"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_user.foobar_user", "settings.0.opensearch_acl.1.permission", "readwrite"),
 					resource.TestCheckResourceAttr(
@@ -562,7 +562,7 @@ resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "opensearch"
   version    = "2"
-  size       = "db-s-2vcpu-2gb"
+  size       = "db-s-2vcpu-4gb"
   region     = "nyc1"
   node_count = 3
 }
@@ -595,7 +595,7 @@ resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "opensearch"
   version    = "2"
-  size       = "db-s-2vcpu-2gb"
+  size       = "db-s-2vcpu-4gb"
   region     = "nyc1"
   node_count = 3
 }
