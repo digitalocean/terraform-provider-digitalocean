@@ -28,8 +28,8 @@ linters:
     # TODO: Enable addition linters
     # - deadcode
     # - errcheck
-    # - ineffassign
-    # - unused
+    - ineffassign
+    - unused
 
 linters-settings:
   errcheck:

@@ -226,6 +226,9 @@ func resourceDigitalOceanCertificateCreate(ctx context.Context, d *schema.Resour
 	// We include the UUID as another computed field for use in the
 	// short-term refresh function that waits for it to be ready.
 	err = d.Set("uuid", cert.ID)
+	if err != nil {
+		return diag.Errorf("Error setting key UUID with value cert ID: %s", cert.ID)
+	}
 
 	log.Printf("[INFO] Waiting for certificate (%s) to have state 'verified'", cert.Name)
 	stateConf := &resource.StateChangeConf{
