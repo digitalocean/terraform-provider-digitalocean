@@ -1,3 +1,18 @@
+## 2.42.0
+
+IMPROVEMENTS:
+
+- #1218 - @loosla - [databases]: add support for Kafka advanced configuration
+- #1215 - @bhardwajRahul - Update Terraform provider to include new opensearch acl changes
+- #1212 - @loosla - [databases]: add support for MongoDB advanced configuration
+
+MISC:
+
+- #1231 - @jameskim0987 - [ISSUE-1228] Resolve failing linter: ineffassign and enable back
+- #1230 - @jameskim0987 - [ISSUE-1229] Resolve failing linter: unused and enable back
+- #1214 - @andrewsomething - Update workflows for Go 1.22.
+- #1213 - @loosla - upgrade godo
+
 ## 2.41.0
 
 IMPROVEMENTS:
