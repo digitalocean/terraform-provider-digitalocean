@@ -257,7 +257,7 @@ func resourceDigitalOceanBucketCreate(ctx context.Context, d *schema.ResourceDat
 	})
 
 	if err != nil {
-		return diag.Errorf("Error waiting for Spaces bucket: %s", err)
+		return diag.Errorf("Failed to check availability of Spaces bucket %s: %s", name, err)
 	}
 
 	log.Println("Bucket created")
