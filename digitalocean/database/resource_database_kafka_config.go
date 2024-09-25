@@ -168,13 +168,17 @@ func updateKafkaConfig(ctx context.Context, d *schema.ResourceData, client *godo
 	}
 
 	if v, ok := d.GetOk("log_cleaner_min_compaction_lag_ms"); ok {
-		uintVal, _ := strconv.ParseUint(v.(string), 10, 64)
-		opts.LogCleanerMinCompactionLagMs = godo.PtrTo(uintVal)
+		v, err := strconv.ParseUint(v.(string), 10, 64)
+		if err == nil {
+			opts.LogCleanerMinCompactionLagMs = godo.PtrTo(v)
+		}
 	}
 
 	if v, ok := d.GetOk("log_flush_interval_ms"); ok {
-		uintVal, _ := strconv.ParseUint(v.(string), 10, 64)
-		opts.LogFlushIntervalMs = godo.PtrTo(uintVal)
+		v, err := strconv.ParseUint(v.(string), 10, 64)
+		if err == nil {
+			opts.LogFlushIntervalMs = godo.PtrTo(v)
+		}
 	}
 
 	if v, ok := d.GetOk("log_index_interval_bytes"); ok {
@@ -186,8 +190,10 @@ func updateKafkaConfig(ctx context.Context, d *schema.ResourceData, client *godo
 	}
 
 	if v, ok := d.GetOk("log_message_timestamp_difference_max_ms"); ok {
-		uintVal, _ := strconv.ParseUint(v.(string), 10, 64)
-		opts.LogMessageTimestampDifferenceMaxMs = godo.PtrTo(uintVal)
+		v, err := strconv.ParseUint(v.(string), 10, 64)
+		if err == nil {
+			opts.LogMessageTimestampDifferenceMaxMs = godo.PtrTo(v)
+		}
 	}
 
 	if v, ok := d.GetOk("log_preallocate"); ok {
@@ -195,8 +201,9 @@ func updateKafkaConfig(ctx context.Context, d *schema.ResourceData, client *godo
 	}
 
 	if v, ok := d.GetOk("log_retention_bytes"); ok {
-		bigInt, _ := new(big.Int).SetString(v.(string), 10)
-		opts.LogRetentionBytes = bigInt
+		if v, ok := new(big.Int).SetString(v.(string), 10); ok {
+			opts.LogRetentionBytes = v
+		}
 	}
 
 	if v, ok := d.GetOk("log_retention_hours"); ok {
@@ -204,13 +211,16 @@ func updateKafkaConfig(ctx context.Context, d *schema.ResourceData, client *godo
 	}
 
 	if v, ok := d.GetOk("log_retention_ms"); ok {
-		bigInt, _ := new(big.Int).SetString(v.(string), 10)
-		opts.LogRetentionMs = bigInt
+		if v, ok := new(big.Int).SetString(v.(string), 10); ok {
+			opts.LogRetentionMs = v
+		}
 	}
 
 	if v, ok := d.GetOk("log_roll_jitter_ms"); ok {
-		uintVal, _ := strconv.ParseUint(v.(string), 10, 64)
-		opts.LogRollJitterMs = godo.PtrTo(uintVal)
+		v, err := strconv.ParseUint(v.(string), 10, 64)
+		if err == nil {
+			opts.LogRollJitterMs = godo.PtrTo(v)
+		}
 	}
 
 	if v, ok := d.GetOk("log_segment_delete_delay_ms"); ok {
