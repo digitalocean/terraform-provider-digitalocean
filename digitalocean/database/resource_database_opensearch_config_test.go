@@ -41,8 +41,8 @@ const testAccCheckDigitalOceanDatabaseOpensearchConfigConfigBasic = `
 %s
 
 resource "digitalocean_database_opensearch_config" "foobar" {
-  cluster_id                              = digitalocean_database_cluster.foobar.id
-  ism_enabled       = %t
-  ism_history_max_age_hours        = %d
-  ism_history_max_docs = %s
+  cluster_id                = digitalocean_database_cluster.foobar.id
+  ism_enabled               = %t
+  ism_history_max_age_hours = %d
+  ism_history_max_docs      = %s
 }`
