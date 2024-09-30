@@ -49,7 +49,7 @@ func resourceDigitalOceanVolumeAttachmentCreate(ctx context.Context, d *schema.R
 		return diag.Errorf("Error retrieving volume: %s", err)
 	}
 
-	if volume.DropletIDs == nil || len(volume.DropletIDs) == 0 || volume.DropletIDs[0] != dropletId {
+	if len(volume.DropletIDs) == 0 || volume.DropletIDs[0] != dropletId {
 
 		// Only one volume can be attached at one time to a single droplet.
 		err := resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
@@ -103,7 +103,7 @@ func resourceDigitalOceanVolumeAttachmentRead(ctx context.Context, d *schema.Res
 		return diag.Errorf("Error retrieving volume: %s", err)
 	}
 
-	if volume.DropletIDs == nil || len(volume.DropletIDs) == 0 || volume.DropletIDs[0] != dropletId {
+	if len(volume.DropletIDs) == 0 || volume.DropletIDs[0] != dropletId {
 		log.Printf("[DEBUG] Volume Attachment (%s) not found, removing from state", d.Id())
 		d.SetId("")
 	}
