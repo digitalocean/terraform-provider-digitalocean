@@ -14,7 +14,8 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -220,18 +221,18 @@ func resourceDigitalOceanBucketCreate(ctx context.Context, d *schema.ResourceDat
 		ACL:    aws.String(d.Get("acl").(string)),
 	}
 
-	err = resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
+	err = retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
 		log.Printf("[DEBUG] Trying to create new Spaces bucket: %q", name)
 		_, err := svc.CreateBucket(input)
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == "OperationAborted" {
 				log.Printf("[WARN] Got an error while trying to create Spaces bucket %s: %s", name, err)
-				return resource.RetryableError(
+				return retry.RetryableError(
 					fmt.Errorf("[WARN] Error creating Spaces bucket %s, retrying: %s", name, err))
 			}
 		}
 		if err != nil {
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		}
 
 		return nil
@@ -241,16 +242,16 @@ func resourceDigitalOceanBucketCreate(ctx context.Context, d *schema.ResourceDat
 		return diag.Errorf("Error creating Spaces bucket: %s", err)
 	}
 
-	err = resource.RetryContext(ctx, 5*time.Minute, func() *resource.RetryError {
+	err = retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
 		_, err := svc.HeadBucket(&s3.HeadBucketInput{Bucket: aws.String(name)})
 		if awsErr, ok := err.(awserr.Error); ok {
 			if awsErr.Code() == "NotFound" {
 				log.Printf("[DEBUG] Waiting for Spaces bucket to be available: %q, retrying: %v", name, awsErr.Message())
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			}
 		}
 		if err != nil {
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		}
 
 		return nil
@@ -417,8 +418,8 @@ func resourceDigitalOceanBucketRead(ctx context.Context, d *schema.ResourceData,
 					}
 				}
 			} else {
-				if lifecycleRule.Prefix != nil {
-					rule["prefix"] = *lifecycleRule.Prefix
+				if lifecycleRule.Filter != nil {
+					rule["prefix"] = *lifecycleRule.Filter
 				}
 			}
 
@@ -663,7 +664,7 @@ func resourceDigitalOceanBucketLifecycleUpdate(s3conn *s3.S3, d *schema.Resource
 		if val, ok := r["id"].(string); ok && val != "" {
 			rule.ID = aws.String(val)
 		} else {
-			rule.ID = aws.String(resource.PrefixedUniqueId("tf-s3-lifecycle-"))
+			rule.ID = aws.String(id.PrefixedUniqueId("tf-s3-lifecycle-"))
 		}
 
 		// Enabled
@@ -759,15 +760,15 @@ func BucketEndpoint(region string) string {
 
 func retryOnAwsCode(code string, f func() (interface{}, error)) (interface{}, error) {
 	var resp interface{}
-	err := resource.Retry(5*time.Minute, func() *resource.RetryError {
+	err := retry.RetryContext(context.Background(), 5*time.Minute, func() *retry.RetryError {
 		var err error
 		resp, err = f()
 		if err != nil {
 			awsErr, ok := err.(awserr.Error)
 			if ok && awsErr.Code() == code {
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			}
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		}
 		return nil
 	})

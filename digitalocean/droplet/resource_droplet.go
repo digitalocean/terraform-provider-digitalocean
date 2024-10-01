@@ -15,7 +15,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -306,7 +306,7 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		opts.Monitoring = attr.(bool)
 	}
 
-	if attr, ok := d.GetOkExists("droplet_agent"); ok {
+	if attr, ok := d.GetOk("droplet_agent"); ok {
 		opts.WithDropletAgent = godo.PtrTo(attr.(bool))
 	}
 
@@ -740,7 +740,7 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	log.Printf("[INFO] Waiting for droplet (%s) to be destroyed", d.Id())
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"active", "off"},
 		Target:     []string{"archived"},
 		Refresh:    dropletStateRefreshFunc(ctx, d, "status", meta),
@@ -749,7 +749,7 @@ func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta int
 		MinTimeout: 3 * time.Second,
 	}
 
-	return stateConf.WaitForState()
+	return stateConf.WaitForStateContext(ctx)
 }
 
 func waitForDropletAttribute(
@@ -760,7 +760,7 @@ func waitForDropletAttribute(
 		"[INFO] Waiting for droplet (%s) to have %s of %s",
 		d.Id(), attribute, target)
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
 		Refresh:    dropletStateRefreshFunc(ctx, d, attribute, meta),
@@ -774,13 +774,13 @@ func waitForDropletAttribute(
 		NotFoundChecks: 60,
 	}
 
-	return stateConf.WaitForState()
+	return stateConf.WaitForStateContext(ctx)
 }
 
 // TODO This function still needs a little more refactoring to make it
 // cleaner and more efficient
 func dropletStateRefreshFunc(
-	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
+	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}) retry.StateRefreshFunc {
 	client := meta.(*config.CombinedConfig).GodoClient()
 	return func() (interface{}, string, error) {
 		id, err := strconv.Atoi(d.Id())
@@ -808,7 +808,7 @@ func dropletStateRefreshFunc(
 		}
 
 		// See if we can access our attribute
-		if attr, ok := d.GetOkExists(attribute); ok {
+		if attr, ok := d.GetOk(attribute); ok {
 			switch attr := attr.(type) {
 			case bool:
 				return &droplet, strconv.FormatBool(attr), nil

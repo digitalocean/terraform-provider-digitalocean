@@ -96,7 +96,7 @@ func (c *Config) Client() (*CombinedConfig, error) {
 	}
 
 	godoClient, err := godo.New(client, godoOpts...)
-	clientTransport := logging.NewTransport("DigitalOcean", godoClient.HTTPClient.Transport)
+	clientTransport := logging.NewSubsystemLoggingHTTPTransport("DigitalOcean", godoClient.HTTPClient.Transport)
 
 	godoClient.HTTPClient.Transport = clientTransport
 

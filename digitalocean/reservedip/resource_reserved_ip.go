@@ -10,7 +10,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -210,7 +210,7 @@ func waitForReservedIPReady(
 		"[INFO] Waiting for reserved IP (%s) to have %s of %s",
 		d.Id(), attribute, target)
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
 		Refresh:    newReservedIPStateRefreshFunc(d, attribute, meta, actionID),
@@ -225,7 +225,7 @@ func waitForReservedIPReady(
 }
 
 func newReservedIPStateRefreshFunc(
-	d *schema.ResourceData, attribute string, meta interface{}, actionID int) resource.StateRefreshFunc {
+	d *schema.ResourceData, attribute string, meta interface{}, actionID int) retry.StateRefreshFunc {
 	client := meta.(*config.CombinedConfig).GodoClient()
 	return func() (interface{}, string, error) {
 

@@ -12,7 +12,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -231,7 +231,7 @@ func resourceDigitalOceanCertificateCreate(ctx context.Context, d *schema.Resour
 	}
 
 	log.Printf("[INFO] Waiting for certificate (%s) to have state 'verified'", cert.Name)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"pending"},
 		Target:     []string{"verified"},
 		Refresh:    newCertificateStateRefreshFunc(d, meta),
@@ -294,16 +294,16 @@ func resourceDigitalOceanCertificateDelete(ctx context.Context, d *schema.Resour
 	}
 
 	timeout := 30 * time.Second
-	err = resource.RetryContext(ctx, timeout, func() *resource.RetryError {
+	err = retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 		_, err = client.Certificates.Delete(context.Background(), cert.ID)
 		if err != nil {
 			if util.IsDigitalOceanError(err, http.StatusForbidden, "Make sure the certificate is not in use before deleting it") {
 				log.Printf("[DEBUG] Received %s, retrying certificate deletion", err.Error())
 				time.Sleep(1 * time.Second)
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			}
 
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		}
 
 		return nil
@@ -340,7 +340,7 @@ func flattenDigitalOceanCertificateDomains(domains []string) *schema.Set {
 	return flattenedDomains
 }
 
-func newCertificateStateRefreshFunc(d *schema.ResourceData, meta interface{}) resource.StateRefreshFunc {
+func newCertificateStateRefreshFunc(d *schema.ResourceData, meta interface{}) retry.StateRefreshFunc {
 	client := meta.(*config.CombinedConfig).GodoClient()
 	return func() (interface{}, string, error) {
 
