@@ -10,6 +10,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -87,46 +88,46 @@ func ResourceDigitalOceanDatabaseKafkaTopic() *schema.Resource {
 							}, false),
 						},
 						"delete_retention_ms": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateUint64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateUint64(),
 						},
 						"file_delete_delay_ms": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateUint64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateUint64(),
 						},
 						"flush_messages": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateUint64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateUint64(),
 						},
 						"flush_ms": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateUint64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateUint64(),
 						},
 						"index_interval_bytes": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateUint64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateUint64(),
 						},
 						"max_compaction_lag_ms": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateUint64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateUint64(),
 						},
 						"max_message_bytes": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateUint64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateUint64(),
 						},
 						"message_down_conversion_enable": {
 							Type:     schema.TypeBool,
@@ -211,10 +212,10 @@ func ResourceDigitalOceanDatabaseKafkaTopic() *schema.Resource {
 							}, false),
 						},
 						"message_timestamp_difference_max_ms": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateInt64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateInt64(),
 						},
 						"message_timestamp_type": {
 							Type:     schema.TypeString,
@@ -232,10 +233,10 @@ func ResourceDigitalOceanDatabaseKafkaTopic() *schema.Resource {
 							ValidateFunc: validation.FloatBetween(0.0, 1.0),
 						},
 						"min_compaction_lag_ms": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateUint64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateUint64(),
 						},
 						"min_insync_replicas": {
 							Type:         schema.TypeInt,
@@ -249,40 +250,40 @@ func ResourceDigitalOceanDatabaseKafkaTopic() *schema.Resource {
 							Computed: true,
 						},
 						"retention_bytes": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateInt64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateInt64(),
 						},
 						"retention_ms": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateInt64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateInt64(),
 						},
 						"segment_bytes": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateUint64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateUint64(),
 						},
 						"segment_index_bytes": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateUint64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateUint64(),
 						},
 						"segment_jitter_ms": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateUint64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateUint64(),
 						},
 						"segment_ms": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validateUint64(),
+							Type:             schema.TypeString,
+							Optional:         true,
+							Computed:         true,
+							ValidateDiagFunc: validateUint64(),
 						},
 					},
 				},
@@ -423,25 +424,35 @@ func makeKafkaTopicID(clusterID string, name string) string {
 	return fmt.Sprintf("%s/topic/%s", clusterID, name)
 }
 
-func validateInt64() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (warnings []string, errors []error) {
+func validateInt64() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
 		_, err := strconv.ParseInt(i.(string), 10, 64)
 		if err != nil {
-			errors = append(errors, fmt.Errorf("expected type of %s to be int64", k))
-			return warnings, errors
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Invalid integer",
+				Detail:   fmt.Sprintf("expected type of %s to be int64", path),
+			})
+			return diags
 		}
-		return warnings, errors
+		return diags
 	}
 }
 
-func validateUint64() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (warnings []string, errors []error) {
+func validateUint64() schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
 		_, err := strconv.ParseUint(i.(string), 10, 64)
 		if err != nil {
-			errors = append(errors, fmt.Errorf("expected type of %s to be uint64", k))
-			return warnings, errors
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Invalid unsigned integer",
+				Detail:   fmt.Sprintf("expected type of %s to be uint64", path),
+			})
+			return diags
 		}
-		return warnings, errors
+		return diags
 	}
 }
 

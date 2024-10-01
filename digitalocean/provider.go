@@ -1,6 +1,8 @@
 package digitalocean
 
 import (
+	"context"
+
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/account"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/app"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/cdn"
@@ -28,6 +30,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpc"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpcpeering"
 
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -187,14 +190,19 @@ func Provider() *schema.Provider {
 		},
 	}
 
-	p.ConfigureFunc = func(d *schema.ResourceData) (interface{}, error) {
+	p.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 		terraformVersion := p.TerraformVersion
 		if terraformVersion == "" {
 			// Terraform 0.12 introduced this field to the protocol
 			// We can therefore assume that if it's missing it's 0.10 or 0.11
 			terraformVersion = "0.11+compatible"
 		}
-		return providerConfigure(d, terraformVersion)
+		client, err := providerConfigure(d, terraformVersion)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		return client, nil
 	}
 
 	return p
