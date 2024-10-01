@@ -16,7 +16,7 @@ func TestAccDataSourceDigitalOceanSizes_Basic(t *testing.T) {
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanSizesConfigBasic),
+				Config: testAccCheckDataSourceDigitalOceanSizesConfigBasic,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanSizesExist("data.digitalocean_sizes.foobar"),
 				),
@@ -31,7 +31,7 @@ func TestAccDataSourceDigitalOceanSizes_WithFilterAndSort(t *testing.T) {
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanSizesConfigWithFilterAndSort),
+				Config: testAccCheckDataSourceDigitalOceanSizesConfigWithFilterAndSort,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanSizesExist("data.digitalocean_sizes.foobar"),
 					testAccCheckDataSourceDigitalOceanSizesFilteredAndSorted("data.digitalocean_sizes.foobar"),

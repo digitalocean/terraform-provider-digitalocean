@@ -161,7 +161,7 @@ func resourceDigitalOceanMonitorAlertCreate(ctx context.Context, d *schema.Resou
 
 	alertCreateRequest := &godo.AlertPolicyCreateRequest{
 		Type:        d.Get("type").(string),
-		Enabled:     godo.Bool(d.Get("enabled").(bool)),
+		Enabled:     godo.PtrTo(d.Get("enabled").(bool)),
 		Description: d.Get("description").(string),
 		Tags:        tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
 		Compare:     godo.AlertPolicyComp(d.Get("compare").(string)),
@@ -277,7 +277,7 @@ func resourceDigitalOceanMonitorAlertUpdate(ctx context.Context, d *schema.Resou
 
 	updateRequest := &godo.AlertPolicyUpdateRequest{
 		Type:        d.Get("type").(string),
-		Enabled:     godo.Bool(d.Get("enabled").(bool)),
+		Enabled:     godo.PtrTo(d.Get("enabled").(bool)),
 		Description: d.Get("description").(string),
 		Tags:        tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
 		Compare:     godo.AlertPolicyComp(d.Get("compare").(string)),
