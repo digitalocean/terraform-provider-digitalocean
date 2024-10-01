@@ -809,9 +809,9 @@ func dropletStateRefreshFunc(
 
 		// See if we can access our attribute
 		if attr, ok := d.GetOkExists(attribute); ok {
-			switch attr.(type) {
+			switch attr := attr.(type) {
 			case bool:
-				return &droplet, strconv.FormatBool(attr.(bool)), nil
+				return &droplet, strconv.FormatBool(attr), nil
 			default:
 				return &droplet, attr.(string), nil
 			}

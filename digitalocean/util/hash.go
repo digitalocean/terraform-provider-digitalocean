@@ -23,9 +23,9 @@ func HashStringIgnoreCase(v interface{}) int {
 // HashStringStateFunc implements a schema.SchemaStateFunc with HashString
 func HashStringStateFunc() schema.SchemaStateFunc {
 	return func(v interface{}) string {
-		switch v.(type) {
+		switch v := v.(type) {
 		case string:
-			return HashString(v.(string))
+			return HashString(v)
 		default:
 			return ""
 		}

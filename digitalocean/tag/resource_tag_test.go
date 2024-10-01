@@ -102,7 +102,7 @@ func testAccCheckDigitalOceanTagExists(n string, tag *godo.Tag) resource.TestChe
 	}
 }
 
-var testAccCheckDigitalOceanTagConfig_basic = fmt.Sprintf(`
+var testAccCheckDigitalOceanTagConfig_basic = `
 resource "digitalocean_tag" "foobar" {
   name = "foobar"
-}`)
+}`
