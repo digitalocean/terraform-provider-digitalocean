@@ -197,7 +197,7 @@ func testAccCheckDigitalOceanVolumeAttachmentExists(rn string) resource.TestChec
 			return err
 		}
 
-		if got.DropletIDs == nil || len(got.DropletIDs) == 0 || got.DropletIDs[0] != dropletId {
+		if len(got.DropletIDs) == 0 || got.DropletIDs[0] != dropletId {
 			return fmt.Errorf("wrong volume attachment found for volume %s, got %q wanted %q", volumeId, got.DropletIDs[0], dropletId)
 		}
 
