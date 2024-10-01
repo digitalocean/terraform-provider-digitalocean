@@ -27,7 +27,7 @@ linters:
     - gosimple
     # TODO: Enable addition linters
     # - deadcode
-    # - errcheck
+    - errcheck
     - ineffassign
     - unused
 

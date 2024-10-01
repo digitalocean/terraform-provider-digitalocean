@@ -663,7 +663,10 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 			}
 		}
 		for volumeID := range leftDiff(oldIDSet, newIDSet) {
-			detachVolumeIDOnDroplet(d, volumeID, meta)
+			err := detachVolumeIDOnDroplet(d, volumeID, meta)
+			if err != nil {
+				return nil
+			}
 		}
 	}
 
@@ -849,7 +852,10 @@ func detachVolumesFromDroplet(d *schema.ResourceData, meta interface{}) error {
 	if attr, ok := d.GetOk("volume_ids"); ok {
 		errors = make([]error, 0, attr.(*schema.Set).Len())
 		for _, volumeID := range attr.(*schema.Set).List() {
-			detachVolumeIDOnDroplet(d, volumeID.(string), meta)
+			err := detachVolumeIDOnDroplet(d, volumeID.(string), meta)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
