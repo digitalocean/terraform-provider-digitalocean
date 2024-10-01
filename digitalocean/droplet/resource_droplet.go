@@ -665,7 +665,8 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 		for volumeID := range leftDiff(oldIDSet, newIDSet) {
 			err := detachVolumeIDOnDroplet(d, volumeID, meta)
 			if err != nil {
-				return nil
+				return diag.Errorf("Error detaching volume %q on droplet %s: %s", volumeID, d.Id(), err)
+
 			}
 		}
 	}
