@@ -10,11 +10,11 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/certificate"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func loadbalancerStateRefreshFunc(client *godo.Client, loadbalancerId string) resource.StateRefreshFunc {
+func loadbalancerStateRefreshFunc(client *godo.Client, loadbalancerId string) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		lb, _, err := client.LoadBalancers.Get(context.Background(), loadbalancerId)
 		if err != nil {

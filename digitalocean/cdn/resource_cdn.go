@@ -12,7 +12,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -239,21 +239,21 @@ func getCDNWithRetryBackoff(ctx context.Context, client *godo.Client, id string)
 		timeout = 30 * time.Second
 		err     error
 	)
-	err = resource.RetryContext(ctx, timeout, func() *resource.RetryError {
+	err = retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 		cdn, resp, err = client.CDNs.Get(ctx, id)
 		if err != nil {
 			if util.IsDigitalOceanError(err, http.StatusNotFound, "") {
 				log.Printf("[DEBUG] Received %s, retrying CDN", err.Error())
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			}
 
 			if util.IsDigitalOceanError(err, http.StatusTooManyRequests, "") {
 				log.Printf("[DEBUG] Received %s, backing off", err.Error())
 				time.Sleep(10 * time.Second)
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			}
 
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		}
 
 		return nil
@@ -318,16 +318,16 @@ func resourceDigitalOceanCDNDelete(ctx context.Context, d *schema.ResourceData, 
 	resourceID := d.Id()
 
 	timeout := 30 * time.Second
-	err := resource.RetryContext(ctx, timeout, func() *resource.RetryError {
+	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 		_, err := client.CDNs.Delete(context.Background(), resourceID)
 		if err != nil {
 			if util.IsDigitalOceanError(err, http.StatusTooManyRequests, "") {
 				log.Printf("[DEBUG] Received %s, backing off", err.Error())
 				time.Sleep(10 * time.Second)
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			}
 
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		}
 
 		return nil

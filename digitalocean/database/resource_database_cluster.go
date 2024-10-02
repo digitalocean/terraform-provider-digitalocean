@@ -344,7 +344,7 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 	d.SetId(database.ID)
 	log.Printf("[INFO] database cluster Name: %s", database.Name)
 
-	database, err = waitForDatabaseCluster(client, d, "online")
+	_, err = waitForDatabaseCluster(client, d, "online")
 	if err != nil {
 		d.SetId("")
 		return diag.Errorf("Error creating database cluster: %s", err)

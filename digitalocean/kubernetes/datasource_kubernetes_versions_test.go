@@ -15,7 +15,7 @@ func TestAccDataSourceDigitalOceanKubernetesVersions_Basic(t *testing.T) {
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanKubernetesVersionsConfig_basic),
+				Config: testAccCheckDataSourceDigitalOceanKubernetesVersionsConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_kubernetes_versions.foobar", "latest_version"),
@@ -31,7 +31,7 @@ func TestAccDataSourceDigitalOceanKubernetesVersions_Filtered(t *testing.T) {
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanKubernetesVersionsConfig_filtered),
+				Config: testAccCheckDataSourceDigitalOceanKubernetesVersionsConfig_filtered,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_kubernetes_versions.foobar", "valid_versions.#", "0"),

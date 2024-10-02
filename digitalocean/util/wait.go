@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 )
 
 // WaitForAction waits for the action to finish using the resource.StateChangeConf.
@@ -27,7 +27,7 @@ func WaitForAction(client *godo.Client, action *godo.Action) error {
 			return a, pending, nil
 		}
 	)
-	_, err := (&resource.StateChangeConf{
+	_, err := (&retry.StateChangeConf{
 		Pending: []string{pending},
 		Refresh: refreshfn,
 		Target:  []string{target},
@@ -40,6 +40,6 @@ func WaitForAction(client *godo.Client, action *godo.Action) error {
 		// https://github.com/hashicorp/terraform/issues/481
 		//
 		NotFoundChecks: 60,
-	}).WaitForState()
+	}).WaitForStateContext(context.Background())
 	return err
 }

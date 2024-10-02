@@ -14,7 +14,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -257,7 +257,7 @@ func resourceDigitalOceanCustomImageDelete(ctx context.Context, d *schema.Resour
 
 func waitForImage(ctx context.Context, d *schema.ResourceData, target string, pending []string, attribute string, meta interface{}) (interface{}, error) {
 	log.Printf("[INFO] Waiting for image (%s) to have %s of %s", d.Id(), attribute, target)
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
 		Refresh:    imageStateRefreshFunc(ctx, d, attribute, meta),
@@ -269,7 +269,7 @@ func waitForImage(ctx context.Context, d *schema.ResourceData, target string, pe
 	return stateConf.WaitForStateContext(ctx)
 }
 
-func imageStateRefreshFunc(ctx context.Context, d *schema.ResourceData, state string, meta interface{}) resource.StateRefreshFunc {
+func imageStateRefreshFunc(ctx context.Context, d *schema.ResourceData, state string, meta interface{}) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		client := meta.(*config.CombinedConfig).GodoClient()
 

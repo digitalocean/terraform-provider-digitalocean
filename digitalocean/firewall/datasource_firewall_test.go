@@ -1,7 +1,6 @@
 package firewall_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -18,7 +17,7 @@ data "digitalocean_firewall" "foobar" {
 	var firewall godo.Firewall
 	fwName := acceptance.RandomTestName()
 
-	fwCreateConfig := fmt.Sprintf(testAccDigitalOceanFirewallConfig_OnlyInbound(fwName))
+	fwCreateConfig := testAccDigitalOceanFirewallConfig_OnlyInbound(fwName)
 	updatedFWCreateConfig := testAccDigitalOceanFirewallConfig_OnlyMultipleInbound(fwName)
 
 	resource.ParallelTest(t, resource.TestCase{

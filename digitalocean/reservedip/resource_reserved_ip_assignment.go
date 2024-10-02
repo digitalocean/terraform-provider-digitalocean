@@ -11,7 +11,8 @@ import (
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -61,7 +62,7 @@ func resourceDigitalOceanReservedIPAssignmentCreate(ctx context.Context, d *sche
 			"Error waiting for reserved IP (%s) to be Assigned: %s", ipAddress, unassignedErr)
 	}
 
-	d.SetId(resource.PrefixedUniqueId(fmt.Sprintf("%d-%s-", dropletID, ipAddress)))
+	d.SetId(id.PrefixedUniqueId(fmt.Sprintf("%d-%s-", dropletID, ipAddress)))
 	return resourceDigitalOceanReservedIPAssignmentRead(ctx, d, meta)
 }
 
@@ -123,7 +124,7 @@ func waitForReservedIPAssignmentReady(
 		"[INFO] Waiting for reserved IP (%s) to have %s of %s",
 		d.Get("ip_address").(string), attribute, target)
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
 		Refresh:    newReservedIPAssignmentStateRefreshFunc(d, attribute, meta, actionID),
@@ -138,7 +139,7 @@ func waitForReservedIPAssignmentReady(
 }
 
 func newReservedIPAssignmentStateRefreshFunc(
-	d *schema.ResourceData, attribute string, meta interface{}, actionID int) resource.StateRefreshFunc {
+	d *schema.ResourceData, attribute string, meta interface{}, actionID int) retry.StateRefreshFunc {
 	client := meta.(*config.CombinedConfig).GodoClient()
 	return func() (interface{}, string, error) {
 
@@ -156,7 +157,7 @@ func newReservedIPAssignmentStateRefreshFunc(
 func resourceDigitalOceanReservedIPAssignmentImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	if strings.Contains(d.Id(), ",") {
 		s := strings.Split(d.Id(), ",")
-		d.SetId(resource.PrefixedUniqueId(fmt.Sprintf("%s-%s-", s[1], s[0])))
+		d.SetId(id.PrefixedUniqueId(fmt.Sprintf("%s-%s-", s[1], s[0])))
 		d.Set("ip_address", s[0])
 		dropletID, err := strconv.Atoi(s[1])
 		if err != nil {

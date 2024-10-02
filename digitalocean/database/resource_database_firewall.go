@@ -8,7 +8,7 @@ import (
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -81,7 +81,7 @@ func resourceDigitalOceanDatabaseFirewallCreate(ctx context.Context, d *schema.R
 		return diag.Errorf("Error creating DatabaseFirewall: %s", err)
 	}
 
-	d.SetId(resource.PrefixedUniqueId(clusterID + "-"))
+	d.SetId(id.PrefixedUniqueId(clusterID + "-"))
 
 	return resourceDigitalOceanDatabaseFirewallRead(ctx, d, meta)
 }
@@ -142,7 +142,7 @@ func resourceDigitalOceanDatabaseFirewallDelete(ctx context.Context, d *schema.R
 func resourceDigitalOceanDatabaseFirewallImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	clusterID := d.Id()
 	d.Set("cluster_id", clusterID)
-	d.SetId(resource.PrefixedUniqueId(clusterID + "-"))
+	d.SetId(id.PrefixedUniqueId(clusterID + "-"))
 
 	return []*schema.ResourceData{d}, nil
 }

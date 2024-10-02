@@ -5,15 +5,6 @@ run:
 issues:
   max-per-linter: 0
   max-same-issues: 0
-  exclude-rules:
-    #TODO: Enable failing gosimple checks
-    - linters:
-        - gosimple
-      text: "S(1007|1034|1039|1009)"
-    # TODO: Enable failing staticchecks
-    - linters:
-        - staticcheck
-      text: "SA(1006|1019|4006|6005):"
 
 linters:
   disable-all: true
