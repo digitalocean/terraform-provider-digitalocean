@@ -1,7 +1,6 @@
 package account_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
@@ -15,7 +14,7 @@ func TestAccDataSourceDigitalOceanAccount_Basic(t *testing.T) {
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanAccountConfig_basic),
+				Config: testAccCheckDataSourceDigitalOceanAccountConfig_basic,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_account.foobar", "uuid"),

@@ -8,5 +8,5 @@ import (
 
 // CaseSensitive implements a schema.SchemaDiffSuppressFunc that ignores case
 func CaseSensitive(_, old, new string, _ *schema.ResourceData) bool {
-	return strings.ToLower(old) == strings.ToLower(new)
+	return strings.EqualFold(old, new)
 }

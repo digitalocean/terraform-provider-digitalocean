@@ -13,7 +13,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -605,7 +605,7 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 		EnableProxyProtocol:          d.Get("enable_proxy_protocol").(bool),
 		EnableBackendKeepalive:       d.Get("enable_backend_keepalive").(bool),
 		ForwardingRules:              forwardingRules,
-		DisableLetsEncryptDNSRecords: godo.Bool(d.Get("disable_lets_encrypt_dns_records").(bool)),
+		DisableLetsEncryptDNSRecords: godo.PtrTo(d.Get("disable_lets_encrypt_dns_records").(bool)),
 		ProjectID:                    d.Get("project_id").(string),
 	}
 	sizeUnit, ok := d.GetOk("size_unit")
@@ -700,7 +700,7 @@ func resourceDigitalOceanLoadbalancerCreate(ctx context.Context, d *schema.Resou
 	d.SetId(loadbalancer.ID)
 
 	log.Printf("[DEBUG] Waiting for Load Balancer (%s) to become active", d.Get("name"))
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"new"},
 		Target:     []string{"active"},
 		Refresh:    loadbalancerStateRefreshFunc(client, d.Id()),

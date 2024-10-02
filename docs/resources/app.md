@@ -20,9 +20,8 @@ resource "digitalocean_app" "golang-sample" {
 
     service {
       name               = "go-service"
-      environment_slug   = "go"
       instance_count     = 1
-      instance_size_slug = "professional-xs"
+      instance_size_slug = "apps-s-1vcpu-1gb"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
@@ -73,10 +72,9 @@ resource "digitalocean_app" "mono-repo-example" {
     # Build a Go project in the api/ directory that listens on port 3000
     # and serves it at https://foo.example.com/api
     service {
-      name               = "api"
-      environment_slug   = "go"
+      name               = "go-api"
       instance_count     = 2
-      instance_size_slug = "professional-xs"
+      instance_size_slug = "apps-s-1vcpu-1gb"
 
       github {
         branch         = "main"
@@ -160,9 +158,8 @@ resource "digitalocean_app" "golang-sample" {
 
     service {
       name               = "go-service"
-      environment_slug   = "go"
       instance_count     = 1
-      instance_size_slug = "professional-xs"
+      instance_size_slug = "apps-s-1vcpu-1gb"
 
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
@@ -515,6 +512,7 @@ In addition to the above attributes, the following are exported:
 - `id` - The ID of the app.
 - `default_ingress` - The default URL to access the app.
 - `live_url` - The live URL of the app.
+- `live_domain` - The live domain of the app.
 - `active_deployment_id` - The ID the app's currently active deployment.
 - `urn` - The uniform resource identifier for the app.
 - `updated_at` - The date and time of when the app was last updated.

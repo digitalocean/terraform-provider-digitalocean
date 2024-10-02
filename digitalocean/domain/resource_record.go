@@ -163,7 +163,7 @@ func resourceDigitalOceanRecordCreate(ctx context.Context, d *schema.ResourceDat
 
 	newRecord.Type = d.Get("type").(string)
 
-	_, hasPort := d.GetOkExists("port")
+	_, hasPort := d.GetOk("port")
 	if newRecord.Type == "SRV" && !hasPort {
 		return diag.Errorf("`port` is required for when type is `SRV`")
 	}

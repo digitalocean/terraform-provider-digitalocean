@@ -1,3 +1,38 @@
+## 2.42.0
+
+IMPROVEMENTS:
+
+- #1218 - @loosla - [databases]: add support for Kafka advanced configuration
+- #1215 - @bhardwajRahul - Update Terraform provider to include new opensearch acl changes
+- #1212 - @loosla - [databases]: add support for MongoDB advanced configuration
+
+MISC:
+
+- #1231 - @jameskim0987 - [ISSUE-1228] Resolve failing linter: ineffassign and enable back
+- #1230 - @jameskim0987 - [ISSUE-1229] Resolve failing linter: unused and enable back
+- #1214 - @andrewsomething - Update workflows for Go 1.22.
+- #1213 - @loosla - upgrade godo
+
+## 2.41.0
+
+IMPROVEMENTS:
+
+- #1209 - @andrewsomething - apps: expose live_domain computed attribute.
+- #1202 - @zoispag - Add support for Spaces in LON1
+- #1200 - @GiovanniColonni - Added support for opensearch configuration on log_destination block
+
+BUG FIXES:
+
+- #1204 - @andrewsomething - ssh: protect against database race condition in create
+- #1193 - @linuxluigi - Fix Postgres Config TimescaleDB configuration
+
+MISC:
+
+- #1208 - @andrewsomething - apps: update examples to remove environment_slug
+- #1203 - @andrewsomething - dbaas: Use standardized name prefix in tests.
+- #1198 - @seano-vs - Add opensearch to cluster reference
+- #1197 - @stooj - fix(docs): include newly supported alerts
+
 ## 2.40.0
 
 IMPROVEMENTS:

@@ -14,7 +14,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -161,13 +161,13 @@ func resourceDigitalOceanDatabaseReplicaCreate(ctx context.Context, d *schema.Re
 
 	// Retry requests that fail w. Failed Precondition (412). New DBs can be marked ready while
 	// first backup is still being created.
-	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		rc, resp, err := client.Databases.CreateReplica(context.Background(), clusterId, opts)
 		if err != nil {
 			if resp.StatusCode == 412 {
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			} else {
-				return resource.NonRetryableError(fmt.Errorf("Error creating DatabaseReplica: %s", err))
+				return retry.NonRetryableError(fmt.Errorf("Error creating DatabaseReplica: %s", err))
 			}
 		}
 		replicaCluster = rc
