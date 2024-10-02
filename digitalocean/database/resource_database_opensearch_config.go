@@ -243,9 +243,9 @@ func ResourceDigitalOceanDatabaseOpensearchConfig() *schema.Resource {
 				Computed: true,
 			},
 			"reindex_remote_whitelist": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
 				Optional: true,
-				Computed: true,
 			},
 		},
 	}
@@ -431,7 +431,17 @@ func updateOpensearchConfig(ctx context.Context, d *schema.ResourceData, client 
 	}
 
 	if v, ok := d.GetOk("reindex_remote_whitelist"); ok {
-		opts.ReindexRemoteWhitelist = make([]string, 0, len(v.([]interface{})))
+		if exampleSet, ok := v.(*schema.Set); ok {
+			var items []string
+			for _, item := range exampleSet.List() {
+				if str, ok := item.(string); ok {
+					items = append(items, str)
+				} else {
+					return fmt.Errorf("non-string item found in set") // todo: anna update err message
+				}
+			}
+			opts.ReindexRemoteWhitelist = items
+		}
 	}
 
 	log.Printf("[DEBUG] Opensearch configuration: %s", godo.Stringify(opts))
