@@ -50,6 +50,8 @@ resource "digitalocean_database_opensearch_config" "example" {
   script_max_compilations_rate                          = "use-context"
   cluster_max_shards_per_node                           = 0
   cluster_routing_allocation_node_concurrent_recoveries = 2
+  plugins_alerting_filter_by_backend_roles_enabled      = false
+  reindex_remote_whitelist                              = ["cloud.digitalocean.com:8080"]
 }
 
 resource "digitalocean_database_cluster" "example" {
@@ -105,6 +107,8 @@ for additional details on each option.
 * `script_max_compilations_rate` - (Optional) Limits the number of inline script compilations within a period of time. Default is `use-context`
 * `cluster_max_shards_per_node` - (Optional) Maximum number of shards allowed per data node.
 * `cluster_routing_allocation_node_concurrent_recoveries` - (Optional) Maximum concurrent incoming/outgoing shard recoveries (normally replicas) are allowed to happen per node. Default: `2`
+* `plugins_alerting_filter_by_backend_roles_enabled` - (Optional) Enable or disable filtering of alerting by backend roles. Default: `false`
+* `reindex_remote_whitelist` - (Optional) Allowlist of remote IP addresses for reindexing. Changing this value will cause all OpenSearch instances to restart.
 
 ## Attributes Reference
 

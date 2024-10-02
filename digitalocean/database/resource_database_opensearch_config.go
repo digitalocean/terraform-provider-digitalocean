@@ -237,6 +237,16 @@ func ResourceDigitalOceanDatabaseOpensearchConfig() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.IntAtLeast(2),
 			},
+			"plugins_alerting_filter_by_backend_roles_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Computed: true,
+			},
+			"reindex_remote_whitelist": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -416,6 +426,14 @@ func updateOpensearchConfig(ctx context.Context, d *schema.ResourceData, client 
 		opts.ClusterRoutingAllocationNodeConcurrentRecoveries = godo.PtrTo(v.(int))
 	}
 
+	if v, ok := d.GetOk("plugins_alerting_filter_by_backend_roles_enabled"); ok {
+		opts.PluginsAlertingFilterByBackendRolesEnabled = godo.PtrTo(v.(bool))
+	}
+
+	if v, ok := d.GetOk("reindex_remote_whitelist"); ok {
+		opts.ReindexRemoteWhitelist = make([]string, 0, len(v.([]interface{})))
+	}
+
 	log.Printf("[DEBUG] Opensearch configuration: %s", godo.Stringify(opts))
 
 	if _, err := client.Databases.UpdateOpensearchConfig(ctx, clusterID, opts); err != nil {
@@ -475,6 +493,8 @@ func resourceDigitalOceanDatabaseOpensearchConfigRead(ctx context.Context, d *sc
 	d.Set("script_max_compilations_rate", config.ScriptMaxCompilationsRate)
 	d.Set("cluster_max_shards_per_node", config.ClusterMaxShardsPerNode)
 	d.Set("cluster_routing_allocation_node_concurrent_recoveries", config.ClusterRoutingAllocationNodeConcurrentRecoveries)
+	d.Set("plugins_alerting_filter_by_backend_roles_enabled", config.PluginsAlertingFilterByBackendRolesEnabled)
+	d.Set("reindex_remote_whitelist", config.ReindexRemoteWhitelist)
 
 	return nil
 }
