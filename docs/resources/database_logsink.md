@@ -10,15 +10,15 @@ Provides a DigitalOcean database logsink capabilities. Can be configured with rs
 
 ```hcl
 resource "digitalocean_database_logsink" "logsink-01" {
-  cluster_id         = digitalocean_database_cluster.doby.id
-  sink_name = "sinkexample"
-  sink_type = "opensearch"
+  cluster_id = digitalocean_database_cluster.doby.id
+  sink_name  = "sinkexample"
+  sink_type  = "opensearch"
 
 
   config {
-    url= "https://user:passwd@192.168.0.1:25060"
-    index_prefix= "opensearch-logs"
-    index_days_max= 5
+    url            = "https://user:passwd@192.168.0.1:25060"
+    index_prefix   = "opensearch-logs"
+    index_days_max = 5
   }
 }
 
@@ -32,7 +32,6 @@ resource "digitalocean_database_cluster" "doby" {
   tags       = ["production"]
 }
 ```
-
 
 ## Argument Reference
 
@@ -65,9 +64,6 @@ for additional details on each option.
         - `index_days_max` - (Optional) Maximum number of days of logs to keep.
         - `timeout` - (Optional) Opensearch request timeout limit.
         - `ca` - (Optional) PEM encoded CA certificate.
-
-
-
 
 ## Attributes Reference
 
