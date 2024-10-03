@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"time"
 
@@ -124,9 +125,10 @@ func ResourceDigitalOceanDatabaseLogsink() *schema.Resource {
 							Description: "Index prefix. Required for Opensearch and Elasticsearch.",
 						},
 						"timeout": {
-							Type:        schema.TypeFloat,
-							Optional:    true,
-							Description: "Default 10 days. Elasticsearch/Opensearch request timeout limit",
+							Type:         schema.TypeFloat,
+							Optional:     true,
+							Description:  "Default 10 days. Elasticsearch/Opensearch request timeout limit",
+							ValidateFunc: validation.FloatBetween(10, 120),
 						},
 					},
 				},
@@ -250,7 +252,9 @@ func expandLogsinkConfig(config []interface{}) *godo.DatabaseLogsinkConfig {
 	}
 
 	if v, ok := configMap["timeout"]; ok {
-		logsinkConfigOpts.Timeout = v.(float32)
+		if v.(float64) > float64(math.SmallestNonzeroFloat32) || v.(float64) < float64(math.MaxFloat32) {
+			logsinkConfigOpts.Timeout = float32(v.(float64))
+		}
 	}
 
 	return logsinkConfigOpts
@@ -295,7 +299,7 @@ func resourceDigitalOceanDatabaseLogsinkImport(d *schema.ResourceData, meta inte
 		d.Set("cluster_id", s[0])
 		d.Set("sink_id", s[1])
 	} else {
-		return nil, errors.New("must use the ID of the source kafka cluster and the name of the topic joined with a comma (e.g. `id,name`)")
+		return nil, errors.New("must use the ID of the source cluster and logsink id joined with a comma (e.g. `id,sink_id`)")
 	}
 
 	return []*schema.ResourceData{d}, nil
