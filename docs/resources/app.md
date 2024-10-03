@@ -172,7 +172,7 @@ resource "digitalocean_app" "golang-sample" {
         open_search {
           endpoint = "https://something:1234"
           basic_auth {
-            user = "user"
+            user     = "user"
             password = "hi"
           }
         }
