@@ -10,7 +10,7 @@ import (
 
 func TestAccDigitalOceanDatabaseOpensearchConfig_Basic(t *testing.T) {
 	name := acceptance.RandomTestName()
-	dbConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterOpensearch, name, "3.7")
+	dbConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterOpensearch, name, "2")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
