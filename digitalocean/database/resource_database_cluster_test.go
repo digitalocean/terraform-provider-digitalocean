@@ -887,9 +887,9 @@ resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "opensearch"
   version    = "%s"
-  size       = "db-s-2vcpu-2gb"
+  size       = "db-s-1vcpu-2gb"
   region     = "nyc1"
-  node_count = 3
+  node_count = 1
   tags       = ["production"]
 }`
 
