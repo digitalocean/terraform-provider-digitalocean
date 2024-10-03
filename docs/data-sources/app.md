@@ -95,6 +95,22 @@ A `service` can contain:
   - `metrics` - The metrics that the component is scaled on.
     - `cpu` - Settings for scaling the component based on CPU utilization.
       - `percent` - The average target CPU utilization for the component.
+* `log_destination` - Describes a log forwarding destination.
+  - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
+  - `papertrail` - Papertrail configuration.
+      - `endpoint` - Papertrail syslog endpoint.
+  - `datadog` - Datadog configuration.
+      - `endpoint` - Datadog HTTP log intake endpoint.
+      - `api_key` - Datadog API key.
+  - `logtail` - Logtail configuration.
+      - `token` - Logtail token.
+  - `opensearch` - OpenSearch configuration
+      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+      - `basic_auth` - OpenSearch basic auth
+          - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to doadmin when cluster_name is set.
+          - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
+      - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
+      - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
 
 A `static_site` can contain:
 
@@ -160,6 +176,22 @@ A `worker` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+* `log_destination` - Describes a log forwarding destination.
+  - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
+  - `papertrail` - Papertrail configuration.
+      - `endpoint` - Papertrail syslog endpoint.
+  - `datadog` - Datadog configuration.
+      - `endpoint` - Datadog HTTP log intake endpoint.
+      - `api_key` - Datadog API key.
+  - `logtail` - Logtail configuration.
+      - `token` - Logtail token.
+  - `opensearch` - OpenSearch configuration
+      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+      - `basic_auth` - OpenSearch basic auth
+          - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to doadmin when cluster_name is set.
+          - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
+      - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
+      - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
 
 A `job` can contain:
 
@@ -199,6 +231,22 @@ A `job` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+* `log_destination` - Describes a log forwarding destination.
+  - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
+  - `papertrail` - Papertrail configuration.
+      - `endpoint` - Papertrail syslog endpoint.
+  - `datadog` - Datadog configuration.
+      - `endpoint` - Datadog HTTP log intake endpoint.
+      - `api_key` - Datadog API key.
+  - `logtail` - Logtail configuration.
+      - `token` - Logtail token.
+  - `opensearch` - OpenSearch configuration
+      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+      - `basic_auth` - OpenSearch basic auth
+          - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to doadmin when cluster_name is set.
+          - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
+      - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
+      - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
 
 A `function` component can contain:
 
@@ -242,19 +290,19 @@ A `function` component can contain:
 * `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.
-    - `endpoint` - Papertrail syslog endpoint.
+      - `endpoint` - Papertrail syslog endpoint.
   - `datadog` - Datadog configuration.
-    - `endpoint` - Datadog HTTP log intake endpoint.
-    - `api_key` - Datadog API key.
+      - `endpoint` - Datadog HTTP log intake endpoint.
+      - `api_key` - Datadog API key.
   - `logtail` - Logtail configuration.
-    - `token` - Logtail token.
+      - `token` - Logtail token.
   - `opensearch` - OpenSearch configuration
-    - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
-    - `basic_auth` - OpenSearch basic auth
-        - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to doadmin when cluster_name is set.
-        - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
-    - `index_name` - The index name to use for the logs. If not set, the default index name is \"logs\".
-    -`cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
+      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+      - `basic_auth` - OpenSearch basic auth
+          - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to doadmin when cluster_name is set.
+          - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
+      - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
+      - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
 
 
 A `database` can contain:
