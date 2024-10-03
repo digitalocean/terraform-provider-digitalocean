@@ -193,7 +193,10 @@ func TestRevokeOAuthToken(t *testing.T) {
 			t.Errorf("auth header  = %v, expected %v", authHeader, expectedAuth)
 		}
 
-		r.ParseForm()
+		err := r.ParseForm()
+		if err != nil {
+			return
+		}
 		bodyToken := r.Form.Get("token")
 		if token != bodyToken {
 			t.Errorf("token  = %v, expected %v", bodyToken, token)
