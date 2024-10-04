@@ -150,7 +150,6 @@ func resourceDigitalOceanDatabaseLogsinkCreate(ctx context.Context, d *schema.Re
 		opts.Config = expandLogsinkConfig(v.([]interface{}))
 	}
 
-	log.Printf("[DEBUG] Database logsink create configuration: %#v", opts)
 	logsink, _, err := client.Databases.CreateLogsink(context.Background(), clusterID, opts)
 	if err != nil {
 		return diag.Errorf("Error creating database logsink: %s", err)
@@ -163,6 +162,10 @@ func resourceDigitalOceanDatabaseLogsinkCreate(ctx context.Context, d *schema.Re
 	logsinkIDFormat := makeDatabaseLogsinkID(clusterID, logsink.ID)
 	log.Printf("[DEBUGGGG] Database logsink create configuration: %#v", logsinkIDFormat)
 	d.SetId(logsinkIDFormat)
+	d.Set("sink_id", logsink.ID)
+
+	log.Printf("[DEBUGGGG] Database LOGSINK - logsink.ID: %#v", logsink.ID)
+	log.Printf("[DEBUGGGG] Database LOGSINK - d sink_id: %#v", d.Get("sink_id").(string))
 
 	return resourceDigitalOceanDatabaseLogsinkRead(ctx, d, meta)
 }
@@ -201,7 +204,7 @@ func resourceDigitalOceanDatabaseLogsinkDelete(ctx context.Context, d *schema.Re
 
 func expandLogsinkConfig(config []interface{}) *godo.DatabaseLogsinkConfig {
 	logsinkConfigOpts := &godo.DatabaseLogsinkConfig{}
-	configMap := config[0].(map[string]interface{})
+	configMap := config[0].(map[string]interface{}) // TODO: check out expandAppSpecServices
 
 	if v, ok := configMap["server"]; ok {
 		logsinkConfigOpts.Server = v.(string)
@@ -265,7 +268,10 @@ func resourceDigitalOceanDatabaseLogsinkRead(ctx context.Context, d *schema.Reso
 	clusterID := d.Get("cluster_id").(string)
 	logsinkID := d.Get("sink_id").(string)
 
-	logsink, resp, err := client.Databases.GetLogsink(context.TODO(), clusterID, logsinkID)
+	logsink, resp, err := client.Databases.GetLogsink(ctx, clusterID, logsinkID)
+	log.Printf("[DEBUG] Read LOGSINK - logsink: %#v", logsink)
+	log.Printf("[DEBUG] Read LOGSINK - resp: %#v", resp)
+	log.Printf("[DEBUG] Read LOGSINK - err: %#v", err)
 	if err != nil {
 		// If the logsink is somehow already destroyed, mark as
 		// successfully gone
@@ -277,15 +283,18 @@ func resourceDigitalOceanDatabaseLogsinkRead(ctx context.Context, d *schema.Reso
 		return diag.Errorf("Error retrieving logsink: %s", err)
 	}
 
-	d.Set("sink_name", logsink.Name)
+	d.Set("sink_name", logsink.Name) // TODO: nil - fix
 	d.Set("sink_type", logsink.Type)
 
-	err = d.Set("config", flattenDatabaseLogsinkConfig(logsink.Config))
-	if err != nil {
-		return diag.FromErr(err)
-	} else {
-		return nil
+	log.Printf("[DEBUG] TRACE 1")
+	log.Printf("[DEBUG] logsink.Config: %v ", logsink.Config)
+	if err := d.Set("config", flattenDatabaseLogsinkConfig(logsink.Config)); err != nil {
+		log.Printf("[DEBUG] TRACE 2")
+		return diag.Errorf("Error setting logsink config: %#v", err)
 	}
+	log.Printf("[DEBUG] TRACE 3")
+
+	return nil
 }
 
 func resourceDigitalOceanDatabaseLogsinkImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
