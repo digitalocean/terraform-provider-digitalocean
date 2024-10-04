@@ -108,7 +108,10 @@ func takeDropletSnapshot(t *testing.T, name string, droplet *godo.Droplet, snaps
 		if err != nil {
 			return err
 		}
-		util.WaitForAction(client, action)
+		err = util.WaitForAction(client, action)
+		if err != nil {
+			return err
+		}
 
 		retrieveDroplet, _, err := client.Droplets.Get(context.Background(), (*droplet).ID)
 		if err != nil {

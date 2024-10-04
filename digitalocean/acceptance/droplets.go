@@ -113,7 +113,10 @@ func takeSnapshotOfDroplet(snapName string, intSuffix int, droplet *godo.Droplet
 	if err != nil {
 		return err
 	}
-	util.WaitForAction(client, action)
+	err = util.WaitForAction(client, action)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
