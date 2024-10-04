@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"strconv"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -46,7 +45,7 @@ func ResourceDigitalOceanDatabaseOpensearchConfig() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(1),
 			},
 			"ism_history_max_docs": {
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Optional: true,
 				Computed: true,
 			},
@@ -292,10 +291,7 @@ func updateOpensearchConfig(ctx context.Context, d *schema.ResourceData, client 
 	}
 
 	if v, ok := d.GetOk("ism_history_max_docs"); ok {
-		v, err := strconv.ParseUint(v.(string), 10, 64)
-		if err == nil {
-			opts.IsmHistoryMaxDocs = godo.PtrTo(v)
-		}
+		opts.IsmHistoryMaxDocs = godo.PtrTo(v.(int64))
 	}
 
 	if v, ok := d.GetOk("ism_history_rollover_check_period_hours"); ok {

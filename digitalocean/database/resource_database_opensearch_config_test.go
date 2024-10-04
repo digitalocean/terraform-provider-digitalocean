@@ -26,11 +26,11 @@ func TestAccDigitalOceanDatabaseOpensearchConfig_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseOpensearchConfigConfigBasic, dbConfig, false, 1, "9223372036854776000"),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseOpensearchConfigConfigBasic, dbConfig, false, 1, "9223372036854775807"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_enabled", "false"),
 					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_history_max_age_hours", "1"),
-					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_history_max_docs", "9223372036854776000"),
+					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_history_max_docs", "9223372036854775807"),
 				),
 			},
 		},
