@@ -52,62 +52,16 @@ func ResourceDigitalOceanDatabaseLogsink() *schema.Resource {
 					"opensearch",
 				}, false),
 			},
-			"config": {
+			"elasticsearch_config": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
-				ForceNew: false,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"server": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "DNS name or IPv4 address of the rsyslog server. Required for rsyslog.",
-						},
-						"port": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "The internal port on which the rsyslog server is listening. Required for rsyslog",
-						},
-						"tls": {
-							Type:        schema.TypeBool,
-							Optional:    true,
-							Description: "Use TLS (as the messages are not filtered and may contain sensitive information, it is highly recommended to set this to true if the remote server supports it). Required for rsyslog.",
-						},
-						"format": {
-							Type:     schema.TypeString,
-							Optional: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								"rfc5424",
-								"rfc3164",
-								"custom",
-							}, false),
-							Description: "Message format used by the server, this can be either rfc3164 (the old BSD style message format), rfc5424 (current syslog message format) or custom. Required for rsyslog.",
-						},
-						"logline": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Conditional (required if format == custom). Syslog log line template for a custom format, supporting limited rsyslog style templating (using %tag%). Supported tags are: HOSTNAME, app-name, msg, msgid, pri, procid, structured-data, timestamp and timestamp:::date-rfc3339.",
-						},
-						"sd": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Content of the structured data block of rfc5424 message",
-						},
 						"ca": {
 							Type:        schema.TypeString,
 							Optional:    true,
 							Description: "PEM encoded CA certificate",
-						},
-						"key": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "(PEM format) client key if the server requires client authentication",
-						},
-						"cert": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "(PEM format) client cert to use",
 						},
 						"index_days_max": {
 							Type:        schema.TypeInt,
@@ -141,13 +95,35 @@ func resourceDigitalOceanDatabaseLogsinkCreate(ctx context.Context, d *schema.Re
 	client := meta.(*config.CombinedConfig).GodoClient()
 	clusterID := d.Get("cluster_id").(string)
 
+	sinkType := d.Get("sink_type").(string)
 	opts := &godo.DatabaseCreateLogsinkRequest{
 		Name: d.Get("sink_name").(string),
-		Type: d.Get("sink_type").(string),
+		Type: sinkType,
 	}
 
-	if v, ok := d.GetOk("config"); ok {
-		opts.Config = expandLogsinkConfig(v.([]interface{}))
+	switch sinkType {
+	case "elasticsearch":
+		if v, ok := d.GetOk("elasticsearch_config"); ok {
+			opts.Config = expandElasticsearchLogsinkConfig(v.([]interface{}))
+		} else {
+			return diag.Errorf("Error creating database logsink: elasticsearch_config is required when type is elasticsearch")
+		}
+	case "opensearch":
+		if v, ok := d.GetOk("opensearch_config"); ok {
+			opts.Config = expandLogsinkOpensearchConfig(v.([]interface{}))
+		} else {
+			return diag.Errorf("Error creating database logsink: opensearch_config is required when type is opensearch")
+		}
+	case "rsyslog":
+		if v, ok := d.GetOk("rsyslog_config"); ok {
+			opts.Config = expandLogsinkRsyslogConfig(v.([]interface{}))
+		} else {
+			return diag.Errorf("Error creating database logsink: rsyslog_config is required when type is rsyslog")
+		}
+	}
+
+	if opts.Config == nil {
+		return diag.Errorf("Error creating database logsink: config is required")
 	}
 
 	log.Printf("[DEBUG] Database logsink create configuration: %#v", opts)
@@ -197,6 +173,39 @@ func resourceDigitalOceanDatabaseLogsinkDelete(ctx context.Context, d *schema.Re
 
 	d.SetId("")
 	return nil
+}
+
+func expandElasticsearchLogsinkConfig(config []interface{}) *godo.DatabaseLogsinkConfig {
+	logsinkConfigOpts := &godo.DatabaseLogsinkConfig{}
+	if len(config) == 0 || config[0] == nil {
+		return logsinkConfigOpts
+	}
+
+	configMap := config[0].(map[string]interface{})
+
+	if v, ok := configMap["ca"]; ok {
+		logsinkConfigOpts.CA = v.(string)
+	}
+
+	if v, ok := configMap["url"]; ok {
+		logsinkConfigOpts.URL = v.(string)
+	}
+
+	if v, ok := configMap["index_prefix"]; ok {
+		logsinkConfigOpts.IndexPrefix = v.(string)
+	}
+
+	if v, ok := configMap["index_days_max"]; ok {
+		logsinkConfigOpts.IndexDaysMax = v.(int)
+	}
+
+	if v, ok := configMap["timeout"]; ok {
+		if v.(float64) > float64(math.SmallestNonzeroFloat32) || v.(float64) < float64(math.MaxFloat32) {
+			logsinkConfigOpts.Timeout = float32(v.(float64))
+		}
+	}
+
+	return logsinkConfigOpts
 }
 
 func expandLogsinkConfig(config []interface{}) *godo.DatabaseLogsinkConfig {
