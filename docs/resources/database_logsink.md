@@ -11,14 +11,40 @@ Provides a DigitalOcean database logsink capabilities. Can be configured with rs
 ```hcl
 resource "digitalocean_database_logsink" "logsink-01" {
   cluster_id = digitalocean_database_cluster.doby.id
-  sink_name  = "sinkexample"
+  sink_name  = "sinkexample1"
   sink_type  = "opensearch"
 
-
-  config {
+  opensearch_config {
     url            = "https://user:passwd@192.168.0.1:25060"
     index_prefix   = "opensearch-logs"
     index_days_max = 5
+  }
+}
+
+resource "digitalocean_database_logsink" "logsink-02" {
+  cluster_id = digitalocean_database_cluster.dotest.id
+  sink_name  = "sinkexample2"
+  sink_type  = "rsyslog"
+
+  rsyslog_config {
+    server  = "192.168.10.2"
+    port    = 514
+    tls     = "true"
+    format  = "rfc5424"
+    logline = "msg"
+    sd      = "test-2"
+  }
+}
+
+resource "digitalocean_database_logsink" "logsink-03" {
+  cluster_id = digitalocean_database_cluster.doby.id
+  sink_name  = "sinkexample3"
+  sink_type  = "elasticsearch"
+
+  opensearch_config {
+    url            = "https://user:passwd@192.168.0.1:25060"
+    index_prefix   = "opensearch-logs"
+    index_days_max = 3
   }
 }
 
