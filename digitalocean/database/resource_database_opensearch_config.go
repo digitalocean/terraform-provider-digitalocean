@@ -291,7 +291,7 @@ func updateOpensearchConfig(ctx context.Context, d *schema.ResourceData, client 
 	}
 
 	if v, ok := d.GetOk("ism_history_max_docs"); ok {
-		opts.IsmHistoryMaxDocs = godo.PtrTo(v.(int64))
+		opts.IsmHistoryMaxDocs = godo.PtrTo(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("ism_history_rollover_check_period_hours"); ok {
