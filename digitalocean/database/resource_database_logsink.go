@@ -337,19 +337,19 @@ func resourceDigitalOceanDatabaseLogsinkUpdate(ctx context.Context, d *schema.Re
 		if v, ok := d.GetOk("rsyslog_config"); ok {
 			iCfg = expandLogsinkRsyslogConfig(v.([]interface{}))
 		} else {
-			return diag.Errorf("Error creating database logsink: rsyslog_config is required when type is rsyslog")
+			return diag.Errorf("Error updating database logsink: rsyslog_config is required when type is rsyslog")
 		}
 	case "elasticsearch":
 		if v, ok := d.GetOk("elasticsearch_config"); ok {
 			iCfg = expandLogsinkElasticsearchConfig(v.([]interface{}))
 		} else {
-			return diag.Errorf("Error creating database logsink: elasticsearch_config is required when type is elasticsearch")
+			return diag.Errorf("Error updating database logsink: elasticsearch_config is required when type is elasticsearch")
 		}
 	case "opensearch":
 		if v, ok := d.GetOk("opensearch_config"); ok {
 			iCfg = expandLogsinkOpensearchConfig(v.([]interface{}))
 		} else {
-			return diag.Errorf("Error creating database logsink: opensearch_config is required when type is opensearch")
+			return diag.Errorf("Error updating database logsink: opensearch_config is required when type is opensearch")
 		}
 	}
 
