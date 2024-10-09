@@ -50,5 +50,6 @@ resource "digitalocean_database_logsink" "logsink" {
     url            = "%s"
     index_prefix   = "%s"
     index_days_max = %d
+	timeout        = 10
   }
 }`

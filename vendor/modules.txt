@@ -58,7 +58,7 @@ github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/digitalocean/godo v1.126.1-0.20241008185245-efb15764f26a
+# github.com/digitalocean/godo v1.126.1-0.20241009162050-0f32c4e3c663
 ## explicit; go 1.22
 github.com/digitalocean/godo
 github.com/digitalocean/godo/metrics
