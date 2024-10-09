@@ -18,14 +18,14 @@ func TestAccDigitalOceanDatabaseMongoDBConfig_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseMongoDBConfigConfigBasic, dbConfig, "available", 1),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseMongoDBConfigBasic, dbConfig, "available", 1),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_database_mongodb_config.foobar", "default_read_concern", "available"),
 					resource.TestCheckResourceAttr("digitalocean_database_mongodb_config.foobar", "transaction_lifetime_limit_seconds", "1"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseMongoDBConfigConfigBasic, dbConfig, "majority", 100),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseMongoDBConfigBasic, dbConfig, "majority", 100),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_database_mongodb_config.foobar", "default_read_concern", "majority"),
 					resource.TestCheckResourceAttr("digitalocean_database_mongodb_config.foobar", "transaction_lifetime_limit_seconds", "100"),
@@ -35,7 +35,7 @@ func TestAccDigitalOceanDatabaseMongoDBConfig_Basic(t *testing.T) {
 	})
 }
 
-const testAccCheckDigitalOceanDatabaseMongoDBConfigConfigBasic = `
+const testAccCheckDigitalOceanDatabaseMongoDBConfigBasic = `
 %s
 
 resource "digitalocean_database_mongodb_config" "foobar" {
