@@ -18,8 +18,7 @@ resource "digitalocean_database_logsink" "logsink-01" {
   sink_name  = "fox2"
   sink_type  = "opensearch"
 
-
-  config {
+  opensearch_config {
     url            = "https://user:passwd@192.168.0.1:25060"
     index_prefix   = "opensearch-logs"
     index_days_max = 5
