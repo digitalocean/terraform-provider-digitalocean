@@ -27,17 +27,12 @@ func TestAccDigitalOceanDatabaseLogsink_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_database_logsink.logsink", "sink_name", "lname"),
 				),
 			},
-
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseLogsinkBasic, dbConfig, "new-lname", "opensearch", "https://user:passwd@192.168.0.1:25060", "logs", 4),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_database_logsink.logsink", "sink_name", "new-lname"),
 					resource.TestCheckResourceAttr("digitalocean_database_logsink.logsink", "opensearch_config.0.index_days_max", "4"),
 				),
-			},
-			{
-				ResourceName: "digitalocean_database_logsink.logsink",
-				Destroy:      true,
 			},
 		},
 	})
