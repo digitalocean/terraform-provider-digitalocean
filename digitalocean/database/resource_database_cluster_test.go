@@ -67,6 +67,38 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_KafkaConnectionDetails(t *testing.T) {
+	var database godo.Database
+	databaseName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterKafka, databaseName, "3.7"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "name", databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "engine", "kafka"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "port", "25073"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "uri"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "private_uri"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "host"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDatabaseCluster_WithUpdate(t *testing.T) {
 	var database godo.Database
 	databaseName := acceptance.RandomTestName()
