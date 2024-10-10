@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/url"
 	"strconv"
 	"strings"
@@ -21,6 +22,7 @@ import (
 const (
 	mysqlDBEngineSlug = "mysql"
 	redisDBEngineSlug = "redis"
+	kafkaDBEngineSlug = "kafka"
 )
 
 func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
@@ -695,6 +697,10 @@ func setUIConnectionInfo(database *godo.Database, d *schema.ResourceData) error 
 // switches to using a read-only token. All database engines redact the password
 // in that case
 func buildDBConnectionURI(conn *godo.DatabaseConnection, d *schema.ResourceData) (string, error) {
+	if d.Get("engine") == kafkaDBEngineSlug {
+		return net.JoinHostPort(conn.Host, strconv.Itoa(conn.Port)), nil
+	}
+
 	password := d.Get("password")
 	uri, err := url.Parse(conn.URI)
 	if err != nil {
