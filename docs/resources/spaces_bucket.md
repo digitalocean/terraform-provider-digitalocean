@@ -73,7 +73,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the bucket
 * `region` - The region where the bucket resides (Defaults to `nyc3`)
-* `acl` - Canned ACL applied on bucket creation (`private` or `public-read`)
+* `acl` - Canned ACL applied on bucket creation: `private` or `public-read` (Defaults to `private`)
 * `cors_rule` - (Optional) A rule of Cross-Origin Resource Sharing (documented below).
 * `lifecycle_rule` - (Optional) A configuration of object lifecycle management (documented below).
 * `versioning` - (Optional) A state of versioning (documented below)
