@@ -184,8 +184,8 @@ func ResourceDigitalOceanDatabaseLogsink() *schema.Resource {
 	}
 }
 
-func expandLogsinkRsyslogConfig(config []interface{}) *godo.RsyslogLogsinkConfig {
-	logsinkConfigOpts := &godo.RsyslogLogsinkConfig{}
+func expandLogsinkRsyslogConfig(config []interface{}) *godo.DatabaseLogsinkConfig {
+	logsinkConfigOpts := &godo.DatabaseLogsinkConfig{}
 	if len(config) == 0 || config[0] == nil {
 		return logsinkConfigOpts
 	}
@@ -221,8 +221,8 @@ func expandLogsinkRsyslogConfig(config []interface{}) *godo.RsyslogLogsinkConfig
 	return logsinkConfigOpts
 }
 
-func expandLogsinkElasticsearchConfig(config []interface{}) *godo.ElasticsearchLogsinkConfig {
-	logsinkConfigOpts := &godo.ElasticsearchLogsinkConfig{}
+func expandLogsinkElasticsearchConfig(config []interface{}) *godo.DatabaseLogsinkConfig {
+	logsinkConfigOpts := &godo.DatabaseLogsinkConfig{}
 	if len(config) == 0 || config[0] == nil {
 		return logsinkConfigOpts
 	}
@@ -248,8 +248,8 @@ func expandLogsinkElasticsearchConfig(config []interface{}) *godo.ElasticsearchL
 	return logsinkConfigOpts
 }
 
-func expandLogsinkOpensearchConfig(config []interface{}) *godo.OpensearchLogsinkConfig {
-	logsinkConfigOpts := &godo.OpensearchLogsinkConfig{}
+func expandLogsinkOpensearchConfig(config []interface{}) *godo.DatabaseLogsinkConfig {
+	logsinkConfigOpts := &godo.DatabaseLogsinkConfig{}
 	if len(config) == 0 || config[0] == nil {
 		return logsinkConfigOpts
 	}
@@ -284,7 +284,7 @@ func resourceDigitalOceanDatabaseLogsinkCreate(ctx context.Context, d *schema.Re
 		Type: d.Get("sink_type").(string),
 	}
 
-	var iCfg interface{}
+	var iCfg *godo.DatabaseLogsinkConfig
 
 	switch sinkType {
 	case "rsyslog":
@@ -307,7 +307,7 @@ func resourceDigitalOceanDatabaseLogsinkCreate(ctx context.Context, d *schema.Re
 		}
 	}
 
-	opts.Config = &iCfg
+	opts.Config = iCfg
 	if opts.Config == nil {
 		return diag.Errorf("Error creating database logsink: config is required")
 	}
@@ -332,7 +332,7 @@ func resourceDigitalOceanDatabaseLogsinkUpdate(ctx context.Context, d *schema.Re
 
 	sinkType := d.Get("sink_type").(string)
 
-	var iCfg interface{}
+	var iCfg *godo.DatabaseLogsinkConfig
 
 	switch sinkType {
 	case "rsyslog":
@@ -355,7 +355,7 @@ func resourceDigitalOceanDatabaseLogsinkUpdate(ctx context.Context, d *schema.Re
 		}
 	}
 
-	opts.Config = &iCfg
+	opts.Config = iCfg
 
 	_, err := client.Databases.UpdateLogsink(context.Background(), clusterID, sinkID, opts)
 	if err != nil {
@@ -405,7 +405,7 @@ func resourceDigitalOceanDatabaseLogsinkRead(ctx context.Context, d *schema.Reso
 		if err != nil {
 			return diag.Errorf("Error marshaling rsyslog logsink config: %#v", err)
 		}
-		var cfg *godo.RsyslogLogsinkConfig
+		var cfg *godo.DatabaseLogsinkConfig
 		if err = json.Unmarshal(jsonData, &cfg); err != nil {
 			return diag.Errorf("Error unmarshaling rsyslog logsink config: %#v", err)
 		}
@@ -417,7 +417,7 @@ func resourceDigitalOceanDatabaseLogsinkRead(ctx context.Context, d *schema.Reso
 		if err != nil {
 			return diag.Errorf("Error marshaling elasticsearch logsink config: %#v", err)
 		}
-		var cfg *godo.ElasticsearchLogsinkConfig
+		var cfg *godo.DatabaseLogsinkConfig
 		if err = json.Unmarshal(jsonData, &cfg); err != nil {
 			return diag.Errorf("Error unmarshaling elasticsearch logsink config: %#v", err)
 		}
@@ -429,7 +429,7 @@ func resourceDigitalOceanDatabaseLogsinkRead(ctx context.Context, d *schema.Reso
 		if err != nil {
 			return diag.Errorf("Error marshaling opensearch logsink config: %#v", err)
 		}
-		var cfg *godo.OpensearchLogsinkConfig
+		var cfg *godo.DatabaseLogsinkConfig
 		if err = json.Unmarshal(jsonData, &cfg); err != nil {
 			return diag.Errorf("Error unmarshaling opensearch logsink config: %#v", err)
 		}
@@ -458,7 +458,7 @@ func makeDatabaseLogsinkID(clusterID string, logsinkID string) string {
 	return fmt.Sprintf("%s/logsink/%s", clusterID, logsinkID) // TODO: maybe better use for godo?
 }
 
-func flattenLogsinkRsyslogConfig(config *godo.RsyslogLogsinkConfig) []interface{} {
+func flattenLogsinkRsyslogConfig(config *godo.DatabaseLogsinkConfig) []interface{} {
 	result := make([]interface{}, 0)
 	if config != nil {
 		r := make(map[string]interface{})
@@ -477,7 +477,7 @@ func flattenLogsinkRsyslogConfig(config *godo.RsyslogLogsinkConfig) []interface{
 	return result
 }
 
-func flattenLogsinkElasticsearchConfig(config *godo.ElasticsearchLogsinkConfig) []interface{} {
+func flattenLogsinkElasticsearchConfig(config *godo.DatabaseLogsinkConfig) []interface{} {
 	result := make([]interface{}, 0)
 	if config != nil {
 		r := make(map[string]interface{})
@@ -492,7 +492,7 @@ func flattenLogsinkElasticsearchConfig(config *godo.ElasticsearchLogsinkConfig) 
 	return result
 }
 
-func flattenLogsinkOpensearchConfig(config *godo.OpensearchLogsinkConfig) []interface{} {
+func flattenLogsinkOpensearchConfig(config *godo.DatabaseLogsinkConfig) []interface{} {
 	result := make([]interface{}, 0)
 	if config != nil {
 		r := make(map[string]interface{})
