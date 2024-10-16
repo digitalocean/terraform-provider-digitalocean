@@ -242,7 +242,7 @@ func updateMySQLConfig(ctx context.Context, d *schema.ResourceData, client *godo
 		opts.SQLMode = godo.PtrTo(v.(string))
 	}
 
-	if v, ok := d.GetOk("sql_require_primary_key"); ok {
+	if v, ok := d.GetOkExists("sql_require_primary_key"); ok {
 		opts.SQLRequirePrimaryKey = godo.PtrTo(v.(bool))
 	}
 
@@ -270,11 +270,11 @@ func updateMySQLConfig(ctx context.Context, d *schema.ResourceData, client *godo
 		opts.InnodbFtServerStopwordTable = godo.PtrTo(v.(string))
 	}
 
-	if v, ok := d.GetOk("innodb_print_all_deadlocks"); ok {
+	if v, ok := d.GetOkExists("innodb_print_all_deadlocks"); ok {
 		opts.InnodbPrintAllDeadlocks = godo.PtrTo(v.(bool))
 	}
 
-	if v, ok := d.GetOk("innodb_rollback_on_timeout"); ok {
+	if v, ok := d.GetOkExists("innodb_rollback_on_timeout"); ok {
 		opts.InnodbRollbackOnTimeout = godo.PtrTo(v.(bool))
 	}
 

@@ -165,11 +165,11 @@ func updateRedisConfig(ctx context.Context, d *schema.ResourceData, client *godo
 		opts.RedisLFUDecayTime = godo.PtrTo(v.(int))
 	}
 
-	if v, ok := d.GetOk("ssl"); ok {
+	if v, ok := d.GetOkExists("ssl"); ok {
 		opts.RedisSSL = godo.PtrTo(v.(bool))
 	}
 
-	if v, ok := d.GetOk("timeout"); ok {
+	if v, ok := d.GetOkExists("timeout"); ok {
 		opts.RedisTimeout = godo.PtrTo(v.(int))
 	}
 
