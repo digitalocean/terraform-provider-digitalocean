@@ -487,7 +487,7 @@ func updatePostgreSQLConfig(ctx context.Context, d *schema.ResourceData, client 
 		opts.IdleInTransactionSessionTimeout = godo.PtrTo(v.(int))
 	}
 
-	if v, ok := d.GetOk("jit"); ok {
+	if v, ok := d.GetOkExists("jit"); ok {
 		opts.JIT = godo.PtrTo(v.(bool))
 	}
 

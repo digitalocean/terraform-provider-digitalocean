@@ -306,7 +306,7 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		opts.Monitoring = attr.(bool)
 	}
 
-	if attr, ok := d.GetOk("droplet_agent"); ok {
+	if attr, ok := d.GetOkExists("droplet_agent"); ok {
 		opts.WithDropletAgent = godo.PtrTo(attr.(bool))
 	}
 
@@ -812,7 +812,7 @@ func dropletStateRefreshFunc(
 		}
 
 		// See if we can access our attribute
-		if attr, ok := d.GetOk(attribute); ok {
+		if attr, ok := d.GetOkExists(attribute); ok {
 			switch attr := attr.(type) {
 			case bool:
 				return &droplet, strconv.FormatBool(attr), nil
