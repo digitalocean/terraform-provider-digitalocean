@@ -145,6 +145,8 @@ The following arguments are supported:
 * `name` - (Required) A name for the Kubernetes cluster.
 * `region` - (Required) The slug identifier for the region where the Kubernetes cluster will be created.
 * `version` - (Required) The slug identifier for the version of Kubernetes used for the cluster. Use [doctl](https://github.com/digitalocean/doctl) to find the available versions `doctl kubernetes options versions`. (**Note:** A cluster may only be upgraded to newer versions in-place. If the version is decreased, a new resource will be created.)
+* `cluster_subnet` - (Optional) The range of IP addresses in the overlay network of the Kubernetes cluster. For more information, see [here](https://docs.digitalocean.com/products/kubernetes/how-to/create-clusters/#create-with-vpc-native).
+* `service_subnet` - (Optional) The range of assignable IP addresses for services running in the Kubernetes cluster. For more information, see [here](https://docs.digitalocean.com/products/kubernetes/how-to/create-clusters/#create-with-vpc-native).
 * `vpc_uuid` - (Optional) The ID of the VPC where the Kubernetes cluster will be located.
 * `auto_upgrade` - (Optional) A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: true
@@ -172,8 +174,6 @@ This resource supports [customized create timeouts](https://www.terraform.io/doc
 In addition to the arguments listed above, the following additional attributes are exported:
 
 * `id` - A unique ID that can be used to identify and reference a Kubernetes cluster.
-* `cluster_subnet` - The range of IP addresses in the overlay network of the Kubernetes cluster.
-* `service_subnet` - The range of assignable IP addresses for services running in the Kubernetes cluster.
 * `ipv4_address` - The public IPv4 address of the Kubernetes master node. This will not be set if high availability is configured on the cluster (v1.21+)
 * `endpoint` - The base URL of the API server on the Kubernetes master node.
 * `status` -  A string indicating the current status of the cluster. Potential values include running, provisioning, and errored.

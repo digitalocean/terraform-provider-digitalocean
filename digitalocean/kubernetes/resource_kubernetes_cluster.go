@@ -85,13 +85,19 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			"cluster_subnet": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.IsCIDR,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
 			},
 
 			"service_subnet": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.IsCIDR,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
 			},
 
 			"ipv4_address": {
@@ -289,6 +295,14 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 
 	if vpc, ok := d.GetOk("vpc_uuid"); ok {
 		opts.VPCUUID = vpc.(string)
+	}
+
+	if clusterSubnet, ok := d.GetOk("cluster_subnet"); ok {
+		opts.ClusterSubnet = clusterSubnet.(string)
+	}
+
+	if serviceSubnet, ok := d.GetOk("service_subnet"); ok {
+		opts.ServiceSubnet = serviceSubnet.(string)
 	}
 
 	if autoUpgrade, ok := d.GetOk("auto_upgrade"); ok {

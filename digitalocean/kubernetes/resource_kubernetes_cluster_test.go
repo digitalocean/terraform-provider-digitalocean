@@ -759,6 +759,29 @@ func TestAccDigitalOceanKubernetesCluster_DestroyAssociated(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_VPCNative(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfigVPCNative(testClusterVersionLatest, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "nyc1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_subnet", "192.168.0.0/20"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "service_subnet", "192.168.16.0/22"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDigitalOceanKubernetesConfigBasic(testClusterVersion string, rName string) string {
 	return fmt.Sprintf(`%s
 
@@ -921,6 +944,24 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   version                          = data.digitalocean_kubernetes_versions.test.latest_version
   destroy_all_associated_resources = true
 
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+`, testClusterVersion, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigVPCNative(testClusterVersion string, rName string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name           = "%s"
+  region         = "nyc1"
+  version        = data.digitalocean_kubernetes_versions.test.latest_version
+  cluster_subnet = "192.168.0.0/20"
+  service_subnet = "192.168.16.0/22"
   node_pool {
     name       = "default"
     size       = "s-1vcpu-2gb"
