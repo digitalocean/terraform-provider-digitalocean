@@ -6,8 +6,8 @@ DigitalOcean Terraform Provider
 Requirements
 ------------
 
--	[Terraform](https://developer.hashicorp.com/terraform/install) 1.9.5
--	[Go](https://go.dev/doc/install) 1.22 (to build the provider plugin)
+-	[Terraform](https://developer.hashicorp.com/terraform/install) 0.10+
+-	[Go](https://go.dev/doc/install) 1.14+ (to build the provider plugin)
 
 Building The Provider
 ---------------------
