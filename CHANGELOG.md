@@ -2,6 +2,7 @@
 
 IMPROVEMENTS:
 
+- #1253 - @andrewsomething - k8s: support setting cluster and service subnets on create.
 - #1251 - @loosla - [spaces]: add tor1 to spaces
 - #1249 - @andrewsomething - Re-introduce d.GetOkExists usage.
 - #1246 - @loosla - [databases]: update kafka uri, private_uri
