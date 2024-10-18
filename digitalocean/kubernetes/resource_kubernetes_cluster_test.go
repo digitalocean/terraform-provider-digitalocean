@@ -775,7 +775,7 @@ func TestAccDigitalOceanKubernetesCluster_VPCNative(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "region", "nyc1"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_subnet", "192.168.0.0/20"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "service_subnet", "192.168.16.0/24"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "service_subnet", "192.168.16.0/22"),
 				),
 			},
 		},
@@ -961,7 +961,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   region         = "nyc1"
   version        = data.digitalocean_kubernetes_versions.test.latest_version
   cluster_subnet = "192.168.0.0/20"
-  service_subnet = "192.168.16.0/24"
+  service_subnet = "192.168.16.0/22"
   node_pool {
     name       = "default"
     size       = "s-1vcpu-2gb"
