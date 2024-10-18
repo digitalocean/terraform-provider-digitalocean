@@ -4,19 +4,20 @@ IMPROVEMENTS:
 
 - #1253 - @andrewsomething - k8s: support setting cluster and service subnets on create.
 - #1251 - @loosla - [spaces]: add tor1 to spaces
-- #1249 - @andrewsomething - Re-introduce d.GetOkExists usage.
 - #1246 - @loosla - [databases]: update kafka uri, private_uri
 - #1244 - @loosla - [databases]: minor variable renaming in mongo advanced configuration …
-- #1243 - @andrewsomething - Revert change moving from logging.NewTransportWithRequestLogging from logging.NewTransport.
 - #1234 - @loosla - [databases]: add support for Opensearch advanced configuration
 
 MISC:
+
 - #1245 - @loosla - [documentation]: update requirements in readme
 - #1247 - @loosla - [documentation]: add a default for digitalocean_spaces_bucket acl
 - #1236 - @TheMarvelFan - Enabled Linting errcheck and fixed linting issues
 - #1240 - @andrewsomething - docs: fix formatting for apps log_destination
 - #1237 - @SpiffyEight77 - fix: enable failing staticchecks
 - #1235 - @SpiffyEight77 - fix: enable failing gosimple check
+- #1243 - @andrewsomething - Revert change moving from logging.NewTransportWithRequestLogging from logging.NewTransport.
+- #1249 - @andrewsomething - Re-introduce d.GetOkExists usage.
 
 ## 2.42.0
 
