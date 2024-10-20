@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_regions"
+subcategory: "Account"
 ---
 
 # digitalocean_regions

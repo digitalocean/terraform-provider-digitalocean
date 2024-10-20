@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_database_opensearch_config"
+subcategory: "Databases"
 ---
 
 # digitalocean\_database\_opensearch\_config

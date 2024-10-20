@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_spaces_buckets"
+subcategory: "Spaces Object Storage"
 ---
 
 # digitalocean_spaces_buckets

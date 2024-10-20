@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_container_registry_docker_credentials"
+subcategory: "Container Registry"
 ---
 
 # digitalocean_container_registry_docker_credentials

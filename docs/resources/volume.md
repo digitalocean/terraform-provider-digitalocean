@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_volume"
+subcategory: "Volumes Block Storage"
 ---
 
 # digitalocean\_volume

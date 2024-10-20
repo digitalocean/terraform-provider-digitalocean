@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_sizes"
+subcategory: "Droplets"
 ---
 
 # digitalocean_sizes

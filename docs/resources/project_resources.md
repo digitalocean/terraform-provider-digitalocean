@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_project_resources"
+subcategory: "Account"
 ---
 
 # digitalocean\_project\_resources

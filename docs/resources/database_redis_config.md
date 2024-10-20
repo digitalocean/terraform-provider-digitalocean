@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_database_redis_config"
+subcategory: "Databases"
 ---
 
 # digitalocean\_database\_redis\_config

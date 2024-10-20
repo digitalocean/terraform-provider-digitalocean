@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_record"
+subcategory: "Networking"
 ---
 
 # digitalocean\_record

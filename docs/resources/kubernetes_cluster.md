@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_kubernetes_cluster"
+subcategory: "Kubernetes"
 ---
 
 # digitalocean\_kubernetes\_cluster

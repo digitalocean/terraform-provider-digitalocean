@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_app"
+subcategory: "App Platform"
 ---
 
 # digitalocean_app

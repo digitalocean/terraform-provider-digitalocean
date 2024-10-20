@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_certificate"
+subcategory: "Networking"
 ---
 
 # digitalocean_certificate

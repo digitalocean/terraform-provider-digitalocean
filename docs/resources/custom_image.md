@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_custom_image"
+subcategory: "Account"
 ---
 
 # digitalocean\_custom\_image

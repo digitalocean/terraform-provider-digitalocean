@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_volume_attachment"
+subcategory: "Volumes Block Storage"
 ---
 
 # digitalocean\_volume\_attachment

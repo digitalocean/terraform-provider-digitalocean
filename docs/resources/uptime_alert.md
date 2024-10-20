@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_uptime_alert"
+subcategory: "Monitoring"
 ---
 
 # digitalocean_uptime_alert

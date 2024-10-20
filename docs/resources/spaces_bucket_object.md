@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_spaces_bucket_object"
+subcategory: "Spaces Object Storage"
 ---
 
 # digitalocean\_spaces\_bucket_object

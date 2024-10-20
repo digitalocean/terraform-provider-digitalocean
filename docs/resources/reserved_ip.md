@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_reserved_ip"
+subcategory: "Networking"
 ---
 
 # digitalocean\_reserved_ip
