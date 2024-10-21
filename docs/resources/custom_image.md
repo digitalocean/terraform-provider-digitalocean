@@ -1,6 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_custom_image"
-subcategory: "Account"
+subcategory: "Backups & Snapshots"
 ---
 
 # digitalocean\_custom\_image
