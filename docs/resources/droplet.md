@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_droplet"
+subcategory: "Droplets"
 ---
 
 # digitalocean\_droplet

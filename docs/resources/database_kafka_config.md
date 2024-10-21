@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_database_kafka_config"
+subcategory: "Databases"
 ---
 
 # digitalocean\_database\_kafka\_config

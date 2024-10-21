@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_loadbalancer"
+subcategory: "Networking"
 ---
 
 # digitalocean_loadbalancer

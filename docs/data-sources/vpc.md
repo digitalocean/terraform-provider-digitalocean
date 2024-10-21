@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_vpc"
+subcategory: "Networking"
 ---
 
 # digitalocean_vpc

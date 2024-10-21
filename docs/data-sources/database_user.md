@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_database_user"
+subcategory: "Databases"
 ---
 
 # digitalocean\_database\_user

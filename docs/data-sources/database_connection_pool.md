@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_database_connection_pool"
+subcategory: "Databases"
 ---
 
 # digitalocean\_database\_connection\_pool

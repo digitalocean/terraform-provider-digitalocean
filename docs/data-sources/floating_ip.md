@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_floating_ip"
+subcategory: "Networking"
 ---
 
 # digitalocean_floating_ip

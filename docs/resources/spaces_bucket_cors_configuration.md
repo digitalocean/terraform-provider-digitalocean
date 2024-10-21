@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_spaces_bucket_cors_configuration"
+subcategory: "Spaces Object Storage"
 ---
 
 # digitalocean\_spaces\_cors_configuration

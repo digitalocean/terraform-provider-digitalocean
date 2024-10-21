@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_firewall"
+subcategory: "Networking"
 ---
 
 # digitalocean_firewall

@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_vpc_peering"
+subcategory: "Networking"
 ---
 
 # digitalocean_vpc_peering

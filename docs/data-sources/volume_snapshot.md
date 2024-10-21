@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_volume_snapshot"
+subcategory: "Backups & Snapshots"
 ---
 
 # digitalocean\_volume\_snapshot

@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_monitor_alert"
+subcategory: "Monitoring"
 ---
 
 # digitalocean_monitor_alert

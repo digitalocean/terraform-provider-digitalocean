@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_database_postgresql_config"
+subcategory: "Databases"
 ---
 
 # digitalocean\_database\_postgresql\_config

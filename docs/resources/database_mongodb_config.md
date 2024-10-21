@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_database_mongodb_config"
+subcategory: "Databases"
 ---
 
 # digitalocean\_database\_mongodb\_config

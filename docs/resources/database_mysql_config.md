@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_database_mysql_config"
+subcategory: "Databases"
 ---
 
 # digitalocean\_database\_mysql\_config

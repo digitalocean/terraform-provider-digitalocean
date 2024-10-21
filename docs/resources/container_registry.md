@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_container_registry"
+subcategory: "Container Registry"
 ---
 
 # digitalocean\_container_registry

@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_database_firewall"
+subcategory: "Databases"
 ---
 
 # digitalocean\_database\_firewall

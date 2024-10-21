@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_database_db"
+subcategory: "Databases"
 ---
 
 # digitalocean\_database\_db
