@@ -61,7 +61,7 @@ data "digitalocean_droplets" "result" {
 }
 
 func TestAccDataSourceDigitalOceanDroplets_GPUDroplet(t *testing.T) {
-	runGPU := os.Getenv("DO_RUN_GPU_TESTS")
+	runGPU := os.Getenv(runGPUEnvVar)
 	if runGPU == "" {
 		t.Skip("'DO_RUN_GPU_TESTS' env var not set; Skipping tests that requires a GPU Droplet")
 	}

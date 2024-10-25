@@ -3,12 +3,14 @@ package droplet_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"testing"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -46,6 +48,52 @@ data "digitalocean_droplet" "foobar" {
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet.foobar", "urn"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_droplet.foobar", "vpc_uuid"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDataSourceDigitalOceanDroplet_GPUByName(t *testing.T) {
+	runGPU := os.Getenv(runGPUEnvVar)
+	if runGPU == "" {
+		t.Skip("'DO_RUN_GPU_TESTS' env var not set; Skipping tests that requires a GPU Droplet")
+	}
+
+	keyName := acceptance.RandomTestName()
+	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
+	if err != nil {
+		t.Fatalf("Cannot generate test SSH key pair: %s", err)
+	}
+
+	var droplet godo.Droplet
+	name := acceptance.RandomTestName()
+	resourceConfig := testAccCheckDataSourceDigitalOceanDropletConfig_gpuByName(keyName, publicKeyMaterial, name)
+	dataSourceConfig := `
+data "digitalocean_droplet" "foobar" {
+  name = digitalocean_droplet.foo.name
+  gpu  = true
+}`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: resourceConfig,
+			},
+			{
+				Config: resourceConfig + dataSourceConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceDigitalOceanDropletExists("data.digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_droplet.foobar", "name", name),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_droplet.foobar", "image", gpuImage),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_droplet.foobar", "region", "tor1"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_droplet.foobar", "urn"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_droplet.foobar", "created_at"),
 				),
 			},
 		},
@@ -171,6 +219,22 @@ resource "digitalocean_droplet" "foo" {
   ipv6     = true
   vpc_uuid = digitalocean_vpc.foobar.id
 }`, acceptance.RandomTestName(), name, defaultSize, defaultImage)
+}
+
+func testAccCheckDataSourceDigitalOceanDropletConfig_gpuByName(keyName, key, name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_ssh_key" "foobar" {
+  name       = "%s"
+  public_key = "%s"
+}
+
+resource "digitalocean_droplet" "foo" {
+  name     = "%s"
+  size     = "%s"
+  image    = "%s"
+  region   = "tor1"
+  ssh_keys = [digitalocean_ssh_key.foobar.id]
+}`, keyName, key, name, gpuSize, gpuImage)
 }
 
 func testAccCheckDataSourceDigitalOceanDropletConfig_basicById(name string) string {
