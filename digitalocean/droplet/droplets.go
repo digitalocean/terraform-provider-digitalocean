@@ -118,6 +118,8 @@ func dropletSchema() map[string]*schema.Schema {
 func getDigitalOceanDroplets(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
+	gpus, _ := extra["gpus"].(bool)
+
 	opts := &godo.ListOptions{
 		Page:    1,
 		PerPage: 200,
@@ -126,7 +128,16 @@ func getDigitalOceanDroplets(meta interface{}, extra map[string]interface{}) ([]
 	var dropletList []interface{}
 
 	for {
-		droplets, resp, err := client.Droplets.List(context.Background(), opts)
+		var (
+			droplets []godo.Droplet
+			resp     *godo.Response
+			err      error
+		)
+		if gpus {
+			droplets, resp, err = client.Droplets.ListWithGPUs(context.Background(), opts)
+		} else {
+			droplets, resp, err = client.Droplets.List(context.Background(), opts)
+		}
 
 		if err != nil {
 			return nil, fmt.Errorf("Error retrieving droplets: %s", err)
