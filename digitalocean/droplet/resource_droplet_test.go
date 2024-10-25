@@ -18,6 +18,9 @@ import (
 const (
 	defaultSize  = "s-1vcpu-1gb"
 	defaultImage = "ubuntu-22-04-x64"
+
+	gpuSize  = "gpu-h100x1-80gb"
+	gpuImage = "gpu-h100x1-base"
 )
 
 func TestAccDigitalOceanDroplet_Basic(t *testing.T) {

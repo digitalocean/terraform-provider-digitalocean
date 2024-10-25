@@ -11,6 +11,13 @@ func DataSourceDigitalOceanDroplets() *schema.Resource {
 		ResultAttributeName: "droplets",
 		GetRecords:          getDigitalOceanDroplets,
 		FlattenRecord:       flattenDigitalOceanDroplet,
+		ExtraQuerySchema: map[string]*schema.Schema{
+			"gpus": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+		},
 	}
 
 	return datalist.NewResource(dataListConfig)
