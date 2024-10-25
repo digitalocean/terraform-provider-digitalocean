@@ -82,11 +82,11 @@ resource "digitalocean_ssh_key" "foobar" {
 }
 
 resource "digitalocean_droplet" "gpu" {
-  name   = "%s"
-  size   = "%s"
-  image  = "%s"
-  region = "nyc2"
-  ssh_keys  = [digitalocean_ssh_key.foobar.id]
+  name     = "%s"
+  size     = "%s"
+  image    = "%s"
+  region   = "nyc2"
+  ssh_keys = [digitalocean_ssh_key.foobar.id]
 }
 
 resource "digitalocean_droplet" "regular" {

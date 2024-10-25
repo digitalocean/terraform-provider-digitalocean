@@ -51,6 +51,10 @@ One of the following arguments must be provided:
 * `name` - (Optional) The name of the Droplet.
 * `tag` - (Optional) A tag applied to the Droplet.
 
+To include GPU Droplets when searching by name, use:
+
+* `gpu` - (Optional) A boolean value specifying whether or not to search GPU Droplets
+
 ## Attributes Reference
 
 The following attributes are exported:
