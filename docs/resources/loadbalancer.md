@@ -117,13 +117,10 @@ the backend service. Default value is `false`.
 * `droplet_tag` (Optional) - The name of a Droplet tag corresponding to Droplets to be assigned to the Load Balancer.
 * `firewall` (Optional) - A block containing rules for allowing/denying traffic to the Load Balancer. The `firewall` block is documented below. Only 1 firewall is allowed.
 * `domains` (Optional) - A list of `domains` required to ingress traffic to a Global Load Balancer. The `domains` block is documented below. 
-**NOTE**: this is a closed beta feature and not available for public use.
 * `glb_settings` (Optional) - A block containing `glb_settings` required to define target rules for a Global Load Balancer. The `glb_settings` block is documented below.
-**NOTE**: this is a closed beta feature and not available for public use.
 * `target_load_balancer_ids` (Optional) - A list of Load Balancer IDs to be attached behind a Global Load Balancer.
-**NOTE**: this is a closed beta feature and not available for public use.
 * `type` - (Optional) The type of the Load Balancer. It must be either of `REGIONAL` or `GLOBAL`. Defaults to `REGIONAL`.
-**NOTE**: non-`REGIONAL` type may be part of closed beta feature and not available for public use.
+**NOTE**: non-`REGIONAL/GLOBAL` type may be part of closed beta feature and not available for public use.
 * `network` - (Optional) The type of network the Load Balancer is accessible from. It must be either of `INTERNAL` or `EXTERNAL`. Defaults to `EXTERNAL`.
 **NOTE**: non-`EXTERNAL` type may be part of closed beta feature and not available for public use.
 
