@@ -141,6 +141,35 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 				Default:  false,
 			},
 
+			"backup_policy": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"plan": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"daily",
+								"weekly",
+							}, false),
+						},
+						"weekday": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT",
+							}, false),
+						},
+						"hour": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 20),
+						},
+					},
+				},
+			},
+
 			"ipv6": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -255,11 +284,12 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	// Build up our creation options
 	opts := &godo.DropletCreateRequest{
-		Image:  godo.DropletCreateImage{},
-		Name:   d.Get("name").(string),
-		Region: d.Get("region").(string),
-		Size:   d.Get("size").(string),
-		Tags:   tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
+		Image:        godo.DropletCreateImage{},
+		Name:         d.Get("name").(string),
+		Region:       d.Get("region").(string),
+		Size:         d.Get("size").(string),
+		Tags:         tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
+		BackupPolicy: &godo.DropletBackupPolicyRequest{},
 	}
 
 	imageId, err := strconv.Atoi(image)
@@ -321,6 +351,51 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 			return diag.FromErr(err)
 		}
 		opts.SSHKeys = expandedSshKeys
+	}
+
+	// Get configured backup_policy
+	if policy, ok := d.GetOk("backup_policy"); ok {
+		objectList := policy.([]interface{})
+		for _, rawObject := range objectList {
+			objectMap, ok := rawObject.(map[string]interface{})
+			if !ok {
+				return diag.FromErr(err)
+			}
+
+			if planValue, exists := objectMap["plan"]; exists {
+				if plan, ok := planValue.(string); ok {
+					opts.BackupPolicy.Plan = plan
+				} else {
+					log.Println(">>> Error: plan is not a string")
+				}
+			} else {
+				log.Println(">>> Error: plan key does not exist")
+			}
+
+			if weekdayValue, exists := objectMap["weekday"]; exists {
+				if weekday, ok := weekdayValue.(string); ok {
+					fmt.Println("Weekday:", weekday)
+					opts.BackupPolicy.Weekday = weekday
+				} else {
+					log.Println(">>> Error: weekday is not a string")
+				}
+			} else {
+				log.Println(">>> Error: weekday key does not exist")
+			}
+
+			if hourValue, exists := objectMap["hour"]; exists {
+				if hour, ok := hourValue.(int); ok {
+					fmt.Println("Hour:", hour)
+					opts.BackupPolicy.Hour = hour
+				} else {
+					log.Println(">>> Error: hour is not a float64")
+				}
+			} else {
+				log.Println(">>> Error: hour key does not exist")
+			}
+
+			log.Println(">>> opts.BackupPolicy: ", opts.BackupPolicy)
+		}
 	}
 
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
