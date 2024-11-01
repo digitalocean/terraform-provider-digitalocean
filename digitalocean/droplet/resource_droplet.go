@@ -2,6 +2,7 @@ package droplet
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -355,46 +356,42 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	// Get configured backup_policy
 	if policy, ok := d.GetOk("backup_policy"); ok {
-		objectList := policy.([]interface{})
-		for _, rawObject := range objectList {
-			objectMap, ok := rawObject.(map[string]interface{})
+		policyList := policy.([]interface{})
+		for _, rawPolicy := range policyList {
+			policyMap, ok := rawPolicy.(map[string]interface{})
 			if !ok {
 				return diag.FromErr(err)
 			}
 
-			if planValue, exists := objectMap["plan"]; exists {
-				if plan, ok := planValue.(string); ok {
-					opts.BackupPolicy.Plan = plan
-				} else {
-					log.Println(">>> Error: plan is not a string")
-				}
-			} else {
-				log.Println(">>> Error: plan key does not exist")
+			planVal, exists := policyMap["plan"]
+			if !exists {
+				return diag.FromErr(errors.New("backup_policy plan key does not exist"))
 			}
-
-			if weekdayValue, exists := objectMap["weekday"]; exists {
-				if weekday, ok := weekdayValue.(string); ok {
-					fmt.Println("Weekday:", weekday)
-					opts.BackupPolicy.Weekday = weekday
-				} else {
-					log.Println(">>> Error: weekday is not a string")
-				}
-			} else {
-				log.Println(">>> Error: weekday key does not exist")
+			plan, ok := planVal.(string)
+			if !ok {
+				return diag.FromErr(errors.New("backup_policy plan is not a string"))
 			}
+			opts.BackupPolicy.Plan = plan
 
-			if hourValue, exists := objectMap["hour"]; exists {
-				if hour, ok := hourValue.(int); ok {
-					fmt.Println("Hour:", hour)
-					opts.BackupPolicy.Hour = hour
-				} else {
-					log.Println(">>> Error: hour is not a float64")
-				}
-			} else {
-				log.Println(">>> Error: hour key does not exist")
+			weekdayVal, exists := policyMap["weekday"]
+			if !exists {
+				return diag.FromErr(errors.New("backup_policy weekday key does not exist"))
 			}
+			weekday, ok := weekdayVal.(string)
+			if !ok {
+				return diag.FromErr(errors.New("backup_policy weekday is not a string"))
+			}
+			opts.BackupPolicy.Weekday = weekday
 
-			log.Println(">>> opts.BackupPolicy: ", opts.BackupPolicy)
+			hourVal, exists := policyMap["hour"]
+			if !exists {
+				return diag.FromErr(errors.New("backup_policy hour key does not exist"))
+			}
+			hour, ok := hourVal.(int)
+			if !ok {
+				return diag.FromErr(errors.New("backup_policy hour is not an int"))
+			}
+			opts.BackupPolicy.Hour = hour
 		}
 	}
 
