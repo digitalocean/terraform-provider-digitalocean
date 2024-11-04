@@ -653,25 +653,23 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if d.HasChange("backup_policy") {
-		_, new := d.GetChange("backup_policy")
 		var newPolicy map[string]interface{}
+		bp, ok := d.GetOk("backup_policy")
+		if ok && bp != nil { // backup_policy must be set.
+			_, new := d.GetChange("backup_policy")
+			if newList, ok := new.([]interface{}); ok && len(newList) != 0 {
+				newPolicy = new.([]interface{})[0].(map[string]interface{})
+			}
 
-		if newList, ok := new.([]interface{}); ok && len(newList) != 0 {
-			// If backup_policy is set.
-			newPolicy = new.([]interface{})[0].(map[string]interface{})
-		} else {
-			// If backup_policy is unset.
-			// TODO: Should we disable backups here?
-		}
+			action, _, err := client.DropletActions.EnableBackupsWithPolicy(context.Background(), id, newPolicy)
+			if err != nil {
+				return diag.Errorf(
+					"Error enabling backups with policy on droplet (%s): %s", d.Id(), err)
+			}
 
-		action, _, err := client.DropletActions.EnableBackupsWithPolicy(context.Background(), id, newPolicy)
-		if err != nil {
-			return diag.Errorf(
-				"Error enabling backups with policy on droplet (%s): %s", d.Id(), err)
-		}
-
-		if err := util.WaitForAction(client, action); err != nil {
-			return diag.Errorf("Error waiting for backups to be enabled with policy for droplet (%s): %s", d.Id(), err)
+			if err := util.WaitForAction(client, action); err != nil {
+				return diag.Errorf("Error waiting for backups to be enabled with policy for droplet (%s): %s", d.Id(), err)
+			}
 		}
 	}
 
