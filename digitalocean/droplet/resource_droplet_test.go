@@ -1062,7 +1062,7 @@ resource "digitalocean_droplet" "foobar" {
   region    = "nyc3"
   user_data = "foobar"
   backups   = true
-	backup_policy {
+  backup_policy {
     plan    = "weekly"
     weekday = "MON"
     hour    = 0
