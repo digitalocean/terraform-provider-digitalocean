@@ -45,6 +45,8 @@ for additional details on each option.
 * `lfu_log_factor` - (Optional) The counter logarithm factor for volatile-lfu and allkeys-lfu maxmemory policies.
 * `lfu_decay_time` - (Optional) The LFU maxmemory policy counter decay time in minutes.
 * `ssl` - (Optional) A boolean indicating whether to require SSL to access Redis.
+ - When enabled, Redis accepts only SSL connections on port `25061`.
+ - When disabled, port `25060` is opened for non-SSL connections, while port `25061` remains available for SSL connections.
 * `timeout` - (Optional) The Redis idle connection timeout in seconds.
 * `notify_keyspace_events` - (Optional) The `notify-keyspace-events` option. Requires at least `K` or `E`.
 * `persistence` - (Optional) When persistence is `rdb`, Redis does RDB dumps each 10 minutes if any key is changed. Also RDB dumps are done according to backup schedule for backup purposes. When persistence is `off`, no RDB dumps and backups are done, so data can be lost at any moment if service is restarted for any reason, or if service is powered off. Also service can't be forked.
