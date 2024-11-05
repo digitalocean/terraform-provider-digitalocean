@@ -487,7 +487,7 @@ func TestAccDigitalOceanDroplet_ChangeBackupPolicy(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_EnableBackupsWithPolicy(name),
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -1053,7 +1053,7 @@ resource "digitalocean_droplet" "foobar" {
 }`, name, defaultSize, defaultImage)
 }
 
-func testAccCheckDigitalOceanDropletConfig_EnableBackupsWithPolicy(name string) string {
+func testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name      = "%s"
