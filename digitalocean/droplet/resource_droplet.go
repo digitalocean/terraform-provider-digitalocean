@@ -652,24 +652,27 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if d.HasChange("backup_policy") {
-		if !d.Get("backups").(bool) {
-			return diag.FromErr(errDropletBackupPolicy)
-		}
+		_, ok := d.GetOk("backup_policy")
+		if ok {
+			if !d.Get("backups").(bool) {
+				return diag.FromErr(errDropletBackupPolicy)
+			}
 
-		_, new := d.GetChange("backup_policy")
-		newPolicy, err := expandBackupPolicy(new)
-		if err != nil {
-			return diag.FromErr(err)
-		}
+			_, new := d.GetChange("backup_policy")
+			newPolicy, err := expandBackupPolicy(new)
+			if err != nil {
+				return diag.FromErr(err)
+			}
 
-		action, _, err := client.DropletActions.ChangeBackupPolicy(context.Background(), id, newPolicy)
-		if err != nil {
-			return diag.Errorf(
-				"error changing backup policy on droplet (%s): %s", d.Id(), err)
-		}
+			action, _, err := client.DropletActions.ChangeBackupPolicy(context.Background(), id, newPolicy)
+			if err != nil {
+				return diag.Errorf(
+					"error changing backup policy on droplet (%s): %s", d.Id(), err)
+			}
 
-		if err := util.WaitForAction(client, action); err != nil {
-			return diag.Errorf("error waiting for backup policy to be changed for droplet (%s): %s", d.Id(), err)
+			if err := util.WaitForAction(client, action); err != nil {
+				return diag.Errorf("error waiting for backup policy to be changed for droplet (%s): %s", d.Id(), err)
+			}
 		}
 	}
 
