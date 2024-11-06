@@ -357,42 +357,11 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 	// Get configured backup_policy
 	if policy, ok := d.GetOk("backup_policy"); ok {
 		policyList := policy.([]interface{})
-		for _, rawPolicy := range policyList {
-			policyMap, ok := rawPolicy.(map[string]interface{})
-			if !ok {
-				return diag.FromErr(err)
-			}
-
-			planVal, exists := policyMap["plan"]
-			if !exists {
-				return diag.FromErr(errors.New("backup_policy plan key does not exist"))
-			}
-			plan, ok := planVal.(string)
-			if !ok {
-				return diag.FromErr(errors.New("backup_policy plan is not a string"))
-			}
-			opts.BackupPolicy.Plan = plan
-
-			weekdayVal, exists := policyMap["weekday"]
-			if !exists {
-				return diag.FromErr(errors.New("backup_policy weekday key does not exist"))
-			}
-			weekday, ok := weekdayVal.(string)
-			if !ok {
-				return diag.FromErr(errors.New("backup_policy weekday is not a string"))
-			}
-			opts.BackupPolicy.Weekday = weekday
-
-			hourVal, exists := policyMap["hour"]
-			if !exists {
-				return diag.FromErr(errors.New("backup_policy hour key does not exist"))
-			}
-			hour, ok := hourVal.(int)
-			if !ok {
-				return diag.FromErr(errors.New("backup_policy hour is not an int"))
-			}
-			opts.BackupPolicy.Hour = &hour
+		newPolicy, err := expandBackupPolicy(policyList)
+		if err != nil {
+			return diag.FromErr(err)
 		}
+		opts.BackupPolicy = newPolicy
 	}
 
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
@@ -653,22 +622,26 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if d.HasChange("backup_policy") {
-		var newPolicy godo.DropletBackupPolicyRequest
+		if !d.Get("backups").(bool) {
+			return diag.Errorf("backup_policy can only be set when backups are enabled")
+		}
+
 		bp, ok := d.GetOk("backup_policy")
-		if ok && bp != nil { // backup_policy must be set.
+		if ok && bp != nil { // backup_policy can't be empty.
 			_, new := d.GetChange("backup_policy")
-			if newList, ok := new.([]interface{}); ok && len(newList) != 0 {
-				newPolicy = new.([]interface{})[0].(godo.DropletBackupPolicyRequest)
+			newPolicy, err := expandBackupPolicy(new)
+			if err != nil {
+				return diag.FromErr(err)
 			}
 
-			action, _, err := client.DropletActions.ChangeBackupPolicy(context.Background(), id, &newPolicy)
+			action, _, err := client.DropletActions.ChangeBackupPolicy(context.Background(), id, newPolicy)
 			if err != nil {
 				return diag.Errorf(
-					"Error changing backup policy on droplet (%s): %s", d.Id(), err)
+					"error changing backup policy on droplet (%s): %s", d.Id(), err)
 			}
 
 			if err := util.WaitForAction(client, action); err != nil {
-				return diag.Errorf("Error waiting for backup policy to be changed for droplet (%s): %s", d.Id(), err)
+				return diag.Errorf("error waiting for backup policy to be changed for droplet (%s): %s", d.Id(), err)
 			}
 		}
 	}
@@ -1012,4 +985,48 @@ func flattenDigitalOceanDropletVolumeIds(volumeids []string) *schema.Set {
 	}
 
 	return flattenedVolumes
+}
+
+func expandBackupPolicy(v interface{}) (*godo.DropletBackupPolicyRequest, error) {
+	var policy godo.DropletBackupPolicyRequest
+	policyList := v.([]interface{})
+
+	for _, rawPolicy := range policyList {
+		policyMap, ok := rawPolicy.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("droplet backup policy type assertion failed: expected map[string]interface{}, got %T", rawPolicy)
+		}
+
+		planVal, exists := policyMap["plan"]
+		if !exists {
+			return nil, errors.New("backup_policy plan key does not exist")
+		}
+		plan, ok := planVal.(string)
+		if !ok {
+			return nil, errors.New("backup_policy plan is not a string")
+		}
+		policy.Plan = plan
+
+		weekdayVal, exists := policyMap["weekday"]
+		if !exists {
+			return nil, errors.New("backup_policy weekday key does not exist")
+		}
+		weekday, ok := weekdayVal.(string)
+		if !ok {
+			return nil, errors.New("backup_policy weekday is not a string")
+		}
+		policy.Weekday = weekday
+
+		hourVal, exists := policyMap["hour"]
+		if !exists {
+			return nil, errors.New("backup_policy hour key does not exist")
+		}
+		hour, ok := hourVal.(int)
+		if !ok {
+			return nil, errors.New("backup_policy hour is not an int")
+		}
+		policy.Hour = &hour
+	}
+
+	return &policy, nil
 }
