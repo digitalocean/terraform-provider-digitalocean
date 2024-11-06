@@ -306,6 +306,10 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if attr, ok := d.GetOk("backups"); ok {
+		_, exist := d.GetOk("backup_policy")
+		if exist && !attr.(bool) { // Check there is no backup_policy specified when backups are disabled.
+			return diag.FromErr(errDropletBackupPolicy)
+		}
 		opts.Backups = attr.(bool)
 	}
 
@@ -615,6 +619,11 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 				return diag.Errorf("Error waiting for backups to be enabled for droplet (%s): %s", d.Id(), err)
 			}
 		} else {
+			// Check there is no backup_policy specified
+			_, ok := d.GetOk("backup_policy")
+			if ok {
+				return diag.FromErr(errDropletBackupPolicy)
+			}
 			// Disable backups on droplet
 			action, _, err := client.DropletActions.DisableBackups(context.Background(), id)
 			if err != nil {
