@@ -609,22 +609,36 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 	if d.HasChange("backups") {
 		if d.Get("backups").(bool) {
 			// Enable backups on droplet
-			action, _, err := client.DropletActions.EnableBackups(context.Background(), id)
-			if err != nil {
-				return diag.Errorf(
-					"Error enabling backups on droplet (%s): %s", d.Id(), err)
+			var action *godo.Action
+			// Apply backup_policy if specified, otherwise use the default policy
+			policy, ok := d.GetOk("backup_policy")
+			if ok {
+				backupPolicy, err := expandBackupPolicy(policy)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				action, _, err = client.DropletActions.EnableBackupsWithPolicy(context.Background(), id, backupPolicy)
+				if err != nil {
+					return diag.Errorf(
+						"Error enabling backups on droplet (%s): %s", d.Id(), err)
+				}
+			} else {
+				action, _, err = client.DropletActions.EnableBackups(context.Background(), id)
+				if err != nil {
+					return diag.Errorf(
+						"Error enabling backups on droplet (%s): %s", d.Id(), err)
+				}
 			}
-
 			if err := util.WaitForAction(client, action); err != nil {
 				return diag.Errorf("Error waiting for backups to be enabled for droplet (%s): %s", d.Id(), err)
 			}
 		} else {
+			// Disable backups on droplet
 			// Check there is no backup_policy specified
 			_, ok := d.GetOk("backup_policy")
 			if ok {
 				return diag.FromErr(errDropletBackupPolicy)
 			}
-			// Disable backups on droplet
 			action, _, err := client.DropletActions.DisableBackups(context.Background(), id)
 			if err != nil {
 				return diag.Errorf(
