@@ -21,6 +21,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+var (
+	errDropletBackupPolicy = errors.New("backup_policy can only be set when backups are enabled")
+)
+
 func ResourceDigitalOceanDroplet() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanDropletCreate,
@@ -356,12 +360,15 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	// Get configured backup_policy
 	if policy, ok := d.GetOk("backup_policy"); ok {
-		policyList := policy.([]interface{})
-		newPolicy, err := expandBackupPolicy(policyList)
+		if !d.Get("backups").(bool) {
+			return diag.FromErr(errDropletBackupPolicy)
+		}
+
+		backupPolicy, err := expandBackupPolicy(policy)
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		opts.BackupPolicy = newPolicy
+		opts.BackupPolicy = backupPolicy
 	}
 
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
@@ -623,26 +630,23 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 	if d.HasChange("backup_policy") {
 		if !d.Get("backups").(bool) {
-			return diag.Errorf("backup_policy can only be set when backups are enabled")
+			return diag.FromErr(errDropletBackupPolicy)
 		}
 
-		bp, ok := d.GetOk("backup_policy")
-		if ok && bp != nil { // backup_policy can't be empty.
-			_, new := d.GetChange("backup_policy")
-			newPolicy, err := expandBackupPolicy(new)
-			if err != nil {
-				return diag.FromErr(err)
-			}
+		_, new := d.GetChange("backup_policy")
+		newPolicy, err := expandBackupPolicy(new)
+		if err != nil {
+			return diag.FromErr(err)
+		}
 
-			action, _, err := client.DropletActions.ChangeBackupPolicy(context.Background(), id, newPolicy)
-			if err != nil {
-				return diag.Errorf(
-					"error changing backup policy on droplet (%s): %s", d.Id(), err)
-			}
+		action, _, err := client.DropletActions.ChangeBackupPolicy(context.Background(), id, newPolicy)
+		if err != nil {
+			return diag.Errorf(
+				"error changing backup policy on droplet (%s): %s", d.Id(), err)
+		}
 
-			if err := util.WaitForAction(client, action); err != nil {
-				return diag.Errorf("error waiting for backup policy to be changed for droplet (%s): %s", d.Id(), err)
-			}
+		if err := util.WaitForAction(client, action); err != nil {
+			return diag.Errorf("error waiting for backup policy to be changed for droplet (%s): %s", d.Id(), err)
 		}
 	}
 
