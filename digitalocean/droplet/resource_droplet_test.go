@@ -480,11 +480,13 @@ func TestAccDigitalOceanDroplet_EnableAndDisableBackups(t *testing.T) {
 func TestAccDigitalOceanDroplet_ChangeBackupPolicy(t *testing.T) {
 	var droplet godo.Droplet
 	name := acceptance.RandomTestName()
-	backupPolicy := `  backup_policy {
+	backupsEnabled := `backups = true`
+	backupsDisabled := `backups = false`
+	dailyPolicy := `  backup_policy {
 		plan    = "daily"
 		hour    = 4
 	}`
-	updatedPolicy := `  backup_policy {
+	weeklyPolicy := `  backup_policy {
 		plan    = "weekly"
 		weekday = "MON"
 		hour    = 0
@@ -496,7 +498,7 @@ func TestAccDigitalOceanDroplet_ChangeBackupPolicy(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, ""),
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupsEnabled, ""),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -504,7 +506,19 @@ func TestAccDigitalOceanDroplet_ChangeBackupPolicy(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupPolicy),
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupsEnabled, weeklyPolicy),
+				Check: resource.ComposeTestCheckFunc(
+					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.plan", "weekly"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.weekday", "MON"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.hour", "0"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupsEnabled, dailyPolicy),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -513,8 +527,17 @@ func TestAccDigitalOceanDroplet_ChangeBackupPolicy(t *testing.T) {
 						"digitalocean_droplet.foobar", "backup_policy.0.hour", "4"),
 				),
 			},
+			// Verify specified backup policy is applied after re-enabling, and default policy is not used.
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, updatedPolicy),
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupsDisabled, ""),
+				Check: resource.ComposeTestCheckFunc(
+					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backups", "false"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupsEnabled, weeklyPolicy),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -532,6 +555,7 @@ func TestAccDigitalOceanDroplet_ChangeBackupPolicy(t *testing.T) {
 func TestAccDigitalOceanDroplet_WithBackupPolicy(t *testing.T) {
 	var droplet godo.Droplet
 	name := acceptance.RandomTestName()
+	backupsEnabled := `backups = true`
 	backupPolicy := `  backup_policy {
 	   plan    = "weekly"
 	   weekday = "MON"
@@ -544,7 +568,7 @@ func TestAccDigitalOceanDroplet_WithBackupPolicy(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupPolicy),
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupsEnabled, backupPolicy),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -1110,7 +1134,7 @@ resource "digitalocean_droplet" "foobar" {
 }`, name, defaultSize, defaultImage)
 }
 
-func testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupPolicy string) string {
+func testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backups, backupPolicy string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
   name      = "%s"
@@ -1118,9 +1142,9 @@ resource "digitalocean_droplet" "foobar" {
   image     = "%s"
   region    = "nyc3"
   user_data = "foobar"
-  backups   = true
   %s
-}`, name, defaultSize, defaultImage, backupPolicy)
+  %s
+}`, name, defaultSize, defaultImage, backups, backupPolicy)
 }
 
 func testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, testAccValidPublicKey, dropletName, image, agent string) string {
