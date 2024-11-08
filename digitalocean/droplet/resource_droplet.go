@@ -147,8 +147,10 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 			},
 
 			"backup_policy": {
-				Type:     schema.TypeList,
-				Optional: true,
+				Type:         schema.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				RequiredWith: []string{"backups"},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"plan": {
@@ -289,12 +291,11 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	// Build up our creation options
 	opts := &godo.DropletCreateRequest{
-		Image:        godo.DropletCreateImage{},
-		Name:         d.Get("name").(string),
-		Region:       d.Get("region").(string),
-		Size:         d.Get("size").(string),
-		Tags:         tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
-		BackupPolicy: &godo.DropletBackupPolicyRequest{},
+		Image:  godo.DropletCreateImage{},
+		Name:   d.Get("name").(string),
+		Region: d.Get("region").(string),
+		Size:   d.Get("size").(string),
+		Tags:   tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
 	}
 
 	imageId, err := strconv.Atoi(image)
