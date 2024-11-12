@@ -477,6 +477,112 @@ func TestAccDigitalOceanDroplet_EnableAndDisableBackups(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDroplet_ChangeBackupPolicy(t *testing.T) {
+	var droplet godo.Droplet
+	name := acceptance.RandomTestName()
+	backupsEnabled := `backups = true`
+	backupsDisabled := `backups = false`
+	dailyPolicy := `  backup_policy {
+		plan    = "daily"
+		hour    = 4
+	}`
+	weeklyPolicy := `  backup_policy {
+		plan    = "weekly"
+		weekday = "MON"
+		hour    = 0
+	}`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupsEnabled, ""),
+				Check: resource.ComposeTestCheckFunc(
+					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backups", "true"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupsEnabled, weeklyPolicy),
+				Check: resource.ComposeTestCheckFunc(
+					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.plan", "weekly"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.weekday", "MON"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.hour", "0"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupsEnabled, dailyPolicy),
+				Check: resource.ComposeTestCheckFunc(
+					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.plan", "daily"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.hour", "4"),
+				),
+			},
+			// Verify specified backup policy is applied after re-enabling, and default policy is not used.
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupsDisabled, ""),
+				Check: resource.ComposeTestCheckFunc(
+					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backups", "false"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupsEnabled, weeklyPolicy),
+				Check: resource.ComposeTestCheckFunc(
+					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.plan", "weekly"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.weekday", "MON"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.hour", "0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDroplet_WithBackupPolicy(t *testing.T) {
+	var droplet godo.Droplet
+	name := acceptance.RandomTestName()
+	backupsEnabled := `backups = true`
+	backupPolicy := `  backup_policy {
+	   plan    = "weekly"
+	   weekday = "MON"
+	   hour    = 0
+	 }`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backupsEnabled, backupPolicy),
+				Check: resource.ComposeTestCheckFunc(
+					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.plan", "weekly"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.weekday", "MON"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "backup_policy.0.hour", "0"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDroplet_EnableAndDisableGracefulShutdown(t *testing.T) {
 	var droplet godo.Droplet
 	name := acceptance.RandomTestName()
@@ -1026,6 +1132,19 @@ resource "digitalocean_droplet" "foobar" {
   user_data = "foobar"
   backups   = false
 }`, name, defaultSize, defaultImage)
+}
+
+func testAccCheckDigitalOceanDropletConfig_ChangeBackupPolicy(name, backups, backupPolicy string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_droplet" "foobar" {
+  name      = "%s"
+  size      = "%s"
+  image     = "%s"
+  region    = "nyc3"
+  user_data = "foobar"
+  %s
+  %s
+}`, name, defaultSize, defaultImage, backups, backupPolicy)
 }
 
 func testAccCheckDigitalOceanDropletConfig_DropletAgent(keyName, testAccValidPublicKey, dropletName, image, agent string) string {
