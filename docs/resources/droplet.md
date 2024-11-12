@@ -18,6 +18,12 @@ resource "digitalocean_droplet" "web" {
   name   = "web-1"
   region = "nyc2"
   size   = "s-1vcpu-1gb"
+  backups = true
+  backup_policy {
+    plan    = "weekly"
+    weekday = "TUE"
+    hour    = 8
+  }
 }
 ```
 
@@ -31,6 +37,7 @@ The following arguments are supported:
 * `size` - (Required) The unique slug that identifies the type of Droplet. You can find a list of available slugs on [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#tag/Sizes).
 * `backups` - (Optional) Boolean controlling if backups are made. Defaults to
    false.
+* `backup_policy` - (Optional) An object specifying the backup policy for the Droplet. If omitted and `backups` is `true`, the backup plan will default to daily.
 * `monitoring` - (Optional) Boolean controlling whether monitoring agent is installed.
    Defaults to false. If set to `true`, you can configure monitor alert policies
    [monitor alert resource](/providers/digitalocean/digitalocean/latest/docs/resources/monitor_alert)
