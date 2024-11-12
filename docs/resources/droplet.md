@@ -38,6 +38,9 @@ The following arguments are supported:
 * `backups` - (Optional) Boolean controlling if backups are made. Defaults to
    false.
 * `backup_policy` - (Optional) An object specifying the backup policy for the Droplet. If omitted and `backups` is `true`, the backup plan will default to daily.
+  - `plan` - The backup plan used for the Droplet. The plan can be either `daily` or `weekly`.
+  - `weekday` - The day of the week on which the backup will occur (`SUN`, `MON`, `TUE`, `WED`, `THU`, `FRI`, `SAT`).
+  - `hour` - The hour of the day that the backup window will start (`0`, `4`, `8`, `12`, `16`, `20`).
 * `monitoring` - (Optional) Boolean controlling whether monitoring agent is installed.
    Defaults to false. If set to `true`, you can configure monitor alert policies
    [monitor alert resource](/providers/digitalocean/digitalocean/latest/docs/resources/monitor_alert)
