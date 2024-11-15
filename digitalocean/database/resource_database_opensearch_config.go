@@ -280,11 +280,11 @@ func updateOpensearchConfig(ctx context.Context, d *schema.ResourceData, client 
 
 	opts := &godo.OpensearchConfig{}
 
-	if v, ok := d.GetOk("ism_enabled"); ok {
+	if v, ok := d.GetOkExists("ism_enabled"); ok {
 		opts.IsmEnabled = godo.PtrTo(v.(bool))
 	}
 
-	if v, ok := d.GetOk("ism_history_enabled"); ok {
+	if v, ok := d.GetOkExists("ism_history_enabled"); ok {
 		opts.IsmHistoryEnabled = godo.PtrTo(v.(bool))
 	}
 
@@ -352,15 +352,15 @@ func updateOpensearchConfig(ctx context.Context, d *schema.ResourceData, client 
 		opts.IndicesRecoveryMaxConcurrentFileChunks = godo.PtrTo(v.(int))
 	}
 
-	if v, ok := d.GetOk("action_auto_create_index_enabled"); ok {
+	if v, ok := d.GetOkExists("action_auto_create_index_enabled"); ok {
 		opts.ActionAutoCreateIndexEnabled = godo.PtrTo(v.(bool))
 	}
 
-	if v, ok := d.GetOk("action_destructive_requires_name"); ok {
+	if v, ok := d.GetOkExists("action_destructive_requires_name"); ok {
 		opts.ActionDestructiveRequiresName = godo.PtrTo(v.(bool))
 	}
 
-	if v, ok := d.GetOk("enable_security_audit"); ok {
+	if v, ok := d.GetOkExists("enable_security_audit"); ok {
 		opts.EnableSecurityAudit = godo.PtrTo(v.(bool))
 	}
 
@@ -408,7 +408,7 @@ func updateOpensearchConfig(ctx context.Context, d *schema.ResourceData, client 
 		opts.ThreadPoolForceMergeSize = godo.PtrTo(v.(int))
 	}
 
-	if v, ok := d.GetOk("override_main_response_version"); ok {
+	if v, ok := d.GetOkExists("override_main_response_version"); ok {
 		opts.OverrideMainResponseVersion = godo.PtrTo(v.(bool))
 	}
 
@@ -424,7 +424,7 @@ func updateOpensearchConfig(ctx context.Context, d *schema.ResourceData, client 
 		opts.ClusterRoutingAllocationNodeConcurrentRecoveries = godo.PtrTo(v.(int))
 	}
 
-	if v, ok := d.GetOk("plugins_alerting_filter_by_backend_roles_enabled"); ok {
+	if v, ok := d.GetOkExists("plugins_alerting_filter_by_backend_roles_enabled"); ok {
 		opts.PluginsAlertingFilterByBackendRolesEnabled = godo.PtrTo(v.(bool))
 	}
 
