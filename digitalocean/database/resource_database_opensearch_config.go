@@ -254,8 +254,10 @@ func resourceDigitalOceanDatabaseOpensearchConfigCreate(ctx context.Context, d *
 	client := meta.(*config.CombinedConfig).GodoClient()
 	clusterID := d.Get("cluster_id").(string)
 
-	if err := updateOpensearchConfig(ctx, d, client); err != nil {
-		return diag.Errorf("Error updating Opensearch configuration: %s", err)
+	if d.HasChangeExcept("cluster_id") {
+		if err := updateOpensearchConfig(ctx, d, client); err != nil {
+			return diag.Errorf("Error updating Opensearch configuration: %s", err)
+		}
 	}
 
 	d.SetId(makeDatabaseOpensearchConfigID(clusterID))
