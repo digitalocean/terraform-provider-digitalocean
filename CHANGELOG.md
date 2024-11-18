@@ -1,3 +1,20 @@
+## 2.44.0
+
+IMPROVEMENTS:
+
+- #1261 - @loosla - [droplets]: add support for backup policy
+- #1256 - @andrewsomething - Support GPU Droplets in Droplet data sources
+
+BUG FIXES:
+
+- #1268 - @andrewsomething - opensearch_config: only send PATCH on create if values set.
+
+MISC:
+
+- #1262 - @loosla - [databases]: update a description for redis_ssl in redis advanced config
+- #1260 - @jvasilevsky - LBAAS-3509: update loadbalancer field descriptions
+- #1255 - @publi0 - Enhance Documentation with Subcategories for Resources and Data Sources
+
 ## 2.43.0
 
 IMPROVEMENTS:
