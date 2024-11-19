@@ -62,7 +62,7 @@ The following arguments are supported:
    only the Droplet's RAM and CPU will be resized. **Increasing a Droplet's disk
    size is a permanent change**. Increasing only RAM and CPU is reversible.
 * `tags` - (Optional) A list of the tags to be applied to this Droplet.
-* `user_data` (Optional) - A string of the desired User Data for the Droplet.
+* `user_data` (Optional) - A string of the desired User Data provided [during Droplet creation](https://docs.digitalocean.com/products/droplets/how-to/provide-user-data/). Changing this forces a new resource to be created.
 * `volume_ids` (Optional) - A list of the IDs of each [block storage volume](/providers/digitalocean/digitalocean/latest/docs/resources/volume) to be attached to the Droplet.
 * `droplet_agent` (Optional) - A boolean indicating whether to install the
    DigitalOcean agent used for providing access to the Droplet web console in
