@@ -280,165 +280,234 @@ func updateOpensearchConfig(ctx context.Context, d *schema.ResourceData, client 
 
 	opts := &godo.OpensearchConfig{}
 
-	if v, ok := d.GetOkExists("ism_enabled"); ok {
-		opts.IsmEnabled = godo.PtrTo(v.(bool))
+	if d.HasChanges("ism_enabled", "ism_history_enabled", "ism_history_max_age_hours",
+		"ism_history_max_docs", "ism_history_rollover_check_period_hours",
+		"ism_history_rollover_retention_period_days") {
+
+		if v, ok := d.GetOkExists("ism_enabled"); ok {
+			opts.IsmEnabled = godo.PtrTo(v.(bool))
+		}
+
+		if v, ok := d.GetOkExists("ism_history_enabled"); ok {
+			opts.IsmHistoryEnabled = godo.PtrTo(v.(bool))
+		}
+
+		if v, ok := d.GetOk("ism_history_max_age_hours"); ok {
+			opts.IsmHistoryMaxAgeHours = godo.PtrTo(v.(int))
+		}
+
+		if v, ok := d.GetOk("ism_history_max_docs"); ok {
+			opts.IsmHistoryMaxDocs = godo.PtrTo(int64(v.(int)))
+		}
+
+		if v, ok := d.GetOk("ism_history_rollover_check_period_hours"); ok {
+			opts.IsmHistoryRolloverCheckPeriodHours = godo.PtrTo(v.(int))
+		}
+
+		if v, ok := d.GetOk("ism_history_rollover_retention_period_days"); ok {
+			opts.IsmHistoryRolloverRetentionPeriodDays = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOkExists("ism_history_enabled"); ok {
-		opts.IsmHistoryEnabled = godo.PtrTo(v.(bool))
+	if d.HasChange("http_max_content_length_bytes") {
+		if v, ok := d.GetOk("http_max_content_length_bytes"); ok {
+			opts.HttpMaxContentLengthBytes = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("ism_history_max_age_hours"); ok {
-		opts.IsmHistoryMaxAgeHours = godo.PtrTo(v.(int))
+	if d.HasChange("http_max_header_size_bytes") {
+		if v, ok := d.GetOk("http_max_header_size_bytes"); ok {
+			opts.HttpMaxHeaderSizeBytes = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("ism_history_max_docs"); ok {
-		opts.IsmHistoryMaxDocs = godo.PtrTo(int64(v.(int)))
+	if d.HasChange("http_max_initial_line_length_bytes") {
+		if v, ok := d.GetOk("http_max_initial_line_length_bytes"); ok {
+			opts.HttpMaxInitialLineLengthBytes = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("ism_history_rollover_check_period_hours"); ok {
-		opts.IsmHistoryRolloverCheckPeriodHours = godo.PtrTo(v.(int))
+	if d.HasChange("indices_query_bool_max_clause_count") {
+		if v, ok := d.GetOk("indices_query_bool_max_clause_count"); ok {
+			opts.IndicesQueryBoolMaxClauseCount = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("ism_history_rollover_retention_period_days"); ok {
-		opts.IsmHistoryRolloverRetentionPeriodDays = godo.PtrTo(v.(int))
+	if d.HasChange("search_max_buckets") {
+		if v, ok := d.GetOk("search_max_buckets"); ok {
+			opts.SearchMaxBuckets = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("http_max_content_length_bytes"); ok {
-		opts.HttpMaxContentLengthBytes = godo.PtrTo(v.(int))
+	if d.HasChange("indices_fielddata_cache_size_percentage") {
+		if v, ok := d.GetOk("indices_fielddata_cache_size_percentage"); ok {
+			opts.IndicesFielddataCacheSizePercentage = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("http_max_header_size_bytes"); ok {
-		opts.HttpMaxHeaderSizeBytes = godo.PtrTo(v.(int))
+	if d.HasChange("indices_memory_index_buffer_size_percentage") {
+		if v, ok := d.GetOk("indices_memory_index_buffer_size_percentage"); ok {
+			opts.IndicesMemoryIndexBufferSizePercentage = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("http_max_initial_line_length_bytes"); ok {
-		opts.HttpMaxInitialLineLengthBytes = godo.PtrTo(v.(int))
+	if d.HasChange("indices_memory_min_index_buffer_size_mb") {
+		if v, ok := d.GetOk("indices_memory_min_index_buffer_size_mb"); ok {
+			opts.IndicesMemoryMinIndexBufferSizeMb = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("indices_query_bool_max_clause_count"); ok {
-		opts.IndicesQueryBoolMaxClauseCount = godo.PtrTo(v.(int))
+	if d.HasChange("indices_memory_max_index_buffer_size_mb") {
+		if v, ok := d.GetOk("indices_memory_max_index_buffer_size_mb"); ok {
+			opts.IndicesMemoryMaxIndexBufferSizeMb = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("search_max_buckets"); ok {
-		opts.SearchMaxBuckets = godo.PtrTo(v.(int))
+	if d.HasChange("indices_queries_cache_size_percentage") {
+		if v, ok := d.GetOk("indices_queries_cache_size_percentage"); ok {
+			opts.IndicesQueriesCacheSizePercentage = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("indices_fielddata_cache_size_percentage"); ok {
-		opts.IndicesFielddataCacheSizePercentage = godo.PtrTo(v.(int))
+	if d.HasChange("indices_recovery_max_mb_per_sec") {
+		if v, ok := d.GetOk("indices_recovery_max_mb_per_sec"); ok {
+			opts.IndicesRecoveryMaxMbPerSec = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("indices_memory_index_buffer_size_percentage"); ok {
-		opts.IndicesMemoryIndexBufferSizePercentage = godo.PtrTo(v.(int))
+	if d.HasChange("indices_recovery_max_concurrent_file_chunks") {
+		if v, ok := d.GetOk("indices_recovery_max_concurrent_file_chunks"); ok {
+			opts.IndicesRecoveryMaxConcurrentFileChunks = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("indices_memory_min_index_buffer_size_mb"); ok {
-		opts.IndicesMemoryMinIndexBufferSizeMb = godo.PtrTo(v.(int))
+	if d.HasChange("action_auto_create_index_enabled") {
+		if v, ok := d.GetOkExists("action_auto_create_index_enabled"); ok {
+			opts.ActionAutoCreateIndexEnabled = godo.PtrTo(v.(bool))
+		}
 	}
 
-	if v, ok := d.GetOk("indices_memory_max_index_buffer_size_mb"); ok {
-		opts.IndicesMemoryMaxIndexBufferSizeMb = godo.PtrTo(v.(int))
+	if d.HasChange("action_destructive_requires_name") {
+		if v, ok := d.GetOkExists("action_destructive_requires_name"); ok {
+			opts.ActionDestructiveRequiresName = godo.PtrTo(v.(bool))
+		}
 	}
 
-	if v, ok := d.GetOk("indices_queries_cache_size_percentage"); ok {
-		opts.IndicesQueriesCacheSizePercentage = godo.PtrTo(v.(int))
+	if d.HasChange("enable_security_audit") {
+		if v, ok := d.GetOkExists("enable_security_audit"); ok {
+			opts.EnableSecurityAudit = godo.PtrTo(v.(bool))
+		}
 	}
 
-	if v, ok := d.GetOk("indices_recovery_max_mb_per_sec"); ok {
-		opts.IndicesRecoveryMaxMbPerSec = godo.PtrTo(v.(int))
+	if d.HasChange("thread_pool_search_size") {
+		if v, ok := d.GetOk("thread_pool_search_size"); ok {
+			opts.ThreadPoolSearchSize = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("indices_recovery_max_concurrent_file_chunks"); ok {
-		opts.IndicesRecoveryMaxConcurrentFileChunks = godo.PtrTo(v.(int))
+	if d.HasChange("thread_pool_search_throttled_size") {
+		if v, ok := d.GetOk("thread_pool_search_throttled_size"); ok {
+			opts.ThreadPoolSearchThrottledSize = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOkExists("action_auto_create_index_enabled"); ok {
-		opts.ActionAutoCreateIndexEnabled = godo.PtrTo(v.(bool))
+	if d.HasChange("thread_pool_search_throttled_queue_size") {
+		if v, ok := d.GetOk("thread_pool_search_throttled_queue_size"); ok {
+			opts.ThreadPoolSearchThrottledQueueSize = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOkExists("action_destructive_requires_name"); ok {
-		opts.ActionDestructiveRequiresName = godo.PtrTo(v.(bool))
+	if d.HasChange("thread_pool_search_queue_size") {
+		if v, ok := d.GetOk("thread_pool_search_queue_size"); ok {
+			opts.ThreadPoolSearchQueueSize = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOkExists("enable_security_audit"); ok {
-		opts.EnableSecurityAudit = godo.PtrTo(v.(bool))
+	if d.HasChange("thread_pool_get_size") {
+		if v, ok := d.GetOk("thread_pool_get_size"); ok {
+			opts.ThreadPoolGetSize = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("thread_pool_search_size"); ok {
-		opts.ThreadPoolSearchSize = godo.PtrTo(v.(int))
+	if d.HasChange("thread_pool_get_queue_size") {
+		if v, ok := d.GetOk("thread_pool_get_queue_size"); ok {
+			opts.ThreadPoolGetQueueSize = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("thread_pool_search_throttled_size"); ok {
-		opts.ThreadPoolSearchThrottledSize = godo.PtrTo(v.(int))
+	if d.HasChange("thread_pool_analyze_size") {
+		if v, ok := d.GetOk("thread_pool_analyze_size"); ok {
+			opts.ThreadPoolAnalyzeSize = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("thread_pool_search_throttled_queue_size"); ok {
-		opts.ThreadPoolSearchThrottledQueueSize = godo.PtrTo(v.(int))
+	if d.HasChange("thread_pool_analyze_queue_size") {
+		if v, ok := d.GetOk("thread_pool_analyze_queue_size"); ok {
+			opts.ThreadPoolAnalyzeQueueSize = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("thread_pool_search_queue_size"); ok {
-		opts.ThreadPoolSearchQueueSize = godo.PtrTo(v.(int))
+	if d.HasChange("thread_pool_write_size") {
+		if v, ok := d.GetOk("thread_pool_write_size"); ok {
+			opts.ThreadPoolWriteSize = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("thread_pool_get_size"); ok {
-		opts.ThreadPoolGetSize = godo.PtrTo(v.(int))
+	if d.HasChange("thread_pool_write_queue_size") {
+		if v, ok := d.GetOk("thread_pool_write_queue_size"); ok {
+			opts.ThreadPoolWriteQueueSize = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("thread_pool_get_queue_size"); ok {
-		opts.ThreadPoolGetQueueSize = godo.PtrTo(v.(int))
+	if d.HasChange("thread_pool_force_merge_size") {
+		if v, ok := d.GetOk("thread_pool_force_merge_size"); ok {
+			opts.ThreadPoolForceMergeSize = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("thread_pool_analyze_size"); ok {
-		opts.ThreadPoolAnalyzeSize = godo.PtrTo(v.(int))
+	if d.HasChange("override_main_response_version") {
+		if v, ok := d.GetOkExists("override_main_response_version"); ok {
+			opts.OverrideMainResponseVersion = godo.PtrTo(v.(bool))
+		}
 	}
 
-	if v, ok := d.GetOk("thread_pool_analyze_queue_size"); ok {
-		opts.ThreadPoolAnalyzeQueueSize = godo.PtrTo(v.(int))
+	if d.HasChange("script_max_compilations_rate") {
+		if v, ok := d.GetOk("script_max_compilations_rate"); ok {
+			opts.ScriptMaxCompilationsRate = godo.PtrTo(v.(string))
+		}
 	}
 
-	if v, ok := d.GetOk("thread_pool_write_size"); ok {
-		opts.ThreadPoolWriteSize = godo.PtrTo(v.(int))
+	if d.HasChange("cluster_max_shards_per_node") {
+		if v, ok := d.GetOk("cluster_max_shards_per_node"); ok {
+			opts.ClusterMaxShardsPerNode = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("thread_pool_write_queue_size"); ok {
-		opts.ThreadPoolWriteQueueSize = godo.PtrTo(v.(int))
+	if d.HasChange("cluster_routing_allocation_node_concurrent_recoveries") {
+		if v, ok := d.GetOk("cluster_routing_allocation_node_concurrent_recoveries"); ok {
+			opts.ClusterRoutingAllocationNodeConcurrentRecoveries = godo.PtrTo(v.(int))
+		}
 	}
 
-	if v, ok := d.GetOk("thread_pool_force_merge_size"); ok {
-		opts.ThreadPoolForceMergeSize = godo.PtrTo(v.(int))
+	if d.HasChange("plugins_alerting_filter_by_backend_roles_enabled") {
+		if v, ok := d.GetOkExists("plugins_alerting_filter_by_backend_roles_enabled"); ok {
+			opts.PluginsAlertingFilterByBackendRolesEnabled = godo.PtrTo(v.(bool))
+		}
 	}
 
-	if v, ok := d.GetOkExists("override_main_response_version"); ok {
-		opts.OverrideMainResponseVersion = godo.PtrTo(v.(bool))
-	}
-
-	if v, ok := d.GetOk("script_max_compilations_rate"); ok {
-		opts.ScriptMaxCompilationsRate = godo.PtrTo(v.(string))
-	}
-
-	if v, ok := d.GetOk("cluster_max_shards_per_node"); ok {
-		opts.ClusterMaxShardsPerNode = godo.PtrTo(v.(int))
-	}
-
-	if v, ok := d.GetOk("cluster_routing_allocation_node_concurrent_recoveries"); ok {
-		opts.ClusterRoutingAllocationNodeConcurrentRecoveries = godo.PtrTo(v.(int))
-	}
-
-	if v, ok := d.GetOkExists("plugins_alerting_filter_by_backend_roles_enabled"); ok {
-		opts.PluginsAlertingFilterByBackendRolesEnabled = godo.PtrTo(v.(bool))
-	}
-
-	if v, ok := d.GetOk("reindex_remote_whitelist"); ok {
-		if exampleSet, ok := v.(*schema.Set); ok {
-			var items []string
-			for _, item := range exampleSet.List() {
-				if str, ok := item.(string); ok {
-					items = append(items, str)
-				} else {
-					return fmt.Errorf("non-string item found in set") // todo: anna update err message
+	if d.HasChange("reindex_remote_whitelist") {
+		if v, ok := d.GetOk("reindex_remote_whitelist"); ok {
+			if exampleSet, ok := v.(*schema.Set); ok {
+				var items []string
+				for _, item := range exampleSet.List() {
+					if str, ok := item.(string); ok {
+						items = append(items, str)
+					} else {
+						return fmt.Errorf("non-string item found in set")
+					}
 				}
+				opts.ReindexRemoteWhitelist = items
 			}
-			opts.ReindexRemoteWhitelist = items
 		}
 	}
 
