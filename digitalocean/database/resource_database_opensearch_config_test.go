@@ -20,17 +20,21 @@ func TestAccDigitalOceanDatabaseOpensearchConfig_Basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseOpensearchConfigConfigBasic, dbConfig, true, 10, "1"),
 				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "enable_security_audit", "true"),
 					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_enabled", "true"),
+					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_history_enabled", "true"),
 					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_history_max_age_hours", "10"),
 					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_history_max_docs", "1"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseOpensearchConfigConfigBasic, dbConfig, false, 1, "9223372036854775807"),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseOpensearchConfigConfigBasic, dbConfig, false, 1, "1000000000000000000"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_enabled", "false"),
+					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "enable_security_audit", "false"),
+					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_enabled", "true"),
+					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_history_enabled", "true"),
 					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_history_max_age_hours", "1"),
-					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_history_max_docs", "9223372036854775807"),
+					resource.TestCheckResourceAttr("digitalocean_database_opensearch_config.foobar", "ism_history_max_docs", "1000000000000000000"),
 				),
 			},
 		},
@@ -42,7 +46,9 @@ const testAccCheckDigitalOceanDatabaseOpensearchConfigConfigBasic = `
 
 resource "digitalocean_database_opensearch_config" "foobar" {
   cluster_id                = digitalocean_database_cluster.foobar.id
-  ism_enabled               = %t
+  enable_security_audit     = %t
+  ism_enabled               = true
+  ism_history_enabled       = true
   ism_history_max_age_hours = %d
   ism_history_max_docs      = %s
 }`
