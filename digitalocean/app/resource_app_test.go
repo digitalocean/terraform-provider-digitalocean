@@ -865,6 +865,55 @@ func TestAccDigitalOceanApp_TimeoutConfig(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_makeServiceInternal(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_minimalService, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName,
+					),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/",
+					),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.http_port", "8080",
+					),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_internalOnlyService, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName,
+					),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.http_port", "0",
+					),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.internal_ports.#", "1",
+					),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.internal_ports.0", "8080",
+					),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.#", "0",
+					),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanAppDestroy(s *terraform.State) error {
 	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
@@ -1575,5 +1624,48 @@ resource "digitalocean_app" "foobar" {
         }
       }
     }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_minimalService = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "nyc"
+
+    service {
+      name               = "go-service"
+      instance_count     = 1
+      instance_size_slug = "apps-d-1vcpu-0.5gb"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_internalOnlyService = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "nyc"
+
+    service {
+      name               = "go-service"
+      instance_count     = 1
+      instance_size_slug = "apps-d-1vcpu-0.5gb"
+
+      http_port      = 0
+      internal_ports = [8080]
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+    }
+
+    ingress {}
   }
 }`
