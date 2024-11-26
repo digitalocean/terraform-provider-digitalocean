@@ -299,19 +299,27 @@ type DatabaseBackupRestore struct {
 	BackupCreatedAt string `json:"backup_created_at,omitempty"`
 }
 
+// DatabaseCreateFirewallRule is a rule describing an inbound source to a database
+type DatabaseCreateFirewallRule struct {
+	UUID  string `json:"uuid"`
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
 // DatabaseCreateRequest represents a request to create a database cluster
 type DatabaseCreateRequest struct {
-	Name               string                 `json:"name,omitempty"`
-	EngineSlug         string                 `json:"engine,omitempty"`
-	Version            string                 `json:"version,omitempty"`
-	SizeSlug           string                 `json:"size,omitempty"`
-	Region             string                 `json:"region,omitempty"`
-	NumNodes           int                    `json:"num_nodes,omitempty"`
-	PrivateNetworkUUID string                 `json:"private_network_uuid"`
-	Tags               []string               `json:"tags,omitempty"`
-	BackupRestore      *DatabaseBackupRestore `json:"backup_restore,omitempty"`
-	ProjectID          string                 `json:"project_id"`
-	StorageSizeMib     uint64                 `json:"storage_size_mib,omitempty"`
+	Name               string                        `json:"name,omitempty"`
+	EngineSlug         string                        `json:"engine,omitempty"`
+	Version            string                        `json:"version,omitempty"`
+	SizeSlug           string                        `json:"size,omitempty"`
+	Region             string                        `json:"region,omitempty"`
+	NumNodes           int                           `json:"num_nodes,omitempty"`
+	PrivateNetworkUUID string                        `json:"private_network_uuid"`
+	Tags               []string                      `json:"tags,omitempty"`
+	BackupRestore      *DatabaseBackupRestore        `json:"backup_restore,omitempty"`
+	ProjectID          string                        `json:"project_id"`
+	StorageSizeMib     uint64                        `json:"storage_size_mib,omitempty"`
+	Rules              []*DatabaseCreateFirewallRule `json:"rules"`
 }
 
 // DatabaseResizeRequest can be used to initiate a database resize operation.
@@ -589,6 +597,9 @@ type PostgreSQLConfig struct {
 	BackupMinute                    *int                         `json:"backup_minute,omitempty"`
 	WorkMem                         *int                         `json:"work_mem,omitempty"`
 	TimeScaleDB                     *PostgreSQLTimeScaleDBConfig `json:"timescaledb,omitempty"`
+	SynchronousReplication          *string                      `json:"synchronous_replication,omitempty"`
+	StatMonitorEnable               *bool                        `json:"stat_monitor_enable,omitempty"`
+	MaxFailoverReplicationTimeLag   *int64                       `json:"max_failover_replication_time_lag,omitempty"`
 }
 
 // PostgreSQLBouncerConfig configuration
@@ -653,6 +664,13 @@ type MySQLConfig struct {
 	BackupHour                   *int     `json:"backup_hour,omitempty"`
 	BackupMinute                 *int     `json:"backup_minute,omitempty"`
 	BinlogRetentionPeriod        *int     `json:"binlog_retention_period,omitempty"`
+	InnodbChangeBufferMaxSize    *int     `json:"innodb_change_buffer_max_size,omitempty"`
+	InnodbFlushNeighbors         *int     `json:"innodb_flush_neighbors,omitempty"`
+	InnodbReadIoThreads          *int     `json:"innodb_read_io_threads,omitempty"`
+	InnodbThreadConcurrency      *int     `json:"innodb_thread_concurrency,omitempty"`
+	InnodbWriteIoThreads         *int     `json:"innodb_write_io_threads,omitempty"`
+	NetBufferLength              *int     `json:"net_buffer_length,omitempty"`
+	LogOutput                    *string  `json:"log_output,omitempty"`
 }
 
 // MongoDBConfig holds advanced configurations for MongoDB database clusters.
