@@ -11,6 +11,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/database"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/domain"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/droplet"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/dropletautoscale"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/firewall"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/image"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
@@ -109,6 +110,7 @@ func Provider() *schema.Provider {
 			"digitalocean_domain":                   domain.DataSourceDigitalOceanDomain(),
 			"digitalocean_domains":                  domain.DataSourceDigitalOceanDomains(),
 			"digitalocean_droplet":                  droplet.DataSourceDigitalOceanDroplet(),
+			"digitalocean_droplet_autoscale":        dropletautoscale.DataSourceDigitalOceanDropletAutoscale(),
 			"digitalocean_droplets":                 droplet.DataSourceDigitalOceanDroplets(),
 			"digitalocean_droplet_snapshot":         snapshot.DataSourceDigitalOceanDropletSnapshot(),
 			"digitalocean_firewall":                 firewall.DataSourceDigitalOceanFirewall(),
