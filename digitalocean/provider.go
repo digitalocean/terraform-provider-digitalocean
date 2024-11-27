@@ -163,6 +163,7 @@ func Provider() *schema.Provider {
 			"digitalocean_database_kafka_topic":                  database.ResourceDigitalOceanDatabaseKafkaTopic(),
 			"digitalocean_domain":                                domain.ResourceDigitalOceanDomain(),
 			"digitalocean_droplet":                               droplet.ResourceDigitalOceanDroplet(),
+			"digitalocean_droplet_autoscale":                     dropletautoscale.ResourceDigitalOceanDropletAutoscale(),
 			"digitalocean_droplet_snapshot":                      snapshot.ResourceDigitalOceanDropletSnapshot(),
 			"digitalocean_firewall":                              firewall.ResourceDigitalOceanFirewall(),
 			"digitalocean_floating_ip":                           reservedip.ResourceDigitalOceanFloatingIP(),
