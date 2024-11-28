@@ -2,6 +2,7 @@ package dropletautoscale
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -36,10 +37,12 @@ func DataSourceDigitalOceanDropletAutoscale() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"page": {
 							Type:        schema.TypeInt,
+							Required:    true,
 							Description: "Page offset",
 						},
 						"per_page": {
 							Type:        schema.TypeInt,
+							Required:    true,
 							Description: "Per-page count",
 						},
 					},
@@ -53,10 +56,12 @@ func DataSourceDigitalOceanDropletAutoscale() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"page": {
 							Type:        schema.TypeInt,
+							Required:    true,
 							Description: "Page offset",
 						},
 						"per_page": {
 							Type:        schema.TypeInt,
+							Required:    true,
 							Description: "Per-page count",
 						},
 					},
@@ -393,11 +398,11 @@ func flattenConfig(config *godo.DropletAutoscaleConfiguration) []map[string]inte
 	if config != nil {
 		r := make(map[string]interface{})
 		r["min_instances"] = config.MinInstances
-		r["max_instances"] = config.MinInstances
-		r["target_cpu_utilization"] = config.MinInstances
-		r["target_memory_utilization"] = config.MinInstances
-		r["cooldown_minutes"] = config.MinInstances
-		r["target_number_instances"] = config.MinInstances
+		r["max_instances"] = config.MaxInstances
+		r["target_cpu_utilization"] = config.TargetCPUUtilization
+		r["target_memory_utilization"] = config.TargetMemoryUtilization
+		r["cooldown_minutes"] = config.CooldownMinutes
+		r["target_number_instances"] = config.TargetNumberInstances
 		result = append(result, r)
 	}
 	return result
@@ -447,7 +452,7 @@ func flattenMembers(members []*godo.DropletAutoscaleResource) []map[string]inter
 	result := make([]map[string]interface{}, 0, len(members))
 	for _, member := range members {
 		r := make(map[string]interface{})
-		r["droplet_id"] = member.DropletID
+		r["droplet_id"] = fmt.Sprint(member.DropletID)
 		r["created_at"] = member.CreatedAt.UTC().String()
 		r["updated_at"] = member.UpdatedAt.UTC().String()
 		r["health_status"] = member.HealthStatus
@@ -464,13 +469,14 @@ func flatterHistoryEvents(events []*godo.DropletAutoscaleHistoryEvent) []map[str
 	for _, event := range events {
 		r := make(map[string]interface{})
 		r["history_event_id"] = event.HistoryEventID
-		r["current_instance_count"] = event.CurrentInstanceCount
-		r["desired_instance_count"] = event.DesiredInstanceCount
+		r["current_instance_count"] = int(event.CurrentInstanceCount)
+		r["desired_instance_count"] = int(event.DesiredInstanceCount)
 		r["reason"] = event.Reason
 		r["status"] = event.Status
 		r["error_reason"] = event.ErrorReason
 		r["created_at"] = event.CreatedAt.UTC().String()
 		r["updated_at"] = event.UpdatedAt.UTC().String()
+		result = append(result, r)
 	}
 	return result
 }
