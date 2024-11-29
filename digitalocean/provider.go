@@ -20,6 +20,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/region"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/registry"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/reservedip"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/reservedipv6"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/size"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/snapshot"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/spaces"
@@ -125,6 +126,7 @@ func Provider() *schema.Provider {
 			"digitalocean_region":                   region.DataSourceDigitalOceanRegion(),
 			"digitalocean_regions":                  region.DataSourceDigitalOceanRegions(),
 			"digitalocean_reserved_ip":              reservedip.DataSourceDigitalOceanReservedIP(),
+			"digitalocean_reserved_ipv6":            reservedipv6.DataSourceDigitalOceanReservedIPV6(),
 			"digitalocean_sizes":                    size.DataSourceDigitalOceanSizes(),
 			"digitalocean_spaces_bucket":            spaces.DataSourceDigitalOceanSpacesBucket(),
 			"digitalocean_spaces_buckets":           spaces.DataSourceDigitalOceanSpacesBuckets(),
@@ -174,6 +176,8 @@ func Provider() *schema.Provider {
 			"digitalocean_record":                                domain.ResourceDigitalOceanRecord(),
 			"digitalocean_reserved_ip":                           reservedip.ResourceDigitalOceanReservedIP(),
 			"digitalocean_reserved_ip_assignment":                reservedip.ResourceDigitalOceanReservedIPAssignment(),
+			"digitalocean_reserved_ipv6":                         reservedipv6.ResourceDigitalOceanReservedIPV6(),
+			"digitalocean_reserved_ipv6_assignment":              reservedipv6.ResourceDigitalOceanReservedIPV6Assignment(),
 			"digitalocean_spaces_bucket":                         spaces.ResourceDigitalOceanBucket(),
 			"digitalocean_spaces_bucket_cors_configuration":      spaces.ResourceDigitalOceanBucketCorsConfiguration(),
 			"digitalocean_spaces_bucket_object":                  spaces.ResourceDigitalOceanSpacesBucketObject(),

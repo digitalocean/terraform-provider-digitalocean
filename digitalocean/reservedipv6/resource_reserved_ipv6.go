@@ -141,12 +141,12 @@ func resourceDigitalOceanReservedIPV6Delete(ctx context.Context, d *schema.Resou
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	if _, ok := d.GetOk("droplet_id"); ok {
-		log.Printf("[INFO] Unassigning the reserved IPv7 from the Droplet")
+		log.Printf("[INFO] Unassigning the reserved IPv6 from the Droplet")
 		action, resp, err := client.ReservedIPV6Actions.Unassign(context.Background(), d.Id())
 		if resp.StatusCode != 422 {
 			if err != nil {
 				return diag.Errorf(
-					"Error unassigning reserved IP (%s) from the droplet: %s", d.Id(), err)
+					"Error unassigning reserved IPv6 (%s) from the droplet: %s", d.Id(), err)
 			}
 
 			_, unassignedErr := waitForReservedIPV6Ready(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
@@ -220,7 +220,7 @@ func newReservedIPV6StateRefreshFunc(
 			return nil, "", fmt.Errorf("error retrieving reserved IPv6 (%s) ActionId (%d): %s", d.Id(), actionID, err)
 		}
 
-		log.Printf("[INFO] The reserved IP Action Status is %s", action.Status)
+		log.Printf("[INFO] The reserved IPv6 Action Status is %s", action.Status)
 		return &action, action.Status, nil
 	}
 }

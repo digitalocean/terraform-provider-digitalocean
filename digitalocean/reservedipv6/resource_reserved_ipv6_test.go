@@ -131,12 +131,11 @@ resource "digitalocean_reserved_ipv6" "foobar" {
 func testAccCheckDigitalOceanReservedIPV6Config_droplet(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "foobar" {
-  name               = "%s"
-  size               = "s-1vcpu-1gb"
-  image              = "ubuntu-22-04-x64"
-  region             = "nyc3"
-  ipv6               = true
-  private_networking = true
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
+  ipv6   = true
 }
 
 resource "digitalocean_reserved_ipv6" "foobar" {
