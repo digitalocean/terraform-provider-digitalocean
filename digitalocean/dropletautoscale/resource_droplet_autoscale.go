@@ -35,44 +35,6 @@ func ResourceDigitalOceanDropletAutoscale() *schema.Resource {
 				Required:    true,
 				Description: "Name of the Droplet autoscale pool",
 			},
-			"list_member_opts": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Pagination options for listing Droplet autoscale pool members",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"page": {
-							Type:        schema.TypeInt,
-							Required:    true,
-							Description: "Page offset",
-						},
-						"per_page": {
-							Type:        schema.TypeInt,
-							Required:    true,
-							Description: "Per-page count",
-						},
-					},
-				},
-			},
-			"list_history_opts": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Pagination options for listing Droplet autoscale pool history events",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"page": {
-							Type:        schema.TypeInt,
-							Required:    true,
-							Description: "Page offset",
-						},
-						"per_page": {
-							Type:        schema.TypeInt,
-							Required:    true,
-							Description: "Per-page count",
-						},
-					},
-				},
-			},
 			"config": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -210,112 +172,6 @@ func ResourceDigitalOceanDropletAutoscale() *schema.Resource {
 				Computed:    true,
 				Description: "Droplet autoscale pool update timestamp",
 			},
-			"members": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"droplet_id": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Droplet ID",
-						},
-						"created_at": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Droplet create timestamp",
-						},
-						"updated_at": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Droplet update timestamp",
-						},
-						"health_status": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Droplet health status",
-						},
-						"unhealthy_reason": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Droplet unhealthy reason",
-						},
-						"status": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Droplet state",
-						},
-						"current_utilization": {
-							Type:     schema.TypeList,
-							Computed: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"memory": {
-										Type:        schema.TypeFloat,
-										Computed:    true,
-										Description: "Droplet Memory utilization",
-									},
-									"cpu": {
-										Type:        schema.TypeFloat,
-										Computed:    true,
-										Description: "Droplet CPU utilization",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-			"history_events": {
-				Type:     schema.TypeList,
-				Computed: true,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"history_event_id": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Event ID",
-						},
-						"current_instance_count": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "Event reported current member count",
-						},
-						"desired_instance_count": {
-							Type:        schema.TypeInt,
-							Computed:    true,
-							Description: "Event reported target member count",
-						},
-						"reason": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Event description",
-						},
-						"status": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Event status",
-						},
-						"error_reason": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Event error reason",
-						},
-						"created_at": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Event create timestamp",
-						},
-						"updated_at": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Event update timestamp",
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -382,6 +238,7 @@ func resourceDigitalOceanDropletAutoscaleCreate(ctx context.Context, d *schema.R
 	}
 	d.SetId(pool.ID)
 
+	// Setup to poll for autoscale pool scaling up to the desired count
 	stateConf := &retry.StateChangeConf{
 		Delay:      5 * time.Second,
 		Pending:    []string{"provisioning"},
@@ -417,35 +274,13 @@ func resourceDigitalOceanDropletAutoscaleRead(ctx context.Context, d *schema.Res
 	d.Set("created_at", pool.CreatedAt.UTC().String())
 	d.Set("updated_at", pool.UpdatedAt.UTC().String())
 
-	if memberOpts, ok := d.GetOk("list_member_opts"); ok {
-		opts := expandPaginationOpts(memberOpts.([]interface{}))
-		members, _, err := client.DropletAutoscale.ListMembers(context.Background(), d.Id(), opts)
-		if err != nil {
-			return diag.Errorf("Error listing Droplet autoscale pool members: %v", err)
-		}
-		d.Set("members", flattenMembers(members))
-	} else {
-		d.Set("members", []map[string]interface{}{})
-	}
-
-	if historyEventOpts, ok := d.GetOk("list_history_opts"); ok {
-		opts := expandPaginationOpts(historyEventOpts.([]interface{}))
-		events, _, err := client.DropletAutoscale.ListHistory(context.Background(), d.Id(), opts)
-		if err != nil {
-			return diag.Errorf("Error listing Droplet autoscale pool history events: %v", err)
-		}
-		d.Set("history_events", flatterHistoryEvents(events))
-	} else {
-		d.Set("history_events", []map[string]interface{}{})
-	}
-
 	return nil
 }
 
 func resourceDigitalOceanDropletAutoscaleUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	pool, _, err := client.DropletAutoscale.Update(context.Background(), d.Id(), &godo.DropletAutoscalePoolRequest{
+	_, _, err := client.DropletAutoscale.Update(context.Background(), d.Id(), &godo.DropletAutoscalePoolRequest{
 		Name:            d.Get("name").(string),
 		Config:          expandConfig(d.Get("config").([]interface{})),
 		DropletTemplate: expandTemplate(d.Get("droplet_template").([]interface{})),
@@ -454,7 +289,6 @@ func resourceDigitalOceanDropletAutoscaleUpdate(ctx context.Context, d *schema.R
 		return diag.Errorf("Error updating Droplet autoscale pool: %v", err)
 	}
 
-	d.SetId(pool.ID)
 	return resourceDigitalOceanDropletAutoscaleRead(ctx, d, meta)
 }
 
@@ -466,6 +300,7 @@ func resourceDigitalOceanDropletAutoscaleDelete(ctx context.Context, d *schema.R
 		return diag.Errorf("Error updating Droplet autoscale pool: %v", err)
 	}
 
+	// Setup to poll for autoscale pool deletion
 	stateConf := &retry.StateChangeConf{
 		Delay:      5 * time.Second,
 		Pending:    []string{http.StatusText(http.StatusOK)},
