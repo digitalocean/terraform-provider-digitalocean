@@ -147,12 +147,11 @@ resource "digitalocean_reserved_ipv6" "foobar" {
 func testAccCheckDigitalOceanReservedIPv6Config_Reassign(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "baz" {
-  name               = "%s"
-  size               = "s-1vcpu-1gb"
-  image              = "ubuntu-22-04-x64"
-  region             = "nyc3"
-  ipv6               = true
-  private_networking = true
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
+  ipv6   = true
 }
 
 resource "digitalocean_reserved_ipv6" "foobar" {
@@ -164,12 +163,11 @@ resource "digitalocean_reserved_ipv6" "foobar" {
 func testAccCheckDigitalOceanReservedIPV6Config_Unassign(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_droplet" "baz" {
-  name               = "%s"
-  size               = "s-1vcpu-1gb"
-  image              = "ubuntu-22-04-x64"
-  region             = "nyc3"
-  ipv6               = true
-  private_networking = true
+  name   = "%s"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
+  ipv6   = true
 }
 
 resource "digitalocean_reserved_ipv6" "foobar" {
