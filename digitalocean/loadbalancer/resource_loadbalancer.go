@@ -132,7 +132,7 @@ func loadbalancerDiffCheck(ctx context.Context, d *schema.ResourceDiff, v interf
 		if regionSet && region.(string) != "" {
 			return fmt.Errorf("'region' must be empty or not set when 'type' is '%s'", typStr)
 		}
-	case "REGIONAL":
+	case "REGIONAL", "REGIONAL_NETWORK":
 		if !regionSet || region.(string) == "" {
 			return fmt.Errorf("'region' must be set and not be empty when 'type' is '%s'", typStr)
 		}
@@ -443,8 +443,8 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"REGIONAL", "GLOBAL"}, true),
-				Description:  "the type of the load balancer (GLOBAL or REGIONAL)",
+				ValidateFunc: validation.StringInSlice([]string{"REGIONAL", "GLOBAL", "REGIONAL_NETWORK"}, true),
+				Description:  "the type of the load balancer (GLOBAL, REGIONAL, or REGIONAL_NETWORK)",
 			},
 
 			"domains": {
