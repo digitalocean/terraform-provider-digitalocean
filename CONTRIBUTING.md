@@ -1,51 +1,23 @@
-Developing the Provider
----------------------------
+# Developing the Provider
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.11+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+Testing Your Changes Locally
+----------------------------
+
+### 1. Rebuilding the Provider
+1.1 If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.11+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
 
 To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
 ```sh
 $ make build
 ...
-$ $GOPATH/bin/terraform-provider-digitalocean
+$ ls -la $GOPATH/bin/terraform-provider-digitalocean
 ...
 ```
 
-### Running unit tests
-In order to test the provider, you can simply run `make test`.
+Remember to rebuild the provider with `make build` to apply any new changes.
 
-```sh
-$ make test
-```
-
-### Running Acceptance Tests
-
-Please be aware that **running ALL acceptance tests will take a significant amount of time and could be expensive**, as they interact with your **real DigitalOcean account**. For this reason, it is highly recommended to run only one acceptance test at a time to minimize both time and cost.
-
-- It is preferable to run one acceptance test at a time.
-In order to run a specific acceptance test, use the `TESTARGS` environment variable. For example, the following command will run `TestAccDigitalOceanDomain_Basic` acceptance test only:
-
-```sh
-$ make testacc TESTARGS='-run=TestAccDigitalOceanDomain_Basic'
-```
-
-- All acceptance tests for a specific package can be run by setting the `PKG_NAME` environment variable. For example:
-
-```sh
-$ make testacc PKG_NAME=digitalocean/account
-```
-
-- In order to run the full suite of acceptance tests, run `make testacc`.
-
-**Note:** Acceptance tests create real resources, and often cost money to run.
-
-```sh
-$ make testacc
-```
-
-### To check changes made locally
-In order to check changes you made locally to the provider, you can use the binary you just compiled by adding the following
+1.2 In order to check changes you made locally to the provider, you can use the binary you just compiled by adding the following
 to your `~/.terraformrc` file. This is valid for Terraform 0.14+. Please see
 [Terraform's documentation](https://www.terraform.io/docs/cli/config/config-file.html#development-overrides-for-provider-developers)
 for more details.
@@ -66,20 +38,6 @@ provider_installation {
   # the dev_overrides block, and so no other providers will be available.
   direct {}
 }
-```
-
-For information about writing acceptance tests, see the main Terraform [contributing guide](https://github.com/hashicorp/terraform/blob/master/.github/CONTRIBUTING.md#writing-acceptance-tests).
-
-Testing Your Changes Locally
-----------------------------
-
-### 1. Rebuilding the Provider
-To apply your changes, you need to rebuild the provider:
-
-Run the following command to rebuild the provider from the root directory of the project:
-
-```console
-make build
 ```
 
 ### 2. Creating a Sample Terraform Configuration
@@ -159,8 +117,47 @@ export TF_LOG=TRACE
 
 After setting the log level, you can run `terraform plan` or `terraform apply` again to see more detailed output.
 
+Provider Automation Tests
+--------------------
+### Running unit tests
+In order to test the provider, you can simply run `make test`.
+
+```sh
+$ make test
+```
+
+### Running Acceptance Tests
+
+Rebuild the provider before running acceptance tests.
+
+Please be aware that **running ALL acceptance tests will take a significant amount of time and could be expensive**, as they interact with your **real DigitalOcean account**. For this reason, it is highly recommended to run only one acceptance test at a time to minimize both time and cost.
+
+- It is preferable to run one acceptance test at a time.
+In order to run a specific acceptance test, use the `TESTARGS` environment variable. For example, the following command will run `TestAccDigitalOceanDomain_Basic` acceptance test only:
+
+```sh
+$ make testacc TESTARGS='-run=TestAccDigitalOceanDomain_Basic'
+```
+
+- All acceptance tests for a specific package can be run by setting the `PKG_NAME` environment variable. For example:
+
+```sh
+$ make testacc PKG_NAME=digitalocean/account
+```
+
+- In order to run the full suite of acceptance tests, run `make testacc`.
+
+**Note:** Acceptance tests create real resources, and often cost money to run.
+
+```sh
+$ make testacc
+```
+
+For information about writing acceptance tests, see the main Terraform [contributing guide](https://github.com/hashicorp/terraform/blob/master/.github/CONTRIBUTING.md#writing-acceptance-tests).
+
 Releasing the Provider
 ----------------------
+The dedicated DigitalOcean team is responsible for releasing the provider.
 
 To release the provider:
 
