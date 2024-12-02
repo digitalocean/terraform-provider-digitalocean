@@ -394,6 +394,11 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Computed: true,
 			},
 
+			"ipv6": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -740,6 +745,10 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 	d.Set("http_idle_timeout_seconds", loadbalancer.HTTPIdleTimeoutSeconds)
 	d.Set("project_id", loadbalancer.ProjectID)
+
+	if loadbalancer.IPv6 != "" {
+		d.Set("ipv6", loadbalancer.IPv6)
+	}
 
 	if loadbalancer.SizeUnit > 0 {
 		d.Set("size_unit", loadbalancer.SizeUnit)

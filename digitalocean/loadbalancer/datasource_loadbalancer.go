@@ -432,6 +432,10 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 	d.Set("type", foundLoadbalancer.Type)
 	d.Set("network", foundLoadbalancer.Network)
 
+	if foundLoadbalancer.IPv6 != "" {
+		d.Set("ipv6", foundLoadbalancer.IPv6)
+	}
+
 	if err := d.Set("droplet_ids", flattenDropletIds(foundLoadbalancer.DropletIDs)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)
 	}
