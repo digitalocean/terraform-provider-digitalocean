@@ -1,3 +1,14 @@
+## 2.44.1
+
+BUG FIXES:
+
+- #1273 - @andrewsomething - opensearch_config: follow PATCH semantics
+
+MISC:
+
+- #1265 - @brianhelba - Fix docs for "digitalocean_database_opensearch_config"
+- #1270 - @dduportal - docs(droplet) details `user_data` behavior (resource forces recreate)
+
 ## 2.44.0
 
 IMPROVEMENTS:

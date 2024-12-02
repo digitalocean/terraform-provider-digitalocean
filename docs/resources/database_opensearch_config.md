@@ -90,7 +90,7 @@ for additional details on each option.
 * `indices_queries_cache_size_percentage` - (Optional) Maximum amount of heap used for query cache. Too low value will decrease query performance and increase performance for other operations; too high value will cause issues with other functionality. Default: `10`
 * `indices_recovery_max_mb_per_sec` - (Optional) Limits total inbound and outbound recovery traffic for each node, expressed in mb per second. Applies to both peer recoveries as well as snapshot recoveries (i.e., restores from a snapshot). Default: `40`
 * `indices_recovery_max_concurrent_file_chunks` - (Optional) Maximum number of file chunks sent in parallel for each recovery. Default: `2`
-* `action_auto_create_index_enabled` - (Optional) Specifies whether ISM is enabled or not. Default: `true`
+* `action_auto_create_index_enabled` - (Optional) Specifices whether to allow automatic creation of indices. Default: `true`
 * `action_destructive_requires_name` - (Optional) Specifies whether to require explicit index names when deleting indices.
 * `enable_security_audit` - (Optional) Specifies whether to allow security audit logging. Default: `false`
 * `thread_pool_search_size` - (Optional) Number of workers in the search operation thread pool. Do note this may have maximum value depending on CPU count - value is automatically lowered if set to higher than maximum value.
