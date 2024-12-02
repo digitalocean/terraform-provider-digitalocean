@@ -180,7 +180,7 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntBetween(1, 100),
+				ValidateFunc: validation.IntBetween(1, 200),
 			},
 			"name": {
 				Type:         schema.TypeString,
