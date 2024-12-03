@@ -251,7 +251,7 @@ func DataSourceDigitalOceanLoadbalancer() *schema.Resource {
 			"type": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "the type of the load balancer (GLOBAL or REGIONAL)",
+				Description: "the type of the load balancer (GLOBAL, REGIONAL, or REGIONAL_NETWORK)",
 			},
 			"domains": {
 				Type:        schema.TypeSet,
