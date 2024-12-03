@@ -93,7 +93,7 @@ The following arguments are supported:
 * `name` - (Required) The Load Balancer name
 * `region` - (Required) The region to start in
 * `size` - (Optional) The size of the Load Balancer. It must be either `lb-small`, `lb-medium`, or `lb-large`. Defaults to `lb-small`. Only one of `size` or `size_unit` may be provided.
-* `size_unit` - (Optional) The size of the Load Balancer. It must be in the range (1, 100). Defaults to `1`. Only one of `size` or `size_unit` may be provided.
+* `size_unit` - (Optional) The size of the Load Balancer. It must be in the range (1, 200). Defaults to `1`. Only one of `size` or `size_unit` may be provided.
 * `algorithm` - (Optional) **Deprecated** This field has been deprecated. You can no longer specify an algorithm for load balancers.
 or `least_connections`. The default value is `round_robin`.
 * `forwarding_rule` - (Required) A list of `forwarding_rule` to be assigned to the
@@ -119,10 +119,9 @@ the backend service. Default value is `false`.
 * `domains` (Optional) - A list of `domains` required to ingress traffic to a Global Load Balancer. The `domains` block is documented below. 
 * `glb_settings` (Optional) - A block containing `glb_settings` required to define target rules for a Global Load Balancer. The `glb_settings` block is documented below.
 * `target_load_balancer_ids` (Optional) - A list of Load Balancer IDs to be attached behind a Global Load Balancer.
-* `type` - (Optional) The type of the Load Balancer. It must be either of `REGIONAL` or `GLOBAL`. Defaults to `REGIONAL`.
+* `type` - (Optional) The type of the Load Balancer. It must be either of `REGIONAL`, `REGIONAL_NETWORK`, or `GLOBAL`. Defaults to `REGIONAL`.
 **NOTE**: non-`REGIONAL/GLOBAL` type may be part of closed beta feature and not available for public use.
 * `network` - (Optional) The type of network the Load Balancer is accessible from. It must be either of `INTERNAL` or `EXTERNAL`. Defaults to `EXTERNAL`.
-**NOTE**: non-`EXTERNAL` type may be part of closed beta feature and not available for public use.
 
 `forwarding_rule` supports the following:
 
