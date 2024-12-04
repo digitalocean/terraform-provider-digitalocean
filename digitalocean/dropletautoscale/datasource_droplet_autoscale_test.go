@@ -61,9 +61,9 @@ data "digitalocean_droplet_autoscale" "foo" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.size", "c-2"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.region", "s2r1"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.image", "547864"),
+						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.region", "nyc3"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.image"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.with_droplet_agent", "true"),
 					resource.TestCheckResourceAttr(
@@ -109,9 +109,9 @@ data "digitalocean_droplet_autoscale" "foo" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.size", "c-2"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.region", "s2r1"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.image", "547864"),
+						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.region", "nyc3"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.image"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.with_droplet_agent", "true"),
 					resource.TestCheckResourceAttr(
@@ -187,9 +187,9 @@ data "digitalocean_droplet_autoscale" "foo" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.size", "c-2"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.region", "s2r1"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.image", "547864"),
+						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.region", "nyc3"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.image"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.with_droplet_agent", "true"),
 					resource.TestCheckResourceAttr(
@@ -235,9 +235,9 @@ data "digitalocean_droplet_autoscale" "foo" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.size", "c-2"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.region", "s2r1"),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.image", "547864"),
+						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.region", "nyc3"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.image"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_droplet_autoscale.foo", "droplet_template.0.with_droplet_agent", "true"),
 					resource.TestCheckResourceAttr(

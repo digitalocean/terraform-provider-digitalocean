@@ -37,6 +37,7 @@ func ResourceDigitalOceanDropletAutoscale() *schema.Resource {
 			},
 			"config": {
 				Type:     schema.TypeList,
+				MaxItems: 1,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -81,6 +82,7 @@ func ResourceDigitalOceanDropletAutoscale() *schema.Resource {
 			},
 			"droplet_template": {
 				Type:     schema.TypeList,
+				MaxItems: 1,
 				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -268,11 +270,22 @@ func resourceDigitalOceanDropletAutoscaleRead(ctx context.Context, d *schema.Res
 
 	d.Set("name", pool.Name)
 	d.Set("config", flattenConfig(pool.Config))
-	d.Set("droplet_template", flattenTemplate(pool.DropletTemplate))
 	d.Set("current_utilization", flattenUtilization(pool.CurrentUtilization))
 	d.Set("status", pool.Status)
 	d.Set("created_at", pool.CreatedAt.UTC().String())
 	d.Set("updated_at", pool.UpdatedAt.UTC().String())
+
+	// Persist existing image specification (id/slug) if it exists
+	if t, ok := d.GetOk("droplet_template"); ok {
+		tList := t.([]interface{})
+		if len(tList) > 0 {
+			tMap := tList[0].(map[string]interface{})
+			if tMap["image"] != "" {
+				pool.DropletTemplate.Image = tMap["image"].(string)
+			}
+		}
+	}
+	d.Set("droplet_template", flattenTemplate(pool.DropletTemplate))
 
 	return nil
 }

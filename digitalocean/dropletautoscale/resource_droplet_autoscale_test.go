@@ -53,9 +53,9 @@ func TestAccDigitalOceanDropletAutoscale_Static(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.size", "c-2"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.region", "s2r1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.image", "547864"),
+						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.region", "nyc3"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.image"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.with_droplet_agent", "true"),
 					resource.TestCheckResourceAttr(
@@ -101,9 +101,9 @@ func TestAccDigitalOceanDropletAutoscale_Static(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.size", "c-2"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.region", "s2r1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.image", "547864"),
+						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.region", "nyc3"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.image"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.with_droplet_agent", "true"),
 					resource.TestCheckResourceAttr(
@@ -165,9 +165,9 @@ func TestAccDigitalOceanDropletAutoscale_Dynamic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.size", "c-2"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.region", "s2r1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.image", "547864"),
+						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.region", "nyc3"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.image"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.with_droplet_agent", "true"),
 					resource.TestCheckResourceAttr(
@@ -213,9 +213,9 @@ func TestAccDigitalOceanDropletAutoscale_Dynamic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.size", "c-2"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.region", "s2r1"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.image", "547864"),
+						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.region", "nyc3"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.image"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.with_droplet_agent", "true"),
 					resource.TestCheckResourceAttr(
@@ -319,8 +319,8 @@ resource "digitalocean_droplet_autoscale" "foobar" {
 
   droplet_template {
     size               = "c-2"
-    region             = "s2r1"
-    image              = "547864"
+    region             = "nyc3"
+    image              = "ubuntu-24-04-x64"
     tags               = [digitalocean_tag.foo.id, digitalocean_tag.bar.id]
     ssh_keys           = [digitalocean_ssh_key.foo.id, digitalocean_ssh_key.bar.id]
     with_droplet_agent = true
@@ -380,8 +380,8 @@ resource "digitalocean_droplet_autoscale" "foobar" {
 
   droplet_template {
     size               = "c-2"
-    region             = "s2r1"
-    image              = "547864"
+    region             = "nyc3"
+    image              = "ubuntu-24-04-x64"
     tags               = [digitalocean_tag.foo.id, digitalocean_tag.bar.id]
     ssh_keys           = [digitalocean_ssh_key.foo.id, digitalocean_ssh_key.bar.id]
     with_droplet_agent = true
