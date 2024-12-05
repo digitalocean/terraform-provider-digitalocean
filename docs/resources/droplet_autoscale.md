@@ -95,7 +95,7 @@ traffic, or in an error state and needs user intervention.
 
 ## Import
 
-Droplet Autoscale pools can be imported using the Droplet `id`, e.g.
+Droplet Autoscale pools can be imported using their `id`, e.g.
 
 ```
 terraform import digitalocean_droplet_autoscale.my-autoscale-pool 38e66834-d741-47ec-88e7-c70cbdcz0445
