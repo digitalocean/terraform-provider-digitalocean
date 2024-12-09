@@ -13,10 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
+const ipv6Regex = "(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$"
+
 func TestAccDigitalOceanReservedIPV6_RegionSlug(t *testing.T) {
 	var reservedIPv6 godo.ReservedIPV6
 
-	expectedURNRegex, _ := regexp.Compile(`do:reservedipv6:/^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i`)
+	expectedURNRegex, _ := regexp.Compile(`do:reservedipv6:` + ipv6Regex)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -133,9 +135,10 @@ func testAccCheckDigitalOceanReservedIPV6Config_droplet(name string) string {
 resource "digitalocean_droplet" "foobar" {
   name   = "%s"
   size   = "s-1vcpu-1gb"
-  image  = "ubuntu-22-04-x64"
-  region = "nyc3"
-  ipv6   = true
+  image  			= "ubuntu-22-04-x64"
+  region 			 = "nyc3"
+  ipv6               = true
+  private_networking = true
 }
 
 resource "digitalocean_reserved_ipv6" "foobar" {
@@ -151,7 +154,8 @@ resource "digitalocean_droplet" "baz" {
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
-  ipv6   = true
+  ipv6               = true
+  private_networking = true
 }
 
 resource "digitalocean_reserved_ipv6" "foobar" {

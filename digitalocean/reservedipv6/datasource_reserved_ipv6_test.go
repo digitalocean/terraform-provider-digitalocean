@@ -16,7 +16,7 @@ import (
 func TestAccDataSourceDigitalOceanReservedIPV6_Basic(t *testing.T) {
 	var reservedIPv6 godo.ReservedIPV6
 
-	expectedURNRegex, _ := regexp.Compile(`do:reservedipv6:/^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i`)
+	expectedURNRegex, _ := regexp.Compile(`do:reservedipv6:` + ipv6Regex)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -40,7 +40,7 @@ func TestAccDataSourceDigitalOceanReservedIPV6_Basic(t *testing.T) {
 func TestAccDataSourceDigitalOceanReservedIPV6_FindsReservedIP(t *testing.T) {
 	var reservedIPv6 godo.ReservedIPV6
 
-	expectedURNRegex, _ := regexp.Compile(`do:reservedipv6:/^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i`)
+	expectedURNRegex, _ := regexp.Compile(`do:reservedipv6:` + ipv6Regex)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },

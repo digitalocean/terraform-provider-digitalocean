@@ -31,7 +31,7 @@ func ResourceDigitalOceanReservedIPV6Assignment() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.IsIPv4Address,
+				ValidateFunc: validation.IsIPv6Address,
 			},
 			"droplet_id": {
 				Type:         schema.TypeInt,
@@ -100,7 +100,7 @@ func resourceDigitalOceanReservedIPV6AssignmentDelete(ctx context.Context, d *sc
 
 	if reservedIPv6.Droplet.ID == dropletID {
 		log.Printf("[INFO] Unassigning the reserved IPv6 from the Droplet")
-		action, _, err := client.ReservedIPActions.Unassign(context.Background(), ipAddress)
+		action, _, err := client.ReservedIPV6Actions.Unassign(context.Background(), ipAddress)
 		if err != nil {
 			return diag.Errorf("Error unassigning reserved IPv6 (%s) from the droplet: %s", ipAddress, err)
 		}
@@ -146,7 +146,7 @@ func newReservedIPV6AssignmentStateRefreshFunc(
 		log.Printf("[INFO] Refreshing the reserved IPv6 state")
 		action, _, err := client.Actions.Get(context.Background(), actionID)
 		if err != nil {
-			return nil, "", fmt.Errorf("error retrieving reserved IPv6 (%s) ActionId (%d): %s", d.Get("ip_address").(string), actionID, err)
+			return nil, "", fmt.Errorf("error retrieving reserved IPv6 (%s) ActionId (%d): %s", d.Get("ip_address"), actionID, err)
 		}
 
 		log.Printf("[INFO] The reserved IPv6 Action Status is %s", action.Status)

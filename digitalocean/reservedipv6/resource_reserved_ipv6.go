@@ -161,7 +161,7 @@ func resourceDigitalOceanReservedIPV6Delete(ctx context.Context, d *schema.Resou
 
 	log.Printf("[INFO] Deleting reserved IPv6: %s", d.Id())
 	_, err := client.ReservedIPV6s.Delete(context.Background(), d.Id())
-	if err != nil {
+	if err != nil && strings.Contains(err.Error(), "404") {
 		return diag.Errorf("Error deleting reserved IPv6: %s", err)
 	}
 
