@@ -38,43 +38,6 @@ func TestAccDigitalOceanReservedIPV6_RegionSlug(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanReservedIPV6_Droplet(t *testing.T) {
-	var reservedIPv6 godo.ReservedIPV6
-	name := acceptance.RandomTestName()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
-		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanReservedIPV6Destroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccCheckDigitalOceanReservedIPV6Config_droplet(name),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanReservedIPV6Exists("digitalocean_reserved_ipv6.foobar", &reservedIPv6),
-					resource.TestCheckResourceAttr(
-						"digitalocean_reserved_ipv6.foobar", "region_slug", "nyc3"),
-				),
-			},
-			{
-				Config: testAccCheckDigitalOceanReservedIPv6Config_Reassign(name),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanReservedIPV6Exists("digitalocean_reserved_ipv6.foobar", &reservedIPv6),
-					resource.TestCheckResourceAttr(
-						"digitalocean_reserved_ipv6.foobar", "region_slug", "nyc3"),
-				),
-			},
-			{
-				Config: testAccCheckDigitalOceanReservedIPV6Config_Unassign(name),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanReservedIPV6Exists("digitalocean_reserved_ipv6.foobar", &reservedIPv6),
-					resource.TestCheckResourceAttr(
-						"digitalocean_reserved_ipv6.foobar", "region_slug", "nyc3"),
-				),
-			},
-		},
-	})
-}
-
 func testAccCheckDigitalOceanReservedIPV6Destroy(s *terraform.State) error {
 	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
@@ -129,52 +92,3 @@ var testAccCheckDigitalOceanReservedIPV6Config_regionSlug = `
 resource "digitalocean_reserved_ipv6" "foobar" {
   region_slug = "nyc3"
 }`
-
-func testAccCheckDigitalOceanReservedIPV6Config_droplet(name string) string {
-	return fmt.Sprintf(`
-resource "digitalocean_droplet" "foobar" {
-  name               = "%s"
-  size               = "s-1vcpu-1gb"
-  image              = "ubuntu-22-04-x64"
-  region             = "nyc3"
-  ipv6               = true
-  private_networking = true
-}
-
-resource "digitalocean_reserved_ipv6" "foobar" {
-  droplet_id  = digitalocean_droplet.foobar.id
-  region_slug = digitalocean_droplet.foobar.region
-}`, name)
-}
-
-func testAccCheckDigitalOceanReservedIPv6Config_Reassign(name string) string {
-	return fmt.Sprintf(`
-resource "digitalocean_droplet" "baz" {
-  name               = "%s"
-  size               = "s-1vcpu-1gb"
-  image              = "ubuntu-22-04-x64"
-  region             = "nyc3"
-  ipv6               = true
-  private_networking = true
-}
-
-resource "digitalocean_reserved_ipv6" "foobar" {
-  droplet_id  = digitalocean_droplet.baz.id
-  region_slug = digitalocean_droplet.baz.region
-}`, name)
-}
-
-func testAccCheckDigitalOceanReservedIPV6Config_Unassign(name string) string {
-	return fmt.Sprintf(`
-resource "digitalocean_droplet" "baz" {
-  name   = "%s"
-  size   = "s-1vcpu-1gb"
-  image  = "ubuntu-22-04-x64"
-  region = "nyc3"
-  ipv6   = true
-}
-
-resource "digitalocean_reserved_ipv6" "foobar" {
-  region_slug = "nyc3"
-}`, name)
-}

@@ -65,7 +65,7 @@ func resourceDigitalOceanReservedIPV6Create(ctx context.Context, d *schema.Resou
 	log.Printf("[DEBUG] Reserved IPv6 create: %#v", regionOpts)
 	reservedIP, _, err := client.ReservedIPV6s.Create(context.Background(), regionOpts)
 	if err != nil {
-		return diag.Errorf("Error creating reserved IP: %s", err)
+		return diag.Errorf("Error creating reserved IPv6: %s", err)
 	}
 
 	d.SetId(reservedIP.IP)
