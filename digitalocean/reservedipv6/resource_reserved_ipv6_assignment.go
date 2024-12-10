@@ -56,13 +56,14 @@ func resourceDigitalOceanReservedIPV6AssignmentCreate(ctx context.Context, d *sc
 			"Error Assigning reserved IPv6 (%s) to the droplet: %s", ipAddress, err)
 	}
 
-	_, unassignedErr := waitForReservedIPV6AssignmentReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
-	if unassignedErr != nil {
+	_, assignedErr := waitForReservedIPV6AssignmentReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+	if assignedErr != nil {
 		return diag.Errorf(
-			"Error waiting for reserved IPv6 (%s) to be Assigned: %s", ipAddress, unassignedErr)
+			"Error waiting for reserved IPv6 (%s) to be Assigned: %s", ipAddress, assignedErr)
 	}
 
 	d.SetId(id.PrefixedUniqueId(fmt.Sprintf("%d-%s-", dropletID, ipAddress)))
+
 	return resourceDigitalOceanReservedIPV6AssignmentRead(ctx, d, meta)
 }
 
@@ -79,8 +80,8 @@ func resourceDigitalOceanReservedIPV6AssignmentRead(ctx context.Context, d *sche
 	}
 
 	if reservedIPv6.Droplet == nil || reservedIPv6.Droplet.ID != dropletID {
-		log.Printf("[INFO] A Droplet was detected on the reserved IPv6.")
-		d.SetId("")
+		// log.Printf("[INFO] Droplet assignment was unsuccessful on the reserved IPv6.")
+		return diag.Errorf("Error assigning reserved IPv6 %s to dropletID %d", ipAddress, dropletID)
 	}
 
 	return nil

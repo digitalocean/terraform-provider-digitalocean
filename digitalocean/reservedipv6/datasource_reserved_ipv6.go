@@ -32,7 +32,7 @@ func DataSourceDigitalOceanReservedIPV6() *schema.Resource {
 			"droplet_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
-				Description: "the droplet id that the reserved ip has been assigned to.",
+				Description: "the droplet id that the reserved ipv6 has been assigned to.",
 			},
 		},
 	}

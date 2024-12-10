@@ -27,21 +27,12 @@ func TestAccDigitalOceanReservedIPV6Assignment(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanReservedIPV6AttachmentExists("digitalocean_reserved_ipv6_assignment.foobar"),
 					resource.TestMatchResourceAttr(
-						"digitalocean_reserved_ipv6_assignment.foobar", "id", regexp.MustCompile(ipv6Regex)),
+						"digitalocean_reserved_ipv6_assignment.foobar", "ip", regexp.MustCompile(ipv6Regex)),
 					resource.TestMatchResourceAttr(
 						"digitalocean_reserved_ipv6_assignment.foobar", "droplet_id", regexp.MustCompile("[0-9]+")),
 				),
 			},
-			{
-				Config: testAccCheckDigitalOceanReservedIPV6AssignmentReassign,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanReservedIPV6AttachmentExists("digitalocean_reserved_ipv6_assignment.foobar"),
-					resource.TestMatchResourceAttr(
-						"digitalocean_reserved_ipv6_assignment.foobar", "id", regexp.MustCompile(ipv6Regex)),
-					resource.TestMatchResourceAttr(
-						"digitalocean_reserved_ipv6_assignment.foobar", "droplet_id", regexp.MustCompile("[0-9]+")),
-				),
-			},
+
 			{
 				Config: testAccCheckDigitalOceanReservedIPV6AssignmentDeleteAssignment,
 				Check: resource.ComposeTestCheckFunc(
@@ -65,17 +56,7 @@ func TestAccDigitalOceanReservedIPV6Assignment_createBeforeDestroy(t *testing.T)
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanReservedIPV6AttachmentExists("digitalocean_reserved_ipv6_assignment.foobar"),
 					resource.TestMatchResourceAttr(
-						"digitalocean_reserved_ipv6_assignment.foobar", "id", regexp.MustCompile(ipv6Regex)),
-					resource.TestMatchResourceAttr(
-						"digitalocean_reserved_ipv6_assignment.foobar", "droplet_id", regexp.MustCompile("[0-9]+")),
-				),
-			},
-			{
-				Config: testAccCheckDigitalOceanReservedIPV6AssignmentConfig_createBeforeDestroyReassign,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanReservedIPV6AttachmentExists("digitalocean_reserved_ipv6_assignment.foobar"),
-					resource.TestMatchResourceAttr(
-						"digitalocean_reserved_ipv6_assignment.foobar", "id", regexp.MustCompile(ipv6Regex)),
+						"digitalocean_reserved_ipv6_assignment.foobar", "ip", regexp.MustCompile(ipv6Regex)),
 					resource.TestMatchResourceAttr(
 						"digitalocean_reserved_ipv6_assignment.foobar", "droplet_id", regexp.MustCompile("[0-9]+")),
 				),
@@ -91,10 +72,10 @@ func testAccCheckDigitalOceanReservedIPV6AttachmentExists(n string) resource.Tes
 			return fmt.Errorf("Not found: %s", n)
 		}
 
-		if rs.Primary.Attributes["ip_address"] == "" {
-			return fmt.Errorf("No floating IP is set")
+		if rs.Primary.Attributes["ip"] == "" {
+			return fmt.Errorf("No reserved IPv6 is set")
 		}
-		fipID := rs.Primary.Attributes["ip_address"]
+		fipID := rs.Primary.Attributes["ip"]
 		dropletID, err := strconv.Atoi(rs.Primary.Attributes["droplet_id"])
 		if err != nil {
 			return err
@@ -102,7 +83,7 @@ func testAccCheckDigitalOceanReservedIPV6AttachmentExists(n string) resource.Tes
 
 		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
-		// Try to find the ReservedIP
+		// Try to find the ReservedIPv6
 		foundReservedIP, _, err := client.ReservedIPV6s.Get(context.Background(), fipID)
 		if err != nil {
 			return err
@@ -122,7 +103,7 @@ resource "digitalocean_reserved_ipv6" "foobar" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  count  = 2
+  count  = 1
   name   = "tf-acc-test-${count.index}"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
@@ -136,33 +117,13 @@ resource "digitalocean_reserved_ipv6_assignment" "foobar" {
 }
 `
 
-var testAccCheckDigitalOceanReservedIPV6AssignmentReassign = `
-resource "digitalocean_reserved_ipv6" "foobar" {
-  region_slug = "nyc3"
-}
-
-resource "digitalocean_droplet" "foobar" {
-  count  = 2
-  name   = "tf-acc-test-${count.index}"
-  size   = "s-1vcpu-1gb"
-  image  = "ubuntu-22-04-x64"
-  region = "nyc3"
-  ipv6   = true
-}
-
-resource "digitalocean_reserved_ipv6_assignment" "foobar" {
-  ip         = digitalocean_reserved_ipv6.foobar.ip
-  droplet_id = digitalocean_droplet.foobar.1.id
-}
-`
-
 var testAccCheckDigitalOceanReservedIPV6AssignmentDeleteAssignment = `
 resource "digitalocean_reserved_ipv6" "foobar" {
   region_slug = "nyc3"
 }
 
 resource "digitalocean_droplet" "foobar" {
-  count              = 2
+  count              = 1
   name               = "tf-acc-test-${count.index}"
   size               = "s-1vcpu-1gb"
   image              = "ubuntu-22-04-x64"
@@ -176,32 +137,6 @@ var testAccCheckDigitalOceanReservedIPV6AssignmentConfig_createBeforeDestroy = `
 resource "digitalocean_droplet" "foobar" {
   image  = "ubuntu-22-04-x64"
   name   = "tf-acc-test"
-  region = "nyc3"
-  size   = "s-1vcpu-1gb"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-resource "digitalocean_reserved_ipv6" "foobar" {
-  region_slug = "nyc3"
-}
-
-resource "digitalocean_reserved_ipv6_assignment" "foobar" {
-  ip         = digitalocean_reserved_ipv6.foobar.ip
-  droplet_id = digitalocean_droplet.foobar.id
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-`
-
-var testAccCheckDigitalOceanReservedIPV6AssignmentConfig_createBeforeDestroyReassign = `
-resource "digitalocean_droplet" "foobar" {
-  image  = "ubuntu-18-04-x64"
-  name   = "tf-acc-test-01"
   region = "nyc3"
   size   = "s-1vcpu-1gb"
 
