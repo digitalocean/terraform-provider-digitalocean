@@ -132,7 +132,7 @@ func loadbalancerDiffCheck(ctx context.Context, d *schema.ResourceDiff, v interf
 		if regionSet && region.(string) != "" {
 			return fmt.Errorf("'region' must be empty or not set when 'type' is '%s'", typStr)
 		}
-	case "REGIONAL":
+	case "REGIONAL", "REGIONAL_NETWORK":
 		if !regionSet || region.(string) == "" {
 			return fmt.Errorf("'region' must be set and not be empty when 'type' is '%s'", typStr)
 		}
@@ -180,7 +180,7 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				Computed:     true,
-				ValidateFunc: validation.IntBetween(1, 100),
+				ValidateFunc: validation.IntBetween(1, 200),
 			},
 			"name": {
 				Type:         schema.TypeString,
@@ -394,6 +394,11 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Computed: true,
 			},
 
+			"ipv6": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -438,8 +443,8 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringInSlice([]string{"REGIONAL", "GLOBAL"}, true),
-				Description:  "the type of the load balancer (GLOBAL or REGIONAL)",
+				ValidateFunc: validation.StringInSlice([]string{"REGIONAL", "GLOBAL", "REGIONAL_NETWORK"}, true),
+				Description:  "the type of the load balancer (GLOBAL, REGIONAL, or REGIONAL_NETWORK)",
 			},
 
 			"domains": {
@@ -740,6 +745,10 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 	d.Set("http_idle_timeout_seconds", loadbalancer.HTTPIdleTimeoutSeconds)
 	d.Set("project_id", loadbalancer.ProjectID)
+
+	if loadbalancer.IPv6 != "" {
+		d.Set("ipv6", loadbalancer.IPv6)
+	}
 
 	if loadbalancer.SizeUnit > 0 {
 		d.Set("size_unit", loadbalancer.SizeUnit)

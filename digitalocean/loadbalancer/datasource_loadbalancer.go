@@ -251,7 +251,7 @@ func DataSourceDigitalOceanLoadbalancer() *schema.Resource {
 			"type": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "the type of the load balancer (GLOBAL or REGIONAL)",
+				Description: "the type of the load balancer (GLOBAL, REGIONAL, or REGIONAL_NETWORK)",
 			},
 			"domains": {
 				Type:        schema.TypeSet,
@@ -431,6 +431,10 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 	d.Set("project_id", foundLoadbalancer.ProjectID)
 	d.Set("type", foundLoadbalancer.Type)
 	d.Set("network", foundLoadbalancer.Network)
+
+	if foundLoadbalancer.IPv6 != "" {
+		d.Set("ipv6", foundLoadbalancer.IPv6)
+	}
 
 	if err := d.Set("droplet_ids", flattenDropletIds(foundLoadbalancer.DropletIDs)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)

@@ -34,6 +34,7 @@ type ReservedIPV6 struct {
 	ReservedAt time.Time `json:"reserved_at"`
 	Droplet    *Droplet  `json:"droplet,omitempty"`
 }
+
 type reservedIPV6Root struct {
 	ReservedIPV6 *ReservedIPV6 `json:"reserved_ipv6"`
 }
@@ -76,7 +77,8 @@ func (r *ReservedIPV6sServiceOp) List(ctx context.Context, opt *ListOptions) ([]
 	if err != nil {
 		return nil, nil, err
 	}
-	if root.Meta != nil {
+
+  if root.Meta != nil {
 		resp.Meta = root.Meta
 	}
 	if root.Links != nil {

@@ -1,3 +1,29 @@
+## 2.45.0
+
+IMPROVEMENTS:
+
+- #1279 - @jvasilevsky - LBAAS-3552: add lb ipv6 field
+
+BUG FIXES:
+
+- #1276 - @andrewsomething - apps: support removing ingress rules.
+
+MISC:
+
+- #1283 - @loosla - [documentation]: update contributing: move terraformrc section to reb…
+- #1282 - @loosla - [documentation]: update contributing doc
+
+## 2.44.1
+
+BUG FIXES:
+
+- #1273 - @andrewsomething - opensearch_config: follow PATCH semantics
+
+MISC:
+
+- #1265 - @brianhelba - Fix docs for "digitalocean_database_opensearch_config"
+- #1270 - @dduportal - docs(droplet) details `user_data` behavior (resource forces recreate)
+
 ## 2.44.0
 
 IMPROVEMENTS:
