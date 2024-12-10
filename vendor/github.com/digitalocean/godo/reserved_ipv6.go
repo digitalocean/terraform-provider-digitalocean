@@ -78,7 +78,7 @@ func (r *ReservedIPV6sServiceOp) List(ctx context.Context, opt *ListOptions) ([]
 		return nil, nil, err
 	}
 
-  if root.Meta != nil {
+       if root.Meta != nil {
 		resp.Meta = root.Meta
 	}
 	if root.Links != nil {
