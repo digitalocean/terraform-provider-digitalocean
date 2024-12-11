@@ -65,6 +65,7 @@ func resourceDigitalOceanReservedIPV6AssignmentCreate(ctx context.Context, d *sc
 	d.SetId(id.PrefixedUniqueId(fmt.Sprintf("%d-%s-", dropletID, ipAddress)))
 
 	return resourceDigitalOceanReservedIPV6AssignmentRead(ctx, d, meta)
+
 }
 
 func resourceDigitalOceanReservedIPV6AssignmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

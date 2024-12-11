@@ -75,6 +75,39 @@ func TestAccDigitalOceanReservedIPV6Assignment_createBeforeDestroy(t *testing.T)
 	})
 }
 
+func TestAccDigitalOceanReservedIPV6Assignment_unassignAndAssignToNewDroplet(t *testing.T) {
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanReservedIPV6Destroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanReservedIPV6AssignmentConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanReservedIPV6AttachmentExists("digitalocean_reserved_ipv6_assignment.foobar"),
+					resource.TestMatchResourceAttr(
+						"digitalocean_reserved_ipv6_assignment.foobar", "ip", regexp.MustCompile(ipv6Regex)),
+					resource.TestMatchResourceAttr(
+						"digitalocean_reserved_ipv6_assignment.foobar", "droplet_id", regexp.MustCompile("[0-9]+")),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanReservedIPV6AssignmentUnAssign,
+			},
+			{
+				Config: testAccCheckDigitalOceanReservedIPV6ReAssignmentConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanReservedIPV6AttachmentExists("digitalocean_reserved_ipv6_assignment.foobar"),
+					resource.TestMatchResourceAttr(
+						"digitalocean_reserved_ipv6_assignment.foobar", "ip", regexp.MustCompile(ipv6Regex)),
+					resource.TestMatchResourceAttr(
+						"digitalocean_reserved_ipv6_assignment.foobar", "droplet_id", regexp.MustCompile("[0-9]+")),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanReservedIPV6AttachmentExists(n string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -114,7 +147,7 @@ resource "digitalocean_reserved_ipv6" "foobar" {
 
 resource "digitalocean_droplet" "foobar" {
   count  = 1
-  name   = "tf-acc-test-${count.index}"
+  name   = "tf-acc-test-assign"
   size   = "s-1vcpu-1gb"
   image  = "ubuntu-22-04-x64"
   region = "nyc3"
@@ -124,6 +157,50 @@ resource "digitalocean_droplet" "foobar" {
 resource "digitalocean_reserved_ipv6_assignment" "foobar" {
   ip         = digitalocean_reserved_ipv6.foobar.ip
   droplet_id = digitalocean_droplet.foobar.0.id
+}
+`
+
+var testAccCheckDigitalOceanReservedIPV6AssignmentUnAssign = `
+resource "digitalocean_reserved_ipv6" "foobar" {
+  region_slug = "nyc3"
+}
+
+resource "digitalocean_droplet" "foobar" {
+  count  = 1
+  image  = "ubuntu-22-04-x64"
+  name   = "tf-acc-test-assign"
+  region = "nyc3"
+  size   = "s-1vcpu-1gb"
+  ipv6   = true
+}
+
+`
+
+var testAccCheckDigitalOceanReservedIPV6ReAssignmentConfig = `
+resource "digitalocean_reserved_ipv6" "foobar" {
+  region_slug = "nyc3"
+}
+
+resource "digitalocean_droplet" "foobar1" {
+  count  = 1
+  name   = "tf-acc-test-reassign"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
+  ipv6   = true
+}
+resource "digitalocean_droplet" "foobar" {
+  count  = 1
+  name   = "tf-acc-test-assign"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
+  ipv6   = true
+}
+
+resource "digitalocean_reserved_ipv6_assignment" "foobar" {
+  ip         = digitalocean_reserved_ipv6.foobar.ip
+  droplet_id = digitalocean_droplet.foobar1.0.id
 }
 `
 
@@ -139,7 +216,6 @@ resource "digitalocean_droplet" "foobar" {
   image              = "ubuntu-22-04-x64"
   region             = "nyc3"
   ipv6               = true
-  private_networking = true
 }
 `
 
