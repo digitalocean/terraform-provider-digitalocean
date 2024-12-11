@@ -18,7 +18,6 @@ import (
 func ResourceDigitalOceanReservedIPV6() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanReservedIPV6Create,
-		UpdateContext: resourceDigitalOceanReservedIPV6Update,
 		ReadContext:   resourceDigitalOceanReservedIPV6Read,
 		DeleteContext: resourceDigitalOceanReservedIPV6Delete,
 		Importer: &schema.ResourceImporter{
@@ -69,42 +68,6 @@ func resourceDigitalOceanReservedIPV6Create(ctx context.Context, d *schema.Resou
 	}
 
 	d.SetId(reservedIP.IP)
-
-	return resourceDigitalOceanReservedIPV6Read(ctx, d, meta)
-}
-
-func resourceDigitalOceanReservedIPV6Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*config.CombinedConfig).GodoClient()
-
-	if d.HasChange("droplet_id") {
-		if v, ok := d.GetOk("droplet_id"); ok {
-			log.Printf("[INFO] Assigning the reserved IPv6 %s to the Droplet %d", d.Id(), v.(int))
-			action, _, err := client.ReservedIPV6Actions.Assign(context.Background(), d.Id(), v.(int))
-			if err != nil {
-				return diag.Errorf(
-					"Error assigning reserved IPv6 (%s) to the Droplet: %s", d.Id(), err)
-			}
-
-			_, unassignedErr := waitForReservedIPV6Ready(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
-			if unassignedErr != nil {
-				return diag.Errorf(
-					"Error waiting for reserved IP (%s) to be Assigned: %s", d.Id(), unassignedErr)
-			}
-		} else {
-			log.Printf("[INFO] Unassigning the reserved IP %s", d.Id())
-			action, _, err := client.ReservedIPV6Actions.Unassign(context.Background(), d.Id())
-			if err != nil {
-				return diag.Errorf(
-					"Error unassigning reserved IP (%s): %s", d.Id(), err)
-			}
-
-			_, unassignedErr := waitForReservedIPV6Ready(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
-			if unassignedErr != nil {
-				return diag.Errorf(
-					"Error waiting for reserved IP (%s) to be Unassigned: %s", d.Id(), unassignedErr)
-			}
-		}
-	}
 
 	return resourceDigitalOceanReservedIPV6Read(ctx, d, meta)
 }
