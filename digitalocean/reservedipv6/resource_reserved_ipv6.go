@@ -48,6 +48,7 @@ func ResourceDigitalOceanReservedIPV6() *schema.Resource {
 			"droplet_id": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Computed: true,
 			},
 		},
 	}
