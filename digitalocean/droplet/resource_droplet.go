@@ -843,7 +843,7 @@ func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta int
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"active", "off"},
-		Target:     []string{"archived"},
+		Target:     []string{"archive"},
 		Refresh:    dropletStateRefreshFunc(ctx, d, "status", meta),
 		Timeout:    60 * time.Second,
 		Delay:      10 * time.Second,
