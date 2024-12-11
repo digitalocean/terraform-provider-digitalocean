@@ -210,12 +210,12 @@ resource "digitalocean_reserved_ipv6" "foobar" {
 }
 
 resource "digitalocean_droplet" "foobar" {
-  count              = 1
-  name               = "tf-acc-test-${count.index}"
-  size               = "s-1vcpu-1gb"
-  image              = "ubuntu-22-04-x64"
-  region             = "nyc3"
-  ipv6               = true
+  count  = 1
+  name   = "tf-acc-test-${count.index}"
+  size   = "s-1vcpu-1gb"
+  image  = "ubuntu-22-04-x64"
+  region = "nyc3"
+  ipv6   = true
 }
 `
 
