@@ -1,3 +1,14 @@
+## 2.46.0
+
+IMPROVEMENTS:
+
+- #1277 - @imaskm - Add reserved ipv6 resource
+- #1280 - @asaha2 - Add support for droplet autoscale pool
+
+BUG FIXES:
+
+- #1284 - @jvasilevsky - LBAAS: increase maximum lb size_unit, add regional_network type support
+
 ## 2.45.0
 
 IMPROVEMENTS:
