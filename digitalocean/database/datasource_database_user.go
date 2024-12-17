@@ -56,6 +56,11 @@ func DataSourceDigitalOceanDatabaseUser() *schema.Resource {
 							Optional: true,
 							Elem:     userACLSchema(),
 						},
+						"opensearch_acl": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     userOpenSearchACLSchema(),
+						},
 					},
 				},
 			},
