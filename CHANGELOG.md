@@ -1,3 +1,9 @@
+## 2.46.1
+
+BUG FIXES:
+
+- #1290 - @andrewsomething - fix: add opensearch_acl to data.digitalocean_database_user schema
+
 ## 2.46.0
 
 IMPROVEMENTS:
