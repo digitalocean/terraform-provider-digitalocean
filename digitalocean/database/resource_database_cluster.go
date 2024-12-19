@@ -96,8 +96,9 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"day": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsDayOfTheWeek(true),
 						},
 						"hour": {
 							Type:     schema.TypeString,

@@ -133,8 +133,8 @@ The following arguments are supported:
 
 `maintenance_window` supports the following:
 
-* `day` - (Required) The day of the week on which to apply maintenance updates.
-* `hour` - (Required) The hour in UTC at which maintenance updates will be applied in 24 hour format.
+* `day` - (Required) The day of the week on which to apply maintenance updates. May be one of `monday` through `sunday`.
+* `hour` - (Required) The hour in UTC at which maintenance updates will be applied as a string in 24 hour format, e.g. `13:00`.
 
 * `backup_restore` - (Optional) Create a new database cluster based on a backup of an existing cluster.
 
