@@ -71,8 +71,9 @@ The following arguments are supported:
 
 * `name` - (Required) The Firewall name
 * `droplet_ids` (Optional) - The list of the IDs of the Droplets assigned
-  to the Firewall.
-* `tags` (Optional) - The names of the Tags assigned to the Firewall.
+  to the Firewall (max. 10). If you want to assign more droplets to the
+  Firewall, add Tags to them and use the `tags` argument below.
+* `tags` (Optional) - The names of the Tags assigned to the Firewall (max. 5).
 * `inbound_rule` - (Optional) The inbound access rule block for the Firewall.
   The `inbound_rule` block is documented below.
 * `outbound_rule` - (Optional) The outbound access rule block for the Firewall.
