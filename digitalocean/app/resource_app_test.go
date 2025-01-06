@@ -1087,6 +1087,33 @@ func TestAccDigitalOceanApp_ImageDigest(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_termination(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withTermination, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.termination.0.grace_period_seconds", "60"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.termination.0.drain_seconds", "30"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.termination.0.grace_period_seconds", "30"),
+				),
+			},
+		},
+	})
+}
+
 var testAccCheckDigitalOceanAppConfig_basic = `
 resource "digitalocean_app" "foobar" {
   spec {
@@ -1747,5 +1774,38 @@ resource "digitalocean_app" "foobar" {
     }
 
     ingress {}
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_withTermination = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "nyc"
+    service {
+      name               = "go-service"
+      instance_size_slug = "apps-d-1vcpu-0.5gb"
+      instance_count     = 1
+      termination {
+        drain_seconds        = 30
+        grace_period_seconds = 60
+      }
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+    }
+    worker {
+      name               = "go-worker"
+      instance_size_slug = "apps-d-1vcpu-0.5gb"
+      instance_count     = 1
+      termination {
+        grace_period_seconds = 30
+      }
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
+        branch         = "main"
+      }
+    }
   }
 }`
