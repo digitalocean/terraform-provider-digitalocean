@@ -19,6 +19,11 @@ const (
 	functionComponent   appSpecComponentType = "function"
 )
 
+// AppSpecTermination is a type constraint for the termination attribute of an app component.
+type AppSpecTermination interface {
+	godo.AppServiceSpecTermination | godo.AppWorkerSpecTermination | godo.AppJobSpecTermination
+}
+
 // appSpecSchema returns map[string]*schema.Schema for the App Specification.
 // Set isResource to true in order to return a schema with additional attributes
 // appropriate for a resource or false for one used with a data-source.
@@ -494,6 +499,28 @@ func appSpecAutoscalingSchema() map[string]*schema.Schema {
 	}
 }
 
+func appSpecTerminationSchema(component appSpecComponentType) map[string]*schema.Schema {
+	termination := map[string]*schema.Schema{
+		"grace_period_seconds": {
+			Type:         schema.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(1, 600),
+			Description:  "The number of seconds to wait between sending a TERM signal to a container and issuing a KILL which causes immediate shutdown. Default: 120, Minimum 1, Maximum 600.",
+		},
+	}
+
+	if component == serviceComponent {
+		termination["drain_seconds"] = &schema.Schema{
+			Type:         schema.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntBetween(1, 110),
+			Description:  "The number of seconds to wait between selecting a container instance for termination and issuing the TERM signal. Selecting a container instance for termination begins an asynchronous drain of new requests on upstream load-balancers. Default: 15 seconds, Minimum 1, Maximum 110.",
+		}
+	}
+
+	return termination
+}
+
 func appSpecComponentBase(componentType appSpecComponentType) map[string]*schema.Schema {
 	baseSchema := map[string]*schema.Schema{
 		"name": {
@@ -648,6 +675,14 @@ func appSpecServicesSchema() *schema.Resource {
 				Schema: appSpecAutoscalingSchema(),
 			},
 		},
+		"termination": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecTerminationSchema(serviceComponent),
+			},
+		},
 	}
 
 	for k, v := range appSpecComponentBase(serviceComponent) {
@@ -743,6 +778,14 @@ func appSpecWorkerSchema() *schema.Resource {
 				Schema: appSpecAutoscalingSchema(),
 			},
 		},
+		"termination": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecTerminationSchema(workerComponent),
+			},
+		},
 	}
 
 	for k, v := range appSpecComponentBase(workerComponent) {
@@ -790,6 +833,14 @@ func appSpecJobSchema() *schema.Resource {
 				"FAILED_DEPLOY",
 			}, false),
 			Description: "The type of job and when it will be run during the deployment process.",
+		},
+		"termination": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecTerminationSchema(jobComponent),
+			},
 		},
 	}
 
@@ -1856,6 +1907,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.Autoscaling = expandAppAutoscaling(autoscaling)
 		}
 
+		termination := service["termination"].([]interface{})
+		if len(termination) > 0 {
+			s.Termination = expandAppTermination[godo.AppServiceSpecTermination](termination)
+		}
+
 		appServices = append(appServices, s)
 	}
 
@@ -1889,6 +1945,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["alert"] = flattenAppAlerts(s.Alerts)
 		r["log_destination"] = flattenAppLogDestinations(s.LogDestinations)
 		r["autoscaling"] = flattenAppAutoscaling(s.Autoscaling)
+		r["termination"] = flattenAppTermination(s.Termination)
 
 		result[i] = r
 	}
@@ -2039,6 +2096,11 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 			s.Autoscaling = expandAppAutoscaling(autoscaling)
 		}
 
+		termination := worker["termination"].([]interface{})
+		if len(termination) > 0 {
+			s.Termination = expandAppTermination[godo.AppWorkerSpecTermination](termination)
+		}
+
 		appWorkers = append(appWorkers, s)
 	}
 
@@ -2067,6 +2129,7 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["alert"] = flattenAppAlerts(w.Alerts)
 		r["log_destination"] = flattenAppLogDestinations(w.LogDestinations)
 		r["autoscaling"] = flattenAppAutoscaling(w.Autoscaling)
+		r["termination"] = flattenAppTermination(w.Termination)
 
 		result[i] = r
 	}
@@ -2123,6 +2186,11 @@ func expandAppSpecJobs(config []interface{}) []*godo.AppJobSpec {
 			s.LogDestinations = expandAppLogDestinations(logDestinations)
 		}
 
+		termination := job["termination"].([]interface{})
+		if len(termination) > 0 {
+			s.Termination = expandAppTermination[godo.AppJobSpecTermination](termination)
+		}
+
 		appJobs = append(appJobs, s)
 	}
 
@@ -2151,6 +2219,7 @@ func flattenAppSpecJobs(jobs []*godo.AppJobSpec) []map[string]interface{} {
 		r["kind"] = string(j.Kind)
 		r["alert"] = flattenAppAlerts(j.Alerts)
 		r["log_destination"] = flattenAppLogDestinations(j.LogDestinations)
+		r["termination"] = flattenAppTermination(j.Termination)
 
 		result[i] = r
 	}
@@ -2443,6 +2512,49 @@ func expandAppIngressMatch(config []interface{}) *godo.AppIngressSpecRuleMatch {
 			Prefix: path["prefix"].(string),
 		},
 	}
+}
+
+func expandAppTermination[T AppSpecTermination](config []interface{}) *T {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+
+	terminationConfig := config[0].(map[string]interface{})
+
+	termination := new(T)
+	switch t := any(termination).(type) {
+	case *godo.AppServiceSpecTermination:
+		t.GracePeriodSeconds = int32(terminationConfig["grace_period_seconds"].(int))
+		t.DrainSeconds = int32(terminationConfig["drain_seconds"].(int))
+	case *godo.AppWorkerSpecTermination:
+		t.GracePeriodSeconds = int32(terminationConfig["grace_period_seconds"].(int))
+	case *godo.AppJobSpecTermination:
+		t.GracePeriodSeconds = int32(terminationConfig["grace_period_seconds"].(int))
+	}
+
+	return termination
+}
+
+func flattenAppTermination[T AppSpecTermination](termination *T) []interface{} {
+	result := make([]interface{}, 0)
+
+	if termination != nil {
+		r := make(map[string]interface{})
+
+		switch t := any(termination).(type) {
+		case *godo.AppServiceSpecTermination:
+			r["grace_period_seconds"] = t.GracePeriodSeconds
+			r["drain_seconds"] = t.DrainSeconds
+		case *godo.AppWorkerSpecTermination:
+			r["grace_period_seconds"] = t.GracePeriodSeconds
+		case *godo.AppJobSpecTermination:
+			r["grace_period_seconds"] = t.GracePeriodSeconds
+		}
+
+		result = append(result, r)
+	}
+
+	return result
 }
 
 func flattenAppEgress(egress *godo.AppEgressSpec) []map[string]interface{} {

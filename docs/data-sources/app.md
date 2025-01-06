@@ -113,6 +113,9 @@ A `service` can contain:
           - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
       - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
       - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
+* `termination` - Contains a component's termination parameters.
+  - `grace_period_seconds` - The number of seconds to wait between sending a TERM signal to a container and issuing a KILL which causes immediate shutdown. Default: 120, Minimum 1, Maximum 600.
+  - `drain_seconds` - The number of seconds to wait between selecting a container instance for termination and issuing the TERM signal. Selecting a container instance for termination begins an asynchronous drain of new requests on upstream load-balancers. Default: 15 seconds, Minimum 1, Maximum 110.
 
 A `static_site` can contain:
 
@@ -201,6 +204,8 @@ A `worker` can contain:
   - `metrics` - The metrics that the component is scaled on.
     - `cpu` - Settings for scaling the component based on CPU utilization.
       - `percent` - The average target CPU utilization for the component.
+* `termination` - Contains a component's termination parameters.
+  - `grace_period_seconds` - The number of seconds to wait between sending a TERM signal to a container and issuing a KILL which causes immediate shutdown. Default: 120, Minimum 1, Maximum 600.
 
 A `job` can contain:
 
@@ -257,6 +262,8 @@ A `job` can contain:
           - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
       - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
       - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
+* `termination` - Contains a component's termination parameters.
+  - `grace_period_seconds` - The number of seconds to wait between sending a TERM signal to a container and issuing a KILL which causes immediate shutdown. Default: 120, Minimum 1, Maximum 600.
 
 A `function` component can contain:
 
@@ -313,7 +320,6 @@ A `function` component can contain:
           - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
       - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
       - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
-
 
 A `database` can contain:
 
