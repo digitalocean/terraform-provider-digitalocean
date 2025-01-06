@@ -258,7 +258,7 @@ func appSpecImageSourceSchema() map[string]*schema.Schema {
 		"tag": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "The repository tag. Defaults to latest if not provided.",
+			Description: "The repository tag. Defaults to latest if not provided. Cannot be specified if digest is provided.",
 		},
 		"digest": {
 			Type:        schema.TypeString,
