@@ -1044,6 +1044,14 @@ func TestAccDigitalOceanApp_autoScale(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.autoscaling.0.max_instance_count", "4"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.autoscaling.0.metrics.0.cpu.0.percent", "60"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.name", "go-worker"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.autoscaling.0.min_instance_count", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.autoscaling.0.max_instance_count", "2"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.autoscaling.0.metrics.0.cpu.0.percent", "80"),
 				),
 			},
 		},
@@ -1672,6 +1680,26 @@ resource "digitalocean_app" "foobar" {
         metrics {
           cpu {
             percent = 60
+          }
+        }
+      }
+    }
+
+    worker {
+      name               = "go-worker"
+      instance_size_slug = "apps-d-1vcpu-0.5gb"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
+        branch         = "main"
+      }
+
+      autoscaling {
+        min_instance_count = 1
+        max_instance_count = 2
+        metrics {
+          cpu {
+            percent = 80
           }
         }
       }

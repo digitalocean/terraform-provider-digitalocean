@@ -735,6 +735,14 @@ func appSpecWorkerSchema() *schema.Resource {
 			Optional:    true,
 			Description: "The amount of instances that this component should be scaled to.",
 		},
+		"autoscaling": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecAutoscalingSchema(),
+			},
+		},
 	}
 
 	for k, v := range appSpecComponentBase(workerComponent) {
@@ -2026,6 +2034,11 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 			s.LogDestinations = expandAppLogDestinations(logDestinations)
 		}
 
+		autoscaling := worker["autoscaling"].([]interface{})
+		if len(autoscaling) > 0 {
+			s.Autoscaling = expandAppAutoscaling(autoscaling)
+		}
+
 		appWorkers = append(appWorkers, s)
 	}
 
@@ -2053,6 +2066,7 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["environment_slug"] = w.EnvironmentSlug
 		r["alert"] = flattenAppAlerts(w.Alerts)
 		r["log_destination"] = flattenAppLogDestinations(w.LogDestinations)
+		r["autoscaling"] = flattenAppAutoscaling(w.Autoscaling)
 
 		result[i] = r
 	}

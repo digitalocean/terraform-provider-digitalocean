@@ -195,6 +195,12 @@ A `worker` can contain:
           - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
       - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
       - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
+* `autoscaling` - Configuration for automatically scaling this component based on metrics.
+  - `min_instance_count` - The minimum amount of instances for this component. Must be less than max_instance_count.
+  - `max_instance_count` - The maximum amount of instances for this component. Must be more than min_instance_count.
+  - `metrics` - The metrics that the component is scaled on.
+    - `cpu` - Settings for scaling the component based on CPU utilization.
+      - `percent` - The average target CPU utilization for the component.
 
 A `job` can contain:
 
