@@ -73,6 +73,7 @@ A `service` can contain:
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
+  - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
       - `enabled` - Whether to automatically deploy images pushed to DOCR.
 * `env` - Describes an environment variable made available to an app competent.
@@ -170,6 +171,7 @@ A `worker` can contain:
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
+  - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
       - `enabled` - Whether to automatically deploy images pushed to DOCR.
 * `env` - Describes an environment variable made available to an app competent.
@@ -231,6 +233,7 @@ A `job` can contain:
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
+  - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
       - `enabled` - Whether to automatically deploy images pushed to DOCR.
 * `env` - Describes an environment variable made available to an app competent.

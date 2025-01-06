@@ -1058,6 +1058,35 @@ func TestAccDigitalOceanApp_autoScale(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_ImageDigest(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_imageDigest, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_url"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_domain"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry_type", "DOCKER_HUB"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry", "ubuntu"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.repository", "nginx"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.digest", "sha256:909169d4de5b750071dc2cbe286e18763f8ed23dd0f267b5db59ea33bdbf8853"),
+				),
+			},
+		},
+	})
+}
+
 var testAccCheckDigitalOceanAppConfig_basic = `
 resource "digitalocean_app" "foobar" {
   spec {
@@ -1234,6 +1263,29 @@ resource "digitalocean_app" "foobar" {
         registry      = "caddy"
         repository    = "caddy"
         tag           = "2.2.1-alpine"
+      }
+
+      http_port = 80
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_imageDigest = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "nyc"
+
+    service {
+      name               = "image-service"
+      instance_count     = 1
+      instance_size_slug = "apps-s-1vcpu-1gb"
+
+      image {
+        registry_type = "DOCKER_HUB"
+        registry      = "ubuntu"
+        repository    = "nginx"
+        digest        = "sha256:909169d4de5b750071dc2cbe286e18763f8ed23dd0f267b5db59ea33bdbf8853"
       }
 
       http_port = 80
