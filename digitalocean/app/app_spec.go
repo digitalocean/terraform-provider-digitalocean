@@ -258,7 +258,12 @@ func appSpecImageSourceSchema() map[string]*schema.Schema {
 		"tag": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "The repository tag. Defaults to latest if not provided.",
+			Description: "The repository tag. Defaults to latest if not provided. Cannot be specified if digest is provided.",
+		},
+		"digest": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The image digest. Cannot be specified if tag is provided.",
 		},
 		"deploy_on_push": {
 			Type:        schema.TypeList,
@@ -1603,6 +1608,7 @@ func expandAppImageSourceSpec(config []interface{}) *godo.ImageSourceSpec {
 		Registry:            imageSourceConfig["registry"].(string),
 		Repository:          imageSourceConfig["repository"].(string),
 		Tag:                 imageSourceConfig["tag"].(string),
+		Digest:              imageSourceConfig["digest"].(string),
 		RegistryCredentials: imageSourceConfig["registry_credentials"].(string),
 	}
 
@@ -1626,6 +1632,7 @@ func flattenAppImageSourceSpec(i *godo.ImageSourceSpec) []interface{} {
 		r["registry"] = (*i).Registry
 		r["repository"] = (*i).Repository
 		r["tag"] = (*i).Tag
+		r["digest"] = (*i).Digest
 		r["registry_credentials"] = (*i).RegistryCredentials
 
 		if i.DeployOnPush != nil {

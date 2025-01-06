@@ -269,6 +269,7 @@ A `service` can contain:
   - `repository` - The repository name.
   - `registry_credentials` - The credentials required to access a private Docker Hub or GitHub registry, in the following syntax `<username>:<token>`.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
+  - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
     - `enabled` - Whether to automatically deploy images pushed to DOCR.
 - `env` - Describes an environment variable made available to an app competent.
@@ -376,6 +377,7 @@ A `worker` can contain:
   - `repository` - The repository name.
   - `registry_credentials` - The credentials required to access a private Docker Hub or GitHub registry, in the following syntax `<username>:<token>`.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
+  - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
     - `enabled` - Whether to automatically deploy images pushed to DOCR.
 - `env` - Describes an environment variable made available to an app competent.
@@ -438,6 +440,7 @@ A `job` can contain:
   - `repository` - The repository name.
   - `registry_credentials` - The credentials required to access a private Docker Hub or GitHub registry, in the following syntax `<username>:<token>`.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
+  - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
     - `enabled` - Whether to automatically deploy images pushed to DOCR.
 - `env` - Describes an environment variable made available to an app competent.
