@@ -1044,6 +1044,70 @@ func TestAccDigitalOceanApp_autoScale(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.autoscaling.0.max_instance_count", "4"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.autoscaling.0.metrics.0.cpu.0.percent", "60"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.name", "go-worker"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.autoscaling.0.min_instance_count", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.autoscaling.0.max_instance_count", "2"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.autoscaling.0.metrics.0.cpu.0.percent", "80"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanApp_ImageDigest(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_imageDigest, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_url"),
+					resource.TestCheckResourceAttrSet("digitalocean_app.foobar", "live_domain"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry_type", "DOCKER_HUB"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.registry", "ubuntu"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.repository", "nginx"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.image.0.digest", "sha256:909169d4de5b750071dc2cbe286e18763f8ed23dd0f267b5db59ea33bdbf8853"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanApp_termination(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withTermination, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.termination.0.grace_period_seconds", "60"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.termination.0.drain_seconds", "30"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.termination.0.grace_period_seconds", "30"),
 				),
 			},
 		},
@@ -1226,6 +1290,29 @@ resource "digitalocean_app" "foobar" {
         registry      = "caddy"
         repository    = "caddy"
         tag           = "2.2.1-alpine"
+      }
+
+      http_port = 80
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_imageDigest = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "nyc"
+
+    service {
+      name               = "image-service"
+      instance_count     = 1
+      instance_size_slug = "apps-s-1vcpu-1gb"
+
+      image {
+        registry_type = "DOCKER_HUB"
+        registry      = "ubuntu"
+        repository    = "nginx"
+        digest        = "sha256:909169d4de5b750071dc2cbe286e18763f8ed23dd0f267b5db59ea33bdbf8853"
       }
 
       http_port = 80
@@ -1624,6 +1711,26 @@ resource "digitalocean_app" "foobar" {
         }
       }
     }
+
+    worker {
+      name               = "go-worker"
+      instance_size_slug = "apps-d-1vcpu-0.5gb"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
+        branch         = "main"
+      }
+
+      autoscaling {
+        min_instance_count = 1
+        max_instance_count = 2
+        metrics {
+          cpu {
+            percent = 80
+          }
+        }
+      }
+    }
   }
 }`
 
@@ -1667,5 +1774,38 @@ resource "digitalocean_app" "foobar" {
     }
 
     ingress {}
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_withTermination = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "nyc"
+    service {
+      name               = "go-service"
+      instance_size_slug = "apps-d-1vcpu-0.5gb"
+      instance_count     = 1
+      termination {
+        drain_seconds        = 30
+        grace_period_seconds = 60
+      }
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+    }
+    worker {
+      name               = "go-worker"
+      instance_size_slug = "apps-d-1vcpu-0.5gb"
+      instance_count     = 1
+      termination {
+        grace_period_seconds = 30
+      }
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
+        branch         = "main"
+      }
+    }
   }
 }`

@@ -1,3 +1,15 @@
+## 2.47.0
+
+IMPROVEMENTS:
+
+- #1297 - @andrewsomething - apps: add support for termination configuration.
+- #1296 - @andrewsomething - apps: workers support autoscaling
+- #1295 - @andrewsomething - apps: support specifying images by digest
+
+DOCS:
+
+- #1294 - @moreinhardt - docs: Clarify tags argument for firewall
+
 ## 2.46.1
 
 BUG FIXES:

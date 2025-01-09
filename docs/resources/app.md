@@ -269,6 +269,7 @@ A `service` can contain:
   - `repository` - The repository name.
   - `registry_credentials` - The credentials required to access a private Docker Hub or GitHub registry, in the following syntax `<username>:<token>`.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
+  - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
     - `enabled` - Whether to automatically deploy images pushed to DOCR.
 - `env` - Describes an environment variable made available to an app competent.
@@ -316,6 +317,9 @@ A `service` can contain:
   - `metrics` - The metrics that the component is scaled on.
     - `cpu` - Settings for scaling the component based on CPU utilization.
       - `percent` - The average target CPU utilization for the component.
+- `termination` - Contains a component's termination parameters.
+  - `grace_period_seconds` - The number of seconds to wait between sending a TERM signal to a container and issuing a KILL which causes immediate shutdown. Default: 120, Minimum 1, Maximum 600.
+  - `drain_seconds` - The number of seconds to wait between selecting a container instance for termination and issuing the TERM signal. Selecting a container instance for termination begins an asynchronous drain of new requests on upstream load-balancers. Default: 15 seconds, Minimum 1, Maximum 110.
 
 A `static_site` can contain:
 
@@ -376,6 +380,7 @@ A `worker` can contain:
   - `repository` - The repository name.
   - `registry_credentials` - The credentials required to access a private Docker Hub or GitHub registry, in the following syntax `<username>:<token>`.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
+  - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
     - `enabled` - Whether to automatically deploy images pushed to DOCR.
 - `env` - Describes an environment variable made available to an app competent.
@@ -405,6 +410,14 @@ A `worker` can contain:
           - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
       - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
       - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
+- `autoscaling` - Configuration for automatically scaling this component based on metrics.
+  - `min_instance_count` - The minimum amount of instances for this component. Must be less than max_instance_count.
+  - `max_instance_count` - The maximum amount of instances for this component. Must be more than min_instance_count.
+  - `metrics` - The metrics that the component is scaled on.
+    - `cpu` - Settings for scaling the component based on CPU utilization.
+      - `percent` - The average target CPU utilization for the component.
+- `termination` - Contains a component's termination parameters.
+  - `grace_period_seconds` - The number of seconds to wait between sending a TERM signal to a container and issuing a KILL which causes immediate shutdown. Default: 120, Minimum 1, Maximum 600.
 
 A `job` can contain:
 
@@ -438,6 +451,7 @@ A `job` can contain:
   - `repository` - The repository name.
   - `registry_credentials` - The credentials required to access a private Docker Hub or GitHub registry, in the following syntax `<username>:<token>`.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
+  - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
     - `enabled` - Whether to automatically deploy images pushed to DOCR.
 - `env` - Describes an environment variable made available to an app competent.
@@ -467,6 +481,8 @@ A `job` can contain:
           - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
       - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
       - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
+- `termination` - Contains a component's termination parameters.
+  - `grace_period_seconds` - The number of seconds to wait between sending a TERM signal to a container and issuing a KILL which causes immediate shutdown. Default: 120, Minimum 1, Maximum 600.
 
 A `function` component can contain:
 
