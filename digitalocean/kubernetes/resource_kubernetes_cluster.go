@@ -121,10 +121,20 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"day": {
-							Type:         schema.TypeString,
-							Optional:     true,
-							Computed:     true,
-							ValidateFunc: validation.StringInSlice([]string{"any", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"}, true),
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"any",
+								"monday",
+								"tuesday",
+								"wednesday",
+								"thursday",
+								"friday",
+								"saturday",
+								"sunday"},
+								true,
+							),
 						},
 						"start_time": {
 							Type:     schema.TypeString,
