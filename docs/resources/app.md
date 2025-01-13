@@ -109,7 +109,7 @@ resource "digitalocean_app" "mono-repo-example" {
       name          = "web"
       build_command = "npm run build"
 
-      github {
+      bitbucket {
         branch         = "main"
         deploy_on_push = true
         repo           = "username/repo"
@@ -259,6 +259,10 @@ A `service` can contain:
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+- `bitbucket` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
+  - `repo` - The name of the repo in the format `owner/repo`.
+  - `branch` - The name of the branch to use.
+  - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
 - `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
@@ -339,6 +343,10 @@ A `static_site` can contain:
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+- `bitbucket` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
+  - `repo` - The name of the repo in the format `owner/repo`.
+  - `branch` - The name of the branch to use.
+  - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
 - `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
@@ -367,6 +375,10 @@ A `worker` can contain:
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
 - `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
+  - `repo` - The name of the repo in the format `owner/repo`.
+  - `branch` - The name of the branch to use.
+  - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+- `bitbucket` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
@@ -441,6 +453,10 @@ A `job` can contain:
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+- `bitbucket` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
+  - `repo` - The name of the repo in the format `owner/repo`.
+  - `branch` - The name of the branch to use.
+  - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
 - `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
@@ -492,6 +508,10 @@ A `function` component can contain:
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
 - `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
+  - `repo` - The name of the repo in the format `owner/repo`.
+  - `branch` - The name of the branch to use.
+  - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+- `bitbucket` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
