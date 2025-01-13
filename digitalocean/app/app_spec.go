@@ -237,6 +237,10 @@ func appSpecGitLabSourceSchema() map[string]*schema.Schema {
 	return appSpecGitServiceSourceSchema()
 }
 
+func appSpeBitBucketSourceSchema() map[string]*schema.Schema {
+	return appSpecGitServiceSourceSchema()
+}
+
 func appSpecImageSourceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"registry_type": {
@@ -550,6 +554,14 @@ func appSpecComponentBase(componentType appSpecComponentType) map[string]*schema
 			MaxItems: 1,
 			Elem: &schema.Resource{
 				Schema: appSpecGitLabSourceSchema(),
+			},
+		},
+		"bitbucket": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpeBitBucketSourceSchema(),
 			},
 		},
 		"env": {
@@ -1633,6 +1645,34 @@ func flattenAppGitLabSourceSpec(spec *godo.GitLabSourceSpec) []interface{} {
 	return result
 }
 
+func expandAppBitBucketSourceSpec(config []interface{}) *godo.BitbucketSourceSpec {
+	bitBucketSourceConfig := config[0].(map[string]interface{})
+
+	bitBucketSource := &godo.BitbucketSourceSpec{
+		Repo:         bitBucketSourceConfig["repo"].(string),
+		Branch:       bitBucketSourceConfig["branch"].(string),
+		DeployOnPush: bitBucketSourceConfig["deploy_on_push"].(bool),
+	}
+
+	return bitBucketSource
+}
+
+func flattenAppBitBucketSourceSpec(spec *godo.BitbucketSourceSpec) []interface{} {
+	result := make([]interface{}, 0)
+
+	if spec != nil {
+
+		r := make(map[string]interface{})
+		r["repo"] = (*spec).Repo
+		r["branch"] = (*spec).Branch
+		r["deploy_on_push"] = (*spec).DeployOnPush
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
 func expandAppGitSourceSpec(config []interface{}) *godo.GitSourceSpec {
 	gitSourceConfig := config[0].(map[string]interface{})
 
@@ -1862,6 +1902,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.GitLab = expandAppGitLabSourceSpec(gitlab)
 		}
 
+		bitbucket := service["bitbucket"].([]interface{})
+		if len(bitbucket) > 0 {
+			s.Bitbucket = expandAppBitBucketSourceSpec(bitbucket)
+		}
+
 		git := service["git"].([]interface{})
 		if len(git) > 0 {
 			s.Git = expandAppGitSourceSpec(git)
@@ -1929,6 +1974,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["build_command"] = s.BuildCommand
 		r["github"] = flattenAppGitHubSourceSpec(s.GitHub)
 		r["gitlab"] = flattenAppGitLabSourceSpec(s.GitLab)
+		r["bitbucket"] = flattenAppBitBucketSourceSpec(s.Bitbucket)
 		r["internal_ports"] = flattenAppServiceInternalPortsSpec(s.InternalPorts)
 		r["git"] = flattenAppGitSourceSpec(s.Git)
 		r["image"] = flattenAppImageSourceSpec(s.Image)
@@ -1982,6 +2028,11 @@ func expandAppSpecStaticSites(config []interface{}) []*godo.AppStaticSiteSpec {
 			s.GitLab = expandAppGitLabSourceSpec(gitlab)
 		}
 
+		bitbucket := site["bitbucket"].([]interface{})
+		if len(bitbucket) > 0 {
+			s.Bitbucket = expandAppBitBucketSourceSpec(bitbucket)
+		}
+
 		git := site["git"].([]interface{})
 		if len(git) > 0 {
 			s.Git = expandAppGitSourceSpec(git)
@@ -2013,6 +2064,7 @@ func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec) []map[string]int
 		r["build_command"] = s.BuildCommand
 		r["github"] = flattenAppGitHubSourceSpec(s.GitHub)
 		r["gitlab"] = flattenAppGitLabSourceSpec(s.GitLab)
+		r["bitbucket"] = flattenAppBitBucketSourceSpec(s.Bitbucket)
 		r["git"] = flattenAppGitSourceSpec(s.Git)
 		r["routes"] = flattenAppRoutes(s.Routes)
 		r["dockerfile_path"] = s.DockerfilePath
@@ -2071,6 +2123,11 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 			s.GitLab = expandAppGitLabSourceSpec(gitlab)
 		}
 
+		bitbucket := worker["bitbucket"].([]interface{})
+		if len(bitbucket) > 0 {
+			s.Bitbucket = expandAppBitBucketSourceSpec(bitbucket)
+		}
+
 		git := worker["git"].([]interface{})
 		if len(git) > 0 {
 			s.Git = expandAppGitSourceSpec(git)
@@ -2118,6 +2175,7 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["build_command"] = w.BuildCommand
 		r["github"] = flattenAppGitHubSourceSpec(w.GitHub)
 		r["gitlab"] = flattenAppGitLabSourceSpec(w.GitLab)
+		r["bitbucket"] = flattenAppBitBucketSourceSpec(w.Bitbucket)
 		r["git"] = flattenAppGitSourceSpec(w.Git)
 		r["image"] = flattenAppImageSourceSpec(w.Image)
 		r["dockerfile_path"] = w.DockerfilePath
@@ -2166,6 +2224,11 @@ func expandAppSpecJobs(config []interface{}) []*godo.AppJobSpec {
 			s.GitLab = expandAppGitLabSourceSpec(gitlab)
 		}
 
+		bitbucket := job["bitbucket"].([]interface{})
+		if len(bitbucket) > 0 {
+			s.Bitbucket = expandAppBitBucketSourceSpec(bitbucket)
+		}
+
 		git := job["git"].([]interface{})
 		if len(git) > 0 {
 			s.Git = expandAppGitSourceSpec(git)
@@ -2208,6 +2271,7 @@ func flattenAppSpecJobs(jobs []*godo.AppJobSpec) []map[string]interface{} {
 		r["build_command"] = j.BuildCommand
 		r["github"] = flattenAppGitHubSourceSpec(j.GitHub)
 		r["gitlab"] = flattenAppGitLabSourceSpec(j.GitLab)
+		r["bitbucket"] = flattenAppBitBucketSourceSpec(j.Bitbucket)
 		r["git"] = flattenAppGitSourceSpec(j.Git)
 		r["image"] = flattenAppImageSourceSpec(j.Image)
 		r["dockerfile_path"] = j.DockerfilePath
@@ -2247,6 +2311,11 @@ func expandAppSpecFunctions(config []interface{}) []*godo.AppFunctionsSpec {
 		gitlab := fn["gitlab"].([]interface{})
 		if len(gitlab) > 0 {
 			f.GitLab = expandAppGitLabSourceSpec(gitlab)
+		}
+
+		bitbucket := fn["bitbucket"].([]interface{})
+		if len(bitbucket) > 0 {
+			f.Bitbucket = expandAppBitBucketSourceSpec(bitbucket)
 		}
 
 		git := fn["git"].([]interface{})
@@ -2290,6 +2359,7 @@ func flattenAppSpecFunctions(functions []*godo.AppFunctionsSpec) []map[string]in
 		r["source_dir"] = fn.SourceDir
 		r["github"] = flattenAppGitHubSourceSpec(fn.GitHub)
 		r["gitlab"] = flattenAppGitLabSourceSpec(fn.GitLab)
+		r["bitbucket"] = flattenAppBitBucketSourceSpec(fn.Bitbucket)
 		r["git"] = flattenAppGitSourceSpec(fn.Git)
 		r["routes"] = flattenAppRoutes(fn.Routes)
 		r["cors"] = flattenAppCORSPolicy(fn.CORS)
