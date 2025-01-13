@@ -237,7 +237,7 @@ func appSpecGitLabSourceSchema() map[string]*schema.Schema {
 	return appSpecGitServiceSourceSchema()
 }
 
-func appSpeBitBucketSourceSchema() map[string]*schema.Schema {
+func appSpecBitBucketSourceSchema() map[string]*schema.Schema {
 	return appSpecGitServiceSourceSchema()
 }
 
@@ -561,7 +561,7 @@ func appSpecComponentBase(componentType appSpecComponentType) map[string]*schema
 			Optional: true,
 			MaxItems: 1,
 			Elem: &schema.Resource{
-				Schema: appSpeBitBucketSourceSchema(),
+				Schema: appSpecBitBucketSourceSchema(),
 			},
 		},
 		"env": {
