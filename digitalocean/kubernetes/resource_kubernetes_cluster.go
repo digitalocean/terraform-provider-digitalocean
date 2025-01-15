@@ -195,7 +195,6 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			"kubeconfig_expire_seconds": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				Default:      0, // 0 means the kubeconfig will expire in 7 days
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 		},
