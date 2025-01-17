@@ -175,6 +175,7 @@ func resourceDigitalOceanProjectRead(ctx context.Context, d *schema.ResourceData
 		if resp != nil && resp.StatusCode == 404 {
 			log.Printf("[DEBUG] Project  (%s) was not found - removing from state", d.Id())
 			d.SetId("")
+			return nil
 		}
 
 		return diag.Errorf("Error reading Project: %s", err)
