@@ -64,3 +64,19 @@ website:
 	@echo "Use this site to preview markdown rendering: https://registry.terraform.io/tools/doc-preview"
 
 .PHONY: build test testacc vet fmt fmtcheck errcheck test-compile website sweep
+
+.PHONY: _upgrade_godo
+_upgrade_godo:
+	go get -u github.com/digitalocean/godo
+
+.PHONY: upgrade_godo
+upgrade_godo: _upgrade_godo vendor
+	@echo "==> upgrade the godo version"
+	@echo ""
+
+.PHONY: vendor
+vendor:
+	@echo "==> vendor dependencies"
+	@echo ""
+	go mod vendor
+	go mod tidy
