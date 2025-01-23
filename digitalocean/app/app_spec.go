@@ -63,7 +63,6 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 		"service": {
 			Type:     schema.TypeList,
 			Optional: true,
-			MinItems: 0,
 			Elem:     appSpecServicesSchema(),
 		},
 		"static_site": {
