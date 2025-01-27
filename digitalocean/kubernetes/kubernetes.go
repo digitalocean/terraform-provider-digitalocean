@@ -240,6 +240,29 @@ func expandMaintPolicyOpts(config []interface{}) (*godo.KubernetesMaintenancePol
 	return maintPolicy, nil
 }
 
+func expandControlPlaneFirewallOpts(raw []interface{}) *godo.KubernetesControlPlaneFirewall {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesControlPlaneFirewall{}
+	}
+	controlPlaneFirewallConfig := raw[0].(map[string]interface{})
+
+	controlPlaneFirewall := &godo.KubernetesControlPlaneFirewall{
+		Enabled:          godo.PtrTo(controlPlaneFirewallConfig["enabled"].(bool)),
+		AllowedAddresses: expandAllowedAddresses(controlPlaneFirewallConfig["allowed_addresses"].([]interface{})),
+	}
+	return controlPlaneFirewall
+}
+
+func expandAllowedAddresses(addrs []interface{}) []string {
+	var expandedAddrs []string
+	for _, item := range addrs {
+		if str, ok := item.(string); ok {
+			expandedAddrs = append(expandedAddrs, str)
+		}
+	}
+	return expandedAddrs
+}
+
 func flattenMaintPolicyOpts(opts *godo.KubernetesMaintenancePolicy) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 	item := make(map[string]interface{})
@@ -247,6 +270,17 @@ func flattenMaintPolicyOpts(opts *godo.KubernetesMaintenancePolicy) []map[string
 	item["day"] = opts.Day.String()
 	item["duration"] = opts.Duration
 	item["start_time"] = opts.StartTime
+	result = append(result, item)
+
+	return result
+}
+
+func flattenControlPlaneFirewallOpts(opts *godo.KubernetesControlPlaneFirewall) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	item := make(map[string]interface{})
+
+	item["enabled"] = opts.Enabled
+	item["allowed_addresses"] = opts.AllowedAddresses
 	result = append(result, item)
 
 	return result
