@@ -569,7 +569,8 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"IPV4", "DUALSTACK"}, true),
-				Description:  "The network stack determines the allocation of ipv4/ipv6 addresses to the load balancer. Enum: 'IPV4' 'DUALSTACK'",
+				Description: "The network stack determines the allocation of ipv4/ipv6 addresses to the load balancer. Enum: 'IPV4' 'DUALSTACK'," +
+					" (NOTE: this feature is in private preview, contact DigitalOcean support to review its public availability.)",
 			},
 		},
 	}
