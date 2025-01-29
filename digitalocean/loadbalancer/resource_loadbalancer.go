@@ -563,6 +563,15 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				ValidateFunc: validation.StringInSlice([]string{"EXTERNAL", "INTERNAL"}, true),
 				Description:  "the type of network the load balancer is accessible from (EXTERNAL or INTERNAL)",
 			},
+
+			"network_stack": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{"IPV4", "DUALSTACK"}, true),
+				Description: "The network stack determines the allocation of ipv4/ipv6 addresses to the load balancer. Enum: 'IPV4' 'DUALSTACK'," +
+					" (NOTE: this feature is in private preview, contact DigitalOcean support to review its public availability.)",
+			},
 		},
 	}
 }
@@ -681,6 +690,10 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 
 	if v, ok := d.GetOk("network"); ok {
 		opts.Network = v.(string)
+	}
+
+	if v, ok := d.GetOk("network_stack"); ok {
+		opts.NetworkStack = v.(string)
 	}
 
 	return opts, nil
