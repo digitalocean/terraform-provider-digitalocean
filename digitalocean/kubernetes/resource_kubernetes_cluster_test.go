@@ -365,6 +365,52 @@ func TestAccDigitalOceanKubernetesCluster_MaintenancePolicy(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_ControlPlaneFirewall(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	firewall := `
+	control_plane_firewall {
+		enabled = true
+		allowed_addresses = ["1.2.3.4/16"]
+	}
+`
+
+	firewallUpdate := `
+	control_plane_firewall {
+		enabled = false
+		allowed_addresses = ["1.2.3.4/16", "5.6.7.8/16"]
+	}
+`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfigControlPlaneFirewall(testClusterVersionLatest, rName, firewall),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "control_plane_firewall.0.enabled", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "control_plane_firewall.0.allowed_addresses.0", "1.2.3.4/16"),
+				),
+			},
+			{
+				Config: testAccDigitalOceanKubernetesConfigControlPlaneFirewall(testClusterVersionLatest, rName, firewallUpdate),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "control_plane_firewall.0.enabled", "false"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "control_plane_firewall.0.allowed_addresses.0", "1.2.3.4/16"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "control_plane_firewall.0.allowed_addresses.1", "5.6.7.8/16"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
 	rName := acceptance.RandomTestName()
 	var k8s godo.KubernetesCluster
@@ -838,6 +884,36 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   }
 }
 `, testClusterVersion, rName, policy)
+}
+
+func testAccDigitalOceanKubernetesConfigControlPlaneFirewall(testClusterVersion string, rName string, controlPlaneFirewall string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name          = "%s"
+  region        = "lon1"
+  version       = data.digitalocean_kubernetes_versions.test.latest_version
+  surge_upgrade = true
+  tags          = ["foo", "bar", "one"]
+
+%s
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+    tags       = ["one", "two"]
+    labels = {
+      priority = "high"
+    }
+    taint {
+      key    = "key1"
+      value  = "val1"
+      effect = "PreferNoSchedule"
+    }
+  }
+}
+`, testClusterVersion, rName, controlPlaneFirewall)
 }
 
 func testAccDigitalOceanKubernetesConfigBasic2(testClusterVersion string, rName string) string {

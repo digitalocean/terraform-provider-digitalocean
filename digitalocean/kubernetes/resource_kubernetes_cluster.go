@@ -23,6 +23,10 @@ var (
 	MultipleNodePoolImportError = fmt.Errorf("Cluster contains multiple node pools. Manually add the `%s` tag to the pool that should be used as the default. Additional pools must be imported separately as 'digitalocean_kubernetes_node_pool' resources.", DigitaloceanKubernetesDefaultNodePoolTag)
 )
 
+const (
+	controlPlaneFirewallField = "control_plane_firewall"
+)
+
 func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanKubernetesClusterCreate,
@@ -197,6 +201,28 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Optional:     true,
 				ValidateFunc: validation.IntAtLeast(0),
 			},
+
+			controlPlaneFirewallField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+						"allowed_addresses": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -326,6 +352,10 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.AutoUpgrade = autoUpgrade.(bool)
 	}
 
+	if controlPlaneFirewall, ok := d.GetOk(controlPlaneFirewallField); ok {
+		opts.ControlPlaneFirewall = expandControlPlaneFirewallOpts(controlPlaneFirewall.([]interface{}))
+	}
+
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
 	if err != nil {
 		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
@@ -389,6 +419,10 @@ func digitaloceanKubernetesClusterRead(
 	d.Set("auto_upgrade", cluster.AutoUpgrade)
 	d.Set("urn", cluster.URN())
 
+	if err := d.Set(controlPlaneFirewallField, flattenControlPlaneFirewallOpts(cluster.ControlPlaneFirewall)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", controlPlaneFirewallField, err)
+	}
+
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
 	}
@@ -447,14 +481,15 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha") {
+	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha", controlPlaneFirewallField) {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
-			Name:         d.Get("name").(string),
-			Tags:         tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
-			AutoUpgrade:  godo.PtrTo(d.Get("auto_upgrade").(bool)),
-			SurgeUpgrade: d.Get("surge_upgrade").(bool),
-			HA:           godo.PtrTo(d.Get("ha").(bool)),
+			Name:                 d.Get("name").(string),
+			Tags:                 tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
+			AutoUpgrade:          godo.PtrTo(d.Get("auto_upgrade").(bool)),
+			SurgeUpgrade:         d.Get("surge_upgrade").(bool),
+			HA:                   godo.PtrTo(d.Get("ha").(bool)),
+			ControlPlaneFirewall: expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {
