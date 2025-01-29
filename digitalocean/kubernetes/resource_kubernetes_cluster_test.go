@@ -902,11 +902,11 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
       effect = "PreferNoSchedule"
     }
   }
-	
-	cluster_autoscaler_configuration {
-		scale_down_utilization_threshold = 0.5
-		scale_down_unneeded_time = "1m30s"
-	}
+
+  cluster_autoscaler_configuration {
+    scale_down_utilization_threshold = 0.5
+    scale_down_unneeded_time         = "1m30s"
+  }
 }
 `, testClusterVersion, rName)
 }
@@ -1062,10 +1062,10 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
     tags       = ["foo", "bar"]
   }
 
-	cluster_autoscaler_configuration {
-		scale_down_utilization_threshold = 0.8
-		scale_down_unneeded_time = "2m"
-	}
+  cluster_autoscaler_configuration {
+    scale_down_utilization_threshold = 0.8
+    scale_down_unneeded_time         = "2m"
+  }
 }
 `, testClusterVersion, rName)
 }
