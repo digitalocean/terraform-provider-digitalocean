@@ -1,3 +1,9 @@
+## 2.48.1
+
+BUGFIXES:
+
+- #1316 - @andrewsomething - kubernetes: protect against panic in flattenControlPlaneFirewallOpts
+
 ## 2.48.0
 
 IMPROVEMENTS:
