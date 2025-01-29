@@ -94,6 +94,8 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.start_time"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "registry_integration", "false"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "destroy_all_associated_resources", "false"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time"),
 				),
 			},
 			// Update: remove default node_pool taints
@@ -312,6 +314,8 @@ func TestAccDigitalOceanKubernetesCluster_UpdateCluster(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "node_pool.0.labels.%", "0"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "surge_upgrade", "true"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "ha", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold", "0.8"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "2m"),
 				),
 			},
 		},
@@ -405,6 +409,52 @@ func TestAccDigitalOceanKubernetesCluster_ControlPlaneFirewall(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "control_plane_firewall.0.enabled", "false"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "control_plane_firewall.0.allowed_addresses.0", "1.2.3.4/16"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "control_plane_firewall.0.allowed_addresses.1", "5.6.7.8/16"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesCluster_ClusterAutoscalerConfiguration(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	clusterAutoscalerConfiguration := `
+	cluster_autoscaler_configuration {
+		scale_down_utilization_threshold = 0.5
+		scale_down_unneeded_time = "1m30s"
+	}
+`
+
+	updatedClusterAutoscalerConfiguration := `
+	cluster_autoscaler_configuration {
+		scale_down_utilization_threshold = 0.8
+		scale_down_unneeded_time = "2m"
+	}
+`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfigClusterAutoscalerConfiguration(testClusterVersionLatest, rName, clusterAutoscalerConfiguration),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold", "0.5"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "1m30s"),
+				),
+			},
+			{
+				Config: testAccDigitalOceanKubernetesConfigClusterAutoscalerConfiguration(testClusterVersionLatest, rName, updatedClusterAutoscalerConfiguration),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day", "any"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold", "0.8"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "2m"),
 				),
 			},
 		},
@@ -852,8 +902,43 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
       effect = "PreferNoSchedule"
     }
   }
+	
+	cluster_autoscaler_configuration {
+		scale_down_utilization_threshold = 0.5
+		scale_down_unneeded_time = "1m30s"
+	}
 }
 `, testClusterVersion, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigClusterAutoscalerConfiguration(testClusterVersion string, rName string, clusterAutoscalerConfiguration string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name          = "%s"
+  region        = "lon1"
+  version       = data.digitalocean_kubernetes_versions.test.latest_version
+  surge_upgrade = true
+  tags          = ["foo", "bar", "one"]
+
+%s
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+    tags       = ["one", "two"]
+    labels = {
+      priority = "high"
+    }
+    taint {
+      key    = "key1"
+      value  = "val1"
+      effect = "PreferNoSchedule"
+    }
+  }
+}
+`, testClusterVersion, rName, clusterAutoscalerConfiguration)
 }
 
 func testAccDigitalOceanKubernetesConfigMaintenancePolicy(testClusterVersion string, rName string, policy string) string {
@@ -976,6 +1061,11 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
     node_count = 1
     tags       = ["foo", "bar"]
   }
+
+	cluster_autoscaler_configuration {
+		scale_down_utilization_threshold = 0.8
+		scale_down_unneeded_time = "2m"
+	}
 }
 `, testClusterVersion, rName)
 }

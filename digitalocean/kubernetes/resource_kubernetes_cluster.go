@@ -163,6 +163,23 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"cluster_autoscaler_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"scale_down_utilization_threshold": {
+							Type:     schema.TypeFloat,
+							Optional: true,
+						},
+						"scale_down_unneeded_time": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -355,6 +372,9 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 	if controlPlaneFirewall, ok := d.GetOk(controlPlaneFirewallField); ok {
 		opts.ControlPlaneFirewall = expandControlPlaneFirewallOpts(controlPlaneFirewall.([]interface{}))
 	}
+	if caConfig, ok := d.GetOk("cluster_autoscaler_configuration"); ok {
+		opts.ClusterAutoscalerConfiguration = expandCAConfigOpts(caConfig.([]interface{}))
+	}
 
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
 	if err != nil {
@@ -425,6 +445,10 @@ func digitaloceanKubernetesClusterRead(
 
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
+	}
+
+	if err := d.Set("cluster_autoscaler_configuration", flattenCAConfigOpts(cluster.ClusterAutoscalerConfiguration)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting cluster_autoscaler_configuration - error: %#v", err)
 	}
 
 	// find the default node pool from all the pools in the cluster
@@ -498,6 +522,10 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 				return diag.Errorf("Error setting Kubernetes maintenance policy : %s", err)
 			}
 			opts.MaintenancePolicy = maintPolicy
+		}
+
+		if caConfig, ok := d.GetOk("cluster_autoscaler_configuration"); ok {
+			opts.ClusterAutoscalerConfiguration = expandCAConfigOpts(caConfig.([]interface{}))
 		}
 
 		_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)

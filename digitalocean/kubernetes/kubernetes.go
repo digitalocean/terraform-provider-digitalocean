@@ -409,3 +409,29 @@ func FilterTags(tags []string) []string {
 
 	return filteredTags
 }
+
+func expandCAConfigOpts(config []interface{}) *godo.KubernetesClusterAutoscalerConfiguration {
+	caConfig := &godo.KubernetesClusterAutoscalerConfiguration{}
+	configMap := config[0].(map[string]interface{})
+
+	if v, ok := configMap["scale_down_utilization_threshold"]; ok {
+		caConfig.ScaleDownUtilizationThreshold = v.(*float64)
+	}
+
+	if v, ok := configMap["scale_down_unneeded_time"]; ok {
+		caConfig.ScaleDownUnneededTime = v.(*string)
+	}
+
+	return caConfig
+}
+
+func flattenCAConfigOpts(opts *godo.KubernetesClusterAutoscalerConfiguration) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	item := make(map[string]interface{})
+
+	item["scale_down_utilization_threshold"] = opts.ScaleDownUtilizationThreshold
+	item["scale_down_unneeded_time"] = opts.ScaleDownUnneededTime
+	result = append(result, item)
+
+	return result
+}
