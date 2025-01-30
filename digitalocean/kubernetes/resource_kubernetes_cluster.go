@@ -419,8 +419,10 @@ func digitaloceanKubernetesClusterRead(
 	d.Set("auto_upgrade", cluster.AutoUpgrade)
 	d.Set("urn", cluster.URN())
 
-	if err := d.Set(controlPlaneFirewallField, flattenControlPlaneFirewallOpts(cluster.ControlPlaneFirewall)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", controlPlaneFirewallField, err)
+	if d.Get(controlPlaneFirewallField) != nil {
+		if err := d.Set(controlPlaneFirewallField, flattenControlPlaneFirewallOpts(cluster.ControlPlaneFirewall)); err != nil {
+			return diag.Errorf("[DEBUG] Error setting %s - error: %#v", controlPlaneFirewallField, err)
+		}
 	}
 
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
@@ -464,14 +466,16 @@ func digitaloceanKubernetesClusterRead(
 		}
 	}
 	if expiresAt.IsZero() || expiresAt.Before(time.Now()) {
-		expireSeconds := d.Get("kubeconfig_expire_seconds").(int)
-		creds, _, err := client.Kubernetes.GetCredentials(context.Background(), cluster.ID, &godo.KubernetesClusterCredentialsGetRequest{
-			ExpirySeconds: &expireSeconds,
-		})
-		if err != nil {
-			return diag.Errorf("Unable to fetch Kubernetes credentials: %s", err)
+		if d.Get("kubeconfig_expire_seconds") != nil {
+			expireSeconds := d.Get("kubeconfig_expire_seconds").(int)
+			creds, _, err := client.Kubernetes.GetCredentials(context.Background(), cluster.ID, &godo.KubernetesClusterCredentialsGetRequest{
+				ExpirySeconds: &expireSeconds,
+			})
+			if err != nil {
+				return diag.Errorf("Unable to fetch Kubernetes credentials: %s", err)
+			}
+			d.Set("kube_config", flattenCredentials(cluster.Name, cluster.RegionSlug, creds))
 		}
-		d.Set("kube_config", flattenCredentials(cluster.Name, cluster.RegionSlug, creds))
 	}
 
 	return nil
