@@ -1,3 +1,9 @@
+## 2.48.2
+
+BUGFIXES:
+
+- #1319 - @loosla - [kubernetes]: fixing issues related to some missing fields in config
+
 ## 2.48.1
 
 BUGFIXES:
