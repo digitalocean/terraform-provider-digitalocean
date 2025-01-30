@@ -277,6 +277,10 @@ func flattenMaintPolicyOpts(opts *godo.KubernetesMaintenancePolicy) []map[string
 
 func flattenControlPlaneFirewallOpts(opts *godo.KubernetesControlPlaneFirewall) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
 	item := make(map[string]interface{})
 
 	item["enabled"] = opts.Enabled
