@@ -124,6 +124,23 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"cluster_autoscaler_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"scale_down_utilization_threshold": {
+							Type:     schema.TypeFloat,
+							Optional: true,
+						},
+						"scale_down_unneeded_time": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"node_pool": {
 				Type:     schema.TypeList,
 				Computed: true,
