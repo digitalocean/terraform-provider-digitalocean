@@ -419,11 +419,11 @@ func expandCAConfigOpts(config []interface{}) *godo.KubernetesClusterAutoscalerC
 	configMap := config[0].(map[string]interface{})
 
 	if v, ok := configMap["scale_down_utilization_threshold"]; ok {
-		caConfig.ScaleDownUtilizationThreshold = v.(*float64)
+		caConfig.ScaleDownUtilizationThreshold = godo.PtrTo(v.(float64))
 	}
 
 	if v, ok := configMap["scale_down_unneeded_time"]; ok {
-		caConfig.ScaleDownUnneededTime = v.(*string)
+		caConfig.ScaleDownUnneededTime = godo.PtrTo(v.(string))
 	}
 
 	return caConfig
@@ -431,8 +431,11 @@ func expandCAConfigOpts(config []interface{}) *godo.KubernetesClusterAutoscalerC
 
 func flattenCAConfigOpts(opts *godo.KubernetesClusterAutoscalerConfiguration) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
-	item := make(map[string]interface{})
+	if opts == nil {
+		return result
+	}
 
+	item := make(map[string]interface{})
 	item["scale_down_utilization_threshold"] = opts.ScaleDownUtilizationThreshold
 	item["scale_down_unneeded_time"] = opts.ScaleDownUnneededTime
 	result = append(result, item)

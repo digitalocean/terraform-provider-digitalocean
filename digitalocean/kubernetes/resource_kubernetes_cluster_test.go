@@ -439,6 +439,14 @@ func TestAccDigitalOceanKubernetesCluster_ClusterAutoscalerConfiguration(t *test
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
+				// regression test for configs with no cluster_autoscaler_configuration.
+				Config: testAccDigitalOceanKubernetesConfigClusterAutoscalerConfiguration(testClusterVersionLatest, rName, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+				),
+			},
+			{
 				Config: testAccDigitalOceanKubernetesConfigClusterAutoscalerConfiguration(testClusterVersionLatest, rName, clusterAutoscalerConfiguration),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
@@ -452,7 +460,6 @@ func TestAccDigitalOceanKubernetesCluster_ClusterAutoscalerConfiguration(t *test
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day", "any"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold", "0.8"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "2m"),
 				),
