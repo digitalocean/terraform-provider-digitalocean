@@ -393,6 +393,14 @@ func TestAccDigitalOceanKubernetesCluster_ControlPlaneFirewall(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
+				// regression test for configs with no control_plane_firewall.
+				Config: testAccDigitalOceanKubernetesConfigControlPlaneFirewall(testClusterVersionLatest, rName, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+				),
+			},
+			{
 				Config: testAccDigitalOceanKubernetesConfigControlPlaneFirewall(testClusterVersionLatest, rName, firewall),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
