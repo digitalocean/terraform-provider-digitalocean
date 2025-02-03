@@ -51,6 +51,8 @@ data "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day", "monday"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.start_time", "00:00"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.duration"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold", "0.5"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "1m30s"),
 				),
 			},
 		},
@@ -79,6 +81,11 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   maintenance_policy {
     day        = "monday"
     start_time = "00:00"
+  }
+
+  cluster_autoscaler_configuration {
+    scale_down_utilization_threshold = 0.5
+    scale_down_unneeded_time         = "1m30s"
   }
 }`, version, rName)
 }
