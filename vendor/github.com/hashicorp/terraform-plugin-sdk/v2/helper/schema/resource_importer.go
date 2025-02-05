@@ -18,7 +18,7 @@ type ResourceImporter struct {
 	// insert into the Terraform state.
 	//
 	// Deprecated: State is deprecated in favor of StateContext.
-	// Only one of the two functions can bet set.
+	// Only one of the two functions can be set.
 	State StateFunc
 
 	// StateContext is called to convert an ID to one or more InstanceState to
