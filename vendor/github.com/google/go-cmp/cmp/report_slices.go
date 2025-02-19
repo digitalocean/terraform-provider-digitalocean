@@ -528,7 +528,7 @@ func coalesceInterveningIdentical(groups []diffStats, windowSize int) []diffStat
 
 // cleanupSurroundingIdentical scans through all unequal groups, and
 // moves any leading sequence of equal elements to the preceding equal group and
-// moves any trailing sequence of equal elements to the succeeding equal group.
+// moves and trailing sequence of equal elements to the succeeding equal group.
 //
 // This is necessary since coalesceInterveningIdentical may coalesce edit groups
 // together such that leading/trailing spans of equal elements becomes possible.

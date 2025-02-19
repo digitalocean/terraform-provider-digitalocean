@@ -79,7 +79,7 @@ func Config(path string) *ConfigOption {
 }
 
 // CopyStateOption represents the -state flag for terraform workspace new. This flag is used
-// to copy an existing state file into the new workspace.
+// to copy an existing state file in to the new workspace.
 type CopyStateOption struct {
 	path string
 }
