@@ -53,17 +53,17 @@ func TestAccDigitalOceanPartnerInterconnectAttachment_Basic(t *testing.T) {
 				),
 			},
 			{
-                Config: partnerInterconnectAttachmentVPCUpdateConfig,
-                Check: resource.ComposeTestCheckFunc(
-                    testAccCheckDigitalOceanPartnerInterconnectAttachmentExists("digitalocean_partner_interconnect_attachment.foobar", &partnerInterconnectAttachment),
-                    resource.TestCheckResourceAttr(
-                        "digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.#", "2"),
-                    resource.TestCheckResourceAttrPair(
-                        "digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.0", "digitalocean_vpc.vpc1", "id"),
-                    resource.TestCheckResourceAttrPair(
-                        "digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.1", "digitalocean_vpc.vpc3", "id"),
-                ),
-            },
+				Config: partnerInterconnectAttachmentVPCUpdateConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanPartnerInterconnectAttachmentExists("digitalocean_partner_interconnect_attachment.foobar", &partnerInterconnectAttachment),
+					resource.TestCheckResourceAttr(
+						"digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.#", "2"),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.0", "digitalocean_vpc.vpc1", "id"),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.1", "digitalocean_vpc.vpc3", "id"),
+				),
+			},
 		},
 	})
 }

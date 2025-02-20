@@ -182,16 +182,16 @@ func resourceDigitalOceanPartnerInterconnectAttachmentUpdate(ctx context.Context
 	updateRequest := &godo.PartnerInterconnectAttachmentUpdateRequest{}
 
 	if d.HasChange("name") {
-        updateRequest.Name = d.Get("name").(string)
-    }
+		updateRequest.Name = d.Get("name").(string)
+	}
 
 	if d.HasChange("vpc_ids") {
-        var vpcIDsString []string
-        for _, v := range d.Get("vpc_ids").(*schema.Set).List() {
-            vpcIDsString = append(vpcIDsString, v.(string))
-        }
-        updateRequest.VPCIDs = vpcIDsString
-    }
+		var vpcIDsString []string
+		for _, v := range d.Get("vpc_ids").(*schema.Set).List() {
+			vpcIDsString = append(vpcIDsString, v.(string))
+		}
+		updateRequest.VPCIDs = vpcIDsString
+	}
 
 	if updateRequest.Name == "" && len(updateRequest.VPCIDs) == 0 {
 		return nil
