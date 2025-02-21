@@ -54,7 +54,7 @@ func DataSourceDigitalOceanPartnerInterconnectAttachment() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"local_asn": {
+						"local_router_asn": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
@@ -62,7 +62,7 @@ func DataSourceDigitalOceanPartnerInterconnectAttachment() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"peer_asn": {
+						"peer_router_asn": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},

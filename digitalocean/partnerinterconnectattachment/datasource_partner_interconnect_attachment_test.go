@@ -39,7 +39,7 @@ data "digitalocean_partner_interconnect_attachment" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "region", "nyc"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "naas_provider", "megaport"),
+						"data.digitalocean_partner_interconnect_attachment.foobar", "naas_provider", "MEGAPORT"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.#", "2"),
 					resource.TestCheckResourceAttrPair(
@@ -47,11 +47,11 @@ data "digitalocean_partner_interconnect_attachment" "foobar" {
 					resource.TestCheckResourceAttrPair(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.1", "digitalocean_vpc.vpc2", "id"),
 					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_asn", "64532", "local_asn"),
+						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_router_asn", "64532", "local_router_asn"),
 					resource.TestCheckResourceAttrPair(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_router_ip", "169.254.0.1/29", "local_router_ip"),
 					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_asn", "133937", "peer_asn"),
+						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_asn", "133937", "peer_router_asn"),
 					resource.TestCheckResourceAttrPair(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_ip", "169.254.0.6/29", "peer_router_ip"),
 					resource.TestCheckResourceAttrSet(
@@ -93,7 +93,7 @@ data "digitalocean_partner_interconnect_attachment" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "region", "nyc"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "naas_provider", "megaport"),
+						"data.digitalocean_partner_interconnect_attachment.foobar", "naas_provider", "MEGAPORT"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.#", "2"),
 					resource.TestCheckResourceAttrPair(
@@ -101,11 +101,11 @@ data "digitalocean_partner_interconnect_attachment" "foobar" {
 					resource.TestCheckResourceAttrPair(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.1", "digitalocean_vpc.vpc2", "id"),
 					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_asn", "64532", "local_asn"),
+						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_router_asn", "64532", "local_router_asn"),
 					resource.TestCheckResourceAttrPair(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_router_ip", "169.254.0.1/29", "local_router_ip"),
 					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_asn", "133937", "peer_asn"),
+						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_asn", "133937", "peer_router_asn"),
 					resource.TestCheckResourceAttrPair(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_ip", "169.254.0.6/29", "peer_router_ip"),
 					resource.TestCheckResourceAttrSet(
@@ -149,7 +149,7 @@ resource "digitalocean_partner_interconnect_attachment" "foobar" {
   name = "%s"
   connection_bandwidth_in_mbps = 100
   region = "nyc"
-  naas_provider = "megaport"
+  naas_provider = "MEGAPORT"
   vpc_ids = [
     digitalocean_vpc.vpc1.id,
     digitalocean_vpc.vpc2.id
@@ -159,9 +159,9 @@ resource "digitalocean_partner_interconnect_attachment" "foobar" {
     digitalocean_vpc.vpc2
   ]
   bgp {
-	local_asn = 64532
+	local_router_asn = 64532
 	local_router_ip = "169.254.0.1/29"
-	peer_asn = 133937
+	peer_router_asn = 133937
 	peer_router_ip = "169.254.0.6/29"
   }
 }

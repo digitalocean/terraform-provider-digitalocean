@@ -76,9 +76,10 @@ func ResourceDigitalOceanPartnerInterconnectAttachment() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
+				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"local_asn": {
+						"local_router_asn": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
@@ -86,11 +87,15 @@ func ResourceDigitalOceanPartnerInterconnectAttachment() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						"peer_asn": {
+						"peer_router_asn": {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
 						"peer_router_ip": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"auth_key": {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
@@ -133,10 +138,11 @@ func resourceDigitalOceanPartnerInterconnectAttachmentCreate(ctx context.Context
 		if len(bgpList) > 0 {
 			bgpConfig := bgpList[0].(map[string]interface{})
 			bgp := godo.BGP{
-				LocalASN:      bgpConfig["local_asn"].(int),
+				LocalASN:      bgpConfig["local_router_asn"].(int),
 				LocalRouterIP: bgpConfig["local_router_ip"].(string),
-				PeerASN:       bgpConfig["peer_asn"].(int),
+				PeerASN:       bgpConfig["peer_router_asn"].(int),
 				PeerRouterIP:  bgpConfig["peer_router_ip"].(string),
+				AuthKey:       bgpConfig["auth_key"].(string),
 			}
 			partnerInterconnectAttachmentRequest.BGP = bgp
 		}
