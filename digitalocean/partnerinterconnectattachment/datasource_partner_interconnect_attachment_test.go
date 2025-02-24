@@ -18,7 +18,7 @@ func TestAccDataSourceDigitalOceanPartnerInterconnectAttachment_ByID(t *testing.
 	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanPartnerInterconnectAttachmentConfig_Basic, vpcName1, vpcName2, partnerInterconnectAttachmentName)
 	dataSourceConfig := `
 data "digitalocean_partner_interconnect_attachment" "foobar" {
-	id = digitalocean_partner_interconnect_attachment.foobar.id
+  id = digitalocean_partner_interconnect_attachment.foobar.id
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -70,7 +70,7 @@ func TestAccDataSourceDigitalOceanPartnerInterconnectAttachment_ByName(t *testin
 	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanPartnerInterconnectAttachmentConfig_Basic, vpcName1, vpcName2, partnerInterconnectAttachmentName)
 	dataSourceConfig := `
 data "digitalocean_partner_interconnect_attachment" "foobar" {
-	name = digitalocean_partner_interconnect_attachment.foobar.name
+  name = digitalocean_partner_interconnect_attachment.foobar.name
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -164,6 +164,6 @@ resource "digitalocean_partner_interconnect_attachment" "foobar" {
 
 const testAccCheckDataSourceDigitalOceanPartnerInterconnectAttachmentConfig_DoesNotExist = `
 data "digitalocean_partner_interconnect_attachment" "foobar" {
-	id = "%s"
+  id = "%s"
 }
 `
