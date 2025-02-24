@@ -142,10 +142,10 @@ resource "digitalocean_vpc" "vpc2" {
 }
 
 resource "digitalocean_partner_interconnect_attachment" "foobar" {
-  name = "%s"
+  name                         = "%s"
   connection_bandwidth_in_mbps = 100
-  region = "nyc"
-  naas_provider = "MEGAPORT"
+  region                       = "nyc"
+  naas_provider                = "MEGAPORT"
   vpc_ids = [
     digitalocean_vpc.vpc1.id,
     digitalocean_vpc.vpc2.id
@@ -155,15 +155,15 @@ resource "digitalocean_partner_interconnect_attachment" "foobar" {
     digitalocean_vpc.vpc2
   ]
   bgp {
-	local_router_ip = "169.254.0.1/29"
-	peer_router_asn = 133937
-	peer_router_ip = "169.254.0.6/29"
+    local_router_ip = "169.254.0.1/29"
+    peer_router_asn = 133937
+    peer_router_ip  = "169.254.0.6/29"
   }
 }
 `
 
 const testAccCheckDataSourceDigitalOceanPartnerInterconnectAttachmentConfig_DoesNotExist = `
 data "digitalocean_partner_interconnect_attachment" "foobar" {
-  id = "%s"
+	id = "%s"
 }
 `
