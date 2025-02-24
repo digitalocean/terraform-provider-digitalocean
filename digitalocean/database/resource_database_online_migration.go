@@ -54,7 +54,7 @@ func ResourceDigitalOceanDatabaseOnlineMigration() *schema.Resource {
 			},
 			"source": {
 				Type:     schema.TypeList,
-				Optional: true,
+				Required: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -70,17 +70,17 @@ func ResourceDigitalOceanDatabaseOnlineMigration() *schema.Resource {
 						},
 						"db_name": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "The name of the default database",
 						},
 						"username": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "The default user of the database",
 						},
 						"password": {
 							Type:        schema.TypeString,
-							Optional:    true,
+							Required:    true,
 							Description: "The port on which the database cluster is listening.",
 						},
 					},
