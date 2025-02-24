@@ -22,7 +22,7 @@ resource "digitalocean_reserved_ipv6" "foo" {
 
 data "digitalocean_reserved_ipv6" "foobar" {
   ip = digitalocean_reserved_ipv6.foo.ip
-}`
+}
 
 ```
 

@@ -15,7 +15,7 @@ Provides a DigitalOcean reserved IPv6 to represent a publicly-accessible static 
 ```hcl
 resource "digitalocean_reserved_ipv6" "foobar" {
   region_slug = "nyc3"
-}`
+}
 ```
 
 ## Argument Reference
