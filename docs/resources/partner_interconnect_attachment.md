@@ -24,7 +24,6 @@ resource "digitalocean_partner_interconnect_attachment" "foobar" {
 	digitalocean_vpc.vpc2.id
   ]
   bgp {
-	local_router_asn = 64532
 	local_router_ip = "169.254.0.1/29"
 	peer_router_asn = 133937
 	peer_router_ip = "169.254.0.6/29"
@@ -43,7 +42,6 @@ The following arguments are supported and are mutually exclusive:
 * `naas_provider` - (Required) The network as a service provider for the Partner Interconnect Attachment.
 * `vpc_ids` - (Required) The list of VPC IDs involved in the partner interconnect.
 * `bgp` - (Optional) The BGP configuration for the Partner Interconnect Attachment.
-    * `local_router_asn` - The local autonomous system number.
     * `local_router_ip` - The local router IP address in CIDR notation.
     * `peer_router_asn` - The peer autonomous system number.
     * `peer_router_ip` - The peer router IP address in CIDR notation.

@@ -54,10 +54,6 @@ func DataSourceDigitalOceanPartnerInterconnectAttachment() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"local_router_asn": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
 						"local_router_ip": {
 							Type:     schema.TypeString,
 							Optional: true,

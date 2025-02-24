@@ -79,10 +79,6 @@ func ResourceDigitalOceanPartnerInterconnectAttachment() *schema.Resource {
 				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"local_router_asn": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
 						"local_router_ip": {
 							Type:     schema.TypeString,
 							Optional: true,
@@ -138,7 +134,6 @@ func resourceDigitalOceanPartnerInterconnectAttachmentCreate(ctx context.Context
 		if len(bgpList) > 0 {
 			bgpConfig := bgpList[0].(map[string]interface{})
 			bgp := godo.BGP{
-				LocalASN:      bgpConfig["local_router_asn"].(int),
 				LocalRouterIP: bgpConfig["local_router_ip"].(string),
 				PeerASN:       bgpConfig["peer_router_asn"].(int),
 				PeerRouterIP:  bgpConfig["peer_router_ip"].(string),

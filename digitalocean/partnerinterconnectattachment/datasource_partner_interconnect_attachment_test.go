@@ -47,8 +47,6 @@ data "digitalocean_partner_interconnect_attachment" "foobar" {
 					resource.TestCheckResourceAttrPair(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.1", "digitalocean_vpc.vpc2", "id"),
 					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_router_asn", "64532", "local_router_asn"),
-					resource.TestCheckResourceAttrPair(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_router_ip", "169.254.0.1/29", "local_router_ip"),
 					resource.TestCheckResourceAttrPair(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_asn", "133937", "peer_router_asn"),
@@ -100,8 +98,6 @@ data "digitalocean_partner_interconnect_attachment" "foobar" {
 						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.0", "digitalocean_vpc.vpc1", "id"),
 					resource.TestCheckResourceAttrPair(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.1", "digitalocean_vpc.vpc2", "id"),
-					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_router_asn", "64532", "local_router_asn"),
 					resource.TestCheckResourceAttrPair(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_router_ip", "169.254.0.1/29", "local_router_ip"),
 					resource.TestCheckResourceAttrPair(
@@ -159,7 +155,6 @@ resource "digitalocean_partner_interconnect_attachment" "foobar" {
     digitalocean_vpc.vpc2
   ]
   bgp {
-	local_router_asn = 64532
 	local_router_ip = "169.254.0.1/29"
 	peer_router_asn = 133937
 	peer_router_ip = "169.254.0.6/29"

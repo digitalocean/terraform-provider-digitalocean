@@ -49,7 +49,6 @@ The following arguments are supported and are mutually exclusive:
 * `naas_provider` - The network as a service provider for the Partner Interconnect Attachment.
 * `vpc_ids` - The list of VPC IDs involved in the partner interconnect.
 * `bgp` - The BGP configuration for the Partner Interconnect Attachment.
-    * `local_router_asn` - The local autonomous system number.
     * `local_router_ip` - The local router IP address in CIDR notation.
     * `peer_router_asn` - The peer autonomous system number.
     * `peer_router_ip` - The peer router IP address in CIDR notation.
