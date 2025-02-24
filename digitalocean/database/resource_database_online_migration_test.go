@@ -31,38 +31,38 @@ func TestAccDigitalOceanDatabaseOnlineMigration_Basic(t *testing.T) {
 
 const testAccCheckDigitalOceanDatabaseOnlineMigrationBasic = `
 resource "digitalocean_database_cluster" "source" {
-	name       = "%s"
-	engine     = "mysql"
-	version    = "%s"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
-	tags       = ["production"]
+  name       = "%s"
+  engine     = "mysql"
+  version    = "%s"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
 }
 
 resource "digitalocean_database_cluster" "destination" {
-	name       = "%s"
-	engine     = "mysql"
-	version    = "%s"
-	size       = "db-s-1vcpu-1gb"
-	region     = "nyc1"
-	node_count = 1
-	tags       = ["production"]
+  name       = "%s"
+  engine     = "mysql"
+  version    = "%s"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
 }
 
 resource "digitalocean_database_db" "source_db" {
-	cluster_id = digitalocean_database_cluster.source.id
-	name       = "terraform-db-om-source"
+  cluster_id = digitalocean_database_cluster.source.id
+  name       = "terraform-db-om-source"
 }
 
 resource "digitalocean_database_online_migration" "foobar" {
-	cluster_id = digitalocean_database_cluster.destination.id
-	source {
-		host = digitalocean_database_cluster.source.host
-		db_name = digitalocean_database_db.source_db.name
-		port = digitalocean_database_cluster.source.port
-		username = digitalocean_database_cluster.source.user
-		password = digitalocean_database_cluster.source.password
-  	}
+  cluster_id = digitalocean_database_cluster.destination.id
+  source {
+    host     = digitalocean_database_cluster.source.host
+    db_name  = digitalocean_database_db.source_db.name
+    port     = digitalocean_database_cluster.source.port
+    username = digitalocean_database_cluster.source.user
+    password = digitalocean_database_cluster.source.password
+  }
   depends_on = [digitalocean_database_cluster.destination, digitalocean_database_cluster.source, digitalocean_database_db.source_db]
 }`
