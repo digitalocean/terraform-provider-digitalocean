@@ -124,7 +124,7 @@ func resourceDigitalOceanDatabaseOnlineMigrationStart(ctx context.Context, d *sc
 	return resourceDigitalOceanDatabaseOnlineMigrationStatus(ctx, d, meta)
 }
 
-// Polls for errors in migration for 60 seconds. Requests can pass the API precheck and returns 200 response but still fail the migration quickly.
+// Polls for errors in migration for 90 seconds. Requests can pass the API precheck and returns 200 response but still fail the migration quickly.
 // Should notify user in this scenario.
 func waitForOnlineMigration(ctx context.Context, client *godo.Client, d *schema.ResourceData, clusterID string, opts *godo.DatabaseStartOnlineMigrationRequest) (string, diag.Diagnostics) {
 	_, _, err := client.Databases.Get(ctx, clusterID)
@@ -150,11 +150,13 @@ func waitForOnlineMigration(ctx context.Context, client *godo.Client, d *schema.
 			break
 		}
 		status, _, _ := client.Databases.GetOnlineMigrationStatus(ctx, clusterID)
-		// if status is nil, online migration might not have kicked off yet.
 		if status == nil {
+			// if status is nil, online migration might not have kicked off yet.
 			continue
 		} else if status.Status == "error" {
-			// try again, maybe database wasn't ready for connection.
+			// doesn't quit if error is received for online_migration.status,
+			// database might not be ready for connections.
+			// retries to start online migration
 			_, _, err = client.Databases.StartOnlineMigration(ctx, clusterID, opts)
 			if err != nil {
 				return "", diag.Errorf("Error starting online migration for cluster: %s", clusterID)
@@ -166,7 +168,7 @@ func waitForOnlineMigration(ctx context.Context, client *godo.Client, d *schema.
 		}
 		n++
 	}
-	// if status never reaches syncing after one minute, report failure.
+	// if status never reaches syncing after 90 seconds, report failure.
 	return "", diag.Errorf("Error starting online migration for cluster: %s", clusterID)
 }
 
