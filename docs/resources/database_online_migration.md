@@ -43,9 +43,9 @@ resource "digitalocean_database_db" "source_db" {
 resource "digitalocean_database_online_migration" "foobar" {
   cluster_id = digitalocean_database_cluster.destination.id
   source {
-    host = digitalocean_database_cluster.source.host
-    db_name = digitalocean_database_db.source_db.name
-    port = digitalocean_database_cluster.source.port
+    host     = digitalocean_database_cluster.source.host
+    db_name  = digitalocean_database_db.source_db.name
+    port     = digitalocean_database_cluster.source.port
     username = digitalocean_database_cluster.source.user
     password = digitalocean_database_cluster.source.password
   }
