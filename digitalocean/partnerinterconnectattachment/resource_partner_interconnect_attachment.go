@@ -42,18 +42,21 @@ func ResourceDigitalOceanPartnerInterconnectAttachment() *schema.Resource {
 				Required:     true,
 				Description:  "The connection bandwidth in Mbps",
 				ValidateFunc: validation.NoZeroValues,
+				ForceNew:     true,
 			},
 			"region": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "The region where the Partner Interconnect Attachment will be created",
 				ValidateFunc: validation.NoZeroValues,
+				ForceNew:     true,
 			},
 			"naas_provider": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "The NaaS provider",
 				ValidateFunc: validation.NoZeroValues,
+				ForceNew:     true,
 			},
 			"vpc_ids": {
 				Type:        schema.TypeSet,
@@ -146,8 +149,14 @@ func resourceDigitalOceanPartnerInterconnectAttachmentCreate(ctx context.Context
 	log.Printf("[DEBUG] Partner Interconnect Attachment create request: %#v", partnerInterconnectAttachmentRequest)
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		partnerInterconnectAttachment, _, err := client.PartnerInterconnectAttachments.Create(context.Background(), partnerInterconnectAttachmentRequest)
+		partnerInterconnectAttachment, resp, err := client.PartnerInterconnectAttachments.Create(context.Background(), partnerInterconnectAttachmentRequest)
 		if err != nil {
+			if resp != nil {
+				switch resp.StatusCode {
+				case http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusConflict:
+					return retry.NonRetryableError(fmt.Errorf("failed to create Partner Interconnect Attachment: %s", err))
+				}
+			}
 			return retry.RetryableError(fmt.Errorf("error creating Partner Interconnect Attachment: %s", err))
 		}
 
@@ -159,7 +168,7 @@ func resourceDigitalOceanPartnerInterconnectAttachmentCreate(ctx context.Context
 			Pending:    []string{"CREATING"},
 			Target:     []string{"CREATED"},
 			Refresh:    partnerInterconnectAttachmentStateRefreshFunc(client, d.Id()),
-			Timeout:    2 * time.Minute,
+			Timeout:    d.Timeout(schema.TimeoutCreate),
 			MinTimeout: 5 * time.Second,
 		}
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
@@ -174,7 +183,7 @@ func resourceDigitalOceanPartnerInterconnectAttachmentCreate(ctx context.Context
 
 	log.Printf("[INFO] Partner Interconnect Attachment created, ID: %s", d.Id())
 
-	return nil
+	return resourceDigitalOceanPartnerInterconnectAttachmentRead(ctx, d, meta)
 }
 
 func resourceDigitalOceanPartnerInterconnectAttachmentUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -270,6 +279,19 @@ func resourceDigitalOceanPartnerInterconnectAttachmentRead(ctx context.Context, 
 	d.Set("name", partnerInterconectAttachment.Name)
 	d.Set("state", partnerInterconectAttachment.State)
 	d.Set("created_at", partnerInterconectAttachment.CreatedAt.UTC().String())
+
+	bgp := partnerInterconectAttachment.BGP
+	bgpList := []interface{}{
+		map[string]interface{}{
+			"local_router_ip": bgp.LocalRouterIP,
+			"peer_router_asn": bgp.PeerASN,
+			"peer_router_ip":  bgp.PeerRouterIP,
+			"auth_key":        bgp.AuthKey,
+		},
+	}
+	if err := d.Set("bgp", bgpList); err != nil {
+		return diag.Errorf("error setting bgp: %s", err)
+	}
 
 	return nil
 }

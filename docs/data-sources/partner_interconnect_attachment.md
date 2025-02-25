@@ -5,7 +5,7 @@ subcategory: "Networking"
 
 # digitalocean_partner_interconnect_attachment
 
--> Partner Interconnect Attachment is currently in alpha. If you are not a member of the alpha group for this feature, you will not be able to use it until is has been more widely released. Please follow the official [DigitalOcean changelog](https://docs.digitalocean.com/release-notes/) for updates.
+-> Partner Interconnect Attachment is currently in private preview. If you are not a member of the private preview group for this feature, you will not be able to use it until is has been more widely released. Please follow the official [DigitalOcean changelog](https://docs.digitalocean.com/release-notes/) for updates.
 
 Retrieve information about a Partner Interconnect Attachment for use in nother resources.
 

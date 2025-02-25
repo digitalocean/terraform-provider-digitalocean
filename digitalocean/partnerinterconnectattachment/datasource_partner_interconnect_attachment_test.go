@@ -158,6 +158,7 @@ resource "digitalocean_partner_interconnect_attachment" "foobar" {
     local_router_ip = "169.254.0.1/29"
     peer_router_asn = 133937
     peer_router_ip  = "169.254.0.6/29"
+    auth_key        = "BGPAu7hK3y!"
   }
 }
 `

@@ -14,12 +14,16 @@ import (
 
 func TestAccDigitalOceanPartnerInterconnectAttachment_Basic(t *testing.T) {
 	var partnerInterconnectAttachment godo.PartnerInterconnectAttachment
+
+	vpc1Name := acceptance.RandomTestName()
+	vpc2Name := acceptance.RandomTestName()
+	vpc3Name := acceptance.RandomTestName()
 	partnerInterconnectAttachmentName := acceptance.RandomTestName()
-	partnerInterconnectAttachmentCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_Basic, partnerInterconnectAttachmentName)
+	partnerInterconnectAttachmentCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_Basic, vpc1Name, vpc2Name, partnerInterconnectAttachmentName)
 
 	updatePartnerInterconnectAttachmentName := acceptance.RandomTestName()
-	partnerInterconnectAttachmentUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_Basic, updatePartnerInterconnectAttachmentName)
-	partnerInterconnectAttachmentVPCUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_VPCUpdate, updatePartnerInterconnectAttachmentName)
+	partnerInterconnectAttachmentUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_Basic, vpc1Name, vpc2Name, updatePartnerInterconnectAttachmentName)
+	partnerInterconnectAttachmentVPCUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_VPCUpdate, vpc1Name, vpc3Name, updatePartnerInterconnectAttachmentName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -110,12 +114,12 @@ func testAccCheckDigitalOceanPartnerInterconnectAttachmentExists(n string, partn
 
 const testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_Basic = `
 resource "digitalocean_vpc" "vpc1" {
-  name   = "vpc1"
+  name   = "%s"
   region = "nyc3"
 }
 
 resource "digitalocean_vpc" "vpc2" {
-  name   = "vpc2"
+  name   = "%s"
   region = "nyc3"
 }
 
@@ -132,18 +136,19 @@ resource "digitalocean_partner_interconnect_attachment" "foobar" {
     local_router_ip = "169.254.0.1/29"
     peer_router_asn = 133937
     peer_router_ip  = "169.254.0.6/29"
+    auth_key        = "BGPAu7hK3y!"
   }
 }
 `
 
 const testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_VPCUpdate = `
 resource "digitalocean_vpc" "vpc1" {
-  name   = "vpc1"
+  name   = "%s"
   region = "nyc3"
 }
 
 resource "digitalocean_vpc" "vpc3" {
-  name   = "vpc3"
+  name   = "%s"
   region = "nyc3"
 }
 
@@ -160,6 +165,7 @@ resource "digitalocean_partner_interconnect_attachment" "foobar" {
     local_router_ip = "169.254.0.1/29"
     peer_router_asn = 133937
     peer_router_ip  = "169.254.0.6/29"
+    auth_key        = "BGPAu7hK3y!"
   }
 }
 `

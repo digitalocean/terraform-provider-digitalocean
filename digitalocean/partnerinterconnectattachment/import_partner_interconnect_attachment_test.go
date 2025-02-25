@@ -11,8 +11,10 @@ import (
 
 func TestAccDigitalOceanPartnerInterconnectAttachment_importBasic(t *testing.T) {
 	resourceName := "digitalocean_partner_interconnect_attachment.foobar"
+	vpc1Name := acceptance.RandomTestName()
+	vpc2Name := acceptance.RandomTestName()
 	partnerInterconnectAttachmentName := acceptance.RandomTestName()
-	partnerInterconnectAttachmentCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_Basic, partnerInterconnectAttachmentName)
+	partnerInterconnectAttachmentCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_Basic, vpc1Name, vpc2Name, partnerInterconnectAttachmentName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
