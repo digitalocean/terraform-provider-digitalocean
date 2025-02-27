@@ -3,6 +3,7 @@ package partnerinterconnectattachment
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -69,7 +70,7 @@ func DataSourceDigitalOceanPartnerInterconnectAttachment() *schema.Resource {
 					},
 				},
 			},
-			"status": {
+			"state": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -113,10 +114,19 @@ func dataSourceDigitalOceanPartnerInterconnectAttachmentRead(ctx context.Context
 	d.SetId(foundPartnerInterconnectAttachment.ID)
 	d.Set("name", foundPartnerInterconnectAttachment.Name)
 	d.Set("connection_bandwidth_in_mbps", foundPartnerInterconnectAttachment.ConnectionBandwidthInMbps)
-	d.Set("region", foundPartnerInterconnectAttachment.Region)
+	d.Set("region", strings.ToLower(foundPartnerInterconnectAttachment.Region))
 	d.Set("naas_provider", foundPartnerInterconnectAttachment.NaaSProvider)
 	d.Set("vpc_ids", foundPartnerInterconnectAttachment.VPCIDs)
-	d.Set("bgp", foundPartnerInterconnectAttachment.BGP)
+	if bgp := foundPartnerInterconnectAttachment.BGP; bgp.PeerRouterIP != "" || bgp.LocalRouterIP != "" || bgp.PeerASN != 0 {
+		bgpMap := map[string]interface{}{
+			"local_router_ip": bgp.LocalRouterIP,
+			"peer_router_asn": bgp.PeerASN,
+			"peer_router_ip":  bgp.PeerRouterIP,
+		}
+		if err := d.Set("bgp", []interface{}{bgpMap}); err != nil {
+			return diag.FromErr(err)
+		}
+	}
 	d.Set("state", foundPartnerInterconnectAttachment.State)
 	d.Set("created_at", foundPartnerInterconnectAttachment.CreatedAt.UTC().String())
 

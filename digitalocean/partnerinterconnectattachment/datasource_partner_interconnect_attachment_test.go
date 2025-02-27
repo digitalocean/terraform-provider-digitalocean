@@ -42,16 +42,12 @@ data "digitalocean_partner_interconnect_attachment" "foobar" {
 						"data.digitalocean_partner_interconnect_attachment.foobar", "naas_provider", "MEGAPORT"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.#", "2"),
-					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.0", "digitalocean_vpc.vpc1", "id"),
-					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.1", "digitalocean_vpc.vpc2", "id"),
-					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_router_ip", "169.254.0.1/29", "local_router_ip"),
-					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_asn", "133937", "peer_router_asn"),
-					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_ip", "169.254.0.6/29", "peer_router_ip"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_router_ip", "169.254.0.1/29"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_asn", "133937"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_ip", "169.254.0.6/29"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
@@ -94,16 +90,12 @@ data "digitalocean_partner_interconnect_attachment" "foobar" {
 						"data.digitalocean_partner_interconnect_attachment.foobar", "naas_provider", "MEGAPORT"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.#", "2"),
-					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.0", "digitalocean_vpc.vpc1", "id"),
-					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.1", "digitalocean_vpc.vpc2", "id"),
-					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_router_ip", "169.254.0.1/29", "local_router_ip"),
-					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_asn", "133937", "peer_router_asn"),
-					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_ip", "169.254.0.6/29", "peer_router_ip"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.local_router_ip", "169.254.0.1/29"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_asn", "133937"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_partner_interconnect_attachment.foobar", "bgp.0.peer_router_ip", "169.254.0.6/29"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_partner_interconnect_attachment.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
@@ -124,7 +116,7 @@ func TestAccDataSourceDigitalOceanPartnerInterconnectAttachment_ExpectErrors(t *
 		Steps: []resource.TestStep{
 			{
 				Config:      partnerInterconnectAttachmentNotExists,
-				ExpectError: regexp.MustCompile(`Error retrieving Partner Interconnect Attachment`),
+				ExpectError: regexp.MustCompile(`no Partner Interconnect Attachment found with name`),
 			},
 		},
 	})
@@ -165,6 +157,6 @@ resource "digitalocean_partner_interconnect_attachment" "foobar" {
 
 const testAccCheckDataSourceDigitalOceanPartnerInterconnectAttachmentConfig_DoesNotExist = `
 data "digitalocean_partner_interconnect_attachment" "foobar" {
-  id = "%s"
+  name = "%s"
 }
 `

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -95,8 +96,9 @@ func ResourceDigitalOceanPartnerInterconnectAttachment() *schema.Resource {
 							Optional: true,
 						},
 						"auth_key": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:      schema.TypeString,
+							Optional:  true,
+							Sensitive: true,
 						},
 					},
 				},
@@ -242,7 +244,7 @@ func resourceDigitalOceanPartnerInterconnectAttachmentDelete(ctx context.Context
 			Pending:    []string{"DELETING"},
 			Target:     []string{http.StatusText(http.StatusNotFound)},
 			Refresh:    partnerInterconnectAttachmentStateRefreshFunc(client, partnerInterconnectAttachmentID),
-			Timeout:    2 * time.Minute,
+			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: 5 * time.Second,
 		}
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
@@ -279,18 +281,22 @@ func resourceDigitalOceanPartnerInterconnectAttachmentRead(ctx context.Context, 
 	d.Set("name", partnerInterconectAttachment.Name)
 	d.Set("state", partnerInterconectAttachment.State)
 	d.Set("created_at", partnerInterconectAttachment.CreatedAt.UTC().String())
+	d.Set("region", strings.ToLower(partnerInterconectAttachment.Region))
+	d.Set("connection_bandwidth_in_mbps", partnerInterconectAttachment.ConnectionBandwidthInMbps)
+	d.Set("naas_provider", partnerInterconectAttachment.NaaSProvider)
+	d.Set("vpc_ids", partnerInterconectAttachment.VPCIDs)
 
 	bgp := partnerInterconectAttachment.BGP
-	bgpList := []interface{}{
-		map[string]interface{}{
+	if bgp.PeerRouterIP != "" || bgp.LocalRouterIP != "" || bgp.PeerASN != 0 {
+		bgpMap := map[string]interface{}{
 			"local_router_ip": bgp.LocalRouterIP,
 			"peer_router_asn": bgp.PeerASN,
 			"peer_router_ip":  bgp.PeerRouterIP,
-			"auth_key":        bgp.AuthKey,
-		},
-	}
-	if err := d.Set("bgp", bgpList); err != nil {
-		return diag.Errorf("error setting bgp: %s", err)
+			"auth_key":        d.Get("bgp.0.auth_key").(string),
+		}
+		if err := d.Set("bgp", []interface{}{bgpMap}); err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	return nil

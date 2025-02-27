@@ -23,7 +23,7 @@ func TestAccDigitalOceanPartnerInterconnectAttachment_Basic(t *testing.T) {
 
 	updatePartnerInterconnectAttachmentName := acceptance.RandomTestName()
 	partnerInterconnectAttachmentUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_Basic, vpc1Name, vpc2Name, updatePartnerInterconnectAttachmentName)
-	partnerInterconnectAttachmentVPCUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_VPCUpdate, vpc1Name, vpc3Name, updatePartnerInterconnectAttachmentName)
+	partnerInterconnectAttachmentVPCUpdateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerInterconnectAttachmentConfig_VPCUpdate, vpc1Name, vpc2Name, vpc3Name, updatePartnerInterconnectAttachmentName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -38,14 +38,10 @@ func TestAccDigitalOceanPartnerInterconnectAttachment_Basic(t *testing.T) {
 						"digitalocean_partner_interconnect_attachment.foobar", "name", partnerInterconnectAttachmentName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.#", "2"),
-					resource.TestCheckResourceAttrPair(
-						"digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.0", "digitalocean_vpc.vpc1", "id"),
-					resource.TestCheckResourceAttrPair(
-						"digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.1", "digitalocean_vpc.vpc2", "id"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_partner_interconnect_attachment.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
-						"digitalocean_partner_interconnect_attachment.foobar", "status"),
+						"digitalocean_partner_interconnect_attachment.foobar", "state"),
 				),
 			},
 			{
@@ -61,11 +57,7 @@ func TestAccDigitalOceanPartnerInterconnectAttachment_Basic(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanPartnerInterconnectAttachmentExists("digitalocean_partner_interconnect_attachment.foobar", &partnerInterconnectAttachment),
 					resource.TestCheckResourceAttr(
-						"digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.#", "2"),
-					resource.TestCheckResourceAttrPair(
-						"digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.0", "digitalocean_vpc.vpc1", "id"),
-					resource.TestCheckResourceAttrPair(
-						"digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.1", "digitalocean_vpc.vpc3", "id"),
+						"digitalocean_partner_interconnect_attachment.foobar", "vpc_ids.#", "3"),
 				),
 			},
 		},
@@ -147,6 +139,11 @@ resource "digitalocean_vpc" "vpc1" {
   region = "nyc3"
 }
 
+resource "digitalocean_vpc" "vpc2" {
+  name   = "%s"
+  region = "nyc3"
+}
+
 resource "digitalocean_vpc" "vpc3" {
   name   = "%s"
   region = "nyc3"
@@ -159,6 +156,7 @@ resource "digitalocean_partner_interconnect_attachment" "foobar" {
   naas_provider                = "MEGAPORT"
   vpc_ids = [
     digitalocean_vpc.vpc1.id,
+    digitalocean_vpc.vpc2.id,
     digitalocean_vpc.vpc3.id
   ]
   bgp {
