@@ -1,3 +1,7 @@
+# Change Log
+
+Changelog moved to Release Notes in [Github Releases](https://github.com/digitalocean/terraform-provider-digitalocean/releases)
+
 ## 2.48.2
 
 BUGFIXES:
