@@ -150,34 +150,31 @@ func resourceDigitalOceanPartnerInterconnectAttachmentCreate(ctx context.Context
 
 	log.Printf("[DEBUG] Partner Interconnect Attachment create request: %#v", partnerInterconnectAttachmentRequest)
 
-	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
-		partnerInterconnectAttachment, resp, err := client.PartnerInterconnectAttachments.Create(context.Background(), partnerInterconnectAttachmentRequest)
-		if err != nil {
-			if resp != nil {
-				switch resp.StatusCode {
-				case http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusConflict:
-					return retry.NonRetryableError(fmt.Errorf("failed to create Partner Interconnect Attachment: %s", err))
-				}
+	partnerInterconnectAttachment, resp, err := client.PartnerInterconnectAttachments.Create(context.Background(), partnerInterconnectAttachmentRequest)
+	if err != nil {
+		if resp != nil {
+			switch resp.StatusCode {
+			case http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusConflict:
+				return diag.FromErr(fmt.Errorf("failed to create Partner Interconnect Attachment: %s", err))
 			}
-			return retry.RetryableError(fmt.Errorf("error creating Partner Interconnect Attachment: %s", err))
 		}
+		return diag.FromErr(fmt.Errorf("error creating Partner Interconnect Attachment: %s", err))
+	}
 
-		d.SetId(partnerInterconnectAttachment.ID)
+	d.SetId(partnerInterconnectAttachment.ID)
 
-		log.Printf("[DEBUG] Waiting for Partner Interconnect Attachment (%s) to become active", d.Get("name"))
-		stateConf := &retry.StateChangeConf{
-			Delay:      5 * time.Second,
-			Pending:    []string{"CREATING"},
-			Target:     []string{"CREATED"},
-			Refresh:    partnerInterconnectAttachmentStateRefreshFunc(client, d.Id()),
-			Timeout:    d.Timeout(schema.TimeoutCreate),
-			MinTimeout: 5 * time.Second,
-		}
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return retry.NonRetryableError(fmt.Errorf("error waiting for Partner Interconnect Attachment (%s) to become active: %s", d.Get("name"), err))
-		}
-		return nil
-	})
+	log.Printf("[DEBUG] Waiting for Partner Interconnect Attachment (%s) to become active", d.Get("name"))
+	stateConf := &retry.StateChangeConf{
+		Delay:      5 * time.Second,
+		Pending:    []string{"CREATING"},
+		Target:     []string{"CREATED"},
+		Refresh:    partnerInterconnectAttachmentStateRefreshFunc(client, d.Id()),
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		MinTimeout: 5 * time.Second,
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return diag.FromErr(fmt.Errorf("error waiting for Partner Interconnect Attachment (%s) to become active: %s", d.Get("name"), err))
+	}
 
 	if err != nil {
 		return diag.FromErr(err)
