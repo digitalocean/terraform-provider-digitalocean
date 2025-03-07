@@ -115,10 +115,10 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Set:      schema.HashResource(appSpecEnvSchema()),
 		},
 		"alert": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Optional: true,
 			Elem:     appSpecAppLevelAlerts(),
-			Set:      schema.HashResource(appSpecAppLevelAlerts()),
+			// Set:      schema.HashResource(appSpecAppLevelAlerts()),
 		},
 		"ingress": {
 			Type:     schema.TypeList,
@@ -206,6 +206,40 @@ func appSpecAppLevelAlerts() *schema.Resource {
 				Type:     schema.TypeBool,
 				Default:  false,
 				Optional: true,
+			},
+			"notifications": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"email": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type:         schema.TypeString,
+								ValidateFunc: validation.StringLenBetween(3, 100),
+							},
+						},
+						"slack": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"channel": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "The Slack channel to send notifications to.",
+									},
+									"url": {
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "The Slack webhook URL.",
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
