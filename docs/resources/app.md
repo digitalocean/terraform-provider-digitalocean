@@ -68,6 +68,16 @@ resource "digitalocean_app" "mono-repo-example" {
 
     alert {
       rule = "DEPLOYMENT_FAILED"
+
+      # Setup alert destination (optional)
+      # If left empty, email will be set to the team's default email
+      notifications {
+        email = ["team.member1@org.com", "team.member2@org.com"]
+        slack {
+          channel = "@user1"
+          url = "https://hooks.slack.com/slack-url"
+        }
+      }
     }
 
     # Build a Go project in the api/ directory that listens on port 3000
@@ -91,6 +101,16 @@ resource "digitalocean_app" "mono-repo-example" {
         operator = "GREATER_THAN"
         window   = "TEN_MINUTES"
         rule     = "CPU_UTILIZATION"
+
+        # Setup alert destination (optional)
+        # If left empty, email will be set to the team's default email
+        notifications {
+          email = ["team.member1@org.com", "team.member2@org.com"]
+          slack {
+            channel = "@user1"
+            url = "https://hooks.slack.com/slack-url"
+          }
+        }
       }
 
       log_destination {
@@ -234,7 +254,10 @@ The following arguments are supported:
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `alert` - Describes an alert policy for the app.
   - `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_CANCELLED`, `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DEPLOYMENT_STARTED`, `DOMAIN_FAILED`, or `DOMAIN_LIVE`.
-  - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `disabled` - Determines whether or not the alert is disabled (default: `false`).i
+  - `notifications` - Specification for alert destination.
+    - `email` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack` - Determines which slack channels or users receive alerts (optional).
 * `egress` - Specification for app egress configurations.
   - `type` - The app egress type: `AUTOASSIGN`, `DEDICATED_IP`
 * `ingress` - Specification for component routing, rewrites, and redirects.
@@ -326,6 +349,9 @@ A `service` can contain:
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
   - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `notifications` - Specification for alert destination.
+    - `email` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack` - Determines which slack channels or users receive alerts.
 - `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.
@@ -336,7 +362,7 @@ A `service` can contain:
   - `logtail` - Logtail configuration.
       - `token` - Logtail token.
   - `opensearch` - OpenSearch configuration
-      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>.
       - `basic_auth` - OpenSearch basic auth
           - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to `doadmin` when `cluster_name` is set.
           - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
@@ -433,6 +459,9 @@ A `worker` can contain:
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
   - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `notifications` - Specification for alert destination.
+    - `email` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack` - Determines which slack channels or users receive alerts.
 - `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.
@@ -443,7 +472,7 @@ A `worker` can contain:
   - `logtail` - Logtail configuration.
       - `token` - Logtail token.
   - `opensearch` - OpenSearch configuration
-      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>.
       - `basic_auth` - OpenSearch basic auth
           - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to `doadmin` when `cluster_name` is set.
           - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
@@ -508,6 +537,9 @@ A `job` can contain:
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
   - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `notifications` - Specification for alert destination.
+    - `email` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack` - Determines which slack channels or users receive alerts.
 - `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.
@@ -518,7 +550,7 @@ A `job` can contain:
   - `logtail` - Logtail configuration.
       - `token` - Logtail token.
   - `opensearch` - OpenSearch configuration
-      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>.
       - `basic_auth` - OpenSearch basic auth
           - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to `doadmin` when `cluster_name` is set.
           - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
@@ -571,7 +603,7 @@ A `function` component can contain:
   - `logtail` - Logtail configuration.
       - `token` - Logtail token.
   - `opensearch` - OpenSearch configuration
-      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>.
       - `basic_auth` - OpenSearch basic auth
           - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to `doadmin` when `cluster_name` is set.
           - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
