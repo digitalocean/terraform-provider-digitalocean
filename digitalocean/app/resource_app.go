@@ -124,78 +124,54 @@ func ResourceDigitalOceanApp() *schema.Resource {
 
 func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
+	appCreateRequest := &godo.AppCreateRequest{}
+	appCreateRequest.Spec = expandAppSpec(d.Get("spec").([]interface{}))
 
-	//	appCreateRequest := &godo.AppCreateRequest{}
-	//	appCreateRequest.Spec = expandAppSpec(d.Get("spec").([]interface{}))
-	//
-	//	if v, ok := d.GetOk("project_id"); ok {
-	//		appCreateRequest.ProjectID = v.(string)
-	//	}
-	//
-	//	log.Printf("[DEBUG] App create request: %#v", appCreateRequest)
-	//	app, _, err := client.Apps.Create(context.Background(), appCreateRequest)
-	//	if err != nil {
-	//		return diag.Errorf("Error creating App: %s", err)
-	//	}
-	//	log.Printf("[INFO] App created, ID: %s", d.Id())
-	//
-	//	d.SetId(app.ID)
-	//	log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
-	//	timeout := d.Timeout(schema.TimeoutCreate)
-	//	err = waitForAppDeployment(client, app.ID, timeout)
-	//	if err != nil {
-	//		return diag.FromErr(err)
-	//	}
-	//
-	appConfigurationAlert := mapAlertDetails(d)
-
-	// appID := app.ID
-	appID := "c103e61b-d230-44eb-bf13-11b9ccda70fa"
-
-	hasAppLevelAlerts := false
-	hasServiceLevelAlerts := false
-	// Improve logic here
-	if appConfigurationAlert != nil && (len(appConfigurationAlert[0].Emails) > 0 || len(appConfigurationAlert[0].SlackWebhooks) > 0) {
-		hasAppLevelAlerts = true
+	if v, ok := d.GetOk("project_id"); ok {
+		appCreateRequest.ProjectID = v.(string)
 	}
 
-	if hasAppLevelAlerts || hasServiceLevelAlerts {
-		alerts, _, err := client.Apps.ListAlerts(context.Background(), appID)
-		if err != nil {
-			return diag.Errorf("Error listing app alerts: %s", err)
-		}
-
-		err = resourceDigitalOceanAlertDestinationUpdate(appID, alerts, appConfigurationAlert, client, func(a, b *godo.AppAlert) bool {
-			return string(a.Spec.Rule) == string(b.Spec.Rule)
-		})
-
-		if err != nil {
-			return diag.Errorf("Error updating alert destination: %s", err)
-		}
+	log.Printf("[DEBUG] App create request: %#v", appCreateRequest)
+	app, _, err := client.Apps.Create(context.Background(), appCreateRequest)
+	if err != nil {
+		return diag.Errorf("Error creating App: %s", err)
 	}
 
-	return diag.Errorf("not yet implemented")
+	d.SetId(app.ID)
+	log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
+	timeout := d.Timeout(schema.TimeoutCreate)
+	err = waitForAppDeployment(client, app.ID, timeout)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] App created, ID: %s", d.Id())
+	err = handleAlertDestination(d, client, app.ID)
+	if err != nil {
+		return diag.Errorf("Error updating alert destination: %s", err)
+	}
+
 	return resourceDigitalOceanAppRead(ctx, d, meta)
 }
 
 type alertMatchCallback = func(a, b *godo.AppAlert) bool
 
-func resourceDigitalOceanAlertDestinationUpdate(appID string, alerts []*godo.AppAlert, appConfigurationAlerts []*godo.AppAlert, client *godo.Client, match alertMatchCallback) error {
-	for _, appConfigurationAlert := range appConfigurationAlerts {
-		for _, alert := range alerts {
-			if !match(appConfigurationAlert, alert) {
+func resourceDigitalOceanAlertDestinationUpdate(appID string, existingAlerts, schemaAlerts []*godo.AppAlert, client *godo.Client, match alertMatchCallback) error {
+	for _, schemaAlert := range schemaAlerts {
+		for _, alert := range existingAlerts {
+			if !match(schemaAlert, alert) {
 				continue
 			}
+			log.Printf("[DEBUG] Updating alert destination: %#v", alert)
 			_, _, err := client.Apps.UpdateAlertDestinations(context.Background(), appID, alert.ID, &godo.AlertDestinationUpdateRequest{
-				Emails:        appConfigurationAlert.Emails,
-				SlackWebhooks: appConfigurationAlert.SlackWebhooks,
+				Emails:        schemaAlert.Emails,
+				SlackWebhooks: schemaAlert.SlackWebhooks,
 			})
 
 			if err != nil {
 				return err
 			}
-
-			log.Printf("[INFO] updated alert: %s", alert.ID)
+			log.Printf("[INFO] Alert updated: %s", alert.ID)
 		}
 	}
 
@@ -279,6 +255,11 @@ func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, 
 		}
 
 		log.Printf("[INFO] Updated app (%s)", app.ID)
+
+		err = handleAlertDestination(d, client, app.ID)
+		if err != nil {
+			return diag.Errorf("Error updating alert destination: %s", err)
+		}
 	}
 
 	return resourceDigitalOceanAppRead(ctx, d, meta)
@@ -367,43 +348,7 @@ func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration)
 	return fmt.Errorf("timeout waiting for app (%s) deployment", id)
 }
 
-func mapResourceToKeyValue(d *schema.ResourceData) map[string]interface{} {
-	spec, ok := d.GetOk("spec")
-	if !ok {
-		return nil
-	}
-
-	specList := spec.([]interface{})
-	if len(specList) == 0 {
-		return nil
-	}
-	specMap, ok := specList[0].(map[string]interface{})
-	if !ok {
-		return nil
-	}
-
-	alert, ok := specMap["alert"]
-	if !ok {
-		return nil
-	}
-
-	// Directly process the alert as a List
-	alertList := alert.([]interface{})
-	if len(alertList) == 0 {
-		return nil
-	}
-	alertSpec, ok := alertList[0].(map[string]interface{})
-	if !ok {
-		return nil
-	}
-	result := make(map[string]interface{})
-	for key, value := range alertSpec {
-		result[key] = value
-	}
-	return result
-}
-
-func mapAlertDetails(d *schema.ResourceData) []*godo.AppAlert {
+func mapAppLevelAlerts(d *schema.ResourceData) []*godo.AppAlert {
 	spec, ok := d.GetOk("spec")
 	if !ok {
 		return nil
@@ -451,34 +396,171 @@ func mapAlertDetails(d *schema.ResourceData) []*godo.AppAlert {
 			case "notifications":
 				if notifications, ok := value.([]interface{}); ok {
 					if len(notifications) > 0 {
-						notification := notifications[0].(map[string]interface{})
-						if emails, ok := notification["email"].([]interface{}); ok && len(emails) > 0 {
-							for _, email := range emails {
-								if emailStr, ok := email.(string); ok {
-									alertDetail.Emails = append(alertDetail.Emails, emailStr)
-								}
-							}
-						}
-
-						if slacks, ok := notification["slack"].([]interface{}); ok && len(slacks) > 0 {
-							for _, slackInterface := range slacks {
-								if slack, ok := slackInterface.(map[string]interface{}); ok {
-									slackDetail := &godo.AppAlertSlackWebhook{}
-									if channel, ok := slack["channel"].(string); ok {
-										slackDetail.Channel = channel
-									}
-									if url, ok := slack["url"].(string); ok {
-										slackDetail.URL = url
-									}
-									alertDetail.SlackWebhooks = append(alertDetail.SlackWebhooks, slackDetail)
-								}
-							}
-						}
+						mapNotificationsToAlertDestinations(notifications, alertDetail)
 					}
 				}
 			}
 		}
+
 		alertDetails = append(alertDetails, alertDetail)
 	}
+
 	return alertDetails
+}
+
+func handleAlertDestination(d *schema.ResourceData, client *godo.Client, appID string) error {
+	appConfigurationAlert := mapAppLevelAlerts(d)
+	computeComponentAlerts := mapComputeComponentAlert(d)
+
+	hasAppLevelAlerts := false
+	hasComputeComponentAlerts := false
+
+	if len(appConfigurationAlert) > 0 && (len(appConfigurationAlert[0].Emails) > 0 || len(appConfigurationAlert[0].SlackWebhooks) > 0) {
+		hasAppLevelAlerts = true
+	}
+
+	if len(computeComponentAlerts) > 0 && (len(computeComponentAlerts[0].Emails) > 0 || len(computeComponentAlerts[0].SlackWebhooks) > 0) {
+		hasComputeComponentAlerts = true
+	}
+
+	var alerts []*godo.AppAlert
+	if hasAppLevelAlerts || hasComputeComponentAlerts {
+		appAlerts, _, err := client.Apps.ListAlerts(context.Background(), appID)
+		if err != nil {
+			return err
+		}
+		alerts = appAlerts
+		log.Printf("[DEBUG] Got alerts from api %v\n", appAlerts)
+	}
+
+	if hasAppLevelAlerts {
+		err := resourceDigitalOceanAlertDestinationUpdate(appID, alerts, appConfigurationAlert, client, func(a, b *godo.AppAlert) bool {
+			return string(a.Spec.Rule) == string(b.Spec.Rule)
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	if hasComputeComponentAlerts {
+		err := resourceDigitalOceanAlertDestinationUpdate(appID, alerts, computeComponentAlerts, client, func(a, b *godo.AppAlert) bool {
+			return string(a.Spec.Rule) == string(b.Spec.Rule)
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func mapComputeComponentAlert(d *schema.ResourceData) []*godo.AppAlert {
+	spec, ok := d.GetOk("spec")
+	if !ok {
+		return nil
+	}
+
+	specList := spec.([]interface{})
+	if len(specList) == 0 {
+		return nil
+	}
+	specMap, ok := specList[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	service, ok := specMap["service"]
+	if !ok {
+		return nil
+	}
+
+	serviceList, ok := service.([]interface{})
+	if !ok {
+		return nil
+	}
+
+	var alertDetails []*godo.AppAlert
+
+	for _, computeServiceMap := range serviceList {
+		// Access the "alert" list within each service
+		computeServiceMapTyped, ok := computeServiceMap.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		alertRaw, ok := computeServiceMapTyped["alert"].([]interface{})
+		if !ok {
+			continue // Skip if no alerts are defined for this service
+		}
+
+		// Iterate over each alert configuration
+		for _, alert := range alertRaw {
+			alertMap, ok := alert.(map[string]interface{})
+			if !ok {
+				continue
+			}
+
+			notifications, ok := alertMap["notifications"].([]interface{})
+
+			if !ok {
+				continue
+			}
+
+			if len(notifications) == 0 {
+				continue
+			}
+
+			// Create a new godo.AppAlert and populate its fields
+			appAlert := &godo.AppAlert{
+				Spec:          &godo.AppAlertSpec{},
+				Emails:        []string{},
+				SlackWebhooks: []*godo.AppAlertSlackWebhook{},
+			}
+			if rule, ok := alertMap["rule"].(string); ok {
+				appAlert.Spec.Rule = godo.AppAlertSpecRule(rule)
+			}
+			if value, ok := alertMap["value"].(float32); ok {
+				appAlert.Spec.Value = value
+			}
+			if operator, ok := alertMap["operator"].(string); ok {
+				appAlert.Spec.Operator = godo.AppAlertSpecOperator(operator)
+			}
+			if window, ok := alertMap["window"].(string); ok {
+				appAlert.Spec.Window = godo.AppAlertSpecWindow(window)
+			}
+
+			mapNotificationsToAlertDestinations(notifications, appAlert)
+
+			alertDetails = append(alertDetails, appAlert)
+		}
+	}
+
+	return alertDetails
+}
+
+func mapNotificationsToAlertDestinations(notifications []interface{}, appAlert *godo.AppAlert) {
+	notification := notifications[0].(map[string]interface{})
+
+	if emails, ok := notification["email"].([]interface{}); ok && len(emails) > 0 {
+		for _, email := range emails {
+			if emailStr, ok := email.(string); ok {
+				appAlert.Emails = append(appAlert.Emails, emailStr)
+			}
+		}
+	}
+
+	if slacks, ok := notification["slack"].([]interface{}); ok && len(slacks) > 0 {
+		for _, slackInterface := range slacks {
+			if slack, ok := slackInterface.(map[string]interface{}); ok {
+				slackDetail := &godo.AppAlertSlackWebhook{}
+				if channel, ok := slack["channel"].(string); ok {
+					slackDetail.Channel = channel
+				}
+				if url, ok := slack["url"].(string); ok {
+					slackDetail.URL = url
+				}
+				appAlert.SlackWebhooks = append(appAlert.SlackWebhooks, slackDetail)
+			}
+		}
+	}
 }
