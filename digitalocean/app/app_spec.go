@@ -97,10 +97,9 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Set:      schema.HashResource(appSpecEnvSchema()),
 		},
 		"alert": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Optional: true,
 			Elem:     appSpecAppLevelAlerts(),
-			Set:      schema.HashResource(appSpecAppLevelAlerts()),
 		},
 		"ingress": {
 			Type:     schema.TypeList,
@@ -1291,7 +1290,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		Functions:   expandAppSpecFunctions(appSpecConfig["function"].([]interface{})),
 		Databases:   expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
 		Envs:        expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
-		Alerts:      expandAppAlerts(appSpecConfig["alert"].(*schema.Set).List()),
+		Alerts:      expandAppAlerts(appSpecConfig["alert"].([]interface{})),
 		Ingress:     expandAppIngress(appSpecConfig["ingress"].([]interface{})),
 		Egress:      expandAppEgress(appSpecConfig["egress"].([]interface{})),
 	}
