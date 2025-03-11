@@ -163,6 +163,42 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.papertrail.0.endpoint", "syslog+tls://example.com:12345"),
 				),
 			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withAlerts, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.name", "go-service"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.name", "go-service"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.rule", "DEPLOYMENT_FAILED"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.notifications.0.emails.0", "email1@do.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.notifications.0.emails.0", "email2@do.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.notifications.0.slack.0.channel", "@user1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.notifications.0.slack.0.url", "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "85"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.operator", "GREATER_THAN"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.window", "FIVE_MINUTES"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.rule", "CPU_UTILIZATION"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.notifications.0.emails.0", "email1@do.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.notifications.0.emails.1", "email2@do.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.notifications.0.slack.0.channel", "@user1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.notifications.0.slack.0.url", "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"),
+				),
+			},
 		},
 	})
 }
@@ -1821,8 +1857,8 @@ resource "digitalocean_app" "foobar" {
       notifications {
         email = ["email1@do.com", "email2@do.com"]
         slack {
-            channel = "@user1"
-            url = "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"
+          channel = "@user1"
+          url     = "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"
         }
       }
     }
@@ -1843,13 +1879,13 @@ resource "digitalocean_app" "foobar" {
         operator = "GREATER_THAN"
         window   = "FIVE_MINUTES"
         rule     = "CPU_UTILIZATION"
-		notifications {
-        	email = ["email1@do.com", "email2@do.com"]
-        	slack {
-            	channel = "@user1"
-            	url = "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"
-        	}
-      	}
+        notifications {
+          email = ["email1@do.com", "email2@do.com"]
+          slack {
+            channel = "@user1"
+            url     = "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"
+          }
+        }
       }
     }
   }
