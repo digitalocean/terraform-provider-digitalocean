@@ -75,7 +75,7 @@ resource "digitalocean_app" "mono-repo-example" {
         email = ["team.member1@org.com", "team.member2@org.com"]
         slack {
           channel = "@user1"
-          url = "https://hooks.slack.com/slack-url"
+          url     = "https://hooks.slack.com/slack-url"
         }
       }
     }
@@ -108,7 +108,7 @@ resource "digitalocean_app" "mono-repo-example" {
           email = ["team.member1@org.com", "team.member2@org.com"]
           slack {
             channel = "@user1"
-            url = "https://hooks.slack.com/slack-url"
+            url     = "https://hooks.slack.com/slack-url"
           }
         }
       }
