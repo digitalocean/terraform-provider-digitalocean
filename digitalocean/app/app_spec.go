@@ -115,10 +115,9 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Set:      schema.HashResource(appSpecEnvSchema()),
 		},
 		"alert": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Optional: true,
 			Elem:     appSpecAppLevelAlerts(),
-			Set:      schema.HashResource(appSpecAppLevelAlerts()),
 		},
 		"ingress": {
 			Type:     schema.TypeList,
