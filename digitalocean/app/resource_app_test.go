@@ -1872,3 +1872,48 @@ resource "digitalocean_app" "foobar" {
     }
   }
 }`
+
+var testAccCheckDigitalOceanAppConfig_withAlerts = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "ams"
+
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+      notifications {
+        email = ["email1@do.com", "email2@do.com"]
+        slack {
+            channel = "@user1"
+            url = "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"
+        }
+      }
+    }
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+
+      alert {
+        value    = 85
+        operator = "GREATER_THAN"
+        window   = "FIVE_MINUTES"
+        rule     = "CPU_UTILIZATION"
+		notifications {
+        	email = ["email1@do.com", "email2@do.com"]
+        	slack {
+            	channel = "@user1"
+            	url = "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"
+        	}
+      	}
+      }
+    }
+  }
+}`
