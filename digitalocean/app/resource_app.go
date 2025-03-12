@@ -424,7 +424,6 @@ func syncAppAlertDestinations(d *schema.ResourceData, client *godo.Client, appID
 			return err
 		}
 		alerts = appAlerts
-		log.Printf("[DEBUG] Got alerts from api %v\n", appAlerts)
 	}
 
 	if hasAppLevelAlerts {
