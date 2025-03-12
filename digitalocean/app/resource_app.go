@@ -395,11 +395,14 @@ func mapAppLevelAlerts(d *schema.ResourceData) []*godo.AppAlert {
 				}
 			case "notifications":
 				if notifications, ok := value.([]interface{}); ok {
-					if len(notifications) > 0 {
-						emails, slackWebhooks := extractEmailAndSlackNotifications(notifications)
-						alertDetail.Emails = emails
-						alertDetail.SlackWebhooks = slackWebhooks
+					emails, slackWebhooks := extractEmailAndSlackNotifications(notifications)
+
+					if len(emails) == 0 && len(slackWebhooks) == 0 {
+						continue
 					}
+
+					alertDetail.Emails = emails
+					alertDetail.SlackWebhooks = slackWebhooks
 				}
 			}
 		}
@@ -414,7 +417,7 @@ func syncAppAlertDestinations(d *schema.ResourceData, client *godo.Client, appID
 	appConfigurationAlert := mapAppLevelAlerts(d)
 	computeComponentAlerts := mapComputeComponentAlert(d)
 
-    hasAppLevelAlerts := len(appConfigurationAlert) > 0 && (len(appConfigurationAlert[0].Emails) > 0 || len(appConfigurationAlert[0].SlackWebhooks) > 0)
+	hasAppLevelAlerts := len(appConfigurationAlert) > 0 && (len(appConfigurationAlert[0].Emails) > 0 || len(appConfigurationAlert[0].SlackWebhooks) > 0)
 	hasComputeComponentAlerts := len(computeComponentAlerts) > 0 && (len(computeComponentAlerts[0].Emails) > 0 || len(computeComponentAlerts[0].SlackWebhooks) > 0)
 
 	var alerts []*godo.AppAlert
@@ -494,20 +497,20 @@ func mapComputeComponentAlert(d *schema.ResourceData) []*godo.AppAlert {
 			}
 
 			notifications, ok := alertMap["notifications"].([]interface{})
-
 			if !ok {
 				continue
 			}
 
-			if len(notifications) == 0 {
+			emails, slackWebhooks := extractEmailAndSlackNotifications(notifications)
+			if len(emails) == 0 && len(slackWebhooks) == 0 {
 				continue
 			}
 
 			// Create a new godo.AppAlert and populate its fields
 			appAlert := &godo.AppAlert{
 				Spec:          &godo.AppAlertSpec{},
-				Emails:        []string{},
-				SlackWebhooks: []*godo.AppAlertSlackWebhook{},
+				Emails:        emails,
+				SlackWebhooks: slackWebhooks,
 			}
 			if rule, ok := alertMap["rule"].(string); ok {
 				appAlert.Spec.Rule = godo.AppAlertSpecRule(rule)
@@ -522,10 +525,6 @@ func mapComputeComponentAlert(d *schema.ResourceData) []*godo.AppAlert {
 				appAlert.Spec.Window = godo.AppAlertSpecWindow(window)
 			}
 
-			emails, slackWebhooks := extractEmailAndSlackNotifications(notifications)
-			appAlert.Emails = emails
-			appAlert.SlackWebhooks = slackWebhooks
-
 			alertDetails = append(alertDetails, appAlert)
 		}
 	}
@@ -534,9 +533,15 @@ func mapComputeComponentAlert(d *schema.ResourceData) []*godo.AppAlert {
 }
 
 func extractEmailAndSlackNotifications(notifications []interface{}) ([]string, []*godo.AppAlertSlackWebhook) {
+	var emails []string
+	var slackWebhookAlerts []*godo.AppAlertSlackWebhook
+
+	if len(notifications) == 0 {
+		return emails, slackWebhookAlerts
+	}
+
 	notification := notifications[0].(map[string]interface{})
 
-	var emails []string
 	if emails, ok := notification["email"].([]interface{}); ok && len(emails) > 0 {
 		for _, email := range emails {
 			if emailStr, ok := email.(string); ok {
@@ -544,7 +549,7 @@ func extractEmailAndSlackNotifications(notifications []interface{}) ([]string, [
 			}
 		}
 	}
-	var slackWebhookAlerts []*godo.AppAlertSlackWebhook
+
 	if slacks, ok := notification["slack"].([]interface{}); ok && len(slacks) > 0 {
 		for _, slackInterface := range slacks {
 			if slack, ok := slackInterface.(map[string]interface{}); ok {
