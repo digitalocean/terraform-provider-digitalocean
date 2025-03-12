@@ -414,16 +414,8 @@ func syncAppAlertDestinations(d *schema.ResourceData, client *godo.Client, appID
 	appConfigurationAlert := mapAppLevelAlerts(d)
 	computeComponentAlerts := mapComputeComponentAlert(d)
 
-	hasAppLevelAlerts := false
-	hasComputeComponentAlerts := false
-
-	if len(appConfigurationAlert) > 0 && (len(appConfigurationAlert[0].Emails) > 0 || len(appConfigurationAlert[0].SlackWebhooks) > 0) {
-		hasAppLevelAlerts = true
-	}
-
-	if len(computeComponentAlerts) > 0 && (len(computeComponentAlerts[0].Emails) > 0 || len(computeComponentAlerts[0].SlackWebhooks) > 0) {
-		hasComputeComponentAlerts = true
-	}
+    hasAppLevelAlerts := len(appConfigurationAlert) > 0 && (len(appConfigurationAlert[0].Emails) > 0 || len(appConfigurationAlert[0].SlackWebhooks) > 0)
+	hasComputeComponentAlerts := len(computeComponentAlerts) > 0 && (len(computeComponentAlerts[0].Emails) > 0 || len(computeComponentAlerts[0].SlackWebhooks) > 0)
 
 	var alerts []*godo.AppAlert
 	if hasAppLevelAlerts || hasComputeComponentAlerts {
