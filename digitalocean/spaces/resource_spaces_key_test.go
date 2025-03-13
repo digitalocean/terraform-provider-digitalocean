@@ -55,7 +55,7 @@ func TestAccDigitalOceanSpacesKey_updateGrant(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccDigitalOceanSpacesKeyConfigWithGrantUpdate(expectedNewName, bucketName),
+				Config: testAccDigitalOceanSpacesKeyConfigWithGrantUpdate(bucketName, expectedNewName, bucketName),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"digitalocean_spaces_key.key", "name", expectedNewName),
