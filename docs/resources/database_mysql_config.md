@@ -32,7 +32,7 @@ resource "digitalocean_database_cluster" "example" {
 
 ## Argument Reference
 
-The following arguments are supported. See the [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#operation/databases_patch_config)
+The following arguments are supported. See the [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Databases/operation/databases_patch_config)
 for additional details on each option.
 
 * `cluster_id` - (Required)  The ID of the target MySQL cluster.
