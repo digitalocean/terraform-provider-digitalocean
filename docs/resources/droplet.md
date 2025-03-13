@@ -53,7 +53,7 @@ The following arguments are supported:
   is enabled. This parameter has been deprecated. Use `vpc_uuid` instead to specify a VPC network for the Droplet. If no `vpc_uuid` is provided, the Droplet will be placed in your account's default VPC for the region.
 * `ssh_keys` - (Optional) A list of SSH key IDs or fingerprints to enable in
    the format `[12345, 123456]`. To retrieve this info, use the
-   [DigitalOcean API](https://docs.digitalocean.com/reference/api/api-reference/#tag/SSH-Keys)
+   [DigitalOcean API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/SSH-Keys)
    or CLI (`doctl compute ssh-key list`). Once a Droplet is created keys can not
    be added or removed via this provider. Modifying this field will prompt you
    to destroy and recreate the Droplet.

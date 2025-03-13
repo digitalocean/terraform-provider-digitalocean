@@ -43,7 +43,7 @@ The following arguments are supported:
 * `url` - (Required) A URL from which the custom Linux virtual machine image may be retrieved.
 * `regions` - (Required) A list of regions. (Currently only one is supported).
 * `description` - An optional description for the image.
-* `distribution` - An optional distribution name for the image. Valid values are documented [here](https://docs.digitalocean.com/reference/api/api-reference/#operation/create_custom_image)
+* `distribution` - An optional distribution name for the image. Valid values are documented [here](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Images/operation/images_create_custom)
 * `tags` - A list of optional tags for the image.
 
 ## Attributes Reference
