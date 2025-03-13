@@ -31,10 +31,10 @@ resource "digitalocean_droplet" "web" {
 
 The following arguments are supported:
 
-* `image` - (Required) The Droplet image ID or slug. This could be either image ID or droplet snapshot ID.
+* `image` - (Required) The Droplet image ID or slug. This could be either image ID or droplet snapshot ID. You can find image IDs and slugs using the [DigitalOcean API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Images).
 * `name` - (Required) The Droplet name.
 * `region` - The region where the Droplet will be created.
-* `size` - (Required) The unique slug that identifies the type of Droplet. You can find a list of available slugs on [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#tag/Sizes).
+* `size` - (Required) The unique slug that identifies the type of Droplet. You may list the available slugs using the [DigitalOcean API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Sizes).
 * `backups` - (Optional) Boolean controlling if backups are made. Defaults to
    false.
 * `backup_policy` - (Optional) An object specifying the backup policy for the Droplet. If omitted and `backups` is `true`, the backup plan will default to daily.
