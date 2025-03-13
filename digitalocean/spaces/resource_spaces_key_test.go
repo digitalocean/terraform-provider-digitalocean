@@ -130,21 +130,22 @@ resource "digitalocean_spaces_key" "key" {
 `, bucket, name)
 }
 
-func testAccDigitalOceanSpacesKeyConfigWithGrantUpdate(name, bucket string) string {
+func testAccDigitalOceanSpacesKeyConfigWithGrantUpdate(bucketName, spacesKeyName, bucketName2 string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_spaces_bucket" "bucket" {
   name   = "%s"
   acl    = "public-read"
   region = "sfo3"
 }
+
 resource "digitalocean_spaces_key" "key" {
   name = "%s"
   grant {
-    bucket     = digitalocean_spaces_bucket.bucket.name
+    bucket     = "%s"
     permission = "read"
   }
 }
-`, bucket, name)
+`, bucketName, spacesKeyName, bucketName2)
 }
 
 func testAccDigitalOceanSpacesKeyConfigMultipleGrants(name, bucket, bucket2 string) string {
