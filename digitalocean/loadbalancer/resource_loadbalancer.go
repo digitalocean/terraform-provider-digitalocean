@@ -778,45 +778,45 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("disable_lets_encrypt_dns_records", loadbalancer.DisableLetsEncryptDNSRecords)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)
+		return diag.Errorf("Error setting  load balancer droplet_ids: %#v", err)
 	}
 
 	if err := d.Set("sticky_sessions", flattenStickySessions(loadbalancer.StickySessions)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting Load Balancer sticky_sessions - error: %#v", err)
+		return diag.Errorf("Error setting  load balancer sticky_sessions: %#v", err)
 	}
 
 	if err := d.Set("healthcheck", flattenHealthChecks(loadbalancer.HealthCheck)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting Load Balancer healthcheck - error: %#v", err)
+		return diag.Errorf("Error setting  load balancer healthcheck: %#v", err)
 	}
 
 	forwardingRules, err := flattenForwardingRules(client, loadbalancer.ForwardingRules)
 	if err != nil {
-		return diag.Errorf("[DEBUG] Error building Load Balancer forwarding rules - error: %#v", err)
+		return diag.Errorf("Error building  load balancer forwarding rules: %#v", err)
 	}
 
 	if err := d.Set("forwarding_rule", forwardingRules); err != nil {
-		return diag.Errorf("[DEBUG] Error setting Load Balancer forwarding_rule - error: %#v", err)
+		return diag.Errorf("Error setting  load balancer forwarding_rule: %#v", err)
 	}
 
 	if err := d.Set("firewall", flattenLBFirewall(loadbalancer.Firewall)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting Load Balancer firewall - error: %#v", err)
+		return diag.Errorf("Error setting  load balancer firewall: %#v", err)
 	}
 
 	domains, err := flattenDomains(client, loadbalancer.Domains)
 	if err != nil {
-		return diag.Errorf("[DEBUG] Error building Load Balancer domains - error: %#v", err)
+		return diag.Errorf("Error building  load balancer domains: %#v", err)
 	}
 
 	if err := d.Set("domains", domains); err != nil {
-		return diag.Errorf("[DEBUG] Error setting Load Balancer domains - error: %#v", err)
+		return diag.Errorf("Error setting  load balancer domains: %#v", err)
 	}
 
 	if err := d.Set("glb_settings", flattenGLBSettings(loadbalancer.GLBSettings)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting Load Balancer glb settings - error: %#v", err)
+		return diag.Errorf("Error setting  load balancer glb_settings: %#v", err)
 	}
 
 	if err := d.Set("target_load_balancer_ids", flattenLoadBalancerIds(loadbalancer.TargetLoadBalancerIDs)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting target Load Balancer ids - error: %#v", err)
+		return diag.Errorf("Error setting target load balancer IDs: %#v", err)
 	}
 
 	return nil
