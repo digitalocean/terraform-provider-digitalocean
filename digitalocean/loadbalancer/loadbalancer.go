@@ -324,11 +324,12 @@ func flattenDomains(client *godo.Client, domains []*godo.LBDomain) ([]map[string
 
 		r["name"] = (*domain).Name
 		r["is_managed"] = (*domain).IsManaged
-		r["certificate_id"] = (*domain).CertificateID
 		r["verification_error_reasons"] = (*domain).VerificationErrorReasons
 		r["ssl_validation_error_reasons"] = (*domain).SSLValidationErrorReasons
 
 		if domain.CertificateID != "" {
+			r["certificate_id"] = (*domain).CertificateID
+
 			// When the certificate type is lets_encrypt, the certificate
 			// ID will change when it's renewed, so we have to rely on the
 			// certificate name as the primary identifier instead.
@@ -350,7 +351,7 @@ func flattenGLBSettings(settings *godo.GLBSettings) []map[string]interface{} {
 	if settings != nil {
 		r := make(map[string]interface{})
 
-		r["target_protocol"] = (*settings).TargetProtocol
+		r["target_protocol"] = strings.ToLower((*settings).TargetProtocol)
 		r["target_port"] = (*settings).TargetPort
 
 		if settings.CDN != nil {

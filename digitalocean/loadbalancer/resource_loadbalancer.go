@@ -442,6 +442,7 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 			"type": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"REGIONAL", "GLOBAL", "REGIONAL_NETWORK"}, true),
 				Description:  "the type of the load balancer (GLOBAL, REGIONAL, or REGIONAL_NETWORK)",
@@ -758,6 +759,7 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 	d.Set("http_idle_timeout_seconds", loadbalancer.HTTPIdleTimeoutSeconds)
 	d.Set("project_id", loadbalancer.ProjectID)
+	d.Set("type", loadbalancer.Type)
 
 	if loadbalancer.IPv6 != "" {
 		d.Set("ipv6", loadbalancer.IPv6)
@@ -798,6 +800,23 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 
 	if err := d.Set("firewall", flattenLBFirewall(loadbalancer.Firewall)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting Load Balancer firewall - error: %#v", err)
+	}
+
+	domains, err := flattenDomains(client, loadbalancer.Domains)
+	if err != nil {
+		return diag.Errorf("[DEBUG] Error building Load Balancer domains - error: %#v", err)
+	}
+
+	if err := d.Set("domains", domains); err != nil {
+		return diag.Errorf("[DEBUG] Error setting Load Balancer domains - error: %#v", err)
+	}
+
+	if err := d.Set("glb_settings", flattenGLBSettings(loadbalancer.GLBSettings)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting Load Balancer glb settings - error: %#v", err)
+	}
+
+	if err := d.Set("target_load_balancer_ids", flattenLoadBalancerIds(loadbalancer.TargetLoadBalancerIDs)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting target Load Balancer ids - error: %#v", err)
 	}
 
 	return nil
