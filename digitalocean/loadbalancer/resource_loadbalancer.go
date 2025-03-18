@@ -442,6 +442,7 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 			"type": {
 				Type:         schema.TypeString,
 				Optional:     true,
+				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"REGIONAL", "GLOBAL", "REGIONAL_NETWORK"}, true),
 				Description:  "the type of the load balancer (GLOBAL, REGIONAL, or REGIONAL_NETWORK)",
@@ -758,6 +759,7 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
 	d.Set("http_idle_timeout_seconds", loadbalancer.HTTPIdleTimeoutSeconds)
 	d.Set("project_id", loadbalancer.ProjectID)
+	d.Set("type", loadbalancer.Type)
 
 	if loadbalancer.IPv6 != "" {
 		d.Set("ipv6", loadbalancer.IPv6)
@@ -776,28 +778,45 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("disable_lets_encrypt_dns_records", loadbalancer.DisableLetsEncryptDNSRecords)
 
 	if err := d.Set("droplet_ids", flattenDropletIds(loadbalancer.DropletIDs)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting Load Balancer droplet_ids - error: %#v", err)
+		return diag.Errorf("Error setting  load balancer droplet_ids: %#v", err)
 	}
 
 	if err := d.Set("sticky_sessions", flattenStickySessions(loadbalancer.StickySessions)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting Load Balancer sticky_sessions - error: %#v", err)
+		return diag.Errorf("Error setting  load balancer sticky_sessions: %#v", err)
 	}
 
 	if err := d.Set("healthcheck", flattenHealthChecks(loadbalancer.HealthCheck)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting Load Balancer healthcheck - error: %#v", err)
+		return diag.Errorf("Error setting  load balancer healthcheck: %#v", err)
 	}
 
 	forwardingRules, err := flattenForwardingRules(client, loadbalancer.ForwardingRules)
 	if err != nil {
-		return diag.Errorf("[DEBUG] Error building Load Balancer forwarding rules - error: %#v", err)
+		return diag.Errorf("Error building  load balancer forwarding rules: %#v", err)
 	}
 
 	if err := d.Set("forwarding_rule", forwardingRules); err != nil {
-		return diag.Errorf("[DEBUG] Error setting Load Balancer forwarding_rule - error: %#v", err)
+		return diag.Errorf("Error setting  load balancer forwarding_rule: %#v", err)
 	}
 
 	if err := d.Set("firewall", flattenLBFirewall(loadbalancer.Firewall)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting Load Balancer firewall - error: %#v", err)
+		return diag.Errorf("Error setting  load balancer firewall: %#v", err)
+	}
+
+	domains, err := flattenDomains(client, loadbalancer.Domains)
+	if err != nil {
+		return diag.Errorf("Error building  load balancer domains: %#v", err)
+	}
+
+	if err := d.Set("domains", domains); err != nil {
+		return diag.Errorf("Error setting  load balancer domains: %#v", err)
+	}
+
+	if err := d.Set("glb_settings", flattenGLBSettings(loadbalancer.GLBSettings)); err != nil {
+		return diag.Errorf("Error setting  load balancer glb_settings: %#v", err)
+	}
+
+	if err := d.Set("target_load_balancer_ids", flattenLoadBalancerIds(loadbalancer.TargetLoadBalancerIDs)); err != nil {
+		return diag.Errorf("Error setting target load balancer IDs: %#v", err)
 	}
 
 	return nil

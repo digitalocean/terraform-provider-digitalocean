@@ -42,7 +42,7 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "size_unit", "1"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "type", ""),
+						"data.digitalocean_loadbalancer.foobar", "type", "REGIONAL"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(
@@ -112,7 +112,7 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "size_unit", "1"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "type", ""),
+						"data.digitalocean_loadbalancer.foobar", "type", "REGIONAL"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(
@@ -178,7 +178,7 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "size_unit", "6"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "type", ""),
+						"data.digitalocean_loadbalancer.foobar", "type", "REGIONAL"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(
@@ -242,7 +242,7 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "size_unit", "6"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "type", ""),
+						"data.digitalocean_loadbalancer.foobar", "type", "REGIONAL"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "forwarding_rule.#", "1"),
 					resource.TestCheckTypeSetElemNestedAttrs(
@@ -645,7 +645,7 @@ data "digitalocean_loadbalancer" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "type", "GLOBAL"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.target_protocol", "HTTP"),
+						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.target_protocol", "http"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.target_port", "80"),
 					resource.TestCheckResourceAttr(
@@ -791,9 +791,8 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "lorem" {
-  name    = "%s"
-  type    = "GLOBAL"
-  network = "EXTERNAL"
+  name = "%s"
+  type = "GLOBAL"
 
   healthcheck {
     port     = 80
