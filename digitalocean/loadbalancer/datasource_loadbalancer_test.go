@@ -791,8 +791,8 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "lorem" {
-  name    = "%s"
-  type    = "GLOBAL"
+  name = "%s"
+  type = "GLOBAL"
 
   healthcheck {
     port     = 80
