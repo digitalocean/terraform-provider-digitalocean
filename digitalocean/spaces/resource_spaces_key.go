@@ -54,36 +54,11 @@ func resourceDigitalOceanSpacesKeyCreate(ctx context.Context, d *schema.Resource
 func resourceDigitalOceanSpacesKeyRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	opts := &godo.ListOptions{
-		Page:    1,
-		PerPage: 200,
-	}
-
 	var key *godo.SpacesKey
 
-	for {
-		keys, resp, err := client.SpacesKeys.List(ctx, opts)
-		if err != nil {
-			return diag.Errorf("Error reading Spaces key: %s", err)
-		}
-
-		for _, k := range keys {
-			if k.AccessKey == d.Id() {
-				key = k
-				break
-			}
-		}
-
-		if resp.Links == nil || resp.Links.IsLastPage() {
-			break
-		}
-
-		page, err := resp.Links.CurrentPage()
-		if err != nil {
-			return diag.Errorf("Error reading Spaces key: %s", err)
-		}
-
-		opts.Page = page + 1
+	key, _, err := client.SpacesKeys.Get(ctx, d.Id())
+	if err != nil {
+		return diag.Errorf("Error reading Spaces key: %s", err)
 	}
 
 	if key == nil {
