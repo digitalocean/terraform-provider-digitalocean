@@ -2,6 +2,7 @@ package godo
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -60,7 +61,7 @@ type partnerInterconnectAttachmentRequestBody struct {
 	// VPCIDs is the IDs of the VPCs to which the Partner Interconnect Attachment is connected
 	VPCIDs []string `json:"vpc_ids,omitempty"`
 	// BGP is the BGP configuration of the Partner Interconnect Attachment
-	BGP *BGP `json:"bgp,omitempty"`
+	BGP *BGPInput `json:"bgp,omitempty"`
 }
 
 func (req *PartnerInterconnectAttachmentCreateRequest) buildReq() *partnerInterconnectAttachmentRequestBody {
@@ -73,7 +74,13 @@ func (req *PartnerInterconnectAttachmentCreateRequest) buildReq() *partnerInterc
 	}
 
 	if req.BGP != (BGP{}) {
-		request.BGP = &req.BGP
+		request.BGP = &BGPInput{
+			LocalASN:      req.BGP.LocalASN,
+			LocalRouterIP: req.BGP.LocalRouterIP,
+			PeerASN:       req.BGP.PeerASN,
+			PeerRouterIP:  req.BGP.PeerRouterIP,
+			AuthKey:       req.BGP.AuthKey,
+		}
 	}
 
 	return request
@@ -99,15 +106,61 @@ type BGP struct {
 	// LocalRouterIP is the local router IP
 	LocalRouterIP string `json:"local_router_ip,omitempty"`
 	// PeerASN is the peer ASN
+	PeerASN int `json:"peer_asn,omitempty"`
+	// PeerRouterIP is the peer router IP
+	PeerRouterIP string `json:"peer_router_ip,omitempty"`
+	// AuthKey is the authentication key
+	AuthKey string `json:"auth_key,omitempty"`
+}
+
+func (b *BGP) UnmarshalJSON(data []byte) error {
+	type Alias BGP
+	aux := &struct {
+		LocalASN       *int `json:"local_asn,omitempty"`
+		LocalRouterASN *int `json:"local_router_asn,omitempty"`
+		PeerASN        *int `json:"peer_asn,omitempty"`
+		PeerRouterASN  *int `json:"peer_router_asn,omitempty"`
+		*Alias
+	}{
+		Alias: (*Alias)(b),
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	if aux.LocalASN != nil {
+		b.LocalASN = *aux.LocalASN
+	} else if aux.LocalRouterASN != nil {
+		b.LocalASN = *aux.LocalRouterASN
+	}
+
+	if aux.PeerASN != nil {
+		b.PeerASN = *aux.PeerASN
+	} else if aux.PeerRouterASN != nil {
+		b.PeerASN = *aux.PeerRouterASN
+	}
+	return nil
+}
+
+// BGPInput represents the BGP configuration of a Partner Interconnect Attachment.
+type BGPInput struct {
+	// LocalASN is the local ASN
+	LocalASN int `json:"local_router_asn,omitempty"`
+	// LocalRouterIP is the local router IP
+	LocalRouterIP string `json:"local_router_ip,omitempty"`
+	// PeerASN is the peer ASN
 	PeerASN int `json:"peer_router_asn,omitempty"`
 	// PeerRouterIP is the peer router IP
 	PeerRouterIP string `json:"peer_router_ip,omitempty"`
+	// AuthKey is the authentication key
+	AuthKey string `json:"auth_key,omitempty"`
 }
 
 // ServiceKey represents the service key of a Partner Interconnect Attachment.
 type ServiceKey struct {
-	ServiceKey string `json:"service_key,omitempty"`
-	State      string `json:"state,omitempty"`
+	Value     string    `json:"value,omitempty"`
+	State     string    `json:"state,omitempty"`
+	CreatedAt time.Time `json:"created_at,omitempty"`
 }
 
 // RemoteRoute represents a route for a Partner Interconnect Attachment.
@@ -284,7 +337,7 @@ func (s *PartnerInterconnectAttachmentsServiceOp) GetServiceKey(ctx context.Cont
 	return root.ServiceKey, resp, nil
 }
 
-// ListRoutes lists all routes for a Partner Interconnect Attachment.
+// ListRoutes lists all remote routes for a Partner Interconnect Attachment.
 func (s *PartnerInterconnectAttachmentsServiceOp) ListRoutes(ctx context.Context, id string, opt *ListOptions) ([]*RemoteRoute, *Response, error) {
 	path, err := addOptions(fmt.Sprintf("%s/%s/remote_routes", partnerInterconnectAttachmentsBasePath, id), opt)
 	if err != nil {
@@ -310,7 +363,7 @@ func (s *PartnerInterconnectAttachmentsServiceOp) ListRoutes(ctx context.Context
 	return root.RemoteRoutes, resp, nil
 }
 
-// SetRoutes  updates specific properties of a Partner Interconnect Attachment.
+// SetRoutes updates specific properties of a Partner Interconnect Attachment.
 func (s *PartnerInterconnectAttachmentsServiceOp) SetRoutes(ctx context.Context, id string, set *PartnerInterconnectAttachmentSetRoutesRequest) (*PartnerInterconnectAttachment, *Response, error) {
 	path := fmt.Sprintf("%s/%s/remote_routes", partnerInterconnectAttachmentsBasePath, id)
 	req, err := s.client.NewRequest(ctx, http.MethodPut, path, set)
