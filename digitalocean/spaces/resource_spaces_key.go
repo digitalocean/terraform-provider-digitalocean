@@ -2,17 +2,12 @@ package spaces
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"net/http"
-	"time"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -40,18 +35,8 @@ func resourceDigitalOceanSpacesKeyCreate(ctx context.Context, d *schema.Resource
 
 	var key *godo.SpacesKey
 	var err error
-	err = retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
-		log.Printf("[DEBUG] Creating new Spaces key")
-		key, _, err = client.SpacesKeys.Create(ctx, req)
-		if err != nil {
-			if util.IsDigitalOceanError(err, http.StatusInternalServerError, "") || util.IsDigitalOceanError(err, http.StatusPreconditionFailed, "") {
-				return retry.NonRetryableError(err)
-			}
-			return retry.RetryableError(
-				fmt.Errorf("[WARN] Error creating Spaces key: %s, retrying: %s", name, err))
-		}
-		return nil
-	})
+	log.Printf("[DEBUG] Creating new Spaces key")
+	key, _, err = client.SpacesKeys.Create(ctx, req)
 	if err != nil {
 		return diag.Errorf("Error creating Spaces key: %s", err)
 	}
@@ -127,18 +112,8 @@ func resourceDigitalOceanSpacesKeyUpdate(ctx context.Context, d *schema.Resource
 
 	var key *godo.SpacesKey
 	var err error
-	err = retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
-		log.Printf("[DEBUG] Updating Spaces key: %s", name)
-		key, _, err = client.SpacesKeys.Update(ctx, d.Id(), req)
-		if err != nil {
-			if util.IsDigitalOceanError(err, http.StatusInternalServerError, "") || util.IsDigitalOceanError(err, http.StatusPreconditionFailed, "") {
-				return retry.NonRetryableError(err)
-			}
-			return retry.RetryableError(
-				fmt.Errorf("[WARN] Error updating Spaces key: %s, retrying: %s", name, err))
-		}
-		return nil
-	})
+	log.Printf("[DEBUG] Updating Spaces key: %s", name)
+	key, _, err = client.SpacesKeys.Update(ctx, d.Id(), req)
 	if err != nil {
 		return diag.Errorf("Error updating Spaces key: %s", err)
 	}
@@ -154,18 +129,8 @@ func resourceDigitalOceanSpacesKeyUpdate(ctx context.Context, d *schema.Resource
 func resourceDigitalOceanSpacesKeyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	err := retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
-		log.Printf("[DEBUG] Deleting Spaces key: %s", d.Id())
-		_, err := client.SpacesKeys.Delete(ctx, d.Id())
-		if err != nil {
-			if util.IsDigitalOceanError(err, http.StatusInternalServerError, "") || util.IsDigitalOceanError(err, http.StatusPreconditionFailed, "") {
-				return retry.NonRetryableError(err)
-			}
-			return retry.RetryableError(
-				fmt.Errorf("[WARN] Error deleting Spaces key: %s, retrying: %s", d.Id(), err))
-		}
-		return nil
-	})
+	log.Printf("[DEBUG] Deleting Spaces key: %s", d.Id())
+	_, err := client.SpacesKeys.Delete(ctx, d.Id())
 	if err != nil {
 		return diag.Errorf("Error deleting Spaces key: %s", err)
 	}
