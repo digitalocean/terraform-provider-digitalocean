@@ -31,10 +31,10 @@ resource "digitalocean_droplet" "web" {
 
 The following arguments are supported:
 
-* `image` - (Required) The Droplet image ID or slug. This could be either image ID or droplet snapshot ID.
+* `image` - (Required) The Droplet image ID or slug. This could be either image ID or droplet snapshot ID. You can find image IDs and slugs using the [DigitalOcean API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Images).
 * `name` - (Required) The Droplet name.
 * `region` - The region where the Droplet will be created.
-* `size` - (Required) The unique slug that identifies the type of Droplet. You can find a list of available slugs on [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#tag/Sizes).
+* `size` - (Required) The unique slug that identifies the type of Droplet. You may list the available slugs using the [DigitalOcean API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Sizes).
 * `backups` - (Optional) Boolean controlling if backups are made. Defaults to
    false.
 * `backup_policy` - (Optional) An object specifying the backup policy for the Droplet. If omitted and `backups` is `true`, the backup plan will default to daily.
@@ -53,7 +53,7 @@ The following arguments are supported:
   is enabled. This parameter has been deprecated. Use `vpc_uuid` instead to specify a VPC network for the Droplet. If no `vpc_uuid` is provided, the Droplet will be placed in your account's default VPC for the region.
 * `ssh_keys` - (Optional) A list of SSH key IDs or fingerprints to enable in
    the format `[12345, 123456]`. To retrieve this info, use the
-   [DigitalOcean API](https://docs.digitalocean.com/reference/api/api-reference/#tag/SSH-Keys)
+   [DigitalOcean API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/SSH-Keys)
    or CLI (`doctl compute ssh-key list`). Once a Droplet is created keys can not
    be added or removed via this provider. Modifying this field will prompt you
    to destroy and recreate the Droplet.

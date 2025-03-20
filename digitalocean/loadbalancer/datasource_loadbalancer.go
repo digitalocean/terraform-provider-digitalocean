@@ -67,6 +67,10 @@ func DataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Computed:    true,
 				Description: "current state of the Load Balancer",
 			},
+			"ipv6": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"forwarding_rule": {
 				Type:     schema.TypeSet,
 				Computed: true,
