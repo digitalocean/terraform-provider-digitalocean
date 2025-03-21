@@ -25,6 +25,7 @@ var (
 
 const (
 	controlPlaneFirewallField = "control_plane_firewall"
+	routingAgentField         = "routing_agent"
 )
 
 func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
@@ -240,6 +241,21 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 					},
 				},
 			},
+
+			routingAgentField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -372,8 +388,13 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 	if controlPlaneFirewall, ok := d.GetOk(controlPlaneFirewallField); ok {
 		opts.ControlPlaneFirewall = expandControlPlaneFirewallOpts(controlPlaneFirewall.([]interface{}))
 	}
+
 	if caConfig, ok := d.GetOk("cluster_autoscaler_configuration"); ok {
 		opts.ClusterAutoscalerConfiguration = expandCAConfigOpts(caConfig.([]interface{}))
+	}
+
+	if routingAgent, ok := d.GetOk(routingAgentField); ok {
+		opts.RoutingAgent = expandRoutingAgentOpts(routingAgent.([]interface{}))
 	}
 
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
@@ -443,6 +464,10 @@ func digitaloceanKubernetesClusterRead(
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", controlPlaneFirewallField, err)
 	}
 
+	if err := d.Set(routingAgentField, flattenRoutingAgentOpts(cluster.RoutingAgent)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", routingAgentField, err)
+	}
+
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
 	}
@@ -505,7 +530,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha", controlPlaneFirewallField, "cluster_autoscaler_configuration") {
+	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha", controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField) {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
 			Name:                 d.Get("name").(string),
@@ -514,6 +539,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 			SurgeUpgrade:         d.Get("surge_upgrade").(bool),
 			HA:                   godo.PtrTo(d.Get("ha").(bool)),
 			ControlPlaneFirewall: expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
+			RoutingAgent:         expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {
