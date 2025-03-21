@@ -8,7 +8,6 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 
-	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -84,35 +83,13 @@ func testAccCheckDigitalOceanSpacesKeyDestroyWithProvider(s *terraform.State, pr
 
 		client := provider.Meta().(*config.CombinedConfig).GodoClient()
 
-		opts := &godo.ListOptions{
-			Page:    1,
-			PerPage: 200,
+		key, _, err := client.SpacesKeys.Get(context.Background(), rs.Primary.ID)
+		if err != nil {
+			return fmt.Errorf("Error listing Spaces keys: %s", err)
 		}
-
-		for {
-			keys, resp, err := client.SpacesKeys.List(context.Background(), opts)
-			if err != nil {
-				return fmt.Errorf("Error listing Spaces keys: %s", err)
-			}
-
-			for _, key := range keys {
-				if key.AccessKey == rs.Primary.ID {
-					return fmt.Errorf("Key still exists")
-				}
-			}
-
-			if resp.Links == nil || resp.Links.IsLastPage() {
-				break
-			}
-
-			page, err := resp.Links.CurrentPage()
-			if err != nil {
-				return fmt.Errorf("Error reading Spaces key: %s", err)
-			}
-
-			opts.Page = page + 1
+		if key.AccessKey == rs.Primary.ID {
+			return fmt.Errorf("Key still exists")
 		}
-
 		return nil
 	}
 	return nil

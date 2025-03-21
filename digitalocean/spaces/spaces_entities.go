@@ -46,7 +46,46 @@ func spacesBucketSchema() map[string]*schema.Schema {
 	}
 }
 
-func spacesKeySchema() map[string]*schema.Schema {
+func spacesKeyDataSourceSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"name": {
+			Type:        schema.TypeString,
+			Description: "A name for the key. This is used to identify the key in the DigitalOcean control panel.",
+			Computed:    true,
+		},
+		"grant": {
+			Type:        schema.TypeList,
+			Description: "A list of grants to apply to the key. Can be left empty to apply no grants.",
+			Computed:    true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"bucket": {
+						Type:        schema.TypeString,
+						Required:    true,
+						Description: "The name of the bucket to grant the key access to.",
+					},
+					"permission": {
+						Type:        schema.TypeString,
+						Required:    true,
+						Description: "The permission to grant the key. Valid values are `read`, `readwrite`, or `fullaccess`.",
+					},
+				},
+			},
+		},
+		"access_key": {
+			Type:        schema.TypeString,
+			Description: "The access key for the Spaces key",
+			Required:    true,
+		},
+		"created_at": {
+			Type:        schema.TypeString,
+			Description: "The date and time the key was created",
+			Computed:    true,
+		},
+	}
+}
+
+func spacesKeyResourceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:        schema.TypeString,

@@ -18,7 +18,7 @@ func ResourceDigitalOceanSpacesKey() *schema.Resource {
 		UpdateContext: resourceDigitalOceanSpacesKeyUpdate,
 		DeleteContext: resourceDigitalOceanSpacesKeyDelete,
 
-		Schema: spacesKeySchema(),
+		Schema: spacesKeyResourceSchema(),
 	}
 }
 
