@@ -1196,12 +1196,12 @@ func testAccDigitalOceanKubernetesConfigRoutingAgentEnabled(testClusterVersion s
 	return fmt.Sprintf(`%s
 
 resource "digitalocean_kubernetes_cluster" "foobar" {
-  name           = "%s"
-  region         = "nyc1"
-  version        = data.digitalocean_kubernetes_versions.test.latest_version
+  name    = "%s"
+  region  = "nyc1"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
   routing_agent {
-	enabled = true
-  } 
+    enabled = true
+  }
   node_pool {
     name       = "default"
     size       = "s-1vcpu-2gb"

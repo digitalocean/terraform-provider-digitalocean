@@ -90,7 +90,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   }
 
   routing_agent {
-	enabled = true
+    enabled = true
   }
 }`, version, rName)
 }
