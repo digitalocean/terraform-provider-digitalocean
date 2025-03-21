@@ -1199,7 +1199,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name           = "%s"
   region         = "nyc1"
   version        = data.digitalocean_kubernetes_versions.test.latest_version
-  routing_agent  = {
+  routing_agent {
 	enabled = true
   } 
   node_pool {
