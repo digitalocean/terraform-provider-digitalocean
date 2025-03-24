@@ -13,6 +13,12 @@ interact with the service while using the tools they already know. Spaces
 mirrors S3's authentication framework and requests to Spaces require a key pair
 similar to Amazon's Access ID and Secret Key.
 
+As a Spaces owner, you limit others’ access to your buckets using Spaces access 
+keys. Access keys can provide several levels of permissions to create, destroy,
+read, and write to specific associated buckets. However, access keys only limit 
+access to certain commands using the S3 API or CLI, not the control panel or 
+other DigitalOcean resources.
+
 ## Example Usage
 
 ### Create a New Key
