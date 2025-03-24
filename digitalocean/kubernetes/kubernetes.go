@@ -263,6 +263,34 @@ func expandAllowedAddresses(addrs []interface{}) []string {
 	return expandedAddrs
 }
 
+func expandRoutingAgentOpts(raw []interface{}) *godo.KubernetesRoutingAgent {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesRoutingAgent{}
+	}
+
+	rawRoutingAgentObj := raw[0].(map[string]interface{})
+
+	routingAgent := &godo.KubernetesRoutingAgent{
+		Enabled: godo.PtrTo(rawRoutingAgentObj["enabled"].(bool)),
+	}
+
+	return routingAgent
+}
+
+func flattenRoutingAgentOpts(opts *godo.KubernetesRoutingAgent) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
 func flattenMaintPolicyOpts(opts *godo.KubernetesMaintenancePolicy) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 	item := make(map[string]interface{})
