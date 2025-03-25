@@ -206,40 +206,7 @@ func appSpecAppLevelAlerts() *schema.Resource {
 				Default:  false,
 				Optional: true,
 			},
-			"destinations": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"emails": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringLenBetween(3, 100),
-							},
-						},
-						"slack_webhooks": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"channel": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The Slack channel to send notifications to.",
-									},
-									"url": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The Slack webhook URL.",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
+			"destinations": alertDestinationsSchema(),
 		},
 	}
 }
@@ -989,35 +956,39 @@ func appSpecComponentAlerts() *schema.Resource {
 				Default:  false,
 				Optional: true,
 			},
-			"destinations": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"emails": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Schema{
-								Type:         schema.TypeString,
-								ValidateFunc: validation.StringLenBetween(3, 100),
+			"destinations": alertDestinationsSchema(),
+		},
+	}
+}
+
+func alertDestinationsSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"emails": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: validation.StringLenBetween(3, 100),
+					},
+				},
+				"slack_webhooks": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"channel": {
+								Type:        schema.TypeString,
+								Required:    true,
+								Description: "The Slack channel to send notifications to.",
 							},
-						},
-						"slack_webhooks": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"channel": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The Slack channel to send notifications to.",
-									},
-									"url": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "The Slack webhook URL.",
-									},
-								},
+							"url": {
+								Type:        schema.TypeString,
+								Required:    true,
+								Description: "The Slack webhook URL.",
 							},
 						},
 					},
