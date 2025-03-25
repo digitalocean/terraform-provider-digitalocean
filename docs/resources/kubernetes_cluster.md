@@ -168,6 +168,9 @@ The following arguments are supported:
   - `start_time` (Required) The start time in UTC of the maintenance window policy in 24-hour clock format / HH:MM notation (e.g., 15:00).
 * `destroy_all_associated_resources` - (Optional) **Use with caution.** When set to true, all associated DigitalOcean resources created via the Kubernetes API (load balancers, volumes, and volume snapshots) will be destroyed along with the cluster when it is destroyed.
 * `kubeconfig_expire_seconds` - (Optional) The duration in seconds that the returned Kubernetes credentials will be valid. If not set or 0, the credentials will have a 7 day expiry.
+* `routing_agent` - (Optional) Block containing options for the routing-agent component. If not specified, the routing-agent component will not be installed in the cluster.
+  - `enabled` - (Required) Boolean flag whether the routing-agent should be enabled or not.
+
 
 This resource supports [customized create timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
 
@@ -209,6 +212,8 @@ In addition to the arguments listed above, the following additional attributes a
   - `day` - The day of the maintenance window policy. May be one of "monday" through "sunday", or "any" to indicate an arbitrary week day.
   - `duration` A string denoting the duration of the service window, e.g., "04:00".
   - `start_time` The hour in UTC when maintenance updates will be applied, in 24 hour format (e.g. “16:00”).
+* `routing_agent` - Block containing options for the routing-agent component.
+  - `enabled` - Boolean flag whether the routing-agent is enabled or not.
 
 ## Import
 
