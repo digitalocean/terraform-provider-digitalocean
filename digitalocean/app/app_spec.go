@@ -207,7 +207,7 @@ func appSpecAppLevelAlerts() *schema.Resource {
 				Optional: true,
 			},
 			"destinations": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -990,7 +990,7 @@ func appSpecComponentAlerts() *schema.Resource {
 				Optional: true,
 			},
 			"destinations": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
