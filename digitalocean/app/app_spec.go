@@ -206,12 +206,12 @@ func appSpecAppLevelAlerts() *schema.Resource {
 				Default:  false,
 				Optional: true,
 			},
-			"notifications": {
+			"destinations": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"email": {
+						"emails": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
@@ -219,7 +219,7 @@ func appSpecAppLevelAlerts() *schema.Resource {
 								ValidateFunc: validation.StringLenBetween(3, 100),
 							},
 						},
-						"slack": {
+						"slack_webhooks": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{
@@ -989,12 +989,12 @@ func appSpecComponentAlerts() *schema.Resource {
 				Default:  false,
 				Optional: true,
 			},
-			"notifications": {
+			"destinations": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"email": {
+						"emails": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Schema{
@@ -1002,7 +1002,7 @@ func appSpecComponentAlerts() *schema.Resource {
 								ValidateFunc: validation.StringLenBetween(3, 100),
 							},
 						},
-						"slack": {
+						"slack_webhooks": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem: &schema.Resource{

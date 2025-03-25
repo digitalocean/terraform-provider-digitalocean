@@ -190,13 +190,13 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.alert.0.rule", "DEPLOYMENT_FAILED"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.alert.0.notifications.0.emails.0", "email1@do.com"),
+						"digitalocean_app.foobar", "spec.0.alert.0.destinations.0.emails.0", "email1@do.com"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.alert.0.notifications.0.emails.0", "email2@do.com"),
+						"digitalocean_app.foobar", "spec.0.alert.0.destinations.0.emails.0", "email2@do.com"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.alert.0.notifications.0.slack.0.channel", "@user1"),
+						"digitalocean_app.foobar", "spec.0.alert.0.destinations.0.slack_webhooks.0.channel", "@user1"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.alert.0.notifications.0.slack.0.url", "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"),
+						"digitalocean_app.foobar", "spec.0.alert.0.destinations.0.slack_webhooks.0.url", "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "85"),
 					resource.TestCheckResourceAttr(
@@ -206,13 +206,13 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.rule", "CPU_UTILIZATION"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.alert.0.notifications.0.emails.0", "email1@do.com"),
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.destinations.0.emails.0", "email1@do.com"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.alert.0.notifications.0.emails.1", "email2@do.com"),
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.destinations.0.emails.1", "email2@do.com"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.alert.0.notifications.0.slack.0.channel", "@user1"),
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.destinations.0.slack_webhooks.0.channel", "@user1"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.alert.0.notifications.0.slack.0.url", "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"),
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.destinations.0.slack_webhooks.0.url", "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"),
 				),
 			},
 		},
@@ -1917,9 +1917,9 @@ resource "digitalocean_app" "foobar" {
 
     alert {
       rule = "DEPLOYMENT_FAILED"
-      notifications {
-        email = ["email1@do.com", "email2@do.com"]
-        slack {
+      destinations {
+        emails = ["email1@do.com", "email2@do.com"]
+        slack_webhooks {
           channel = "@user1"
           url     = "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"
         }
@@ -1942,9 +1942,9 @@ resource "digitalocean_app" "foobar" {
         operator = "GREATER_THAN"
         window   = "FIVE_MINUTES"
         rule     = "CPU_UTILIZATION"
-        notifications {
-          email = ["email1@do.com", "email2@do.com"]
-          slack {
+        destinations {
+          emails = ["email1@do.com", "email2@do.com"]
+          slack_webhooks {
             channel = "@user1"
             url     = "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"
           }
