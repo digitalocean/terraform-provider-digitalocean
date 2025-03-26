@@ -306,7 +306,7 @@ func partnerNetworkConnectStateRefreshFunc(client *godo.Client, id string) retry
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return partnerNetworkConnect, http.StatusText(resp.StatusCode), nil
 			}
-			return nil, "", fmt.Errorf("error issuingn read request in partnerNetworkConnectStateRefreshFunc to DigitalOcean for Partner Network Connect '%s': %s", id, err)
+			return nil, "", fmt.Errorf("error issuing read request in partnerNetworkConnectStateRefreshFunc to DigitalOcean for Partner Network Connect '%s': %s", id, err)
 		}
 
 		return partnerNetworkConnect, partnerNetworkConnect.State, nil
