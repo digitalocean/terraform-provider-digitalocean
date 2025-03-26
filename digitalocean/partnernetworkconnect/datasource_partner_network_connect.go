@@ -12,9 +12,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func DataSourceDigitalOceanPartnerNetworkConnect() *schema.Resource {
+func DataSourceDigitalOceanPartnerAttachment() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceDigitalOceanPartnerNetworkConnectRead,
+		ReadContext: dataSourceDigitalOceanPartnerAttachmentRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:         schema.TypeString,
@@ -82,42 +82,42 @@ func DataSourceDigitalOceanPartnerNetworkConnect() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanPartnerNetworkConnectRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func dataSourceDigitalOceanPartnerAttachmentRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
-	var foundPartnerNetworkConnect *godo.PartnerNetworkConnect
+	var foundPartnerAttachment *godo.PartnerAttachment
 
 	if id, ok := d.GetOk("id"); ok {
-		partnerNetworkConnect, _, err := client.PartnerNetworkConnect.Get(ctx, id.(string))
+		partnerAttachment, _, err := client.PartnerNetworkConnect.Get(ctx, id.(string))
 		if err != nil {
-			return diag.Errorf("error retrieving Partner Network Connect: %s", err)
+			return diag.Errorf("error retrieving Partner Attachment: %s", err)
 		}
 
-		foundPartnerNetworkConnect = partnerNetworkConnect
+		foundPartnerAttachment = partnerAttachment
 	} else if name, ok := d.GetOk("name"); ok {
-		partnerNetworkConnects, err := listPartnerNetworkConnect(client)
+		partnerAttachments, err := listPartnerAttachments(client)
 		if err != nil {
-			return diag.Errorf("error retrieving Partner Network Connect: %s", err)
+			return diag.Errorf("error retrieving Partner Attachments: %s", err)
 		}
 
-		partnerNetworkConnect, err := findPartnerNetworkConnectByName(partnerNetworkConnects, name.(string))
+		partnerAttachment, err := findPartnerAttachmentByName(partnerAttachments, name.(string))
 		if err != nil {
-			return diag.Errorf("error retrieving Partner Network Connect: %s", err)
+			return diag.Errorf("error retrieving Partner Attachment: %s", err)
 		}
 
-		foundPartnerNetworkConnect = partnerNetworkConnect
+		foundPartnerAttachment = partnerAttachment
 	}
 
-	if foundPartnerNetworkConnect == nil {
+	if foundPartnerAttachment == nil {
 		return diag.Errorf("Bad Request: %s", fmt.Errorf("'name' or 'id' must be provided"))
 	}
 
-	d.SetId(foundPartnerNetworkConnect.ID)
-	d.Set("name", foundPartnerNetworkConnect.Name)
-	d.Set("connection_bandwidth_in_mbps", foundPartnerNetworkConnect.ConnectionBandwidthInMbps)
-	d.Set("region", strings.ToLower(foundPartnerNetworkConnect.Region))
-	d.Set("naas_provider", foundPartnerNetworkConnect.NaaSProvider)
-	d.Set("vpc_ids", foundPartnerNetworkConnect.VPCIDs)
-	if bgp := foundPartnerNetworkConnect.BGP; bgp.PeerRouterIP != "" || bgp.LocalRouterIP != "" || bgp.PeerASN != 0 {
+	d.SetId(foundPartnerAttachment.ID)
+	d.Set("name", foundPartnerAttachment.Name)
+	d.Set("connection_bandwidth_in_mbps", foundPartnerAttachment.ConnectionBandwidthInMbps)
+	d.Set("region", strings.ToLower(foundPartnerAttachment.Region))
+	d.Set("naas_provider", foundPartnerAttachment.NaaSProvider)
+	d.Set("vpc_ids", foundPartnerAttachment.VPCIDs)
+	if bgp := foundPartnerAttachment.BGP; bgp.PeerRouterIP != "" || bgp.LocalRouterIP != "" || bgp.PeerASN != 0 {
 		bgpMap := map[string]interface{}{
 			"local_router_ip": bgp.LocalRouterIP,
 			"peer_router_asn": bgp.PeerASN,
@@ -127,26 +127,26 @@ func dataSourceDigitalOceanPartnerNetworkConnectRead(ctx context.Context, d *sch
 			return diag.FromErr(err)
 		}
 	}
-	d.Set("state", foundPartnerNetworkConnect.State)
-	d.Set("created_at", foundPartnerNetworkConnect.CreatedAt.UTC().String())
+	d.Set("state", foundPartnerAttachment.State)
+	d.Set("created_at", foundPartnerAttachment.CreatedAt.UTC().String())
 
 	return nil
 }
 
-func listPartnerNetworkConnect(client *godo.Client) ([]*godo.PartnerNetworkConnect, error) {
-	pncList := []*godo.PartnerNetworkConnect{}
+func listPartnerAttachments(client *godo.Client) ([]*godo.PartnerAttachment, error) {
+	paList := []*godo.PartnerAttachment{}
 	opts := &godo.ListOptions{
 		Page:    1,
 		PerPage: 200,
 	}
 
 	for {
-		partnerNetworkConnects, resp, err := client.PartnerNetworkConnect.List(context.Background(), opts)
+		partnerAttachments, resp, err := client.PartnerNetworkConnect.List(context.Background(), opts)
 		if err != nil {
 			return nil, err
 		}
 
-		pncList = append(pncList, partnerNetworkConnects...)
+		paList = append(paList, partnerAttachments...)
 
 		if resp.Links == nil || resp.Links.IsLastPage() {
 			break
@@ -154,21 +154,21 @@ func listPartnerNetworkConnect(client *godo.Client) ([]*godo.PartnerNetworkConne
 
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return pncList, fmt.Errorf("error retrieving Partner Network Connects: %s", err)
+			return paList, fmt.Errorf("error retrieving Partner Attachments: %s", err)
 		}
 
 		opts.Page = page + 1
 	}
 
-	return pncList, nil
+	return paList, nil
 }
 
-func findPartnerNetworkConnectByName(partnerNetworkConnects []*godo.PartnerNetworkConnect, name string) (*godo.PartnerNetworkConnect, error) {
-	for _, partnerNetworkConnect := range partnerNetworkConnects {
-		if partnerNetworkConnect.Name == name {
-			return partnerNetworkConnect, nil
+func findPartnerAttachmentByName(partnerAttachments []*godo.PartnerAttachment, name string) (*godo.PartnerAttachment, error) {
+	for _, partnerAttachment := range partnerAttachments {
+		if partnerAttachment.Name == name {
+			return partnerAttachment, nil
 		}
 	}
 
-	return nil, fmt.Errorf("no Partner Network Connect found with name: %s", name)
+	return nil, fmt.Errorf("no Partner Attachment found with name: %s", name)
 }

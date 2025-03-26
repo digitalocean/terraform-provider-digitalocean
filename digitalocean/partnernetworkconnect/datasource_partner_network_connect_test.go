@@ -10,15 +10,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceDigitalOceanPartnerNetworkConnect_ByID(t *testing.T) {
-	var partnerNetworkConnect godo.PartnerNetworkConnect
-	partnerNetworkConnectName := acceptance.RandomTestName()
+func TestAccDataSourceDigitalOceanPartnerAttachment_ByID(t *testing.T) {
+	var partnerAttachment godo.PartnerAttachment
+	partnerAttachmentName := acceptance.RandomTestName()
 	vpcName1 := acceptance.RandomTestName()
 	vpcName2 := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanPartnerNetworkConnectConfig_Basic, vpcName1, vpcName2, partnerNetworkConnectName)
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanPartnerAttachmentConfig_Basic, vpcName1, vpcName2, partnerAttachmentName)
 	dataSourceConfig := `
-data "digitalocean_partner_network_connect" "foobar" {
-  id = digitalocean_partner_network_connect.foobar.id
+data "digitalocean_partner_attachment" "foobar" {
+  id = digitalocean_partner_attachment.foobar.id
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -31,42 +31,42 @@ data "digitalocean_partner_network_connect" "foobar" {
 			{
 				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanPartnerNetworkConnectExists("data.digitalocean_partner_network_connect.foobar", &partnerNetworkConnect),
+					testAccCheckDigitalOceanPartnerAttachmentExists("data.digitalocean_partner_attachment.foobar", &partnerAttachment),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "name", partnerNetworkConnectName),
+						"data.digitalocean_partner_attachment.foobar", "name", partnerAttachmentName),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "connection_bandwidth_in_mbps", "100"),
+						"data.digitalocean_partner_attachment.foobar", "connection_bandwidth_in_mbps", "100"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "region", "nyc"),
+						"data.digitalocean_partner_attachment.foobar", "region", "nyc"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "naas_provider", "MEGAPORT"),
+						"data.digitalocean_partner_attachment.foobar", "naas_provider", "MEGAPORT"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "vpc_ids.#", "2"),
+						"data.digitalocean_partner_attachment.foobar", "vpc_ids.#", "2"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "bgp.0.local_router_ip", "169.254.0.1/29"),
+						"data.digitalocean_partner_attachment.foobar", "bgp.0.local_router_ip", "169.254.0.1/29"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "bgp.0.peer_router_asn", "133937"),
+						"data.digitalocean_partner_attachment.foobar", "bgp.0.peer_router_asn", "133937"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "bgp.0.peer_router_ip", "169.254.0.6/29"),
+						"data.digitalocean_partner_attachment.foobar", "bgp.0.peer_router_ip", "169.254.0.6/29"),
 					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_partner_network_connect.foobar", "created_at"),
+						"data.digitalocean_partner_attachment.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_partner_network_connect.foobar", "state"),
+						"data.digitalocean_partner_attachment.foobar", "state"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDataSourceDigitalOceanPartnerNetworkConnect_ByName(t *testing.T) {
-	var partnerNetworkConnect godo.PartnerNetworkConnect
-	partnerNetworkConnectName := acceptance.RandomTestName()
+func TestAccDataSourceDigitalOceanPartnerAttachment_ByName(t *testing.T) {
+	var partnerAttachment godo.PartnerAttachment
+	partnerAttachmentName := acceptance.RandomTestName()
 	vpcName1 := acceptance.RandomTestName()
 	vpcName2 := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanPartnerNetworkConnectConfig_Basic, vpcName1, vpcName2, partnerNetworkConnectName)
+	resourceConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanPartnerAttachmentConfig_Basic, vpcName1, vpcName2, partnerAttachmentName)
 	dataSourceConfig := `
-data "digitalocean_partner_network_connect" "foobar" {
-  name = digitalocean_partner_network_connect.foobar.name
+data "digitalocean_partner_attachment" "foobar" {
+  name = digitalocean_partner_attachment.foobar.name
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -79,50 +79,50 @@ data "digitalocean_partner_network_connect" "foobar" {
 			{
 				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanPartnerNetworkConnectExists("data.digitalocean_partner_network_connect.foobar", &partnerNetworkConnect),
+					testAccCheckDigitalOceanPartnerAttachmentExists("data.digitalocean_partner_attachment.foobar", &partnerAttachment),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "name", partnerNetworkConnectName),
+						"data.digitalocean_partner_attachment.foobar", "name", partnerAttachmentName),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "connection_bandwidth_in_mbps", "100"),
+						"data.digitalocean_partner_attachment.foobar", "connection_bandwidth_in_mbps", "100"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "region", "nyc"),
+						"data.digitalocean_partner_attachment.foobar", "region", "nyc"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "naas_provider", "MEGAPORT"),
+						"data.digitalocean_partner_attachment.foobar", "naas_provider", "MEGAPORT"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "vpc_ids.#", "2"),
+						"data.digitalocean_partner_attachment.foobar", "vpc_ids.#", "2"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "bgp.0.local_router_ip", "169.254.0.1/29"),
+						"data.digitalocean_partner_attachment.foobar", "bgp.0.local_router_ip", "169.254.0.1/29"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "bgp.0.peer_router_asn", "133937"),
+						"data.digitalocean_partner_attachment.foobar", "bgp.0.peer_router_asn", "133937"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_partner_network_connect.foobar", "bgp.0.peer_router_ip", "169.254.0.6/29"),
+						"data.digitalocean_partner_attachment.foobar", "bgp.0.peer_router_ip", "169.254.0.6/29"),
 					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_partner_network_connect.foobar", "created_at"),
+						"data.digitalocean_partner_attachment.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_partner_network_connect.foobar", "state"),
+						"data.digitalocean_partner_attachment.foobar", "state"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDataSourceDigitalOceanPartnerNetworkConnect_ExpectErrors(t *testing.T) {
-	partnenrNetworkConnectName := acceptance.RandomTestName()
-	partnerNetworkConnectNotExists := fmt.Sprintf(testAccCheckDataSourceDigitalOceanPartnerNetworkConnectConfig_DoesNotExist, partnenrNetworkConnectName)
+func TestAccDataSourceDigitalOceanPartnerAttachment_ExpectErrors(t *testing.T) {
+	partnenrAttachmentName := acceptance.RandomTestName()
+	partnerAttachmentNotExists := fmt.Sprintf(testAccCheckDataSourceDigitalOceanPartnerAttachmentConfig_DoesNotExist, partnenrAttachmentName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config:      partnerNetworkConnectNotExists,
-				ExpectError: regexp.MustCompile(`no Partner Network Connect found with name`),
+				Config:      partnerAttachmentNotExists,
+				ExpectError: regexp.MustCompile(`no Partner Attachment found with name`),
 			},
 		},
 	})
 }
 
-const testAccCheckDataSourceDigitalOceanPartnerNetworkConnectConfig_Basic = `
+const testAccCheckDataSourceDigitalOceanPartnerAttachmentConfig_Basic = `
 resource "digitalocean_vpc" "vpc1" {
   name   = "%s"
   region = "nyc3"
@@ -131,7 +131,7 @@ resource "digitalocean_vpc" "vpc2" {
   name   = "%s"
   region = "nyc3"
 }
-resource "digitalocean_partner_network_connect" "foobar" {
+resource "digitalocean_partner_attachment" "foobar" {
   name                         = "%s"
   connection_bandwidth_in_mbps = 100
   region                       = "nyc"
@@ -153,8 +153,8 @@ resource "digitalocean_partner_network_connect" "foobar" {
 }
 `
 
-const testAccCheckDataSourceDigitalOceanPartnerNetworkConnectConfig_DoesNotExist = `
-data "digitalocean_partner_network_connect" "foobar" {
+const testAccCheckDataSourceDigitalOceanPartnerAttachmentConfig_DoesNotExist = `
+data "digitalocean_partner_attachment" "foobar" {
   name = "%s"
 }
 `

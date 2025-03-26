@@ -9,20 +9,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDigitalOceanPartnerNetworkConnect_importBasic(t *testing.T) {
-	resourceName := "digitalocean_partner_network_connect.foobar"
+func TestAccDigitalOceanPartnerAttachment_importBasic(t *testing.T) {
+	resourceName := "digitalocean_partner_attachment.foobar"
 	vpc1Name := acceptance.RandomTestName()
 	vpc2Name := acceptance.RandomTestName()
-	partnerNetworkConnectName := acceptance.RandomTestName()
-	partnerNetworkConnectCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerNetworkConnectConfig_Basic, vpc1Name, vpc2Name, partnerNetworkConnectName)
+	partnerAttachmentName := acceptance.RandomTestName()
+	partnerAttachmentCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanPartnerAttachmentConfig_Basic, vpc1Name, vpc2Name, partnerAttachmentName)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanPartnerNetworkConnectDestroy,
+		CheckDestroy:      testAccCheckDigitalOceanPartnerAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: partnerNetworkConnectCreateConfig,
+				Config: partnerAttachmentCreateConfig,
 			},
 			{
 				ResourceName:            resourceName,

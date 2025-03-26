@@ -16,12 +16,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func ResourceDigitalOceanPartnerNetworkConnect() *schema.Resource {
+func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceDigitalOceanPartnerNetworkConnectCreate,
-		ReadContext:   resourceDigitalOceanPartnerNetworkConnectRead,
-		UpdateContext: resourceDigitalOceanPartnerNetworkConnectUpdate,
-		DeleteContext: resourceDigitalOceanPartnerNetworkConnectDelete,
+		CreateContext: resourceDigitalOceanPartnerAttachmentCreate,
+		ReadContext:   resourceDigitalOceanPartnerAttachmentRead,
+		UpdateContext: resourceDigitalOceanPartnerAttachmentUpdate,
+		DeleteContext: resourceDigitalOceanPartnerAttachmentDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -30,12 +30,12 @@ func ResourceDigitalOceanPartnerNetworkConnect() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The ID of the Partner Network Connect",
+				Description: "The ID of the Partner Attachment",
 			},
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "The name of the Partner Network Connect",
+				Description:  "The name of the Partner Attachment",
 				ValidateFunc: validation.NoZeroValues,
 			},
 			"connection_bandwidth_in_mbps": {
@@ -48,7 +48,7 @@ func ResourceDigitalOceanPartnerNetworkConnect() *schema.Resource {
 			"region": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "The region where the Partner Network Connect will be created",
+				Description:  "The region where the Partner Attachment will be created",
 				ValidateFunc: validation.NoZeroValues,
 				ForceNew:     true,
 			},
@@ -63,18 +63,18 @@ func ResourceDigitalOceanPartnerNetworkConnect() *schema.Resource {
 				Type:        schema.TypeSet,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Required:    true,
-				Description: "The list of VPC IDs to attach the Partner Network Connect to",
+				Description: "The list of VPC IDs to attach the Partner Attachment to",
 				Set:         schema.HashString,
 			},
 			"state": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The state of the Partner Network Connect",
+				Description: "The state of the Partner Attachment",
 			},
 			"created_at": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "The date and time when the Partner Network Connect was created",
+				Description: "The date and time when the Partner Attachment was created",
 			},
 			"bgp": {
 				Type:     schema.TypeList,
@@ -112,7 +112,7 @@ func ResourceDigitalOceanPartnerNetworkConnect() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanPartnerNetworkConnectCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDigitalOceanPartnerAttachmentCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	name := d.Get("name").(string)
@@ -126,7 +126,7 @@ func resourceDigitalOceanPartnerNetworkConnectCreate(ctx context.Context, d *sch
 		vpcIDsString[i] = v.(string)
 	}
 
-	partnerNetworkConnectRequest := &godo.PartnerNetworkConnectCreateRequest{
+	partnerAttachmentRequest := &godo.PartnerNetworkConnectCreateRequest{
 		Name:                      name,
 		ConnectionBandwidthInMbps: connectionBandwidthInMbps,
 		Region:                    region,
@@ -144,48 +144,48 @@ func resourceDigitalOceanPartnerNetworkConnectCreate(ctx context.Context, d *sch
 				PeerRouterIP:  bgpConfig["peer_router_ip"].(string),
 				AuthKey:       bgpConfig["auth_key"].(string),
 			}
-			partnerNetworkConnectRequest.BGP = bgp
+			partnerAttachmentRequest.BGP = bgp
 		}
 	}
 
-	log.Printf("[DEBUG] Partner Network Connect create request: %#v", partnerNetworkConnectRequest)
+	log.Printf("[DEBUG] Partner Attachment create request: %#v", partnerAttachmentRequest)
 
-	partnerNetworkConnect, resp, err := client.PartnerNetworkConnect.Create(context.Background(), partnerNetworkConnectRequest)
+	partnerNetworkConnect, resp, err := client.PartnerNetworkConnect.Create(context.Background(), partnerAttachmentRequest)
 	if err != nil {
 		if resp != nil {
 			switch resp.StatusCode {
 			case http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusConflict:
-				return diag.FromErr(fmt.Errorf("failed to create Partner Network Connect: %s", err))
+				return diag.FromErr(fmt.Errorf("failed to create Partner Attachment: %s", err))
 			}
 		}
-		return diag.FromErr(fmt.Errorf("error creating Partner Network Connect: %s", err))
+		return diag.FromErr(fmt.Errorf("error creating Partner Attachment: %s", err))
 	}
 
 	d.SetId(partnerNetworkConnect.ID)
 
-	log.Printf("[DEBUG] Waiting for Partner Network Connect (%s) to become active", d.Get("name"))
+	log.Printf("[DEBUG] Waiting for Partner Attachment (%s) to become active", d.Get("name"))
 	stateConf := &retry.StateChangeConf{
 		Delay:      5 * time.Second,
 		Pending:    []string{"CREATING"},
 		Target:     []string{"CREATED"},
-		Refresh:    partnerNetworkConnectStateRefreshFunc(client, d.Id()),
+		Refresh:    partnerAttachmentStateRefreshFunc(client, d.Id()),
 		Timeout:    d.Timeout(schema.TimeoutCreate),
 		MinTimeout: 5 * time.Second,
 	}
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return diag.FromErr(fmt.Errorf("error waiting for Partner Network Connect (%s) to become active: %s", d.Get("name"), err))
+		return diag.FromErr(fmt.Errorf("error waiting for Partner Attachment (%s) to become active: %s", d.Get("name"), err))
 	}
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Partner Network Connect created, ID: %s", d.Id())
+	log.Printf("[INFO] Partner Attachment created, ID: %s", d.Id())
 
-	return resourceDigitalOceanPartnerNetworkConnectRead(ctx, d, meta)
+	return resourceDigitalOceanPartnerAttachmentRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanPartnerNetworkConnectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanPartnerAttachmentUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	updateRequest := &godo.PartnerNetworkConnectUpdateRequest{}
@@ -208,48 +208,48 @@ func resourceDigitalOceanPartnerNetworkConnectUpdate(ctx context.Context, d *sch
 
 	_, _, err := client.PartnerNetworkConnect.Update(ctx, d.Id(), updateRequest)
 	if err != nil {
-		return diag.Errorf("Error updating Partner Network Connect: %s", err)
+		return diag.Errorf("Error updating Partner Attachment: %s", err)
 	}
 
 	if updateRequest.Name != "" {
-		log.Printf("[INFO] Updated Partner Network Connect Name")
+		log.Printf("[INFO] Updated Partner Attachment Name")
 	}
 
 	if len(updateRequest.VPCIDs) != 0 {
-		log.Printf("[INFO] Updated Partner Network Connect VPC IDs")
+		log.Printf("[INFO] Updated Partner Attachment VPC IDs")
 	}
 
 	return nil
 }
 
-func resourceDigitalOceanPartnerNetworkConnectDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanPartnerAttachmentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
-	partnerNetworkConnectID := d.Id()
+	partnerAttachmentID := d.Id()
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		resp, err := client.PartnerNetworkConnect.Delete(context.Background(), partnerNetworkConnectID)
+		resp, err := client.PartnerNetworkConnect.Delete(context.Background(), partnerAttachmentID)
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusForbidden {
 				return retry.RetryableError(err)
 			}
-			return retry.NonRetryableError(fmt.Errorf("error deleting Partner Network Connect: %s", err))
+			return retry.NonRetryableError(fmt.Errorf("error deleting Partner Attachment: %s", err))
 		}
 
-		log.Printf("[DEBUG] Waiting for Partner Network Connect (%s) to be deleted", d.Get("name"))
+		log.Printf("[DEBUG] Waiting for Partner Attachment (%s) to be deleted", d.Get("name"))
 		stateConf := &retry.StateChangeConf{
 			Delay:      5 * time.Second,
 			Pending:    []string{"DELETING"},
 			Target:     []string{http.StatusText(http.StatusNotFound)},
-			Refresh:    partnerNetworkConnectStateRefreshFunc(client, partnerNetworkConnectID),
+			Refresh:    partnerAttachmentStateRefreshFunc(client, partnerAttachmentID),
 			Timeout:    d.Timeout(schema.TimeoutDelete),
 			MinTimeout: 5 * time.Second,
 		}
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return retry.NonRetryableError(fmt.Errorf("error waiting for Partner Network Connect (%s) to be deleted: %s", d.Get("name"), err))
+			return retry.NonRetryableError(fmt.Errorf("error waiting for Partner Attachment (%s) to be deleted: %s", d.Get("name"), err))
 		}
 
 		d.SetId("")
-		log.Printf("[INFO] Partner Network Connect deleted, ID: %s", partnerNetworkConnectID)
+		log.Printf("[INFO] Partner Attachment deleted, ID: %s", partnerAttachmentID)
 
 		return nil
 	})
@@ -261,29 +261,29 @@ func resourceDigitalOceanPartnerNetworkConnectDelete(ctx context.Context, d *sch
 	return nil
 }
 
-func resourceDigitalOceanPartnerNetworkConnectRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
+func resourceDigitalOceanPartnerAttachmentRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	partnerNetworkConnect, resp, err := client.PartnerNetworkConnect.Get(context.Background(), d.Id())
+	partnerAttachment, resp, err := client.PartnerNetworkConnect.Get(context.Background(), d.Id())
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
-			log.Printf("[DEBUG] Partner Network Connect (%s) was not found - removing from state", d.Id())
+			log.Printf("[DEBUG] Partner Attachment (%s) was not found - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return diag.Errorf("Error reading Partner Network Connect: %s", err)
+		return diag.Errorf("Error reading Partner Attachment: %s", err)
 	}
 
-	d.SetId(partnerNetworkConnect.ID)
-	d.Set("name", partnerNetworkConnect.Name)
-	d.Set("state", partnerNetworkConnect.State)
-	d.Set("created_at", partnerNetworkConnect.CreatedAt.UTC().String())
-	d.Set("region", strings.ToLower(partnerNetworkConnect.Region))
-	d.Set("connection_bandwidth_in_mbps", partnerNetworkConnect.ConnectionBandwidthInMbps)
-	d.Set("naas_provider", partnerNetworkConnect.NaaSProvider)
-	d.Set("vpc_ids", partnerNetworkConnect.VPCIDs)
+	d.SetId(partnerAttachment.ID)
+	d.Set("name", partnerAttachment.Name)
+	d.Set("state", partnerAttachment.State)
+	d.Set("created_at", partnerAttachment.CreatedAt.UTC().String())
+	d.Set("region", strings.ToLower(partnerAttachment.Region))
+	d.Set("connection_bandwidth_in_mbps", partnerAttachment.ConnectionBandwidthInMbps)
+	d.Set("naas_provider", partnerAttachment.NaaSProvider)
+	d.Set("vpc_ids", partnerAttachment.VPCIDs)
 
-	bgp := partnerNetworkConnect.BGP
+	bgp := partnerAttachment.BGP
 	if bgp.PeerRouterIP != "" || bgp.LocalRouterIP != "" || bgp.PeerASN != 0 {
 		bgpMap := map[string]interface{}{
 			"local_router_ip": bgp.LocalRouterIP,
@@ -299,16 +299,16 @@ func resourceDigitalOceanPartnerNetworkConnectRead(ctx context.Context, d *schem
 	return nil
 }
 
-func partnerNetworkConnectStateRefreshFunc(client *godo.Client, id string) retry.StateRefreshFunc {
+func partnerAttachmentStateRefreshFunc(client *godo.Client, id string) retry.StateRefreshFunc {
 	return func() (result interface{}, state string, err error) {
-		partnerNetworkConnect, resp, err := client.PartnerNetworkConnect.Get(context.Background(), id)
+		partnerAttachment, resp, err := client.PartnerNetworkConnect.Get(context.Background(), id)
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
-				return partnerNetworkConnect, http.StatusText(resp.StatusCode), nil
+				return partnerAttachment, http.StatusText(resp.StatusCode), nil
 			}
-			return nil, "", fmt.Errorf("error issuing read request in partnerNetworkConnectStateRefreshFunc to DigitalOcean for Partner Network Connect '%s': %s", id, err)
+			return nil, "", fmt.Errorf("error issuing read request in partnerAttachmentStateRefreshFunc to DigitalOcean for Partner Attachment '%s': %s", id, err)
 		}
 
-		return partnerNetworkConnect, partnerNetworkConnect.State, nil
+		return partnerAttachment, partnerAttachment.State, nil
 	}
 }
