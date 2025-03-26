@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccDigitalOceanPartnerNetworkConnect_importBasic(t *testing.T) {
-	resourceName := "digitalocean_partner_interconnect_attachment.foobar"
+	resourceName := "digitalocean_partner_network_connect.foobar"
 	vpc1Name := acceptance.RandomTestName()
 	vpc2Name := acceptance.RandomTestName()
 	partnerNetworkConnectName := acceptance.RandomTestName()

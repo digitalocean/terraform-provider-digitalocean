@@ -40,7 +40,7 @@ The following arguments are supported and are mutually exclusive:
 * `connection_bandwidth_in_mbps` - (Required) The bandwidth in megabits per second of the connection.
 * `region` - (Required) The region where the Partner Network Connect is located.
 * `naas_provider` - (Required) The network as a service provider for the Partner Network Connect.
-* `vpc_ids` - (Required) The list of VPC IDs involved in the partner interconnect.
+* `vpc_ids` - (Required) The list of VPC IDs involved in the Partner Network Connect.
 * `bgp` - (Optional) The BGP configuration for the Partner Network Connect.
     * `local_router_ip` - The local router IP address in CIDR notation.
     * `peer_router_asn` - The peer autonomous system number.
