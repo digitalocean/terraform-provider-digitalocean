@@ -143,7 +143,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume":                          volume.DataSourceDigitalOceanVolume(),
 			"digitalocean_vpc":                             vpc.DataSourceDigitalOceanVPC(),
 			"digitalocean_vpc_peering":                     vpcpeering.DataSourceDigitalOceanVPCPeering(),
-			"digitalocean_partner_interconnect_attachment": partnernetworkconnect.DataSourceDigitalOceanPartnerNetworkConnect(),
+			"digitalocean_partner_network_connect": partnernetworkconnect.DataSourceDigitalOceanPartnerNetworkConnect(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
