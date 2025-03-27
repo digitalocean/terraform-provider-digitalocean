@@ -1,20 +1,20 @@
 ---
-page_title: "DigitalOcean: digitalocean_partner_network_connect"
+page_title: "DigitalOcean: digitalocean_partner_attachment"
 subcategory: "Networking"
 ---
 
-# digitalocean_partner_network_connect
+# digitalocean_partner_attachment
 
--> Partner Network Connect is currently in private preview. If you are not a member of the private preview group for this feature, you will not be able to use it until is has been more widely released. Please follow the official [DigitalOcean changelog](https://docs.digitalocean.com/release-notes/) for updates.
+-> Partner Attachment is currently in private preview. If you are not a member of the private preview group for this feature, you will not be able to use it until is has been more widely released. Please follow the official [DigitalOcean changelog](https://docs.digitalocean.com/release-notes/) for updates.
 
-Provides a [DigitalOcean Partner Network Connect](#digitalocean_partner_network_connect) resource.
+Provides a [DigitalOcean Partner Attachment](#digitalocean_partner_attachment) resource.
 
-Partner Network Connects enable private connectivity between VPC networks across different cloud providers via a supported service provider.
+Partner Attachments enable private connectivity between VPC networks across different cloud providers via a supported service provider.
 
 ## Example Usage
 
 ```hcl
-resource "digitalocean_partner_network_connect" "foobar" {
+resource "digitalocean_partner_attachment" "foobar" {
   name                         = "example-partner-network-connect"
   connection_bandwidth_in_mbps = 100
   region                       = "nyc"
@@ -36,12 +36,12 @@ resource "digitalocean_partner_network_connect" "foobar" {
 
 The following arguments are supported and are mutually exclusive:
 
-* `name` - (Required) The name of an existing Partner Network Connect.
+* `name` - (Required) The name of an existing Partner Attachment.
 * `connection_bandwidth_in_mbps` - (Required) The bandwidth in megabits per second of the connection.
-* `region` - (Required) The region where the Partner Network Connect is located.
-* `naas_provider` - (Required) The network as a service provider for the Partner Network Connect.
-* `vpc_ids` - (Required) The list of VPC IDs involved in the Partner Network Connect.
-* `bgp` - (Optional) The BGP configuration for the Partner Network Connect.
+* `region` - (Required) The region where the Partner Attachment is located.
+* `naas_provider` - (Required) The network as a service provider for the Partner Attachment.
+* `vpc_ids` - (Required) The list of VPC IDs involved in the Partner Attachment.
+* `bgp` - (Optional) The BGP configuration for the Partner Attachment.
     * `local_router_ip` - The local router IP address in CIDR notation.
     * `peer_router_asn` - The peer autonomous system number.
     * `peer_router_ip` - The peer router IP address in CIDR notation.
@@ -49,6 +49,6 @@ The following arguments are supported and are mutually exclusive:
 
 ## Attributes Reference
 
-* `id` - The unique identifier of an existing Partner Network Connect.
-* `state` - The state of the Partner Network Connect.
-* `created_at` - The date and time of when the Partner Network Connect was created.
+* `id` - The unique identifier of an existing Partner Attachment.
+* `state` - The state of the Partner Attachment.
+* `created_at` - The date and time of when the Partner Attachment was created.
