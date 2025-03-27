@@ -17,6 +17,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/monitoring"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/partnernetworkconnect"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/project"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/region"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/registry"
@@ -143,6 +144,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume":                   volume.DataSourceDigitalOceanVolume(),
 			"digitalocean_vpc":                      vpc.DataSourceDigitalOceanVPC(),
 			"digitalocean_vpc_peering":              vpcpeering.DataSourceDigitalOceanVPCPeering(),
+			"digitalocean_partner_attachment":       partnernetworkconnect.DataSourceDigitalOceanPartnerAttachment(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -197,6 +199,7 @@ func Provider() *schema.Provider {
 			"digitalocean_vpc":                                   vpc.ResourceDigitalOceanVPC(),
 			"digitalocean_vpc_peering":                           vpcpeering.ResourceDigitalOceanVPCPeering(),
 			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
+			"digitalocean_partner_attachment":                    partnernetworkconnect.ResourceDigitalOceanPartnerAttachment(),
 		},
 	}
 
