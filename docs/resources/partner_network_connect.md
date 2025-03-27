@@ -15,7 +15,7 @@ Partner Attachments enable private connectivity between VPC networks across diff
 
 ```hcl
 resource "digitalocean_partner_attachment" "foobar" {
-  name                         = "example-partner-network-connect"
+  name                         = "example-partner-attachment"
   connection_bandwidth_in_mbps = 100
   region                       = "nyc"
   naas_provider                = "MEGAPORT"
