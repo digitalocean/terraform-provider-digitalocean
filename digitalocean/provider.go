@@ -133,6 +133,7 @@ func Provider() *schema.Provider {
 			"digitalocean_sizes":                    size.DataSourceDigitalOceanSizes(),
 			"digitalocean_spaces_bucket":            spaces.DataSourceDigitalOceanSpacesBucket(),
 			"digitalocean_spaces_buckets":           spaces.DataSourceDigitalOceanSpacesBuckets(),
+			"digitalocean_spaces_key":               spaces.DataSourceDigitalOceanSpacesKey(),
 			"digitalocean_spaces_bucket_object":     spaces.DataSourceDigitalOceanSpacesBucketObject(),
 			"digitalocean_spaces_bucket_objects":    spaces.DataSourceDigitalOceanSpacesBucketObjects(),
 			"digitalocean_ssh_key":                  sshkey.DataSourceDigitalOceanSSHKey(),
