@@ -72,7 +72,7 @@ func testAccCheckDigitalOceanPartnerAttachmentDestroy(s *terraform.State) error 
 			continue
 		}
 
-		_, _, err := client.PartnerNetworkConnect.Get(context.Background(), rs.Primary.ID)
+		_, _, err := client.PartnerAttachment.Get(context.Background(), rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("Partner Attachment still exists")
 		}
@@ -93,7 +93,7 @@ func testAccCheckDigitalOceanPartnerAttachmentExists(n string, partnerAttachment
 		}
 
 		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
-		foundPartnerAttachment, _, err := client.PartnerNetworkConnect.Get(context.Background(), rs.Primary.ID)
+		foundPartnerAttachment, _, err := client.PartnerAttachment.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
 			return fmt.Errorf("error fetching Partner Attachment (%s): %s", rs.Primary.ID, err)
 		}

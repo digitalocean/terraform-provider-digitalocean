@@ -32,7 +32,7 @@ func sweepPartnerAttachment(region string) error {
 	ctx := context.Background()
 
 	opt := &godo.ListOptions{PerPage: 200}
-	partnerAttachments, _, err := client.PartnerNetworkConnect.List(ctx, opt)
+	partnerAttachments, _, err := client.PartnerAttachment.List(ctx, opt)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func sweepPartnerAttachment(region string) error {
 	for _, p := range partnerAttachments {
 		if strings.HasPrefix(p.Name, sweep.TestNamePrefix) {
 			log.Printf("[DEBUG] Destroying Partner Attachment %s", p.Name)
-			resp, err := client.PartnerNetworkConnect.Delete(ctx, p.ID)
+			resp, err := client.PartnerAttachment.Delete(ctx, p.ID)
 			if err != nil {
 				if resp.StatusCode == http.StatusForbidden {
 					log.Printf("[DEBUG] Skipping Partner Attachment %s; still contains resources", p.Name)

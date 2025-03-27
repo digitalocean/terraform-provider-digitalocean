@@ -87,7 +87,7 @@ func dataSourceDigitalOceanPartnerAttachmentRead(ctx context.Context, d *schema.
 	var foundPartnerAttachment *godo.PartnerAttachment
 
 	if id, ok := d.GetOk("id"); ok {
-		partnerAttachment, _, err := client.PartnerNetworkConnect.Get(ctx, id.(string))
+		partnerAttachment, _, err := client.PartnerAttachment.Get(ctx, id.(string))
 		if err != nil {
 			return diag.Errorf("error retrieving Partner Attachment: %s", err)
 		}
@@ -141,7 +141,7 @@ func listPartnerAttachments(client *godo.Client) ([]*godo.PartnerAttachment, err
 	}
 
 	for {
-		partnerAttachments, resp, err := client.PartnerNetworkConnect.List(context.Background(), opts)
+		partnerAttachments, resp, err := client.PartnerAttachment.List(context.Background(), opts)
 		if err != nil {
 			return nil, err
 		}

@@ -126,7 +126,7 @@ func resourceDigitalOceanPartnerAttachmentCreate(ctx context.Context, d *schema.
 		vpcIDsString[i] = v.(string)
 	}
 
-	partnerAttachmentRequest := &godo.PartnerNetworkConnectCreateRequest{
+	partnerAttachmentRequest := &godo.PartnerAttachmentCreateRequest{
 		Name:                      name,
 		ConnectionBandwidthInMbps: connectionBandwidthInMbps,
 		Region:                    region,
@@ -150,7 +150,7 @@ func resourceDigitalOceanPartnerAttachmentCreate(ctx context.Context, d *schema.
 
 	log.Printf("[DEBUG] Partner Attachment create request: %#v", partnerAttachmentRequest)
 
-	partnerNetworkConnect, resp, err := client.PartnerNetworkConnect.Create(context.Background(), partnerAttachmentRequest)
+	partnerAttachment, resp, err := client.PartnerAttachment.Create(context.Background(), partnerAttachmentRequest)
 	if err != nil {
 		if resp != nil {
 			switch resp.StatusCode {
@@ -161,7 +161,7 @@ func resourceDigitalOceanPartnerAttachmentCreate(ctx context.Context, d *schema.
 		return diag.FromErr(fmt.Errorf("error creating Partner Attachment: %s", err))
 	}
 
-	d.SetId(partnerNetworkConnect.ID)
+	d.SetId(partnerAttachment.ID)
 
 	log.Printf("[DEBUG] Waiting for Partner Attachment (%s) to become active", d.Get("name"))
 	stateConf := &retry.StateChangeConf{
@@ -188,7 +188,7 @@ func resourceDigitalOceanPartnerAttachmentCreate(ctx context.Context, d *schema.
 func resourceDigitalOceanPartnerAttachmentUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	updateRequest := &godo.PartnerNetworkConnectUpdateRequest{}
+	updateRequest := &godo.PartnerAttachmentUpdateRequest{}
 
 	if d.HasChange("name") {
 		updateRequest.Name = d.Get("name").(string)
@@ -206,7 +206,7 @@ func resourceDigitalOceanPartnerAttachmentUpdate(ctx context.Context, d *schema.
 		return nil
 	}
 
-	_, _, err := client.PartnerNetworkConnect.Update(ctx, d.Id(), updateRequest)
+	_, _, err := client.PartnerAttachment.Update(ctx, d.Id(), updateRequest)
 	if err != nil {
 		return diag.Errorf("Error updating Partner Attachment: %s", err)
 	}
@@ -227,7 +227,7 @@ func resourceDigitalOceanPartnerAttachmentDelete(ctx context.Context, d *schema.
 	partnerAttachmentID := d.Id()
 
 	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
-		resp, err := client.PartnerNetworkConnect.Delete(context.Background(), partnerAttachmentID)
+		resp, err := client.PartnerAttachment.Delete(context.Background(), partnerAttachmentID)
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusForbidden {
 				return retry.RetryableError(err)
@@ -264,7 +264,7 @@ func resourceDigitalOceanPartnerAttachmentDelete(ctx context.Context, d *schema.
 func resourceDigitalOceanPartnerAttachmentRead(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	partnerAttachment, resp, err := client.PartnerNetworkConnect.Get(context.Background(), d.Id())
+	partnerAttachment, resp, err := client.PartnerAttachment.Get(context.Background(), d.Id())
 	if err != nil {
 		if resp != nil && resp.StatusCode == http.StatusNotFound {
 			log.Printf("[DEBUG] Partner Attachment (%s) was not found - removing from state", d.Id())
@@ -301,7 +301,7 @@ func resourceDigitalOceanPartnerAttachmentRead(ctx context.Context, d *schema.Re
 
 func partnerAttachmentStateRefreshFunc(client *godo.Client, id string) retry.StateRefreshFunc {
 	return func() (result interface{}, state string, err error) {
-		partnerAttachment, resp, err := client.PartnerNetworkConnect.Get(context.Background(), id)
+		partnerAttachment, resp, err := client.PartnerAttachment.Get(context.Background(), id)
 		if err != nil {
 			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return partnerAttachment, http.StatusText(resp.StatusCode), nil
