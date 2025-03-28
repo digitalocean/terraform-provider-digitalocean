@@ -146,8 +146,36 @@ func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, 
 	}
 
 	log.Printf("[INFO] App created, ID: %s", d.Id())
+	err = syncAppAlertDestinations(d, client, app.ID)
+	if err != nil {
+		return diag.Errorf("Error updating alert destination: %s", err)
+	}
 
 	return resourceDigitalOceanAppRead(ctx, d, meta)
+}
+
+type alertMatchCallback = func(a, b *godo.AppAlert) bool
+
+func resourceDigitalOceanAlertDestinationUpdate(appID string, existingAlerts, schemaAlerts []*godo.AppAlert, client *godo.Client, match alertMatchCallback) error {
+	for _, schemaAlert := range schemaAlerts {
+		for _, alert := range existingAlerts {
+			if !match(schemaAlert, alert) {
+				continue
+			}
+			log.Printf("[DEBUG] Updating alert destination: %#v", alert)
+			_, _, err := client.Apps.UpdateAlertDestinations(context.Background(), appID, alert.ID, &godo.AlertDestinationUpdateRequest{
+				Emails:        schemaAlert.Emails,
+				SlackWebhooks: schemaAlert.SlackWebhooks,
+			})
+
+			if err != nil {
+				return err
+			}
+			log.Printf("[INFO] Alert updated: %s", alert.ID)
+		}
+	}
+
+	return nil
 }
 
 func resourceDigitalOceanAppRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -227,6 +255,11 @@ func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, 
 		}
 
 		log.Printf("[INFO] Updated app (%s)", app.ID)
+
+		err = syncAppAlertDestinations(d, client, app.ID)
+		if err != nil {
+			return diag.Errorf("Error updating alert destination: %s", err)
+		}
 	}
 
 	return resourceDigitalOceanAppRead(ctx, d, meta)
@@ -313,4 +346,248 @@ func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration)
 	}
 
 	return fmt.Errorf("timeout waiting for app (%s) deployment", id)
+}
+
+func mapAppLevelAlerts(d *schema.ResourceData) []*godo.AppAlert {
+	spec, ok := d.GetOk("spec")
+	if !ok {
+		return nil
+	}
+
+	specList := spec.([]interface{})
+	if len(specList) == 0 {
+		return nil
+	}
+	specMap, ok := specList[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	alert, ok := specMap["alert"]
+	if !ok {
+		return nil
+	}
+
+	alertList, ok := alert.([]interface{})
+	if !ok {
+		return nil
+	}
+
+	var alertDetails []*godo.AppAlert
+
+	for _, alertItem := range alertList {
+		alertData, ok := alertItem.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		alertDetail := &godo.AppAlert{
+			Spec:          &godo.AppAlertSpec{},
+			Emails:        []string{},
+			SlackWebhooks: []*godo.AppAlertSlackWebhook{},
+		}
+
+		for key, value := range alertData {
+			switch key {
+			case "rule":
+				if rule, ok := value.(string); ok {
+					alertDetail.Spec.Rule = godo.AppAlertSpecRule(rule)
+				}
+			case "destinations":
+				if destinations, ok := value.(*schema.Set); ok {
+					emails, slackWebhooks := extractEmailsAndSlackDestinations(destinations)
+
+					if len(emails) == 0 && len(slackWebhooks) == 0 {
+						continue
+					}
+
+					alertDetail.Emails = emails
+					alertDetail.SlackWebhooks = slackWebhooks
+				}
+			}
+		}
+
+		alertDetails = append(alertDetails, alertDetail)
+	}
+
+	return alertDetails
+}
+
+func syncAppAlertDestinations(d *schema.ResourceData, client *godo.Client, appID string) error {
+	appConfigurationAlert := mapAppLevelAlerts(d)
+	computeComponentAlerts := mapComputeComponentAlert(d)
+
+	hasAppLevelAlerts := len(appConfigurationAlert) > 0 && (len(appConfigurationAlert[0].Emails) > 0 || len(appConfigurationAlert[0].SlackWebhooks) > 0)
+	hasComputeComponentAlerts := len(computeComponentAlerts) > 0 && (len(computeComponentAlerts[0].Emails) > 0 || len(computeComponentAlerts[0].SlackWebhooks) > 0)
+
+	var alerts []*godo.AppAlert
+	if hasAppLevelAlerts || hasComputeComponentAlerts {
+		appAlerts, _, err := client.Apps.ListAlerts(context.Background(), appID)
+		if err != nil {
+			return err
+		}
+		alerts = appAlerts
+	}
+
+	if hasAppLevelAlerts {
+		err := resourceDigitalOceanAlertDestinationUpdate(appID, alerts, appConfigurationAlert, client, func(a, b *godo.AppAlert) bool {
+			return string(a.Spec.Rule) == string(b.Spec.Rule)
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	if hasComputeComponentAlerts {
+		err := resourceDigitalOceanAlertDestinationUpdate(appID, alerts, computeComponentAlerts, client, func(a, b *godo.AppAlert) bool {
+			return string(a.Spec.Rule) == string(b.Spec.Rule)
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func mapComputeComponentAlert(d *schema.ResourceData) []*godo.AppAlert {
+	spec, ok := d.GetOk("spec")
+	if !ok {
+		return nil
+	}
+
+	specList := spec.([]interface{})
+	if len(specList) == 0 {
+		return nil
+	}
+	specMap, ok := specList[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	var alertDetails []*godo.AppAlert
+
+	if serviceSpec, ok := specMap["service"]; ok {
+		if services, ok := serviceSpec.([]interface{}); ok {
+			alertDetails = extractAlertDetailsFromComputeComponent(services, alertDetails)
+		}
+	}
+
+	if workerSpec, ok := specMap["worker"]; ok {
+		if workers, ok := workerSpec.([]interface{}); ok {
+			alertDetails = extractAlertDetailsFromComputeComponent(workers, alertDetails)
+		}
+	}
+
+	if jobSpec, ok := specMap["job"]; ok {
+		if jobs, ok := jobSpec.([]interface{}); ok {
+			alertDetails = extractAlertDetailsFromComputeComponent(jobs, alertDetails)
+		}
+	}
+
+	if functionSpec, ok := specMap["function"]; ok {
+		if functions, ok := functionSpec.([]interface{}); ok {
+			alertDetails = extractAlertDetailsFromComputeComponent(functions, alertDetails)
+		}
+	}
+
+	return alertDetails
+}
+
+func extractAlertDetailsFromComputeComponent(computeComponents []interface{}, alertDetails []*godo.AppAlert) []*godo.AppAlert {
+	for _, computeServiceMap := range computeComponents {
+		computeServiceMapTyped, ok := computeServiceMap.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		alertRaw, ok := computeServiceMapTyped["alert"].([]interface{})
+		if !ok {
+			continue // Skip if no alerts are defined for this compute component
+		}
+
+		for _, alert := range alertRaw {
+			alertMap, ok := alert.(map[string]interface{})
+			if !ok {
+				continue
+			}
+
+			destinations, ok := alertMap["destinations"].(*schema.Set)
+			if !ok {
+				continue
+			}
+
+			emails, slackWebhooks := extractEmailsAndSlackDestinations(destinations)
+			if len(emails) == 0 && len(slackWebhooks) == 0 {
+				continue
+			}
+
+			appAlert := &godo.AppAlert{
+				Spec:          &godo.AppAlertSpec{},
+				Emails:        emails,
+				SlackWebhooks: slackWebhooks,
+			}
+			if rule, ok := alertMap["rule"].(string); ok {
+				appAlert.Spec.Rule = godo.AppAlertSpecRule(rule)
+			}
+			if value, ok := alertMap["value"].(float32); ok {
+				appAlert.Spec.Value = value
+			}
+			if operator, ok := alertMap["operator"].(string); ok {
+				appAlert.Spec.Operator = godo.AppAlertSpecOperator(operator)
+			}
+			if window, ok := alertMap["window"].(string); ok {
+				appAlert.Spec.Window = godo.AppAlertSpecWindow(window)
+			}
+
+			alertDetails = append(alertDetails, appAlert)
+		}
+	}
+	return alertDetails
+}
+
+func extractEmailsAndSlackDestinations(destinations interface{}) ([]string, []*godo.AppAlertSlackWebhook) {
+	var emails []string
+	var slackWebhookAlerts []*godo.AppAlertSlackWebhook
+
+	if destinations == nil {
+		return emails, slackWebhookAlerts
+	}
+
+	destinationSet, ok := destinations.(*schema.Set)
+	if !ok {
+		return emails, slackWebhookAlerts
+	}
+
+	for _, destinationInterface := range destinationSet.List() {
+		destination, ok := destinationInterface.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		if destinationEmails, ok := destination["emails"].([]interface{}); ok && len(destinationEmails) > 0 {
+			for _, email := range destinationEmails {
+				if emailStr, ok := email.(string); ok {
+					emails = append(emails, emailStr)
+				}
+			}
+		}
+
+		if slackWebhooks, ok := destination["slack_webhooks"].([]interface{}); ok && len(slackWebhooks) > 0 {
+			for _, slackInterface := range slackWebhooks {
+				if slack, ok := slackInterface.(map[string]interface{}); ok {
+					slackDetail := &godo.AppAlertSlackWebhook{}
+					if channel, ok := slack["channel"].(string); ok {
+						slackDetail.Channel = channel
+					}
+					if url, ok := slack["url"].(string); ok {
+						slackDetail.URL = url
+					}
+					slackWebhookAlerts = append(slackWebhookAlerts, slackDetail)
+				}
+			}
+		}
+	}
+
+	return emails, slackWebhookAlerts
 }
