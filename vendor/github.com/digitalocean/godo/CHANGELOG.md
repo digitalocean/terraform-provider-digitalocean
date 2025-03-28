@@ -1,5 +1,21 @@
 # Change Log
 
+## [v1.142.0] - 2025-03-27
+
+- #813 - @lfundaro-do - partner-network-connect: fix typo
+- #811 - @lfundaro-do - fix partner attachment rename
+- #810 - @apinonformoso - VPC-4359: remove custom unmarshaler for PNCs
+- #809 - @apinonformoso - hotfix: json field name
+- #808 - @apinonformoso - fix partner network connect json tags
+- #807 - @bentranter - Bump Go version to v1.23
+
+## [v1.141.0] - 2025-03-20
+
+- #805 - @singhsaubhikdo - BLOCK-4316: Adds region param in ListSnapshot for resource type volume
+- #802 - @apinonformoso - VPC-4312: rename partner interconnect attachment to partner network connect
+- #774 - @blesswinsamuel - APPS-10284 Remove "closed beta" note in archive feature to prep for GA release
+- #797 - @kperath - add support for cluster status messages
+
 ## [v1.140.0] - 2025-03-14
 
 - #800 - @lee-aaron - support Spaces Keys GET by Access Key ID
@@ -13,7 +29,7 @@
 - #793 - @apinonformoso - add auth_key field
 - #789 - @guptado - [VPC-3917] Update get service key response model
 
-## [v1.138.0] - 2025-03-18
+## [v1.138.0] - 2025-02-18
 
 - #785 - @guptado - Support partner interconnect GetBgpAuthKey and RegenerateServiceKey operations
 - #787 - @andrewsomething - ci: upgrade to actions/cache@v4
