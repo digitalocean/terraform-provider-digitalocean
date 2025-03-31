@@ -148,6 +148,9 @@ The following arguments are supported:
 * `version` - (Required) The slug identifier for the version of Kubernetes used for the cluster. Use [doctl](https://github.com/digitalocean/doctl) to find the available versions `doctl kubernetes options versions`. (**Note:** A cluster may only be upgraded to newer versions in-place. If the version is decreased, a new resource will be created.)
 * `cluster_subnet` - (Optional) The range of IP addresses in the overlay network of the Kubernetes cluster. For more information, see [here](https://docs.digitalocean.com/products/kubernetes/how-to/create-clusters/#create-with-vpc-native).
 * `service_subnet` - (Optional) The range of assignable IP addresses for services running in the Kubernetes cluster. For more information, see [here](https://docs.digitalocean.com/products/kubernetes/how-to/create-clusters/#create-with-vpc-native).
+* `control_plane_firewall` - (Optional) A block representing the cluster's control plane firewall
+  - `enabled` - (Required) Boolean flag whether the firewall should be enabled or not.
+  - `allowed_addresses` - (Required) A list of addresses allowed (CIDR notation).
 * `vpc_uuid` - (Optional) The ID of the VPC where the Kubernetes cluster will be located.
 * `auto_upgrade` - (Optional) A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: true
