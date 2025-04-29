@@ -570,8 +570,15 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"IPV4", "DUALSTACK"}, true),
-				Description: "The network stack determines the allocation of ipv4/ipv6 addresses to the load balancer. Enum: 'IPV4' 'DUALSTACK'," +
-					" (NOTE: this feature is in private preview, contact DigitalOcean support to review its public availability.)",
+				Description:  "The network stack determines the allocation of ipv4/ipv6 addresses to the load balancer. Enum: 'IPV4' 'DUALSTACK'",
+			},
+
+			"tls_cipher_policy": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice([]string{"DEFAULT", "STRONG"}, true),
+				Description:  "The tls cipher policy to be used for the load balancer. Enum: 'DEFAULT' 'STRONG'",
 			},
 		},
 	}
@@ -695,6 +702,10 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 
 	if v, ok := d.GetOk("network_stack"); ok {
 		opts.NetworkStack = v.(string)
+	}
+
+	if v, ok := d.GetOk("tls_cipher_policy"); ok {
+		opts.TLSCipherPolicy = v.(string)
 	}
 
 	return opts, nil
