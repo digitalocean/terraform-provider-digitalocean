@@ -388,6 +388,58 @@ func TestAccDigitalOceanDatabaseCluster_RedisWithEvictionPolicy(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_ValkeyWithEvictionPolicy(t *testing.T) {
+	var database godo.Database
+	databaseName := acceptance.RandomTestName()
+
+	initialConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterValkeyConfigWithEvictionPolicy, databaseName, "volatile_random")
+	updatedConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterValkeyConfigWithEvictionPolicy, databaseName, "allkeys_lru")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			// Create with an eviction policy
+			{
+				Config: initialConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "name", databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "engine", "valkey"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "uri"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "private_uri"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "eviction_policy", "volatile_random"),
+				),
+			},
+			// Update eviction policy
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "name", databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "engine", "valkey"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "uri"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "private_uri"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "eviction_policy", "allkeys_lru"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDatabaseCluster_CheckEvictionPolicySupport(t *testing.T) {
 	databaseName := acceptance.RandomTestName()
 
@@ -935,6 +987,19 @@ resource "digitalocean_database_cluster" "foobar" {
   node_count      = 1
   tags            = ["production"]
   eviction_policy = "volatile_random"
+}
+`
+
+const testAccCheckDigitalOceanDatabaseClusterValkeyConfigWithEvictionPolicy = `
+resource "digitalocean_database_cluster" "foobar" {
+  name            = "%s"
+  engine          = "valkey"
+  version         = "8"
+  size            = "db-s-1vcpu-1gb"
+  region          = "nyc1"
+  node_count      = 1
+  tags            = ["production"]
+  eviction_policy = "%s"
 }
 `
 
