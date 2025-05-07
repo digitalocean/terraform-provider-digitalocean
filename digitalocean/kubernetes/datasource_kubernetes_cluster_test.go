@@ -124,3 +124,38 @@ func testAccCheckDataSourceDigitalOceanKubernetesClusterExists(n string, cluster
 		return nil
 	}
 }
+
+func TestAccDataSourceDigitalOceanKubernetesCluster_NodeCountZero(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	clusterConfig := fmt.Sprintf(`%s
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    = "%s"
+  region  = "lon1"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
+  tags    = ["foo", "bar"]
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 0
+    tags       = ["one", "two"]
+  }
+}
+`, testClusterVersionLatest, rName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: clusterConfig,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+				),
+			},
+		},
+	})
+}
