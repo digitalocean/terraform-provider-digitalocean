@@ -15,7 +15,7 @@ Provides a DigitalOcean Kubernetes cluster resource. This can be used to create,
 resource "digitalocean_kubernetes_cluster" "foo" {
   name   = "foo"
   region = "nyc1"
-  # Grab the latest version slug from `doctl kubernetes options versions (e.g. "1.14.6-do.1"`
+  # Grab the latest version slug from `doctl kubernetes options versions` (e.g. "1.14.6-do.1"
   # If set to "latest", latest published version will be used.
   version = "latest"
 
