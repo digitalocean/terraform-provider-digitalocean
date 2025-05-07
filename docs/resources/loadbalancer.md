@@ -120,10 +120,10 @@ the backend service. Default value is `false`.
 * `glb_settings` (Optional) - A block containing `glb_settings` required to define target rules for a Global Load Balancer. The `glb_settings` block is documented below.
 * `target_load_balancer_ids` (Optional) - A list of Load Balancer IDs to be attached behind a Global Load Balancer.
 * `type` - (Optional) The type of the Load Balancer. It must be either of `REGIONAL`, `REGIONAL_NETWORK`, or `GLOBAL`. Defaults to `REGIONAL`.
-**NOTE**: non-`REGIONAL/GLOBAL` type may be part of closed beta feature and not available for public use.
 * `network` - (Optional) The type of network the Load Balancer is accessible from. It must be either of `INTERNAL` or `EXTERNAL`. Defaults to `EXTERNAL`.
 * `network_stack` - (Optional) The network stack determines the allocation of ipv4/ipv6 addresses to the load balancer. It must be either of `IPV4` or `DUALSTACK`. Defaults to `IPV4`.
-**NOTE**: this feature is in private preview, and may not be available for public use
+* `tls_cipher_policy` - (Optional) The tls cipher policy controls the cipher suites to be used by the load balancer. It must be either of `DEFAULT` or `STRONG`. Defaults to `DEFAULT`.
+
 
 `forwarding_rule` supports the following:
 

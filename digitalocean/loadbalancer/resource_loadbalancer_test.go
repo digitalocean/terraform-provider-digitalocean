@@ -77,6 +77,8 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "network", "EXTERNAL"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "network_stack", "IPV4"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "tls_cipher_policy", "DEFAULT"),
 				),
 			},
 		},
@@ -139,6 +141,8 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "network", "EXTERNAL"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "network_stack", "IPV4"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "tls_cipher_policy", "DEFAULT"),
 				),
 			},
 			{
@@ -188,6 +192,8 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "network", "EXTERNAL"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "network_stack", "IPV4"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "tls_cipher_policy", "DEFAULT"),
 				),
 			},
 		},
@@ -993,6 +999,7 @@ resource "digitalocean_loadbalancer" "foobar" {
   enable_proxy_protocol     = true
   enable_backend_keepalive  = true
   http_idle_timeout_seconds = 90
+  tls_cipher_policy         = "DEFAULT"
 
   droplet_ids = [digitalocean_droplet.foobar.id]
 }`, name, name)
@@ -1038,6 +1045,7 @@ resource "digitalocean_loadbalancer" "foobar" {
   enable_backend_keepalive         = false
   disable_lets_encrypt_dns_records = true
   http_idle_timeout_seconds        = 120
+  tls_cipher_policy                = "DEFAULT"
 
   droplet_ids = [digitalocean_droplet.foobar.id, digitalocean_droplet.foo.id]
 }`, name, name, name)

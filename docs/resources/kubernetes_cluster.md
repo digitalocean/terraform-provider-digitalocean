@@ -54,7 +54,8 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 }
 ```
 
-Note that, each node pool must always have at least one node and when using autoscaling the min_nodes must be greater than or equal to 1.
+Note that, currently, each node pool must always have at least one node and when using autoscaling the min_nodes must be greater than or equal to 1.
+> Autoscaling to zero (`min_nodes=0`) is in [private preview](https://docs.digitalocean.com/release-notes/kubernetes/#2025-01-07) and not available for public use.
 
 ### Auto Upgrade Example
 
