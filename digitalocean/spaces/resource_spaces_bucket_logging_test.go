@@ -23,7 +23,7 @@ func TestAccDigitalOceanSpacesBucketLogging_basic(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketPolicyDestroy,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketLoggingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketLogging(name, "logs/"),
@@ -46,7 +46,7 @@ func TestAccDigitalOceanSpacesBucketLogging_update(t *testing.T) {
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketPolicyDestroy,
+		CheckDestroy:      testAccCheckDigitalOceanSpacesBucketLoggingDestroy,
 		Steps: []resource.TestStep{
 			{
 				Config: testAccDigitalOceanSpacesBucketLogging(name, initialPrefix),
