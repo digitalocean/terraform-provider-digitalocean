@@ -475,6 +475,11 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 							ValidateFunc: validation.NoZeroValues,
 							Description:  "name of certificate required for TLS handshaking",
 						},
+						"certificate_id": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "certificate ID for TLS handshaking",
+						},
 						"verification_error_reasons": {
 							Type:        schema.TypeList,
 							Computed:    true,

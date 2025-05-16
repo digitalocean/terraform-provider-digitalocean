@@ -161,7 +161,8 @@ the backend service. Default value is `false`.
 
 * `name` - (Required) The domain name to be used for ingressing traffic to a Global Load Balancer.
 * `is_managed` - (Optional) Control flag to specify whether the domain is managed by DigitalOcean.
-* `certificate_id` - (Optional) The certificate ID to be used for TLS handshaking.
+* `certificate_name` - (Optional) The certificate name to be used for TLS handshaking.
+* `certificate_id` - (Read Only) The certificate id associated with the domain used for TLS handshaking.
 
 `glb_settings` supports the following:
 
