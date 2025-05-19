@@ -189,6 +189,7 @@ func Provider() *schema.Provider {
 			"digitalocean_spaces_bucket_object":                  spaces.ResourceDigitalOceanSpacesBucketObject(),
 			"digitalocean_spaces_bucket_policy":                  spaces.ResourceDigitalOceanSpacesBucketPolicy(),
 			"digitalocean_spaces_key":                            spaces.ResourceDigitalOceanSpacesKey(),
+			"digitalocean_spaces_bucket_logging":                 spaces.ResourceDigitalOceanSpacesBucketLogging(),
 			"digitalocean_ssh_key":                               sshkey.ResourceDigitalOceanSSHKey(),
 			"digitalocean_tag":                                   tag.ResourceDigitalOceanTag(),
 			"digitalocean_uptime_check":                          uptime.ResourceDigitalOceanUptimeCheck(),

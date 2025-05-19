@@ -21,9 +21,9 @@ the provider's `spaces_access_id` and `spaces_secret_key` arguments to the
 access ID and secret you generate via the DigitalOcean control panel. For
 example:
 
-```
+```hcl
 provider "digitalocean" {
-  token             = var.digitalocean_token
+  token = var.digitalocean_token
 
   spaces_access_id  = var.access_id
   spaces_secret_key = var.secret_key
