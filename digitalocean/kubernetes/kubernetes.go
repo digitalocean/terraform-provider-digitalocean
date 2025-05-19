@@ -34,9 +34,8 @@ func nodePoolSchema(isResource bool) map[string]*schema.Schema {
 		},
 
 		"node_count": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
+			Type:     schema.TypeInt,
+			Optional: true,
 			DiffSuppressFunc: func(key, old, new string, d *schema.ResourceData) bool {
 				nodeCountKey := "node_count"
 				actualNodeCountKey := "actual_node_count"
@@ -71,9 +70,8 @@ func nodePoolSchema(isResource bool) map[string]*schema.Schema {
 		},
 
 		"min_nodes": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
+			Type:     schema.TypeInt,
+			Optional: true,
 		},
 
 		"max_nodes": {
@@ -240,6 +238,57 @@ func expandMaintPolicyOpts(config []interface{}) (*godo.KubernetesMaintenancePol
 	return maintPolicy, nil
 }
 
+func expandControlPlaneFirewallOpts(raw []interface{}) *godo.KubernetesControlPlaneFirewall {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesControlPlaneFirewall{}
+	}
+	controlPlaneFirewallConfig := raw[0].(map[string]interface{})
+
+	controlPlaneFirewall := &godo.KubernetesControlPlaneFirewall{
+		Enabled:          godo.PtrTo(controlPlaneFirewallConfig["enabled"].(bool)),
+		AllowedAddresses: expandAllowedAddresses(controlPlaneFirewallConfig["allowed_addresses"].([]interface{})),
+	}
+	return controlPlaneFirewall
+}
+
+func expandAllowedAddresses(addrs []interface{}) []string {
+	var expandedAddrs []string
+	for _, item := range addrs {
+		if str, ok := item.(string); ok {
+			expandedAddrs = append(expandedAddrs, str)
+		}
+	}
+	return expandedAddrs
+}
+
+func expandRoutingAgentOpts(raw []interface{}) *godo.KubernetesRoutingAgent {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesRoutingAgent{}
+	}
+
+	rawRoutingAgentObj := raw[0].(map[string]interface{})
+
+	routingAgent := &godo.KubernetesRoutingAgent{
+		Enabled: godo.PtrTo(rawRoutingAgentObj["enabled"].(bool)),
+	}
+
+	return routingAgent
+}
+
+func flattenRoutingAgentOpts(opts *godo.KubernetesRoutingAgent) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
 func flattenMaintPolicyOpts(opts *godo.KubernetesMaintenancePolicy) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 	item := make(map[string]interface{})
@@ -247,6 +296,21 @@ func flattenMaintPolicyOpts(opts *godo.KubernetesMaintenancePolicy) []map[string
 	item["day"] = opts.Day.String()
 	item["duration"] = opts.Duration
 	item["start_time"] = opts.StartTime
+	result = append(result, item)
+
+	return result
+}
+
+func flattenControlPlaneFirewallOpts(opts *godo.KubernetesControlPlaneFirewall) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+
+	item["enabled"] = opts.Enabled
+	item["allowed_addresses"] = opts.AllowedAddresses
 	result = append(result, item)
 
 	return result
@@ -374,4 +438,33 @@ func FilterTags(tags []string) []string {
 	}
 
 	return filteredTags
+}
+
+func expandCAConfigOpts(config []interface{}) *godo.KubernetesClusterAutoscalerConfiguration {
+	caConfig := &godo.KubernetesClusterAutoscalerConfiguration{}
+	configMap := config[0].(map[string]interface{})
+
+	if v, ok := configMap["scale_down_utilization_threshold"]; ok {
+		caConfig.ScaleDownUtilizationThreshold = godo.PtrTo(v.(float64))
+	}
+
+	if v, ok := configMap["scale_down_unneeded_time"]; ok {
+		caConfig.ScaleDownUnneededTime = godo.PtrTo(v.(string))
+	}
+
+	return caConfig
+}
+
+func flattenCAConfigOpts(opts *godo.KubernetesClusterAutoscalerConfiguration) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["scale_down_utilization_threshold"] = opts.ScaleDownUtilizationThreshold
+	item["scale_down_unneeded_time"] = opts.ScaleDownUnneededTime
+	result = append(result, item)
+
+	return result
 }

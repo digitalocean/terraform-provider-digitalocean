@@ -159,39 +159,57 @@ Releasing the Provider
 ----------------------
 The dedicated DigitalOcean team is responsible for releasing the provider.
 
-To release the provider:
+#### To release the provider:
 
-1. Use
-   [github-changelog-generator](https://github.com/digitalocean/github-changelog-generator)
-   to list the changes since the last release and decide what kind of release
-   you are doing (bugfix, feature or breaking).
-1. Create a new commit that only contains updates to
-   [CHANGELOG.md](CHANGELOG.md) listing the respective changes for the new
-   version. Godo follows [semver](https://www.semver.org/) versioning
-   semantics.
-1. Once the CHANGELOG.md commit is merged, create a new tag on that commit with
-   the new version that will be released (be sure to pull the latest from
-   git).
+1. Pull the latest changes from the `main` branch
 
    ```bash
-   git tag -m "release $new_version" -a "$new_version"
+   git checkout main; git pull
    ```
 
-1. Push the tag:
+2. Ensure that each PR has the correct label.
+    - **bug**: For fixes related to issues or bugs.
+    - **enhancement**: For changes or improvements to existing resources.
+    - **feature**: For the addition of new resources or functionality.
+    - **misc**: For non-user-impacting changes, such as updates to tests or documentation. 
+
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; These labels categorize PRs in the [GitHub Release Notes](https://github.com/digitalocean/terraform-provider-digitalocean/releases). 
+
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; You can get a list of PRs to release with [github-changelog-generator](https://github.com/digitalocean/github-changelog-generator). It shows the changes since the last release.
+
+3. Determine the new release version.  
+   PR labels determine the release version type: *patch*, *minor*, or *major*.  
+   terraform-provider-digitalocean follows [semver](https://www.semver.org/) versioning
+   semantics.  
+   For example:
+    - bug, misc, doc: A bug fix results in a *patch* version increment (e.g., 1.2.3 → 1.2.4).
+    - feature, enhancement: A new feature results in a *minor* version increment (e.g., 1.2.3 → 1.3.0).
+    - breaking-change: A breaking change results in a *major* version increment (e.g., 1.2.3 → 2.0.0).
+4. Once all PRs to release have labels and the version increment is decided, create a new tag with the new version.  
+
+   ```bash
+   export new_version=<new-version>; git tag -m "release $new_version" -a "$new_version"
+   ```
+
+5. Push the tag:
 
    ```bash
    git push "$origin" tag "$new_version"
    ```
 
-This repository contains a GitHub Action configured to automatically build and
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;This repository contains a GitHub Action configured to automatically build and
 publish assets for release when a tag is pushed that matches the pattern `v*`
 (ie. `v0.1.0`).
 
-A [Goreleaser](https://goreleaser.com/) configuration is provided that produces
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;A [Goreleaser](https://goreleaser.com/) configuration is provided that produces
 build artifacts matching the [layout required](https://www.terraform.io/docs/registry/providers/publishing.html#manually-preparing-a-release)
 to publish the provider in the Terraform Registry.
 
-Releases will appear as drafts. Once marked as published on the GitHub Releases page,
+6. Publish the release.  
+A new release will appear as drafts.  
+Hit "Generate Release Notes" when publish the release.  
+Mark the release as Latest.  
+Once marked as published on the GitHub Releases page,
 they will become available via the Terraform Registry.
 
 Reviewing Pull Requests

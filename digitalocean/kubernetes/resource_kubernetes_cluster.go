@@ -23,6 +23,11 @@ var (
 	MultipleNodePoolImportError = fmt.Errorf("Cluster contains multiple node pools. Manually add the `%s` tag to the pool that should be used as the default. Additional pools must be imported separately as 'digitalocean_kubernetes_node_pool' resources.", DigitaloceanKubernetesDefaultNodePoolTag)
 )
 
+const (
+	controlPlaneFirewallField = "control_plane_firewall"
+	routingAgentField         = "routing_agent"
+)
+
 func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanKubernetesClusterCreate,
@@ -159,6 +164,23 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"cluster_autoscaler_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"scale_down_utilization_threshold": {
+							Type:     schema.TypeFloat,
+							Optional: true,
+						},
+						"scale_down_unneeded_time": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -190,6 +212,49 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"kubeconfig_expire_seconds": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+
+			controlPlaneFirewallField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+						"allowed_addresses": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+
+			routingAgentField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
 			},
 		},
 
@@ -320,6 +385,18 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.AutoUpgrade = autoUpgrade.(bool)
 	}
 
+	if controlPlaneFirewall, ok := d.GetOk(controlPlaneFirewallField); ok {
+		opts.ControlPlaneFirewall = expandControlPlaneFirewallOpts(controlPlaneFirewall.([]interface{}))
+	}
+
+	if caConfig, ok := d.GetOk("cluster_autoscaler_configuration"); ok {
+		opts.ClusterAutoscalerConfiguration = expandCAConfigOpts(caConfig.([]interface{}))
+	}
+
+	if routingAgent, ok := d.GetOk(routingAgentField); ok {
+		opts.RoutingAgent = expandRoutingAgentOpts(routingAgent.([]interface{}))
+	}
+
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
 	if err != nil {
 		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
@@ -383,8 +460,20 @@ func digitaloceanKubernetesClusterRead(
 	d.Set("auto_upgrade", cluster.AutoUpgrade)
 	d.Set("urn", cluster.URN())
 
+	if err := d.Set(controlPlaneFirewallField, flattenControlPlaneFirewallOpts(cluster.ControlPlaneFirewall)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", controlPlaneFirewallField, err)
+	}
+
+	if err := d.Set(routingAgentField, flattenRoutingAgentOpts(cluster.RoutingAgent)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", routingAgentField, err)
+	}
+
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
+	}
+
+	if err := d.Set("cluster_autoscaler_configuration", flattenCAConfigOpts(cluster.ClusterAutoscalerConfiguration)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting cluster_autoscaler_configuration - error: %#v", err)
 	}
 
 	// find the default node pool from all the pools in the cluster
@@ -424,7 +513,10 @@ func digitaloceanKubernetesClusterRead(
 		}
 	}
 	if expiresAt.IsZero() || expiresAt.Before(time.Now()) {
-		creds, _, err := client.Kubernetes.GetCredentials(context.Background(), cluster.ID, &godo.KubernetesClusterCredentialsGetRequest{})
+		expireSeconds := d.Get("kubeconfig_expire_seconds").(int)
+		creds, _, err := client.Kubernetes.GetCredentials(context.Background(), cluster.ID, &godo.KubernetesClusterCredentialsGetRequest{
+			ExpirySeconds: &expireSeconds,
+		})
 		if err != nil {
 			return diag.Errorf("Unable to fetch Kubernetes credentials: %s", err)
 		}
@@ -438,14 +530,16 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha") {
+	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha", controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField) {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
-			Name:         d.Get("name").(string),
-			Tags:         tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
-			AutoUpgrade:  godo.PtrTo(d.Get("auto_upgrade").(bool)),
-			SurgeUpgrade: d.Get("surge_upgrade").(bool),
-			HA:           godo.PtrTo(d.Get("ha").(bool)),
+			Name:                 d.Get("name").(string),
+			Tags:                 tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
+			AutoUpgrade:          godo.PtrTo(d.Get("auto_upgrade").(bool)),
+			SurgeUpgrade:         d.Get("surge_upgrade").(bool),
+			HA:                   godo.PtrTo(d.Get("ha").(bool)),
+			ControlPlaneFirewall: expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
+			RoutingAgent:         expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {
@@ -454,6 +548,10 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 				return diag.Errorf("Error setting Kubernetes maintenance policy : %s", err)
 			}
 			opts.MaintenancePolicy = maintPolicy
+		}
+
+		if caConfig, ok := d.GetOk("cluster_autoscaler_configuration"); ok {
+			opts.ClusterAutoscalerConfiguration = expandCAConfigOpts(caConfig.([]interface{}))
 		}
 
 		_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)

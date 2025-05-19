@@ -1,3 +1,40 @@
+# Change Log
+
+Changelog moved to Release Notes in [Github Releases](https://github.com/digitalocean/terraform-provider-digitalocean/releases)
+
+## 2.48.2
+
+BUGFIXES:
+
+- #1319 - @loosla - [kubernetes]: fixing issues related to some missing fields in config
+
+## 2.48.1
+
+BUGFIXES:
+
+- #1316 - @andrewsomething - kubernetes: protect against panic in flattenControlPlaneFirewallOpts
+
+## 2.48.0
+
+IMPROVEMENTS:
+
+- #1311 - @jvasilevsky - LBAAS-3600: support loadbalancer network_stack in terraform
+- #1310 - @basert - feat(kubernetes): add support to configure control plane firewall
+- #1306 - @linuxluigi - Add kubeconfig expiration option for credentials
+- #1304 - @andrewsomething - apps: support Bitbucket as a source.
+- #1293 - @moreinhardt - Add maintenance day validation for database and kubernetes clusters
+
+BUGFIXES:
+
+- #1305 - @Xowap - There is no minimum on services
+- #1308 - @lionello - Project: return success after removing ID
+
+MISC:
+
+- #1301 - @dependabot[bot] - build(deps): bump golang.org/x/net from 0.23.0 to 0.33.0
+- #1300 - @loosla - update godo version
+- #1307 - @lee-aaron - Add Makefile command for upgrading godo
+
 ## 2.47.0
 
 IMPROVEMENTS:

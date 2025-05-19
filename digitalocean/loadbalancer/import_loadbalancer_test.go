@@ -28,3 +28,25 @@ func TestAccDigitalOceanLoadBalancer_importBasic(t *testing.T) {
 		},
 	})
 }
+
+func TestAccDigitalOceanLoadBalancer_importGLB(t *testing.T) {
+	resourceName := "digitalocean_loadbalancer.foobar"
+	name := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanGlobalLoadbalancerConfig_basic(name),
+			},
+
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}

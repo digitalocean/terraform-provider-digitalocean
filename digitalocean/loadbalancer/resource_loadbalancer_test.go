@@ -75,6 +75,10 @@ func TestAccDigitalOceanLoadbalancer_Basic(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "project_id"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "network", "EXTERNAL"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "network_stack", "IPV4"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "tls_cipher_policy", "DEFAULT"),
 				),
 			},
 		},
@@ -135,6 +139,10 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "project_id"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "network", "EXTERNAL"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "network_stack", "IPV4"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "tls_cipher_policy", "DEFAULT"),
 				),
 			},
 			{
@@ -182,6 +190,10 @@ func TestAccDigitalOceanLoadbalancer_Updated(t *testing.T) {
 						"digitalocean_loadbalancer.foobar", "project_id"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "network", "EXTERNAL"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "network_stack", "IPV4"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_loadbalancer.foobar", "tls_cipher_policy", "DEFAULT"),
 				),
 			},
 		},
@@ -869,8 +881,6 @@ func TestAccDigitalOceanGlobalLoadbalancer(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.lorem", "domains.0.name", "test-2.github.io"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.lorem", "droplet_ids.#", "1"),
-					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.lorem", "target_load_balancer_ids.#", "1"),
 				),
 			},
@@ -889,19 +899,17 @@ func TestAccDigitalOceanGlobalLoadbalancer(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.lorem", "glb_settings.0.cdn.0.is_enabled", "false"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.region_priorities.%", "2"),
+						"digitalocean_loadbalancer.lorem", "glb_settings.0.region_priorities.%", "2"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.region_priorities.nyc1", "1"),
+						"digitalocean_loadbalancer.lorem", "glb_settings.0.region_priorities.nyc1", "1"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_loadbalancer.foobar", "glb_settings.0.region_priorities.nyc2", "2"),
+						"digitalocean_loadbalancer.lorem", "glb_settings.0.region_priorities.nyc2", "2"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.lorem", "domains.#", "2"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.lorem", "domains.1.name", "test-updated.github.io"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.lorem", "domains.0.name", "test-updated-2.github.io"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.lorem", "droplet_ids.#", "1"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.lorem", "target_load_balancer_ids.#", "1"),
 				),
@@ -969,10 +977,11 @@ resource "digitalocean_droplet" "foobar" {
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name    = "%s"
-  region  = "nyc3"
-  type    = "REGIONAL"
-  network = "EXTERNAL"
+  name          = "%s"
+  region        = "nyc3"
+  type          = "REGIONAL"
+  network       = "EXTERNAL"
+  network_stack = "IPV4"
 
   forwarding_rule {
     entry_port     = 80
@@ -990,6 +999,7 @@ resource "digitalocean_loadbalancer" "foobar" {
   enable_proxy_protocol     = true
   enable_backend_keepalive  = true
   http_idle_timeout_seconds = 90
+  tls_cipher_policy         = "DEFAULT"
 
   droplet_ids = [digitalocean_droplet.foobar.id]
 }`, name, name)
@@ -1012,10 +1022,11 @@ resource "digitalocean_droplet" "foo" {
 }
 
 resource "digitalocean_loadbalancer" "foobar" {
-  name    = "%s"
-  region  = "nyc3"
-  type    = "REGIONAL"
-  network = "EXTERNAL"
+  name          = "%s"
+  region        = "nyc3"
+  type          = "REGIONAL"
+  network       = "EXTERNAL"
+  network_stack = "IPV4"
 
   forwarding_rule {
     entry_port     = 81
@@ -1034,6 +1045,7 @@ resource "digitalocean_loadbalancer" "foobar" {
   enable_backend_keepalive         = false
   disable_lets_encrypt_dns_records = true
   http_idle_timeout_seconds        = 120
+  tls_cipher_policy                = "DEFAULT"
 
   droplet_ids = [digitalocean_droplet.foobar.id, digitalocean_droplet.foo.id]
 }`, name, name, name)
@@ -1394,7 +1406,6 @@ resource "digitalocean_loadbalancer" "lorem" {
     is_managed = false
   }
 
-  droplet_ids              = [digitalocean_droplet.foobar.id]
   target_load_balancer_ids = [digitalocean_loadbalancer.foobar.id]
 }`, name, name, name)
 }
@@ -1466,7 +1477,6 @@ resource "digitalocean_loadbalancer" "lorem" {
     is_managed = false
   }
 
-  droplet_ids              = [digitalocean_droplet.foobar.id]
   target_load_balancer_ids = [digitalocean_loadbalancer.foobar.id]
 }`, name, name, name)
 }

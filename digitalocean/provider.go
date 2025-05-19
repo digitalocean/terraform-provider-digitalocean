@@ -17,6 +17,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/monitoring"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/partnernetworkconnect"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/project"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/region"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/registry"
@@ -132,6 +133,7 @@ func Provider() *schema.Provider {
 			"digitalocean_sizes":                    size.DataSourceDigitalOceanSizes(),
 			"digitalocean_spaces_bucket":            spaces.DataSourceDigitalOceanSpacesBucket(),
 			"digitalocean_spaces_buckets":           spaces.DataSourceDigitalOceanSpacesBuckets(),
+			"digitalocean_spaces_key":               spaces.DataSourceDigitalOceanSpacesKey(),
 			"digitalocean_spaces_bucket_object":     spaces.DataSourceDigitalOceanSpacesBucketObject(),
 			"digitalocean_spaces_bucket_objects":    spaces.DataSourceDigitalOceanSpacesBucketObjects(),
 			"digitalocean_ssh_key":                  sshkey.DataSourceDigitalOceanSSHKey(),
@@ -142,6 +144,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume":                   volume.DataSourceDigitalOceanVolume(),
 			"digitalocean_vpc":                      vpc.DataSourceDigitalOceanVPC(),
 			"digitalocean_vpc_peering":              vpcpeering.DataSourceDigitalOceanVPCPeering(),
+			"digitalocean_partner_attachment":       partnernetworkconnect.DataSourceDigitalOceanPartnerAttachment(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -185,6 +188,8 @@ func Provider() *schema.Provider {
 			"digitalocean_spaces_bucket_cors_configuration":      spaces.ResourceDigitalOceanBucketCorsConfiguration(),
 			"digitalocean_spaces_bucket_object":                  spaces.ResourceDigitalOceanSpacesBucketObject(),
 			"digitalocean_spaces_bucket_policy":                  spaces.ResourceDigitalOceanSpacesBucketPolicy(),
+			"digitalocean_spaces_key":                            spaces.ResourceDigitalOceanSpacesKey(),
+			"digitalocean_spaces_bucket_logging":                 spaces.ResourceDigitalOceanSpacesBucketLogging(),
 			"digitalocean_ssh_key":                               sshkey.ResourceDigitalOceanSSHKey(),
 			"digitalocean_tag":                                   tag.ResourceDigitalOceanTag(),
 			"digitalocean_uptime_check":                          uptime.ResourceDigitalOceanUptimeCheck(),
@@ -195,6 +200,7 @@ func Provider() *schema.Provider {
 			"digitalocean_vpc":                                   vpc.ResourceDigitalOceanVPC(),
 			"digitalocean_vpc_peering":                           vpcpeering.ResourceDigitalOceanVPCPeering(),
 			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
+			"digitalocean_partner_attachment":                    partnernetworkconnect.ResourceDigitalOceanPartnerAttachment(),
 		},
 	}
 
