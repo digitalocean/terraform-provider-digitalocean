@@ -172,7 +172,9 @@ The following arguments are supported:
 * `kubeconfig_expire_seconds` - (Optional) The duration in seconds that the returned Kubernetes credentials will be valid. If not set or 0, the credentials will have a 7 day expiry.
 * `routing_agent` - (Optional) Block containing options for the routing-agent component. If not specified, the routing-agent component will not be installed in the cluster.
   - `enabled` - (Required) Boolean flag whether the routing-agent should be enabled or not.
-
+* `cluster_autoscaler_configuration` - (Optional) Block containing options for cluster auto-scaling.
+  - `scale_down_utilization_threshold` - (Optional) Float setting the Node utilization level, defined as sum of requested resources divided by capacity, in which a node can be considered for scale down.
+  - `scale_down_unneeded_time` - (Optional) String setting how long a node should be unneeded before it's eligible for scale down.
 
 This resource supports [customized create timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
 
