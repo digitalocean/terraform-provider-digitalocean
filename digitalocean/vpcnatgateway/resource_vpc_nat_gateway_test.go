@@ -125,16 +125,16 @@ resource "digitalocean_vpc" "foo" {
 }
 
 resource "digitalocean_vpc_nat_gateway" "foobar" {
-  name = "%s"
-  type = "%s"
+  name   = "%s"
+  type   = "%s"
   region = "nyc3"
-  size = "%d"
+  size   = "%d"
   vpcs {
     vpc_uuid = digitalocean_vpc.foo.id
   }
-  udp_timeout_seconds = 30
+  udp_timeout_seconds  = 30
   icmp_timeout_seconds = 30
-  tcp_timeout_seconds = 30
+  tcp_timeout_seconds  = 30
 }`,
 		fmt.Sprintf("test-%s-vpc", name),
 		name,
