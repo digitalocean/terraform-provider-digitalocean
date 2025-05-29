@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	netURL "net/url"
 )
 
 const (
@@ -73,6 +74,8 @@ type AppsService interface {
 		*Response,
 		error,
 	)
+
+	GetAppInstances(ctx context.Context, appID string, opts *GetAppInstancesOpts) ([]*AppInstance, *Response, error)
 }
 
 // AppLogs represent app logs.
@@ -188,6 +191,10 @@ type buildpacksRoot struct {
 // AppsServiceOp handles communication with Apps methods of the DigitalOcean API.
 type AppsServiceOp struct {
 	client *Client
+}
+
+type GetAppInstancesOpts struct {
+	// reserved for future use.
 }
 
 // URN returns a URN identifier for the app
@@ -423,13 +430,25 @@ func (s *AppsServiceOp) GetExecWithOpts(ctx context.Context, appID, componentNam
 		url = fmt.Sprintf("%s/%s/deployments/%s/components/%s/exec", appsBasePath, appID, opts.DeploymentID, componentName)
 	}
 
-	type ExecRequestParams struct {
-		InstanceName string `json:"instance_name"`
+	params := map[string]string{
+		"instance_name": opts.InstanceName,
 	}
 
-	params := ExecRequestParams{InstanceName: opts.InstanceName}
+	urlValues := netURL.Values{}
 
-	req, err := s.client.NewRequest(ctx, http.MethodGet, url, params)
+	for k, v := range params {
+		if v == "" {
+			continue
+		}
+
+		urlValues.Add(k, v)
+	}
+
+	if len(urlValues) > 0 {
+		url = fmt.Sprintf("%s?%s", url, urlValues.Encode())
+	}
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -650,6 +669,23 @@ func (s *AppsServiceOp) ToggleDatabaseTrustedSource(
 		return nil, resp, err
 	}
 	return root, resp, nil
+}
+
+// GetAppInstances returns a list of emphemeral compute instances of the current deployment for an app.
+// opts is reserved for future use.
+func (s *AppsServiceOp) GetAppInstances(ctx context.Context, appID string, opts *GetAppInstancesOpts) ([]*AppInstance, *Response, error) {
+	path := fmt.Sprintf("%s/%s/instances", appsBasePath, appID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	root := new(GetAppInstancesResponse)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root.Instances, resp, nil
 }
 
 // AppComponentType is an app component type.

@@ -41,6 +41,8 @@ data "digitalocean_partner_attachment" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_partner_attachment.foobar", "naas_provider", "MEGAPORT"),
 					resource.TestCheckResourceAttr(
+						"data.digitalocean_partner_attachment.foobar", "redundancy_zone", "MEGAPORT_RED"),
+					resource.TestCheckResourceAttr(
 						"data.digitalocean_partner_attachment.foobar", "vpc_ids.#", "2"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_partner_attachment.foobar", "bgp.0.local_router_ip", "169.254.100.1/29"),
@@ -89,6 +91,8 @@ data "digitalocean_partner_attachment" "foobar" {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_partner_attachment.foobar", "naas_provider", "MEGAPORT"),
 					resource.TestCheckResourceAttr(
+						"data.digitalocean_partner_attachment.foobar", "redundancy_zone", "MEGAPORT_RED"),
+					resource.TestCheckResourceAttr(
 						"data.digitalocean_partner_attachment.foobar", "vpc_ids.#", "2"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_partner_attachment.foobar", "bgp.0.local_router_ip", "169.254.100.1/29"),
@@ -136,6 +140,7 @@ resource "digitalocean_partner_attachment" "foobar" {
   connection_bandwidth_in_mbps = 1000
   region                       = "nyc"
   naas_provider                = "MEGAPORT"
+  redundancy_zone              = "MEGAPORT_RED"
   vpc_ids = [
     digitalocean_vpc.vpc1.id,
     digitalocean_vpc.vpc2.id
