@@ -1037,6 +1037,30 @@ func (a *AppIngressSpecRuleStringMatch) GetPrefix() string {
 	return a.Prefix
 }
 
+// GetComponentName returns the ComponentName field.
+func (a *AppInstance) GetComponentName() string {
+	if a == nil {
+		return ""
+	}
+	return a.ComponentName
+}
+
+// GetComponentType returns the ComponentType field.
+func (a *AppInstance) GetComponentType() AppInstanceComponentType {
+	if a == nil {
+		return ""
+	}
+	return a.ComponentType
+}
+
+// GetInstanceName returns the InstanceName field.
+func (a *AppInstance) GetInstanceName() string {
+	if a == nil {
+		return ""
+	}
+	return a.InstanceName
+}
+
 // GetBandwidthAllowanceGib returns the BandwidthAllowanceGib field.
 func (a *AppInstanceSize) GetBandwidthAllowanceGib() string {
 	if a == nil {
@@ -1957,6 +1981,22 @@ func (a *AppSpec) GetDatabases() []*AppDatabaseSpec {
 	return a.Databases
 }
 
+// GetDisableEdgeCache returns the DisableEdgeCache field.
+func (a *AppSpec) GetDisableEdgeCache() bool {
+	if a == nil {
+		return false
+	}
+	return a.DisableEdgeCache
+}
+
+// GetDisableEmailObfuscation returns the DisableEmailObfuscation field.
+func (a *AppSpec) GetDisableEmailObfuscation() bool {
+	if a == nil {
+		return false
+	}
+	return a.DisableEmailObfuscation
+}
+
 // GetDomains returns the Domains field.
 func (a *AppSpec) GetDomains() []*AppDomainSpec {
 	if a == nil {
@@ -1971,6 +2011,14 @@ func (a *AppSpec) GetEgress() *AppEgressSpec {
 		return nil
 	}
 	return a.Egress
+}
+
+// GetEnhancedThreatControlEnabled returns the EnhancedThreatControlEnabled field.
+func (a *AppSpec) GetEnhancedThreatControlEnabled() bool {
+	if a == nil {
+		return false
+	}
+	return a.EnhancedThreatControlEnabled
 }
 
 // GetEnvs returns the Envs field.
