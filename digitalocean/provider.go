@@ -31,6 +31,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/uptime"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/volume"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpc"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpcnatgateway"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpcpeering"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -143,6 +144,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_snapshot":          snapshot.DataSourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_volume":                   volume.DataSourceDigitalOceanVolume(),
 			"digitalocean_vpc":                      vpc.DataSourceDigitalOceanVPC(),
+			"digitalocean_vpc_nat_gateway":          vpcnatgateway.DataSourceDigitalOceanVPCNATGateway(),
 			"digitalocean_vpc_peering":              vpcpeering.DataSourceDigitalOceanVPCPeering(),
 			"digitalocean_partner_attachment":       partnernetworkconnect.DataSourceDigitalOceanPartnerAttachment(),
 		},
@@ -198,6 +200,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_attachment":                     volume.ResourceDigitalOceanVolumeAttachment(),
 			"digitalocean_volume_snapshot":                       snapshot.ResourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_vpc":                                   vpc.ResourceDigitalOceanVPC(),
+			"digitalocean_vpc_nat_gateway":                       vpcnatgateway.ResourceDigitalOceanVPCNATGateway(),
 			"digitalocean_vpc_peering":                           vpcpeering.ResourceDigitalOceanVPCPeering(),
 			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
 			"digitalocean_partner_attachment":                    partnernetworkconnect.ResourceDigitalOceanPartnerAttachment(),
