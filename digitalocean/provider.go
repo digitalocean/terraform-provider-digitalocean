@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/account"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/agent"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/app"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/cdn"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/certificate"
@@ -200,6 +201,7 @@ func Provider() *schema.Provider {
 			"digitalocean_vpc_peering":                           vpcpeering.ResourceDigitalOceanVPCPeering(),
 			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
 			"digitalocean_partner_attachment":                    partnernetworkconnect.ResourceDigitalOceanPartnerAttachment(),
+			"digitalocean_agent":                                 agent.ResourceDigitalOceanAgent(),
 		},
 	}
 

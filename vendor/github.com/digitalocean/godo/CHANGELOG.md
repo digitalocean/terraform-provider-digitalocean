@@ -1,5 +1,36 @@
 # Change Log
 
+## [v1.148.0] - 2025-05-14
+
+- #824 - @asaha2 - Introduce egress-gateway service api
+
+## [v1.147.0] - 2025-05-14
+
+- #831 - @thearyanahmed - Implement GetAppInstances - allowing users to list currently running compute instances
+
+## [v1.146.1] - 2025-05-09
+
+- #828 - @thearyanahmed - Pass GetExec() request params as query params
+
+## [v1.146.0] - 2025-05-09
+
+- #826 - @ssaengs - APPS-5889: add liveness health check, update comment
+- #820 - @thearyanahmed - Add support to exec into a specific instance
+- #823 - @blesswinsamuel - APPS-10997 Add AUTOSCALE_FAILED alert
+
+## [v1.145.0] - 2025-04-30
+
+- #821 - @greeshmapill - APPS-11076: Add support for VALKEY as a database engine option
+- #817 - @ZachEddy - Bring app spec changes for subdomain routing to godo
+
+## [v1.144.0] - 2025-04-24
+
+- #818 - @dweinshenker - Support Valkey in DatabaseOptions
+
+## [v1.143.0] - 2025-04-22
+
+- #815 - @StephenVarela - Support Load Balancers tls-cipher-policy
+
 ## [v1.142.0] - 2025-03-27
 
 - #813 - @lfundaro-do - partner-network-connect: fix typo
