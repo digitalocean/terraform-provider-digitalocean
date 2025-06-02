@@ -44,6 +44,10 @@ func DataSourceDigitalOceanPartnerAttachment() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"redundancy_zone": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"vpc_ids": {
 				Type:     schema.TypeSet,
 				Computed: true,
@@ -116,6 +120,7 @@ func dataSourceDigitalOceanPartnerAttachmentRead(ctx context.Context, d *schema.
 	d.Set("connection_bandwidth_in_mbps", foundPartnerAttachment.ConnectionBandwidthInMbps)
 	d.Set("region", strings.ToLower(foundPartnerAttachment.Region))
 	d.Set("naas_provider", foundPartnerAttachment.NaaSProvider)
+	d.Set("redundancy_zone", foundPartnerAttachment.RedundancyZone)
 	d.Set("vpc_ids", foundPartnerAttachment.VPCIDs)
 	if bgp := foundPartnerAttachment.BGP; bgp.PeerRouterIP != "" || bgp.LocalRouterIP != "" || bgp.PeerASN != 0 {
 		bgpMap := map[string]interface{}{
