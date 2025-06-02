@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	mysqlDBEngineSlug = "mysql"
-	redisDBEngineSlug = "redis"
-	kafkaDBEngineSlug = "kafka"
+	mysqlDBEngineSlug  = "mysql"
+	redisDBEngineSlug  = "redis"
+	valkeyDBEngineSlug = "valkey"
+	kafkaDBEngineSlug  = "kafka"
 )
 
 func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
@@ -62,8 +63,10 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					remoteVersion, _ := strconv.Atoi(old)
 					configVersion, _ := strconv.Atoi(new)
+					engine := d.Get("engine").(string)
+					cachingEngine := engine == redisDBEngineSlug || engine == valkeyDBEngineSlug
 
-					return d.Get("engine") == redisDBEngineSlug && remoteVersion > configVersion
+					return cachingEngine && remoteVersion > configVersion
 				},
 			},
 
@@ -293,8 +296,9 @@ func validateExclusiveAttributes() schema.CustomizeDiffFunc {
 			return fmt.Errorf("sql_mode is only supported for MySQL Database Clusters")
 		}
 
-		if hasEvictionPolicy && engine != redisDBEngineSlug {
-			return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
+		cachingEngine := engine == redisDBEngineSlug || engine == valkeyDBEngineSlug
+		if hasEvictionPolicy && !cachingEngine {
+			return fmt.Errorf("eviction_policy is only supported for Redis or Valkey Database Clusters")
 		}
 
 		return nil

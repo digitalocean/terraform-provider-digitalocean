@@ -34,9 +34,8 @@ func nodePoolSchema(isResource bool) map[string]*schema.Schema {
 		},
 
 		"node_count": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
+			Type:     schema.TypeInt,
+			Optional: true,
 			DiffSuppressFunc: func(key, old, new string, d *schema.ResourceData) bool {
 				nodeCountKey := "node_count"
 				actualNodeCountKey := "actual_node_count"
@@ -71,9 +70,8 @@ func nodePoolSchema(isResource bool) map[string]*schema.Schema {
 		},
 
 		"min_nodes": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
+			Type:     schema.TypeInt,
+			Optional: true,
 		},
 
 		"max_nodes": {
