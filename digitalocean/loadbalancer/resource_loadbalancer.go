@@ -581,7 +581,6 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 			"tls_cipher_policy": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice([]string{"DEFAULT", "STRONG"}, true),
 				Description:  "The tls cipher policy to be used for the load balancer. Enum: 'DEFAULT' 'STRONG'",
 			},
