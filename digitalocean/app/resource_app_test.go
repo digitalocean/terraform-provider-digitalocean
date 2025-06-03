@@ -1177,11 +1177,11 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_basic_edge_controls = `
 resource "digitalocean_app" "foobar" {
   spec {
-    name   = "%s"
-    region = "ams"
-	enhanced_threat_control_enabled = true
-	disable_edge_cache = true
-	disable_email_obfuscation = true
+    name                            = "%s"
+    region                          = "ams"
+    enhanced_threat_control_enabled = true
+    disable_edge_cache              = true
+    disable_email_obfuscation       = true
 
     alert {
       rule = "DEPLOYMENT_FAILED"
