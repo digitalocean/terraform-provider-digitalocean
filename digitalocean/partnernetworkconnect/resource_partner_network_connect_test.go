@@ -118,6 +118,7 @@ resource "digitalocean_partner_attachment" "foobar" {
   connection_bandwidth_in_mbps = 1000
   region                       = "nyc"
   naas_provider                = "MEGAPORT"
+  redundancy_zone              = "MEGAPORT_RED"
   vpc_ids = [
     digitalocean_vpc.vpc1.id,
     digitalocean_vpc.vpc2.id
