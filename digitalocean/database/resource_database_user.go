@@ -67,6 +67,11 @@ func ResourceDigitalOceanDatabaseUser() *schema.Resource {
 							Optional: true,
 							Elem:     userOpenSearchACLSchema(),
 						},
+						"mongo_user_settings": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     userMongoUserSettingsSchema(),
+						},
 					},
 				},
 			},
@@ -313,10 +318,42 @@ func expandUserSettings(raw []interface{}) *godo.DatabaseUserSettings {
 	userSettingsConfig := raw[0].(map[string]interface{})
 
 	userSettings := &godo.DatabaseUserSettings{
-		ACL:           expandUserACLs(userSettingsConfig["acl"].([]interface{})),
-		OpenSearchACL: expandOpenSearchUserACLs(userSettingsConfig["opensearch_acl"].([]interface{})),
+		ACL:               expandUserACLs(userSettingsConfig["acl"].([]interface{})),
+		OpenSearchACL:     expandOpenSearchUserACLs(userSettingsConfig["opensearch_acl"].([]interface{})),
+		MongoUserSettings: expandMongoUserSettings(userSettingsConfig["mongo_user_settings"].([]interface{})),
 	}
 	return userSettings
+}
+
+func expandMongoUserSettings(raw []interface{}) *godo.MongoUserSettings {
+	if len(raw) == 0 || raw[0] == nil {
+		return nil
+	}
+
+	m, ok := raw[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+
+	// Extract databases as []string
+	var databases []string
+	if dbs, ok := m["databases"].([]interface{}); ok {
+		for _, db := range dbs {
+			if dbStr, ok := db.(string); ok {
+				databases = append(databases, dbStr)
+			}
+		}
+	}
+
+	role := ""
+	if r, ok := m["role"].(string); ok {
+		role = r
+	}
+
+	return &godo.MongoUserSettings{
+		Databases: databases,
+		Role:      role,
+	}
 }
 
 func expandUserACLs(rawACLs []interface{}) []*godo.KafkaACL {
@@ -351,9 +388,30 @@ func flattenUserSettings(settings *godo.DatabaseUserSettings) []map[string]inter
 		r := make(map[string]interface{})
 		r["acl"] = flattenUserACLs(settings.ACL)
 		r["opensearch_acl"] = flattenOpenSearchUserACLs(settings.OpenSearchACL)
+		r["mongo_user_settings"] = flattenMongoUserSettings(settings.MongoUserSettings)
 		result = append(result, r)
 	}
 	return result
+}
+
+func flattenMongoUserSettings(settings *godo.MongoUserSettings) []map[string]interface{} {
+	if settings == nil {
+		return nil
+	}
+
+	result := make(map[string]interface{})
+
+	// Flatten databases
+	databases := make([]interface{}, len(settings.Databases))
+	for i, db := range settings.Databases {
+		databases[i] = db
+	}
+	result["databases"] = databases
+
+	// Flatten role
+	result["role"] = settings.Role
+
+	return []map[string]interface{}{result}
 }
 
 func flattenUserACLs(acls []*godo.KafkaACL) []map[string]interface{} {
@@ -399,4 +457,29 @@ func normalizeOpenSearchPermission(p string) string {
 		return "readwrite"
 	}
 	return ""
+}
+
+func userMongoUserSettingsSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"databases": {
+				Type:     schema.TypeList,
+				Required: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+				Description: "A list of databases to which the user should have access. When set to 'admin', the user will have access to all databases based on the user's role.",
+			},
+			"role": {
+				Type:     schema.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					"READONLY",
+					"READWRITE",
+					"DBADMIN",
+				}, false),
+				Description: "The role to assign to the user. Allowed values: READONLY, READWRITE, DBADMIN.",
+			},
+		},
+	}
 }
