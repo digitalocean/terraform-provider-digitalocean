@@ -319,6 +319,49 @@ func TestAccDigitalOceanDatabaseUser_OpenSearchACLs(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseUser_MongoUserSettings(t *testing.T) {
+	var databaseUser godo.DatabaseUser
+	databaseClusterName := acceptance.RandomTestName()
+	databaseUserName := acceptance.RandomTestName()
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseUserDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseUserConfigMongoUserSetting, databaseClusterName, databaseUserName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseUserExists("digitalocean_database_user.foobar_user", &databaseUser),
+					testAccCheckDigitalOceanDatabaseUserAttributes(&databaseUser, databaseUserName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "name", databaseUserName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.mongo_user_settings.0.databases.0", "admin"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.mongo_user_settings.0.role", "READWRITE"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseUserConfigMongoUserSettingUpdate, databaseClusterName, databaseUserName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseUserExists("digitalocean_database_user.foobar_user", &databaseUser),
+					testAccCheckDigitalOceanDatabaseUserAttributes(&databaseUser, databaseUserName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "name", databaseUserName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "role"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_user.foobar_user", "password"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.mongo_user_settings.0.databases.0", "admin"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_user.foobar_user", "settings.0.mongo_user_settings.0.role", "DBADMIN"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanDatabaseUserDestroy(s *terraform.State) error {
 	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
@@ -450,6 +493,27 @@ resource "digitalocean_database_cluster" "foobar" {
 resource "digitalocean_database_user" "foobar_user" {
   cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"
+}`
+
+const testAccCheckDigitalOceanDatabaseUserConfigMongoUserSettingUpdate = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "mongodb"
+  version    = "6"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+}
+
+resource "digitalocean_database_user" "foobar_user" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
+  settings {
+    mongo_user_settings {
+      databases = ["admin"]
+      role      = "READONLY"
+    }
+  }
 }`
 
 const testAccCheckDigitalOceanDatabaseUserConfigMongoMultiUser = `
@@ -586,6 +650,27 @@ resource "digitalocean_database_user" "foobar_user" {
     opensearch_acl {
       index      = "index-*"
       permission = "read"
+    }
+  }
+}`
+
+const testAccCheckDigitalOceanDatabaseUserConfigMongoUserSetting = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "mongodb"
+  version    = "6"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+}
+
+resource "digitalocean_database_user" "foobar_user" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "%s"
+  settings {
+    mongo_user_settings {
+      databases = ["admin"]
+      role      = "READWRITE"
     }
   }
 }`
