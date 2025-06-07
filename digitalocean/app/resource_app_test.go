@@ -163,6 +163,22 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.papertrail.0.endpoint", "syslog+tls://example.com:12345"),
 				),
 			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_basic_edge_controls, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_app.foobar", "project_id"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.disable_edge_cache", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.disable_email_obfuscation", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.enhanced_threat_control_enabled", "true"),
+				),
+			},
 		},
 	})
 }
@@ -1119,6 +1135,53 @@ resource "digitalocean_app" "foobar" {
   spec {
     name   = "%s"
     region = "ams"
+
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+    }
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+
+      health_check {
+        http_path       = "/"
+        timeout_seconds = 10
+        port            = 1234
+      }
+
+      alert {
+        value    = 75
+        operator = "GREATER_THAN"
+        window   = "TEN_MINUTES"
+        rule     = "CPU_UTILIZATION"
+      }
+
+      log_destination {
+        name = "ServiceLogs"
+        papertrail {
+          endpoint = "syslog+tls://example.com:12345"
+        }
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_basic_edge_controls = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name                            = "%s"
+    region                          = "ams"
+    enhanced_threat_control_enabled = true
+    disable_edge_cache              = true
+    disable_email_obfuscation       = true
 
     alert {
       rule = "DEPLOYMENT_FAILED"

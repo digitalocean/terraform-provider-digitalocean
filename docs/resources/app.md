@@ -183,6 +183,30 @@ resource "digitalocean_app" "golang-sample" {
 }
 ```
 
+### Edge Controls Example
+
+```hcl
+resource "digitalocean_app" "golang-sample" {
+  spec {
+    name   = "golang-sample"
+    region = "ams"
+    disable_edge_cache = true
+    disable_email_obfuscation = false
+    enhanced_threat_control_enabled = true
+
+    service {
+      name               = "go-service"
+      instance_count     = 1
+      instance_size_slug = "apps-s-1vcpu-1gb"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+    }
+  }
+}
+```
 ## Argument Reference
 
 The following arguments are supported:
@@ -191,6 +215,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the app. Must be unique across all apps in the same account.
 * `region` - The slug for the DigitalOcean data center region hosting the app.
+* `disable_edge_cache` - A boolean indicating whether to disable the edge cache for this app. Default: `false`. Available only for non-static sites. Requires custom domains and applies to all the domains of the app.
+* `disable_email_obfuscation` - A boolean indicating whether to disable email obfuscation for this app. Default: `false`. Requires custom domains and applies to all the domains of the app.
+* `enhanced_threat_control_enabled` - A boolean, when set to `true`, enables enhanced analyzing of incoming traffic to prevent layer 7 DDoS attacks. Default: `false`. Requires custom domains and applies to all the domains of the app.
 * `features` - A list of the features applied to the app. The default buildpack can be overridden here. List of available buildpacks can be found using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/reference/apps/list-buildpacks/)
 * `domain` - Describes a domain where the application will be made available.
   - `name` - The hostname for the domain.
