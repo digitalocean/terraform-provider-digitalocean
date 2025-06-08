@@ -188,10 +188,10 @@ resource "digitalocean_app" "golang-sample" {
 ```hcl
 resource "digitalocean_app" "golang-sample" {
   spec {
-    name   = "golang-sample"
-    region = "ams"
-    disable_edge_cache = true
-    disable_email_obfuscation = false
+    name                            = "golang-sample"
+    region                          = "ams"
+    disable_edge_cache              = true
+    disable_email_obfuscation       = false
     enhanced_threat_control_enabled = true
 
     service {
