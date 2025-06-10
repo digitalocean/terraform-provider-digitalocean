@@ -33,7 +33,35 @@ The following arguments are supported:
 - **project_id** (Required) - The project identifier for the agent.
 - **region** (Required) - The region where the agent is deployed.
 - **tags** (Optional) - A list of tags associated with the agent.
-- **visibility** (Optional) - The visibility of the agent (e.g., "public" or "private"). Changing this triggers an update of the agent’s visibility status.
+- **visibility** (Optional) - The visibility of the agent (e.g., "public" or "private").
+- **anthropic_key_uuid** (Optional) - Anthropic API key UUID to use with Anthropic models.
+- **knowledge_base_uuid** (Optional) - List of knowledge base UUIDs to attach to the agent.
+- **open_ai_key_uuid** (Optional) - OpenAI API key UUID to use with OpenAI models.
+- **anthropic_api_key** (Optional) - Anthropic API Key information block.
+- **api_key_infos** (Optional) - List of API Key Info blocks.
+- **api_keys** (Optional) - List of API Key blocks.
+- **chatbot_identifiers** (Optional) - List of chatbot identifiers.
+- **deployment** (Optional) - List of deployment blocks.
+- **functions** (Optional) - List of function blocks.
+- **agent_guardrail** (Optional) - List of agent guardrail blocks.
+- **chatbot** (Optional) - Chatbot configuration block.
+- **if_case** (Optional) - If case condition.
+- **k** (Optional) - K value.
+- **knowledge_bases** (Optional, Computed) - List of knowledge base blocks.
+- **max_tokens** (Optional) - Maximum tokens allowed.
+- **model** (Optional, Computed) - Model block.
+- **open_ai_api_key** (Optional) - OpenAI API Key information block.
+- **provide_citations** (Optional) - Whether the agent should provide citations.
+- **retrieval_method** (Optional) - Retrieval method used.
+- **route_created_by** (Optional) - User who created the route.
+- **route_created_at** (Optional) - Timestamp when the route was created.
+- **route_uuid** (Optional) - Route UUID.
+- **route_name** (Optional) - Route name.
+- **template** (Optional) - Agent template block.
+- **temperature** (Optional) - Temperature setting.
+- **top_p** (Optional) - Top-p sampling parameter.
+- **url** (Optional) - URL for the agent.
+- **user_id** (Optional) - User ID linked with the agent.
 
 ## Attributes Reference
 
@@ -62,6 +90,22 @@ After creation, the following attributes are exported:
 - **top_p** - The top-p sampling parameter.
 - **url** - The URL associated with the agent.
 - **user_id** - The user ID linked with the agent.
+- **anthropic_key_uuid** - Anthropic API key UUID.
+- **knowledge_base_uuid** - List of knowledge base UUIDs.
+- **open_ai_key_uuid** - OpenAI API key UUID.
+- **anthropic_api_key** - Anthropic API Key information.
+- **api_key_infos** - List of API Key Info blocks.
+- **api_keys** - List of API Key blocks.
+- **chatbot_identifiers** - List of chatbot identifiers.
+- **deployment** - List of deployment blocks.
+- **functions** - List of function blocks.
+- **agent_guardrail** - List of agent guardrail blocks.
+- **chatbot** - Chatbot configuration block.
+- **knowledge_bases** - List of knowledge base blocks.
+- **model** - Model block.
+- **open_ai_api_key** - OpenAI API Key information block.
+- **provide_citations** - Whether the agent provides citations.
+- **template** - Agent template block.
 
 ## Update Behavior
 
@@ -70,6 +114,7 @@ This resource supports updates to the following attributes:
 - **instruction**
 - **tags**
 - **visibility**
+- **other updatable fields as supported by the API**
 
 When the **visibility** attribute is changed, the provider invokes the update API endpoint to adjust the agent’s visibility (public or private).
 
