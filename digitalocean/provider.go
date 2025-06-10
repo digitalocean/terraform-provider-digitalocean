@@ -146,6 +146,8 @@ func Provider() *schema.Provider {
 			"digitalocean_vpc":                      vpc.DataSourceDigitalOceanVPC(),
 			"digitalocean_vpc_peering":              vpcpeering.DataSourceDigitalOceanVPCPeering(),
 			"digitalocean_partner_attachment":       partnernetworkconnect.DataSourceDigitalOceanPartnerAttachment(),
+			"digitalocean_agent":                    agent.DataSourceDigitalOceanAgent(),
+			"digitalocean_agent_list":               agent.DataSourceDigitalOceanAgentList(), // <-- register this data source
 		},
 
 		ResourcesMap: map[string]*schema.Resource{

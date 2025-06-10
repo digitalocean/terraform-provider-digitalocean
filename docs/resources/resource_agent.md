@@ -1,0 +1,88 @@
+---
+page_title: "DigitalOcean: digitalocean_agent"
+subcategory: "Agents"
+---
+
+# digitalocean_agent
+
+Provides a resource to manage a DigitalOcean Agent. With this resource you can create, update, and delete agents, as well as update the agent’s visibility status.
+
+## Example Usage
+
+```hcl
+resource "digitalocean_agent" "terraform-testing" {
+  description = "Agent for testing update and delete functionality."
+  instruction = "You are DigitalOcean's Solutions Architect Assistant, designed to help users find the perfect solution for their technical needs."
+  model_uuid = "d754f2d7-d1f0-11ef-bf8f-4e013e2ddde4"
+  name       = "terraform-testing"
+  project_id = "84e1e297-ee40-41ac-95ff-1067cf2206e9"
+  region     = "tor1"
+  tags       = ["marketplace-agent-terraform"]
+  visibility = "private"
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+- **description** (Optional) - A description for the agent.
+- **instruction** (Required) - The detailed instruction for the agent.
+- **model_uuid** (Required) - The UUID of the agent's associated model.
+- **name** (Required) - The name assigned to the agent.
+- **project_id** (Required) - The project identifier for the agent.
+- **region** (Required) - The region where the agent is deployed.
+- **tags** (Optional) - A list of tags associated with the agent.
+- **visibility** (Optional) - The visibility of the agent (e.g., "public" or "private"). Changing this triggers an update of the agent’s visibility status.
+
+## Attributes Reference
+
+After creation, the following attributes are exported:
+
+- **uuid** - The unique identifier of the agent.
+- **created_at** - The timestamp when the agent was created.
+- **updated_at** - The timestamp when the agent was last updated.
+- **instruction** - The instruction used with the agent.
+- **model_uuid** - The UUID of the agent's model.
+- **name** - The name of the agent.
+- **project_id** - The project associated with the agent.
+- **region** - The region where the agent is deployed.
+- **description** - The agent’s description.
+- **visibility** - The agent’s visibility status.
+- **tags** - The list of tags assigned to the agent.
+- **if_case** - A condition parameter for agent behavior.
+- **k** - An integer representing the "k" value.
+- **max_tokens** - Maximum tokens allowed.
+- **retrieval_method** - The retrieval method used.
+- **route_created_at** - Timestamp for when the agent route was created.
+- **route_created_by** - Who created the route.
+- **route_uuid** - The unique identifier for the route.
+- **route_name** - The name of the route.
+- **temperature** - The temperature setting of the agent.
+- **top_p** - The top-p sampling parameter.
+- **url** - The URL associated with the agent.
+- **user_id** - The user ID linked with the agent.
+
+## Update Behavior
+
+This resource supports updates to the following attributes:
+- **description**
+- **instruction**
+- **tags**
+- **visibility**
+
+When the **visibility** attribute is changed, the provider invokes the update API endpoint to adjust the agent’s visibility (public or private).
+
+## Import
+
+A DigitalOcean Agent can be imported using its UUID. For example:
+
+```sh
+terraform import digitalocean_agent.terraform-testing 79292fb6-3627-11f0-bf8f-4e013e2ddde4
+```
+
+## Usage Notes
+
+Changes to the agent’s configuration, such as updating the instruction, description, or visibility, will trigger the corresponding update functions in the provider. This resource enables you to manage the complete lifecycle of a DigitalOcean Agent within your Terraform configuration.
+
+---
