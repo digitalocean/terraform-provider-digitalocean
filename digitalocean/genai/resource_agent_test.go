@@ -1,11 +1,11 @@
-package agent_test
+package genai_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/agent"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/genai"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -73,7 +73,7 @@ func (c *fakeCombinedConfig) GodoClient() *fakeGodoClient {
 
 // getTestResourceData creates a ResourceData with default values for testing.
 func getTestResourceData(t *testing.T) *schema.ResourceData {
-	resourceSchema := agent.ResourceDigitalOceanAgent().Schema
+	resourceSchema := genai.ResourceDigitalOceanAgent().Schema
 	d := schema.TestResourceDataRaw(t, resourceSchema, map[string]interface{}{
 		"name":        "test-agent",
 		"instruction": "test instruction",
@@ -96,7 +96,7 @@ func TestResourceDigitalOceanAgentCRUD(t *testing.T) {
 	d := getTestResourceData(t)
 
 	// Test Create
-	diags := agent.ResourceDigitalOceanAgent().CreateContext(ctx, d, meta)
+	diags := genai.ResourceDigitalOceanAgent().CreateContext(ctx, d, meta)
 	if diags.HasError() {
 		t.Fatalf("Create failed: %v", diags)
 	}
@@ -105,7 +105,7 @@ func TestResourceDigitalOceanAgentCRUD(t *testing.T) {
 	}
 
 	// Test Read
-	diags = agent.ResourceDigitalOceanAgent().ReadContext(ctx, d, meta)
+	diags = genai.ResourceDigitalOceanAgent().ReadContext(ctx, d, meta)
 	if diags.HasError() {
 		t.Fatalf("Read failed: %v", diags)
 	}
@@ -117,13 +117,13 @@ func TestResourceDigitalOceanAgentCRUD(t *testing.T) {
 	if err := d.Set("visibility", "private"); err != nil {
 		t.Fatalf("Failed to set visibility: %v", err)
 	}
-	diags = agent.ResourceDigitalOceanAgent().UpdateContext(ctx, d, meta)
+	diags = genai.ResourceDigitalOceanAgent().UpdateContext(ctx, d, meta)
 	if diags.HasError() {
 		t.Fatalf("Update failed: %v", diags)
 	}
 
 	// Test Delete
-	diags = agent.ResourceDigitalOceanAgent().DeleteContext(ctx, d, meta)
+	diags = genai.ResourceDigitalOceanAgent().DeleteContext(ctx, d, meta)
 	if diags.HasError() {
 		t.Fatalf("Delete failed: %v", diags)
 	}

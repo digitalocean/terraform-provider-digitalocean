@@ -1,4 +1,4 @@
-package agent
+package genai
 
 import (
 	"context"
@@ -29,7 +29,7 @@ func dataSourceDigitalOceanAgentRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	flattened, err := flattenDigitalOceanAgent(agent)
+	flattened, err := FlattenDigitalOceanAgent(agent)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -116,7 +116,7 @@ func dataSourceDigitalOceanAgentListRead(ctx context.Context, d *schema.Resource
 	return nil
 }
 
-func flattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error) {
+func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error) {
 	if agent == nil {
 		return nil, fmt.Errorf("agent is nil")
 	}
