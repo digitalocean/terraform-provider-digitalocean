@@ -19,6 +19,16 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
+		// Importer: &schema.ResourceImporter{
+		// 	StateContext: func(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+		// 		// Validate UUID format
+		// 		if !isValidUUID(d.Id()) {
+		// 			return nil, fmt.Errorf("invalid agent UUID format: %s", d.Id())
+		// 		}
+		// 		return []*schema.ResourceData{d}, nil
+		// 	},
+		// },
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
@@ -96,7 +106,15 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "List of Chatbot Identifiers",
-				Elem:        &schema.Schema{Type: schema.TypeString},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"chatbot_id": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Chatbot ID",
+						},
+					},
+				},
 			},
 			"created_at": {
 				Type:        schema.TypeString,
@@ -125,7 +143,7 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 			},
 			"updated_at": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "Timestamp when the Agent was updated",
 			},
 			"functions": {
@@ -143,7 +161,6 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 			"chatbot": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				MaxItems:    1,
 				Description: "ChatBot configuration",
 				Elem:        ChatbotSchema(),
 			},
@@ -179,7 +196,6 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 			"open_ai_api_key": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				MaxItems:    1,
 				Description: "OpenAI API Key information",
 				Elem:        OpenAiApiKeySchema(),
 			},
@@ -189,7 +205,6 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 				Description: "Indicates if the agent should provide citations in responses",
 			},
 			"retrieval_method": {
-				//it can only be RETRIEVAL_METHOD_UNKNOWN,RETRIEVAL_METHOD_REWRITE, RETRIEVAL_METHOD_STEP_BACK,RETRIEVAL_METHOD_SUB_QUERIES,RETRIEVAL_METHOD_NONE
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Retrieval method used",
@@ -201,7 +216,7 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 			},
 			"route_created_at": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Computed:    true,
 				Description: "Timestamp when the route was created",
 			},
 			"route_uuid": {
@@ -223,7 +238,6 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 			"template": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				MaxItems:    1,
 				Description: "Agent Template",
 				Elem:        TemplateSchema(),
 			},
@@ -284,143 +298,67 @@ func resourceDigitalOceanAgentRead(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("name", agent.Name); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("instruction", agent.Instruction); err != nil {
-		return diag.FromErr(err)
-	}
-	if agent.Model != nil {
-		if err := d.Set("model_uuid", agent.Model.Uuid); err != nil {
-			return diag.FromErr(err)
-		}
-		modelSlice := []*godo.Model{agent.Model}
-		if err := d.Set("model", flattenModel(modelSlice)); err != nil {
-			return diag.FromErr(err)
-		}
-	}
-	if err := d.Set("region", agent.Region); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("project_id", agent.ProjectId); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("description", agent.Description); err != nil {
-		return diag.FromErr(err)
-	}
+	d.Set("name", agent.Name)
+	d.Set("instruction", agent.Instruction)
+	d.Set("region", agent.Region)
+	d.Set("project_id", agent.ProjectId)
+	d.Set("description", agent.Description)
+	d.Set("created_at", agent.CreatedAt.UTC().String())
+	d.Set("updated_at", agent.UpdatedAt.UTC().String())
+	d.Set("if_case", agent.IfCase)
+	d.Set("max_tokens", agent.MaxTokens)
+	d.Set("retrieval_method", agent.RetrievalMethod)
+	d.Set("route_created_by", agent.RouteCreatedBy)
+	d.Set("route_created_at", agent.RouteCreatedAt.UTC().String())
+	d.Set("route_uuid", agent.RouteUuid)
+	d.Set("route_name", agent.RouteName)
+	d.Set("tags", agent.Tags)
+	d.Set("temperature", agent.Temperature)
+	d.Set("top_p", agent.TopP)
+	d.Set("url", agent.Url)
+	d.Set("user_id", agent.UserId)
+	d.Set("model_uuid", agent.Model.Uuid)
 
-	// if err := d.Set("chatbot_identifiers", agent.ChatbotIdentifiers); err != nil {
-	// 	return diag.FromErr(err)
-	// }
-	if err := d.Set("created_at", agent.CreatedAt.UTC().String()); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("updated_at", agent.UpdatedAt.UTC().String()); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("if_case", agent.IfCase); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("k", agent.K); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("max_tokens", agent.MaxTokens); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("retrieval_method", agent.RetrievalMethod); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("route_created_by", agent.RouteCreatedBy); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("route_created_at", agent.RouteCreatedAt.UTC().String()); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("route_uuid", agent.RouteUuid); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("route_name", agent.RouteName); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("tags", agent.Tags); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("temperature", agent.Temperature); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("top_p", agent.TopP); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("url", agent.Url); err != nil {
-		return diag.FromErr(err)
-	}
-	if err := d.Set("user_id", agent.UserId); err != nil {
-		return diag.FromErr(err)
-	}
 	if err := d.Set("api_keys", flattenApiKeys(agent.ApiKeys)); err != nil {
 		return diag.FromErr(err)
 	}
-
-	if agent.AnthropicApiKey != nil {
-		if err := d.Set("anthropic_api_key", flattenAnthropicApiKey(agent.AnthropicApiKey)); err != nil {
-			return diag.FromErr(err)
-		}
-	}
-
-	if agent.ApiKeyInfos != nil {
-		if err := d.Set("api_key_infos", flattenApiKeyInfos(agent.ApiKeyInfos)); err != nil {
-			return diag.FromErr(err)
-		}
-	}
-
-	if agent.Deployment != nil {
-		if err := d.Set("deployment", flattenDeployment(agent.Deployment)); err != nil {
-			return diag.FromErr(err)
-		}
-	}
-
-	if agent.Functions != nil {
-		if err := d.Set("functions", flattenFunctions(agent.Functions)); err != nil {
-			return diag.FromErr(err)
-		}
-	}
-
-	if agent.Guardrails != nil {
-		if err := d.Set("agent_guardrail", flattenAgentGuardrail(agent.Guardrails)); err != nil {
-			return diag.FromErr(err)
-		}
-	}
-
-	if agent.ChatBot != nil {
-		if err := d.Set("chatbot", flattenChatbot(agent.ChatBot)); err != nil {
-			return diag.FromErr(err)
-		}
-	}
-
-	// fmt.Print(agent.KnowledgeBases)
-	// if agent.KnowledgeBases != nil {
-	// 	if err := d.Set("knowledge_bases", flattenKnowledgeBases(agent.KnowledgeBases)); err != nil {
-	// 		return diag.FromErr(err)
-	// 	}
+	// if err := d.Set("chatbot_identifiers", flattenChatbotIdentifiers(agent.ChatbotIdentifiers)); err != nil {
+	// 	return diag.FromErr(err)
 	// }
-	d.Set("knowledge_bases", flattenKnowledgeBases(agent.KnowledgeBases))
-
-	if agent.OpenAiApiKey != nil {
-		if err := d.Set("open_ai_api_key", flattenOpenAiApiKey(agent.OpenAiApiKey)); err != nil {
-			return diag.FromErr(err)
-		}
+	if err := d.Set("model", flattenModel([]*godo.Model{agent.Model})); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("anthropic_api_key", flattenAnthropicApiKey(agent.AnthropicApiKey)); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("api_key_infos", flattenApiKeyInfos(agent.ApiKeyInfos)); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("deployment", flattenDeployment(agent.Deployment)); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("functions", flattenFunctions(agent.Functions)); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("agent_guardrail", flattenAgentGuardrail(agent.Guardrails)); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("chatbot", flattenChatbot(agent.ChatBot)); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("knowledge_bases", flattenKnowledgeBases(agent.KnowledgeBases)); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("open_ai_api_key", flattenOpenAiApiKey(agent.OpenAiApiKey)); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("template", flattenTemplate(agent.Template)); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("child_agents", flattenChildAgents(agent.ChildAgents)); err != nil {
+		return diag.FromErr(err)
 	}
 
-	if agent.Template != nil {
-		if err := d.Set("template", flattenTemplate(agent.Template)); err != nil {
-			return diag.FromErr(err)
-		}
-	}
-	if agent.ChildAgents != nil {
-		if err := d.Set("child_agents", flattenChildAgents(agent.ChildAgents)); err != nil {
-			return diag.FromErr(err)
-		}
-	}
 	d.SetId(agent.Uuid)
 
 	return nil
@@ -477,7 +415,6 @@ func resourceDigitalOceanAgentUpdate(ctx context.Context, d *schema.ResourceData
 	if d.HasChange("open_ai_key_uuid") {
 		agentRequest.OpenAiKeyUuid = d.Get("open_ai_key_uuid").(string)
 	}
-
 	if d.HasChange("retrieval_method") {
 		agentRequest.RetrievalMethod = d.Get("retrieval_method").(string)
 	}
@@ -540,344 +477,30 @@ func resourceDigitalOceanAgentDelete(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-func extractDeploymentVisibility(old, new interface{}) (string, string) {
-	oldVisibility := ""
-	newVisibility := ""
-
-	if len(old.([]interface{})) > 0 {
-		oldDeployment := old.([]interface{})[0].(map[string]interface{})
-		oldVisibility = oldDeployment["visibility"].(string)
-	}
-
-	if len(new.([]interface{})) > 0 {
-		newDeployment := new.([]interface{})[0].(map[string]interface{})
-		newVisibility = newDeployment["visibility"].(string)
-	}
-
-	return oldVisibility, newVisibility
-}
-
-func convertToStringSlice(val interface{}) []string {
-	if val == nil {
-		return []string{}
-	}
-
-	interfaceSlice, ok := val.([]interface{})
-	if !ok {
-		return []string{}
-	}
-
-	var result []string
-	for _, elem := range interfaceSlice {
-		result = append(result, elem.(string))
-	}
-	return result
-}
-
-func flattenChildAgents(childAgents []*godo.Agent) []interface{} {
-	if childAgents == nil {
-		return nil
-	}
-	result := make([]interface{}, 0, len(childAgents))
-	for _, child := range childAgents {
-		m := map[string]interface{}{
-			"agent_id":    child.Uuid,
-			"name":        child.Name,
-			"region":      child.Region,
-			"project_id":  child.ProjectId,
-			"description": child.Description,
-		}
-		result = append(result, m)
-	}
-	return result
-}
-
-func flattenAnthropicApiKey(apiKey *godo.AnthropicApiKeyInfo) []interface{} {
-	if apiKey == nil {
-		return nil
-	}
-
-	m := map[string]interface{}{
-		"created_at": apiKey.CreatedAt.UTC().String(),
-		"created_by": apiKey.CreatedBy,
-		"deleted_at": apiKey.DeletedAt,
-		"name":       apiKey.Name,
-		"updated_at": apiKey.UpdatedAt.UTC().String(),
-		"uuid":       apiKey.Uuid,
-	}
-
-	return []interface{}{m}
-}
-
-func flattenApiKeyInfos(apiKeyInfos []*godo.ApiKeyInfo) []interface{} {
-	if apiKeyInfos == nil {
-		return nil
-	}
-
-	result := make([]interface{}, 0, len(apiKeyInfos))
-	for _, info := range apiKeyInfos {
-		m := map[string]interface{}{
-			"created_at": info.CreatedAt.UTC().String(),
-			"created_by": info.CreatedBy,
-			"deleted_at": info.DeletedAt.UTC().String(),
-			"name":       info.Name,
-			"secret_key": info.SecretKey,
-			"uuid":       info.Uuid,
-		}
-		result = append(result, m)
-	}
-
-	return result
-}
-
-func flattenDeployment(deployment *godo.AgentDeployment) []interface{} {
-	if deployment == nil {
-		return nil
-	}
-
-	m := map[string]interface{}{
-		"created_at": deployment.CreatedAt.UTC().String(),
-		"name":       deployment.Name,
-		"status":     deployment.Status,
-		"updated_at": deployment.UpdatedAt.UTC().String(),
-		"url":        deployment.Url,
-		"uuid":       deployment.Uuid,
-		"visibility": deployment.Visibility,
-	}
-	return []interface{}{m}
-}
-
-func flattenFunctions(functions []*godo.AgentFunction) []interface{} {
-	if functions == nil {
-		return nil
-	}
-
-	result := make([]interface{}, 0, len(functions))
-	for _, fn := range functions {
-		m := map[string]interface{}{
-			"api_key":        fn.ApiKey,
-			"created_at":     fn.CreatedAt.UTC().String(),
-			"description":    fn.Description,
-			"guardrail_uuid": fn.GuardrailUuid,
-			"faasname":       fn.FaasName,
-			"faasnamespace":  fn.FaasNamespace,
-			"name":           fn.Name,
-			"updated_at":     fn.UpdatedAt.UTC().String(),
-			"url":            fn.Url,
-			"uuid":           fn.Uuid,
-		}
-		result = append(result, m)
-	}
-
-	return result
-}
-
-func flattenAgentGuardrail(guardrails []*godo.AgentGuardrail) []interface{} {
-	if guardrails == nil {
-		return nil
-	}
-
-	result := make([]interface{}, 0, len(guardrails))
-	for _, guardrail := range guardrails {
-		m := map[string]interface{}{
-			"agent_uuid":       guardrail.AgentUuid,
-			"created_at":       guardrail.CreatedAt.UTC().String(),
-			"default_response": guardrail.DefaultResponse,
-			"description":      guardrail.Description,
-			"guardrail_uuid":   guardrail.GuardrailUuid,
-			"is_attached":      guardrail.IsAttached,
-			"is_default":       guardrail.IsDefault,
-			"name":             guardrail.Name,
-			"priority":         guardrail.Priority,
-			"type":             guardrail.Type,
-			"updated_at":       guardrail.UpdatedAt.UTC().String(),
-			"uuid":             guardrail.Uuid,
-		}
-		result = append(result, m)
-	}
-
-	return result
-}
-
-func flattenChatbot(chatbot *godo.ChatBot) []interface{} {
-	if chatbot == nil {
-		return nil
-	}
-
-	m := map[string]interface{}{
-		"button_background_color": chatbot.ButtonBackgroundColor,
-		"logo":                    chatbot.Logo,
-		"name":                    chatbot.Name,
-		"primary_color":           chatbot.PrimaryColor,
-		"secondary_color":         chatbot.SecondaryColor,
-		"starting_message":        chatbot.StartingMessage,
-	}
-
-	return []interface{}{m}
-}
-
-func flattenKnowledgeBases(config []*godo.KnowledgeBase) []interface{} {
-	if config == nil {
-		return []interface{}{}
-	}
-
-	result := make([]interface{}, 0, len(config))
-
-	for _, kb := range config {
-		k := map[string]interface{}{
-			"uuid":                 kb.Uuid,
-			"name":                 kb.Name,
-			"created_at":           kb.CreatedAt.UTC().String(),
-			"updated_at":           kb.UpdatedAt.UTC().String(),
-			"tags":                 kb.Tags,
-			"region":               kb.Region,
-			"embedding_model_uuid": kb.EmbeddingModelUuid,
-			"project_id":           kb.ProjectId,
-			"database_id":          kb.DatabaseId,
-			"added_to_agent_at":    kb.AddedToAgentAt.UTC().String(),
-		}
-
-		if kb.LastIndexingJob != nil {
-			k["last_indexing_job"] = flattenLastIndexingJob(kb.LastIndexingJob) // Flatten and take the first element
-		}
-
-		result = append(result, k)
-	}
-
-	return result
-}
-
-func flattenModel(models []*godo.Model) []interface{} {
-	if models == nil {
-		return nil
-	}
-
-	result := make([]interface{}, 0, len(models))
-	for _, model := range models {
-		m := map[string]interface{}{
-			"created_at":        model.CreatedAt.UTC().String(),
-			"inference_name":    model.InferenceName,
-			"inference_version": model.InferenceVersion,
-			"is_foundational":   model.IsFoundational,
-			"name":              model.Name,
-			"parent_uuid":       model.ParentUuid,
-			"provider":          model.Provider,
-			"updated_at":        model.UpdatedAt.UTC().String(),
-			"upload_complete":   model.UploadComplete,
-			"url":               model.Url,
-			"usecases":          model.Usecases,
-		}
-
-		if model.Version != nil {
-			versionMap := map[string]interface{}{
-				"major": model.Version.Major,
-				"minor": model.Version.Minor,
-				"patch": model.Version.Patch,
-			}
-			m["versions"] = []interface{}{versionMap}
-		}
-
-		if model.Agreement != nil {
-			agreementMap := map[string]interface{}{
-				"description": model.Agreement.Description,
-				"name":        model.Agreement.Name,
-				"url":         model.Agreement.Url,
-				"uuid":        model.Agreement.Uuid,
-			}
-			m["agreement"] = []interface{}{agreementMap}
-		}
-
-		result = append(result, m)
-	}
-
-	return result
-}
-
-func flattenApiKeys(apiKeys []*godo.ApiKey) []interface{} {
-	if apiKeys == nil {
-		return nil
-	}
-
-	result := make([]interface{}, 0, len(apiKeys))
-	for _, key := range apiKeys {
-		m := map[string]interface{}{
-			"api_key": key.ApiKey,
-		}
-		result = append(result, m)
-	}
-
-	return result
-}
-
-func flattenOpenAiApiKey(apiKey *godo.OpenAiApiKey) []interface{} {
-	if apiKey == nil {
-		return nil
-	}
-
-	m := map[string]interface{}{
-		"created_at": apiKey.CreatedAt.UTC().String(),
-		"created_by": apiKey.CreatedBy,
-		"deleted_at": apiKey.DeletedAt.UTC().String(),
-		"name":       apiKey.Name,
-		"updated_at": apiKey.UpdatedAt.UTC().String(),
-		"uuid":       apiKey.Uuid,
-		"model":      flattenModel(apiKey.Models),
-	}
-
-	return []interface{}{m}
-}
-
-func flattenTemplate(template *godo.AgentTemplate) []interface{} {
-	if template == nil {
-		return nil
-	}
-
-	m := map[string]interface{}{
-		"created_at":  template.CreatedAt.UTC().String(),
-		"instruction": template.Instruction,
-		"description": template.Description,
-		"k":           template.K,
-		"max_tokens":  template.MaxTokens,
-		"name":        template.Name,
-		"temperature": template.Temperature,
-		"top_p":       template.TopP,
-		"uuid":        template.Uuid,
-		"updated_at":  template.UpdatedAt.UTC().String(),
-	}
-
-	return []interface{}{m}
-}
-
-func flattenLastIndexingJob(job *godo.LastIndexingJob) []interface{} {
-	if job == nil {
-		return nil
-	}
-
-	// Convert datasource_uuids from []string to []interface{} if needed.
-	var datasourceUuids []interface{}
-	if job.DataSourceUuids != nil {
-		datasourceUuids = make([]interface{}, len(job.DataSourceUuids))
-		for i, id := range job.DataSourceUuids {
-			datasourceUuids[i] = id
-		}
-	}
-
-	m := map[string]interface{}{
-		"completed_datasources": job.CompletedDatasources,
-		"created_at":            job.CreatedAt.UTC().String(),
-		"datasource_uuids":      datasourceUuids,
-		"finished_at":           job.FinishedAt.UTC().String(),
-		"knowledge_uuid":        job.KnowledgeBaseUuid,
-		"phase":                 job.Phase,
-		"started_at":            job.StartedAt.UTC().String(),
-		"tokens":                job.Tokens,
-		"total_datasources":     job.TotalDatasources,
-		"updated_at":            job.UpdatedAt.UTC().String(),
-		"uuid":                  job.Uuid,
-	}
-
-	return []interface{}{m}
-}
+//
+///
+//
+//
+//
+//
+//
+//	// fmt.Print(agent.KnowledgeBases)
+// if agent.KnowledgeBases != nil {
+// 	if err := d.Set("knowledge_bases", flattenKnowledgeBases(agent.KnowledgeBases)); err != nil {
+// 		return diag.FromErr(err)
+// 	}
+// }
+// modelSlice := []*godo.Model{agent.Model}
+// 	if err := d.Set("model", flattenModel(modelSlice)); err != nil {
+// 		return diag.FromErr(err)
+// 	}
+// }
+//
+//
+//
+//
+//
+//
 
 // func flattenKnowledgeBases(kbs []*godo.KnowledgeBase) []interface{} {
 // 	if kbs == nil {

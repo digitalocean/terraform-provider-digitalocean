@@ -2,6 +2,96 @@ package genai
 
 import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+// create a flatten agent function that flattens child,parent,agent
+func AgentSchema() *schema.Resource { //map[string]*schema.Schema - didn't work
+	agentSchema := map[string]*schema.Schema{
+		"anthropic_api_key": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "Anthropic API Key information",
+			Elem:        AnthropicApiKeySchema(),
+		},
+		"api_key_infos": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "List of API Key Infos",
+			Elem:        ApiKeysSchema(),
+		},
+		"api_keys": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "List of API Keys",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"api_key": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "API Key value",
+					},
+				},
+			},
+		},
+		"chatbot": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "ChatBot configuration",
+			Elem:        ChatbotSchema(),
+		},
+		"chatbot_identifiers": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "List of Chatbot Identifiers",
+			Elem:        &schema.Schema{Type: schema.TypeString},
+		},
+		"deployment": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "List of API Key Infos",
+			Elem:        DeploymentSchema(),
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Name of the Agent",
+		},
+		"instruction": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Instruction for the Agent",
+		},
+		"model_uuid": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Model UUID of the Agent",
+		},
+		"project_id": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Project ID of the Agent",
+		},
+		"region": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Region where the Agent is deployed",
+		},
+		"description": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Description for the Agent",
+		},
+		"agent_id": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "ID of the child agent",
+		},
+	}
+	return &schema.Resource{
+		Schema: agentSchema,
+	}
+}
+
 func LastIndexingJobSchema() *schema.Resource {
 	lastIndexingSchema := map[string]*schema.Schema{
 		"completed_datasources": {
@@ -11,7 +101,7 @@ func LastIndexingJobSchema() *schema.Resource {
 		},
 		"created_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Created At timestamp for the last indexing job",
 		},
 		"datasource_uuids": {
@@ -22,7 +112,7 @@ func LastIndexingJobSchema() *schema.Resource {
 		},
 		"finished_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Timestamp when the last indexing job finished",
 		},
 		"knowledge_uuid": {
@@ -37,7 +127,7 @@ func LastIndexingJobSchema() *schema.Resource {
 		},
 		"started_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Timestamp when the last indexing job started",
 		},
 		"tokens": {
@@ -52,7 +142,7 @@ func LastIndexingJobSchema() *schema.Resource {
 		},
 		"updated_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Timestamp when the last indexing job updated",
 		},
 		"uuid": {
@@ -98,7 +188,7 @@ func AnthropicApiKeySchema() *schema.Resource {
 	anthropicApiKeySchema := map[string]*schema.Schema{
 		"created_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Timestamp when the API Key was created",
 		},
 		"created_by": {
@@ -108,7 +198,7 @@ func AnthropicApiKeySchema() *schema.Resource {
 		},
 		"deleted_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Deleted At timestamp for the API Key",
 		},
 		"name": {
@@ -118,7 +208,7 @@ func AnthropicApiKeySchema() *schema.Resource {
 		},
 		"updated_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Updated At timestamp for the API Key",
 		},
 		"uuid": {
@@ -132,205 +222,11 @@ func AnthropicApiKeySchema() *schema.Resource {
 	}
 }
 
-// create a flatten agent function that flattens child,parent,agent
-func AgentSchema() *schema.Resource { //map[string]*schema.Schema - didn't work
-	agentSchema := map[string]*schema.Schema{
-		"anthropic_api_key": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			MaxItems:    1,
-			Description: "Anthropic API Key information",
-			Elem:        AnthropicApiKeySchema(),
-		},
-		"api_key_infos": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "List of API Key Infos",
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"created_at": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "API Key value",
-					},
-					"created_by": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Created By user ID for the API Key",
-					},
-					"deleted_at": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Deleted At timestamp for the API Key",
-					},
-					"name": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Name of the API Key",
-					},
-					"secret_key": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Updated At timestamp for the API Key",
-					},
-					"uuid": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "API Key value",
-					},
-				},
-			},
-		},
-		"api_keys": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "List of API Keys",
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"api_key": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "API Key value",
-					},
-				},
-			},
-		},
-		"chatbot": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			MaxItems:    1,
-			Description: "ChatBot configuration",
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"button_background_color": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Background color for the chatbot button",
-					},
-					"logo": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Logo for the chatbot",
-					},
-					"name": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Name of the chatbot",
-					},
-					"primary_color": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Primary color for the chatbot",
-					},
-					"secondary_color": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Secondary color for the chatbot",
-					},
-					"starting_message": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Starting message for the chatbot",
-					},
-				},
-			},
-		},
-		"chatbot_identifiers": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "List of Chatbot Identifiers",
-			Elem:        &schema.Schema{Type: schema.TypeString},
-		},
-		"deployment": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "List of API Key Infos",
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"created_at": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "API Key value",
-					},
-					"name": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Name of the API Key",
-					},
-					"status": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Status of the Deployment",
-					},
-					"updated_at": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Updated At timestamp for the Agent",
-					},
-					"url": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Url of the Deployment",
-					},
-					"uuid": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "API Key value",
-					},
-					"visibility": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Visibility of the Deployment",
-					},
-				},
-			},
-		},
-		"name": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Name of the Agent",
-		},
-		"instruction": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Instruction for the Agent",
-		},
-		"model_uuid": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Model UUID of the Agent",
-		},
-		"project_id": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Project ID of the Agent",
-		},
-		"region": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Region where the Agent is deployed",
-		},
-		"description": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Description for the Agent",
-		},
-		"agent_id": {
-			Type:        schema.TypeString,
-			Computed:    true,
-			Description: "ID of the child agent",
-		},
-	}
-	return &schema.Resource{
-		Schema: agentSchema,
-	}
-}
-
 func TemplateSchema() *schema.Resource {
 	templateSchem := map[string]*schema.Schema{
 		"created_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Created At timestamp for the Knowledge Base",
 		},
 		"instruction": {
@@ -387,7 +283,7 @@ func TemplateSchema() *schema.Resource {
 		},
 		"updated_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Updated At timestamp for the Agent Template",
 		},
 	}
@@ -445,7 +341,7 @@ func FunctionsSchema() *schema.Resource {
 		},
 		"created_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Created At timestamp for the Function",
 		},
 		"description": {
@@ -475,7 +371,7 @@ func FunctionsSchema() *schema.Resource {
 		},
 		"updated_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Updated At timestamp for the Agent",
 		},
 		"url": {
@@ -499,7 +395,7 @@ func DeploymentSchema() *schema.Resource {
 	deploymentSchema := map[string]*schema.Schema{
 		"created_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "API Key value",
 		},
 		"name": {
@@ -514,7 +410,7 @@ func DeploymentSchema() *schema.Resource {
 		},
 		"updated_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Updated At timestamp for the Agent",
 		},
 		"url": {
@@ -544,7 +440,7 @@ func OpenAiApiKeySchema() *schema.Resource {
 	openAiApiKeySchema := map[string]*schema.Schema{
 		"created_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Timestamp when the API Key was created",
 		},
 		"created_by": {
@@ -554,7 +450,7 @@ func OpenAiApiKeySchema() *schema.Resource {
 		},
 		"deleted_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Deleted At timestamp for the API Key",
 		},
 		"name": {
@@ -564,7 +460,7 @@ func OpenAiApiKeySchema() *schema.Resource {
 		},
 		"updated_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Updated At timestamp for the API Key",
 		},
 		"uuid": {
@@ -582,7 +478,7 @@ func ApiKeysSchema() *schema.Resource {
 	apiKeysSchema := map[string]*schema.Schema{
 		"created_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "API Key value",
 		},
 		"created_by": {
@@ -592,7 +488,7 @@ func ApiKeysSchema() *schema.Resource {
 		},
 		"deleted_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Deleted At timestamp for the API Key",
 		},
 		"name": {
@@ -626,7 +522,7 @@ func AgentGuardrailSchema() *schema.Resource {
 		},
 		"created_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Created At timestamp for the Guardrail",
 		},
 		"default_response": {
@@ -645,12 +541,12 @@ func AgentGuardrailSchema() *schema.Resource {
 			Description: "Guardrail UUID",
 		},
 		"is_attached": {
-			Type:        schema.TypeString,
-			Optional:    true,
+			Type:        schema.TypeBool,
+			Computed:    true,
 			Description: "Indicates if the Guardrail is attached",
 		},
 		"is_default": {
-			Type:        schema.TypeString,
+			Type:        schema.TypeBool,
 			Optional:    true,
 			Description: "Indicates if the Guardrail is default",
 		},
@@ -671,7 +567,7 @@ func AgentGuardrailSchema() *schema.Resource {
 		},
 		"updated_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Updated At timestamp for the Guardrail",
 		},
 		"uuid": {
@@ -696,7 +592,7 @@ func ModelSchema() *schema.Resource {
 		},
 		"created_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Created At timestamp for the Knowledge Base",
 		},
 		"inference_name": {
@@ -731,7 +627,7 @@ func ModelSchema() *schema.Resource {
 		},
 		"updated_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Timestamp when the Knowledge Base was updated",
 		},
 		"upload_complete": {
@@ -935,102 +831,32 @@ func AgentSchemaRead() *schema.Resource {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "List of Chatbot Identifiers",
-			Elem:        &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"chatbot_id": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "Chatbot ID",
+					},
+				},
+			},
 		},
 		"created_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Timestamp when the Agent was created",
 		},
 		"parent_agents": {
 			Type:        schema.TypeList,
-			Optional:    true,
 			Computed:    true,
 			Description: "List of child agents",
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"name": {
-						Type:        schema.TypeString,
-						Required:    true,
-						Description: "Name of the Agent",
-					},
-					"instruction": {
-						Type:        schema.TypeString,
-						Required:    true,
-						Description: "Instruction for the Agent",
-					},
-					"model_uuid": {
-						Type:        schema.TypeString,
-						Required:    true,
-						Description: "Model UUID of the Agent",
-					},
-					"project_id": {
-						Type:        schema.TypeString,
-						Required:    true,
-						Description: "Project ID of the Agent",
-					},
-					"region": {
-						Type:        schema.TypeString,
-						Required:    true,
-						Description: "Region where the Agent is deployed",
-					},
-					"description": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Description for the Agent",
-					},
-					"agent_id": {
-						Type:        schema.TypeString,
-						Computed:    true,
-						Description: "ID of the child agent",
-					},
-				},
-			},
+			Elem:        AgentSchema(),
 		},
 		"child_agents": {
 			Type:        schema.TypeList,
-			Optional:    true,
 			Computed:    true,
 			Description: "List of child agents",
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"name": {
-						Type:        schema.TypeString,
-						Required:    true,
-						Description: "Name of the Agent",
-					},
-					"instruction": {
-						Type:        schema.TypeString,
-						Required:    true,
-						Description: "Instruction for the Agent",
-					},
-					"model_uuid": {
-						Type:        schema.TypeString,
-						Required:    true,
-						Description: "Model UUID of the Agent",
-					},
-					"project_id": {
-						Type:        schema.TypeString,
-						Required:    true,
-						Description: "Project ID of the Agent",
-					},
-					"region": {
-						Type:        schema.TypeString,
-						Required:    true,
-						Description: "Region where the Agent is deployed",
-					},
-					"description": {
-						Type:        schema.TypeString,
-						Optional:    true,
-						Description: "Description for the Agent",
-					},
-					"agent_id": {
-						Type:        schema.TypeString,
-						Computed:    true,
-						Description: "ID of the child agent",
-					},
-				},
-			},
+			Elem:        AgentSchema(),
 		},
 		"deployment": {
 			Type:        schema.TypeList,
@@ -1040,7 +866,7 @@ func AgentSchemaRead() *schema.Resource {
 		},
 		"updated_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Timestamp when the Agent was updated",
 		},
 		"functions": {
@@ -1117,7 +943,7 @@ func AgentSchemaRead() *schema.Resource {
 		},
 		"route_created_at": {
 			Type:        schema.TypeString,
-			Optional:    true,
+			Computed:    true,
 			Description: "Timestamp when the route was created",
 		},
 		"route_uuid": {
