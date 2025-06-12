@@ -1,16 +1,16 @@
 ---
-page_title: "DigitalOcean: digitalocean_agent"
-subcategory: "Agents"
+page_title: "DigitalOcean: digitalocean_genai_agent"
+subcategory: "GenAI"
 ---
 
-# digitalocean_agent
+# digitalocean_genai_agent
 
-Provides a resource to manage a DigitalOcean Agent. With this resource you can create, update, and delete agents, as well as update the agent’s visibility status.
+Provides a resource to manage a DigitalOcean GenAI Agent. With this resource you can create, update, and delete agents, as well as update the agent's visibility status.
 
 ## Example Usage
 
 ```hcl
-resource "digitalocean_agent" "terraform-testing" {
+resource "digitalocean_genai_agent" "terraform-testing" {
   description = "Agent for testing update and delete functionality."
   instruction = "You are DigitalOcean's Solutions Architect Assistant, designed to help users find the perfect solution for their technical needs."
   model_uuid = "d754f2d7-d1f0-11ef-bf8f-4e013e2ddde4"
@@ -67,7 +67,7 @@ The following arguments are supported:
 
 After creation, the following attributes are exported:
 
-- **uuid** - The unique identifier of the agent.
+- **agent_id** - The unique identifier of the agent.
 - **created_at** - The timestamp when the agent was created.
 - **updated_at** - The timestamp when the agent was last updated.
 - **instruction** - The instruction used with the agent.
@@ -75,8 +75,8 @@ After creation, the following attributes are exported:
 - **name** - The name of the agent.
 - **project_id** - The project associated with the agent.
 - **region** - The region where the agent is deployed.
-- **description** - The agent’s description.
-- **visibility** - The agent’s visibility status.
+- **description** - The agent's description.
+- **visibility** - The agent's visibility status.
 - **tags** - The list of tags assigned to the agent.
 - **if_case** - A condition parameter for agent behavior.
 - **k** - An integer representing the "k" value.
@@ -116,18 +116,18 @@ This resource supports updates to the following attributes:
 - **visibility**
 - **other updatable fields as supported by the API**
 
-When the **visibility** attribute is changed, the provider invokes the update API endpoint to adjust the agent’s visibility (public or private).
+When the **visibility** attribute is changed, the provider invokes the update API endpoint to adjust the agent's visibility (public or private).
 
 ## Import
 
-A DigitalOcean Agent can be imported using its UUID. For example:
+A DigitalOcean GenAI Agent can be imported using its UUID. For example:
 
 ```sh
-terraform import digitalocean_agent.terraform-testing 79292fb6-3627-11f0-bf8f-4e013e2ddde4
+terraform import digitalocean_genai_agent.terraform-testing 79292fb6-3627-11f0-bf8f-4e013e2ddde4
 ```
 
 ## Usage Notes
 
-Changes to the agent’s configuration, such as updating the instruction, description, or visibility, will trigger the corresponding update functions in the provider. This resource enables you to manage the complete lifecycle of a DigitalOcean Agent within your Terraform configuration.
+Changes to the agent's configuration, such as updating the instruction, description, or visibility, will trigger the corresponding update functions in the provider. This resource enables you to manage the complete lifecycle of a DigitalOcean GenAI Agent within your Terraform configuration.
 
 ---

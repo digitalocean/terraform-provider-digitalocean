@@ -1,23 +1,22 @@
 ---
-page_title: "DigitalOcean: digitalocean_agent"
-subcategory: "Agents"
+page_title: "DigitalOcean: digitalocean_genai_agent"
+subcategory: "GenAI"
 ---
 
-# digitalocean_agent
+# digitalocean_genai_agent
 
-Provides a data source that retrieves details about an existing DigitalOcean Agent. Use this data source to query an agent by its unique identifier.
+Provides a data source that retrieves details about an existing DigitalOcean GenAI Agent. Use this data source to query an agent by its unique identifier.
 
 ## Example Usage
 
 ```hcl
-data "digitalocean_agent" "example" {
+data "digitalocean_genai_agent" "example" {
   agent_id = "79292fb6-3627-11f0-bf8f-4e013e2ddde4"
 }
 
 output "agent_detail" {
-  value = data.digitalocean_agent.example
+  value = data.digitalocean_genai_agent.example
 }
-```
 
 ## Argument Reference
 

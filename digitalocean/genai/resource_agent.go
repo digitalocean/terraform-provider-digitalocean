@@ -322,9 +322,9 @@ func resourceDigitalOceanAgentRead(ctx context.Context, d *schema.ResourceData, 
 	if err := d.Set("api_keys", flattenApiKeys(agent.ApiKeys)); err != nil {
 		return diag.FromErr(err)
 	}
-	// if err := d.Set("chatbot_identifiers", flattenChatbotIdentifiers(agent.ChatbotIdentifiers)); err != nil {
-	// 	return diag.FromErr(err)
-	// }
+	if err := d.Set("chatbot_identifiers", flattenChatbotIdentifiers(agent.ChatbotIdentifiers)); err != nil {
+		return diag.FromErr(err)
+	}
 	if err := d.Set("model", flattenModel([]*godo.Model{agent.Model})); err != nil {
 		return diag.FromErr(err)
 	}
