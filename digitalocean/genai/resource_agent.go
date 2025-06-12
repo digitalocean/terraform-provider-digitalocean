@@ -109,9 +109,8 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"chatbot_id": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Chatbot ID",
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 					},
 				},

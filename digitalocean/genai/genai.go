@@ -1,10 +1,101 @@
 package genai
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/digitalocean/godo"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 )
+
+func getDigitalOceanAgents(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	opts := &godo.ListOptions{
+		Page:    1,
+		PerPage: 200,
+	}
+
+	var allAgents []interface{}
+	for {
+		agents, resp, err := client.GenAI.ListAgents(context.Background(), opts)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving agents : %s", err)
+		}
+
+		for _, agent := range agents {
+			allAgents = append(allAgents, agent)
+		}
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving agents: %s", err)
+		}
+
+		opts.Page = page + 1
+
+	}
+	return allAgents, nil
+
+}
+
+func flattenDigitalOceanAgent(rawDomain, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
+	agent, ok := rawDomain.(*godo.Agent)
+	if !ok {
+		return nil, fmt.Errorf("expected *godo.Agent, got %T", rawDomain)
+	}
+
+	if agent == nil {
+		return nil, fmt.Errorf("agent is nil")
+	}
+
+	flattenedAgent := map[string]interface{}{
+		"anthropic_api_key": flattenAnthropicApiKey(agent.AnthropicApiKey),
+		"api_key_infos":     flattenApiKeyInfos(agent.ApiKeyInfos),
+		"api_keys":          flattenApiKeys(agent.ApiKeys),
+		"chatbot":           flattenChatbot(agent.ChatBot),
+		// "chatbot_identifiers": flattenChatbotIdentifiers(agent.ChatbotIdentifiers),
+		"created_at":       agent.CreatedAt.UTC().String(),
+		"child_agents":     flattenChildAgents(agent.ChildAgents),
+		"deployment":       flattenDeployment(agent.Deployment),
+		"description":      agent.Description,
+		"updated_at":       agent.UpdatedAt.UTC().String(),
+		"functions":        flattenFunctions(agent.Functions),
+		"agent_guardrail":  flattenAgentGuardrail(agent.Guardrails),
+		"if_case":          agent.IfCase,
+		"instruction":      agent.Instruction,
+		"k":                agent.K,
+		"knowledge_bases":  flattenKnowledgeBases(agent.KnowledgeBases),
+		"max_tokens":       agent.MaxTokens,
+		"name":             agent.Name,
+		"open_ai_api_key":  flattenOpenAiApiKey(agent.OpenAiApiKey),
+		"project_id":       agent.ProjectId,
+		"region":           agent.Region,
+		"retrieval_method": agent.RetrievalMethod,
+		"route_created_at": agent.RouteCreatedAt.UTC().String(),
+		"route_created_by": agent.RouteCreatedBy,
+		"route_uuid":       agent.RouteUuid,
+		"route_name":       agent.RouteName,
+		"tags":             agent.Tags,
+		"template":         flattenTemplate(agent.Template),
+		"temperature":      agent.Temperature,
+		"top_p":            agent.TopP,
+		"url":              agent.Url,
+		"user_id":          agent.UserId,
+		"agent_id":         agent.Uuid,
+	}
+
+	if agent.Model != nil {
+		flattenedAgent["model_uuid"] = agent.Model.Uuid
+		modelSlice := []*godo.Model{agent.Model}
+		flattenedAgent["model"] = flattenModel(modelSlice)
+	}
+
+	return flattenedAgent, nil
+}
 
 func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error) {
 	if agent == nil {
@@ -326,15 +417,17 @@ func flattenApiKeys(apiKeys []*godo.ApiKey) []interface{} {
 
 func flattenChatbotIdentifiers(chatbotIdentifiers []*godo.AgentChatbotIdentifier) []interface{} {
 	if chatbotIdentifiers == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0, len(chatbotIdentifiers))
 	for _, identifier := range chatbotIdentifiers {
-		m := map[string]interface{}{
-			"chatbot_id": identifier.AgentChatbotIdentifier,
+		if identifier != nil {
+			m := map[string]interface{}{
+				"chatbot_id": identifier.AgentChatbotIdentifier,
+			}
+			result = append(result, m)
 		}
-		result = append(result, m)
 	}
 
 	return result
@@ -384,7 +477,6 @@ func flattenLastIndexingJob(job *godo.LastIndexingJob) []interface{} {
 		return nil
 	}
 
-	// Convert datasource_uuids from []string to []interface{} if needed.
 	var datasourceUuids []interface{}
 	if job.DataSourceUuids != nil {
 		datasourceUuids = make([]interface{}, len(job.DataSourceUuids))

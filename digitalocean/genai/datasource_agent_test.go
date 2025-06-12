@@ -35,7 +35,7 @@ data "digitalocean_agent" "test" {
 	})
 }
 
-func TestDataSourceDigitalOceanAgentList(t *testing.T) {
+func TestDataSourceDigitalOceanAgents(t *testing.T) {
 	resourceName := "data.digitalocean_agent_list.test"
 
 	resource.Test(t, resource.TestCase{
@@ -89,11 +89,11 @@ func testAccProvider() *schema.Provider {
 		Schema: map[string]*schema.Schema{},
 		ResourcesMap: map[string]*schema.Resource{
 			"digitalocean_agent":      genai.ResourceDigitalOceanAgent(),
-			"digitalocean_agent_list": genai.DataSourceDigitalOceanAgentList(),
+			"digitalocean_agent_list": genai.DataSourceDigitalOceanAgents(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"digitalocean_agent":      genai.DataSourceDigitalOceanAgent(),
-			"digitalocean_agent_list": genai.DataSourceDigitalOceanAgentList(),
+			"digitalocean_agent_list": genai.DataSourceDigitalOceanAgents(),
 		},
 		ConfigureFunc: func(d *schema.ResourceData) (interface{}, error) {
 			return &mockGodoClient{}, nil

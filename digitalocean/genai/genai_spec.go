@@ -8,7 +8,6 @@ func AgentSchema() *schema.Resource { //map[string]*schema.Schema - didn't work
 		"anthropic_api_key": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			MaxItems:    1,
 			Description: "Anthropic API Key information",
 			Elem:        AnthropicApiKeySchema(),
 		},
@@ -32,19 +31,26 @@ func AgentSchema() *schema.Resource { //map[string]*schema.Schema - didn't work
 				},
 			},
 		},
-		"chatbot": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			MaxItems:    1,
-			Description: "ChatBot configuration",
-			Elem:        ChatbotSchema(),
-		},
 		"chatbot_identifiers": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "List of Chatbot Identifiers",
-			Elem:        &schema.Schema{Type: schema.TypeString},
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"chatbot_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
 		},
+		"chatbot": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "ChatBot configuration",
+			Elem:        ChatbotSchema(),
+		},
+
 		"deployment": {
 			Type:        schema.TypeList,
 			Optional:    true,
@@ -747,8 +753,8 @@ func KnowledgeBaseSchema() *schema.Resource {
 	}
 }
 
-func AgentSchemaRead() *schema.Resource {
-	agentSchema := map[string]*schema.Schema{
+func AgentSchemaRead() map[string]*schema.Schema {
+	return map[string]*schema.Schema{ //agentSchema :=
 		"agent_id": {
 			Type:        schema.TypeString,
 			Required:    true,
@@ -803,7 +809,6 @@ func AgentSchemaRead() *schema.Resource {
 		"anthropic_api_key": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			MaxItems:    1,
 			Description: "Anthropic API Key information",
 			Elem:        AnthropicApiKeySchema(),
 		},
@@ -884,7 +889,6 @@ func AgentSchemaRead() *schema.Resource {
 		"chatbot": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			MaxItems:    1,
 			Description: "ChatBot configuration",
 			Elem:        ChatbotSchema(),
 		},
@@ -919,7 +923,6 @@ func AgentSchemaRead() *schema.Resource {
 		"open_ai_api_key": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			MaxItems:    1,
 			Description: "OpenAI API Key information",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
@@ -965,7 +968,6 @@ func AgentSchemaRead() *schema.Resource {
 		"template": {
 			Type:        schema.TypeList,
 			Optional:    true,
-			MaxItems:    1,
 			Description: "Agent Template",
 			Elem:        TemplateSchema(),
 		},
@@ -990,7 +992,7 @@ func AgentSchemaRead() *schema.Resource {
 			Description: "User ID linked with the Agent",
 		},
 	}
-	return &schema.Resource{
-		Schema: agentSchema,
-	}
+	// return &schema.Resource{
+	// 	Schema: agentSchema,
+	// }
 }
