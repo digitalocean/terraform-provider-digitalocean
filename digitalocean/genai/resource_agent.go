@@ -76,40 +76,7 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "List of API Key Infos",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"created_at": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "API Key value",
-						},
-						"created_by": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Created By user ID for the API Key",
-						},
-						"deleted_at": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Deleted At timestamp for the API Key",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Name of the API Key",
-						},
-						"secret_key": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Updated At timestamp for the API Key",
-						},
-						"uuid": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "API Key value",
-						},
-					},
-				},
+				Elem:        ApiKeysSchema(),
 			},
 			"api_keys": {
 				Type:        schema.TypeList,
@@ -154,45 +121,7 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "List of API Key Infos",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"created_at": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "API Key value",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Name of the API Key",
-						},
-						"status": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Status of the Deployment",
-						},
-						"updated_at": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Updated At timestamp for the Agent",
-						},
-						"url": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Url of the Deployment",
-						},
-						"uuid": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "API Key value",
-						},
-						"visibility": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Visibility of the Deployment",
-						},
-					},
-				},
+				Elem:        DeploymentSchema(),
 			},
 			"updated_at": {
 				Type:        schema.TypeString,
@@ -203,169 +132,20 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "List of Functions",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"api_key": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "API Key value",
-						},
-						"created_at": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Created At timestamp for the Function",
-						},
-						"description": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Description of the Function",
-						},
-						"guardrail_uuid": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Guardrail UUID for the Function",
-						},
-						"faasname": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Name of function",
-						},
-						"faasnamespace": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Namespace of function",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Name of function",
-						},
-						"updated_at": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Updated At timestamp for the Agent",
-						},
-						"url": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Url of the Deployment",
-						},
-						"uuid": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "API Key value",
-						},
-					},
-				},
+				Elem:        FunctionsSchema(),
 			},
 			"agent_guardrail": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "AgentGuardrail represents a Guardrail attached to Gen AI Agent",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"agent_uuid": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Agent UUID for the Guardrail",
-						},
-						"created_at": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Created At timestamp for the Guardrail",
-						},
-						"default_response": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Default response for the Guardrail",
-						},
-						"description": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Description of the Guardrail",
-						},
-						"guardrail_uuid": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Guardrail UUID",
-						},
-						"is_attached": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Indicates if the Guardrail is attached",
-						},
-						"is_default": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Indicates if the Guardrail is default",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Name of Guardrail",
-						},
-						"priority": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Description: "Priority of the Guardrail",
-						},
-						"type": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Type of the Guardrail",
-						},
-						"updated_at": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Updated At timestamp for the Guardrail",
-						},
-						"uuid": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Guardrail UUID",
-						},
-					},
-				},
+				Elem:        AgentGuardrailSchema(),
 			},
 			"chatbot": {
 				Type:        schema.TypeList,
 				Optional:    true,
 				MaxItems:    1,
 				Description: "ChatBot configuration",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"button_background_color": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Background color for the chatbot button",
-						},
-						"logo": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Logo for the chatbot",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Name of the chatbot",
-						},
-						"primary_color": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Primary color for the chatbot",
-						},
-						"secondary_color": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Secondary color for the chatbot",
-						},
-						"starting_message": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Starting message for the chatbot",
-						},
-					},
-				},
+				Elem:        ChatbotSchema(),
 			},
 			"if_case": {
 				Type:        schema.TypeString,
@@ -401,40 +181,7 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 				Optional:    true,
 				MaxItems:    1,
 				Description: "OpenAI API Key information",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"created_at": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Timestamp when the API Key was created",
-						},
-						"created_by": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Created By user ID for the API Key",
-						},
-						"deleted_at": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Deleted At timestamp for the API Key",
-						},
-						"name": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Name of the API Key",
-						},
-						"updated_at": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "Updated At timestamp for the API Key",
-						},
-						"uuid": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "API Key value",
-						},
-					},
-				},
+				Elem:        OpenAiApiKeySchema(),
 			},
 			"provide_citations": {
 				Type:        schema.TypeBool,
@@ -833,7 +580,6 @@ func flattenChildAgents(childAgents []*godo.Agent) []interface{} {
 	}
 	result := make([]interface{}, 0, len(childAgents))
 	for _, child := range childAgents {
-		// Build a map with only the fields you want to expose.
 		m := map[string]interface{}{
 			"agent_id":    child.Uuid,
 			"name":        child.Name,
