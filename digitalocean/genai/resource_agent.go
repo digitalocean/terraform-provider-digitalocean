@@ -19,15 +19,6 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
-		// Importer: &schema.ResourceImporter{
-		// 	StateContext: func(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
-		// 		// Validate UUID format
-		// 		if !isValidUUID(d.Id()) {
-		// 			return nil, fmt.Errorf("invalid agent UUID format: %s", d.Id())
-		// 		}
-		// 		return []*schema.ResourceData{d}, nil
-		// 	},
-		// },
 
 		Schema: map[string]*schema.Schema{
 			"name": {

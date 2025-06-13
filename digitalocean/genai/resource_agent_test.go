@@ -2,132 +2,319 @@ package genai_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/genai"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-// fakeGenAI implements a fake version of the GenAI interface.
-type fakeGenAI struct{}
+const (
+	testRegion    = "tor1"
+	testModelUUID = "d111f1d1-d1f1-11ef-bf1f-1e111e1ggge1"
+	testProjectID = "11e1e111-ee11-11ac-11ff-1111cf1111e1"
+)
 
-func (f *fakeGenAI) CreateAgent(ctx context.Context, req *godo.AgentCreateRequest) (*godo.Agent, *godo.Response, error) {
-	return &godo.Agent{
-		Uuid:        "agent-123",
-		Name:        req.Name,
-		Instruction: req.Instruction,
-		Model:       nil,
-		Region:      req.Region,
-		ProjectId:   req.ProjectId,
-		Description: req.Description,
-	}, &godo.Response{}, nil
-}
+func TestAccDigitalOceanAgent_Basic(t *testing.T) {
+	var agent godo.Agent
+	agentName := acceptance.RandomTestName()
 
-func (f *fakeGenAI) GetAgent(ctx context.Context, uuid string) (*godo.Agent, *godo.Response, error) {
-	return &godo.Agent{
-		Uuid:        uuid,
-		Name:        "test-agent",
-		Instruction: "test-instruction",
-		Model:       nil,
-		Region:      "nyc1",
-		ProjectId:   "proj-123",
-		Description: "A test agent",
-	}, &godo.Response{}, nil
-}
-
-func (f *fakeGenAI) UpdateAgent(ctx context.Context, id string, req *godo.AgentUpdateRequest) (*godo.Agent, *godo.Response, error) {
-	return &godo.Agent{
-		Uuid:        id,
-		Name:        req.Name,
-		Instruction: req.Instruction,
-		Model:       nil,
-		Region:      req.Region,
-		ProjectId:   req.ProjectId,
-	}, &godo.Response{}, nil
-}
-
-func (f *fakeGenAI) UpdateAgentVisibility(ctx context.Context, id string, req *godo.AgentVisibilityUpdateRequest) (*godo.Agent, *godo.Response, error) {
-	return &godo.Agent{
-		Uuid: id,
-	}, &godo.Response{}, nil
-}
-
-func (f *fakeGenAI) DeleteAgent(ctx context.Context, id string) (*godo.Agent, *godo.Response, error) {
-	return nil, &godo.Response{}, nil
-}
-
-// fakeGodoClient bundles the fake GenAI service.
-type fakeGodoClient struct {
-	GenAI *fakeGenAI
-}
-
-// fakeCombinedConfig satisfies the meta interface used in our resource.
-type fakeCombinedConfig struct {
-	client *fakeGodoClient
-}
-
-func (c *fakeCombinedConfig) GodoClient() *fakeGodoClient {
-	return c.client
-}
-
-// getTestResourceData creates a ResourceData with default values for testing.
-func getTestResourceData(t *testing.T) *schema.ResourceData {
-	resourceSchema := genai.ResourceDigitalOceanAgent().Schema
-	d := schema.TestResourceDataRaw(t, resourceSchema, map[string]interface{}{
-		"name":        "test-agent",
-		"instruction": "test instruction",
-		"model_uuid":  "model-123",
-		"region":      "nyc1",
-		"project_id":  "proj-123",
-		"description": "A test agent",
-		"visibility":  "public",
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanAgentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanAgentConfig_basic(agentName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAgentExists("digitalocean_agent.test", &agent),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "name", agentName),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "instruction", "You are a helpful AI assistant."),
+					resource.TestCheckResourceAttrSet("digitalocean_agent.test", "model_uuid"),
+					resource.TestCheckResourceAttrSet("digitalocean_agent.test", "project_id"),
+					resource.TestCheckResourceAttrSet("digitalocean_agent.test", "region"),
+					resource.TestCheckResourceAttrSet("digitalocean_agent.test", "created_at"),
+					resource.TestCheckResourceAttrSet("digitalocean_agent.test", "updated_at"),
+				),
+			},
+		},
 	})
-	return d
 }
 
-func TestResourceDigitalOceanAgentCRUD(t *testing.T) {
-	ctx := context.Background()
+func TestAccDigitalOceanAgent_WithOptionalFields(t *testing.T) {
+	var agent godo.Agent
+	agentName := acceptance.RandomTestName()
 
-	// Set up fake client and meta config.
-	fakeClient := &fakeGodoClient{GenAI: &fakeGenAI{}}
-	meta := &fakeCombinedConfig{client: fakeClient}
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanAgentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanAgentConfig_withOptionalFields(agentName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAgentExists("digitalocean_agent.test", &agent),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "name", agentName),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "description", "Test agent with optional fields"),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "temperature", "0.7"),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "max_tokens", "1000"),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "top_p", "0.9"),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "provide_citations", "true"),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "retrieval_method", "semantic"),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "k", "5"),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "tags.#", "2"),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "tags.0", "test"),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "tags.1", "ai"),
+				),
+			},
+		},
+	})
+}
 
-	d := getTestResourceData(t)
+func TestAccDigitalOceanAgent_Update(t *testing.T) {
+	var agent godo.Agent
+	agentName := acceptance.RandomTestName()
+	updatedName := agentName + "-updated"
 
-	// Test Create
-	diags := genai.ResourceDigitalOceanAgent().CreateContext(ctx, d, meta)
-	if diags.HasError() {
-		t.Fatalf("Create failed: %v", diags)
-	}
-	if d.Id() != "agent-123" {
-		t.Fatalf("Unexpected agent ID: got %s, want agent-123", d.Id())
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanAgentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanAgentConfig_basic(agentName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAgentExists("digitalocean_agent.test", &agent),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "name", agentName),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "instruction", "You are a helpful AI assistant."),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanAgentConfig_updated(updatedName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAgentExists("digitalocean_agent.test", &agent),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "name", updatedName),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "instruction", "You are an updated AI assistant with new capabilities."),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "description", "Updated test agent"),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "temperature", "0.8"),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "max_tokens", "2000"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanAgent_WithKnowledgeBase(t *testing.T) {
+	var agent godo.Agent
+	agentName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanAgentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanAgentConfig_withKnowledgeBase(agentName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAgentExists("digitalocean_agent.test", &agent),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "name", agentName),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "knowledge_base_uuid.#", "1"),
+					resource.TestCheckResourceAttrSet("digitalocean_agent.test", "knowledge_base_uuid.0"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanAgent_WithDeployment(t *testing.T) {
+	var agent godo.Agent
+	agentName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanAgentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanAgentConfig_withDeployment(agentName, "private"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAgentExists("digitalocean_agent.test", &agent),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "name", agentName),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "deployment.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "deployment.0.visibility", "private"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanAgentConfig_withDeployment(agentName, "public"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAgentExists("digitalocean_agent.test", &agent),
+					resource.TestCheckResourceAttr("digitalocean_agent.test", "deployment.0.visibility", "public"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanAgent_ImportBasic(t *testing.T) {
+	agentName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanAgentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanAgentConfig_basic(agentName),
+			},
+			{
+				ResourceName:      "digitalocean_agent.test",
+				ImportState:       true,
+				ImportStateVerify: true,
+			},
+		},
+	})
+}
+
+func testAccCheckDigitalOceanAgentDestroy(s *terraform.State) error {
+	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
+
+	for _, rs := range s.RootModule().Resources {
+		if rs.Type != "digitalocean_agent" {
+			continue
+		}
+
+		_, _, err := client.GenAI.GetAgent(context.Background(), rs.Primary.ID)
+		if err == nil {
+			return fmt.Errorf("Agent still exists: %s", rs.Primary.ID)
+		}
 	}
 
-	// Test Read
-	diags = genai.ResourceDigitalOceanAgent().ReadContext(ctx, d, meta)
-	if diags.HasError() {
-		t.Fatalf("Read failed: %v", diags)
-	}
+	return nil
+}
 
-	// Test Update - simulate a change in the agent's name and visibility.
-	if err := d.Set("name", "updated-agent"); err != nil {
-		t.Fatalf("Failed to set name: %v", err)
-	}
-	if err := d.Set("visibility", "private"); err != nil {
-		t.Fatalf("Failed to set visibility: %v", err)
-	}
-	diags = genai.ResourceDigitalOceanAgent().UpdateContext(ctx, d, meta)
-	if diags.HasError() {
-		t.Fatalf("Update failed: %v", diags)
-	}
+func testAccCheckDigitalOceanAgentExists(resource string, agent *godo.Agent) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resource]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resource)
+		}
 
-	// Test Delete
-	diags = genai.ResourceDigitalOceanAgent().DeleteContext(ctx, d, meta)
-	if diags.HasError() {
-		t.Fatalf("Delete failed: %v", diags)
+		if rs.Primary.ID == "" {
+			return fmt.Errorf("No Agent ID is set")
+		}
+
+		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
+		foundAgent, _, err := client.GenAI.GetAgent(context.Background(), rs.Primary.ID)
+		if err != nil {
+			return err
+		}
+
+		if foundAgent.Uuid != rs.Primary.ID {
+			return fmt.Errorf("Agent not found")
+		}
+
+		*agent = *foundAgent
+		return nil
 	}
-	if d.Id() != "" {
-		t.Fatalf("Agent not deleted properly, id still set: %s", d.Id())
-	}
+}
+
+func testAccCheckDigitalOceanAgentConfig_basic(name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_project" "test" {
+  name = "%s-project"
+}
+
+resource "digitalocean_agent" "test" {
+  name         = "%s"
+  instruction  = "You are a helpful AI assistant."
+  model_uuid   = "%s"  # Replace with actual model UUID
+  project_id   = digitalocean_project.test.id
+  region       = "tor1"
+}`, name, name, testModelUUID)
+}
+
+func testAccCheckDigitalOceanAgentConfig_withOptionalFields(name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_project" "test" {
+  name = "%s-project"
+}
+
+resource "digitalocean_agent" "test" {
+  name              = "%s"
+  instruction       = "You are a helpful AI assistant."
+  description       = "Test agent with optional fields"
+  model_uuid        = "%s"  # Replace with actual model UUID
+  project_id        = digitalocean_project.test.id
+  region            = "tor1"
+  temperature       = 0.7
+  max_tokens        = 1000
+  top_p             = 0.9
+  provide_citations = true
+  retrieval_method  = "semantic"
+  k                 = 5
+  tags              = ["test", "ai"]
+}`, name, name, testModelUUID)
+}
+
+func testAccCheckDigitalOceanAgentConfig_updated(name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_project" "test" {
+  name = "%s-project"
+}
+
+resource "digitalocean_agent" "test" {
+  name         = "%s"
+  instruction  = "You are an updated AI assistant with new capabilities."
+  description  = "Updated test agent"
+  model_uuid   = "%s"  # Replace with actual model UUID
+  project_id   = digitalocean_project.test.id
+  region       = "tor1"
+  temperature  = 0.8
+  max_tokens   = 2000
+}`, name, name, testModelUUID)
+}
+
+func testAccCheckDigitalOceanAgentConfig_withKnowledgeBase(name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_project" "test" {
+  name = "%s-project"
+}
+
+resource "digitalocean_knowledge_base" "test" {
+  name        = "%s-kb"
+  description = "Test knowledge base"
+  project_id  = digitalocean_project.test.id
+  region      = "tor1"
+}
+
+resource "digitalocean_agent" "test" {
+  name                = "%s"
+  instruction         = "You are a helpful AI assistant with knowledge base access."
+  model_uuid          = "%s"  # Replace with actual model UUID
+  project_id          = digitalocean_project.test.id
+  region              = "tor1"
+  knowledge_base_uuid = [digitalocean_knowledge_base.test.id]
+}`, name, name, name, testModelUUID)
+}
+
+func testAccCheckDigitalOceanAgentConfig_withDeployment(name, visibility string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_project" "test" {
+  name = "%s-project"
+}
+
+resource "digitalocean_agent" "test" {
+  name        = "%s"
+  instruction = "You are a helpful AI assistant."
+  model_uuid  = "%s"  # Replace with actual model UUID
+  project_id  = digitalocean_project.test.id
+  region      = "tor1"
+  
+  deployment {
+    visibility = "%s"
+  }
+}`, name, name, testModelUUID, visibility)
 }

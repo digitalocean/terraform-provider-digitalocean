@@ -53,25 +53,25 @@ func flattenDigitalOceanAgent(rawDomain, meta interface{}, extra map[string]inte
 	}
 
 	flattenedAgent := map[string]interface{}{
-		"anthropic_api_key": flattenAnthropicApiKey(agent.AnthropicApiKey),
-		"api_key_infos":     flattenApiKeyInfos(agent.ApiKeyInfos),
-		"api_keys":          flattenApiKeys(agent.ApiKeys),
-		"chatbot":           flattenChatbot(agent.ChatBot),
+		// "anthropic_api_key": flattenAnthropicApiKey(agent.AnthropicApiKey),
+		// "api_key_infos":     flattenApiKeyInfos(agent.ApiKeyInfos),
+		// "api_keys":          flattenApiKeys(agent.ApiKeys),
+		// "chatbot":           flattenChatbot(agent.ChatBot),
 		// "chatbot_identifiers": flattenChatbotIdentifiers(agent.ChatbotIdentifiers),
-		"created_at":       agent.CreatedAt.UTC().String(),
-		"child_agents":     flattenChildAgents(agent.ChildAgents),
-		"deployment":       flattenDeployment(agent.Deployment),
-		"description":      agent.Description,
-		"updated_at":       agent.UpdatedAt.UTC().String(),
-		"functions":        flattenFunctions(agent.Functions),
-		"agent_guardrail":  flattenAgentGuardrail(agent.Guardrails),
-		"if_case":          agent.IfCase,
-		"instruction":      agent.Instruction,
-		"k":                agent.K,
-		"knowledge_bases":  flattenKnowledgeBases(agent.KnowledgeBases),
-		"max_tokens":       agent.MaxTokens,
-		"name":             agent.Name,
-		"open_ai_api_key":  flattenOpenAiApiKey(agent.OpenAiApiKey),
+		"created_at": agent.CreatedAt.UTC().String(),
+		// "child_agents":     flattenChildAgents(agent.ChildAgents),
+		// "deployment":       flattenDeployment(agent.Deployment),
+		"description": agent.Description,
+		"updated_at":  agent.UpdatedAt.UTC().String(),
+		// "functions":        flattenFunctions(agent.Functions),
+		// "agent_guardrail":  flattenAgentGuardrail(agent.Guardrails),
+		"if_case":     agent.IfCase,
+		"instruction": agent.Instruction,
+		"k":           agent.K,
+		// "knowledge_bases":  flattenKnowledgeBases(agent.KnowledgeBases),
+		"max_tokens": agent.MaxTokens,
+		"name":       agent.Name,
+		// "open_ai_api_key":  flattenOpenAiApiKey(agent.OpenAiApiKey),
 		"project_id":       agent.ProjectId,
 		"region":           agent.Region,
 		"retrieval_method": agent.RetrievalMethod,
@@ -80,19 +80,110 @@ func flattenDigitalOceanAgent(rawDomain, meta interface{}, extra map[string]inte
 		"route_uuid":       agent.RouteUuid,
 		"route_name":       agent.RouteName,
 		"tags":             agent.Tags,
-		"template":         flattenTemplate(agent.Template),
-		"temperature":      agent.Temperature,
-		"top_p":            agent.TopP,
-		"url":              agent.Url,
-		"user_id":          agent.UserId,
-		"agent_id":         agent.Uuid,
+		// "template":         flattenTemplate(agent.Template),
+		"temperature": agent.Temperature,
+		"top_p":       agent.TopP,
+		"url":         agent.Url,
+		"user_id":     agent.UserId,
+		"agent_id":    agent.Uuid,
 	}
 
 	if agent.Model != nil {
-		flattenedAgent["model_uuid"] = agent.Model.Uuid
+		if agent.Model.Uuid != "" {
+			flattenedAgent["model_uuid"] = agent.Model.Uuid
+		}
 		modelSlice := []*godo.Model{agent.Model}
 		flattenedAgent["model"] = flattenModel(modelSlice)
+	} else {
+		flattenedAgent["model"] = []interface{}{}
 	}
+	if agent.AnthropicApiKey != nil {
+		flattenedAgent["anthropic_api_key"] = flattenAnthropicApiKey(agent.AnthropicApiKey)
+	} else {
+		flattenedAgent["anthropic_api_key"] = []interface{}{} // Ensure it's an empty list, not nil
+	}
+
+	if agent.ApiKeyInfos != nil {
+		flattenedAgent["api_key_infos"] = flattenApiKeyInfos(agent.ApiKeyInfos)
+	} else {
+		flattenedAgent["api_key_infos"] = []interface{}{}
+	}
+
+	if agent.ApiKeys != nil {
+		flattenedAgent["api_keys"] = flattenApiKeys(agent.ApiKeys)
+	} else {
+		flattenedAgent["api_keys"] = []interface{}{}
+	}
+
+	if agent.ChatBot != nil {
+		flattenedAgent["chatbot"] = flattenChatbot(agent.ChatBot)
+	} else {
+		flattenedAgent["chatbot"] = []interface{}{}
+	}
+
+	if agent.ChatbotIdentifiers != nil {
+		flattenedAgent["chatbot_identifiers"] = flattenChatbotIdentifiers(agent.ChatbotIdentifiers)
+	} else {
+		flattenedAgent["chatbot_identifiers"] = []interface{}{}
+	}
+	if agent.ParentAgents != nil {
+		flattenedParents := make([]interface{}, 0, len(agent.ParentAgents))
+		for _, parent := range agent.ParentAgents {
+			if parent != nil {
+				flatParent, err := FlattenDigitalOceanAgent(parent)
+				if err != nil {
+					return nil, err
+				}
+				flattenedParents = append(flattenedParents, flatParent)
+			}
+		}
+		flattenedAgent["parent_agents"] = flattenedParents
+	} else {
+		flattenedAgent["parent_agents"] = []interface{}{}
+	}
+	if agent.ChildAgents != nil {
+		flattenedChilds := make([]interface{}, 0, len(agent.ChildAgents))
+		for _, child := range agent.ChildAgents {
+			if child != nil {
+				flatParent, err := FlattenDigitalOceanAgent(child)
+				if err != nil {
+					return nil, err
+				}
+				flattenedChilds = append(flattenedChilds, flatParent)
+			}
+		}
+		flattenedAgent["child_agents"] = flattenedChilds
+	} else {
+		flattenedAgent["child_agents"] = []interface{}{}
+	}
+	if agent.Guardrails != nil {
+		flattenedAgent["agent_guardrail"] = flattenAgentGuardrail(agent.Guardrails)
+	} else {
+		flattenedAgent["agent_guardrail"] = []interface{}{}
+	}
+
+	if agent.KnowledgeBases != nil {
+		flattenedAgent["knowledge_bases"] = flattenKnowledgeBases(agent.KnowledgeBases)
+	} else {
+		flattenedAgent["knowledge_bases"] = []interface{}{}
+	}
+
+	if agent.Template != nil {
+		flattenedAgent["template"] = flattenTemplate(agent.Template)
+	} else {
+		flattenedAgent["template"] = []interface{}{}
+	}
+
+	// if agent.Model != nil {
+	// 	flattenedAgent["model_uuid"] = agent.Model.Uuid
+	// 	modelSlice := []*godo.Model{agent.Model}
+	// 	flattenedAgent["model"] = flattenModel(modelSlice)
+	// }
+	// if agent.ChatBot != nil {
+	// 	flattenedAgent["chatbot"] = flattenChatbot(agent.ChatBot)
+	// } else {
+	// 	flattenedAgent["chatbot"] = []interface{}{}
+	// }
 
 	return flattenedAgent, nil
 }
@@ -102,26 +193,14 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 		return nil, fmt.Errorf("agent is nil")
 	}
 	result := map[string]interface{}{
-		"anthropic_api_key": flattenAnthropicApiKey(agent.AnthropicApiKey),
-		"api_key_infos":     flattenApiKeyInfos(agent.ApiKeyInfos),
-		"api_keys":          flattenApiKeys(agent.ApiKeys),
-		"chatbot":           flattenChatbot(agent.ChatBot),
-		//chatbotidentifiers
-		"created_at":      agent.CreatedAt.UTC().String(),
-		"child_agents":    flattenChildAgents(agent.ChildAgents),
-		"deployment":      flattenDeployment(agent.Deployment),
-		"description":     agent.Description,
-		"updated_at":      agent.UpdatedAt.UTC().String(),
-		"functions":       flattenFunctions(agent.Functions),
-		"agent_guardrail": flattenAgentGuardrail(agent.Guardrails),
-		"if_case":         agent.IfCase,
-		"instruction":     agent.Instruction,
-		"k":               agent.K,
-		"knowledge_bases": flattenKnowledgeBases(agent.KnowledgeBases),
-		"max_tokens":      agent.MaxTokens,
-		"name":            agent.Name,
-		"open_ai_api_key": flattenOpenAiApiKey(agent.OpenAiApiKey),
-		//ParentAgents
+		"created_at":       agent.CreatedAt.UTC().String(),
+		"description":      agent.Description,
+		"updated_at":       agent.UpdatedAt.UTC().String(),
+		"if_case":          agent.IfCase,
+		"instruction":      agent.Instruction,
+		"k":                agent.K,
+		"max_tokens":       agent.MaxTokens,
+		"name":             agent.Name,
 		"project_id":       agent.ProjectId,
 		"region":           agent.Region,
 		"retrieval_method": agent.RetrievalMethod,
@@ -130,7 +209,6 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 		"route_uuid":       agent.RouteUuid,
 		"route_name":       agent.RouteName,
 		"tags":             agent.Tags,
-		"template":         flattenTemplate(agent.Template),
 		"temperature":      agent.Temperature,
 		"top_p":            agent.TopP,
 		"url":              agent.Url,
@@ -138,11 +216,107 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 		"agent_id":         agent.Uuid,
 	}
 
+	// if agent.Model != nil {
+	// 	result["model_uuid"] = agent.Model.Uuid
+	// 	modelSlice := []*godo.Model{agent.Model}
+	// 	result["model"] = flattenModel(modelSlice)
+	// }
 	if agent.Model != nil {
-		result["model_uuid"] = agent.Model.Uuid
+		if agent.Model.Uuid != "" {
+			result["model_uuid"] = agent.Model.Uuid
+		}
 		modelSlice := []*godo.Model{agent.Model}
 		result["model"] = flattenModel(modelSlice)
+	} else {
+		result["model"] = []interface{}{}
 	}
+	if agent.AnthropicApiKey != nil {
+		result["anthropic_api_key"] = flattenAnthropicApiKey(agent.AnthropicApiKey)
+	} else {
+		result["anthropic_api_key"] = []interface{}{} // Ensure it's an empty list, not nil
+	}
+
+	if agent.ApiKeyInfos != nil {
+		result["api_key_infos"] = flattenApiKeyInfos(agent.ApiKeyInfos)
+	} else {
+		result["api_key_infos"] = []interface{}{}
+	}
+
+	if agent.ApiKeys != nil {
+		result["api_keys"] = flattenApiKeys(agent.ApiKeys)
+	} else {
+		result["api_keys"] = []interface{}{}
+	}
+
+	if agent.ChatBot != nil {
+		result["chatbot"] = flattenChatbot(agent.ChatBot)
+	} else {
+		result["chatbot"] = []interface{}{}
+	}
+
+	if agent.ChatbotIdentifiers != nil {
+		result["chatbot_identifiers"] = flattenChatbotIdentifiers(agent.ChatbotIdentifiers)
+	} else {
+		result["chatbot_identifiers"] = []interface{}{}
+	}
+	if agent.ParentAgents != nil {
+		flattenedParents := make([]interface{}, 0, len(agent.ParentAgents))
+		for _, parent := range agent.ParentAgents {
+			if parent != nil {
+				flatParent, err := FlattenDigitalOceanAgent(parent)
+				if err != nil {
+					return nil, err
+				}
+				flattenedParents = append(flattenedParents, flatParent)
+			}
+		}
+		result["parent_agents"] = flattenedParents
+	} else {
+		result["parent_agents"] = []interface{}{}
+	}
+	if agent.ChildAgents != nil {
+		flattenedChilds := make([]interface{}, 0, len(agent.ChildAgents))
+		for _, child := range agent.ChildAgents {
+			if child != nil {
+				flatParent, err := FlattenDigitalOceanAgent(child)
+				if err != nil {
+					return nil, err
+				}
+				flattenedChilds = append(flattenedChilds, flatParent)
+			}
+		}
+		result["child_agents"] = flattenedChilds
+	} else {
+		result["child_agents"] = []interface{}{}
+	}
+	if agent.Guardrails != nil {
+		result["agent_guardrail"] = flattenAgentGuardrail(agent.Guardrails)
+	} else {
+		result["agent_guardrail"] = []interface{}{}
+	}
+
+	if agent.KnowledgeBases != nil {
+		result["knowledge_bases"] = flattenKnowledgeBases(agent.KnowledgeBases)
+	} else {
+		result["knowledge_bases"] = []interface{}{}
+	}
+
+	if agent.Template != nil {
+		result["template"] = flattenTemplate(agent.Template)
+	} else {
+		result["template"] = []interface{}{}
+	}
+
+	// "deployment":        flattenDeployment(agent.Deployment),
+	// "knowledge_bases":   flattenKnowledgeBases(agent.KnowledgeBases),
+	// "open_ai_api_key":   flattenOpenAiApiKey(agent.OpenAiApiKey),
+	// "functions":         flattenFunctions(agent.Functions),
+	// "agent_guardrail":   flattenAgentGuardrail(agent.Guardrails),
+	// "template":          flattenTemplate(agent.Template),
+	// "anthropic_api_key": flattenAnthropicApiKey(agent.AnthropicApiKey),
+	// "api_key_infos":     flattenApiKeyInfos(agent.ApiKeyInfos),
+	// "api_keys":          flattenApiKeys(agent.ApiKeys),
+	// "chatbot":           flattenChatbot(agent.ChatBot),
 	return result, nil
 }
 
@@ -182,7 +356,7 @@ func convertToStringSlice(val interface{}) []string {
 
 func flattenChildAgents(childAgents []*godo.Agent) []interface{} {
 	if childAgents == nil {
-		return nil
+		return []interface{}{}
 	}
 	result := make([]interface{}, 0, len(childAgents))
 	for _, child := range childAgents {
@@ -200,7 +374,7 @@ func flattenChildAgents(childAgents []*godo.Agent) []interface{} {
 
 func flattenAnthropicApiKey(apiKey *godo.AnthropicApiKeyInfo) []interface{} {
 	if apiKey == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	m := map[string]interface{}{
@@ -217,7 +391,7 @@ func flattenAnthropicApiKey(apiKey *godo.AnthropicApiKeyInfo) []interface{} {
 
 func flattenApiKeyInfos(apiKeyInfos []*godo.ApiKeyInfo) []interface{} {
 	if apiKeyInfos == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0, len(apiKeyInfos))
@@ -238,7 +412,7 @@ func flattenApiKeyInfos(apiKeyInfos []*godo.ApiKeyInfo) []interface{} {
 
 func flattenDeployment(deployment *godo.AgentDeployment) []interface{} {
 	if deployment == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	m := map[string]interface{}{
@@ -255,7 +429,7 @@ func flattenDeployment(deployment *godo.AgentDeployment) []interface{} {
 
 func flattenFunctions(functions []*godo.AgentFunction) []interface{} {
 	if functions == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0, len(functions))
@@ -280,7 +454,7 @@ func flattenFunctions(functions []*godo.AgentFunction) []interface{} {
 
 func flattenAgentGuardrail(guardrails []*godo.AgentGuardrail) []interface{} {
 	if guardrails == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0, len(guardrails))
@@ -307,7 +481,7 @@ func flattenAgentGuardrail(guardrails []*godo.AgentGuardrail) []interface{} {
 
 func flattenChatbot(chatbot *godo.ChatBot) []interface{} {
 	if chatbot == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	m := map[string]interface{}{
@@ -355,7 +529,7 @@ func flattenKnowledgeBases(config []*godo.KnowledgeBase) []interface{} {
 
 func flattenModel(models []*godo.Model) []interface{} {
 	if models == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0, len(models))
@@ -401,7 +575,7 @@ func flattenModel(models []*godo.Model) []interface{} {
 
 func flattenApiKeys(apiKeys []*godo.ApiKey) []interface{} {
 	if apiKeys == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0, len(apiKeys))
@@ -435,7 +609,7 @@ func flattenChatbotIdentifiers(chatbotIdentifiers []*godo.AgentChatbotIdentifier
 
 func flattenOpenAiApiKey(apiKey *godo.OpenAiApiKey) []interface{} {
 	if apiKey == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	m := map[string]interface{}{
@@ -453,7 +627,7 @@ func flattenOpenAiApiKey(apiKey *godo.OpenAiApiKey) []interface{} {
 
 func flattenTemplate(template *godo.AgentTemplate) []interface{} {
 	if template == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	m := map[string]interface{}{
@@ -474,7 +648,7 @@ func flattenTemplate(template *godo.AgentTemplate) []interface{} {
 
 func flattenLastIndexingJob(job *godo.LastIndexingJob) []interface{} {
 	if job == nil {
-		return nil
+		return []interface{}{}
 	}
 
 	var datasourceUuids []interface{}
