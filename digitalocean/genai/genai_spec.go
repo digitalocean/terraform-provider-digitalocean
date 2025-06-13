@@ -2,8 +2,7 @@ package genai
 
 import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-// create a flatten agent function that flattens child,parent,agent
-func AgentSchema() *schema.Resource { //map[string]*schema.Schema - didn't work
+func AgentSchema() *schema.Resource {
 	agentSchema := map[string]*schema.Schema{
 		"anthropic_api_key": {
 			Type:        schema.TypeList,
@@ -754,7 +753,7 @@ func KnowledgeBaseSchema() *schema.Resource {
 }
 
 func AgentSchemaRead() map[string]*schema.Schema {
-	return map[string]*schema.Schema{ //agentSchema :=
+	return map[string]*schema.Schema{
 		"agent_id": {
 			Type:        schema.TypeString,
 			Required:    true,
@@ -799,7 +798,7 @@ func AgentSchemaRead() map[string]*schema.Schema {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "Ids of the knowledge base(s) to attach to the agent",
-			Elem:        &schema.Schema{Type: schema.TypeString}, //it was TypeList which gave error before
+			Elem:        &schema.Schema{Type: schema.TypeString},
 		},
 		"open_ai_key_uuid": {
 			Type:        schema.TypeString,
@@ -992,7 +991,5 @@ func AgentSchemaRead() map[string]*schema.Schema {
 			Description: "User ID linked with the Agent",
 		},
 	}
-	// return &schema.Resource{
-	// 	Schema: agentSchema,
-	// }
+
 }
