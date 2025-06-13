@@ -17,6 +17,7 @@ data "digitalocean_genai_agent" "example" {
 output "agent_detail" {
   value = data.digitalocean_genai_agent.example
 }
+```
 
 ## Argument Reference
 
@@ -25,7 +26,6 @@ The following argument is supported:
 - **agent_id** (Required) – The unique identifier of the agent to retrieve.
 
 ## Attributes Reference
-
 All fields below are exported and may be referenced:
 
 - **uuid** – The unique identifier of the agent.
@@ -38,12 +38,12 @@ All fields below are exported and may be referenced:
 - **tags** – A list of tags associated with the agent.
 - **visibility** – The visibility of the agent (e.g., public or private).
 - **anthropic_key_uuid** – Anthropic API key UUID to use with Anthropic models.
-- **knowledge_base_uuid** – List of knowledge base UUIDs attached to the agent.
+- **knowledge_base_uuid**– List of knowledge base UUIDs attached to the agent.
 - **open_ai_key_uuid** – OpenAI API key UUID to use with OpenAI models.
 - **anthropic_api_key** – Anthropic API Key information block.
 - **api_key_infos** – List of API Key Info blocks.
 - **api_keys** – List of API Key blocks.
-- **chatbot_identifiers** – List of chatbot identifiers.
+- **chatbot_identifiers**– List of chatbot identifiers.
 - **deployment** – List of deployment blocks.
 - **functions** – List of function blocks.
 - **agent_guardrail** – List of agent guardrail blocks.
@@ -74,12 +74,5 @@ This data source can be used to dynamically fetch the details of an existing age
 
 For example, to reference the agent's name:
 
-```hcl
-output "agent_name" {
-  value = data.digitalocean_agent.example.name
-}
-```
-
 This data source is useful for integrating agent details into your workflow or for performing validations against current configurations.
 
----

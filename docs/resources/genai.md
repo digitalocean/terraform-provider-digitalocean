@@ -109,14 +109,7 @@ After creation, the following attributes are exported:
 
 ## Update Behavior
 
-This resource supports updates to the following attributes:
-- **description**
-- **instruction**
-- **tags**
-- **visibility**
-- **other updatable fields as supported by the API**
-
-When the **visibility** attribute is changed, the provider invokes the update API endpoint to adjust the agent's visibility (public or private).
+When the **visibility**, **description**, **instruction**, **k**, **max_tokens**, **model_uuid**, **name**, **open_ai_key_uuid**, **project_id**, **retrieval_method**, **region**, **tags**, **temperature**, or **top_p** attribute is changed, the provider invokes the update API endpoint to adjust the agent's configuration.
 
 ## Import
 

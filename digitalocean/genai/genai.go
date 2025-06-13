@@ -53,25 +53,14 @@ func flattenDigitalOceanAgent(rawDomain, meta interface{}, extra map[string]inte
 	}
 
 	flattenedAgent := map[string]interface{}{
-		// "anthropic_api_key": flattenAnthropicApiKey(agent.AnthropicApiKey),
-		// "api_key_infos":     flattenApiKeyInfos(agent.ApiKeyInfos),
-		// "api_keys":          flattenApiKeys(agent.ApiKeys),
-		// "chatbot":           flattenChatbot(agent.ChatBot),
-		// "chatbot_identifiers": flattenChatbotIdentifiers(agent.ChatbotIdentifiers),
-		"created_at": agent.CreatedAt.UTC().String(),
-		// "child_agents":     flattenChildAgents(agent.ChildAgents),
-		// "deployment":       flattenDeployment(agent.Deployment),
-		"description": agent.Description,
-		"updated_at":  agent.UpdatedAt.UTC().String(),
-		// "functions":        flattenFunctions(agent.Functions),
-		// "agent_guardrail":  flattenAgentGuardrail(agent.Guardrails),
-		"if_case":     agent.IfCase,
-		"instruction": agent.Instruction,
-		"k":           agent.K,
-		// "knowledge_bases":  flattenKnowledgeBases(agent.KnowledgeBases),
-		"max_tokens": agent.MaxTokens,
-		"name":       agent.Name,
-		// "open_ai_api_key":  flattenOpenAiApiKey(agent.OpenAiApiKey),
+		"created_at":       agent.CreatedAt.UTC().String(),
+		"description":      agent.Description,
+		"updated_at":       agent.UpdatedAt.UTC().String(),
+		"if_case":          agent.IfCase,
+		"instruction":      agent.Instruction,
+		"k":                agent.K,
+		"max_tokens":       agent.MaxTokens,
+		"name":             agent.Name,
 		"project_id":       agent.ProjectId,
 		"region":           agent.Region,
 		"retrieval_method": agent.RetrievalMethod,
@@ -80,12 +69,11 @@ func flattenDigitalOceanAgent(rawDomain, meta interface{}, extra map[string]inte
 		"route_uuid":       agent.RouteUuid,
 		"route_name":       agent.RouteName,
 		"tags":             agent.Tags,
-		// "template":         flattenTemplate(agent.Template),
-		"temperature": agent.Temperature,
-		"top_p":       agent.TopP,
-		"url":         agent.Url,
-		"user_id":     agent.UserId,
-		"agent_id":    agent.Uuid,
+		"temperature":      agent.Temperature,
+		"top_p":            agent.TopP,
+		"url":              agent.Url,
+		"user_id":          agent.UserId,
+		"agent_id":         agent.Uuid,
 	}
 
 	if agent.Model != nil {
@@ -100,7 +88,7 @@ func flattenDigitalOceanAgent(rawDomain, meta interface{}, extra map[string]inte
 	if agent.AnthropicApiKey != nil {
 		flattenedAgent["anthropic_api_key"] = flattenAnthropicApiKey(agent.AnthropicApiKey)
 	} else {
-		flattenedAgent["anthropic_api_key"] = []interface{}{} // Ensure it's an empty list, not nil
+		flattenedAgent["anthropic_api_key"] = []interface{}{}
 	}
 
 	if agent.ApiKeyInfos != nil {
@@ -174,17 +162,6 @@ func flattenDigitalOceanAgent(rawDomain, meta interface{}, extra map[string]inte
 		flattenedAgent["template"] = []interface{}{}
 	}
 
-	// if agent.Model != nil {
-	// 	flattenedAgent["model_uuid"] = agent.Model.Uuid
-	// 	modelSlice := []*godo.Model{agent.Model}
-	// 	flattenedAgent["model"] = flattenModel(modelSlice)
-	// }
-	// if agent.ChatBot != nil {
-	// 	flattenedAgent["chatbot"] = flattenChatbot(agent.ChatBot)
-	// } else {
-	// 	flattenedAgent["chatbot"] = []interface{}{}
-	// }
-
 	return flattenedAgent, nil
 }
 
@@ -216,11 +193,6 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 		"agent_id":         agent.Uuid,
 	}
 
-	// if agent.Model != nil {
-	// 	result["model_uuid"] = agent.Model.Uuid
-	// 	modelSlice := []*godo.Model{agent.Model}
-	// 	result["model"] = flattenModel(modelSlice)
-	// }
 	if agent.Model != nil {
 		if agent.Model.Uuid != "" {
 			result["model_uuid"] = agent.Model.Uuid
@@ -233,7 +205,7 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 	if agent.AnthropicApiKey != nil {
 		result["anthropic_api_key"] = flattenAnthropicApiKey(agent.AnthropicApiKey)
 	} else {
-		result["anthropic_api_key"] = []interface{}{} // Ensure it's an empty list, not nil
+		result["anthropic_api_key"] = []interface{}{}
 	}
 
 	if agent.ApiKeyInfos != nil {
@@ -307,16 +279,6 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 		result["template"] = []interface{}{}
 	}
 
-	// "deployment":        flattenDeployment(agent.Deployment),
-	// "knowledge_bases":   flattenKnowledgeBases(agent.KnowledgeBases),
-	// "open_ai_api_key":   flattenOpenAiApiKey(agent.OpenAiApiKey),
-	// "functions":         flattenFunctions(agent.Functions),
-	// "agent_guardrail":   flattenAgentGuardrail(agent.Guardrails),
-	// "template":          flattenTemplate(agent.Template),
-	// "anthropic_api_key": flattenAnthropicApiKey(agent.AnthropicApiKey),
-	// "api_key_infos":     flattenApiKeyInfos(agent.ApiKeyInfos),
-	// "api_keys":          flattenApiKeys(agent.ApiKeys),
-	// "chatbot":           flattenChatbot(agent.ChatBot),
 	return result, nil
 }
 
@@ -518,7 +480,7 @@ func flattenKnowledgeBases(config []*godo.KnowledgeBase) []interface{} {
 		}
 
 		if kb.LastIndexingJob != nil {
-			k["last_indexing_job"] = flattenLastIndexingJob(kb.LastIndexingJob) // Flatten and take the first element
+			k["last_indexing_job"] = flattenLastIndexingJob(kb.LastIndexingJob)
 		}
 
 		result = append(result, k)
