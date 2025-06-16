@@ -40,6 +40,24 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Optional:    true,
 			Description: "The slug for the DigitalOcean data center region hosting the app",
 		},
+		"disable_edge_cache": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Whether to disable the edge cache for the app. Default is false, which enables the edge cache.",
+		},
+		"disable_email_obfuscation": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Email obfuscation configuration for the app. Default is false, which keeps the email obfuscated.",
+		},
+		"enhanced_threat_control_enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Whether to enable enhanced threat control for the app. Default is false. Set to true to enable enhanced threat control, putting additional security measures for Layer 7 DDoS attacks.",
+		},
 		"domain": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -1228,19 +1246,22 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 	appSpecConfig := config[0].(map[string]interface{})
 
 	appSpec := &godo.AppSpec{
-		Name:        appSpecConfig["name"].(string),
-		Region:      appSpecConfig["region"].(string),
-		Features:    expandAppSpecFeatures(appSpecConfig["features"].(*schema.Set)),
-		Services:    expandAppSpecServices(appSpecConfig["service"].([]interface{})),
-		StaticSites: expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
-		Workers:     expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
-		Jobs:        expandAppSpecJobs(appSpecConfig["job"].([]interface{})),
-		Functions:   expandAppSpecFunctions(appSpecConfig["function"].([]interface{})),
-		Databases:   expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
-		Envs:        expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
-		Alerts:      expandAppAlerts(appSpecConfig["alert"].(*schema.Set).List()),
-		Ingress:     expandAppIngress(appSpecConfig["ingress"].([]interface{})),
-		Egress:      expandAppEgress(appSpecConfig["egress"].([]interface{})),
+		Name:                         appSpecConfig["name"].(string),
+		Region:                       appSpecConfig["region"].(string),
+		DisableEdgeCache:             appSpecConfig["disable_edge_cache"].(bool),
+		DisableEmailObfuscation:      appSpecConfig["disable_email_obfuscation"].(bool),
+		EnhancedThreatControlEnabled: appSpecConfig["enhanced_threat_control_enabled"].(bool),
+		Features:                     expandAppSpecFeatures(appSpecConfig["features"].(*schema.Set)),
+		Services:                     expandAppSpecServices(appSpecConfig["service"].([]interface{})),
+		StaticSites:                  expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
+		Workers:                      expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
+		Jobs:                         expandAppSpecJobs(appSpecConfig["job"].([]interface{})),
+		Functions:                    expandAppSpecFunctions(appSpecConfig["function"].([]interface{})),
+		Databases:                    expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
+		Envs:                         expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
+		Alerts:                       expandAppAlerts(appSpecConfig["alert"].(*schema.Set).List()),
+		Ingress:                      expandAppIngress(appSpecConfig["ingress"].([]interface{})),
+		Egress:                       expandAppEgress(appSpecConfig["egress"].([]interface{})),
 	}
 
 	// Prefer the `domain` block over `domains` if it is set.
@@ -1263,6 +1284,9 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 		r["name"] = (*spec).Name
 		r["region"] = (*spec).Region
 		r["features"] = (*spec).Features
+		r["disable_edge_cache"] = (*spec).DisableEdgeCache
+		r["disable_email_obfuscation"] = (*spec).DisableEmailObfuscation
+		r["enhanced_threat_control_enabled"] = (*spec).EnhancedThreatControlEnabled
 
 		if len((*spec).Domains) > 0 {
 			r["domains"] = flattenAppDomainSpec((*spec).Domains)
