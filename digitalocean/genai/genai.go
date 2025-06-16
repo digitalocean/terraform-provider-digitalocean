@@ -11,9 +11,19 @@ import (
 func getDigitalOceanAgents(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
+	only_deployed := false
+	if v, ok := extra["only_deployed"]; ok {
+		if b, ok := v.(bool); ok {
+			only_deployed = b
+		} else {
+			return nil, fmt.Errorf("only deployed can only be a boolean value")
+		}
+	}
+
 	opts := &godo.ListOptions{
-		Page:    1,
-		PerPage: 200,
+		Page:     1,
+		PerPage:  200,
+		Deployed: only_deployed,
 	}
 
 	var allAgents []interface{}
@@ -161,6 +171,11 @@ func flattenDigitalOceanAgent(rawDomain, meta interface{}, extra map[string]inte
 	} else {
 		flattenedAgent["template"] = []interface{}{}
 	}
+	if agent.Deployment != nil {
+		flattenedAgent["deployment"] = flattenDeployment(agent.Deployment)
+	} else {
+		flattenedAgent["deployment"] = []interface{}{}
+	}
 
 	return flattenedAgent, nil
 }
@@ -224,6 +239,11 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 		result["chatbot"] = flattenChatbot(agent.ChatBot)
 	} else {
 		result["chatbot"] = []interface{}{}
+	}
+	if agent.Deployment != nil {
+		result["deployment"] = flattenDeployment(agent.Deployment)
+	} else {
+		result["deployment"] = []interface{}{}
 	}
 
 	if agent.ChatbotIdentifiers != nil {

@@ -1,6 +1,9 @@
 package genai
 
-import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
 
 func AgentSchema() *schema.Resource {
 	agentSchema := map[string]*schema.Schema{
@@ -429,8 +432,16 @@ func DeploymentSchema() *schema.Resource {
 			Description: "API Key value",
 		},
 		"visibility": {
-			Type:        schema.TypeString,
-			Optional:    true,
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "VISIBILITY_UNKNOWN",
+			ValidateFunc: validation.StringInSlice([]string{
+				"VISIBILITY_UNKNOWN",
+				"VISIBILITY_DISABLED",
+				"VISIBILITY_PLAYGROUND",
+				"VISIBILITY_PUBLIC",
+				"VISIBILITY_PRIVATE",
+			}, false),
 			Description: "Visibility of the Deployment",
 		},
 	}

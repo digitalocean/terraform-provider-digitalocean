@@ -9,8 +9,14 @@ func DataSourceDigitalOceanAgents() *schema.Resource {
 	dataListConfig := &datalist.ResourceConfig{
 		RecordSchema:        AgentSchemaRead(),
 		ResultAttributeName: "agents",
-		FlattenRecord:       flattenDigitalOceanAgent,
-		GetRecords:          getDigitalOceanAgents,
+		ExtraQuerySchema: map[string]*schema.Schema{
+			"only_deployed": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
+		},
+		FlattenRecord: flattenDigitalOceanAgent,
+		GetRecords:    getDigitalOceanAgents,
 	}
 
 	return datalist.NewResource(dataListConfig)

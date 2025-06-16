@@ -18,7 +18,6 @@ resource "digitalocean_genai_agent" "terraform-testing" {
   project_id = "84e1e297-ee40-41ac-95ff-1067cf2206e9"
   region     = "tor1"
   tags       = ["marketplace-agent-terraform"]
-  visibility = "private"
 }
 ```
 
