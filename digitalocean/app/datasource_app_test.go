@@ -18,6 +18,9 @@ func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
 	updatedAppCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_addService, appName)
 	updatedAppDataConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanAppConfig, updatedAppCreateConfig)
 
+	withIngressAppCreateConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_addIngress, appName)
+	withIngressAppDataConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanAppConfig, withIngressAppCreateConfig)
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:  func() { acceptance.TestAccPreCheck(t) },
 		Providers: acceptance.TestAccProviders,
@@ -98,6 +101,31 @@ func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
 						"data.digitalocean_app.foobar", "spec.0.ingress.0.rule.1.component.0.preserve_path_prefix", "true"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_app.foobar", "spec.0.ingress.0.rule.1.component.0.name", "python-service"),
+				),
+			},
+			{
+				Config: withIngressAppDataConfig,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/go"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.name", "go-service"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.1.rule.0.match.0.authority.0.exact", "example.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.1.rule.0.component.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.1.rule.0.component.0.name", "go-service"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.2.rule.0.match.0.authority.0.exact", "example.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.2.rule.0.match.0.path.0.prefix", "/go"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.2.rule.0.component.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.2.rule.0.component.0.name", "go-service"),
 				),
 			},
 		},

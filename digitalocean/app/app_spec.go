@@ -1132,6 +1132,21 @@ func appSpecIngressSchema() *schema.Resource {
 											},
 										},
 									},
+									"authority": {
+										Type:     schema.TypeList,
+										Optional: true,
+										Computed: true,
+										MaxItems: 1,
+										Elem: &schema.Resource{
+											Schema: map[string]*schema.Schema{
+												"exact": {
+													Type:     schema.TypeString,
+													Optional: true,
+													Computed: true,
+												},
+											},
+										},
+									},
 								},
 							},
 						},
@@ -2573,14 +2588,22 @@ func expandAppIngressMatch(config []interface{}) *godo.AppIngressSpecRuleMatch {
 		return nil
 	}
 
+	ruleMatch := &godo.AppIngressSpecRuleMatch{}
 	match := config[0].(map[string]interface{})
-	path := match["path"].([]interface{})[0].(map[string]interface{})
-
-	return &godo.AppIngressSpecRuleMatch{
-		Path: &godo.AppIngressSpecRuleStringMatch{
-			Prefix: path["prefix"].(string),
-		},
+	path := match["path"].([]interface{})
+	if len(path) > 0 {
+		ruleMatch.Path = &godo.AppIngressSpecRuleStringMatch{
+			Prefix: path[0].(map[string]interface{})["prefix"].(string),
+		}
 	}
+	authority := match["authority"].([]interface{})
+	if len(authority) > 0 {
+		ruleMatch.Authority = &godo.AppIngressSpecRuleStringMatch{
+			Exact: authority[0].(map[string]interface{})["exact"].(string),
+		}
+	}
+
+	return ruleMatch
 }
 
 func expandAppTermination[T AppSpecTermination](config []interface{}) *T {
@@ -2697,13 +2720,20 @@ func flattenAppIngressRuleMatch(match *godo.AppIngressSpecRuleMatch) []map[strin
 	if match != nil {
 		r := make(map[string]interface{})
 
-		pathResult := make([]map[string]interface{}, 0)
-		path := make(map[string]interface{})
 		if match.Path != nil {
-			path["prefix"] = match.Path.Prefix
+			r["path"] = []map[string]interface{}{
+				{
+					"prefix": match.Path.Prefix,
+				},
+			}
 		}
-		pathResult = append(pathResult, path)
-		r["path"] = pathResult
+		if match.Authority != nil {
+			r["authority"] = []map[string]interface{}{
+				{
+					"exact": match.Authority.Exact,
+				},
+			}
+		}
 
 		result = append(result, r)
 	}

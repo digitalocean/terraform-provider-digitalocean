@@ -163,6 +163,32 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.papertrail.0.endpoint", "syslog+tls://example.com:12345"),
 				),
 			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_addIngress, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/go"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.name", "go-service"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.1.rule.0.match.0.authority.0.exact", "example.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.1.rule.0.component.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.1.rule.0.component.0.name", "go-service"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.2.rule.0.match.0.authority.0.exact", "example.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.2.rule.0.match.0.path.0.prefix", "/go"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.2.rule.0.component.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.2.rule.0.component.0.name", "go-service"),
+				),
+			},
 		},
 	})
 }
@@ -1267,6 +1293,88 @@ resource "digitalocean_app" "foobar" {
         match {
           path {
             prefix = "/python"
+          }
+        }
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_addIngress = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "ams"
+
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+    }
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+
+      health_check {
+        http_path       = "/"
+        timeout_seconds = 10
+        port            = 1234
+      }
+
+      alert {
+        value    = 75
+        operator = "GREATER_THAN"
+        window   = "TEN_MINUTES"
+        rule     = "CPU_UTILIZATION"
+      }
+
+      log_destination {
+        name = "ServiceLogs"
+        papertrail {
+          endpoint = "syslog+tls://example.com:12345"
+        }
+      }
+    }
+
+    ingress {
+      rule {
+        component {
+          name = "go-service"
+        }
+        match {
+          path {
+            prefix = "/go"
+          }
+        }
+      }
+
+      rule {
+        component {
+          name = "go-service"
+        }
+        match {
+          authority {
+            exact = "example.com"
+          }
+        }
+      }
+
+    rule {
+        component {
+          name = "go-service"
+        }
+        match {
+          authority {
+            exact = "example.com"
+          }
+          path {
+            prefix = "/go"
           }
         }
       }
