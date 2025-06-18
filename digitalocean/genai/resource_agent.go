@@ -60,7 +60,7 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Description: "Ids of the knowledge base(s) to attach to the agent",
-				Elem:        &schema.Schema{Type: schema.TypeString}, //it was TypeList which gave error before
+				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 			"open_ai_key_uuid": {
 				Type:        schema.TypeString,

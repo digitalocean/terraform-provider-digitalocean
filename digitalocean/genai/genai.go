@@ -62,122 +62,7 @@ func flattenDigitalOceanAgent(rawDomain, meta interface{}, extra map[string]inte
 		return nil, fmt.Errorf("agent is nil")
 	}
 
-	flattenedAgent := map[string]interface{}{
-		"created_at":       agent.CreatedAt.UTC().String(),
-		"description":      agent.Description,
-		"updated_at":       agent.UpdatedAt.UTC().String(),
-		"if_case":          agent.IfCase,
-		"instruction":      agent.Instruction,
-		"k":                agent.K,
-		"max_tokens":       agent.MaxTokens,
-		"name":             agent.Name,
-		"project_id":       agent.ProjectId,
-		"region":           agent.Region,
-		"retrieval_method": agent.RetrievalMethod,
-		"route_created_at": agent.RouteCreatedAt.UTC().String(),
-		"route_created_by": agent.RouteCreatedBy,
-		"route_uuid":       agent.RouteUuid,
-		"route_name":       agent.RouteName,
-		"tags":             agent.Tags,
-		"temperature":      agent.Temperature,
-		"top_p":            agent.TopP,
-		"url":              agent.Url,
-		"user_id":          agent.UserId,
-		"agent_id":         agent.Uuid,
-	}
-
-	if agent.Model != nil {
-		if agent.Model.Uuid != "" {
-			flattenedAgent["model_uuid"] = agent.Model.Uuid
-		}
-		modelSlice := []*godo.Model{agent.Model}
-		flattenedAgent["model"] = flattenModel(modelSlice)
-	} else {
-		flattenedAgent["model"] = []interface{}{}
-	}
-	if agent.AnthropicApiKey != nil {
-		flattenedAgent["anthropic_api_key"] = flattenAnthropicApiKey(agent.AnthropicApiKey)
-	} else {
-		flattenedAgent["anthropic_api_key"] = []interface{}{}
-	}
-
-	if agent.ApiKeyInfos != nil {
-		flattenedAgent["api_key_infos"] = flattenApiKeyInfos(agent.ApiKeyInfos)
-	} else {
-		flattenedAgent["api_key_infos"] = []interface{}{}
-	}
-
-	if agent.ApiKeys != nil {
-		flattenedAgent["api_keys"] = flattenApiKeys(agent.ApiKeys)
-	} else {
-		flattenedAgent["api_keys"] = []interface{}{}
-	}
-
-	if agent.ChatBot != nil {
-		flattenedAgent["chatbot"] = flattenChatbot(agent.ChatBot)
-	} else {
-		flattenedAgent["chatbot"] = []interface{}{}
-	}
-
-	if agent.ChatbotIdentifiers != nil {
-		flattenedAgent["chatbot_identifiers"] = flattenChatbotIdentifiers(agent.ChatbotIdentifiers)
-	} else {
-		flattenedAgent["chatbot_identifiers"] = []interface{}{}
-	}
-	if agent.ParentAgents != nil {
-		flattenedParents := make([]interface{}, 0, len(agent.ParentAgents))
-		for _, parent := range agent.ParentAgents {
-			if parent != nil {
-				flatParent, err := FlattenDigitalOceanAgent(parent)
-				if err != nil {
-					return nil, err
-				}
-				flattenedParents = append(flattenedParents, flatParent)
-			}
-		}
-		flattenedAgent["parent_agents"] = flattenedParents
-	} else {
-		flattenedAgent["parent_agents"] = []interface{}{}
-	}
-	if agent.ChildAgents != nil {
-		flattenedChilds := make([]interface{}, 0, len(agent.ChildAgents))
-		for _, child := range agent.ChildAgents {
-			if child != nil {
-				flatParent, err := FlattenDigitalOceanAgent(child)
-				if err != nil {
-					return nil, err
-				}
-				flattenedChilds = append(flattenedChilds, flatParent)
-			}
-		}
-		flattenedAgent["child_agents"] = flattenedChilds
-	} else {
-		flattenedAgent["child_agents"] = []interface{}{}
-	}
-	if agent.Guardrails != nil {
-		flattenedAgent["agent_guardrail"] = flattenAgentGuardrail(agent.Guardrails)
-	} else {
-		flattenedAgent["agent_guardrail"] = []interface{}{}
-	}
-
-	if agent.KnowledgeBases != nil {
-		flattenedAgent["knowledge_bases"] = flattenKnowledgeBases(agent.KnowledgeBases)
-	} else {
-		flattenedAgent["knowledge_bases"] = []interface{}{}
-	}
-
-	if agent.Template != nil {
-		flattenedAgent["template"] = flattenTemplate(agent.Template)
-	} else {
-		flattenedAgent["template"] = []interface{}{}
-	}
-	if agent.Deployment != nil {
-		flattenedAgent["deployment"] = flattenDeployment(agent.Deployment)
-	} else {
-		flattenedAgent["deployment"] = []interface{}{}
-	}
-
-	return flattenedAgent, nil
+	return FlattenDigitalOceanAgent(agent)
 }
 
 func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error) {
@@ -646,7 +531,7 @@ func flattenLastIndexingJob(job *godo.LastIndexingJob) []interface{} {
 		"created_at":            job.CreatedAt.UTC().String(),
 		"datasource_uuids":      datasourceUuids,
 		"finished_at":           job.FinishedAt.UTC().String(),
-		"knowledge_uuid":        job.KnowledgeBaseUuid,
+		"knowledge_base_uuid":   job.KnowledgeBaseUuid,
 		"phase":                 job.Phase,
 		"started_at":            job.StartedAt.UTC().String(),
 		"tokens":                job.Tokens,

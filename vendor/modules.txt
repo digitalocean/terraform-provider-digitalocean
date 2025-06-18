@@ -58,7 +58,7 @@ github.com/aws/aws-sdk-go/service/sts/stsiface
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/digitalocean/godo v1.142.0 => ../godo
+# github.com/digitalocean/godo v1.152.0
 ## explicit; go 1.23
 github.com/digitalocean/godo
 github.com/digitalocean/godo/metrics
@@ -439,4 +439,3 @@ gopkg.in/yaml.v2
 ## explicit
 gopkg.in/yaml.v3
 # git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
-# github.com/digitalocean/godo => ../godo

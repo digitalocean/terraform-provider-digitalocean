@@ -2,7 +2,7 @@ module github.com/digitalocean/terraform-provider-digitalocean
 
 require (
 	github.com/aws/aws-sdk-go v1.42.18
-	github.com/digitalocean/godo v1.142.0
+	github.com/digitalocean/godo v1.152.0
 	github.com/hashicorp/awspolicyequivalence v1.5.0
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-uuid v1.0.3
@@ -69,7 +69,6 @@ require (
 )
 
 replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
-
 
 go 1.23.0
 

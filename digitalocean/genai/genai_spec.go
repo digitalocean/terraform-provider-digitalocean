@@ -123,7 +123,7 @@ func LastIndexingJobSchema() *schema.Resource {
 			Computed:    true,
 			Description: "Timestamp when the last indexing job finished",
 		},
-		"knowledge_uuid": {
+		"knowledge_base_uuid": {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "UUID	of the Knowledge Base for the last indexing job",
@@ -705,6 +705,11 @@ func KnowledgeBaseSchema() *schema.Resource {
 			Computed:    true,
 			Description: "Created At timestamp for the Knowledge Base",
 		},
+		"updated_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Updated At timestamp for the Knowledge Base",
+		},
 		"database_id": {
 			Type:        schema.TypeString,
 			Computed:    true,
@@ -799,22 +804,6 @@ func AgentSchemaRead() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "Description for the Agent",
-		},
-		"anthropic_key_uuid": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Optional Anthropic API key ID to use with Anthropic models",
-		},
-		"knowledge_base_uuid": {
-			Type:        schema.TypeList,
-			Optional:    true,
-			Description: "Ids of the knowledge base(s) to attach to the agent",
-			Elem:        &schema.Schema{Type: schema.TypeString},
-		},
-		"open_ai_key_uuid": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Optional OpenAI API key ID to use with OpenAI models",
 		},
 		"anthropic_api_key": {
 			Type:        schema.TypeList,

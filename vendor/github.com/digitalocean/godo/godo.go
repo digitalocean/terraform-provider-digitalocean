@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	libraryVersion = "1.148.0"
+	libraryVersion = "1.152.0"
 	defaultBaseURL = "https://api.digitalocean.com/"
 	userAgent      = "godo/" + libraryVersion
 	mediaType      = "application/json"
@@ -96,8 +96,7 @@ type Client struct {
 	UptimeChecks        UptimeChecksService
 	VPCs                VPCsService
 	PartnerAttachment   PartnerAttachmentService
-	// GenAi               GenAiService
-	GenAI AgentService
+	GenAI               GenAIService
 
 	// Optional function called after every successful request made to the DO APIs
 	onRequestCompleted RequestCompletionCallback
@@ -179,6 +178,7 @@ type Response struct {
 	// Links that were returned with the response. These are parsed from
 	// request body and not the header.
 	Links *Links
+
 	// Meta describes generic information about the response.
 	Meta *Meta
 
@@ -323,8 +323,7 @@ func NewClient(httpClient *http.Client) *Client {
 	c.UptimeChecks = &UptimeChecksServiceOp{client: c}
 	c.VPCs = &VPCsServiceOp{client: c}
 	c.PartnerAttachment = &PartnerAttachmentServiceOp{client: c}
-	// c.GenAi = &GenAiServiceOp{client: c}
-	c.GenAI = &AgentServiceOp{client: c}
+	c.GenAI = &GenAIServiceOp{client: c}
 
 	c.headers = make(map[string]string)
 
