@@ -152,6 +152,13 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"expanders": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},

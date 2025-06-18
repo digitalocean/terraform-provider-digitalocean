@@ -439,6 +439,14 @@ func TestAccDigitalOceanKubernetesCluster_ClusterAutoscalerConfiguration(t *test
 	cluster_autoscaler_configuration {
 		scale_down_utilization_threshold = 0.8
 		scale_down_unneeded_time = "2m"
+		expanders = ["priority"]
+	}
+`
+
+	updatedClusterAutoscalerConfigurationUnsetExpanders := `
+	cluster_autoscaler_configuration {
+		scale_down_utilization_threshold = 0.8
+		scale_down_unneeded_time = "2m"
 	}
 `
 
@@ -471,6 +479,17 @@ func TestAccDigitalOceanKubernetesCluster_ClusterAutoscalerConfiguration(t *test
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold", "0.8"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "2m"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.expanders.0", "priority"),
+				),
+			},
+			{
+				Config: testAccDigitalOceanKubernetesConfigClusterAutoscalerConfiguration(testClusterVersionLatest, rName, updatedClusterAutoscalerConfigurationUnsetExpanders),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold", "0.8"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "2m"),
+					resource.TestCheckNoResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.expanders.0"),
 				),
 			},
 		},
