@@ -53,6 +53,7 @@ data "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.duration"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold", "0.5"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "1m30s"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.expanders.0", "priority"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "routing_agent.0.enabled", "true"),
 				),
 			},
@@ -87,6 +88,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   cluster_autoscaler_configuration {
     scale_down_utilization_threshold = 0.5
     scale_down_unneeded_time         = "1m30s"
+    expanders                        = ["priority"]
   }
 
   routing_agent {

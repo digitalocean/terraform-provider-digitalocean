@@ -452,6 +452,45 @@ func expandCAConfigOpts(config []interface{}) *godo.KubernetesClusterAutoscalerC
 		caConfig.ScaleDownUnneededTime = godo.PtrTo(v.(string))
 	}
 
+	if v, ok := configMap["expanders"]; ok {
+		caConfig.Expanders = []string{}
+		for _, e := range v.([]interface{}) {
+			caConfig.Expanders = append(caConfig.Expanders, e.(string))
+		}
+	}
+
+	return caConfig
+}
+
+func expandCAConfigOptsForUpdate(config []interface{}) *godo.KubernetesClusterAutoscalerConfiguration {
+	caConfig := &godo.KubernetesClusterAutoscalerConfiguration{
+		// in terraform, the updated resource should be the source of truth, so if a field is removed (set to null)
+		// we should remove it from the DO resource rather than skip updating this field
+		ScaleDownUtilizationThreshold: godo.PtrTo(0.0),
+		ScaleDownUnneededTime:         godo.PtrTo(""),
+		Expanders:                     []string{},
+	}
+
+	if len(config) == 0 {
+		return caConfig
+	}
+
+	configMap := config[0].(map[string]interface{})
+
+	if v, ok := configMap["scale_down_utilization_threshold"]; ok {
+		caConfig.ScaleDownUtilizationThreshold = godo.PtrTo(v.(float64))
+	}
+
+	if v, ok := configMap["scale_down_unneeded_time"]; ok {
+		caConfig.ScaleDownUnneededTime = godo.PtrTo(v.(string))
+	}
+
+	if v, ok := configMap["expanders"]; ok {
+		for _, e := range v.([]interface{}) {
+			caConfig.Expanders = append(caConfig.Expanders, e.(string))
+		}
+	}
+
 	return caConfig
 }
 
@@ -464,6 +503,7 @@ func flattenCAConfigOpts(opts *godo.KubernetesClusterAutoscalerConfiguration) []
 	item := make(map[string]interface{})
 	item["scale_down_utilization_threshold"] = opts.ScaleDownUtilizationThreshold
 	item["scale_down_unneeded_time"] = opts.ScaleDownUnneededTime
+	item["expanders"] = opts.Expanders
 	result = append(result, item)
 
 	return result
