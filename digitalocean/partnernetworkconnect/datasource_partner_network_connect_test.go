@@ -6,8 +6,9 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 )
 
 func TestAccDataSourceDigitalOceanPartnerAttachment_ByID(t *testing.T) {
@@ -54,6 +55,10 @@ data "digitalocean_partner_attachment" "foobar" {
 						"data.digitalocean_partner_attachment.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_partner_attachment.foobar", "state"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_partner_attachment.foobar", "parent_uuid"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_partner_attachment.foobar", "children"),
 				),
 			},
 		},
@@ -104,6 +109,10 @@ data "digitalocean_partner_attachment" "foobar" {
 						"data.digitalocean_partner_attachment.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_partner_attachment.foobar", "state"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_partner_attachment.foobar", "parent_uuid"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_partner_attachment.foobar", "children"),
 				),
 			},
 		},
@@ -155,6 +164,8 @@ resource "digitalocean_partner_attachment" "foobar" {
     peer_router_ip  = "169.254.100.6/29"
     auth_key        = "BGPAu7hK3y!"
   }
+  parent_uuid = "00000000-0000-0000-0000-000000000000"
+  children = "11111111-1111-1111-1111-111111111111"
 }
 `
 
