@@ -13,6 +13,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/droplet"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/dropletautoscale"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/firewall"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/genai"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/image"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
@@ -147,6 +148,8 @@ func Provider() *schema.Provider {
 			"digitalocean_vpc_nat_gateway":          vpcnatgateway.DataSourceDigitalOceanVPCNATGateway(),
 			"digitalocean_vpc_peering":              vpcpeering.DataSourceDigitalOceanVPCPeering(),
 			"digitalocean_partner_attachment":       partnernetworkconnect.DataSourceDigitalOceanPartnerAttachment(),
+			"digitalocean_genai_agent":              genai.DataSourceDigitalOceanAgent(),
+			"digitalocean_genai_agents":             genai.DataSourceDigitalOceanAgents(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -204,6 +207,7 @@ func Provider() *schema.Provider {
 			"digitalocean_vpc_peering":                           vpcpeering.ResourceDigitalOceanVPCPeering(),
 			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
 			"digitalocean_partner_attachment":                    partnernetworkconnect.ResourceDigitalOceanPartnerAttachment(),
+			"digitalocean_genai_agent":                           genai.ResourceDigitalOceanAgent(),
 		},
 	}
 
