@@ -165,7 +165,7 @@ resource "digitalocean_partner_attachment" "foobar" {
     auth_key        = "BGPAu7hK3y!"
   }
   parent_uuid = "00000000-0000-0000-0000-000000000000"
-  children = "11111111-1111-1111-1111-111111111111"
+  children    = "11111111-1111-1111-1111-111111111111"
 }
 `
 
