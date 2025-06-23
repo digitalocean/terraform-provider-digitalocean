@@ -9,12 +9,11 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 )
 
 func ResourceDigitalOceanPartnerAttachment() *schema.Resource {

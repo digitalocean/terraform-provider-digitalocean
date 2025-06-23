@@ -163,8 +163,8 @@ resource "digitalocean_partner_attachment" "foobar" {
     peer_router_ip  = "169.254.100.6/29"
     auth_key        = "BGPAu7hK3y!"
   }
-  parent_uuid = "00000000-0000-0000-0000-000000000000"
-  children    = "11111111-1111-1111-1111-111111111111"
+  parent_uuid = "c8c204d8-18e9-4a81-a7d6-7bf5d1092f67"
+  children    = "22a2467c-0f83-4a04-abc7-07f9a4ec3a8a"
 }
 `
 
