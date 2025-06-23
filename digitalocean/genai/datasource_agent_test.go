@@ -47,12 +47,14 @@ data "digitalocean_agent" "foobar" {
 
 func TestAccDataSourceDigitalOceanAgent_CompleteConfiguration(t *testing.T) {
 	var agent godo.Agent
-	agentName := acceptance.RandomTestName()
+	name := acceptance.RandomTestName()
 	description := "Test GenAI agent for acceptance testing"
-	prompt := "You are a helpful AI assistant for testing purposes."
-	model := "gpt-4"
+	instruction := "You are a helpful AI assistant for testing purposes."
+	model_uuid := defaultModelUUID
+	project_id := defaultProjecID
+	region := "tor1"
 
-	resourceConfig := testAccCheckDataSourceDigitalOceanAgentConfig_complete(agentName, description, prompt, model)
+	resourceConfig := testAccCheckDataSourceDigitalOceanAgentConfig_complete(name, description, instruction, model_uuid, project_id, region)
 	dataSourceConfig := `
 data "digitalocean_agent" "foobar" {
   agent_id = digitalocean_agent.foo.agent_id
@@ -70,13 +72,13 @@ data "digitalocean_agent" "foobar" {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanAgentExists("data.digitalocean_agent.foobar", &agent),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_agent.foobar", "name", agentName),
+						"data.digitalocean_agent.foobar", "name", name),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_agent.foobar", "description", description),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_agent.foobar", "prompt", prompt),
+						"data.digitalocean_agent.foobar", "instruction", instruction),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_agent.foobar", "model", model),
+						"data.digitalocean_agent.foobar", "model_uuid", model_uuid),
 					resource.TestCheckResourceAttrSet("data.digitalocean_agent.foobar", "agent_id"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_agent.foobar", "uuid"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_agent.foobar", "created_at"),
@@ -136,7 +138,6 @@ func TestAccDataSourceDigitalOceanAgent_NonExistentAgent(t *testing.T) {
 	})
 }
 
-// Helper function to check if the agent exists in the data source state
 func testAccCheckDataSourceDigitalOceanAgentExists(n string, agent *godo.Agent) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -171,34 +172,28 @@ func testAccCheckDataSourceDigitalOceanAgentExists(n string, agent *godo.Agent) 
 	}
 }
 
-// Configuration templates for different test scenarios
-
 func testAccCheckDataSourceDigitalOceanAgentConfig_basic(name string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_agent" "foo" {
   name        = "%s"
   description = "Basic test agent"
-  prompt      = "You are a test assistant."
-  model       = "gpt-3.5-turbo"
-}`, name)
+  instruction      = "You are a test assistant."
+  model_uuid := "%s"
+}`, name, defaultModelUUID)
 }
 
-func testAccCheckDataSourceDigitalOceanAgentConfig_complete(name, description, prompt, model string) string {
+func testAccCheckDataSourceDigitalOceanAgentConfig_complete(name, description, instruction, model_uuid, project_id, region string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_agent" "foo" {
   name        = "%s"
   description = "%s"
-  prompt      = "%s"
+  instruction = "%s"
   model       = "%s"
-  
-  # Additional configuration options if supported
-  temperature = 0.7
-  max_tokens  = 1000
-  
-  # Enable/disable features if supported
-  web_search_enabled = true
-  code_interpreter_enabled = false
-}`, name, description, prompt, model)
+  model_uuid := "%s"
+  project_id := "%s"
+  region := "tor1"
+
+}`, name, description, instruction, model_uuid, project_id, region)
 }
 
 func testAccCheckDataSourceDigitalOceanAgentConfig_withTags(name, tagName string) string {
@@ -210,10 +205,10 @@ resource "digitalocean_tag" "foo" {
 resource "digitalocean_agent" "foo" {
   name        = "%s"
   description = "Test agent with tags"
-  prompt      = "You are a tagged test assistant."
-  model       = "gpt-3.5-turbo"
+  instruction = "You are a tagged test assistant."
+  model       = "%s"
   tags        = [digitalocean_tag.foo.id]
-}`, tagName, name)
+}`, tagName, name, defaultModelUUID)
 }
 
 func testAccCheckDataSourceDigitalOceanAgentConfig_nonExistent() string {
@@ -223,12 +218,9 @@ data "digitalocean_agent" "foobar" {
 }`
 }
 
-// Additional test for testing agent configurations if your schema supports them
 func TestAccDataSourceDigitalOceanAgent_WithKnowledgeBase(t *testing.T) {
 	var agent godo.Agent
 	agentName := acceptance.RandomTestName()
-
-	// This test assumes your agent supports knowledge base configuration
 	resourceConfig := testAccCheckDataSourceDigitalOceanAgentConfig_withKnowledgeBase(agentName)
 	dataSourceConfig := `
 data "digitalocean_agent" "foobar" {
@@ -263,13 +255,12 @@ func testAccCheckDataSourceDigitalOceanAgentConfig_withKnowledgeBase(name string
 resource "digitalocean_agent" "foo" {
   name        = "%s"
   description = "Test agent with knowledge base"
-  prompt      = "You are an assistant with access to a knowledge base."
-  model       = "gpt-4"
+  instruction = "You are an assistant with access to a knowledge base."
+  model_uuid := "%s"
   
   knowledge_base {
     name        = "test-kb"
     description = "Test knowledge base"
-    # Add other knowledge base configuration as needed
   }
-}`, name)
+}`, name, defaultModelUUID)
 }

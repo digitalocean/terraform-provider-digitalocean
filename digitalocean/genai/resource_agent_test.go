@@ -246,16 +246,9 @@ resource "digitalocean_agent" "test" {
   name              = "%s"
   instruction       = "You are a helpful AI assistant."
   description       = "Test agent with optional fields"
-  model_uuid        = "%s"  # Replace with actual model UUID
+  model_uuid        = "%s"
   project_id        = digitalocean_project.test.id
   region            = "tor1"
-  temperature       = 0.7
-  max_tokens        = 1000
-  top_p             = 0.9
-  provide_citations = true
-  retrieval_method  = "semantic"
-  k                 = 5
-  tags              = ["test", "ai"]
 }`, name, name, testModelUUID)
 }
 
@@ -269,11 +262,10 @@ resource "digitalocean_agent" "test" {
   name         = "%s"
   instruction  = "You are an updated AI assistant with new capabilities."
   description  = "Updated test agent"
-  model_uuid   = "%s"  # Replace with actual model UUID
+  model_uuid   = "%s" 
   project_id   = digitalocean_project.test.id
   region       = "tor1"
-  temperature  = 0.8
-  max_tokens   = 2000
+
 }`, name, name, testModelUUID)
 }
 
@@ -293,7 +285,7 @@ resource "digitalocean_knowledge_base" "test" {
 resource "digitalocean_agent" "test" {
   name                = "%s"
   instruction         = "You are a helpful AI assistant with knowledge base access."
-  model_uuid          = "%s"  # Replace with actual model UUID
+  model_uuid          = "%s"
   project_id          = digitalocean_project.test.id
   region              = "tor1"
   knowledge_base_uuid = [digitalocean_knowledge_base.test.id]
@@ -309,7 +301,7 @@ resource "digitalocean_project" "test" {
 resource "digitalocean_agent" "test" {
   name        = "%s"
   instruction = "You are a helpful AI assistant."
-  model_uuid  = "%s"  # Replace with actual model UUID
+  model_uuid  = "%s" 
   project_id  = digitalocean_project.test.id
   region      = "tor1"
   
