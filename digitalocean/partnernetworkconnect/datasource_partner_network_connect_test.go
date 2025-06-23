@@ -6,9 +6,8 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
 func TestAccDataSourceDigitalOceanPartnerAttachment_ByID(t *testing.T) {
