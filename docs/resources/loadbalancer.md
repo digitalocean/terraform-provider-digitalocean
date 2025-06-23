@@ -120,10 +120,10 @@ the backend service. Default value is `false`.
 * `glb_settings` (Optional) - A block containing `glb_settings` required to define target rules for a Global Load Balancer. The `glb_settings` block is documented below.
 * `target_load_balancer_ids` (Optional) - A list of Load Balancer IDs to be attached behind a Global Load Balancer.
 * `type` - (Optional) The type of the Load Balancer. It must be either of `REGIONAL`, `REGIONAL_NETWORK`, or `GLOBAL`. Defaults to `REGIONAL`.
-**NOTE**: non-`REGIONAL/GLOBAL` type may be part of closed beta feature and not available for public use.
 * `network` - (Optional) The type of network the Load Balancer is accessible from. It must be either of `INTERNAL` or `EXTERNAL`. Defaults to `EXTERNAL`.
 * `network_stack` - (Optional) The network stack determines the allocation of ipv4/ipv6 addresses to the load balancer. It must be either of `IPV4` or `DUALSTACK`. Defaults to `IPV4`.
-**NOTE**: this feature is in private preview, and may not be available for public use
+* `tls_cipher_policy` - (Optional) The tls cipher policy controls the cipher suites to be used by the load balancer. It must be either of `DEFAULT` or `STRONG`. Defaults to `DEFAULT`.
+
 
 `forwarding_rule` supports the following:
 
@@ -132,7 +132,7 @@ the backend service. Default value is `false`.
 * `target_protocol` - (Required) The protocol used for traffic from the Load Balancer to the backend Droplets. The possible values are: `http`, `https`, `http2`, `tcp`, or `udp`.
 * `target_port` - (Required) An integer representing the port on the backend Droplets to which the Load Balancer will send traffic.
 * `certificate_name` - (Optional) The unique name of the TLS certificate to be used for SSL termination.
-* `certificate_id` - (Optional) **Deprecated** The ID of the TLS certificate to be used for SSL termination.
+* `certificate_id` - (Optional) **Deprecated** The ID of the TLS certificate to be used for SSL termination. Use `certificate_name` instead.
 * `tls_passthrough` - (Optional) A boolean value indicating whether SSL encrypted traffic will be passed through to the backend Droplets. The default value is `false`.
 
 `sticky_sessions` supports the following:
@@ -161,7 +161,8 @@ the backend service. Default value is `false`.
 
 * `name` - (Required) The domain name to be used for ingressing traffic to a Global Load Balancer.
 * `is_managed` - (Optional) Control flag to specify whether the domain is managed by DigitalOcean.
-* `certificate_id` - (Optional) The certificate ID to be used for TLS handshaking.
+* `certificate_id` - (Optional) **Deprecated** The certificate ID to be used for TLS handshaking.
+* `certificate_name` - (Optional) The certificate name to be used for TLS handshaking.
 
 `glb_settings` supports the following:
 

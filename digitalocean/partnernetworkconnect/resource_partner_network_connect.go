@@ -59,6 +59,12 @@ func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 				ForceNew:     true,
 			},
+			"redundancy_zone": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The redundancy zone for the NaaS",
+				ForceNew:    true,
+			},
 			"vpc_ids": {
 				Type:        schema.TypeSet,
 				Elem:        &schema.Schema{Type: schema.TypeString},
@@ -119,6 +125,7 @@ func resourceDigitalOceanPartnerAttachmentCreate(ctx context.Context, d *schema.
 	connectionBandwidthInMbps := d.Get("connection_bandwidth_in_mbps").(int)
 	region := d.Get("region").(string)
 	naasProvider := d.Get("naas_provider").(string)
+	redundancyZone := d.Get("redundancy_zone").(string)
 	vpcIDs := d.Get("vpc_ids").(*schema.Set).List()
 
 	vpcIDsString := make([]string, len(vpcIDs))
@@ -131,6 +138,7 @@ func resourceDigitalOceanPartnerAttachmentCreate(ctx context.Context, d *schema.
 		ConnectionBandwidthInMbps: connectionBandwidthInMbps,
 		Region:                    region,
 		NaaSProvider:              naasProvider,
+		RedundancyZone:            redundancyZone,
 		VPCIDs:                    vpcIDsString,
 	}
 
@@ -281,6 +289,7 @@ func resourceDigitalOceanPartnerAttachmentRead(ctx context.Context, d *schema.Re
 	d.Set("region", strings.ToLower(partnerAttachment.Region))
 	d.Set("connection_bandwidth_in_mbps", partnerAttachment.ConnectionBandwidthInMbps)
 	d.Set("naas_provider", partnerAttachment.NaaSProvider)
+	d.Set("redundancy_zone", partnerAttachment.RedundancyZone)
 	d.Set("vpc_ids", partnerAttachment.VPCIDs)
 
 	bgp := partnerAttachment.BGP

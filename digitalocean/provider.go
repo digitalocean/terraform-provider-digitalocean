@@ -32,6 +32,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/uptime"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/volume"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpc"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpcnatgateway"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpcpeering"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -144,6 +145,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_snapshot":          snapshot.DataSourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_volume":                   volume.DataSourceDigitalOceanVolume(),
 			"digitalocean_vpc":                      vpc.DataSourceDigitalOceanVPC(),
+			"digitalocean_vpc_nat_gateway":          vpcnatgateway.DataSourceDigitalOceanVPCNATGateway(),
 			"digitalocean_vpc_peering":              vpcpeering.DataSourceDigitalOceanVPCPeering(),
 			"digitalocean_partner_attachment":       partnernetworkconnect.DataSourceDigitalOceanPartnerAttachment(),
 			"digitalocean_genai_agent":              genai.DataSourceDigitalOceanAgent(),
@@ -192,6 +194,7 @@ func Provider() *schema.Provider {
 			"digitalocean_spaces_bucket_object":                  spaces.ResourceDigitalOceanSpacesBucketObject(),
 			"digitalocean_spaces_bucket_policy":                  spaces.ResourceDigitalOceanSpacesBucketPolicy(),
 			"digitalocean_spaces_key":                            spaces.ResourceDigitalOceanSpacesKey(),
+			"digitalocean_spaces_bucket_logging":                 spaces.ResourceDigitalOceanSpacesBucketLogging(),
 			"digitalocean_ssh_key":                               sshkey.ResourceDigitalOceanSSHKey(),
 			"digitalocean_tag":                                   tag.ResourceDigitalOceanTag(),
 			"digitalocean_uptime_check":                          uptime.ResourceDigitalOceanUptimeCheck(),
@@ -200,6 +203,7 @@ func Provider() *schema.Provider {
 			"digitalocean_volume_attachment":                     volume.ResourceDigitalOceanVolumeAttachment(),
 			"digitalocean_volume_snapshot":                       snapshot.ResourceDigitalOceanVolumeSnapshot(),
 			"digitalocean_vpc":                                   vpc.ResourceDigitalOceanVPC(),
+			"digitalocean_vpc_nat_gateway":                       vpcnatgateway.ResourceDigitalOceanVPCNATGateway(),
 			"digitalocean_vpc_peering":                           vpcpeering.ResourceDigitalOceanVPCPeering(),
 			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
 			"digitalocean_partner_attachment":                    partnernetworkconnect.ResourceDigitalOceanPartnerAttachment(),

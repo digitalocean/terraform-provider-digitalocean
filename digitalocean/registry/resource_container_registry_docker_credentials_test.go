@@ -2,12 +2,15 @@ package registry_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/registry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -71,18 +74,36 @@ func TestAccDigitalOceanContainerRegistryDockerCredentials_withExpiry(t *testing
 }
 
 func testAccCheckDigitalOceanContainerRegistryDockerCredentialsDestroy(s *terraform.State) error {
-	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
-
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "digitalocean_container_registry_docker_credentials" {
 			continue
 		}
 
-		// Try to find the key
-		_, _, err := client.Registry.Get(context.Background())
+		var config registry.DockerConfig
+		configJSON := rs.Primary.Attributes["docker_credentials"]
+		err := json.Unmarshal([]byte(configJSON), &config)
+		if err != nil {
+			return err
+		}
 
-		if err == nil {
-			return fmt.Errorf("Container Registry still exists")
+		token, err := registry.DecodeToken(config)
+		if err != nil {
+			return err
+		}
+
+		// Ensure the token was revoked
+		gClient := godo.NewFromToken(token)
+		account, resp, err := gClient.Account.Get(context.Background())
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusUnauthorized {
+				return nil
+			}
+
+			return err
+		}
+
+		if account != nil {
+			return fmt.Errorf("Docker credentials were not revoked")
 		}
 	}
 
