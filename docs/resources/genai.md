@@ -13,11 +13,11 @@ Provides a resource to manage a DigitalOcean GenAI Agent. With this resource you
 resource "digitalocean_genai_agent" "terraform-testing" {
   description = "Agent for testing update and delete functionality."
   instruction = "You are DigitalOcean's Solutions Architect Assistant, designed to help users find the perfect solution for their technical needs."
-  model_uuid = "d754f2d7-d1f0-11ef-bf8f-4e013e2ddde4"
-  name       = "terraform-testing"
-  project_id = "84e1e297-ee40-41ac-95ff-1067cf2206e9"
-  region     = "tor1"
-  tags       = ["marketplace-agent-terraform"]
+  model_uuid  = "d754f2d7-d1f0-11ef-bf8f-4e013e2ddde4"
+  name        = "terraform-testing"
+  project_id  = "84e1e297-ee40-41ac-95ff-1067cf2206e9"
+  region      = "tor1"
+  tags        = ["marketplace-agent-terraform"]
 }
 ```
 

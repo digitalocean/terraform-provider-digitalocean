@@ -177,8 +177,8 @@ func testAccCheckDataSourceDigitalOceanAgentConfig_basic(name string) string {
 resource "digitalocean_agent" "foo" {
   name        = "%s"
   description = "Basic test agent"
-  instruction      = "You are a test assistant."
-  model_uuid := "%s"
+  instruction = "You are a test assistant."
+  model_uuid  = "%s"
 }`, name, defaultModelUUID)
 }
 
@@ -189,9 +189,9 @@ resource "digitalocean_agent" "foo" {
   description = "%s"
   instruction = "%s"
   model       = "%s"
-  model_uuid := "%s"
-  project_id := "%s"
-  region := "tor1"
+  model_uuid  = "%s"
+  project_id  = "%s"
+  region      = "tor1"
 
 }`, name, description, instruction, model_uuid, project_id, region)
 }
@@ -206,7 +206,7 @@ resource "digitalocean_agent" "foo" {
   name        = "%s"
   description = "Test agent with tags"
   instruction = "You are a tagged test assistant."
-  model       = "%s"
+  model_uuid  = "%s"
   tags        = [digitalocean_tag.foo.id]
 }`, tagName, name, defaultModelUUID)
 }
@@ -256,8 +256,8 @@ resource "digitalocean_agent" "foo" {
   name        = "%s"
   description = "Test agent with knowledge base"
   instruction = "You are an assistant with access to a knowledge base."
-  model_uuid := "%s"
-  
+  model_uuid  = "%s"
+
   knowledge_base {
     name        = "test-kb"
     description = "Test knowledge base"

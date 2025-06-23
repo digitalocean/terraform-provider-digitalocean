@@ -228,11 +228,11 @@ resource "digitalocean_project" "test" {
 }
 
 resource "digitalocean_agent" "test" {
-  name         = "%s"
-  instruction  = "You are a helpful AI assistant."
-  model_uuid   = "%s"  # Replace with actual model UUID
-  project_id   = digitalocean_project.test.id
-  region       = "tor1"
+  name        = "%s"
+  instruction = "You are a helpful AI assistant."
+  model_uuid  = "%s"
+  project_id  = digitalocean_project.test.id
+  region      = "tor1"
 }`, name, name, testModelUUID)
 }
 
@@ -243,12 +243,12 @@ resource "digitalocean_project" "test" {
 }
 
 resource "digitalocean_agent" "test" {
-  name              = "%s"
-  instruction       = "You are a helpful AI assistant."
-  description       = "Test agent with optional fields"
-  model_uuid        = "%s"
-  project_id        = digitalocean_project.test.id
-  region            = "tor1"
+  name        = "%s"
+  instruction = "You are a helpful AI assistant."
+  description = "Test agent with optional fields"
+  model_uuid  = "%s"
+  project_id  = digitalocean_project.test.id
+  region      = "tor1"
 }`, name, name, testModelUUID)
 }
 
@@ -259,12 +259,12 @@ resource "digitalocean_project" "test" {
 }
 
 resource "digitalocean_agent" "test" {
-  name         = "%s"
-  instruction  = "You are an updated AI assistant with new capabilities."
-  description  = "Updated test agent"
-  model_uuid   = "%s" 
-  project_id   = digitalocean_project.test.id
-  region       = "tor1"
+  name        = "%s"
+  instruction = "You are an updated AI assistant with new capabilities."
+  description = "Updated test agent"
+  model_uuid  = "%s"
+  project_id  = digitalocean_project.test.id
+  region      = "tor1"
 
 }`, name, name, testModelUUID)
 }
@@ -301,10 +301,10 @@ resource "digitalocean_project" "test" {
 resource "digitalocean_agent" "test" {
   name        = "%s"
   instruction = "You are a helpful AI assistant."
-  model_uuid  = "%s" 
+  model_uuid  = "%s"
   project_id  = digitalocean_project.test.id
   region      = "tor1"
-  
+
   deployment {
     visibility = "%s"
   }

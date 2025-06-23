@@ -21,31 +21,31 @@ func TestAccDataSourceDigitalOceanAgents_Basic(t *testing.T) {
 
 	resourcesConfig := fmt.Sprintf(`
 resource "digitalocean_genai_agent" "foo" {
-	name        = "%s"
-	description = "%s"
-	instruction = "%s"
-	model_uuid  = "%s"
-	project_id  = "%s"
-	region      = "tor1"
+  name        = "%s"
+  description = "%s"
+  instruction = "%s"
+  model_uuid  = "%s"
+  project_id  = "%s"
+  region      = "tor1"
 
 }
 
 resource "digitalocean_genai_agent" "bar" {
-	name        = "%s"
-	description = "%s"
-	instruction = "%s"
-	model_uuid  = "%s"
-	project_id  = "%s"
-	region      = "tor1"
+  name        = "%s"
+  description = "%s"
+  instruction = "%s"
+  model_uuid  = "%s"
+  project_id  = "%s"
+  region      = "tor1"
 }
 `, name1, defaultDescription, defaultInstruction, defaultModelUUID, defaultProjecID, name2, defaultDescription, defaultInstruction, defaultModelUUID, defaultProjecID)
 
 	datasourceConfig := fmt.Sprintf(`
 data "digitalocean_genai_agents" "result" {
   filter {
-	key			= "name"
-	values		= ["%s"]								
-	  }
+    key    = "name"
+    values = ["%s"]
+  }
 }
 `, name1)
 	resource.ParallelTest(t, resource.TestCase{
