@@ -208,6 +208,7 @@ func Provider() *schema.Provider {
 			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
 			"digitalocean_partner_attachment":                    partnernetworkconnect.ResourceDigitalOceanPartnerAttachment(),
 			"digitalocean_genai_agent":                           genai.ResourceDigitalOceanAgent(),
+			"digitalocean_genai_function":                        genai.ResourceDigitalOceanGenAIFunctionRoute(),
 		},
 	}
 
