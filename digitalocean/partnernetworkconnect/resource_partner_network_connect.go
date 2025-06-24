@@ -62,8 +62,8 @@ func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
 			"redundancy_zone": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "The redundancy zone for the NaaS",
-				ForceNew:    true,
 			},
 			"vpc_ids": {
 				Type:        schema.TypeSet,
@@ -85,8 +85,8 @@ func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
 			"bgp": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
-				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"local_router_ip": {
