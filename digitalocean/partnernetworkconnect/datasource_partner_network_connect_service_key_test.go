@@ -10,8 +10,6 @@ import (
 )
 
 func TestAccDataSourceDigitalOceanPartnerAttachmentServiceKey_Found(t *testing.T) {
-	//var serviceKey godo.ServiceKey
-
 	partnerAttachmentName := acceptance.RandomTestName()
 	vpcName1 := acceptance.RandomTestName()
 	vpcName2 := acceptance.RandomTestName()
