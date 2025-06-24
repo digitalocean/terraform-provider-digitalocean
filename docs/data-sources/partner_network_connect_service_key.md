@@ -20,7 +20,7 @@ resource "digitalocean_partner_attachment" "example" {
   vpc_ids                      = ["0bcef6a5-0000-0000-0000-000000000000"]
 }
 
-data "digitalocean_partner_attachment_service_key" "example"{
+data "digitalocean_partner_attachment_service_key" "example" {
   attachment_id = digitalocean_partner_attachment.example.id
 }
 
