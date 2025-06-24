@@ -111,12 +111,12 @@ func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
 			},
 			"parent_uuid": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Optional:    true,
 				Description: "The UUID of the Parent Partner Attachment ",
 			},
 			"children": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Optional:    true,
 				Description: "The children of Partner Attachment",
 			},
 		},
