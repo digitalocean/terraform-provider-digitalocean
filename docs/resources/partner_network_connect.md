@@ -5,8 +5,6 @@ subcategory: "Networking"
 
 # digitalocean_partner_attachment
 
--> Partner Attachment is currently in private preview. If you are not a member of the private preview group for this feature, you will not be able to use it until is has been more widely released. Please follow the official [DigitalOcean changelog](https://docs.digitalocean.com/release-notes/) for updates.
-
 Provides a [DigitalOcean Partner Attachment](#digitalocean_partner_attachment) resource.
 
 Partner Attachments enable private connectivity between VPC networks across different cloud providers via a supported service provider.
