@@ -52,6 +52,7 @@ func ResourceDigitalOceanGenAIFunctionRoute() *schema.Resource {
 				Computed:    true,
 				Description: "The unique identifier of the GenAI function.",
 			},
+			// currently keeping input_schema and output_schema as strings due to no specific schema definition in documentation
 			"input_schema": {
 				Type:        schema.TypeString,
 				Required:    true,
