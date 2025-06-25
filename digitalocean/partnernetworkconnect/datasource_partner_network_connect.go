@@ -82,6 +82,14 @@ func DataSourceDigitalOceanPartnerAttachment() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"parent_uuid": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"children": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -134,6 +142,8 @@ func dataSourceDigitalOceanPartnerAttachmentRead(ctx context.Context, d *schema.
 	}
 	d.Set("state", foundPartnerAttachment.State)
 	d.Set("created_at", foundPartnerAttachment.CreatedAt.UTC().String())
+	d.Set("parent_uuid", foundPartnerAttachment.ParentUuid)
+	d.Set("children", foundPartnerAttachment.Children)
 
 	return nil
 }
