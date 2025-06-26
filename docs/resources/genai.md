@@ -110,6 +110,85 @@ After creation, the following attributes are exported:
 
 When the **visibility**, **description**, **instruction**, **k**, **max_tokens**, **model_uuid**, **name**, **open_ai_key_uuid**, **project_id**, **retrieval_method**, **region**, **tags**, **temperature**, or **top_p** attribute is changed, the provider invokes the update API endpoint to adjust the agent's configuration.
 
+# digitalocean_genai_function
+We can pick up the agent id from the agent terraform resource and input, output schema have json values as currently there is no defined schema  available. 
+Checkout the following API docs - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GenAI-Platform-(Public-Preview)/operation/genai_attach_agent_function
+
+```hcl
+
+resource "digitalocean_genai_function" "check"{
+    agent_id = digitalocean_genai_agent.terraform-testing.id
+    description = "Adding a function route and this will also tell temperature"
+    faas_name = "default/testing"
+    faas_namespace = "fn-b90faf52-2b42-49c2-9792-75edfbb6f397"
+    function_name = "terraform-tf-complete"
+    input_schema = <<EOF
+    {
+        "parameters": [
+            {
+            "in": "query",
+            "name": "zipCode",
+            "schema": {
+                "type": "string"
+            },
+            "required": false,
+            "description": "The ZIP code for which to fetch the weather"
+            },
+            {
+            "name": "measurement",
+            "schema": {
+                "enum": [
+                "F",
+                "C"
+                ],
+                "type": "string"
+            },
+            "required": false,
+            "description": "The measurement unit for temperature (F or C)",
+            "in": "query"
+            }
+        ]
+    }
+    EOF
+    
+    output_schema = <<EOF
+    {
+        "properties": [
+            {
+            "name": "temperature",
+            "type": "number",
+            "description": "The temperature for the specified location"
+            },
+            {
+            "name": "measurement",
+            "type": "string",
+            "description": "The measurement unit used for the temperature (F or C)"
+            },
+            {
+            "name": "conditions",
+            "type": "string",
+            "description": "A description of the current weather conditions (Sunny, Cloudy, etc)"
+            }
+        ]
+    }
+    EOF
+}
+```
+
+## Attributes Reference
+
+After creation, the following attributes are exported:
+
+- **agent_id** - The unique identifier of the agent. 
+- **description** -  Description for the function
+- **faas_name** - The name of the function in the DigitalOcean functions platform
+- **faas_namespace** - The namespace of the function in the DigitalOcean functions platform
+- **function_name** - The name for function to be assigned inside agent, two functions inside agent cannot have same name
+- **input_schema** - The input schema associated with the function.
+- **output_schema** - The output schema associated with the function.
+
+**input_schema** and **output_schema** have a json input please check out this docs for more clarity - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GenAI-Platform-(Public-Preview)/operation/genai_attach_agent_function
+
 ## Import
 
 A DigitalOcean GenAI Agent can be imported using its UUID. For example:

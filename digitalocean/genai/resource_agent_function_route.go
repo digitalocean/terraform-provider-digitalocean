@@ -87,11 +87,13 @@ func resourceDigitalOceanGenAIFunctionRouteCreate(ctx context.Context, d *schema
 
 	// Optionally validate output_schema JSON. Since it is a json.RawMessage, we'll check its validity.
 	outputSchemaStr := d.Get("output_schema").(string)
-	var tmp json.RawMessage
-	if err := json.Unmarshal([]byte(outputSchemaStr), &tmp); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to parse output_schema: %s", err))
+	if outputSchemaStr != "" {
+		var tmp json.RawMessage
+		if err := json.Unmarshal([]byte(outputSchemaStr), &tmp); err != nil {
+			return diag.FromErr(fmt.Errorf("failed to parse output_schema: %s", err))
+		}
+		createRequest.OutputSchema = []byte(outputSchemaStr)
 	}
-	createRequest.OutputSchema = []byte(outputSchemaStr)
 
 	agent, resp, err := client.GenAI.CreateFunctionRoute(context.Background(), createRequest.AgentUuid, createRequest)
 	if err != nil {
@@ -161,11 +163,13 @@ func resourceDigitalOceanGenAIFunctionRouteUpdate(ctx context.Context, d *schema
 	updateRequest.InputSchema = inputSchema
 
 	outputSchemaStr := d.Get("output_schema").(string)
-	var tmp json.RawMessage
-	if err := json.Unmarshal([]byte(outputSchemaStr), &tmp); err != nil {
-		return diag.FromErr(fmt.Errorf("failed to parse output_schema: %s", err))
+	if outputSchemaStr != "" {
+		var tmp json.RawMessage
+		if err := json.Unmarshal([]byte(outputSchemaStr), &tmp); err != nil {
+			return diag.FromErr(fmt.Errorf("failed to parse output_schema: %s", err))
+		}
+		updateRequest.OutputSchema = []byte(outputSchemaStr)
 	}
-	updateRequest.OutputSchema = []byte(outputSchemaStr)
 
 	if d.HasChange("function_name") {
 		updateRequest.FunctionName = d.Get("function_name").(string)
