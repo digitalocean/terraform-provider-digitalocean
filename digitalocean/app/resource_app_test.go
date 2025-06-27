@@ -177,7 +177,7 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.disable_email_obfuscation", "true"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.enhanced_threat_control_enabled", "true"),
-					),
+				),
 			},
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withAlerts, appName),
