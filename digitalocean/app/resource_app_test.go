@@ -179,6 +179,42 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.enhanced_threat_control_enabled", "true"),
 				),
 			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withAlerts, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.name", "go-service"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.name", "go-service"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.rule", "DEPLOYMENT_FAILED"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.destinations.0.emails.0", "email1@do.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.destinations.0.emails.0", "email2@do.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.destinations.0.slack_webhooks.0.channel", "@user1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.destinations.0.slack_webhooks.0.url", "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "85"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.operator", "GREATER_THAN"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.window", "FIVE_MINUTES"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.rule", "CPU_UTILIZATION"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.destinations.0.emails.0", "email1@do.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.destinations.0.emails.1", "email2@do.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.destinations.0.slack_webhooks.0.channel", "@user1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.destinations.0.slack_webhooks.0.url", "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"),
+				),
+			},
 		},
 	})
 }
@@ -1868,6 +1904,51 @@ resource "digitalocean_app" "foobar" {
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
         branch         = "main"
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_withAlerts = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "ams"
+
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+      destinations {
+        emails = ["email1@do.com", "email2@do.com"]
+        slack_webhooks {
+          channel = "@user1"
+          url     = "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"
+        }
+      }
+    }
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+
+      alert {
+        value    = 85
+        operator = "GREATER_THAN"
+        window   = "FIVE_MINUTES"
+        rule     = "CPU_UTILIZATION"
+        destinations {
+          emails = ["email1@do.com", "email2@do.com"]
+          slack_webhooks {
+            channel = "@user1"
+            url     = "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"
+          }
+        }
       }
     }
   }
