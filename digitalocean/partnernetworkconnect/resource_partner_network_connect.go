@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 )
 
 func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
@@ -115,9 +116,10 @@ func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
 				Description: "The UUID of the Parent Partner Attachment ",
 			},
 			"children": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The children of Partner Attachment",
+				Type:        schema.TypeList,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Computed:    true,
+				Description: "The children uuids of Partner Attachment",
 			},
 		},
 
