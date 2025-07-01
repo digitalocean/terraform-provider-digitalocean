@@ -114,10 +114,10 @@ func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
 				Optional:    true,
 				Description: "The UUID of the Parent Partner Attachment ",
 			},
-			"children": {
+			"children_uuids": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The children of Partner Attachment",
+				Computed:    true,
+				Description: "The children uuids of Partner Attachment",
 			},
 		},
 
@@ -304,7 +304,7 @@ func resourceDigitalOceanPartnerAttachmentRead(ctx context.Context, d *schema.Re
 	d.Set("redundancy_zone", partnerAttachment.RedundancyZone)
 	d.Set("vpc_ids", partnerAttachment.VPCIDs)
 	d.Set("parent_uuid", partnerAttachment.ParentUuid)
-	d.Set("children", partnerAttachment.Children)
+	d.Set("children_uuids", partnerAttachment.Children)
 
 	bgp := partnerAttachment.BGP
 	if bgp.PeerRouterIP != "" || bgp.LocalRouterIP != "" || bgp.PeerASN != 0 {

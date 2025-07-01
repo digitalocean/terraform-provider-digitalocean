@@ -86,9 +86,11 @@ func DataSourceDigitalOceanPartnerAttachment() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
-			"children": {
-				Type:     schema.TypeString,
-				Computed: true,
+			"children_uuids": {
+				Type:        schema.TypeList,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Computed:    true,
+				Description: "The children uuids of the Partner Attachment.",
 			},
 		},
 	}
