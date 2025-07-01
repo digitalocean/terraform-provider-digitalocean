@@ -55,4 +55,4 @@ The following arguments are supported and are mutually exclusive:
 * `created_at` - The date and time of when the Partner Attachment was created.
 * `redundancy_zone` - The redundancy zone of the Partner Attachment.
 * `parent_uuid` - The UUID of the parent Partner Attachment, if applicable.
-* `children_uuid` - The UUIDs of the child Partner Attachment, if applicable.
+* `children` - The UUIDs of the child Partner Attachment, if applicable.

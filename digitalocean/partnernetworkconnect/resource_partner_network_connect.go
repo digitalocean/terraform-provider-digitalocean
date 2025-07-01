@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 )
 
 func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
@@ -114,8 +115,9 @@ func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
 				Optional:    true,
 				Description: "The UUID of the Parent Partner Attachment ",
 			},
-			"children_uuids": {
-				Type:        schema.TypeString,
+			"children": {
+				Type:        schema.TypeList,
+				Elem:        &schema.Schema{Type: schema.TypeString},
 				Computed:    true,
 				Description: "The children uuids of Partner Attachment",
 			},
@@ -304,7 +306,7 @@ func resourceDigitalOceanPartnerAttachmentRead(ctx context.Context, d *schema.Re
 	d.Set("redundancy_zone", partnerAttachment.RedundancyZone)
 	d.Set("vpc_ids", partnerAttachment.VPCIDs)
 	d.Set("parent_uuid", partnerAttachment.ParentUuid)
-	d.Set("children_uuids", partnerAttachment.Children)
+	d.Set("children", partnerAttachment.Children)
 
 	bgp := partnerAttachment.BGP
 	if bgp.PeerRouterIP != "" || bgp.LocalRouterIP != "" || bgp.PeerASN != 0 {
