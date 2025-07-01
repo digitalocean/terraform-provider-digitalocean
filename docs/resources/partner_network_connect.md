@@ -44,6 +44,8 @@ The following arguments are supported and are mutually exclusive:
     * `peer_router_asn` - The peer autonomous system number.
     * `peer_router_ip` - The peer router IP address in CIDR notation.
     * `auth_key` - The authentication key for the BGP session.
+* `redundancy_zone` - (Optional) The redundancy zone of the Partner Attachment.
+* `parent_uuid` - (Optional) The UUID of the parent Partner Attachment HA.
 
 ## Attributes Reference
 
