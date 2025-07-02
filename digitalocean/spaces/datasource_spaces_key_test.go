@@ -3,6 +3,7 @@ package spaces_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
@@ -83,8 +84,11 @@ func testAccCheckDigitalOceanSpacesKeyDestroyWithProvider(s *terraform.State, pr
 
 		client := provider.Meta().(*config.CombinedConfig).GodoClient()
 
-		key, _, err := client.SpacesKeys.Get(context.Background(), rs.Primary.ID)
+		key, resp, err := client.SpacesKeys.Get(context.Background(), rs.Primary.ID)
 		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
 			return fmt.Errorf("Error listing Spaces keys: %s", err)
 		}
 		if key.AccessKey == rs.Primary.ID {
