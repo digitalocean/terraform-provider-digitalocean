@@ -137,32 +137,12 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 		result["chatbot_identifiers"] = []interface{}{}
 	}
 	if agent.ParentAgents != nil {
-		flattenedParents := make([]interface{}, 0, len(agent.ParentAgents))
-		for _, parent := range agent.ParentAgents {
-			if parent != nil {
-				flatParent, err := FlattenDigitalOceanAgent(parent)
-				if err != nil {
-					return nil, err
-				}
-				flattenedParents = append(flattenedParents, flatParent)
-			}
-		}
-		result["parent_agents"] = flattenedParents
+		result["parent_agents"] = flattenRelatedAgents(agent.ParentAgents)
 	} else {
 		result["parent_agents"] = []interface{}{}
 	}
 	if agent.ChildAgents != nil {
-		flattenedChilds := make([]interface{}, 0, len(agent.ChildAgents))
-		for _, child := range agent.ChildAgents {
-			if child != nil {
-				flatParent, err := FlattenDigitalOceanAgent(child)
-				if err != nil {
-					return nil, err
-				}
-				flattenedChilds = append(flattenedChilds, flatParent)
-			}
-		}
-		result["child_agents"] = flattenedChilds
+		result["child_agents"] = flattenRelatedAgents(agent.ChildAgents)
 	} else {
 		result["child_agents"] = []interface{}{}
 	}
@@ -182,6 +162,12 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 		result["template"] = flattenTemplate(agent.Template)
 	} else {
 		result["template"] = []interface{}{}
+	}
+
+	if agent.Tags != nil {
+		result["tags"] = flattenAgentTags(agent.Tags)
+	} else {
+		result["tags"] = []interface{}{}
 	}
 
 	return result, nil
@@ -221,18 +207,18 @@ func convertToStringSlice(val interface{}) []string {
 	return result
 }
 
-func flattenChildAgents(childAgents []*godo.Agent) []interface{} {
-	if childAgents == nil {
+func flattenRelatedAgents(relatedAgents []*godo.Agent) []interface{} {
+	if relatedAgents == nil {
 		return []interface{}{}
 	}
-	result := make([]interface{}, 0, len(childAgents))
-	for _, child := range childAgents {
+	result := make([]interface{}, 0, len(relatedAgents))
+	for _, agent := range relatedAgents {
 		m := map[string]interface{}{
-			"agent_id":    child.Uuid,
-			"name":        child.Name,
-			"region":      child.Region,
-			"project_id":  child.ProjectId,
-			"description": child.Description,
+			"agent_id":    agent.Uuid,
+			"name":        agent.Name,
+			"region":      agent.Region,
+			"project_id":  agent.ProjectId,
+			"description": agent.Description,
 		}
 		result = append(result, m)
 	}
@@ -266,7 +252,7 @@ func flattenApiKeyInfos(apiKeyInfos []*godo.ApiKeyInfo) []interface{} {
 		m := map[string]interface{}{
 			"created_at": info.CreatedAt.UTC().String(),
 			"created_by": info.CreatedBy,
-			"deleted_at": info.DeletedAt.UTC().String(),
+			"deleted_at": info.DeletedAt,
 			"name":       info.Name,
 			"secret_key": info.SecretKey,
 			"uuid":       info.Uuid,
@@ -541,4 +527,194 @@ func flattenLastIndexingJob(job *godo.LastIndexingJob) []interface{} {
 	}
 
 	return []interface{}{m}
+}
+
+func getDigitalOceanAgentVersions(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	agentID, ok := extra["agent_id"].(string)
+	if !ok {
+		return nil, fmt.Errorf("agent_id is not defined or not a string")
+	}
+
+	opts := &godo.ListOptions{
+		Page:    1,
+		PerPage: 200,
+	}
+
+	var allAgentVersions []interface{}
+	for {
+		agentVersions, resp, err := client.GenAI.ListAgentVersions(context.Background(), agentID, opts)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving agents : %s", err)
+		}
+
+		for _, agent := range agentVersions {
+			allAgentVersions = append(allAgentVersions, agent)
+		}
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving agents: %s", err)
+		}
+
+		opts.Page = page + 1
+
+	}
+	return allAgentVersions, nil
+
+}
+
+func flattenDigitalOceanAgentVersion(rawDomain, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
+	agentVersions, ok := rawDomain.(*godo.AgentVersion)
+	if !ok {
+		return nil, fmt.Errorf("expected *godo.Agent, got %T", rawDomain)
+	}
+
+	if agentVersions == nil {
+		return nil, fmt.Errorf("agent versions are nil")
+	}
+
+	result := map[string]interface{}{
+		"can_rollback":      agentVersions.CanRollback,
+		"created_at":        agentVersions.CreatedAt.UTC().String(),
+		"created_by_email":  agentVersions.CreatedByEmail,
+		"currently_applied": agentVersions.CurrentlyApplied,
+		"description":       agentVersions.Description,
+		"id":                agentVersions.ID,
+		"instruction":       agentVersions.Instruction,
+		"k":                 agentVersions.K,
+		"max_tokens":        agentVersions.MaxTokens,
+		"name":              agentVersions.Name,
+		"provide_citations": agentVersions.ProvideCitations,
+		"retrieval_method":  agentVersions.RetrievalMethod,
+		"temperature":       agentVersions.Temperature,
+		"top_p":             agentVersions.TopP,
+		"trigger_action":    agentVersions.TriggerAction,
+		"agent_uuid":        agentVersions.AgentUuid,
+		"version_hash":      agentVersions.VersionHash,
+	}
+
+	if agentVersions.AttachedChildAgents != nil {
+		result["attached_child_agents"] = flattenAttachedChildAgents(agentVersions.AttachedChildAgents)
+	} else {
+		result["attached_child_agents"] = []interface{}{}
+	}
+
+	if agentVersions.AttachedFunctions != nil {
+		result["attached_functions"] = flattenAttachedFunctionsSchema(agentVersions.AttachedFunctions)
+	} else {
+		result["attached_functions"] = []interface{}{}
+	}
+
+	if agentVersions.AttachedGuardrails != nil {
+		result["attached_guardrails"] = flattenAttachedGuardRails(agentVersions.AttachedGuardrails)
+	} else {
+		result["attached_guardrails"] = []interface{}{}
+	}
+
+	if agentVersions.AttachedKnowledgeBases != nil {
+		result["attached_knowledge_bases"] = flattenAttachedKnowledgeBases(agentVersions.AttachedKnowledgeBases)
+	} else {
+		result["attached_knowledge_bases"] = []interface{}{}
+	}
+
+	if agentVersions.Tags != nil {
+		result["tags"] = flattenAgentTags(agentVersions.Tags)
+	} else {
+		result["tags"] = []interface{}{}
+	}
+
+	return result, nil
+
+}
+
+func flattenAttachedChildAgents(childAgents []*godo.AttachedChildAgent) []interface{} {
+	if childAgents == nil {
+		return []interface{}{}
+	}
+	result := make([]interface{}, 0, len(childAgents))
+	for _, child := range childAgents {
+		m := map[string]interface{}{
+			"agent_name":       child.AgentName,
+			"child_agent_uuid": child.ChildAgentUuid,
+			"if_case":          child.IfCase,
+			"is_deleted":       child.IsDeleted,
+			"route_name":       child.RouteName,
+		}
+		result = append(result, m)
+	}
+	return result
+}
+
+func flattenAttachedFunctionsSchema(functions []*godo.AgentFunction) []interface{} {
+	if functions == nil {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0, len(functions))
+	for _, fn := range functions {
+		m := map[string]interface{}{
+			"description":    fn.Description,
+			"faas_name":      fn.FaasName,
+			"faas_namespace": fn.FaasNamespace,
+			"is_deleted":     fn.IsDeleted,
+			"name":           fn.Name,
+		}
+		result = append(result, m)
+	}
+
+	return result
+}
+func flattenAttachedGuardRails(guardrails []*godo.AgentGuardrail) []interface{} {
+	if guardrails == nil {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0, len(guardrails))
+	for _, guardrail := range guardrails {
+		m := map[string]interface{}{
+			"is_deleted": guardrail.IsDeleted,
+			"name":       guardrail.Name,
+			"priority":   guardrail.Priority,
+			"uuid":       guardrail.Description,
+		}
+		result = append(result, m)
+	}
+
+	return result
+}
+func flattenAttachedKnowledgeBases(kbs []*godo.KnowledgeBase) []interface{} {
+	if kbs == nil {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0, len(kbs))
+
+	for _, kb := range kbs {
+		k := map[string]interface{}{
+			"is_deleted": kb.IsDeleted,
+			"name":       kb.Name,
+			"uuid":       kb.Uuid,
+		}
+		result = append(result, k)
+	}
+
+	return result
+}
+
+func flattenAgentTags(tags []string) []interface{} {
+	if tags == nil {
+		return []interface{}{}
+	}
+
+	result := make([]interface{}, 0, len(tags))
+	for _, tag := range tags {
+		result = append(result, tag)
+	}
+
+	return result
 }

@@ -853,7 +853,7 @@ func AgentSchemaRead() map[string]*schema.Schema {
 		"parent_agents": {
 			Type:        schema.TypeList,
 			Computed:    true,
-			Description: "List of child agents",
+			Description: "List of parent agents",
 			Elem:        AgentSchema(),
 		},
 		"child_agents": {
@@ -992,4 +992,241 @@ func AgentSchemaRead() map[string]*schema.Schema {
 		},
 	}
 
+}
+
+func AgentVersionSchemaRead() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"agent_uuid": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "ID of the Agent to retrieve versions for",
+		},
+		"attached_child_agents": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "List of child agents attached to this version",
+			Elem:        AttachedChildAgentSchema(),
+		},
+		"attached_functions": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "List of functions attached to this version",
+			Elem:        AttachedFunctionsSchema(),
+		},
+		"attached_guardrails": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "List of guardrails attached to this version",
+			Elem:        AttachedGuardRailsSchema(),
+		},
+		"attached_knowledge_bases": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "List of Knowledge Bases attached to this version",
+			Elem:        AttachedKnowledgeBasesSchema(),
+		},
+		"can_rollback": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Indicates if the version can be rolled back",
+		},
+		"created_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Timestamp when the Agent Version was created",
+		},
+		"created_by_email": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Email of the user who created this version",
+		},
+		"currently_applied": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Indicates if this version is currently applied configuration",
+		},
+		"description": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Description of the Agent Version",
+		},
+		"id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Id of the Agent Version",
+		},
+		"instruction": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Instruction for the Agent Version",
+		},
+		"k": {
+			Type:        schema.TypeInt,
+			Computed:    true,
+			Description: "K value for the Agent Version",
+		},
+		"max_tokens": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "Maximum tokens allowed for the Agent",
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the Agent",
+		},
+		"provide_citations": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Indicates if the should provide in-response citations",
+		},
+		"retrieval_method": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Retrieval method used",
+		},
+		"tags": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "List of Tags",
+			Elem:        &schema.Schema{Type: schema.TypeString},
+		},
+		"temperature": {
+			Type:        schema.TypeFloat,
+			Computed:    true,
+			Description: "Temperature setting for the Agent Version",
+		},
+		"top_p": {
+			Type:        schema.TypeFloat,
+			Computed:    true,
+			Description: "Top P sampling parameter for the Agent Version",
+		},
+		"trigger_action": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Trigger action for the Agent Version",
+		},
+		"version_hash": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Hash of the Agent Version",
+		},
+	}
+}
+
+func AttachedChildAgentSchema() *schema.Resource {
+	childAgentSchema := map[string]*schema.Schema{
+		"agent_name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the child agent",
+		},
+		"child_agent_uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Child agent unique identifier",
+		},
+		"if_case": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "If case",
+		},
+		"is_deleted": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Child agent is deleted",
+		},
+		"route_name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Route name",
+		},
+	}
+	return &schema.Resource{
+		Schema: childAgentSchema,
+	}
+}
+
+func AttachedFunctionsSchema() *schema.Resource {
+	attachedFunctionsSchema := map[string]*schema.Schema{
+		"description": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Description of the function",
+		},
+		"faas_name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "FaaS name of the function",
+		},
+		"faas_namespace": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "FaaS namespace of the function",
+		},
+		"is_deleted": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Function is deleted",
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the function",
+		},
+	}
+	return &schema.Resource{
+		Schema: attachedFunctionsSchema,
+	}
+}
+
+func AttachedGuardRailsSchema() *schema.Resource {
+	attachedGuardRailsSchema := map[string]*schema.Schema{
+		"is_deleted": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Whether the guardrail is deleted",
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the guardrail",
+		},
+		"priority": {
+			Type:        schema.TypeInt,
+			Computed:    true,
+			Description: "Guardrail priority",
+		},
+		"uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Guardrail UUID",
+		},
+	}
+	return &schema.Resource{
+		Schema: attachedGuardRailsSchema,
+	}
+}
+
+func AttachedKnowledgeBasesSchema() *schema.Resource {
+	attachedKnowledgeBasesSchema := map[string]*schema.Schema{
+		"is_deleted": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Whether the knowledge base is deleted",
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the knowledge base",
+		},
+		"uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Knowledge base UUID",
+		},
+	}
+	return &schema.Resource{
+		Schema: attachedKnowledgeBasesSchema,
+	}
 }
