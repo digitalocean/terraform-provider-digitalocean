@@ -49,6 +49,14 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					// Suppress diff if switching between redis and valkey
+					cachingEngines := map[string]bool{
+						redisDBEngineSlug:  true,
+						valkeyDBEngineSlug: true,
+					}
+					return cachingEngines[old] && cachingEngines[new]
+				},
 			},
 
 			"version": {
