@@ -3,6 +3,7 @@ package spaces
 import (
 	"context"
 	"log"
+	"net/http"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 
@@ -56,15 +57,15 @@ func resourceDigitalOceanSpacesKeyRead(ctx context.Context, d *schema.ResourceDa
 
 	var key *godo.SpacesKey
 
-	key, _, err := client.SpacesKeys.Get(ctx, d.Id())
+	key, resp, err := client.SpacesKeys.Get(ctx, d.Id())
 	if err != nil {
-		return diag.Errorf("Error reading Spaces key: %s", err)
-	}
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			log.Printf("[WARN] Key not found: %s", d.Id())
+			d.SetId("")
+			return nil
+		}
 
-	if key == nil {
-		log.Printf("[WARN] Key not found: %s", d.Id())
-		d.SetId("")
-		return nil
+		return diag.Errorf("Error reading Spaces key: %s", err)
 	}
 
 	d.Set("name", key.Name)
