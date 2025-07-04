@@ -336,7 +336,11 @@ func resourceDigitalOceanAgentRead(ctx context.Context, d *schema.ResourceData, 
 	if err := d.Set("chatbot", flattenChatbot(agent.ChatBot)); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("knowledge_bases", flattenKnowledgeBases(agent.KnowledgeBases)); err != nil {
+	flattenedKnowledgeBases, err := flattenDigitalOceanKnowledgeBase(agent.KnowledgeBases, nil, nil)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("knowledge_bases", flattenedKnowledgeBases); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("open_ai_api_key", flattenOpenAiApiKey(agent.OpenAiApiKey)); err != nil {
