@@ -140,9 +140,9 @@ resource "digitalocean_genai_knowledge_base" "example" {
 
   datasources {
     web_crawler_data_source {
-      base_url         = "https://docs.digitalocean.com/products/kubernetes/"
-      crawling_option  = "SCOPED"
-      embed_media      = true
+      base_url        = "https://docs.digitalocean.com/products/kubernetes/"
+      crawling_option = "SCOPED"
+      embed_media     = true
     }
   }
 }

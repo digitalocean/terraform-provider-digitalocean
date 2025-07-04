@@ -139,7 +139,7 @@ data "digitalocean_genai_knowledge_base" "existing" {
 }
 
 resource "digitalocean_genai_agent_knowledge_base_attachment" "example" {
-  agent_uuid = digitalocean_genai_agent.example.id
+  agent_uuid          = digitalocean_genai_agent.example.id
   knowledge_base_uuid = data.digitalocean_genai_knowledge_base.existing.id
 }
 ```

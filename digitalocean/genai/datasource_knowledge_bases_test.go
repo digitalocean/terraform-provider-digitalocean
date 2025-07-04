@@ -20,35 +20,35 @@ func TestAccDataSourceDigitalOceanKnowledgeBases_Basic(t *testing.T) {
 
 	resourceConfig := fmt.Sprintf(`
 resource "digitalocean_genai_knowledge_base" "test1" {
-  name                  = "%s"
-  project_id            = "%s"
-  region                = "%s"
-  embedding_model_uuid  = "%s"
-  tags                  = ["terraform-test", "datasource-test"]
-  is_public             = false
+  name                 = "%s"
+  project_id           = "%s"
+  region               = "%s"
+  embedding_model_uuid = "%s"
+  tags                 = ["terraform-test", "datasource-test"]
+  is_public            = false
 
   datasources {
     web_crawler_data_source {
-      base_url         = "https://docs.digitalocean.com/products/kubernetes/"
-      crawling_option  = "SCOPED"
-      embed_media      = true
+      base_url        = "https://docs.digitalocean.com/products/kubernetes/"
+      crawling_option = "SCOPED"
+      embed_media     = true
     }
   }
 }
 
 resource "digitalocean_genai_knowledge_base" "test2" {
-  name                  = "%s"
-  project_id            = "%s"
-  region                = "%s"
-  embedding_model_uuid  = "%s"
-  tags                  = ["terraform-test", "datasource-test"]
-  is_public             = true
+  name                 = "%s"
+  project_id           = "%s"
+  region               = "%s"
+  embedding_model_uuid = "%s"
+  tags                 = ["terraform-test", "datasource-test"]
+  is_public            = true
 
   datasources {
     web_crawler_data_source {
-      base_url         = "https://docs.digitalocean.com/products/app-platform/"
-      crawling_option  = "SCOPED"
-      embed_media      = false
+      base_url        = "https://docs.digitalocean.com/products/app-platform/"
+      crawling_option = "SCOPED"
+      embed_media     = false
     }
   }
 }
