@@ -6,7 +6,6 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func getDigitalOceanAgents(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
@@ -493,36 +492,6 @@ func flattenTemplate(template *godo.AgentTemplate) []interface{} {
 	return []interface{}{m}
 }
 
-func flattenLastIndexingJob(job *godo.LastIndexingJob) []interface{} {
-	if job == nil {
-		return []interface{}{}
-	}
-
-	var datasourceUuids []interface{}
-	if job.DataSourceUuids != nil {
-		datasourceUuids = make([]interface{}, len(job.DataSourceUuids))
-		for i, id := range job.DataSourceUuids {
-			datasourceUuids[i] = id
-		}
-	}
-
-	m := map[string]interface{}{
-		"completed_datasources": job.CompletedDatasources,
-		"created_at":            job.CreatedAt.UTC().String(),
-		"datasource_uuids":      datasourceUuids,
-		"finished_at":           job.FinishedAt.UTC().String(),
-		"knowledge_base_uuid":   job.KnowledgeBaseUuid,
-		"phase":                 job.Phase,
-		"started_at":            job.StartedAt.UTC().String(),
-		"tokens":                job.Tokens,
-		"total_datasources":     job.TotalDatasources,
-		"updated_at":            job.UpdatedAt.UTC().String(),
-		"uuid":                  job.Uuid,
-	}
-
-	return []interface{}{m}
-}
-
 func getDigitalOceanKnowledgeBases(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
@@ -735,19 +704,6 @@ func flattenKnowledgeBaseDataSources(dataSources []godo.KnowledgeBaseDataSource)
 	return flattenedDataSources
 }
 
-// flattenKnowledgeBaseTags flattens a slice of tags
-func flattenKnowledgeBaseTags(tags []string) *schema.Set {
-	if tags == nil {
-		return schema.NewSet(schema.HashString, []interface{}{})
-	}
-
-	tagInterfaces := make([]interface{}, len(tags))
-	for i, tag := range tags {
-		tagInterfaces[i] = tag
-	}
-	return schema.NewSet(schema.HashString, tagInterfaces)
-}
-
 // expandKnowledgeBaseDatasources converts Terraform schema data to slice of godo.KnowledgeBaseDatasource
 func expandKnowledgeBaseDatasources(rawDatasources []interface{}) []godo.KnowledgeBaseDataSource {
 	if len(rawDatasources) == 0 {
@@ -853,49 +809,4 @@ func expandWebCrawlerDataSource(rawWebCrawler []interface{}) *godo.WebCrawlerDat
 	}
 
 	return webCrawler
-}
-
-// flattenFileUploadDataSource converts godo.FileUploadDataSource to Terraform schema data
-func flattenFileUploadDataSource(fileUpload *godo.FileUploadDataSource) []interface{} {
-	if fileUpload == nil {
-		return []interface{}{}
-	}
-
-	fileUploadMap := map[string]interface{}{
-		"original_file_name": fileUpload.OriginalFileName,
-		"size":               fileUpload.Size,
-		"stored_object_key":  fileUpload.StoredObjectKey,
-	}
-
-	return []interface{}{fileUploadMap}
-}
-
-// flattenSpacesDataSource converts godo.SpacesDataSource to Terraform schema data
-func flattenSpacesDataSource(spaces *godo.SpacesDataSource) []interface{} {
-	if spaces == nil {
-		return []interface{}{}
-	}
-
-	spacesMap := map[string]interface{}{
-		"bucket_name": spaces.BucketName,
-		"item_path":   spaces.ItemPath,
-		"region":      spaces.Region,
-	}
-
-	return []interface{}{spacesMap}
-}
-
-// flattenWebCrawlerDataSource converts godo.WebCrawlerDataSource to Terraform schema data
-func flattenWebCrawlerDataSource(webCrawler *godo.WebCrawlerDataSource) []interface{} {
-	if webCrawler == nil {
-		return []interface{}{}
-	}
-
-	webCrawlerMap := map[string]interface{}{
-		"base_url":        webCrawler.BaseUrl,
-		"crawling_option": webCrawler.CrawlingOption,
-		"embed_media":     webCrawler.EmbedMedia,
-	}
-
-	return []interface{}{webCrawlerMap}
 }
