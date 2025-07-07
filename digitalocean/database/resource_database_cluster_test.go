@@ -922,6 +922,17 @@ resource "digitalocean_database_cluster" "foobar" {
   tags       = ["production"]
 }`
 
+const testAccCheckDigitalOceanDatabaseClusterValkey = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "valkey"
+  version    = "%s"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+}`
+
 const testAccCheckDigitalOceanDatabaseClusterKafka = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"

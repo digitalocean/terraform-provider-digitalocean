@@ -166,6 +166,7 @@ func Provider() *schema.Provider {
 			"digitalocean_database_replica":                      database.ResourceDigitalOceanDatabaseReplica(),
 			"digitalocean_database_user":                         database.ResourceDigitalOceanDatabaseUser(),
 			"digitalocean_database_redis_config":                 database.ResourceDigitalOceanDatabaseRedisConfig(),
+			"digitalocean_database_valkey_config":                database.ResourceDigitalOceanDatabaseValkeyConfig(),
 			"digitalocean_database_postgresql_config":            database.ResourceDigitalOceanDatabasePostgreSQLConfig(),
 			"digitalocean_database_mysql_config":                 database.ResourceDigitalOceanDatabaseMySQLConfig(),
 			"digitalocean_database_mongodb_config":               database.ResourceDigitalOceanDatabaseMongoDBConfig(),
