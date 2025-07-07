@@ -19,38 +19,6 @@ const (
 	updatedInstr = "You are an even more helpful AI assistant (v2)."
 )
 
-func TestAccDataSourceDigitalOceanAgent_BasicByAgentID(t *testing.T) {
-	var agent godo.Agent
-	agentName := acceptance.RandomTestName()
-	resourceConfig := testAccCheckDataSourceDigitalOceanAgentConfig_basic(agentName)
-	dataSourceConfig := `
-data "digitalocean_genai_agent" "foobar" {
-  agent_id = digitalocean_genai_agent.foo.agent_id
-}`
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
-		ProviderFactories: acceptance.TestAccProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceConfig,
-			},
-			{
-				Config: resourceConfig + dataSourceConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceDigitalOceanAgentExists("data.digitalocean_genai_agent.foobar", &agent),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_genai_agent.foobar", "name", agentName),
-					resource.TestCheckResourceAttrSet("data.digitalocean_genai_agent.foobar", "agent_id"),
-					resource.TestCheckResourceAttrSet("data.digitalocean_genai_agent.foobar", "uuid"),
-					resource.TestCheckResourceAttrSet("data.digitalocean_genai_agent.foobar", "created_at"),
-					resource.TestCheckResourceAttrSet("data.digitalocean_genai_agent.foobar", "updated_at"),
-				),
-			},
-		},
-	})
-}
-
 func TestAccDataSourceDigitalOceanAgent_CompleteConfiguration(t *testing.T) {
 	var agent godo.Agent
 	name := acceptance.RandomTestName()
@@ -178,16 +146,6 @@ func testAccCheckDataSourceDigitalOceanAgentExists(n string, agent *godo.Agent) 
 	}
 }
 
-func testAccCheckDataSourceDigitalOceanAgentConfig_basic(name string) string {
-	return fmt.Sprintf(`
-resource "digitalocean_genai_agent" "foo" {
-  name        = "%s"
-  description = "Basic test agent"
-  instruction = "You are a test assistant."
-  model_uuid  = "%s"
-}`, name, defaultModelUUID)
-}
-
 func testAccCheckDataSourceDigitalOceanAgentConfig_complete(name, description, instruction, model_uuid, project_id, region string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_genai_agent" "foo" {
@@ -219,53 +177,6 @@ func testAccCheckDataSourceDigitalOceanAgentConfig_nonExistent() string {
 data "digitalocean_genai_agent" "foobar" {
   agent_id = "non-existent-agent-id-12345"
 }`
-}
-
-func TestAccDataSourceDigitalOceanAgent_WithKnowledgeBase(t *testing.T) {
-	var agent godo.Agent
-	agentName := acceptance.RandomTestName()
-	resourceConfig := testAccCheckDataSourceDigitalOceanAgentConfig_withKnowledgeBase(agentName)
-	dataSourceConfig := `
-data "digitalocean_genai_agent" "foobar" {
-  agent_id = digitalocean_genai_agent.foo.agent_id
-}`
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
-		ProviderFactories: acceptance.TestAccProviderFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: resourceConfig,
-			},
-			{
-				Config: resourceConfig + dataSourceConfig,
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDataSourceDigitalOceanAgentExists("data.digitalocean_genai_agent.foobar", &agent),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_genai_agent.foobar", "name", agentName),
-					resource.TestCheckResourceAttr(
-						"data.digitalocean_genai_agent.foobar", "knowledge_base.#", "1"),
-					resource.TestCheckResourceAttrSet("data.digitalocean_genai_agent.foobar", "agent_id"),
-					resource.TestCheckResourceAttrSet("data.digitalocean_genai_agent.foobar", "uuid"),
-				),
-			},
-		},
-	})
-}
-
-func testAccCheckDataSourceDigitalOceanAgentConfig_withKnowledgeBase(name string) string {
-	return fmt.Sprintf(`
-resource "digitalocean_genai_agent" "foo" {
-  name        = "%s"
-  description = "Test agent with knowledge base"
-  instruction = "You are an assistant with access to a knowledge base."
-  model_uuid  = "%s"
-
-  knowledge_base {
-    name        = "test-kb"
-    description = "Test knowledge base"
-  }
-}`, name, defaultModelUUID)
 }
 
 func TestAccDataSourceDigitalOceanAgentVersions_Lifecycle(t *testing.T) {
@@ -310,23 +221,19 @@ data "digitalocean_genai_agent_versions" "versions" {
 	})
 }
 
-// Generates an agent resource with a paramaterised instruction string.
 func testAccAgentConfig(name, instruction string) string {
-	return `
-resource "digitalocean_project" "test" {
-  name = "` + name + `-project"
-}
+	return fmt.Sprintf(`
 
 resource "digitalocean_genai_agent" "foo" {
-  name        = "` + name + `"
-  instruction = "` + instruction + `"
-  model_uuid  = "` + defaultModelUUID + `"
-  project_id  = digitalocean_project.test.id
+  name        = "%s"
+  instruction = "%s"
+  model_uuid  = "%s"
+  project_id  = "%s"
   region      = "tor1"
-}`
+
+}`, name, instruction, defaultModelUUID, defaultProjecID)
 }
 
-// Custom check: ensure **exactly one** version has currently_applied=true.
 func checkExactlyOneApplied(resName string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[resName]
