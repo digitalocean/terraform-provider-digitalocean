@@ -992,7 +992,7 @@ func AgentSchemaRead() map[string]*schema.Schema {
 
 func KnowledgeBaseSchemaRead() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"added_to_agent_sat": {
+		"added_to_agent_at": {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "Timestamp when the Knowledge Base was added to the Agent",
@@ -1093,9 +1093,16 @@ func webCrawlerDataSourceSchema() *schema.Resource {
 				Description: "The base URL to crawl",
 			},
 			"crawling_option": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "The crawling option (e.g., SCOPED, DEEP)",
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "UNKNOWN",
+				Description: `Options for specifying how URLs found on pages should be handled. 
+- UNKNOWN: Default unknown value
+- SCOPED: Only include the base URL.
+- PATH: Crawl the base URL and linked pages within the URL path.
+- DOMAIN: Crawl the base URL and linked pages within the same domain.
+- SUBDOMAINS: Crawl the base URL and linked pages for any subdomain.`,
+				ValidateFunc: validation.StringInSlice([]string{"UNKNOWN", "SCOPED", "PATH", "DOMAIN", "SUBDOMAINS"}, false),
 			},
 			"embed_media": {
 				Type:        schema.TypeBool,

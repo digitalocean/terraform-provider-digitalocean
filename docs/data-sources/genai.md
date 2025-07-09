@@ -143,3 +143,27 @@ resource "digitalocean_genai_agent_knowledge_base_attachment" "example" {
   knowledge_base_uuid = data.digitalocean_genai_knowledge_base.existing.id
 }
 ```
+## Example Usage: Fetching a Knowledge Base
+
+```hcl
+data "digitalocean_genai_knowledge_base" "example" {
+  uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
+}
+
+output "kb_details" {
+  value = data.digitalocean_genai_knowledge_base.example
+}
+```
+
+## Example Usage: Fetching Knowledge Base Data Sources
+
+```hcl
+data "digitalocean_genai_knowledge_base_data_sources" "example" {
+  knowledge_base_uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
+}
+
+output "kb_datasources" {
+  value = data.digitalocean_genai_knowledge_base_data_sources.example.datasources
+}
+```
+
