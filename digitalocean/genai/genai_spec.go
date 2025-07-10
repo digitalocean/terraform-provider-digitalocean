@@ -1083,7 +1083,7 @@ func AgentVersionSchemaRead() map[string]*schema.Schema {
 		},
 		"retrieval_method": {
 			Type:     schema.TypeString,
-			Optional: true,
+			Computed: true,
 			Default:  "RETRIEVAL_METHOD_UNKNOWN",
 			Description: `Retrieval method used. 
 - RETRIEVAL_METHOD_UNKNOWN: The retrieval method is unknown
@@ -1091,7 +1091,6 @@ func AgentVersionSchemaRead() map[string]*schema.Schema {
 - RETRIEVAL_METHOD_STEP_BACK: The retrieval method is step back
 - RETRIEVAL_METHOD_SUB_QUERIES: The retrieval method is sub queries
 - RETRIEVAL_METHOD_NONE: The retrieval method is none.`,
-			ValidateFunc: validation.StringInSlice([]string{"RETRIEVAL_METHOD_UNKNOWN", "RETRIEVAL_METHOD_REWRITE", "RETRIEVAL_METHOD_STEP_BACK", "RETRIEVAL_METHOD_SUB_QUERIES", "RETRIEVAL_METHOD_NONE"}, false),
 		},
 		"tags": {
 			Type:        schema.TypeList,
