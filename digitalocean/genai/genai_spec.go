@@ -1018,7 +1018,7 @@ func AgentVersionSchemaRead() map[string]*schema.Schema {
 		"attached_knowledge_bases": {
 			Type:        schema.TypeList,
 			Computed:    true,
-			Description: "List of Knowledge Bases attached to this version",
+			Description: "List of Knowledge Bases agent versions",
 			Elem:        AttachedKnowledgeBasesSchema(),
 		},
 		"can_rollback": {
@@ -1066,6 +1066,11 @@ func AgentVersionSchemaRead() map[string]*schema.Schema {
 			Optional:    true,
 			Description: "Maximum tokens allowed for the Agent",
 		},
+		"model_name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of model associated to the agent version",
+		},
 		"name": {
 			Type:        schema.TypeString,
 			Computed:    true,
@@ -1077,9 +1082,16 @@ func AgentVersionSchemaRead() map[string]*schema.Schema {
 			Description: "Indicates if the should provide in-response citations",
 		},
 		"retrieval_method": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Retrieval method used",
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  "RETRIEVAL_METHOD_UNKNOWN",
+			Description: `Retrieval method used. 
+- RETRIEVAL_METHOD_UNKNOWN: The retrieval method is unknown
+- RETRIEVAL_METHOD_REWRITE: The retrieval method is rewrite
+- RETRIEVAL_METHOD_STEP_BACK: The retrieval method is step back
+- RETRIEVAL_METHOD_SUB_QUERIES: The retrieval method is sub queries
+- RETRIEVAL_METHOD_NONE: The retrieval method is none.`,
+			ValidateFunc: validation.StringInSlice([]string{"RETRIEVAL_METHOD_UNKNOWN", "RETRIEVAL_METHOD_REWRITE", "RETRIEVAL_METHOD_STEP_BACK", "RETRIEVAL_METHOD_SUB_QUERIES", "RETRIEVAL_METHOD_NONE"}, false),
 		},
 		"tags": {
 			Type:        schema.TypeList,
