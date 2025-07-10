@@ -167,9 +167,9 @@ resource "digitalocean_genai_agent" "foo" {
   description = "Test agent with tags"
   model_uuid  = "%s"
   project_id  = "%s"
-
-  tags = [digitalocean_tag.foo.id]
-}`, name, defaultProjecID, defaultModelUUID)
+  region      = "tor1"
+  tags        = ["%s"]
+}`, name, defaultProjecID, defaultModelUUID, tagName)
 }
 
 func testAccCheckDataSourceDigitalOceanAgentConfig_nonExistent() string {

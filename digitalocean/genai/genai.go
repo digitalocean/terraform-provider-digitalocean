@@ -70,9 +70,7 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 		return nil, fmt.Errorf("agent is nil")
 	}
 	result := map[string]interface{}{
-		"created_at":       agent.CreatedAt.UTC().String(),
 		"description":      agent.Description,
-		"updated_at":       agent.UpdatedAt.UTC().String(),
 		"if_case":          agent.IfCase,
 		"instruction":      agent.Instruction,
 		"k":                agent.K,
@@ -81,7 +79,6 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 		"project_id":       agent.ProjectId,
 		"region":           agent.Region,
 		"retrieval_method": agent.RetrievalMethod,
-		"route_created_at": agent.RouteCreatedAt.UTC().String(),
 		"route_created_by": agent.RouteCreatedBy,
 		"route_uuid":       agent.RouteUuid,
 		"route_name":       agent.RouteName,
@@ -91,6 +88,15 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 		"url":              agent.Url,
 		"user_id":          agent.UserId,
 		"agent_id":         agent.Uuid,
+	}
+	if agent.CreatedAt != nil {
+		result["created_at"] = agent.CreatedAt.UTC().String()
+	}
+	if agent.UpdatedAt != nil {
+		result["updated_at"] = agent.UpdatedAt.UTC().String()
+	}
+	if agent.RouteCreatedAt != nil {
+		result["route_created_at"] = agent.RouteCreatedAt.UTC().String()
 	}
 
 	if agent.Model != nil {
@@ -231,12 +237,16 @@ func flattenAnthropicApiKey(apiKey *godo.AnthropicApiKeyInfo) []interface{} {
 	}
 
 	m := map[string]interface{}{
-		"created_at": apiKey.CreatedAt.UTC().String(),
 		"created_by": apiKey.CreatedBy,
 		"deleted_at": apiKey.DeletedAt,
 		"name":       apiKey.Name,
-		"updated_at": apiKey.UpdatedAt.UTC().String(),
 		"uuid":       apiKey.Uuid,
+	}
+	if apiKey.CreatedAt != nil {
+		m["created_at"] = apiKey.CreatedAt.UTC().String()
+	}
+	if apiKey.UpdatedAt != nil {
+		m["updated_at"] = apiKey.UpdatedAt.UTC().String()
 	}
 
 	return []interface{}{m}
@@ -250,13 +260,16 @@ func flattenApiKeyInfos(apiKeyInfos []*godo.ApiKeyInfo) []interface{} {
 	result := make([]interface{}, 0, len(apiKeyInfos))
 	for _, info := range apiKeyInfos {
 		m := map[string]interface{}{
-			"created_at": info.CreatedAt.UTC().String(),
 			"created_by": info.CreatedBy,
 			"deleted_at": info.DeletedAt,
 			"name":       info.Name,
 			"secret_key": info.SecretKey,
 			"uuid":       info.Uuid,
 		}
+		if info.CreatedAt != nil {
+			m["created_at"] = info.CreatedAt.UTC().String()
+		}
+
 		result = append(result, m)
 	}
 
@@ -269,14 +282,19 @@ func flattenDeployment(deployment *godo.AgentDeployment) []interface{} {
 	}
 
 	m := map[string]interface{}{
-		"created_at": deployment.CreatedAt.UTC().String(),
 		"name":       deployment.Name,
 		"status":     deployment.Status,
-		"updated_at": deployment.UpdatedAt.UTC().String(),
 		"url":        deployment.Url,
 		"uuid":       deployment.Uuid,
 		"visibility": deployment.Visibility,
 	}
+	if deployment.CreatedAt != nil {
+		m["created_at"] = deployment.CreatedAt.UTC().String()
+	}
+	if deployment.UpdatedAt != nil {
+		m["updated_at"] = deployment.UpdatedAt.UTC().String()
+	}
+
 	return []interface{}{m}
 }
 
@@ -289,15 +307,19 @@ func flattenFunctions(functions []*godo.AgentFunction) []interface{} {
 	for _, fn := range functions {
 		m := map[string]interface{}{
 			"api_key":        fn.ApiKey,
-			"created_at":     fn.CreatedAt.UTC().String(),
 			"description":    fn.Description,
 			"guardrail_uuid": fn.GuardrailUuid,
 			"faasname":       fn.FaasName,
 			"faasnamespace":  fn.FaasNamespace,
 			"name":           fn.Name,
-			"updated_at":     fn.UpdatedAt.UTC().String(),
 			"url":            fn.Url,
 			"uuid":           fn.Uuid,
+		}
+		if fn.CreatedAt != nil {
+			m["created_at"] = fn.CreatedAt.UTC().String()
+		}
+		if fn.UpdatedAt != nil {
+			m["updated_at"] = fn.UpdatedAt.UTC().String()
 		}
 		result = append(result, m)
 	}
@@ -314,7 +336,6 @@ func flattenAgentGuardrail(guardrails []*godo.AgentGuardrail) []interface{} {
 	for _, guardrail := range guardrails {
 		m := map[string]interface{}{
 			"agent_uuid":       guardrail.AgentUuid,
-			"created_at":       guardrail.CreatedAt.UTC().String(),
 			"default_response": guardrail.DefaultResponse,
 			"description":      guardrail.Description,
 			"guardrail_uuid":   guardrail.GuardrailUuid,
@@ -323,8 +344,13 @@ func flattenAgentGuardrail(guardrails []*godo.AgentGuardrail) []interface{} {
 			"name":             guardrail.Name,
 			"priority":         guardrail.Priority,
 			"type":             guardrail.Type,
-			"updated_at":       guardrail.UpdatedAt.UTC().String(),
 			"uuid":             guardrail.Uuid,
+		}
+		if guardrail.CreatedAt != nil {
+			m["created_at"] = guardrail.CreatedAt.UTC().String()
+		}
+		if guardrail.UpdatedAt != nil {
+			m["updated_at"] = guardrail.UpdatedAt.UTC().String()
 		}
 		result = append(result, m)
 	}
@@ -360,14 +386,20 @@ func flattenKnowledgeBases(config []*godo.KnowledgeBase) []interface{} {
 		k := map[string]interface{}{
 			"uuid":                 kb.Uuid,
 			"name":                 kb.Name,
-			"created_at":           kb.CreatedAt.UTC().String(),
-			"updated_at":           kb.UpdatedAt.UTC().String(),
 			"tags":                 kb.Tags,
 			"region":               kb.Region,
 			"embedding_model_uuid": kb.EmbeddingModelUuid,
 			"project_id":           kb.ProjectId,
 			"database_id":          kb.DatabaseId,
-			"added_to_agent_at":    kb.AddedToAgentAt.UTC().String(),
+		}
+		if kb.CreatedAt != nil {
+			k["created_at"] = kb.CreatedAt.UTC().String()
+		}
+		if kb.UpdatedAt != nil {
+			k["updated_at"] = kb.UpdatedAt.UTC().String()
+		}
+		if kb.AddedToAgentAt != nil {
+			k["added_to_agent_at"] = kb.AddedToAgentAt.UTC().String()
 		}
 
 		if kb.LastIndexingJob != nil {
@@ -388,17 +420,22 @@ func flattenModel(models []*godo.Model) []interface{} {
 	result := make([]interface{}, 0, len(models))
 	for _, model := range models {
 		m := map[string]interface{}{
-			"created_at":        model.CreatedAt.UTC().String(),
 			"inference_name":    model.InferenceName,
 			"inference_version": model.InferenceVersion,
 			"is_foundational":   model.IsFoundational,
 			"name":              model.Name,
 			"parent_uuid":       model.ParentUuid,
 			"provider":          model.Provider,
-			"updated_at":        model.UpdatedAt.UTC().String(),
 			"upload_complete":   model.UploadComplete,
 			"url":               model.Url,
 			"usecases":          model.Usecases,
+		}
+
+		if model.CreatedAt != nil {
+			m["created_at"] = model.CreatedAt.UTC().String()
+		}
+		if model.UpdatedAt != nil {
+			m["updated_at"] = model.UpdatedAt.UTC().String()
 		}
 
 		if model.Version != nil {
@@ -466,13 +503,20 @@ func flattenOpenAiApiKey(apiKey *godo.OpenAiApiKey) []interface{} {
 	}
 
 	m := map[string]interface{}{
-		"created_at": apiKey.CreatedAt.UTC().String(),
 		"created_by": apiKey.CreatedBy,
-		"deleted_at": apiKey.DeletedAt.UTC().String(),
 		"name":       apiKey.Name,
-		"updated_at": apiKey.UpdatedAt.UTC().String(),
 		"uuid":       apiKey.Uuid,
 		"model":      flattenModel(apiKey.Models),
+	}
+
+	if apiKey.CreatedAt != nil {
+		m["created_at"] = apiKey.CreatedAt.UTC().String()
+	}
+	if apiKey.UpdatedAt != nil {
+		m["updated_at"] = apiKey.UpdatedAt.UTC().String()
+	}
+	if apiKey.DeletedAt != nil {
+		m["deleted_at"] = apiKey.DeletedAt.UTC().String()
 	}
 
 	return []interface{}{m}
@@ -484,7 +528,6 @@ func flattenTemplate(template *godo.AgentTemplate) []interface{} {
 	}
 
 	m := map[string]interface{}{
-		"created_at":  template.CreatedAt.UTC().String(),
 		"instruction": template.Instruction,
 		"description": template.Description,
 		"k":           template.K,
@@ -493,7 +536,13 @@ func flattenTemplate(template *godo.AgentTemplate) []interface{} {
 		"temperature": template.Temperature,
 		"top_p":       template.TopP,
 		"uuid":        template.Uuid,
-		"updated_at":  template.UpdatedAt.UTC().String(),
+	}
+	if template.CreatedAt != nil {
+		m["created_at"] = template.CreatedAt.UTC().String()
+	}
+
+	if template.UpdatedAt != nil {
+		m["updated_at"] = template.UpdatedAt.UTC().String()
 	}
 
 	return []interface{}{m}
@@ -514,16 +563,24 @@ func flattenLastIndexingJob(job *godo.LastIndexingJob) []interface{} {
 
 	m := map[string]interface{}{
 		"completed_datasources": job.CompletedDatasources,
-		"created_at":            job.CreatedAt.UTC().String(),
 		"datasource_uuids":      datasourceUuids,
-		"finished_at":           job.FinishedAt.UTC().String(),
 		"knowledge_base_uuid":   job.KnowledgeBaseUuid,
 		"phase":                 job.Phase,
-		"started_at":            job.StartedAt.UTC().String(),
 		"tokens":                job.Tokens,
 		"total_datasources":     job.TotalDatasources,
-		"updated_at":            job.UpdatedAt.UTC().String(),
 		"uuid":                  job.Uuid,
+	}
+	if job.CreatedAt != nil {
+		m["created_at"] = job.CreatedAt.UTC().String()
+	}
+	if job.FinishedAt != nil {
+		m["finished_at"] = job.FinishedAt.UTC().String()
+	}
+	if job.UpdatedAt != nil {
+		m["updated_at"] = job.UpdatedAt.UTC().String()
+	}
+	if job.StartedAt != nil {
+		m["started_at"] = job.StartedAt.UTC().String()
 	}
 
 	return []interface{}{m}
@@ -571,7 +628,7 @@ func getDigitalOceanAgentVersions(meta interface{}, extra map[string]interface{}
 func flattenDigitalOceanAgentVersion(rawDomain, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
 	agentVersions, ok := rawDomain.(*godo.AgentVersion)
 	if !ok {
-		return nil, fmt.Errorf("expected *godo.Agent, got %T", rawDomain)
+		return nil, fmt.Errorf("expected *godo.AgentVersion, got %T", rawDomain)
 	}
 
 	if agentVersions == nil {
@@ -580,7 +637,6 @@ func flattenDigitalOceanAgentVersion(rawDomain, meta interface{}, extra map[stri
 
 	result := map[string]interface{}{
 		"can_rollback":      agentVersions.CanRollback,
-		"created_at":        agentVersions.CreatedAt.UTC().String(),
 		"created_by_email":  agentVersions.CreatedByEmail,
 		"currently_applied": agentVersions.CurrentlyApplied,
 		"description":       agentVersions.Description,
@@ -596,6 +652,9 @@ func flattenDigitalOceanAgentVersion(rawDomain, meta interface{}, extra map[stri
 		"trigger_action":    agentVersions.TriggerAction,
 		"agent_uuid":        agentVersions.AgentUuid,
 		"version_hash":      agentVersions.VersionHash,
+	}
+	if agentVersions.CreatedAt != nil {
+		result["created_at"] = agentVersions.CreatedAt.UTC().String()
 	}
 
 	if agentVersions.AttachedChildAgents != nil {
@@ -680,7 +739,7 @@ func flattenAttachedGuardRails(guardrails []*godo.AgentGuardrail) []interface{} 
 			"is_deleted": guardrail.IsDeleted,
 			"name":       guardrail.Name,
 			"priority":   guardrail.Priority,
-			"uuid":       guardrail.Description,
+			"uuid":       guardrail.Uuid,
 		}
 		result = append(result, m)
 	}
