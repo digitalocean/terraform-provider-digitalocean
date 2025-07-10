@@ -167,3 +167,19 @@ output "kb_datasources" {
 }
 ```
 
+# digitalocean_genai_agent_versions
+
+Provides a data source that retrieves all versions of an existing DigitalOcean GenAI Agent. Use this data source to query an agent by its unique identifier.
+
+## Example Usage
+
+```hcl
+data "digitalocean_genai_agent_versions" "example" {
+  agent_id = "79292fb6-3627-11f0-bf8f-4e013e2ddde4"
+}
+
+output "agent_detail" {
+  value = data.digitalocean_genai_agent_versions.example
+}
+```
+

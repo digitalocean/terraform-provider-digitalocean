@@ -151,6 +151,7 @@ func Provider() *schema.Provider {
 			"digitalocean_partner_attachment_service_key":    partnernetworkconnect.DataSourceDigitalOceanPartnerAttachmentServiceKey(),
 			"digitalocean_genai_agent":                       genai.DataSourceDigitalOceanAgent(),
 			"digitalocean_genai_agents":                      genai.DataSourceDigitalOceanAgents(),
+			"digitalocean_genai_agent_versions":              genai.DataSourceDigitalOceanAgentVersions(),
 			"digitalocean_genai_knowledge_base":              genai.DataSourceDigitalOceanKnowledgeBase(),
 			"digitalocean_genai_knowledge_bases":             genai.DataSourceDigitalOceanKnowledgeBases(),
 			"digitalocean_genai_knowledge_base_data_sources": genai.DataSourceDigitalOceanKnowledgeBaseDatasources(),
