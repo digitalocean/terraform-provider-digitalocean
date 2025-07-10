@@ -159,7 +159,17 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 	}
 
 	if agent.KnowledgeBases != nil {
-		result["knowledge_bases"] = flattenKnowledgeBases(agent.KnowledgeBases)
+		var flattenedKBs []interface{}
+		for _, kb := range agent.KnowledgeBases {
+			if kb != nil {
+				flatKB, err := FlattenDigitalOceanKnowledgeBase(kb)
+				if err != nil {
+					return nil, err
+				}
+				flattenedKBs = append(flattenedKBs, flatKB)
+			}
+		}
+		result["knowledge_bases"] = flattenedKBs
 	} else {
 		result["knowledge_bases"] = []interface{}{}
 	}
@@ -375,43 +385,6 @@ func flattenChatbot(chatbot *godo.ChatBot) []interface{} {
 	return []interface{}{m}
 }
 
-func flattenKnowledgeBases(config []*godo.KnowledgeBase) []interface{} {
-	if config == nil {
-		return []interface{}{}
-	}
-
-	result := make([]interface{}, 0, len(config))
-
-	for _, kb := range config {
-		k := map[string]interface{}{
-			"uuid":                 kb.Uuid,
-			"name":                 kb.Name,
-			"tags":                 kb.Tags,
-			"region":               kb.Region,
-			"embedding_model_uuid": kb.EmbeddingModelUuid,
-			"project_id":           kb.ProjectId,
-			"database_id":          kb.DatabaseId,
-		}
-		if kb.CreatedAt != nil {
-			k["created_at"] = kb.CreatedAt.UTC().String()
-		}
-		if kb.UpdatedAt != nil {
-			k["updated_at"] = kb.UpdatedAt.UTC().String()
-		}
-		if kb.AddedToAgentAt != nil {
-			k["added_to_agent_at"] = kb.AddedToAgentAt.UTC().String()
-		}
-
-		if kb.LastIndexingJob != nil {
-			k["last_indexing_job"] = flattenLastIndexingJob(kb.LastIndexingJob)
-		}
-
-		result = append(result, k)
-	}
-
-	return result
-}
-
 func flattenModel(models []*godo.Model) []interface{} {
 	if models == nil {
 		return []interface{}{}
@@ -548,42 +521,323 @@ func flattenTemplate(template *godo.AgentTemplate) []interface{} {
 	return []interface{}{m}
 }
 
-func flattenLastIndexingJob(job *godo.LastIndexingJob) []interface{} {
-	if job == nil {
+func getDigitalOceanKnowledgeBases(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	opts := &godo.ListOptions{
+		Page:    1,
+		PerPage: 200,
+	}
+
+	var allKnowledgeBases []interface{}
+	for {
+		knowledge_bases, resp, err := client.GenAI.ListKnowledgeBases(context.Background(), opts)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving knowledge bases : %s", err)
+		}
+
+		for i := range knowledge_bases {
+			allKnowledgeBases = append(allKnowledgeBases, &knowledge_bases[i])
+		}
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving knowledge bases: %s", err)
+		}
+
+		opts.Page = page + 1
+	}
+	return allKnowledgeBases, nil
+}
+
+func flattenDigitalOceanKnowledgeBase(rawDomain, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
+	kb, ok := rawDomain.(*godo.KnowledgeBase)
+	if !ok {
+		return nil, fmt.Errorf("expected *godo.KnowledgeBase, got %T", rawDomain)
+	}
+
+	if kb == nil {
+		return nil, fmt.Errorf("knowledgeBase is nil")
+	}
+
+	return FlattenDigitalOceanKnowledgeBase(kb)
+}
+
+func FlattenDigitalOceanKnowledgeBase(kb *godo.KnowledgeBase) (map[string]interface{}, error) {
+	if kb == nil {
+		return nil, fmt.Errorf("knowledgeBase is nil")
+	}
+
+	flattenedKnowledgeBase := map[string]interface{}{
+		"uuid":                 kb.Uuid,
+		"name":                 kb.Name,
+		"project_id":           kb.ProjectId,
+		"region":               kb.Region,
+		"embedding_model_uuid": kb.EmbeddingModelUuid,
+		"database_id":          kb.DatabaseId,
+		"is_public":            kb.IsPublic,
+		"user_id":              kb.UserId,
+	}
+
+	if kb.CreatedAt != nil {
+		flattenedKnowledgeBase["created_at"] = kb.CreatedAt.UTC().String()
+	}
+	if kb.UpdatedAt != nil {
+		flattenedKnowledgeBase["updated_at"] = kb.UpdatedAt.UTC().String()
+	}
+	if kb.AddedToAgentAt != nil {
+		flattenedKnowledgeBase["added_to_agent_at"] = kb.AddedToAgentAt.UTC().String()
+	}
+
+	// Tags as []string
+	if kb.Tags != nil {
+		tags := make([]interface{}, len(kb.Tags))
+		for i, tag := range kb.Tags {
+			tags[i] = tag
+		}
+		flattenedKnowledgeBase["tags"] = tags
+	} else {
+		flattenedKnowledgeBase["tags"] = []interface{}{}
+	}
+
+	// Flatten last_indexing_job as a map (not []interface{})
+	if kb.LastIndexingJob != nil {
+		flatJob := flattenKnowledgeBaseLastIndexingJob(kb.LastIndexingJob)
+		flattenedKnowledgeBase["last_indexing_job"] = flatJob
+	} else {
+		flattenedKnowledgeBase["last_indexing_job"] = []interface{}{}
+	}
+
+	return flattenedKnowledgeBase, nil
+}
+
+func flattenKnowledgeBaseLastIndexingJob(lastJob *godo.LastIndexingJob) []interface{} {
+	if lastJob == nil {
 		return []interface{}{}
 	}
 
-	var datasourceUuids []interface{}
-	if job.DataSourceUuids != nil {
-		datasourceUuids = make([]interface{}, len(job.DataSourceUuids))
-		for i, id := range job.DataSourceUuids {
-			datasourceUuids[i] = id
+	jobMap := map[string]interface{}{
+		"uuid":                  lastJob.Uuid,
+		"knowledge_base_uuid":   lastJob.KnowledgeBaseUuid,
+		"phase":                 lastJob.Phase,
+		"completed_datasources": lastJob.CompletedDatasources,
+		"total_datasources":     lastJob.TotalDatasources,
+		"tokens":                lastJob.Tokens,
+	}
+
+	// Handle data source UUIDs
+	if lastJob.DataSourceUuids != nil {
+		dataSourceUuids := make([]interface{}, len(lastJob.DataSourceUuids))
+		for i, uuid := range lastJob.DataSourceUuids {
+			dataSourceUuids[i] = uuid
 		}
+		jobMap["data_source_uuids"] = dataSourceUuids
+	} else {
+		jobMap["data_source_uuids"] = []interface{}{}
 	}
 
-	m := map[string]interface{}{
-		"completed_datasources": job.CompletedDatasources,
-		"datasource_uuids":      datasourceUuids,
-		"knowledge_base_uuid":   job.KnowledgeBaseUuid,
-		"phase":                 job.Phase,
-		"tokens":                job.Tokens,
-		"total_datasources":     job.TotalDatasources,
-		"uuid":                  job.Uuid,
+	// Handle timestamps
+	if lastJob.CreatedAt != nil {
+		jobMap["created_at"] = lastJob.CreatedAt.UTC().String()
 	}
-	if job.CreatedAt != nil {
-		m["created_at"] = job.CreatedAt.UTC().String()
+	if lastJob.UpdatedAt != nil {
+		jobMap["updated_at"] = lastJob.UpdatedAt.UTC().String()
 	}
-	if job.FinishedAt != nil {
-		m["finished_at"] = job.FinishedAt.UTC().String()
+	if lastJob.StartedAt != nil {
+		jobMap["started_at"] = lastJob.StartedAt.UTC().String()
 	}
-	if job.UpdatedAt != nil {
-		m["updated_at"] = job.UpdatedAt.UTC().String()
-	}
-	if job.StartedAt != nil {
-		m["started_at"] = job.StartedAt.UTC().String()
+	if lastJob.FinishedAt != nil {
+		jobMap["finished_at"] = lastJob.FinishedAt.UTC().String()
 	}
 
-	return []interface{}{m}
+	return []interface{}{jobMap}
+}
+
+// flattenKnowledgeBaseFileUploadDataSource flattens a FileUploadDataSource struct
+func flattenKnowledgeBaseFileUploadDataSource(fileUpload *godo.FileUploadDataSource) []interface{} {
+	if fileUpload == nil {
+		return []interface{}{}
+	}
+
+	fileUploadMap := map[string]interface{}{
+		"original_file_name": fileUpload.OriginalFileName,
+		"size":               fileUpload.Size,
+		"stored_object_key":  fileUpload.StoredObjectKey,
+	}
+
+	return []interface{}{fileUploadMap}
+}
+
+// flattenKnowledgeBaseSpacesDataSource flattens a SpacesDataSource struct
+func flattenKnowledgeBaseSpacesDataSource(spaces *godo.SpacesDataSource) []interface{} {
+	if spaces == nil {
+		return []interface{}{}
+	}
+
+	spacesMap := map[string]interface{}{
+		"bucket_name": spaces.BucketName,
+		"item_path":   spaces.ItemPath,
+		"region":      spaces.Region,
+	}
+
+	return []interface{}{spacesMap}
+}
+
+// flattenKnowledgeBaseWebCrawlerDataSource flattens a WebCrawlerDataSource struct
+func flattenKnowledgeBaseWebCrawlerDataSource(webCrawler *godo.WebCrawlerDataSource) []interface{} {
+	if webCrawler == nil {
+		return []interface{}{}
+	}
+
+	webCrawlerMap := map[string]interface{}{
+		"base_url":        webCrawler.BaseUrl,
+		"crawling_option": webCrawler.CrawlingOption,
+		"embed_media":     webCrawler.EmbedMedia,
+	}
+
+	return []interface{}{webCrawlerMap}
+}
+
+// flattenKnowledgeBaseDataSources flattens a slice of KnowledgeBaseDataSource structs
+func flattenKnowledgeBaseDataSources(dataSources []godo.KnowledgeBaseDataSource) []interface{} {
+	if len(dataSources) == 0 {
+		return []interface{}{}
+	}
+
+	flattenedDataSources := make([]interface{}, len(dataSources))
+	for i, ds := range dataSources {
+		dsMap := map[string]interface{}{
+			"uuid": ds.Uuid,
+		}
+
+		// Handle timestamps for data source
+		if ds.CreatedAt != nil {
+			dsMap["created_at"] = ds.CreatedAt.UTC().String()
+		}
+		if ds.UpdatedAt != nil {
+			dsMap["updated_at"] = ds.UpdatedAt.UTC().String()
+		}
+
+		// Handle nested data sources using the separate flatten functions
+		dsMap["file_upload_data_source"] = flattenKnowledgeBaseFileUploadDataSource(ds.FileUploadDataSource)
+		dsMap["spaces_data_source"] = flattenKnowledgeBaseSpacesDataSource(ds.SpacesDataSource)
+		dsMap["web_crawler_data_source"] = flattenKnowledgeBaseWebCrawlerDataSource(ds.WebCrawlerDataSource)
+		dsMap["last_indexing_job"] = flattenKnowledgeBaseLastIndexingJob(ds.LastIndexingJob)
+
+		flattenedDataSources[i] = dsMap
+	}
+
+	return flattenedDataSources
+}
+
+// expandKnowledgeBaseDatasources converts Terraform schema data to slice of godo.KnowledgeBaseDatasource
+func expandKnowledgeBaseDatasources(rawDatasources []interface{}) []godo.KnowledgeBaseDataSource {
+	if len(rawDatasources) == 0 {
+		return nil
+	}
+
+	var datasources []godo.KnowledgeBaseDataSource
+
+	for _, rawDS := range rawDatasources {
+		if rawDS == nil {
+			continue
+		}
+
+		dsMap := rawDS.(map[string]interface{})
+		ds := godo.KnowledgeBaseDataSource{}
+
+		// Process nested datasources - only one should be set
+		if fileUploadRaw, ok := dsMap["file_upload_data_source"].([]interface{}); ok && len(fileUploadRaw) > 0 {
+			ds.FileUploadDataSource = expandFileUploadDataSource(fileUploadRaw)
+		}
+
+		if spacesRaw, ok := dsMap["spaces_data_source"].([]interface{}); ok && len(spacesRaw) > 0 {
+			ds.SpacesDataSource = expandSpacesDataSource(spacesRaw)
+		}
+
+		if webCrawlerRaw, ok := dsMap["web_crawler_data_source"].([]interface{}); ok && len(webCrawlerRaw) > 0 {
+			ds.WebCrawlerDataSource = expandWebCrawlerDataSource(webCrawlerRaw)
+		}
+
+		datasources = append(datasources, ds)
+	}
+
+	return datasources
+}
+
+// expandFileUploadDataSource converts Terraform schema data to godo.FileUploadDataSource
+func expandFileUploadDataSource(rawFileUpload []interface{}) *godo.FileUploadDataSource {
+	if len(rawFileUpload) == 0 || rawFileUpload[0] == nil {
+		return nil
+	}
+
+	fileUploadMap := rawFileUpload[0].(map[string]interface{})
+	fileUpload := &godo.FileUploadDataSource{}
+
+	if originalFileName, ok := fileUploadMap["original_file_name"].(string); ok {
+		fileUpload.OriginalFileName = originalFileName
+	}
+
+	if size, ok := fileUploadMap["size"].(string); ok {
+		fileUpload.Size = size
+	}
+
+	if storedObjectKey, ok := fileUploadMap["stored_object_key"].(string); ok {
+		fileUpload.StoredObjectKey = storedObjectKey
+	}
+
+	return fileUpload
+}
+
+// expandSpacesDataSource converts Terraform schema data to godo.SpacesDataSource
+func expandSpacesDataSource(rawSpaces []interface{}) *godo.SpacesDataSource {
+	if len(rawSpaces) == 0 || rawSpaces[0] == nil {
+		return nil
+	}
+
+	spacesMap := rawSpaces[0].(map[string]interface{})
+	spaces := &godo.SpacesDataSource{}
+
+	if bucketName, ok := spacesMap["bucket_name"].(string); ok {
+		spaces.BucketName = bucketName
+	}
+
+	if itemPath, ok := spacesMap["item_path"].(string); ok {
+		spaces.ItemPath = itemPath
+	}
+
+	if region, ok := spacesMap["region"].(string); ok {
+		spaces.Region = region
+	}
+
+	return spaces
+}
+
+// expandWebCrawlerDataSource converts Terraform schema data to godo.WebCrawlerDataSource
+func expandWebCrawlerDataSource(rawWebCrawler []interface{}) *godo.WebCrawlerDataSource {
+	if len(rawWebCrawler) == 0 || rawWebCrawler[0] == nil {
+		return nil
+	}
+
+	webCrawlerMap := rawWebCrawler[0].(map[string]interface{})
+	webCrawler := &godo.WebCrawlerDataSource{}
+
+	if baseUrl, ok := webCrawlerMap["base_url"].(string); ok {
+		webCrawler.BaseUrl = baseUrl
+	}
+
+	if crawlingOption, ok := webCrawlerMap["crawling_option"].(string); ok {
+		webCrawler.CrawlingOption = crawlingOption
+	}
+
+	if embedMedia, ok := webCrawlerMap["embed_media"].(bool); ok {
+		webCrawler.EmbedMedia = embedMedia
+	}
+
+	return webCrawler
 }
 
 func getDigitalOceanAgentVersions(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
