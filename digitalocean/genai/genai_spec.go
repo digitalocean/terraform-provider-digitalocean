@@ -1084,7 +1084,6 @@ func AgentVersionSchemaRead() map[string]*schema.Schema {
 		"retrieval_method": {
 			Type:     schema.TypeString,
 			Computed: true,
-			Default:  "RETRIEVAL_METHOD_UNKNOWN",
 			Description: `Retrieval method used. 
 - RETRIEVAL_METHOD_UNKNOWN: The retrieval method is unknown
 - RETRIEVAL_METHOD_REWRITE: The retrieval method is rewrite
