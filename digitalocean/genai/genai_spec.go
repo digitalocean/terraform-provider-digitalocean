@@ -1094,7 +1094,7 @@ func AgentVersionSchemaRead() map[string]*schema.Schema {
 		},
 		"tags": {
 			Type:        schema.TypeList,
-			Optional:    true,
+			Computed:    true,
 			Description: "List of Tags",
 			Elem:        &schema.Schema{Type: schema.TypeString},
 		},
