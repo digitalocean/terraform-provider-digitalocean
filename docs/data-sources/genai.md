@@ -76,3 +76,94 @@ For example, to reference the agent's name:
 
 This data source is useful for integrating agent details into your workflow or for performing validations against current configurations.
 
+
+# digitalocean_genai_knowledge_base
+
+Provides a data source that retrieves details about an existing DigitalOcean GenAI Knowledge Base. Use this data source to query a knowledge base by its unique identifier (UUID).
+
+## Example Usage
+
+```hcl
+data "digitalocean_genai_knowledge_base" "example" {
+  uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
+}
+
+output "kb_details" {
+  value = data.digitalocean_genai_knowledge_base.example
+}
+```
+
+## Argument Reference
+
+The following argument is supported:
+
+- **uuid** (Required) – The unique identifier of the knowledge base to retrieve.
+
+## Attributes Reference
+
+All fields below are exported and may be referenced:
+
+- **id** - The unique identifier of the knowledge base (same as uuid).
+- **name** - The name assigned to the knowledge base.
+- **project_id** - The unique identifier of the project to which the knowledge base belongs.
+- **region** - The region where the knowledge base is deployed.
+- **vpc_uuid** - The unique identifier of the VPC to which the knowledge base belongs (if applicable).
+- **created_at** - The timestamp when the knowledge base was created (in RFC3339 format).
+- **updated_at** - The timestamp when the knowledge base was last updated (in RFC3339 format).
+- **added_to_agent_at** - The timestamp when the knowledge base was added to an agent (if applicable).
+- **database_id** - The unique identifier of the DigitalOcean OpenSearch database used by this knowledge base.
+- **embedding_model_uuid** - The unique identifier of the embedding model used by the knowledge base.
+- **is_public** - Indicates whether the knowledge base is public or private.
+- **tags** - A list of tags associated with the knowledge base.
+- **datasources** - A list of data sources configured for the knowledge base, each containing:
+  - **web_crawler_data_source** - Details of web crawler data sources:
+    - **base_url** - The base URL for the web crawler to index.
+    - **crawling_option** - The crawling option (e.g., "SCOPED").
+    - **embed_media** - Whether to embed media content.
+  - **spaces_data_source** - Details of Spaces data sources:
+    - **bucket_name** - The name of the Spaces bucket.
+    - **item_path** - The path to items within the bucket.
+    - **region** - The region of the Spaces bucket.
+  - **file_upload_data_source** - Details of file upload data sources.
+- **last_indexing_job** - Information about the last indexing job for the knowledge base
+
+## Usage Notes
+
+This data source can be used to dynamically fetch the details of an existing knowledge base into your Terraform configuration. You may reference exported attributes in other resources or outputs.
+
+For example, to create an agent with an existing knowledge base:
+
+```hcl
+data "digitalocean_genai_knowledge_base" "existing" {
+  uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
+}
+
+resource "digitalocean_genai_agent_knowledge_base_attachment" "example" {
+  agent_uuid          = digitalocean_genai_agent.example.id
+  knowledge_base_uuid = data.digitalocean_genai_knowledge_base.existing.id
+}
+```
+## Example Usage: Fetching a Knowledge Base
+
+```hcl
+data "digitalocean_genai_knowledge_base" "example" {
+  uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
+}
+
+output "kb_details" {
+  value = data.digitalocean_genai_knowledge_base.example
+}
+```
+
+## Example Usage: Fetching Knowledge Base Data Sources
+
+```hcl
+data "digitalocean_genai_knowledge_base_data_sources" "example" {
+  knowledge_base_uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
+}
+
+output "kb_datasources" {
+  value = data.digitalocean_genai_knowledge_base_data_sources.example.datasources
+}
+```
+
