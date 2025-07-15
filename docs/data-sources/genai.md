@@ -183,3 +183,87 @@ output "agent_detail" {
 }
 ```
 
+# digitalocean_genai_openai_api_keys
+
+Provides a data source that lists all OpenAI API keys in your DigitalOcean account.
+
+### Example Usage
+
+```hcl
+data "digitalocean_genai_openai_api_keys" "all" {}
+
+output "all_openai_api_keys" {
+  value = data.digitalocean_genai_openai_api_keys.all.openai_api_keys
+}
+```
+
+### Attributes Reference
+
+- **openai_api_keys** – List of OpenAI API keys.
+
+---
+
+### digitalocean_genai_openai_api_key
+
+Provides a data source that retrieves a single OpenAI API key by UUID.
+
+### Example Usage
+
+```hcl
+data "digitalocean_genai_openai_api_key" "by_id" {
+  uuid = "your-openai-api-key-uuid"
+}
+
+output "openai_api_key_info" {
+  value = data.digitalocean_genai_openai_api_key.by_id
+}
+```
+
+### Argument Reference
+
+- **uuid** (Required) – The UUID of the OpenAI API key.
+
+### Attributes Reference
+
+- **id** - The unique identifier of the OpenAI API key (same as uuid).
+- **uuid** - The UUID of the OpenAI API key.
+- **name** - The name of the API key.
+- **created_at** - The timestamp when the API key was created.
+- **updated_at** - The timestamp when the API key was last updated.
+- **deleted_at** - The timestamp when the API key was deleted (if applicable).
+- **created_by** - The user who created the API key.
+- **models** - The list of models associated with the API key.
+
+---
+
+### digitalocean_genai_agents_by_openai_api_key
+
+Provides a data source that lists all agents associated with a specific OpenAI API key.
+
+### Example Usage
+
+```hcl
+data "digitalocean_genai_agents_by_openai_api_key" "by_key" {
+  uuid = "your-openai-api-key-uuid"
+}
+
+output "agents_by_openai_key" {
+  value = data.digitalocean_genai_agents_by_openai_api_key.by_key.agents
+}
+```
+
+### Argument Reference
+
+- **uuid** (Required) – The UUID of the OpenAI API key.
+
+### Attributes Reference
+
+- **agents** – List of agents associated with the OpenAI API key.
+
+---
+
+## Usage Notes
+
+These data sources can be used to dynamically fetch details of existing GenAI resources into your Terraform configuration. You may reference exported attributes in other resources or outputs.
+
+

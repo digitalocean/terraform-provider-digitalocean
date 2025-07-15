@@ -210,3 +210,101 @@ terraform import digitalocean_genai_knowledge_base.example a1b2c3d4-5678-90ab-cd
 - Changes to **datasources**, **embedding_model_uuid**, **spaces_data_source**, **web_crawler_data_source**, **agent_uuid** and **vpc_uuid** will force recreation of the knowledge base.
 - To add additional data sources after creation, use the `digitalocean_genai_knowledge_base_data_source` resource.
 - To attach a knowledge base to an agent, use the `digitalocean_genai_agent_knowledge_base_attachment` resource.
+
+# digitalocean_genai_openai_api_key
+
+Provides a resource to manage a DigitalOcean GenAI OpenAI API Key. With this resource you can create, update, and delete OpenAI API keys, as well as reference them in other GenAI resources (such as agents).
+
+## Example Usage
+
+```hcl
+resource "digitalocean_genai_openai_api_key" "example" {
+  api_key = "sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  name    = "Production Key"
+}
+
+data "digitalocean_genai_openai_api_keys" "all" {}
+
+output "all_openai_api_keys" {
+  value = data.digitalocean_genai_openai_api_keys.all.openai_api_keys
+}
+
+data "digitalocean_genai_openai_api_key" "by_id" {
+  uuid = digitalocean_genai_openai_api_key.example.uuid
+}
+
+output "openai_api_key_info" {
+  value = data.digitalocean_genai_openai_api_key.by_id
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+- **api_key** (Required) - The OpenAI API key string.
+- **name** (Required) - The name assigned to the API key.
+
+## Attributes Reference
+
+After creation, the following attributes are exported:
+
+- **id** - The unique identifier of the OpenAI API key (same as `uuid`).
+- **uuid** - The UUID of the OpenAI API key.
+- **name** - The name of the API key.
+- **created_at** - The timestamp when the API key was created.
+- **updated_at** - The timestamp when the API key was last updated.
+- **deleted_at** - The timestamp when the API key was deleted (if applicable).
+- **created_by** - The user who created the API key.
+- **models** - The list of models associated with the API key.
+
+### List All OpenAI API Keys
+
+```hcl
+data "digitalocean_genai_openai_api_keys" "all" {}
+
+output "all_openai_api_keys" {
+  value = data.digitalocean_genai_openai_api_keys.all.openai_api_keys
+}
+```
+
+### Get OpenAI API Key by UUID
+
+```hcl
+data "digitalocean_genai_openai_api_key" "by_id" {
+  uuid = "your-openai-api-key-uuid"
+}
+
+output "openai_api_key_info" {
+  value = data.digitalocean_genai_openai_api_key.by_id
+}
+```
+
+### List Agents by OpenAI API Key
+
+```hcl
+data "digitalocean_genai_agents_by_openai_api_key" "by_key" {
+  uuid = digitalocean_genai_openai_api_key.example.uuid
+}
+
+output "agents_by_openai_key" {
+  value = data.digitalocean_genai_agents_by_openai_api_key.by_key.agents
+}
+```
+
+## Update Behavior
+
+When the **name** attribute is changed, the provider invokes the update API endpoint to adjust the OpenAI API key's configuration.
+
+## Import
+
+A DigitalOcean GenAI OpenAI API Key can be imported using its UUID. For example:
+
+```sh
+terraform import digitalocean_genai_openai_api_key.example a1b2c3d4-5678-90ab-cdef-1234567890ab
+```
+
+## Usage Notes
+
+- The OpenAI API key resource can be referenced by agents and other GenAI resources.
+- Deleting the API key resource in Terraform will remove it from your DigitalOcean account.
