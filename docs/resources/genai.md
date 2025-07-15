@@ -112,7 +112,7 @@ When the **visibility**, **description**, **instruction**, **k**, **max_tokens**
 
 # digitalocean_genai_function
 We can pick up the agent id from the agent terraform resource and input, output schema have json values as currently there is no defined schema  available. 
-Checkout the following API docs - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GenAI-Platform-(Public-Preview)/operation/genai_attach_agent_function
+Checkout the following API docs - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GradientAI-Platform/operation/genai_attach_agent_function
 
 ```hcl
 
@@ -187,7 +187,7 @@ After creation, the following attributes are exported:
 - **input_schema** - The input schema associated with the function.
 - **output_schema** - The output schema associated with the function.
 
-**input_schema** and **output_schema** have a json input please check out this docs for more clarity - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GenAI-Platform-(Public-Preview)/operation/genai_attach_agent_function
+**input_schema** and **output_schema** have a json input please check out this docs for more clarity - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GradientAI-Platform/operation/genai_attach_agent_function
 
 ## Import
 
