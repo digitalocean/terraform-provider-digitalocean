@@ -112,7 +112,7 @@ func LastIndexingJobSchema() *schema.Resource {
 			Computed:    true,
 			Description: "Created At timestamp for the last indexing job",
 		},
-		"datasource_uuids": {
+		"data_source_uuids": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "Datasource UUIDs for the last indexing job",
@@ -125,8 +125,8 @@ func LastIndexingJobSchema() *schema.Resource {
 		},
 		"knowledge_base_uuid": {
 			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "UUID	of the Knowledge Base for the last indexing job",
+			Computed:    true,
+			Description: "UUID  of the Knowledge Base for the last indexing job",
 		},
 		"phase": {
 			Type:        schema.TypeString,
@@ -156,7 +156,7 @@ func LastIndexingJobSchema() *schema.Resource {
 		"uuid": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "UUID	of the last indexing job",
+			Description: "UUID  of the last indexing job",
 		},
 	}
 	return &schema.Resource{
@@ -705,34 +705,36 @@ func KnowledgeBaseSchema() *schema.Resource {
 			Computed:    true,
 			Description: "Created At timestamp for the Knowledge Base",
 		},
-		"updated_at": {
-			Type:        schema.TypeString,
-			Computed:    true,
-			Description: "Updated At timestamp for the Knowledge Base",
-		},
 		"database_id": {
 			Type:        schema.TypeString,
-			Computed:    true,
+			Optional:    true,
 			Description: "Database ID of the Knowledge Base",
 		},
 		"embedding_model_uuid": {
 			Type:        schema.TypeString,
-			Computed:    true,
+			Optional:    true,
 			Description: "Embedding model UUID for the Knowledge Base",
 		},
 		"is_public": {
 			Type:        schema.TypeBool,
-			Computed:    true,
+			Optional:    true,
 			Description: "Indicates if the Knowledge Base is public",
+		},
+		"last_indexing_job": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Last indexing job for the Knowledge Base",
+			MaxItems:    1,
+			Elem:        LastIndexingJobSchema(),
 		},
 		"name": {
 			Type:        schema.TypeString,
-			Computed:    true,
+			Optional:    true,
 			Description: "Name of the Knowledge Base",
 		},
 		"project_id": {
 			Type:        schema.TypeString,
-			Computed:    true,
+			Optional:    true,
 			Description: "Project ID of the Knowledge Base",
 		},
 		"region": {
@@ -740,27 +742,21 @@ func KnowledgeBaseSchema() *schema.Resource {
 			Optional:    true,
 			Description: "Region of the Knowledge Base",
 		},
-		"user_id": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "User ID of the Knowledge Base",
-		},
-		"uuid": {
-			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "UUID of the Knowledge Base",
-		},
 		"tags": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Description: "List of tags",
 			Elem:        &schema.Schema{Type: schema.TypeString},
 		},
-		"last_indexing_job": {
-			Type:        schema.TypeList,
+		"updated_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Timestamp when the Knowledge Base was updated",
+		},
+		"user_id": {
+			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "Last indexing job for the Knowledge Base",
-			Elem:        LastIndexingJobSchema(),
+			Description: "User ID of the Knowledge Base",
 		},
 	}
 	return &schema.Resource{
@@ -853,7 +849,7 @@ func AgentSchemaRead() map[string]*schema.Schema {
 		"parent_agents": {
 			Type:        schema.TypeList,
 			Computed:    true,
-			Description: "List of child agents",
+			Description: "List of parent agents",
 			Elem:        AgentSchema(),
 		},
 		"child_agents": {
@@ -992,4 +988,443 @@ func AgentSchemaRead() map[string]*schema.Schema {
 		},
 	}
 
+}
+
+func AgentVersionSchemaRead() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"agent_uuid": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "ID of the Agent to retrieve versions for",
+		},
+		"attached_child_agents": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "List of child agents attached to this version",
+			Elem:        AttachedChildAgentSchema(),
+		},
+		"attached_functions": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "List of functions attached to this version",
+			Elem:        AttachedFunctionsSchema(),
+		},
+		"attached_guardrails": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "List of guardrails attached to this version",
+			Elem:        AttachedGuardRailsSchema(),
+		},
+		"attached_knowledge_bases": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "List of Knowledge Bases agent versions",
+			Elem:        AttachedKnowledgeBasesSchema(),
+		},
+		"can_rollback": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Indicates if the version can be rolled back",
+		},
+		"created_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Timestamp when the Agent Version was created",
+		},
+		"created_by_email": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Email of the user who created this version",
+		},
+		"currently_applied": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Indicates if this version is currently applied configuration",
+		},
+		"description": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Description of the Agent Version",
+		},
+		"id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Id of the Agent Version",
+		},
+		"instruction": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Instruction for the Agent Version",
+		},
+		"k": {
+			Type:        schema.TypeInt,
+			Computed:    true,
+			Description: "K value for the Agent Version",
+		},
+		"max_tokens": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: "Maximum tokens allowed for the Agent",
+		},
+		"model_name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of model associated to the agent version",
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the Agent",
+		},
+		"provide_citations": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Indicates if the should provide in-response citations",
+		},
+		"retrieval_method": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Description: `Retrieval method used. 
+- RETRIEVAL_METHOD_UNKNOWN: The retrieval method is unknown
+- RETRIEVAL_METHOD_REWRITE: The retrieval method is rewrite
+- RETRIEVAL_METHOD_STEP_BACK: The retrieval method is step back
+- RETRIEVAL_METHOD_SUB_QUERIES: The retrieval method is sub queries
+- RETRIEVAL_METHOD_NONE: The retrieval method is none.`,
+		},
+		"tags": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "List of Tags",
+			Elem:        &schema.Schema{Type: schema.TypeString},
+		},
+		"temperature": {
+			Type:        schema.TypeFloat,
+			Computed:    true,
+			Description: "Temperature setting for the Agent Version",
+		},
+		"top_p": {
+			Type:        schema.TypeFloat,
+			Computed:    true,
+			Description: "Top P sampling parameter for the Agent Version",
+		},
+		"trigger_action": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Trigger action for the Agent Version",
+		},
+		"version_hash": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Hash of the Agent Version",
+		},
+	}
+}
+
+func AttachedChildAgentSchema() *schema.Resource {
+	childAgentSchema := map[string]*schema.Schema{
+		"agent_name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the child agent",
+		},
+		"child_agent_uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Child agent unique identifier",
+		},
+		"if_case": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "If case",
+		},
+		"is_deleted": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Child agent is deleted",
+		},
+		"route_name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Route name",
+		},
+	}
+	return &schema.Resource{
+		Schema: childAgentSchema,
+	}
+}
+
+func AttachedFunctionsSchema() *schema.Resource {
+	attachedFunctionsSchema := map[string]*schema.Schema{
+		"description": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Description of the function",
+		},
+		"faas_name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "FaaS name of the function",
+		},
+		"faas_namespace": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "FaaS namespace of the function",
+		},
+		"is_deleted": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Function is deleted",
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the function",
+		},
+	}
+	return &schema.Resource{
+		Schema: attachedFunctionsSchema,
+	}
+}
+
+func AttachedGuardRailsSchema() *schema.Resource {
+	attachedGuardRailsSchema := map[string]*schema.Schema{
+		"is_deleted": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Whether the guardrail is deleted",
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the guardrail",
+		},
+		"priority": {
+			Type:        schema.TypeInt,
+			Computed:    true,
+			Description: "Guardrail priority",
+		},
+		"uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Guardrail UUID",
+		},
+	}
+	return &schema.Resource{
+		Schema: attachedGuardRailsSchema,
+	}
+}
+
+func AttachedKnowledgeBasesSchema() *schema.Resource {
+	attachedKnowledgeBasesSchema := map[string]*schema.Schema{
+		"is_deleted": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Whether the knowledge base is deleted",
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the knowledge base",
+		},
+		"uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Knowledge base UUID",
+		},
+	}
+	return &schema.Resource{
+		Schema: attachedKnowledgeBasesSchema,
+	}
+}
+
+func KnowledgeBaseSchemaRead() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"added_to_agent_at": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Timestamp when the Knowledge Base was added to the Agent",
+		},
+		"created_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Created At timestamp for the Knowledge Base",
+		},
+		"database_id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Database ID of the Knowledge Base",
+		},
+		"embedding_model_uuid": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Embedding model UUID for the Knowledge Base",
+		},
+		"is_public": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Description: "Indicates if the Knowledge Base is public",
+		},
+		"last_indexing_job": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Last indexing job for the Knowledge Base",
+			Elem:        LastIndexingJobSchema(),
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Name of the Knowledge Base",
+		},
+		"project_id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Project ID of the Knowledge Base",
+		},
+		"region": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Region of the Knowledge Base",
+		},
+		"tags": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "List of tags",
+			Elem:        &schema.Schema{Type: schema.TypeString},
+		},
+		"updated_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Timestamp when the Knowledge Base was updated",
+		},
+		"user_id": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "User ID of the Knowledge Base",
+		},
+		"uuid": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "UUID of the Knowledge Base",
+		},
+	}
+}
+
+func spacesDataSourceSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"bucket_name": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The name of the Spaces bucket",
+			},
+			"item_path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The path to the item in the bucket",
+			},
+			"region": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The region of the Spaces bucket",
+			},
+		},
+	}
+}
+
+func webCrawlerDataSourceSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"base_url": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The base URL to crawl",
+			},
+			"crawling_option": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "UNKNOWN",
+				Description: `Options for specifying how URLs found on pages should be handled. 
+- UNKNOWN: Default unknown value
+- SCOPED: Only include the base URL.
+- PATH: Crawl the base URL and linked pages within the URL path.
+- DOMAIN: Crawl the base URL and linked pages within the same domain.
+- SUBDOMAINS: Crawl the base URL and linked pages for any subdomain.`,
+				ValidateFunc: validation.StringInSlice([]string{"UNKNOWN", "SCOPED", "PATH", "DOMAIN", "SUBDOMAINS"}, false),
+			},
+			"embed_media": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Whether to embed media content",
+			},
+		},
+	}
+}
+
+func fileUploadDataSourceSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"original_file_name": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The original name of the uploaded file",
+			},
+			"size_in_bytes": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The size of the file in bytes",
+			},
+			"stored_object_key": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The stored object key for the file",
+			},
+		},
+	}
+}
+
+func knowledgeBaseDatasourcesSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"created_at": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Created At timestamp for the Knowledge Base",
+			},
+
+			"file_upload_data_source": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "File upload data source configuration",
+				Elem:        fileUploadDataSourceSchema(),
+			},
+			"last_indexing_job": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Last indexing job for the data source",
+				Elem:        LastIndexingJobSchema(),
+			},
+			"spaces_data_source": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Spaces data source configuration",
+				Elem:        spacesDataSourceSchema(),
+			},
+			"web_crawler_data_source": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Description: "Web crawler data source configuration",
+				Elem:        webCrawlerDataSourceSchema(),
+			},
+			"updated_at": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Timestamp when the Knowledge Base was updated",
+			},
+			"uuid": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "UUID of the Knowledge Base",
+			},
+		},
+	}
 }

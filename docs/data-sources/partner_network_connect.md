@@ -53,3 +53,6 @@ The following arguments are supported and are mutually exclusive:
     * `auth_key` - The authentication key for the BGP session.
 * `state` - The state of the Partner Attachment.
 * `created_at` - The date and time of when the Partner Attachment was created.
+* `redundancy_zone` - The redundancy zone of the Partner Attachment.
+* `parent_uuid` - The UUID of the parent Partner Attachment, if applicable.
+* `children` - The UUIDs of Partner Attachment children, if applicable.
