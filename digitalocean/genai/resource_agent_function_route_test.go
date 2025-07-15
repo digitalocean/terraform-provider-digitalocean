@@ -123,16 +123,18 @@ func testAccCheckDigitalOceanAgentFunctionRouteConfig_basic(function_name string
 			}
 		]
 	}`
-	return fmt.Sprintf(`resource "digitalocean_genai_function" "check" {
-		agent_id       = "%s"
-		description    = "%s"
-		faas_name      = "%s"
-		faas_namespace = "%s"
-		function_name  = "%s"
-		input_schema   = <<EOF
-		%s
-		EOF
-	}`, agentId, description, faasName, faasNamespace, functionName, inputSchema)
+	return fmt.Sprintf(`
+resource "digitalocean_genai_function" "check" {
+  agent_id       = "%s"
+  description    = "%s"
+  faas_name      = "%s"
+  faas_namespace = "%s"
+  function_name  = "%s"
+  input_schema   = <<EOF
+%s
+	EOF
+}
+`, agentId, description, faasName, faasNamespace, functionName, inputSchema)
 }
 
 func testAccCheckDigitalOceanAgentFunctionRouteConfig_withOptionalFields(function_name string) string {
@@ -188,19 +190,21 @@ func testAccCheckDigitalOceanAgentFunctionRouteConfig_withOptionalFields(functio
 		]
 	}`
 
-	return fmt.Sprintf(`resource "digitalocean_genai_function" "check" {
-		agent_id       = "%s"
-		description    = "%s"
-		faas_name      = "%s"
-		faas_namespace = "%s"
-		function_name  = "%s"
-		input_schema   = <<EOF
-		%s
-		EOF
-		output_schema  = <<EOF
-		%s
-		EOF
-	}`, agentId, description, faasName, faasNamespace, functionName, inputSchema, outputSchema)
+	return fmt.Sprintf(`
+resource "digitalocean_genai_function" "check" {
+  agent_id       = "%s"
+  description    = "%s"
+  faas_name      = "%s"
+  faas_namespace = "%s"
+  function_name  = "%s"
+  input_schema   = <<EOF
+%s
+	EOF
+  output_schema  = <<EOF
+%s
+	EOF
+}
+`, agentId, description, faasName, faasNamespace, functionName, inputSchema, outputSchema)
 }
 
 func testAccCheckDigitalOceanAgentFunctionRouteConfig_updated(function_name string) string {
@@ -256,17 +260,20 @@ func testAccCheckDigitalOceanAgentFunctionRouteConfig_updated(function_name stri
 		]
 	}`
 
-	return fmt.Sprintf(`resource "digitalocean_genai_function" "check" {
-		agent_id       = "%s"
-		description    = "%s"
-		faas_name      = "%s"
-		faas_namespace = "%s"
-		function_name  = "%s"
-		input_schema   = <<EOF
-		%s
-		EOF
-		output_schema  = <<EOF
-		%s
-		EOF
-	}`, agentId, description, faasName, faasNamespace, functionName, inputSchema, outputSchema)
+	return fmt.Sprintf(`
+resource "digitalocean_genai_function" "check" {
+  agent_id       = "%s"
+  description    = "%s"
+  faas_name      = "%s"
+  faas_namespace = "%s"
+  function_name  = "%s"
+  input_schema   = <<EOF
+%s
+	EOF
+
+  output_schema = <<EOF
+%s
+	EOF
+}
+`, agentId, description, faasName, faasNamespace, functionName, inputSchema, outputSchema)
 }

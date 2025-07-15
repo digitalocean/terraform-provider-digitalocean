@@ -116,62 +116,62 @@ Checkout the following API docs - https://docs.digitalocean.com/reference/api/di
 
 ```hcl
 
-resource "digitalocean_genai_function" "check"{
-    agent_id = digitalocean_genai_agent.terraform-testing.id
-    description = "Adding a function route and this will also tell temperature"
-    faas_name = "default/testing"
-    faas_namespace = "fn-b90faf52-2b42-49c2-9792-75edfbb6f397"
-    function_name = "terraform-tf-complete"
-    input_schema = <<EOF
-    {
-        "parameters": [
-            {
-            "in": "query",
-            "name": "zipCode",
-            "schema": {
-                "type": "string"
-            },
-            "required": false,
-            "description": "The ZIP code for which to fetch the weather"
-            },
-            {
-            "name": "measurement",
-            "schema": {
-                "enum": [
-                "F",
-                "C"
-                ],
-                "type": "string"
-            },
-            "required": false,
-            "description": "The measurement unit for temperature (F or C)",
-            "in": "query"
-            }
-        ]
-    }
-    EOF
-    
-    output_schema = <<EOF
-    {
-        "properties": [
-            {
-            "name": "temperature",
-            "type": "number",
-            "description": "The temperature for the specified location"
-            },
-            {
-            "name": "measurement",
-            "type": "string",
-            "description": "The measurement unit used for the temperature (F or C)"
-            },
-            {
-            "name": "conditions",
-            "type": "string",
-            "description": "A description of the current weather conditions (Sunny, Cloudy, etc)"
-            }
-        ]
-    }
-    EOF
+resource "digitalocean_genai_function" "check" {
+  agent_id       = digitalocean_genai_agent.terraform-testing.id
+  description    = "Adding a function route and this will also tell temperature"
+  faas_name      = "default/testing"
+  faas_namespace = "fn-b90faf52-2b42-49c2-9792-75edfbb6f397"
+  function_name  = "terraform-tf-complete"
+  input_schema   = <<EOF
+  {
+      "parameters": [
+          {
+          "in": "query",
+          "name": "zipCode",
+          "schema": {
+              "type": "string"
+          },
+          "required": false,
+          "description": "The ZIP code for which to fetch the weather"
+          },
+          {
+          "name": "measurement",
+          "schema": {
+              "enum": [
+              "F",
+              "C"
+              ],
+              "type": "string"
+          },
+          "required": false,
+          "description": "The measurement unit for temperature (F or C)",
+          "in": "query"
+          }
+      ]
+  }
+  EOF
+
+  output_schema = <<EOF
+  {
+      "properties": [
+          {
+          "name": "temperature",
+          "type": "number",
+          "description": "The temperature for the specified location"
+          },
+          {
+          "name": "measurement",
+          "type": "string",
+          "description": "The measurement unit used for the temperature (F or C)"
+          },
+          {
+          "name": "conditions",
+          "type": "string",
+          "description": "A description of the current weather conditions (Sunny, Cloudy, etc)"
+          }
+      ]
+  }
+  EOF
 }
 ```
 
