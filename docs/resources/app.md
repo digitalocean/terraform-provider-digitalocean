@@ -170,7 +170,7 @@ resource "digitalocean_app" "mono-repo-example" {
     vpc {
       id = "c22d8f48-4bc4-49f5-8ca0-58e7164427ac"
       egress_ips {
-        ip: "10.0.0.1"
+        ip = "10.0.0.1"
       }
     }
   }
