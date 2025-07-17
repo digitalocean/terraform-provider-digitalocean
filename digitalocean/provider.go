@@ -213,6 +213,7 @@ func Provider() *schema.Provider {
 			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
 			"digitalocean_partner_attachment":                    partnernetworkconnect.ResourceDigitalOceanPartnerAttachment(),
 			"digitalocean_genai_agent":                           genai.ResourceDigitalOceanAgent(),
+			"digitalocean_genai_function":                        genai.ResourceDigitalOceanGenAIFunctionRoute(),
 			"digitalocean_genai_knowledge_base":                  genai.ResourceDigitalOceanKnowledgeBase(),
 			"digitalocean_genai_knowledge_base_data_source":      genai.ResourceDigitalOceanKnowledgeBaseDataSource(),
 			"digitalocean_genai_agent_knowledge_base_attachment": genai.ResourceDigitalOceanAgentKnowledgeBaseAttachment(),
