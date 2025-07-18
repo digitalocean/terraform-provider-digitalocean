@@ -61,7 +61,7 @@ func ResourceDigitalOceanOpenAIApiKey() *schema.Resource {
 				Type:        schema.TypeList,
 				Optional:    true,
 				Computed:    true,
-				Description: "Model of the Agent",
+				Description: "Models associated with the OpenAI API key",
 				Elem:        ModelSchema(),
 			},
 		},
@@ -145,10 +145,6 @@ func resourceDigitalOceanOpenAIApiKeyUpdate(ctx context.Context, d *schema.Resou
 	}
 	if d.HasChange("api_key") {
 		openAIRequest.ApiKey = d.Get("api_key").(string)
-		hasChanges = true
-	}
-	if d.HasChange("uuid") {
-		openAIRequest.ApiKeyUuid = d.Get("uuid").(string)
 		hasChanges = true
 	}
 	if !hasChanges {

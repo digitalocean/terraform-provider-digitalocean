@@ -203,7 +203,7 @@ output "all_openai_api_keys" {
 
 ---
 
-### digitalocean_genai_openai_api_key
+## digitalocean_genai_openai_api_key
 
 Provides a data source that retrieves a single OpenAI API key by UUID.
 
