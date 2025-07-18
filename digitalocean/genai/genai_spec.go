@@ -763,6 +763,46 @@ func KnowledgeBaseSchema() *schema.Resource {
 		Schema: knowledgeBaseSchema,
 	}
 }
+func OpenAIApiKeySchemaRead() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"uuid": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "OpenAI API Key Uuid",
+		},
+		"created_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Timestamp when the API Key was created",
+		},
+		"created_by": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Created By user ID for the API Key",
+		},
+		"deleted_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Deleted At timestamp for the API Key",
+		},
+		"models": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "List of models associated with the API Key",
+			Elem:        ModelSchema(),
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the API Key",
+		},
+		"updated_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Updated At timestamp for the API Key",
+		},
+	}
+}
 
 func AgentSchemaRead() map[string]*schema.Schema {
 	return map[string]*schema.Schema{

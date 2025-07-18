@@ -189,6 +189,93 @@ func FlattenDigitalOceanAgent(agent *godo.Agent) (map[string]interface{}, error)
 	return result, nil
 }
 
+func FlattenDigitalOceanAgents(agents []*godo.Agent) ([]interface{}, error) {
+	var result []interface{}
+	for _, agent := range agents {
+		if agent == nil {
+			continue
+		}
+		flat, err := FlattenDigitalOceanAgent(agent)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, flat)
+	}
+	return result, nil
+}
+
+func getDigitalOceanOpenAIApiKeys(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	opts := &godo.ListOptions{
+		Page:    1,
+		PerPage: 200,
+	}
+
+	var allOpenAIApiKeys []interface{}
+	for {
+		openAIApiKeys, resp, err := client.GenAI.ListOpenAIAPIKeys(context.Background(), opts)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving OpenAI API keys: %s", err)
+		}
+
+		for _, openAIApiKey := range openAIApiKeys {
+			if openAIApiKey != nil {
+				allOpenAIApiKeys = append(allOpenAIApiKeys, openAIApiKey)
+			}
+		}
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving OpenAI API keys: %s", err)
+		}
+		opts.Page = page + 1
+	}
+	return allOpenAIApiKeys, nil
+}
+
+func flattenOpenAIApiKeyInfo(rawDomain, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
+	openAIApiKey, ok := rawDomain.(*godo.OpenAiApiKey)
+	if !ok || openAIApiKey == nil {
+		// Return nil without error to safely skip nil or wrong type entries
+		return nil, nil
+	}
+	return FlattenOpenAIApiKeyInfo(openAIApiKey)
+}
+
+func FlattenOpenAIApiKeyInfo(openAIApiKey *godo.OpenAiApiKey) (map[string]interface{}, error) {
+	if openAIApiKey == nil {
+		return nil, nil
+	}
+
+	result := map[string]interface{}{
+		"created_by": openAIApiKey.CreatedBy,
+		"name":       openAIApiKey.Name,
+		"uuid":       openAIApiKey.Uuid,
+		"models":     flattenModel(openAIApiKey.Models),
+	}
+
+	if openAIApiKey.DeletedAt != nil {
+		result["deleted_at"] = openAIApiKey.DeletedAt.UTC().String()
+	} else {
+		result["deleted_at"] = ""
+	}
+	if openAIApiKey.CreatedAt != nil {
+		result["created_at"] = openAIApiKey.CreatedAt.UTC().String()
+	} else {
+		result["created_at"] = ""
+	}
+	if openAIApiKey.UpdatedAt != nil {
+		result["updated_at"] = openAIApiKey.UpdatedAt.UTC().String()
+	} else {
+		result["updated_at"] = ""
+	}
+
+	return result, nil
+}
+
 func extractDeploymentVisibility(old, new interface{}) (string, string) {
 	oldVisibility := ""
 	newVisibility := ""
