@@ -108,7 +108,7 @@ resource "digitalocean_genai_agent_route" "test" {
   parent_agent_uuid = "12345678-1234-1234-1234-123456789012"
   child_agent_uuid  = "12345678-1234-1234-1234-123456789012"
   route_name        = "weather_route"
-  if_case          = "use this to get weather information"
+  if_case           = "use this to get weather information"
 }
 `
 }
@@ -119,7 +119,7 @@ resource "digitalocean_genai_agent_route" "test" {
   parent_agent_uuid = "12345678-1234-1234-1234-123456789012"
   child_agent_uuid  = "12345678-1234-1234-1234-123456789012"
   route_name        = "updated_weather_route"
-  if_case          = "updated: use this to get weather information"
+  if_case           = "updated: use this to get weather information"
 }
 `
 }
