@@ -387,3 +387,56 @@ terraform import digitalocean_genai_openai_api_key.example a1b2c3d4-5678-90ab-cd
 
 - The OpenAI API key resource can be referenced by agents and other GenAI resources.
 - Deleting the API key resource in Terraform will remove it from your DigitalOcean account.
+
+# digitalocean_genai_agent_route
+
+Provides a resource to manage a DigitalOcean GenAI Agent Route. With this resource you can create, update, and delete agent routes to connect parent agents with child agents for routing functionality.
+
+## Example Usage
+
+```hcl
+
+resource "digitalocean_genai_agent_route" "weather_route" {
+  parent_agent_uuid = "b90e05b8-566f-11f0-bf8f-4e013e2ddde4"
+  child_agent_uuid  = "01efac06-500e-11f0-bf8f-4e013e2ddde4"
+  route_name        = "weather_route"
+  if_case           = "use this to get weather information"
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+- **parent_agent_uuid** (Required) - The UUID of the parent agent that will route requests.
+- **child_agent_uuid** (Required) - The UUID of the child agent that will handle routed requests.
+- **route_name** (Optional) - The name assigned to the route for identification.
+- **if_case** (Optional) - The condition or case description for when this route should be used.
+
+## Attributes Reference
+
+After creation, the following attributes are exported:
+
+- **uuid** - The unique identifier of the agent route.
+- **parent_agent_uuid** - The UUID of the parent agent.
+- **child_agent_uuid** - The UUID of the child agent.
+- **route_name** - The name of the route.
+- **if_case** - The condition for using this route.
+
+## Update Behavior
+
+When the **route_name** or **if_case** attributes are changed, the provider invokes the update API endpoint to adjust the route's configuration. The **parent_agent_uuid** and **child_agent_uuid** cannot be changed after creation.
+
+## Import
+
+A DigitalOcean GenAI Agent Route can be imported using its UUID. For example:
+
+```sh
+terraform import digitalocean_genai_agent_route.weather_route 12345678-1234-1234-1234-123456789012
+```
+
+## Usage Notes
+
+- Agent routes enable hierarchical agent structures where parent agents can route requests to appropriate child agents based on conditions.
+- Both parent and child agents must exist before creating a route between them.
+- Changes to **parent_agent_uuid** or **child_agent_uuid** will force recreation of the route.
