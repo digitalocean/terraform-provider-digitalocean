@@ -169,9 +169,6 @@ resource "digitalocean_app" "mono-repo-example" {
 
     vpc {
       id = "c22d8f48-4bc4-49f5-8ca0-58e7164427ac"
-      egress_ips {
-        ip = "10.0.0.1"
-      }
     }
   }
 }
@@ -294,8 +291,6 @@ The following arguments are supported:
       - `allow_credentials` - Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
 * `vpc`: Specification for VPC.
   - `id`: The ID of the VPC.
-  - `egress_ips`: A set of egress ips associated with the VPC.
-    - `ip`: The egress ip associated with the VPC.
 - `project_id` - The ID of the project that the app is assigned to.
 
 A spec can contain multiple components.

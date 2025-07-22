@@ -202,15 +202,6 @@ func appSpecVPCSchema() *schema.Resource {
 			"egress_ips": {
 				Type:     schema.TypeList,
 				Required: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"ip": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "The VPC egress ip associated with the droplet.",
-						},
-					},
-				},
 			},
 		},
 	}
