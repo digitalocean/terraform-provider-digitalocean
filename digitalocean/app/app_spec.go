@@ -197,7 +197,7 @@ func appSpecVPCSchema() *schema.Resource {
 			"id": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The ID of the VPC droplet.",
+				Description: "The ID of the VPC.",
 			},
 		},
 	}

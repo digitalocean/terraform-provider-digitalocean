@@ -1980,21 +1980,21 @@ resource "digitalocean_app" "foobar" {
 var testAccCheckDigitalOceanAppConfig_withVPC = `
 resource "digitalocean_app" "foobar" {
   spec {
-	name   = "%s"
-	region = "nyc"
+    name   = "%s"
+    region = "nyc"
 
-	service {
-	  name = "go-service"
-	  git {
-		repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
-		branch         = "main"
-	  }
-	  instance_size_slug = "basic-xxs"
-	  instance_count     = 1
-	}
-	  
-	vpc {
-	  id = "%s"
-	}
+    service {
+      name = "go-service"
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+      instance_size_slug = "basic-xxs"
+      instance_count     = 1
+    }
+
+    vpc {
+      id = "%s"
+    }
   }
 }`
