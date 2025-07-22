@@ -155,6 +155,9 @@ func Provider() *schema.Provider {
 			"digitalocean_genai_knowledge_base":              genai.DataSourceDigitalOceanKnowledgeBase(),
 			"digitalocean_genai_knowledge_bases":             genai.DataSourceDigitalOceanKnowledgeBases(),
 			"digitalocean_genai_knowledge_base_data_sources": genai.DataSourceDigitalOceanKnowledgeBaseDatasources(),
+			"digitalocean_genai_openai_api_key":              genai.DataSourceDigitalOceanOpenAIApiKey(),
+			"digitalocean_genai_openai_api_keys":             genai.DataSourceDigitalOceanOpenAIApiKeys(),
+			"digitalocean_genai_agents_by_openai_api_key":    genai.DataSourceDigitalOceanAgentsByOpenAIApiKey(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -213,9 +216,11 @@ func Provider() *schema.Provider {
 			"digitalocean_custom_image":                          image.ResourceDigitalOceanCustomImage(),
 			"digitalocean_partner_attachment":                    partnernetworkconnect.ResourceDigitalOceanPartnerAttachment(),
 			"digitalocean_genai_agent":                           genai.ResourceDigitalOceanAgent(),
+			"digitalocean_genai_function":                        genai.ResourceDigitalOceanGenAIFunctionRoute(),
 			"digitalocean_genai_knowledge_base":                  genai.ResourceDigitalOceanKnowledgeBase(),
 			"digitalocean_genai_knowledge_base_data_source":      genai.ResourceDigitalOceanKnowledgeBaseDataSource(),
 			"digitalocean_genai_agent_knowledge_base_attachment": genai.ResourceDigitalOceanAgentKnowledgeBaseAttachment(),
+			"digitalocean_genai_openai_api_key":                  genai.ResourceDigitalOceanOpenAIApiKey(),
 		},
 	}
 

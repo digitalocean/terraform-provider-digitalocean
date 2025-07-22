@@ -110,6 +110,85 @@ After creation, the following attributes are exported:
 
 When the **visibility**, **description**, **instruction**, **k**, **max_tokens**, **model_uuid**, **name**, **open_ai_key_uuid**, **project_id**, **retrieval_method**, **region**, **tags**, **temperature**, or **top_p** attribute is changed, the provider invokes the update API endpoint to adjust the agent's configuration.
 
+# digitalocean_genai_function
+We can pick up the agent id from the agent terraform resource and input, output schema have json values as currently there is no defined schema  available. 
+Checkout the following API docs - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GradientAI-Platform/operation/genai_attach_agent_function
+
+```hcl
+
+resource "digitalocean_genai_function" "check" {
+  agent_id       = digitalocean_genai_agent.terraform-testing.id
+  description    = "Adding a function route and this will also tell temperature"
+  faas_name      = "default/testing"
+  faas_namespace = "fn-b90faf52-2b42-49c2-9792-75edfbb6f397"
+  function_name  = "terraform-tf-complete"
+  input_schema   = <<EOF
+  {
+      "parameters": [
+          {
+          "in": "query",
+          "name": "zipCode",
+          "schema": {
+              "type": "string"
+          },
+          "required": false,
+          "description": "The ZIP code for which to fetch the weather"
+          },
+          {
+          "name": "measurement",
+          "schema": {
+              "enum": [
+              "F",
+              "C"
+              ],
+              "type": "string"
+          },
+          "required": false,
+          "description": "The measurement unit for temperature (F or C)",
+          "in": "query"
+          }
+      ]
+  }
+  EOF
+
+  output_schema = <<EOF
+  {
+      "properties": [
+          {
+          "name": "temperature",
+          "type": "number",
+          "description": "The temperature for the specified location"
+          },
+          {
+          "name": "measurement",
+          "type": "string",
+          "description": "The measurement unit used for the temperature (F or C)"
+          },
+          {
+          "name": "conditions",
+          "type": "string",
+          "description": "A description of the current weather conditions (Sunny, Cloudy, etc)"
+          }
+      ]
+  }
+  EOF
+}
+```
+
+## Attributes Reference
+
+After creation, the following attributes are exported:
+
+- **agent_id** - The unique identifier of the agent. 
+- **description** -  Description for the function
+- **faas_name** - The name of the function in the DigitalOcean functions platform
+- **faas_namespace** - The namespace of the function in the DigitalOcean functions platform
+- **function_name** - The name for function to be assigned inside agent, two functions inside agent cannot have same name
+- **input_schema** - The input schema associated with the function.
+- **output_schema** - The output schema associated with the function.
+
+**input_schema** and **output_schema** have a json input please check out this docs for more clarity - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GradientAI-Platform/operation/genai_attach_agent_function
+
 ## Import
 
 A DigitalOcean GenAI Agent can be imported using its UUID. For example:
@@ -210,3 +289,101 @@ terraform import digitalocean_genai_knowledge_base.example a1b2c3d4-5678-90ab-cd
 - Changes to **datasources**, **embedding_model_uuid**, **spaces_data_source**, **web_crawler_data_source**, **agent_uuid** and **vpc_uuid** will force recreation of the knowledge base.
 - To add additional data sources after creation, use the `digitalocean_genai_knowledge_base_data_source` resource.
 - To attach a knowledge base to an agent, use the `digitalocean_genai_agent_knowledge_base_attachment` resource.
+
+# digitalocean_genai_openai_api_key
+
+Provides a resource to manage a DigitalOcean GenAI OpenAI API Key. With this resource you can create, update, and delete OpenAI API keys, as well as reference them in other GenAI resources (such as agents).
+
+## Example Usage
+
+```hcl
+resource "digitalocean_genai_openai_api_key" "example" {
+  api_key = "sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  name    = "Production Key"
+}
+
+data "digitalocean_genai_openai_api_keys" "all" {}
+
+output "all_openai_api_keys" {
+  value = data.digitalocean_genai_openai_api_keys.all.openai_api_keys
+}
+
+data "digitalocean_genai_openai_api_key" "by_id" {
+  uuid = digitalocean_genai_openai_api_key.example.uuid
+}
+
+output "openai_api_key_info" {
+  value = data.digitalocean_genai_openai_api_key.by_id
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+- **api_key** (Required) - The OpenAI API key string.
+- **name** (Required) - The name assigned to the API key.
+
+## Attributes Reference
+
+After creation, the following attributes are exported:
+
+- **id** - The unique identifier of the OpenAI API key (same as `uuid`).
+- **uuid** - The UUID of the OpenAI API key.
+- **name** - The name of the API key.
+- **created_at** - The timestamp when the API key was created.
+- **updated_at** - The timestamp when the API key was last updated.
+- **deleted_at** - The timestamp when the API key was deleted (if applicable).
+- **created_by** - The user who created the API key.
+- **models** - The list of models associated with the API key.
+
+### List All OpenAI API Keys
+
+```hcl
+data "digitalocean_genai_openai_api_keys" "all" {}
+
+output "all_openai_api_keys" {
+  value = data.digitalocean_genai_openai_api_keys.all.openai_api_keys
+}
+```
+
+### Get OpenAI API Key by UUID
+
+```hcl
+data "digitalocean_genai_openai_api_key" "by_id" {
+  uuid = "your-openai-api-key-uuid"
+}
+
+output "openai_api_key_info" {
+  value = data.digitalocean_genai_openai_api_key.by_id
+}
+```
+
+### List Agents by OpenAI API Key
+
+```hcl
+data "digitalocean_genai_agents_by_openai_api_key" "by_key" {
+  uuid = digitalocean_genai_openai_api_key.example.uuid
+}
+
+output "agents_by_openai_key" {
+  value = data.digitalocean_genai_agents_by_openai_api_key.by_key.agents
+}
+```
+
+## Update Behavior
+
+When the **name** attribute is changed, the provider invokes the update API endpoint to adjust the OpenAI API key's configuration.
+
+## Import
+
+A DigitalOcean GenAI OpenAI API Key can be imported using its UUID. For example:
+
+```sh
+terraform import digitalocean_genai_openai_api_key.example a1b2c3d4-5678-90ab-cdef-1234567890ab
+```
+
+## Usage Notes
+
+- The OpenAI API key resource can be referenced by agents and other GenAI resources.
+- Deleting the API key resource in Terraform will remove it from your DigitalOcean account.
