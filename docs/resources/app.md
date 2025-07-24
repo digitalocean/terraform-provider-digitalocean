@@ -253,7 +253,7 @@ The following arguments are supported:
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `alert` - Describes an alert policy for the app.
-  - `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_CANCELLED`, `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DEPLOYMENT_STARTED`, `DOMAIN_FAILED`, or `DOMAIN_LIVE`.
+  - `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_CANCELLED`, `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DEPLOYMENT_STARTED`, `DOMAIN_FAILED`, `DOMAIN_LIVE`, `AUTOSCALE_FAILED`, or `AUTOSCALE_SUCCEEDED`.
   - `disabled` - Determines whether the alert is disabled (default: `false`).
   - `destinations` - Specification for alert destination.
     - `emails` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.

@@ -199,6 +199,8 @@ func appSpecAppLevelAlerts() *schema.Resource {
 					string(godo.AppAlertSpecRule_DeploymentCanceled),
 					string(godo.AppAlertSpecRule_DomainFailed),
 					string(godo.AppAlertSpecRule_DomainLive),
+					string(godo.AppAlertSpecRule_AutoscaleFailed),
+					string(godo.AppAlertSpecRule_AutoscaleSucceeded),
 				}, false),
 			},
 			"disabled": {
