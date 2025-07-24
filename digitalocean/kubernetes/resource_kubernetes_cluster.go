@@ -537,17 +537,20 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha", controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField) {
+	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha", "cluster_autoscaler_configuration", controlPlaneFirewallField, routingAgentField) {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
-			Name:                           d.Get("name").(string),
-			Tags:                           tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
-			AutoUpgrade:                    godo.PtrTo(d.Get("auto_upgrade").(bool)),
-			SurgeUpgrade:                   d.Get("surge_upgrade").(bool),
-			HA:                             godo.PtrTo(d.Get("ha").(bool)),
-			ControlPlaneFirewall:           expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
-			RoutingAgent:                   expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
-			ClusterAutoscalerConfiguration: expandCAConfigOptsForUpdate(d.Get("cluster_autoscaler_configuration").([]interface{})),
+			Name:                 d.Get("name").(string),
+			Tags:                 tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
+			AutoUpgrade:          godo.PtrTo(d.Get("auto_upgrade").(bool)),
+			SurgeUpgrade:         d.Get("surge_upgrade").(bool),
+			HA:                   godo.PtrTo(d.Get("ha").(bool)),
+			ControlPlaneFirewall: expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
+			RoutingAgent:         expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
+		}
+
+		if d.HasChange("cluster_autoscaler_configuration") {
+			opts.ClusterAutoscalerConfiguration = expandCAConfigOptsForUpdate(d.Get("cluster_autoscaler_configuration").([]interface{}))
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {
@@ -567,6 +570,10 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 
 			return diag.Errorf("Unable to update cluster: %s", err)
 		}
+	}
+
+	if d.HasChange("cluster_autoscaler_configuration") {
+
 	}
 
 	// Update the node pool if necessary
