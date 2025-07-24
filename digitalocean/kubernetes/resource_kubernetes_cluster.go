@@ -572,10 +572,6 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 		}
 	}
 
-	if d.HasChange("cluster_autoscaler_configuration") {
-
-	}
-
 	// Update the node pool if necessary
 	if d.HasChange("node_pool") {
 		old, new := d.GetChange("node_pool")
