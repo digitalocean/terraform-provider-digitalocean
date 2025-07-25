@@ -463,13 +463,7 @@ func expandCAConfigOpts(config []interface{}) *godo.KubernetesClusterAutoscalerC
 }
 
 func expandCAConfigOptsForUpdate(config []interface{}) *godo.KubernetesClusterAutoscalerConfiguration {
-	caConfig := &godo.KubernetesClusterAutoscalerConfiguration{
-		// in terraform, the updated resource should be the source of truth, so if a field is removed (set to null)
-		// we should remove it from the DO resource rather than skip updating this field
-		ScaleDownUtilizationThreshold: godo.PtrTo(0.0),
-		ScaleDownUnneededTime:         godo.PtrTo(""),
-		Expanders:                     []string{},
-	}
+	caConfig := &godo.KubernetesClusterAutoscalerConfiguration{}
 
 	if len(config) == 0 {
 		return caConfig
@@ -486,9 +480,12 @@ func expandCAConfigOptsForUpdate(config []interface{}) *godo.KubernetesClusterAu
 	}
 
 	if v, ok := configMap["expanders"]; ok {
-		for _, e := range v.([]interface{}) {
-			caConfig.Expanders = append(caConfig.Expanders, e.(string))
+		list := v.([]interface{})
+		expanders := make([]string, 0, len(list))
+		for _, e := range list {
+			expanders = append(expanders, e.(string))
 		}
+		caConfig.Expanders = expanders
 	}
 
 	return caConfig
