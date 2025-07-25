@@ -1165,6 +1165,29 @@ func TestAccDigitalOceanApp_termination(t *testing.T) {
 		},
 	})
 }
+func TestAccDigitalOceanApp_VPC(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+	vpcID := "c22d8f48-4bc4-49f5-8ca0-58e7164427ac"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withVPC, appName, vpcID),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.vpc.0.id", vpcID),
+				),
+			},
+		},
+	})
+}
 
 var testAccCheckDigitalOceanAppConfig_basic = `
 resource "digitalocean_app" "foobar" {
@@ -1950,6 +1973,28 @@ resource "digitalocean_app" "foobar" {
           }
         }
       }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_withVPC = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "nyc"
+
+    service {
+      name = "go-service"
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+      instance_size_slug = "basic-xxs"
+      instance_count     = 1
+    }
+
+    vpc {
+      id = "%s"
     }
   }
 }`
