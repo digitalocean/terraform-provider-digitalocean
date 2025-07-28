@@ -166,6 +166,10 @@ resource "digitalocean_app" "mono-repo-example" {
         }
       }
     }
+
+    vpc {
+      id = "c22d8f48-4bc4-49f5-8ca0-58e7164427ac"
+    }
   }
 }
 ```
@@ -285,7 +289,8 @@ The following arguments are supported:
       - `expose_headers` - The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
       - `allow_methods` - The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
       - `allow_credentials` - Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
-
+* `vpc`: Specification for VPC.
+  - `id`: The ID of the VPC.
 - `project_id` - The ID of the project that the app is assigned to.
 
 A spec can contain multiple components.

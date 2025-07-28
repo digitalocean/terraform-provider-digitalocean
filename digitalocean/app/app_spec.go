@@ -143,6 +143,11 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 				},
 			},
 		},
+		"vpc": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     appSpecVPCSchema(),
+		},
 	}
 
 	if isResource {
@@ -181,6 +186,18 @@ func appSpecDomainSchema() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "If the domain uses DigitalOcean DNS and you would like App Platform to automatically manage it for you, set this to the name of the domain on your account.",
+			},
+		},
+	}
+}
+
+func appSpecVPCSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The ID of the VPC.",
 			},
 		},
 	}
