@@ -336,7 +336,15 @@ func resourceDigitalOceanAgentRead(ctx context.Context, d *schema.ResourceData, 
 	if err := d.Set("chatbot", flattenChatbot(agent.ChatBot)); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("knowledge_bases", flattenKnowledgeBases(agent.KnowledgeBases)); err != nil {
+	var allFlattenedKnowledgeBases []interface{}
+	for _, kb := range agent.KnowledgeBases {
+		flattened, err := flattenDigitalOceanKnowledgeBase(&kb, nil, nil)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		allFlattenedKnowledgeBases = append(allFlattenedKnowledgeBases, flattened)
+	}
+	if err := d.Set("knowledge_bases", allFlattenedKnowledgeBases); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("open_ai_api_key", flattenOpenAiApiKey(agent.OpenAiApiKey)); err != nil {
@@ -345,7 +353,7 @@ func resourceDigitalOceanAgentRead(ctx context.Context, d *schema.ResourceData, 
 	if err := d.Set("template", flattenTemplate(agent.Template)); err != nil {
 		return diag.FromErr(err)
 	}
-	if err := d.Set("child_agents", flattenChildAgents(agent.ChildAgents)); err != nil {
+	if err := d.Set("child_agents", flattenRelatedAgents(agent.ChildAgents)); err != nil {
 		return diag.FromErr(err)
 	}
 
