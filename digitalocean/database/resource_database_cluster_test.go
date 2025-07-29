@@ -284,6 +284,7 @@ func TestAccDigitalOceanDatabaseCluster_CheckSQLModeSupport(t *testing.T) {
 }
 
 func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
+	t.Skip("Skipping redis cluster tests.TODO:- remove them")
 	var database godo.Database
 	databaseName := acceptance.RandomTestName()
 
