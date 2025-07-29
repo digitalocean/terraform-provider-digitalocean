@@ -35,16 +35,16 @@ func ResourceDigitalOceanDatabaseValkeyConfig() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Computed:    true,
-				Description: "The eviction policy used when Valkey reaches its maximum memory limit. Possible values: volatile-lru, allkeys-lru, volatile-lfu, allkeys-lfu, volatile-random, allkeys-random, volatile-ttl, noeviction.",
+				Description: "The eviction policy used when Valkey reaches its maximum memory limit. Possible values: volatile_lru, allkeys_lru, volatile_lfu, allkeys_lfu, volatile_random, allkeys_random, volatile_ttl, noeviction.",
 				ValidateFunc: validation.StringInSlice(
 					[]string{
-						"volatile-lru",
-						"allkeys-lru",
-						"volatile-lfu",
-						"allkeys-lfu",
-						"volatile-random",
-						"allkeys-random",
-						"volatile-ttl",
+						"volatile_lru",
+						"allkeys_lru",
+						"volatile_lfu",
+						"allkeys_lfu",
+						"volatile_random",
+						"allkeys_random",
+						"volatile_ttl",
 						"noeviction",
 					},
 					true,
@@ -187,7 +187,17 @@ func resourceDigitalOceanDatabaseValkeyConfigUpdate(ctx context.Context, d *sche
 }
 
 func updateValkeyConfig(ctx context.Context, d *schema.ResourceData, client *godo.Client) error {
+
 	clusterID := d.Get("cluster_id").(string)
+
+	// Check if the cluster is active before updating config
+	cluster, _, err := client.Databases.Get(ctx, clusterID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch cluster status: %w", err)
+	}
+	if cluster.Status != "online" {
+		return fmt.Errorf("cannot update config: cluster status is '%s' (must be 'online')", cluster.Status)
+	}
 
 	opts := &godo.ValkeyConfig{}
 
@@ -236,7 +246,7 @@ func updateValkeyConfig(ctx context.Context, d *schema.ResourceData, client *god
 	}
 
 	log.Printf("[DEBUG] Valkey configuration: %s", godo.Stringify(opts))
-	_, err := client.Databases.UpdateValkeyConfig(ctx, clusterID, opts)
+	_, err = client.Databases.UpdateValkeyConfig(ctx, clusterID, opts)
 	if err != nil {
 		return err
 	}

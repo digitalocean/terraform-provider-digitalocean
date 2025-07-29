@@ -18,7 +18,7 @@ func TestAccDigitalOceanDatabaseValkeyConfig_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseValkeyConfigConfigBasic, dbConfig, "noeviction", 3600, "KA"),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseValkeyConfigConfigBasic, dbConfig, 3600, "KA"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_valkey_config.foobar", "maxmemory_policy", "noeviction"),
@@ -33,10 +33,10 @@ func TestAccDigitalOceanDatabaseValkeyConfig_Basic(t *testing.T) {
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseValkeyConfigConfigBasic, dbConfig, "allkeys_lru", 0, "KEA"),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseValkeyConfigConfigBasic, dbConfig, 0, "KEA"),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_valkey_config.foobar", "maxmemory_policy", "allkeys_lru"),
+						"digitalocean_database_valkey_config.foobar", "maxmemory_policy", "noeviction"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_valkey_config.foobar", "timeout", "0"),
 					resource.TestCheckResourceAttr(
@@ -56,7 +56,7 @@ const testAccCheckDigitalOceanDatabaseValkeyConfigConfigBasic = `
 
 resource "digitalocean_database_valkey_config" "foobar" {
   cluster_id             = digitalocean_database_cluster.foobar.id
-  maxmemory_policy       = "%s"
+  maxmemory_policy       = "noeviction"
   timeout                = %d
   notify_keyspace_events = "%s"
 }`
