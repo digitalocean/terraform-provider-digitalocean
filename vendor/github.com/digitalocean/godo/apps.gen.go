@@ -100,6 +100,7 @@ type App struct {
 	ProjectID string `json:"project_id,omitempty"`
 	// The dedicated egress ip addresses associated with the app.
 	DedicatedIps []*AppDedicatedIp `json:"dedicated_ips,omitempty"`
+	VPC          *AppVPC           `json:"vpc,omitempty"`
 }
 
 // AppAlertSpec Configuration of an alert for the app or a individual component.
@@ -123,7 +124,7 @@ const (
 	AppAlertSpecOperator_LessThan            AppAlertSpecOperator = "LESS_THAN"
 )
 
-// AppAlertSpecRule  - CPU_UTILIZATION: Represents CPU for a given container instance. Only applicable at the component level.  - MEM_UTILIZATION: Represents RAM for a given container instance. Only applicable at the component level.  - RESTART_COUNT: Represents restart count for a given container instance. Only applicable at the component level.  - DEPLOYMENT_FAILED: Represents whether a deployment has failed. Only applicable at the app level.  - DEPLOYMENT_LIVE: Represents whether a deployment has succeeded. Only applicable at the app level.  - DEPLOYMENT_STARTED: Represents whether a deployment has started. Only applicable at the app level.  - DEPLOYMENT_CANCELED: Represents whether a deployment has been canceled. Only applicable at the app level.  - DOMAIN_FAILED: Represents whether a domain configuration has failed. Only applicable at the app level.  - DOMAIN_LIVE: Represents whether a domain configuration has succeeded. Only applicable at the app level.  - AUTOSCALE_FAILED: Represents whether autoscaling has failed. Only applicable at the app level.  - FUNCTIONS_ACTIVATION_COUNT: Represents an activation count for a given functions instance. Only applicable to functions components.  - FUNCTIONS_AVERAGE_DURATION_MS: Represents the average duration for function runtimes. Only applicable to functions components.  - FUNCTIONS_ERROR_RATE_PER_MINUTE: Represents an error rate per minute for a given functions instance. Only applicable to functions components.  - FUNCTIONS_AVERAGE_WAIT_TIME_MS: Represents the average wait time for functions. Only applicable to functions components.  - FUNCTIONS_ERROR_COUNT: Represents an error count for a given functions instance. Only applicable to functions components.  - FUNCTIONS_GB_RATE_PER_SECOND: Represents the rate of memory consumption (GB x seconds) for functions. Only applicable to functions components.
+// AppAlertSpecRule  - CPU_UTILIZATION: Represents CPU for a given container instance. Only applicable at the component level.  - MEM_UTILIZATION: Represents RAM for a given container instance. Only applicable at the component level.  - RESTART_COUNT: Represents restart count for a given container instance. Only applicable at the component level.  - DEPLOYMENT_FAILED: Represents whether a deployment has failed. Only applicable at the app level.  - DEPLOYMENT_LIVE: Represents whether a deployment has succeeded. Only applicable at the app level.  - DEPLOYMENT_STARTED: Represents whether a deployment has started. Only applicable at the app level.  - DEPLOYMENT_CANCELED: Represents whether a deployment has been canceled. Only applicable at the app level.  - DOMAIN_FAILED: Represents whether a domain configuration has failed. Only applicable at the app level.  - DOMAIN_LIVE: Represents whether a domain configuration has succeeded. Only applicable at the app level.  - AUTOSCALE_FAILED: Represents whether autoscaling has failed. Only applicable at the app level.  - AUTOSCALE_SUCCEEDED: Represents whether autoscaling has succeeded. Only applicable at the app level. - FUNCTIONS_ACTIVATION_COUNT: Represents an activation count for a given functions instance. Only applicable to functions components.  - FUNCTIONS_AVERAGE_DURATION_MS: Represents the average duration for function runtimes. Only applicable to functions components.  - FUNCTIONS_ERROR_RATE_PER_MINUTE: Represents an error rate per minute for a given functions instance. Only applicable to functions components.  - FUNCTIONS_AVERAGE_WAIT_TIME_MS: Represents the average wait time for functions. Only applicable to functions components.  - FUNCTIONS_ERROR_COUNT: Represents an error count for a given functions instance. Only applicable to functions components.  - FUNCTIONS_GB_RATE_PER_SECOND: Represents the rate of memory consumption (GB x seconds) for functions. Only applicable to functions components.
 type AppAlertSpecRule string
 
 // List of AppAlertSpecRule
@@ -139,6 +140,7 @@ const (
 	AppAlertSpecRule_DomainFailed                AppAlertSpecRule = "DOMAIN_FAILED"
 	AppAlertSpecRule_DomainLive                  AppAlertSpecRule = "DOMAIN_LIVE"
 	AppAlertSpecRule_AutoscaleFailed             AppAlertSpecRule = "AUTOSCALE_FAILED"
+	AppAlertSpecRule_AutoscaleSucceeded          AppAlertSpecRule = "AUTOSCALE_SUCCEEDED"
 	AppAlertSpecRule_FunctionsActivationCount    AppAlertSpecRule = "FUNCTIONS_ACTIVATION_COUNT"
 	AppAlertSpecRule_FunctionsAverageDurationMS  AppAlertSpecRule = "FUNCTIONS_AVERAGE_DURATION_MS"
 	AppAlertSpecRule_FunctionsErrorRatePerMinute AppAlertSpecRule = "FUNCTIONS_ERROR_RATE_PER_MINUTE"
@@ -303,6 +305,12 @@ type AppFunctionsSpec struct {
 	// A list of configured log forwarding destinations.
 	LogDestinations []*AppLogDestinationSpec `json:"log_destinations,omitempty"`
 	CORS            *AppCORSPolicy           `json:"cors,omitempty"`
+}
+
+// AppHealth struct for AppHealth
+type AppHealth struct {
+	Components          []*ComponentHealth          `json:"components,omitempty"`
+	FunctionsComponents []*FunctionsComponentHealth `json:"functions_components,omitempty"`
 }
 
 // AppIngressSpec Specification for app ingress configurations.
@@ -606,6 +614,7 @@ type AppSpec struct {
 	Egress      *AppEgressSpec      `json:"egress,omitempty"`
 	Features    []string            `json:"features,omitempty"`
 	Maintenance *AppMaintenanceSpec `json:"maintenance,omitempty"`
+	Vpc         *AppVpcSpec         `json:"vpc,omitempty"`
 	// Specification to disable edge (CDN) cache for all domains of the app. Note that this feature is in private preview.
 	DisableEdgeCache bool `json:"disable_edge_cache,omitempty"`
 	// Specification to disable email obfuscation.
@@ -654,6 +663,25 @@ type AppVariableDefinition struct {
 	Type  AppVariableType  `json:"type,omitempty"`
 }
 
+// AppVPC The VPC configuration for the app.
+type AppVPC struct {
+	// The ID of the VPC (derived from the app spec).
+	ID string `json:"id,omitempty"`
+	// The private IP addresses allocated for the app in the customer's VPC.
+	EgressIPs []*AppVPCEgressIP `json:"egress_ips,omitempty"`
+}
+
+// AppVPCEgressIP struct for AppVPCEgressIP
+type AppVPCEgressIP struct {
+	IP string `json:"ip,omitempty"`
+}
+
+// AppVpcSpec Configuration of VPC.
+type AppVpcSpec struct {
+	// The id of the target VPC, in UUID format.
+	ID string `json:"id,omitempty"`
+}
+
 // AppWorkerSpec struct for AppWorkerSpec
 type AppWorkerSpec struct {
 	// The name. Must be unique across all components within the same app.
@@ -694,6 +722,12 @@ type AppWorkerSpecTermination struct {
 	GracePeriodSeconds int32 `json:"grace_period_seconds,omitempty"`
 }
 
+// AutoscalerActionScaleChange struct for AutoscalerActionScaleChange
+type AutoscalerActionScaleChange struct {
+	From int64 `json:"from,omitempty"`
+	To   int64 `json:"to,omitempty"`
+}
+
 // BitbucketSourceSpec struct for BitbucketSourceSpec
 type BitbucketSourceSpec struct {
 	Repo         string `json:"repo,omitempty"`
@@ -721,7 +755,8 @@ type Buildpack struct {
 
 // DeploymentCauseDetailsAutoscalerAction struct for DeploymentCauseDetailsAutoscalerAction
 type DeploymentCauseDetailsAutoscalerAction struct {
-	Autoscaled bool `json:"autoscaled,omitempty"`
+	Autoscaled       bool                                   `json:"autoscaled,omitempty"`
+	ScaledComponents map[string]AutoscalerActionScaleChange `json:"scaled_components,omitempty"`
 }
 
 // DeploymentCauseDetailsDigitalOceanUser struct for DeploymentCauseDetailsDigitalOceanUser
@@ -759,6 +794,26 @@ type DeploymentCauseDetailsGitPush struct {
 	CommitSHA     string               `json:"commit_sha,omitempty"`
 	CommitMessage string               `json:"commit_message,omitempty"`
 }
+
+// ComponentHealth struct for ComponentHealth
+type ComponentHealth struct {
+	Name               string                `json:"name,omitempty"`
+	CPUUsagePercent    float64               `json:"cpu_usage_percent,omitempty"`
+	MemoryUsagePercent float64               `json:"memory_usage_percent,omitempty"`
+	ReplicasDesired    int64                 `json:"replicas_desired,omitempty"`
+	ReplicasReady      int64                 `json:"replicas_ready,omitempty"`
+	State              ComponentHealthStatus `json:"state,omitempty"`
+}
+
+// ComponentHealthStatus the model 'ComponentHealthStatus'
+type ComponentHealthStatus string
+
+// List of ComponentHealthStatus
+const (
+	COMPONENTHEALTHSTATUS_Unknown   ComponentHealthStatus = "UNKNOWN"
+	COMPONENTHEALTHSTATUS_Healthy   ComponentHealthStatus = "HEALTHY"
+	COMPONENTHEALTHSTATUS_Unhealthy ComponentHealthStatus = "UNHEALTHY"
+)
 
 // AppCORSPolicy struct for AppCORSPolicy
 type AppCORSPolicy struct {
@@ -1120,9 +1175,27 @@ type AppDomainValidation struct {
 	TXTValue string `json:"txt_value,omitempty"`
 }
 
+// FunctionsComponentHealth struct for FunctionsComponentHealth
+type FunctionsComponentHealth struct {
+	Name                            string                             `json:"name,omitempty"`
+	FunctionsComponentHealthMetrics []*FunctionsComponentHealthMetrics `json:"functions_component_health_metrics,omitempty"`
+}
+
+// FunctionsComponentHealthMetrics struct for FunctionsComponentHealthMetrics
+type FunctionsComponentHealthMetrics struct {
+	MetricLabel string  `json:"metric_label,omitempty"`
+	MetricValue float64 `json:"metric_value,omitempty"`
+	TimeWindow  string  `json:"time_window,omitempty"`
+}
+
 // GetAppDatabaseConnectionDetailsResponse struct for GetAppDatabaseConnectionDetailsResponse
 type GetAppDatabaseConnectionDetailsResponse struct {
 	ConnectionDetails []*GetDatabaseConnectionDetailsResponse `json:"connection_details,omitempty"`
+}
+
+// GetAppHealthResponse struct for GetAppHealthResponse
+type GetAppHealthResponse struct {
+	AppHealth *AppHealth `json:"app_health,omitempty"`
 }
 
 // GetAppInstancesResponse struct for GetAppInstancesResponse

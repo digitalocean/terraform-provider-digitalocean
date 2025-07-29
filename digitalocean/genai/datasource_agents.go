@@ -21,3 +21,22 @@ func DataSourceDigitalOceanAgents() *schema.Resource {
 
 	return datalist.NewResource(dataListConfig)
 }
+
+func DataSourceDigitalOceanAgentVersions() *schema.Resource {
+
+	dataListConfig := &datalist.ResourceConfig{
+		RecordSchema:        AgentVersionSchemaRead(),
+		ResultAttributeName: "agent_versions",
+		ExtraQuerySchema: map[string]*schema.Schema{
+			"agent_id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The ID of the agent to fetch versions for",
+			},
+		},
+		FlattenRecord: flattenDigitalOceanAgentVersion,
+		GetRecords:    getDigitalOceanAgentVersions,
+	}
+
+	return datalist.NewResource(dataListConfig)
+}

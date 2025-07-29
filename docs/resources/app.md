@@ -68,6 +68,16 @@ resource "digitalocean_app" "mono-repo-example" {
 
     alert {
       rule = "DEPLOYMENT_FAILED"
+
+      # Setup alert destination (optional)
+      # If left empty, email will be set to the team's default email
+      destinations {
+        emails = ["team.member1@org.com", "team.member2@org.com"]
+        slack_webhooks {
+          channel = "@user1"
+          url     = "https://hooks.slack.com/slack-url"
+        }
+      }
     }
 
     # Build a Go project in the api/ directory that listens on port 3000
@@ -91,6 +101,16 @@ resource "digitalocean_app" "mono-repo-example" {
         operator = "GREATER_THAN"
         window   = "TEN_MINUTES"
         rule     = "CPU_UTILIZATION"
+
+        # Setup alert destination (optional)
+        # If left empty, email will be set to the team's default email
+        destinations {
+          emails = ["team.member1@org.com", "team.member2@org.com"]
+          slack_webhooks {
+            channel = "@user1"
+            url     = "https://hooks.slack.com/slack-url"
+          }
+        }
       }
 
       log_destination {
@@ -145,6 +165,10 @@ resource "digitalocean_app" "mono-repo-example" {
           }
         }
       }
+    }
+
+    vpc {
+      id = "c22d8f48-4bc4-49f5-8ca0-58e7164427ac"
     }
   }
 }
@@ -233,8 +257,11 @@ The following arguments are supported:
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `alert` - Describes an alert policy for the app.
-  - `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_CANCELLED`, `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DEPLOYMENT_STARTED`, `DOMAIN_FAILED`, or `DOMAIN_LIVE`.
-  - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_CANCELLED`, `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DEPLOYMENT_STARTED`, `DOMAIN_FAILED`, `DOMAIN_LIVE`, `AUTOSCALE_FAILED`, or `AUTOSCALE_SUCCEEDED`.
+  - `disabled` - Determines whether the alert is disabled (default: `false`).
+  - `destinations` - Specification for alert destination.
+    - `emails` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack_webhooks` - Determines which slack channels or users receive alerts (optional).
 * `egress` - Specification for app egress configurations.
   - `type` - The app egress type: `AUTOASSIGN`, `DEDICATED_IP`
 * `ingress` - Specification for component routing, rewrites, and redirects.
@@ -262,7 +289,8 @@ The following arguments are supported:
       - `expose_headers` - The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
       - `allow_methods` - The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
       - `allow_credentials` - Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
-
+* `vpc`: Specification for VPC.
+  - `id`: The ID of the VPC.
 - `project_id` - The ID of the project that the app is assigned to.
 
 A spec can contain multiple components.
@@ -325,7 +353,10 @@ A `service` can contain:
   - `value` - The threshold for the type of the warning.
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
-  - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `disabled` - Determines whether the alert is disabled (default: `false`).
+  - `destinations` - Specification for alert destination.
+    - `emails` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack_webhooks` - Determines which slack channels or users receive alerts.
 - `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.
@@ -433,6 +464,9 @@ A `worker` can contain:
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
   - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `destinations` - Specification for alert destination.
+    - `emails` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack_webhooks` - Determines which slack channels or users receive alerts.
 - `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.
@@ -508,6 +542,9 @@ A `job` can contain:
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
   - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `destinations` - Specification for alert destination.
+    - `emails` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack_webhooks` - Determines which slack channels or users receive alerts.
 - `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.
@@ -561,6 +598,9 @@ A `function` component can contain:
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
   - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `destinations` - Specification for alert destination.
+    - `emails` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack_webhooks` - Determines which slack channels or users receive alerts.
 - `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.

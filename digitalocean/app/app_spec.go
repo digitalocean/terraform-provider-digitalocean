@@ -115,10 +115,9 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Set:      schema.HashResource(appSpecEnvSchema()),
 		},
 		"alert": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Optional: true,
 			Elem:     appSpecAppLevelAlerts(),
-			Set:      schema.HashResource(appSpecAppLevelAlerts()),
 		},
 		"ingress": {
 			Type:     schema.TypeList,
@@ -143,6 +142,11 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 					},
 				},
 			},
+		},
+		"vpc": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     appSpecVPCSchema(),
 		},
 	}
 
@@ -187,6 +191,18 @@ func appSpecDomainSchema() *schema.Resource {
 	}
 }
 
+func appSpecVPCSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The ID of the VPC.",
+			},
+		},
+	}
+}
+
 func appSpecAppLevelAlerts() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -200,6 +216,8 @@ func appSpecAppLevelAlerts() *schema.Resource {
 					string(godo.AppAlertSpecRule_DeploymentCanceled),
 					string(godo.AppAlertSpecRule_DomainFailed),
 					string(godo.AppAlertSpecRule_DomainLive),
+					string(godo.AppAlertSpecRule_AutoscaleFailed),
+					string(godo.AppAlertSpecRule_AutoscaleSucceeded),
 				}, false),
 			},
 			"disabled": {
@@ -207,6 +225,7 @@ func appSpecAppLevelAlerts() *schema.Resource {
 				Default:  false,
 				Optional: true,
 			},
+			"destinations": alertDestinationsSchema(),
 		},
 	}
 }
@@ -956,6 +975,45 @@ func appSpecComponentAlerts() *schema.Resource {
 				Default:  false,
 				Optional: true,
 			},
+			"destinations": alertDestinationsSchema(),
+		},
+	}
+}
+
+func alertDestinationsSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"emails": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: validation.StringLenBetween(3, 100),
+					},
+				},
+				"slack_webhooks": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"channel": {
+								Type:        schema.TypeString,
+								Required:    true,
+								Description: "The Slack channel to send notifications to.",
+							},
+							"url": {
+								Type:        schema.TypeString,
+								Required:    true,
+								Description: "The Slack webhook URL.",
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -1244,7 +1302,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		Functions:                    expandAppSpecFunctions(appSpecConfig["function"].([]interface{})),
 		Databases:                    expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
 		Envs:                         expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
-		Alerts:                       expandAppAlerts(appSpecConfig["alert"].(*schema.Set).List()),
+		Alerts:                       expandAppAlerts(appSpecConfig["alert"].([]interface{})),
 		Ingress:                      expandAppIngress(appSpecConfig["ingress"].([]interface{})),
 		Egress:                       expandAppEgress(appSpecConfig["egress"].([]interface{})),
 	}
