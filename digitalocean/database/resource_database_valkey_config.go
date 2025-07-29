@@ -31,26 +31,6 @@ func ResourceDigitalOceanDatabaseValkeyConfig() *schema.Resource {
 				Description:  "A unique identifier for the database cluster.",
 			},
 
-			"maxmemory_policy": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				Description: "The eviction policy used when Valkey reaches its maximum memory limit. Possible values: volatile_lru, allkeys_lru, volatile_lfu, allkeys_lfu, volatile_random, allkeys_random, volatile_ttl, noeviction.",
-				ValidateFunc: validation.StringInSlice(
-					[]string{
-						"volatile_lru",
-						"allkeys_lru",
-						"volatile_lfu",
-						"allkeys_lfu",
-						"volatile_random",
-						"allkeys_random",
-						"volatile_ttl",
-						"noeviction",
-					},
-					true,
-				),
-			},
-
 			"pubsub_client_output_buffer_limit": {
 				Type:         schema.TypeInt,
 				Optional:     true,
@@ -200,10 +180,6 @@ func updateValkeyConfig(ctx context.Context, d *schema.ResourceData, client *god
 	}
 
 	opts := &godo.ValkeyConfig{}
-
-	if _, ok := d.GetOk("maxmemory_policy"); ok {
-		return fmt.Errorf("cannot update maxmemory_policy: must use resources_database_valkey_update_eviction_policy")
-	}
 
 	if v, ok := d.GetOk("pubsub_client_output_buffer_limit"); ok {
 		opts.ValkeyPubsubClientOutputBufferLimit = godo.PtrTo(v.(int))
