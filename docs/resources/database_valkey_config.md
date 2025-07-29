@@ -15,7 +15,6 @@ options for a DigitalOcean managed Valkey database cluster.
 ```hcl
 resource "digitalocean_database_valkey_config" "example" {
   cluster_id             = digitalocean_database_cluster.example.id
-  maxmemory_policy       = "allkeys-lru"
   notify_keyspace_events = "KEA"
   timeout                = 90
 }
@@ -38,7 +37,6 @@ for additional details on each option.
 
 
 * `cluster_id` - (Required)  The ID of the target Valkey cluster.
-* `maxmemory_policy` - (Optional) A string specifying the desired eviction policy for the Valkey cluster.Supported values are: `noeviction`, `allkeys-lru`, `allkeys-random`, `volatile-lru`, `volatile-random`, `volatile-ttl`
 * `pubsub_client_output_buffer_limit` - (Optional) The output buffer limit for pub/sub clients in MB. The value is the hard limit, the soft limit is 1/4 of the hard limit. When setting the limit, be mindful of the available memory in the selected service plan.
 * `number_of_databases` - (Optional) The number of Valkey databases. Changing this will cause a restart of Valkey service.
 * `io_threads` - (Optional) The Valkey IO thread count.
