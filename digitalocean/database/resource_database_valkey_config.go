@@ -201,8 +201,8 @@ func updateValkeyConfig(ctx context.Context, d *schema.ResourceData, client *god
 
 	opts := &godo.ValkeyConfig{}
 
-	if v, ok := d.GetOk("maxmemory_policy"); ok {
-		opts.ValkeyMaxmemoryPolicy = godo.PtrTo(v.(string))
+	if _, ok := d.GetOk("maxmemory_policy"); ok {
+		return fmt.Errorf("cannot update maxmemory_policy: must use resources_database_valkey_update_eviction_policy")
 	}
 
 	if v, ok := d.GetOk("pubsub_client_output_buffer_limit"); ok {
