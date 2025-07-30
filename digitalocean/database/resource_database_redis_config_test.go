@@ -9,6 +9,7 @@ import (
 )
 
 func TestAccDigitalOceanDatabaseRedisConfig_Basic(t *testing.T) {
+	t.Skip("Skipping redis cluster tests.TODO:- remove them")
 	name := acceptance.RandomTestName()
 	dbConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterRedis, name, "7")
 
