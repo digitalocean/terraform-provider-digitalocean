@@ -60,7 +60,11 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
-
+			"project_id": {
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.NoZeroValues,
+			},
 			"region": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -291,11 +295,12 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	// Build up our creation options
 	opts := &godo.DropletCreateRequest{
-		Image:  godo.DropletCreateImage{},
-		Name:   d.Get("name").(string),
-		Region: d.Get("region").(string),
-		Size:   d.Get("size").(string),
-		Tags:   tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
+		Image:     godo.DropletCreateImage{},
+		Name:      d.Get("name").(string),
+		Region:    d.Get("region").(string),
+		Size:      d.Get("size").(string),
+		ProjectID: d.Get("project_id").(string),
+		Tags:      tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
 	}
 
 	imageId, err := strconv.Atoi(image)
@@ -434,6 +439,7 @@ func setDropletAttributes(d *schema.ResourceData, droplet *godo.Droplet) error {
 	// that always point to the most recent version of an image.
 	// See: https://github.com/digitalocean/terraform-provider-digitalocean/issues/152
 	d.Set("name", droplet.Name)
+	d.Set("project_id", droplet.ProjectID)
 	d.Set("urn", droplet.URN())
 	d.Set("region", droplet.Region.Slug)
 	d.Set("size", droplet.Size.Slug)

@@ -22,6 +22,10 @@ func dropletSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Description: "name of the Droplet",
 		},
+		"project_id": {
+			Type:        schema.TypeString,
+			Description: "ID of the project to which the Droplet belongs",
+		},
 		"created_at": {
 			Type:        schema.TypeString,
 			Description: "the creation date for the Droplet",
@@ -167,6 +171,7 @@ func flattenDigitalOceanDroplet(rawDroplet, meta interface{}, extra map[string]i
 
 	flattenedDroplet := map[string]interface{}{
 		"id":            droplet.ID,
+		"project_id":    droplet.ProjectID,
 		"name":          droplet.Name,
 		"urn":           droplet.URN(),
 		"region":        droplet.Region.Slug,
