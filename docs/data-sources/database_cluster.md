@@ -47,6 +47,7 @@ The following attributes are exported:
 * `user` - Username for the cluster's default user.
 * `password` - Password for the cluster's default user.
 * `project_id` - The ID of the project that the database cluster is assigned to.
+* `metrics_endpoints` - A list of metrics endpoints for the database cluster, providing URLs to access Prometheus-compatible metrics.
 
 `maintenance_window` supports the following:
 

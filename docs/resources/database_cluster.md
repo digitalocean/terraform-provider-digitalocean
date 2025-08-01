@@ -159,6 +159,7 @@ In addition to the above arguments, the following attributes are exported:
 * `database` - Name of the cluster's default database.
 * `user` - Username for the cluster's default user.
 * `password` - Password for the cluster's default user.
+* `metrics_endpoints` - A list of metrics endpoints for the database cluster, providing URLs to access Prometheus-compatible metrics.
 
 OpenSearch clusters will have the following additional attributes with connection
 details for their dashboard:

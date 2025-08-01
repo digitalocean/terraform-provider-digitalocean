@@ -161,6 +161,14 @@ func DataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"metrics_endpoints": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -233,6 +241,11 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 			d.Set("urn", db.URN())
 			d.Set("private_network_uuid", db.PrivateNetworkUUID)
 			d.Set("project_id", db.ProjectID)
+
+			metricsErr := setMetricsEndpoints(&db, d)
+			if metricsErr != nil {
+				return diag.Errorf("Error setting metrics endpoints for database cluster: %s", metricsErr)
+			}
 
 			break
 		}
