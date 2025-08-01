@@ -18,7 +18,7 @@ output "metrics_username" {
 
 output "metrics_password" {
   sensitive = true
-  value = data.digitalocean_database_metrics_credentials.example.password
+  value     = data.digitalocean_database_metrics_credentials.example.password
 }
 ```
 
