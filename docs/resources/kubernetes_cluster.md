@@ -15,8 +15,9 @@ Provides a DigitalOcean Kubernetes cluster resource. This can be used to create,
 resource "digitalocean_kubernetes_cluster" "foo" {
   name   = "foo"
   region = "nyc1"
-  # Grab the latest version slug from `doctl kubernetes options versions`
-  version = "1.22.8-do.1"
+  # Grab the latest version slug from `doctl kubernetes options versions` (e.g. "1.14.6-do.1"
+  # If set to "latest", latest published version will be used.
+  version = "latest"
 
   node_pool {
     name       = "worker-pool"
@@ -53,7 +54,8 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 }
 ```
 
-Note that, each node pool must always have at least one node and when using autoscaling the min_nodes must be greater than or equal to 1.
+Note that, currently, each node pool must always have at least one node and when using autoscaling the min_nodes must be greater than or equal to 1.
+> Autoscaling to zero (`min_nodes=0`) is in [private preview](https://docs.digitalocean.com/release-notes/kubernetes/#2025-01-07) and not available for public use.
 
 ### Auto Upgrade Example
 
@@ -148,6 +150,9 @@ The following arguments are supported:
 * `version` - (Required) The slug identifier for the version of Kubernetes used for the cluster. Use [doctl](https://github.com/digitalocean/doctl) to find the available versions `doctl kubernetes options versions`. (**Note:** A cluster may only be upgraded to newer versions in-place. If the version is decreased, a new resource will be created.)
 * `cluster_subnet` - (Optional) The range of IP addresses in the overlay network of the Kubernetes cluster. For more information, see [here](https://docs.digitalocean.com/products/kubernetes/how-to/create-clusters/#create-with-vpc-native).
 * `service_subnet` - (Optional) The range of assignable IP addresses for services running in the Kubernetes cluster. For more information, see [here](https://docs.digitalocean.com/products/kubernetes/how-to/create-clusters/#create-with-vpc-native).
+* `control_plane_firewall` - (Optional) A block representing the cluster's control plane firewall
+  - `enabled` - (Required) Boolean flag whether the firewall should be enabled or not.
+  - `allowed_addresses` - (Required) A list of addresses allowed (CIDR notation).
 * `vpc_uuid` - (Optional) The ID of the VPC where the Kubernetes cluster will be located.
 * `auto_upgrade` - (Optional) A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: true
@@ -168,6 +173,11 @@ The following arguments are supported:
   - `start_time` (Required) The start time in UTC of the maintenance window policy in 24-hour clock format / HH:MM notation (e.g., 15:00).
 * `destroy_all_associated_resources` - (Optional) **Use with caution.** When set to true, all associated DigitalOcean resources created via the Kubernetes API (load balancers, volumes, and volume snapshots) will be destroyed along with the cluster when it is destroyed.
 * `kubeconfig_expire_seconds` - (Optional) The duration in seconds that the returned Kubernetes credentials will be valid. If not set or 0, the credentials will have a 7 day expiry.
+* `routing_agent` - (Optional) Block containing options for the routing-agent component. If not specified, the routing-agent component will not be installed in the cluster.
+  - `enabled` - (Required) Boolean flag whether the routing-agent should be enabled or not.
+* `cluster_autoscaler_configuration` - (Optional) Block containing options for cluster auto-scaling.
+  - `scale_down_utilization_threshold` - (Optional) Float setting the Node utilization level, defined as sum of requested resources divided by capacity, in which a node can be considered for scale down.
+  - `scale_down_unneeded_time` - (Optional) String setting how long a node should be unneeded before it's eligible for scale down.
 
 This resource supports [customized create timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
 
@@ -209,6 +219,8 @@ In addition to the arguments listed above, the following additional attributes a
   - `day` - The day of the maintenance window policy. May be one of "monday" through "sunday", or "any" to indicate an arbitrary week day.
   - `duration` A string denoting the duration of the service window, e.g., "04:00".
   - `start_time` The hour in UTC when maintenance updates will be applied, in 24 hour format (e.g. “16:00”).
+* `routing_agent` - Block containing options for the routing-agent component.
+  - `enabled` - Boolean flag whether the routing-agent is enabled or not.
 
 ## Import
 

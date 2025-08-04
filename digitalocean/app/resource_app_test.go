@@ -163,6 +163,58 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.service.0.log_destination.0.papertrail.0.endpoint", "syslog+tls://example.com:12345"),
 				),
 			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_basic_edge_controls, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_app.foobar", "project_id"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.disable_edge_cache", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.disable_email_obfuscation", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.enhanced_threat_control_enabled", "true"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withAlerts, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.name", "go-service"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.name", "go-service"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.rule", "DEPLOYMENT_FAILED"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.destinations.0.emails.0", "email1@do.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.destinations.0.emails.0", "email2@do.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.destinations.0.slack_webhooks.0.channel", "@user1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.destinations.0.slack_webhooks.0.url", "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "85"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.operator", "GREATER_THAN"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.window", "FIVE_MINUTES"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.rule", "CPU_UTILIZATION"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.destinations.0.emails.0", "email1@do.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.destinations.0.emails.1", "email2@do.com"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.destinations.0.slack_webhooks.0.channel", "@user1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.alert.0.destinations.0.slack_webhooks.0.url", "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"),
+				),
+			},
 		},
 	})
 }
@@ -334,61 +386,61 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 	appName := acceptance.RandomTestName()
 
 	oneEnv := `
-      env {
-        key   = "COMPONENT_FOO"
-        value = "bar"
-      }
+	  env {
+		key   = "COMPONENT_FOO"
+		value = "bar"
+	  }
 `
 
 	twoEnvs := `
-      env {
-        key   = "COMPONENT_FOO"
-        value = "bar"
-      }
+	  env {
+		key   = "COMPONENT_FOO"
+		value = "bar"
+	  }
 
-      env {
-        key   = "COMPONENT_FIZZ"
-        value = "pop"
-        scope = "BUILD_TIME"
-      }
+	  env {
+		key   = "COMPONENT_FIZZ"
+		value = "pop"
+		scope = "BUILD_TIME"
+	  }
 `
 
 	oneEnvUpdated := `
-      env {
-        key   = "COMPONENT_FOO"
-        value = "baz"
-        scope = "RUN_TIME"
-        type  = "GENERAL"
-      }
+	  env {
+		key   = "COMPONENT_FOO"
+		value = "baz"
+		scope = "RUN_TIME"
+		type  = "GENERAL"
+	  }
 `
 
 	oneAppEnv := `
-      env {
-        key   = "APP_FOO"
-        value = "bar"
-      }
+	  env {
+		key   = "APP_FOO"
+		value = "bar"
+	  }
 `
 
 	twoAppEnvs := `
-      env {
-        key   = "APP_FOO"
-        value = "bar"
-      }
+	  env {
+		key   = "APP_FOO"
+		value = "bar"
+	  }
 
-      env {
-        key   = "APP_FIZZ"
-        value = "pop"
-        scope = "BUILD_TIME"
-      }
+	  env {
+		key   = "APP_FIZZ"
+		value = "pop"
+		scope = "BUILD_TIME"
+	  }
 `
 
 	oneAppEnvUpdated := `
-      env {
-        key   = "APP_FOO"
-        value = "baz"
-        scope = "RUN_TIME"
-        type  = "GENERAL"
-      }
+	  env {
+		key   = "APP_FOO"
+		value = "baz"
+		scope = "RUN_TIME"
+		type  = "GENERAL"
+	  }
 `
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -560,15 +612,15 @@ func TestAccDigitalOceanApp_Function(t *testing.T) {
 	fnConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_function, appName, "")
 
 	corsConfig := `
-       cors {
-         allow_origins {
-           prefix = "https://example.com"
-         }
-         allow_methods     = ["GET"]
-         allow_headers     = ["X-Custom-Header"]
-         expose_headers    = ["Content-Encoding", "ETag"]
-         max_age           = "1h"
-       }
+	   cors {
+		 allow_origins {
+		   prefix = "https://example.com"
+		 }
+		 allow_methods     = ["GET"]
+		 allow_headers     = ["X-Custom-Header"]
+		 expose_headers    = ["Content-Encoding", "ETag"]
+		 max_age           = "1h"
+	   }
 `
 	updatedFnConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_function, appName, corsConfig)
 
@@ -623,17 +675,17 @@ func TestAccDigitalOceanApp_Domain(t *testing.T) {
 	appName := acceptance.RandomTestName()
 
 	domain := fmt.Sprintf(`
-       domain {
-         name     = "%s.com"
-         wildcard = true
-       }
+	   domain {
+		 name     = "%s.com"
+		 wildcard = true
+	   }
 `, appName)
 
 	updatedDomain := fmt.Sprintf(`
-       domain {
-         name     = "%s.net"
-         wildcard = true
-       }
+	   domain {
+		 name     = "%s.net"
+		 wildcard = true
+	   }
 `, appName)
 
 	domainsConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Domains, appName, domain)
@@ -677,18 +729,18 @@ func TestAccDigitalOceanApp_DomainsDeprecation(t *testing.T) {
 	appName := acceptance.RandomTestName()
 
 	deprecatedStyleDomain := fmt.Sprintf(`
-       domains = ["%s.com"]
+	   domains = ["%s.com"]
 `, appName)
 
 	updatedDeprecatedStyleDomain := fmt.Sprintf(`
-       domains = ["%s.net"]
+	   domains = ["%s.net"]
 `, appName)
 
 	newStyleDomain := fmt.Sprintf(`
-       domain {
-         name     = "%s.com"
-         wildcard = true
-       }
+	   domain {
+		 name     = "%s.com"
+		 wildcard = true
+	   }
 `, appName)
 
 	domainsConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Domains, appName, deprecatedStyleDomain)
@@ -738,39 +790,39 @@ func TestAccDigitalOceanApp_CORS(t *testing.T) {
 	appName := acceptance.RandomTestName()
 
 	allowedOriginExact := `
-       cors {
-         allow_origins {
-           exact = "https://example.com"
-         }
-       }
+	   cors {
+		 allow_origins {
+		   exact = "https://example.com"
+		 }
+	   }
 `
 
 	allowedOriginRegex := `
-       cors {
-         allow_origins {
-           regex = "https://[0-9a-z]*.digitalocean.com"
-         }
-       }
+	   cors {
+		 allow_origins {
+		   regex = "https://[0-9a-z]*.digitalocean.com"
+		 }
+	   }
 `
 
 	noAllowedOrigins := `
-       cors {
-         allow_methods     = ["GET", "PUT"]
-         allow_headers     = ["X-Custom-Header", "Upgrade-Insecure-Requests"]
-       }
+	   cors {
+		 allow_methods     = ["GET", "PUT"]
+		 allow_headers     = ["X-Custom-Header", "Upgrade-Insecure-Requests"]
+	   }
 `
 
 	fullConfig := `
-       cors {
-         allow_origins {
-           exact = "https://example.com"
-         }
-         allow_methods     = ["GET", "PUT"]
-         allow_headers     = ["X-Custom-Header", "Upgrade-Insecure-Requests"]
-         expose_headers    = ["Content-Encoding", "ETag"]
-         max_age           = "1h"
-         allow_credentials = true
-       }
+	   cors {
+		 allow_origins {
+		   exact = "https://example.com"
+		 }
+		 allow_methods     = ["GET", "PUT"]
+		 allow_headers     = ["X-Custom-Header", "Upgrade-Insecure-Requests"]
+		 expose_headers    = ["Content-Encoding", "ETag"]
+		 max_age           = "1h"
+		 allow_credentials = true
+	   }
 `
 
 	allowedOriginExactConfig := fmt.Sprintf(testAccCheckDigitalOceanAppConfig_CORS,
@@ -1113,12 +1165,128 @@ func TestAccDigitalOceanApp_termination(t *testing.T) {
 		},
 	})
 }
+func TestAccDigitalOceanApp_VPC(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+	vpcID := "c22d8f48-4bc4-49f5-8ca0-58e7164427ac"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withVPC, appName, vpcID),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.vpc.0.id", vpcID),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanApp_Maintenance(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Maintenance, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr("digitalocean_app.foobar", "spec.0.maintenance.0.enabled", "true"),
+					resource.TestCheckResourceAttr("digitalocean_app.foobar", "spec.0.maintenance.0.archive", "true"),
+					resource.TestCheckResourceAttr("digitalocean_app.foobar", "spec.0.maintenance.0.offline_page_url", "https://example.com/offline.html"),
+				),
+			},
+		},
+	})
+}
+
+var testAccCheckDigitalOceanAppConfig_Maintenance = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "nyc"
+
+    maintenance {
+      enabled          = true
+      archive          = true
+      offline_page_url = "https://example.com/offline.html"
+    }
+
+    service {
+      name = "go-service"
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+      instance_size_slug = "basic-xxs"
+      instance_count     = 1
+    }
+  }
+}`
 
 var testAccCheckDigitalOceanAppConfig_basic = `
 resource "digitalocean_app" "foobar" {
   spec {
     name   = "%s"
     region = "ams"
+
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+    }
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+
+      health_check {
+        http_path       = "/"
+        timeout_seconds = 10
+        port            = 1234
+      }
+
+      alert {
+        value    = 75
+        operator = "GREATER_THAN"
+        window   = "TEN_MINUTES"
+        rule     = "CPU_UTILIZATION"
+      }
+
+      log_destination {
+        name = "ServiceLogs"
+        papertrail {
+          endpoint = "syslog+tls://example.com:12345"
+        }
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_basic_edge_controls = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name                            = "%s"
+    region                          = "ams"
+    enhanced_threat_control_enabled = true
+    disable_edge_cache              = true
+    disable_email_obfuscation       = true
 
     alert {
       rule = "DEPLOYMENT_FAILED"
@@ -1472,7 +1640,7 @@ resource "digitalocean_app" "foobar" {
           }
         }
 
-        %s
+		%s
       }
     }
   }
@@ -1607,7 +1775,7 @@ resource "digitalocean_app" "foobar" {
     name   = "%s"
     region = "ams"
 
-    %s
+	%s
 
     service {
       name               = "go-service"
@@ -1653,7 +1821,7 @@ resource "digitalocean_app" "foobar" {
           }
         }
 
-        %s
+		%s
       }
     }
   }
@@ -1806,6 +1974,73 @@ resource "digitalocean_app" "foobar" {
         repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
         branch         = "main"
       }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_withAlerts = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "ams"
+
+    alert {
+      rule = "DEPLOYMENT_FAILED"
+      destinations {
+        emails = ["email1@do.com", "email2@do.com"]
+        slack_webhooks {
+          channel = "@user1"
+          url     = "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"
+        }
+      }
+    }
+
+    service {
+      name               = "go-service"
+      environment_slug   = "go"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+
+      alert {
+        value    = 85
+        operator = "GREATER_THAN"
+        window   = "FIVE_MINUTES"
+        rule     = "CPU_UTILIZATION"
+        destinations {
+          emails = ["email1@do.com", "email2@do.com"]
+          slack_webhooks {
+            channel = "@user1"
+            url     = "https://hooks.slack.com/services/SOME/SLACK/uniQueURL"
+          }
+        }
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_withVPC = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "nyc"
+
+    service {
+      name = "go-service"
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+      instance_size_slug = "basic-xxs"
+      instance_count     = 1
+    }
+
+    vpc {
+      id = "%s"
     }
   }
 }`

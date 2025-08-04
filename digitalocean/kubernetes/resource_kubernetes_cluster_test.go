@@ -96,6 +96,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "destroy_all_associated_resources", "false"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "routing_agent.0.enabled", "false"),
 				),
 			},
 			// Update: remove default node_pool taints
@@ -438,6 +439,14 @@ func TestAccDigitalOceanKubernetesCluster_ClusterAutoscalerConfiguration(t *test
 	cluster_autoscaler_configuration {
 		scale_down_utilization_threshold = 0.8
 		scale_down_unneeded_time = "2m"
+		expanders = ["priority"]
+	}
+`
+
+	updatedClusterAutoscalerConfigurationUnsetExpanders := `
+	cluster_autoscaler_configuration {
+		scale_down_utilization_threshold = 0.8
+		scale_down_unneeded_time = "2m"
 	}
 `
 
@@ -470,6 +479,17 @@ func TestAccDigitalOceanKubernetesCluster_ClusterAutoscalerConfiguration(t *test
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold", "0.8"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "2m"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.expanders.0", "priority"),
+				),
+			},
+			{
+				Config: testAccDigitalOceanKubernetesConfigClusterAutoscalerConfiguration(testClusterVersionLatest, rName, updatedClusterAutoscalerConfigurationUnsetExpanders),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold", "0.8"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "2m"),
+					resource.TestCheckNoResourceAttr("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.expanders.0"),
 				),
 			},
 		},
@@ -893,6 +913,26 @@ func TestAccDigitalOceanKubernetesCluster_VPCNative(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_RoutingAgentEnabled(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfigRoutingAgentEnabled(testClusterVersionPrevious, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "routing_agent.0.enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDigitalOceanKubernetesConfigBasic(testClusterVersion string, rName string) string {
 	return fmt.Sprintf(`%s
 
@@ -1169,6 +1209,25 @@ func testAccCheckDigitalOceanKubernetesClusterDestroy(s *terraform.State) error 
 	}
 
 	return nil
+}
+
+func testAccDigitalOceanKubernetesConfigRoutingAgentEnabled(testClusterVersion string, rName string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    = "%s"
+  region  = "nyc1"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
+  routing_agent {
+    enabled = true
+  }
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+`, testClusterVersion, rName)
 }
 
 func testAccCheckDigitalOceanKubernetesClusterExists(n string, cluster *godo.KubernetesCluster) resource.TestCheckFunc {

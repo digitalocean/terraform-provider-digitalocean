@@ -8,6 +8,8 @@ subcategory: "Databases"
 Provides a virtual resource that can be used to change advanced configuration
 options for a DigitalOcean managed Redis database cluster.
 
+-> **Note** DigitalOcean managed Redis cluster product is discontinued as of 30 June 2025 and is replaced by the Managed Valkey product. Use the `digitalocean_database_valkey_config` resource instead of `digitalocean_database_redis_config`
+
 -> **Note** Redis configurations are only removed from state when destroyed. The remote configuration is not unset.
 
 ## Example Usage
@@ -33,7 +35,7 @@ resource "digitalocean_database_cluster" "example" {
 
 ## Argument Reference
 
-The following arguments are supported. See the [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#operation/databases_patch_config)
+The following arguments are supported. See the [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Databases/operation/databases_patch_config)
 for additional details on each option. 
 
 

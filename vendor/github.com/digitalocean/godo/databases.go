@@ -86,7 +86,7 @@ const (
 	SQLAuthPluginCachingSHA2 = "caching_sha2_password"
 )
 
-// Redis eviction policies supported by the managed Redis product.
+// Eviction policies supported by the managed Redis and Valkey products.
 const (
 	EvictionPolicyNoEviction     = "noeviction"
 	EvictionPolicyAllKeysLRU     = "allkeys_lru"
@@ -154,12 +154,14 @@ type DatabasesService interface {
 	UpdateFirewallRules(context.Context, string, *DatabaseUpdateFirewallRulesRequest) (*Response, error)
 	GetPostgreSQLConfig(context.Context, string) (*PostgreSQLConfig, *Response, error)
 	GetRedisConfig(context.Context, string) (*RedisConfig, *Response, error)
+	GetValkeyConfig(context.Context, string) (*ValkeyConfig, *Response, error)
 	GetMySQLConfig(context.Context, string) (*MySQLConfig, *Response, error)
 	GetMongoDBConfig(context.Context, string) (*MongoDBConfig, *Response, error)
 	GetOpensearchConfig(context.Context, string) (*OpensearchConfig, *Response, error)
 	GetKafkaConfig(context.Context, string) (*KafkaConfig, *Response, error)
 	UpdatePostgreSQLConfig(context.Context, string, *PostgreSQLConfig) (*Response, error)
 	UpdateRedisConfig(context.Context, string, *RedisConfig) (*Response, error)
+	UpdateValkeyConfig(context.Context, string, *ValkeyConfig) (*Response, error)
 	UpdateMySQLConfig(context.Context, string, *MySQLConfig) (*Response, error)
 	UpdateMongoDBConfig(context.Context, string, *MongoDBConfig) (*Response, error)
 	UpdateOpensearchConfig(context.Context, string, *OpensearchConfig) (*Response, error)
@@ -272,10 +274,17 @@ type OpenSearchACL struct {
 	Index      string `json:"index,omitempty"`
 }
 
+// MongoUserSettings represents additional settings for MongoDB users.
+type MongoUserSettings struct {
+	Databases []string `json:"databases,omitempty"`
+	Role      string   `json:"role,omitempty"`
+}
+
 // DatabaseUserSettings contains user settings
 type DatabaseUserSettings struct {
-	ACL           []*KafkaACL      `json:"acl,omitempty"`
-	OpenSearchACL []*OpenSearchACL `json:"opensearch_acl,omitempty"`
+	ACL               []*KafkaACL        `json:"acl,omitempty"`
+	OpenSearchACL     []*OpenSearchACL   `json:"opensearch_acl,omitempty"`
+	MongoUserSettings *MongoUserSettings `json:"mongo_user_settings,omitempty"`
 }
 
 // DatabaseMySQLUserSettings contains MySQL-specific user settings
@@ -663,6 +672,20 @@ type RedisConfig struct {
 	RedisACLChannelsDefault            *string `json:"redis_acl_channels_default,omitempty"`
 }
 
+type ValkeyConfig struct {
+	ValkeyMaxmemoryPolicy               *string `json:"valkey_maxmemory_policy,omitempty"`
+	ValkeyPubsubClientOutputBufferLimit *int    `json:"valkey_pubsub_client_output_buffer_limit,omitempty"`
+	ValkeyNumberOfDatabases             *int    `json:"valkey_number_of_databases,omitempty"`
+	ValkeyIOThreads                     *int    `json:"valkey_io_threads,omitempty"`
+	ValkeyLFULogFactor                  *int    `json:"valkey_lfu_log_factor,omitempty"`
+	ValkeyLFUDecayTime                  *int    `json:"valkey_lfu_decay_time,omitempty"`
+	ValkeySSL                           *bool   `json:"valkey_ssl,omitempty"`
+	ValkeyTimeout                       *int    `json:"valkey_timeout,omitempty"`
+	ValkeyNotifyKeyspaceEvents          *string `json:"valkey_notify_keyspace_events,omitempty"`
+	ValkeyPersistence                   *string `json:"valkey_persistence,omitempty"`
+	ValkeyACLChannelsDefault            *string `json:"valkey_acl_channels_default,omitempty"`
+}
+
 // MySQLConfig holds advanced configurations for MySQL database clusters.
 type MySQLConfig struct {
 	ConnectTimeout               *int     `json:"connect_timeout,omitempty"`
@@ -809,6 +832,10 @@ type databaseRedisConfigRoot struct {
 	Config *RedisConfig `json:"config"`
 }
 
+type databaseValkeyConfigRoot struct {
+	Config *ValkeyConfig `json:"config"`
+}
+
 type databaseMySQLConfigRoot struct {
 	Config *MySQLConfig `json:"config"`
 }
@@ -899,6 +926,7 @@ type DatabaseOptions struct {
 	RedisOptions       DatabaseEngineOptions `json:"redis"`
 	KafkaOptions       DatabaseEngineOptions `json:"kafka"`
 	OpensearchOptions  DatabaseEngineOptions `json:"opensearch"`
+	ValkeyOptions      DatabaseEngineOptions `json:"valkey"`
 }
 
 // DatabaseEngineOptions represents the configuration options that are available for a given database engine
@@ -1576,6 +1604,21 @@ func (svc *DatabasesServiceOp) GetRedisConfig(ctx context.Context, databaseID st
 	return root.Config, resp, nil
 }
 
+// GetValkeyConfig retrieves the config for a Redis database cluster.
+func (svc *DatabasesServiceOp) GetValkeyConfig(ctx context.Context, databaseID string) (*ValkeyConfig, *Response, error) {
+	path := fmt.Sprintf(databaseConfigPath, databaseID)
+	req, err := svc.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	root := new(databaseValkeyConfigRoot)
+	resp, err := svc.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root.Config, resp, nil
+}
+
 // UpdateRedisConfig updates the config for a Redis database cluster.
 func (svc *DatabasesServiceOp) UpdateRedisConfig(ctx context.Context, databaseID string, config *RedisConfig) (*Response, error) {
 	path := fmt.Sprintf(databaseConfigPath, databaseID)
@@ -1591,6 +1634,24 @@ func (svc *DatabasesServiceOp) UpdateRedisConfig(ctx context.Context, databaseID
 	}
 
 	root := &databaseRedisConfigRoot{
+		Config: config,
+	}
+	req, err := svc.client.NewRequest(ctx, http.MethodPatch, path, root)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := svc.client.Do(ctx, req, nil)
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
+}
+
+// UpdateValkeyConfig updates the config for a Valkey database cluster.
+func (svc *DatabasesServiceOp) UpdateValkeyConfig(ctx context.Context, databaseID string, config *ValkeyConfig) (*Response, error) {
+	path := fmt.Sprintf(databaseConfigPath, databaseID)
+
+	root := &databaseValkeyConfigRoot{
 		Config: config,
 	}
 	req, err := svc.client.NewRequest(ctx, http.MethodPatch, path, root)

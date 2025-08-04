@@ -34,9 +34,8 @@ func nodePoolSchema(isResource bool) map[string]*schema.Schema {
 		},
 
 		"node_count": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
+			Type:     schema.TypeInt,
+			Optional: true,
 			DiffSuppressFunc: func(key, old, new string, d *schema.ResourceData) bool {
 				nodeCountKey := "node_count"
 				actualNodeCountKey := "actual_node_count"
@@ -71,9 +70,8 @@ func nodePoolSchema(isResource bool) map[string]*schema.Schema {
 		},
 
 		"min_nodes": {
-			Type:         schema.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntAtLeast(1),
+			Type:     schema.TypeInt,
+			Optional: true,
 		},
 
 		"max_nodes": {
@@ -263,6 +261,34 @@ func expandAllowedAddresses(addrs []interface{}) []string {
 	return expandedAddrs
 }
 
+func expandRoutingAgentOpts(raw []interface{}) *godo.KubernetesRoutingAgent {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesRoutingAgent{}
+	}
+
+	rawRoutingAgentObj := raw[0].(map[string]interface{})
+
+	routingAgent := &godo.KubernetesRoutingAgent{
+		Enabled: godo.PtrTo(rawRoutingAgentObj["enabled"].(bool)),
+	}
+
+	return routingAgent
+}
+
+func flattenRoutingAgentOpts(opts *godo.KubernetesRoutingAgent) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
 func flattenMaintPolicyOpts(opts *godo.KubernetesMaintenancePolicy) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 	item := make(map[string]interface{})
@@ -426,6 +452,45 @@ func expandCAConfigOpts(config []interface{}) *godo.KubernetesClusterAutoscalerC
 		caConfig.ScaleDownUnneededTime = godo.PtrTo(v.(string))
 	}
 
+	if v, ok := configMap["expanders"]; ok {
+		caConfig.Expanders = []string{}
+		for _, e := range v.([]interface{}) {
+			caConfig.Expanders = append(caConfig.Expanders, e.(string))
+		}
+	}
+
+	return caConfig
+}
+
+func expandCAConfigOptsForUpdate(config []interface{}) *godo.KubernetesClusterAutoscalerConfiguration {
+	caConfig := &godo.KubernetesClusterAutoscalerConfiguration{
+		// in terraform, the updated resource should be the source of truth, so if a field is removed (set to null)
+		// we should remove it from the DO resource rather than skip updating this field
+		ScaleDownUtilizationThreshold: godo.PtrTo(0.0),
+		ScaleDownUnneededTime:         godo.PtrTo(""),
+		Expanders:                     []string{},
+	}
+
+	if len(config) == 0 {
+		return caConfig
+	}
+
+	configMap := config[0].(map[string]interface{})
+
+	if v, ok := configMap["scale_down_utilization_threshold"]; ok {
+		caConfig.ScaleDownUtilizationThreshold = godo.PtrTo(v.(float64))
+	}
+
+	if v, ok := configMap["scale_down_unneeded_time"]; ok {
+		caConfig.ScaleDownUnneededTime = godo.PtrTo(v.(string))
+	}
+
+	if v, ok := configMap["expanders"]; ok {
+		for _, e := range v.([]interface{}) {
+			caConfig.Expanders = append(caConfig.Expanders, e.(string))
+		}
+	}
+
 	return caConfig
 }
 
@@ -438,6 +503,7 @@ func flattenCAConfigOpts(opts *godo.KubernetesClusterAutoscalerConfiguration) []
 	item := make(map[string]interface{})
 	item["scale_down_utilization_threshold"] = opts.ScaleDownUtilizationThreshold
 	item["scale_down_unneeded_time"] = opts.ScaleDownUnneededTime
+	item["expanders"] = opts.Expanders
 	result = append(result, item)
 
 	return result

@@ -1,3 +1,4 @@
+// AppMaintenanceSpec defines maintenance settings for the app.
 package app
 
 import (
@@ -39,6 +40,24 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "The slug for the DigitalOcean data center region hosting the app",
+		},
+		"disable_edge_cache": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Whether to disable the edge cache for the app. Default is false, which enables the edge cache.",
+		},
+		"disable_email_obfuscation": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Email obfuscation configuration for the app. Default is false, which keeps the email obfuscated.",
+		},
+		"enhanced_threat_control_enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Whether to enable enhanced threat control for the app. Default is false. Set to true to enable enhanced threat control, putting additional security measures for Layer 7 DDoS attacks.",
 		},
 		"domain": {
 			Type:     schema.TypeList,
@@ -97,10 +116,9 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 			Set:      schema.HashResource(appSpecEnvSchema()),
 		},
 		"alert": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Optional: true,
 			Elem:     appSpecAppLevelAlerts(),
-			Set:      schema.HashResource(appSpecAppLevelAlerts()),
 		},
 		"ingress": {
 			Type:     schema.TypeList,
@@ -125,6 +143,36 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 					},
 				},
 			},
+		},
+		"maintenance": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "Specification to configure maintenance settings for the app, such as maintenance mode and archiving the app.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"enabled": {
+						Type:        schema.TypeBool,
+						Optional:    true,
+						Description: "Indicates whether maintenance mode should be enabled for the app.",
+					},
+					"archive": {
+						Type:        schema.TypeBool,
+						Optional:    true,
+						Description: "Indicates whether the app should be archived. Setting this to true implies that enabled is set to true.",
+					},
+					"offline_page_url": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "A custom offline page to display when maintenance mode is enabled or the app is archived.",
+					},
+				},
+			},
+		},
+		"vpc": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     appSpecVPCSchema(),
 		},
 	}
 
@@ -169,6 +217,18 @@ func appSpecDomainSchema() *schema.Resource {
 	}
 }
 
+func appSpecVPCSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The ID of the VPC.",
+			},
+		},
+	}
+}
+
 func appSpecAppLevelAlerts() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -182,6 +242,8 @@ func appSpecAppLevelAlerts() *schema.Resource {
 					string(godo.AppAlertSpecRule_DeploymentCanceled),
 					string(godo.AppAlertSpecRule_DomainFailed),
 					string(godo.AppAlertSpecRule_DomainLive),
+					string(godo.AppAlertSpecRule_AutoscaleFailed),
+					string(godo.AppAlertSpecRule_AutoscaleSucceeded),
 				}, false),
 			},
 			"disabled": {
@@ -189,6 +251,7 @@ func appSpecAppLevelAlerts() *schema.Resource {
 				Default:  false,
 				Optional: true,
 			},
+			"destinations": alertDestinationsSchema(),
 		},
 	}
 }
@@ -938,6 +1001,45 @@ func appSpecComponentAlerts() *schema.Resource {
 				Default:  false,
 				Optional: true,
 			},
+			"destinations": alertDestinationsSchema(),
+		},
+	}
+}
+
+func alertDestinationsSchema() *schema.Schema {
+	return &schema.Schema{
+		Type:     schema.TypeSet,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &schema.Resource{
+			Schema: map[string]*schema.Schema{
+				"emails": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem: &schema.Schema{
+						Type:         schema.TypeString,
+						ValidateFunc: validation.StringLenBetween(3, 100),
+					},
+				},
+				"slack_webhooks": {
+					Type:     schema.TypeList,
+					Optional: true,
+					Elem: &schema.Resource{
+						Schema: map[string]*schema.Schema{
+							"channel": {
+								Type:        schema.TypeString,
+								Required:    true,
+								Description: "The Slack channel to send notifications to.",
+							},
+							"url": {
+								Type:        schema.TypeString,
+								Required:    true,
+								Description: "The Slack webhook URL.",
+							},
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -1213,19 +1315,22 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 	appSpecConfig := config[0].(map[string]interface{})
 
 	appSpec := &godo.AppSpec{
-		Name:        appSpecConfig["name"].(string),
-		Region:      appSpecConfig["region"].(string),
-		Features:    expandAppSpecFeatures(appSpecConfig["features"].(*schema.Set)),
-		Services:    expandAppSpecServices(appSpecConfig["service"].([]interface{})),
-		StaticSites: expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
-		Workers:     expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
-		Jobs:        expandAppSpecJobs(appSpecConfig["job"].([]interface{})),
-		Functions:   expandAppSpecFunctions(appSpecConfig["function"].([]interface{})),
-		Databases:   expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
-		Envs:        expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
-		Alerts:      expandAppAlerts(appSpecConfig["alert"].(*schema.Set).List()),
-		Ingress:     expandAppIngress(appSpecConfig["ingress"].([]interface{})),
-		Egress:      expandAppEgress(appSpecConfig["egress"].([]interface{})),
+		Name:                         appSpecConfig["name"].(string),
+		Region:                       appSpecConfig["region"].(string),
+		DisableEdgeCache:             appSpecConfig["disable_edge_cache"].(bool),
+		DisableEmailObfuscation:      appSpecConfig["disable_email_obfuscation"].(bool),
+		EnhancedThreatControlEnabled: appSpecConfig["enhanced_threat_control_enabled"].(bool),
+		Features:                     expandAppSpecFeatures(appSpecConfig["features"].(*schema.Set)),
+		Services:                     expandAppSpecServices(appSpecConfig["service"].([]interface{})),
+		StaticSites:                  expandAppSpecStaticSites(appSpecConfig["static_site"].([]interface{})),
+		Workers:                      expandAppSpecWorkers(appSpecConfig["worker"].([]interface{})),
+		Jobs:                         expandAppSpecJobs(appSpecConfig["job"].([]interface{})),
+		Functions:                    expandAppSpecFunctions(appSpecConfig["function"].([]interface{})),
+		Databases:                    expandAppSpecDatabases(appSpecConfig["database"].([]interface{})),
+		Envs:                         expandAppEnvs(appSpecConfig["env"].(*schema.Set).List()),
+		Alerts:                       expandAppAlerts(appSpecConfig["alert"].([]interface{})),
+		Ingress:                      expandAppIngress(appSpecConfig["ingress"].([]interface{})),
+		Egress:                       expandAppEgress(appSpecConfig["egress"].([]interface{})),
 	}
 
 	// Prefer the `domain` block over `domains` if it is set.
@@ -1236,6 +1341,14 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		appSpec.Domains = expandAppDomainSpec(appSpecConfig["domains"].(*schema.Set).List())
 	}
 
+	// Handle maintenance
+	if v, ok := appSpecConfig["maintenance"]; ok {
+		maint := expandAppMaintenance(v.([]interface{}))
+		if maint != nil {
+			appSpec.Maintenance = maint
+		}
+	}
+
 	return appSpec
 }
 
@@ -1243,11 +1356,13 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 	result := make([]map[string]interface{}, 0, 1)
 
 	if spec != nil {
-
 		r := make(map[string]interface{})
 		r["name"] = (*spec).Name
 		r["region"] = (*spec).Region
 		r["features"] = (*spec).Features
+		r["disable_edge_cache"] = (*spec).DisableEdgeCache
+		r["disable_email_obfuscation"] = (*spec).DisableEmailObfuscation
+		r["enhanced_threat_control_enabled"] = (*spec).EnhancedThreatControlEnabled
 
 		if len((*spec).Domains) > 0 {
 			r["domains"] = flattenAppDomainSpec((*spec).Domains)
@@ -1296,10 +1411,42 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 			r["egress"] = flattenAppEgress((*spec).Egress)
 		}
 
+		// Handle maintenance
+		if (*spec).Maintenance != nil {
+			r["maintenance"] = flattenAppMaintenance((*spec).Maintenance)
+		}
+
 		result = append(result, r)
 	}
 
 	return result
+}
+
+// expandAppMaintenance expands the maintenance block from the schema to AppMaintenanceSpec
+func expandAppMaintenance(config []interface{}) *godo.AppMaintenanceSpec {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+	m := config[0].(map[string]interface{})
+	return &godo.AppMaintenanceSpec{
+		Enabled:        m["enabled"].(bool),
+		Archive:        m["archive"].(bool),
+		OfflinePageURL: m["offline_page_url"].(string),
+	}
+}
+
+// flattenAppMaintenance flattens AppMaintenanceSpec to the schema format
+func flattenAppMaintenance(m *godo.AppMaintenanceSpec) []map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	return []map[string]interface{}{
+		{
+			"enabled":          m.Enabled,
+			"archive":          m.Archive,
+			"offline_page_url": m.OfflinePageURL,
+		},
+	}
 }
 
 func expandAppAlerts(config []interface{}) []*godo.AppAlertSpec {

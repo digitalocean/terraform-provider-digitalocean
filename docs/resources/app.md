@@ -68,6 +68,16 @@ resource "digitalocean_app" "mono-repo-example" {
 
     alert {
       rule = "DEPLOYMENT_FAILED"
+
+      # Setup alert destination (optional)
+      # If left empty, email will be set to the team's default email
+      destinations {
+        emails = ["team.member1@org.com", "team.member2@org.com"]
+        slack_webhooks {
+          channel = "@user1"
+          url     = "https://hooks.slack.com/slack-url"
+        }
+      }
     }
 
     # Build a Go project in the api/ directory that listens on port 3000
@@ -91,6 +101,16 @@ resource "digitalocean_app" "mono-repo-example" {
         operator = "GREATER_THAN"
         window   = "TEN_MINUTES"
         rule     = "CPU_UTILIZATION"
+
+        # Setup alert destination (optional)
+        # If left empty, email will be set to the team's default email
+        destinations {
+          emails = ["team.member1@org.com", "team.member2@org.com"]
+          slack_webhooks {
+            channel = "@user1"
+            url     = "https://hooks.slack.com/slack-url"
+          }
+        }
       }
 
       log_destination {
@@ -146,6 +166,10 @@ resource "digitalocean_app" "mono-repo-example" {
         }
       }
     }
+
+    vpc {
+      id = "c22d8f48-4bc4-49f5-8ca0-58e7164427ac"
+    }
   }
 }
 ```
@@ -183,6 +207,58 @@ resource "digitalocean_app" "golang-sample" {
 }
 ```
 
+### Edge Controls Example
+
+```hcl
+resource "digitalocean_app" "golang-sample" {
+  spec {
+    name                            = "golang-sample"
+    region                          = "ams"
+    disable_edge_cache              = true
+    disable_email_obfuscation       = false
+    enhanced_threat_control_enabled = true
+
+    service {
+      name               = "go-service"
+      instance_count     = 1
+      instance_size_slug = "apps-s-1vcpu-1gb"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+    }
+  }
+}
+```
+
+### Maintenance Example
+
+```hcl
+resource "digitalocean_app" "maintenance-example" {
+  spec {
+    name   = "maintenance-example"
+    region = "ams"
+
+    # Enable maintenance mode with a custom offline page
+    maintenance {
+      enabled          = true
+      offline_page_url = "https://example.com/maintenance.html"
+    }
+
+    service {
+      name               = "go-service"
+      instance_count     = 1
+      instance_size_slug = "apps-s-1vcpu-1gb"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+    }
+  }
+}
+```
 ## Argument Reference
 
 The following arguments are supported:
@@ -191,6 +267,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the app. Must be unique across all apps in the same account.
 * `region` - The slug for the DigitalOcean data center region hosting the app.
+* `disable_edge_cache` - A boolean indicating whether to disable the edge cache for this app. Default: `false`. Available only for non-static sites. Requires custom domains and applies to all the domains of the app.
+* `disable_email_obfuscation` - A boolean indicating whether to disable email obfuscation for this app. Default: `false`. Requires custom domains and applies to all the domains of the app.
+* `enhanced_threat_control_enabled` - A boolean, when set to `true`, enables enhanced analyzing of incoming traffic to prevent layer 7 DDoS attacks. Default: `false`. Requires custom domains and applies to all the domains of the app.
 * `features` - A list of the features applied to the app. The default buildpack can be overridden here. List of available buildpacks can be found using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/reference/apps/list-buildpacks/)
 * `domain` - Describes a domain where the application will be made available.
   - `name` - The hostname for the domain.
@@ -206,10 +285,17 @@ The following arguments are supported:
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `alert` - Describes an alert policy for the app.
-  - `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_CANCELLED`, `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DEPLOYMENT_STARTED`, `DOMAIN_FAILED`, or `DOMAIN_LIVE`.
-  - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_CANCELLED`, `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DEPLOYMENT_STARTED`, `DOMAIN_FAILED`, `DOMAIN_LIVE`, `AUTOSCALE_FAILED`, or `AUTOSCALE_SUCCEEDED`.
+  - `disabled` - Determines whether the alert is disabled (default: `false`).
+  - `destinations` - Specification for alert destination.
+    - `emails` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack_webhooks` - Determines which slack channels or users receive alerts (optional).
 * `egress` - Specification for app egress configurations.
   - `type` - The app egress type: `AUTOASSIGN`, `DEDICATED_IP`
+* `maintenance` - Specification to configure maintenance settings for the app, such as maintenance mode and archiving the app.
+  - `enabled` - Indicates whether maintenance mode should be enabled for the app.
+  - `archive` - Indicates whether the app should be archived. Setting this to true implies that enabled is set to true.
+  - `offline_page_url` - A custom offline page to display when maintenance mode is enabled or the app is archived.
 * `ingress` - Specification for component routing, rewrites, and redirects.
   - `rule` - Rules for configuring HTTP ingress for component routes, CORS, rewrites, and redirects.
     - `component` - The component to route to. Only one of `component` or `redirect` may be set.
@@ -235,7 +321,8 @@ The following arguments are supported:
       - `expose_headers` - The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
       - `allow_methods` - The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
       - `allow_credentials` - Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
-
+* `vpc`: Specification for VPC.
+  - `id`: The ID of the VPC.
 - `project_id` - The ID of the project that the app is assigned to.
 
 A spec can contain multiple components.
@@ -248,7 +335,7 @@ A `service` can contain:
 - `source_dir` - An optional path to the working directory to use for the build.
 - `run_command` - An optional run command to override the component's default.
 - `environment_slug` - An environment slug describing the type of this app.
-- `instance_size_slug` - The instance size to use for this component. This determines the plan (basic or professional) and the available CPU and memory. The list of available instance sizes can be [found with the API](https://docs.digitalocean.com/reference/api/api-reference/#operation/list_instance_sizes) or using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/) (`doctl apps tier instance-size list`). Default: `basic-xxs`
+- `instance_size_slug` - The instance size to use for this component. This determines the plan (basic or professional) and the available CPU and memory. The list of available instance sizes can be [found with the API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Apps/operation/apps_list_instanceSizes) or using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/) (`doctl apps tier instance-size list`). Default: `basic-xxs`
 - `instance_count` - The amount of instances that this component should be scaled to.
 - `http_port` - The internal port on which this service's run command will listen.
 - `internal_ports` - A list of ports on which this service will listen for internal traffic.
@@ -298,7 +385,10 @@ A `service` can contain:
   - `value` - The threshold for the type of the warning.
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
-  - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `disabled` - Determines whether the alert is disabled (default: `false`).
+  - `destinations` - Specification for alert destination.
+    - `emails` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack_webhooks` - Determines which slack channels or users receive alerts.
 - `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.
@@ -369,7 +459,7 @@ A `worker` can contain:
 - `source_dir` - An optional path to the working directory to use for the build.
 - `run_command` - An optional run command to override the component's default.
 - `environment_slug` - An environment slug describing the type of this app.
-- `instance_size_slug` - The instance size to use for this component. This determines the plan (basic or professional) and the available CPU and memory. The list of available instance sizes can be [found with the API](https://docs.digitalocean.com/reference/api/api-reference/#operation/list_instance_sizes) or using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/) (`doctl apps tier instance-size list`). Default: `basic-xxs`
+- `instance_size_slug` - The instance size to use for this component. This determines the plan (basic or professional) and the available CPU and memory. The list of available instance sizes can be [found with the API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Apps/operation/apps_list_instanceSizes) or using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/) (`doctl apps tier instance-size list`). Default: `basic-xxs`
 - `instance_count` - The amount of instances that this component should be scaled to.
 - `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication. Only one of `git`, `github` or `gitlab` may be set
   - `repo_clone_url` - The clone URL of the repo.
@@ -406,6 +496,9 @@ A `worker` can contain:
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
   - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `destinations` - Specification for alert destination.
+    - `emails` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack_webhooks` - Determines which slack channels or users receive alerts.
 - `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.
@@ -444,7 +537,7 @@ A `job` can contain:
 - `source_dir` - An optional path to the working directory to use for the build.
 - `run_command` - An optional run command to override the component's default.
 - `environment_slug` - An environment slug describing the type of this app.
-- `instance_size_slug` - The instance size to use for this component. This determines the plan (basic or professional) and the available CPU and memory. The list of available instance sizes can be [found with the API](https://docs.digitalocean.com/reference/api/api-reference/#operation/list_instance_sizes) or using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/) (`doctl apps tier instance-size list`). Default: `basic-xxs`
+- `instance_size_slug` - The instance size to use for this component. This determines the plan (basic or professional) and the available CPU and memory. The list of available instance sizes can be [found with the API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Apps/operation/apps_list_instanceSizes) or using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/) (`doctl apps tier instance-size list`). Default: `basic-xxs`
 - `instance_count` - The amount of instances that this component should be scaled to.
 - `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication. Only one of `git`, `github` or `gitlab` may be set
   - `repo_clone_url` - The clone URL of the repo.
@@ -481,6 +574,9 @@ A `job` can contain:
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
   - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `destinations` - Specification for alert destination.
+    - `emails` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack_webhooks` - Determines which slack channels or users receive alerts.
 - `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.
@@ -534,6 +630,9 @@ A `function` component can contain:
   - `operator` - The operator to use. This is either of `GREATER_THAN` or `LESS_THAN`.
   - `window` - The time before alerts should be triggered. This is may be one of: `FIVE_MINUTES`, `TEN_MINUTES`, `THIRTY_MINUTES`, `ONE_HOUR`.
   - `disabled` - Determines whether or not the alert is disabled (default: `false`).
+  - `destinations` - Specification for alert destination.
+    - `emails` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
+    - `slack_webhooks` - Determines which slack channels or users receive alerts.
 - `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.
