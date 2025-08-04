@@ -25,13 +25,6 @@ type AppSpecTermination interface {
 	godo.AppServiceSpecTermination | godo.AppWorkerSpecTermination | godo.AppJobSpecTermination
 }
 
-// AppMaintenanceSpec defines maintenance settings for the app.
-type AppMaintenanceSpec struct {
-	Enabled        bool   `json:"enabled,omitempty"`
-	Archive        bool   `json:"archive,omitempty"`
-	OfflinePageURL string `json:"offline_page_url,omitempty"`
-}
-
 // appSpecSchema returns map[string]*schema.Schema for the App Specification.
 // Set isResource to true in order to return a schema with additional attributes
 // appropriate for a resource or false for one used with a data-source.
