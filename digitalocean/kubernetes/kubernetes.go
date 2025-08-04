@@ -289,6 +289,62 @@ func flattenRoutingAgentOpts(opts *godo.KubernetesRoutingAgent) []map[string]int
 	return result
 }
 
+func expandAmdGpuDevicePluginOpts(raw []interface{}) *godo.KubernetesAmdGpuDevicePlugin {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesAmdGpuDevicePlugin{}
+	}
+
+	amdGpuDevicePluginObj := raw[0].(map[string]interface{})
+
+	amdGpuDevicePlugin := &godo.KubernetesAmdGpuDevicePlugin{
+		Enabled: godo.PtrTo(amdGpuDevicePluginObj["enabled"].(bool)),
+	}
+
+	return amdGpuDevicePlugin
+}
+
+func flattenAmdGpuDevicePluginOpts(opts *godo.KubernetesAmdGpuDevicePlugin) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
+func expandAmdGpuDeviceMetricsExporterPluginOpts(raw []interface{}) *godo.KubernetesAmdGpuDeviceMetricsExporterPlugin {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesAmdGpuDeviceMetricsExporterPlugin{}
+	}
+
+	amdGpuDeviceMetricsExporterPluginObj := raw[0].(map[string]interface{})
+
+	amdGpuDeviceMetricsExporterPlugin := &godo.KubernetesAmdGpuDeviceMetricsExporterPlugin{
+		Enabled: godo.PtrTo(amdGpuDeviceMetricsExporterPluginObj["enabled"].(bool)),
+	}
+
+	return amdGpuDeviceMetricsExporterPlugin
+}
+
+func flattenAmdGpuDeviceMetricsExporterPluginOpts(opts *godo.KubernetesAmdGpuDeviceMetricsExporterPlugin) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
 func flattenMaintPolicyOpts(opts *godo.KubernetesMaintenancePolicy) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 	item := make(map[string]interface{})
