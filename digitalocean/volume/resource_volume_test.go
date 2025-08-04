@@ -381,3 +381,47 @@ resource "digitalocean_volume" "foobar" {
   description = "peace makes plenty"
   tags        = ["foo", "bar", "baz"]
 }`
+
+func TestAccDigitalOceanVolume_createWithRegionSlugUpperCase(t *testing.T) {
+	name := acceptance.RandomTestName("volume")
+
+	expectedURNRegEx, _ := regexp.Compile(`do:volume:[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}`)
+
+	volume := godo.Volume{
+		Name: name,
+	}
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVolumeConfig_createWithRegionSlugUpperCase, name),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeExists("digitalocean_volume.foobar", &volume),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "name", name),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "size", "100"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "description", "peace makes plenty"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_volume.foobar", "tags.#", "2"),
+					resource.TestMatchResourceAttr("digitalocean_volume.foobar", "urn", expectedURNRegEx),
+				),
+			},
+		},
+	})
+}
+
+const testAccCheckDigitalOceanVolumeConfig_createWithRegionSlugUpperCase = `
+resource "digitalocean_volume" "foobar" {
+  region      = "NYC3"
+  name        = "%s"
+  size        = 100
+  description = "peace makes plenty"
+  tags        = ["foo", "bar"]
+}`

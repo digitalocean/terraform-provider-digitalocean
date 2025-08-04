@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_custom_image"
+subcategory: "Backups & Snapshots"
 ---
 
 # digitalocean\_custom\_image
@@ -20,17 +21,17 @@ Image documentation for [additional requirements](https://www.digitalocean.com/d
 
 ```hcl
 resource "digitalocean_custom_image" "flatcar" {
-  name   = "flatcar"
-  url = "https://stable.release.flatcar-linux.net/amd64-usr/2605.7.0/flatcar_production_digitalocean_image.bin.bz2"
+  name    = "flatcar"
+  url     = "https://stable.release.flatcar-linux.net/amd64-usr/2605.7.0/flatcar_production_digitalocean_image.bin.bz2"
   regions = ["nyc3"]
 }
 
 resource "digitalocean_droplet" "example" {
-  image     = digitalocean_custom_image.flatcar.id
-  name      = "example-01"
-  region    = "nyc3"
-  size      = "s-1vcpu-1gb"
-  ssh_keys  = [12345]
+  image    = digitalocean_custom_image.flatcar.id
+  name     = "example-01"
+  region   = "nyc3"
+  size     = "s-1vcpu-1gb"
+  ssh_keys = [12345]
 }
 ```
 
@@ -42,7 +43,7 @@ The following arguments are supported:
 * `url` - (Required) A URL from which the custom Linux virtual machine image may be retrieved.
 * `regions` - (Required) A list of regions. (Currently only one is supported).
 * `description` - An optional description for the image.
-* `distribution` - An optional distribution name for the image. Valid values are documented [here](https://docs.digitalocean.com/reference/api/api-reference/#operation/create_custom_image)
+* `distribution` - An optional distribution name for the image. Valid values are documented [here](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Images/operation/images_create_custom)
 * `tags` - A list of optional tags for the image.
 
 ## Attributes Reference

@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_firewall"
+subcategory: "Networking"
 ---
 
 # digitalocean_firewall
@@ -12,11 +13,11 @@ Get the firewall:
 
 ```hcl
 data "digitalocean_firewall" "example" {
-    firewall_id = "1df48973-6eef-4214-854f-fa7726e7e583"
+  firewall_id = "1df48973-6eef-4214-854f-fa7726e7e583"
 }
 
 output "example_firewall_name" {
-    value = data.digitalocean_firewall.example.name
+  value = data.digitalocean_firewall.example.name
 }
 ```
 

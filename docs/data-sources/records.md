@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_records"
+subcategory: "Networking"
 ---
 
 # digitalocean_records
@@ -15,7 +16,7 @@ Get data for all MX records in a domain:
 data "digitalocean_records" "example" {
   domain = "example.com"
   filter {
-    key = "type"
+    key    = "type"
     values = ["MX"]
   }
 }

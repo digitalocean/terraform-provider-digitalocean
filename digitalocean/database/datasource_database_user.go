@@ -32,9 +32,37 @@ func DataSourceDigitalOceanDatabaseUser() *schema.Resource {
 				Computed:  true,
 				Sensitive: true,
 			},
+			"access_cert": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+			"access_key": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
 			"mysql_auth_plugin": {
 				Type:     schema.TypeString,
 				Computed: true,
+			},
+			"settings": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"acl": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     userACLSchema(),
+						},
+						"opensearch_acl": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem:     userOpenSearchACLSchema(),
+						},
+					},
+				},
 			},
 		},
 	}
@@ -62,5 +90,15 @@ func dataSourceDigitalOceanDatabaseUserRead(ctx context.Context, d *schema.Resou
 		d.Set("mysql_auth_plugin", user.MySQLSettings.AuthPlugin)
 	}
 
+	if user.AccessCert != "" {
+		d.Set("access_cert", user.AccessCert)
+	}
+	if user.AccessKey != "" {
+		d.Set("access_key", user.AccessKey)
+	}
+
+	if err := d.Set("settings", flattenUserSettings(user.Settings)); err != nil {
+		return diag.Errorf("Error setting user settings: %#v", err)
+	}
 	return nil
 }

@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_account"
+subcategory: "Account"
 ---
 
 # digitalocean_account

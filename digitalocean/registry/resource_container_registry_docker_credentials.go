@@ -124,7 +124,7 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsUpdate(ctx context.Co
 	return nil
 }
 
-type dockerConfig struct {
+type DockerConfig struct {
 	Auths struct {
 		Registry struct {
 			Auth string `json:"auth"`
@@ -134,30 +134,40 @@ type dockerConfig struct {
 
 func resourceDigitalOceanContainerRegistryDockerCredentialsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	configJSON := d.Get("docker_credentials")
-	var config dockerConfig
+	var config DockerConfig
 	err := json.Unmarshal([]byte(configJSON.(string)), &config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	// The OAuth token is used for both the username and password
-	// and stored as a base64 encoded string.
-	decoded, err := base64.StdEncoding.DecodeString(config.Auths.Registry.Auth)
+	token, err := DecodeToken(config)
 	if err != nil {
-		return diag.FromErr(err)
-	}
-	tokens := strings.Split(string(decoded), ":")
-	if len(tokens) != 2 {
-		return diag.FromErr(errors.New("unable to find OAuth token"))
+		diag.FromErr(err)
 	}
 
-	err = RevokeOAuthToken(tokens[0], oauthTokenRevokeEndpoint)
+	err = RevokeOAuthToken(token, oauthTokenRevokeEndpoint)
 	if err != nil {
 		diag.FromErr(err)
 	}
 
 	d.SetId("")
 	return nil
+}
+
+func DecodeToken(config DockerConfig) (string, error) {
+	// The OAuth token is used for the password and stored as a base64 encoded string.
+	decoded, err := base64.StdEncoding.DecodeString(config.Auths.Registry.Auth)
+	if err != nil {
+		return "", err
+	}
+
+	// The decoded string is in the format "email:token"
+	tokens := strings.Split(string(decoded), ":")
+	if len(tokens) != 2 {
+		return "", errors.New("unable to find OAuth token")
+	}
+
+	return tokens[1], nil
 }
 
 func RevokeOAuthToken(token string, endpoint string) error {

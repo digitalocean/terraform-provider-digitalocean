@@ -11,7 +11,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/internal/mutexkv"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -149,7 +149,7 @@ func resourceDigitalOceanVPCUpdate(ctx context.Context, d *schema.ResourceData, 
 		vpcUpdateRequest := &godo.VPCUpdateRequest{
 			Name:        d.Get("name").(string),
 			Description: d.Get("description").(string),
-			Default:     godo.Bool(d.Get("default").(bool)),
+			Default:     godo.PtrTo(d.Get("default").(bool)),
 		}
 		_, _, err := client.VPCs.Update(context.Background(), d.Id(), vpcUpdateRequest)
 
@@ -166,14 +166,14 @@ func resourceDigitalOceanVPCDelete(ctx context.Context, d *schema.ResourceData, 
 	client := meta.(*config.CombinedConfig).GodoClient()
 	vpcID := d.Id()
 
-	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		resp, err := client.VPCs.Delete(context.Background(), vpcID)
 		if err != nil {
 			// Retry if VPC still contains member resources to prevent race condition
 			if resp.StatusCode == http.StatusForbidden {
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			} else {
-				return resource.NonRetryableError(fmt.Errorf("Error deleting VPC: %s", err))
+				return retry.NonRetryableError(fmt.Errorf("Error deleting VPC: %s", err))
 			}
 		}
 

@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_loadbalancer"
+subcategory: "Networking"
 ---
 
 # digitalocean\_loadbalancer
@@ -92,9 +93,8 @@ The following arguments are supported:
 * `name` - (Required) The Load Balancer name
 * `region` - (Required) The region to start in
 * `size` - (Optional) The size of the Load Balancer. It must be either `lb-small`, `lb-medium`, or `lb-large`. Defaults to `lb-small`. Only one of `size` or `size_unit` may be provided.
-* `size_unit` - (Optional) The size of the Load Balancer. It must be in the range (1, 100). Defaults to `1`. Only one of `size` or `size_unit` may be provided.
-* `algorithm` - (Optional) The load balancing algorithm used to determine
-which backend Droplet will be selected by a client. It must be either `round_robin`
+* `size_unit` - (Optional) The size of the Load Balancer. It must be in the range (1, 200). Defaults to `1`. Only one of `size` or `size_unit` may be provided.
+* `algorithm` - (Optional) **Deprecated** This field has been deprecated. You can no longer specify an algorithm for load balancers.
 or `least_connections`. The default value is `round_robin`.
 * `forwarding_rule` - (Required) A list of `forwarding_rule` to be assigned to the
 Load Balancer. The `forwarding_rule` block is documented below.
@@ -116,6 +116,14 @@ the backend service. Default value is `false`.
 * `droplet_ids` (Optional) - A list of the IDs of each droplet to be attached to the Load Balancer.
 * `droplet_tag` (Optional) - The name of a Droplet tag corresponding to Droplets to be assigned to the Load Balancer.
 * `firewall` (Optional) - A block containing rules for allowing/denying traffic to the Load Balancer. The `firewall` block is documented below. Only 1 firewall is allowed.
+* `domains` (Optional) - A list of `domains` required to ingress traffic to a Global Load Balancer. The `domains` block is documented below. 
+* `glb_settings` (Optional) - A block containing `glb_settings` required to define target rules for a Global Load Balancer. The `glb_settings` block is documented below.
+* `target_load_balancer_ids` (Optional) - A list of Load Balancer IDs to be attached behind a Global Load Balancer.
+* `type` - (Optional) The type of the Load Balancer. It must be either of `REGIONAL`, `REGIONAL_NETWORK`, or `GLOBAL`. Defaults to `REGIONAL`.
+* `network` - (Optional) The type of network the Load Balancer is accessible from. It must be either of `INTERNAL` or `EXTERNAL`. Defaults to `EXTERNAL`.
+* `network_stack` - (Optional) The network stack determines the allocation of ipv4/ipv6 addresses to the load balancer. It must be either of `IPV4` or `DUALSTACK`. Defaults to `IPV4`.
+* `tls_cipher_policy` - (Optional) The tls cipher policy controls the cipher suites to be used by the load balancer. It must be either of `DEFAULT` or `STRONG`. Defaults to `DEFAULT`.
+
 
 `forwarding_rule` supports the following:
 
@@ -124,7 +132,7 @@ the backend service. Default value is `false`.
 * `target_protocol` - (Required) The protocol used for traffic from the Load Balancer to the backend Droplets. The possible values are: `http`, `https`, `http2`, `tcp`, or `udp`.
 * `target_port` - (Required) An integer representing the port on the backend Droplets to which the Load Balancer will send traffic.
 * `certificate_name` - (Optional) The unique name of the TLS certificate to be used for SSL termination.
-* `certificate_id` - (Optional) **Deprecated** The ID of the TLS certificate to be used for SSL termination.
+* `certificate_id` - (Optional) **Deprecated** The ID of the TLS certificate to be used for SSL termination. Use `certificate_name` instead.
 * `tls_passthrough` - (Optional) A boolean value indicating whether SSL encrypted traffic will be passed through to the backend Droplets. The default value is `false`.
 
 `sticky_sessions` supports the following:
@@ -148,6 +156,20 @@ the backend service. Default value is `false`.
 * `deny` - (Optional) A list of strings describing deny rules. Must be colon delimited strings of the form `{type}:{source}`
 * `allow` - (Optional) A list of strings describing allow rules. Must be colon delimited strings of the form `{type}:{source}`
 * Ex. `deny = ["cidr:1.2.0.0/16", "ip:2.3.4.5"]` or `allow = ["ip:1.2.3.4", "cidr:2.3.4.0/24"]`
+
+`domains` supports the following:
+
+* `name` - (Required) The domain name to be used for ingressing traffic to a Global Load Balancer.
+* `is_managed` - (Optional) Control flag to specify whether the domain is managed by DigitalOcean.
+* `certificate_id` - (Optional) **Deprecated** The certificate ID to be used for TLS handshaking.
+* `certificate_name` - (Optional) The certificate name to be used for TLS handshaking.
+
+`glb_settings` supports the following:
+
+* `target_protocol` - (Required) The protocol used for traffic from the Load Balancer to the backend Droplets. The possible values are: `http` and `https`.
+* `target_port` - (Required) An integer representing the port on the backend Droplets to which the Load Balancer will send traffic. The possible values are: `80` for `http` and `443` for `https`.
+* `cdn` - (Optional) CDN configuration supporting the following:
+  * `is_enabled` - (Optional) Control flag to specify if caching is enabled.
 
 
 ## Attributes Reference

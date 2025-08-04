@@ -3,12 +3,16 @@ package sshkey
 import (
 	"context"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -43,6 +47,10 @@ func ResourceDigitalOceanSSHKey() *schema.Resource {
 				Computed: true,
 			},
 		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(2 * time.Minute),
+		},
 	}
 }
 
@@ -67,6 +75,23 @@ func resourceDigitalOceanSSHKeyCreate(ctx context.Context, d *schema.ResourceDat
 
 	d.SetId(strconv.Itoa(key.ID))
 	log.Printf("[INFO] SSH Key: %d", key.ID)
+
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		_, _, err := client.Keys.GetByID(context.Background(), key.ID)
+		if util.IsDigitalOceanError(err, http.StatusNotFound, "") {
+			log.Printf("[DEBUG] Received %s, retrying SSH key", err.Error())
+			return retry.RetryableError(err)
+		}
+
+		if err != nil {
+			return retry.NonRetryableError(err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return diag.Errorf("Error retrieving SSH Key: %s", err)
+	}
 
 	return resourceDigitalOceanSSHKeyRead(ctx, d, meta)
 }

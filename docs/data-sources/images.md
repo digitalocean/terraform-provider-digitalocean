@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_images"
+subcategory: "Droplets"
 ---
 
 # digitalocean_images

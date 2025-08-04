@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_database_cluster"
+subcategory: "Databases"
 ---
 
 # digitalocean\_database\_cluster
@@ -32,15 +33,27 @@ resource "digitalocean_database_cluster" "mysql-example" {
 }
 ```
 
-### Create a new Redis database cluster
+### Create a new Valkey database cluster
 ```hcl
-resource "digitalocean_database_cluster" "redis-example" {
-  name       = "example-redis-cluster"
-  engine     = "redis"
-  version    = "6"
+resource "digitalocean_database_cluster" "valkey-example" {
+  name       = "example-valkey-cluster"
+  engine     = "valkey"
+  version    = "8"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
   node_count = 1
+}
+```
+
+### Create a new Kafka database cluster
+```hcl
+resource "digitalocean_database_cluster" "kafka-example" {
+  name       = "example-kafka-cluster"
+  engine     = "kafka"
+  version    = "3.5"
+  size       = "db-s-2vcpu-2gb"
+  region     = "nyc1"
+  node_count = 3
 }
 ```
 
@@ -49,8 +62,20 @@ resource "digitalocean_database_cluster" "redis-example" {
 resource "digitalocean_database_cluster" "mongodb-example" {
   name       = "example-mongo-cluster"
   engine     = "mongodb"
-  version    = "4"
+  version    = "6"
   size       = "db-s-1vcpu-1gb"
+  region     = "nyc3"
+  node_count = 1
+}
+```
+
+### Create a new OpenSearch database cluster
+```hcl
+resource "digitalocean_database_cluster" "opensearch-example" {
+  name       = "example-opensearch-cluster"
+  engine     = "opensearch"
+  version    = "2"
+  size       = "db-s-1vcpu-2gb"
   region     = "nyc3"
   node_count = 1
 }
@@ -61,7 +86,7 @@ resource "digitalocean_database_cluster" "mongodb-example" {
 resource "digitalocean_database_cluster" "doby" {
   name       = "dobydb"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-2gb"
   region     = "nyc1"
   node_count = 1
@@ -71,14 +96,14 @@ resource "digitalocean_database_cluster" "doby" {
 resource "digitalocean_database_cluster" "doby_backup" {
   name       = "dobydupe"
   engine     = "pg"
-  version    = "11"
+  version    = "15"
   size       = "db-s-1vcpu-2gb"
   region     = "nyc1"
   node_count = 1
   tags       = ["production"]
-  
+
   backup_restore {
-    database_name  = "dobydb"
+    database_name = "dobydb"
   }
 
   depends_on = [
@@ -92,23 +117,24 @@ resource "digitalocean_database_cluster" "doby_backup" {
 The following arguments are supported:
 
 * `name` - (Required) The name of the database cluster.
-* `engine` - (Required) Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `redis` for Redis, or `mongodb` for MongoDB).
-* `size` - (Required) Database Droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`). See here for a [list of valid size slugs](https://docs.digitalocean.com/reference/api/api-reference/#tag/Databases).
+* `engine` - (Required) Database engine used by the cluster (ex. `pg` for PostreSQL, `mysql` for MySQL, `valkey` for Valkey, `mongodb` for MongoDB, or `kafka` for Kafka).
+* `size` - (Required) Database Droplet size associated with the cluster (ex. `db-s-1vcpu-1gb`). See the DigitalOcean API for a [list of valid size slugs](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Databases/operation/databases_list_options).
 * `region` - (Required) DigitalOcean region where the cluster will reside.
-* `node_count` - (Required) Number of nodes that will be included in the cluster.
+* `node_count` - (Required) Number of nodes that will be included in the cluster. For `kafka` clusters, this must be 3.
 * `version` - (Required) Engine version used by the cluster (ex. `14` for PostgreSQL 14).
-  When this value is changed, a call to the [Upgrade major Version for a Database](https://docs.digitalocean.com/reference/api/api-reference/#operation/databases_update_major_version) API operation is made with the new version.
+  When this value is changed, a call to the [Upgrade major Version for a Database](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Databases/operation/databases_update_major_version) API operation is made with the new version.
 * `tags` - (Optional) A list of tag names to be applied to the database cluster.
 * `private_network_uuid` - (Optional) The ID of the VPC where the database cluster will be located.
 * `project_id` - (Optional) The ID of the project that the database cluster is assigned to. If excluded when creating a new database cluster, it will be assigned to your default project.
-* `eviction_policy` - (Optional) A string specifying the eviction policy for a Redis cluster. Valid values are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.
+* `eviction_policy` - (Optional) A string specifying the eviction policy for a Valkey cluster. Valid values are: `noeviction`, `allkeys_lru`, `allkeys_random`, `volatile_lru`, `volatile_random`, or `volatile_ttl`.
 * `sql_mode` - (Optional) A comma separated string specifying the  SQL modes for a MySQL cluster.
 * `maintenance_window` - (Optional) Defines when the automatic maintenance should be performed for the database cluster.
+* `storage_size_mib` - (Optional) Defines the disk size, in MiB, allocated to the cluster. This can be adjusted on MySQL and PostreSQL clusters based on predefined ranges for each slug/droplet size.
 
 `maintenance_window` supports the following:
 
-* `day` - (Required) The day of the week on which to apply maintenance updates.
-* `hour` - (Required) The hour in UTC at which maintenance updates will be applied in 24 hour format.
+* `day` - (Required) The day of the week on which to apply maintenance updates. May be one of `monday` through `sunday`.
+* `hour` - (Required) The hour in UTC at which maintenance updates will be applied as a string in 24 hour format, e.g. `13:00`.
 
 * `backup_restore` - (Optional) Create a new database cluster based on a backup of an existing cluster.
 
@@ -133,6 +159,17 @@ In addition to the above arguments, the following attributes are exported:
 * `database` - Name of the cluster's default database.
 * `user` - Username for the cluster's default user.
 * `password` - Password for the cluster's default user.
+* `metrics_endpoints` - A list of metrics endpoints for the database cluster, providing URLs to access Prometheus-compatible metrics.
+
+OpenSearch clusters will have the following additional attributes with connection
+details for their dashboard:
+
+* `ui_host` - Hostname for the OpenSearch dashboard.
+* `ui_port` - Network port that the OpenSearch dashboard is listening on.
+* `ui_uri` - The full URI for connecting to the OpenSearch dashboard.
+* `ui_database` - Name of the OpenSearch dashboard db.
+* `ui_user` - Username for OpenSearch dashboard's default user.
+* `ui_password` - Password for the OpenSearch dashboard's default user.
 
 ## Import
 

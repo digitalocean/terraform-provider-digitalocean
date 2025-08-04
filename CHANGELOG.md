@@ -1,4 +1,364 @@
-# 2.30.0
+# Change Log
+
+Changelog moved to Release Notes in [Github Releases](https://github.com/digitalocean/terraform-provider-digitalocean/releases)
+
+## 2.48.2
+
+BUGFIXES:
+
+- #1319 - @loosla - [kubernetes]: fixing issues related to some missing fields in config
+
+## 2.48.1
+
+BUGFIXES:
+
+- #1316 - @andrewsomething - kubernetes: protect against panic in flattenControlPlaneFirewallOpts
+
+## 2.48.0
+
+IMPROVEMENTS:
+
+- #1311 - @jvasilevsky - LBAAS-3600: support loadbalancer network_stack in terraform
+- #1310 - @basert - feat(kubernetes): add support to configure control plane firewall
+- #1306 - @linuxluigi - Add kubeconfig expiration option for credentials
+- #1304 - @andrewsomething - apps: support Bitbucket as a source.
+- #1293 - @moreinhardt - Add maintenance day validation for database and kubernetes clusters
+
+BUGFIXES:
+
+- #1305 - @Xowap - There is no minimum on services
+- #1308 - @lionello - Project: return success after removing ID
+
+MISC:
+
+- #1301 - @dependabot[bot] - build(deps): bump golang.org/x/net from 0.23.0 to 0.33.0
+- #1300 - @loosla - update godo version
+- #1307 - @lee-aaron - Add Makefile command for upgrading godo
+
+## 2.47.0
+
+IMPROVEMENTS:
+
+- #1297 - @andrewsomething - apps: add support for termination configuration.
+- #1296 - @andrewsomething - apps: workers support autoscaling
+- #1295 - @andrewsomething - apps: support specifying images by digest
+
+DOCS:
+
+- #1294 - @moreinhardt - docs: Clarify tags argument for firewall
+
+## 2.46.1
+
+BUG FIXES:
+
+- #1290 - @andrewsomething - fix: add opensearch_acl to data.digitalocean_database_user schema
+
+## 2.46.0
+
+IMPROVEMENTS:
+
+- #1277 - @imaskm - Add reserved ipv6 resource
+- #1280 - @asaha2 - Add support for droplet autoscale pool
+
+BUG FIXES:
+
+- #1284 - @jvasilevsky - LBAAS: increase maximum lb size_unit, add regional_network type support
+
+## 2.45.0
+
+IMPROVEMENTS:
+
+- #1279 - @jvasilevsky - LBAAS-3552: add lb ipv6 field
+
+BUG FIXES:
+
+- #1276 - @andrewsomething - apps: support removing ingress rules.
+
+MISC:
+
+- #1283 - @loosla - [documentation]: update contributing: move terraformrc section to reb…
+- #1282 - @loosla - [documentation]: update contributing doc
+
+## 2.44.1
+
+BUG FIXES:
+
+- #1273 - @andrewsomething - opensearch_config: follow PATCH semantics
+
+MISC:
+
+- #1265 - @brianhelba - Fix docs for "digitalocean_database_opensearch_config"
+- #1270 - @dduportal - docs(droplet) details `user_data` behavior (resource forces recreate)
+
+## 2.44.0
+
+IMPROVEMENTS:
+
+- #1261 - @loosla - [droplets]: add support for backup policy
+- #1256 - @andrewsomething - Support GPU Droplets in Droplet data sources
+
+BUG FIXES:
+
+- #1268 - @andrewsomething - opensearch_config: only send PATCH on create if values set.
+
+MISC:
+
+- #1262 - @loosla - [databases]: update a description for redis_ssl in redis advanced config
+- #1260 - @jvasilevsky - LBAAS-3509: update loadbalancer field descriptions
+- #1255 - @publi0 - Enhance Documentation with Subcategories for Resources and Data Sources
+
+## 2.43.0
+
+IMPROVEMENTS:
+
+- #1253 - @andrewsomething - k8s: support setting cluster and service subnets on create.
+- #1251 - @loosla - [spaces]: add tor1 to spaces
+- #1246 - @loosla - [databases]: update kafka uri, private_uri
+- #1244 - @loosla - [databases]: minor variable renaming in mongo advanced configuration …
+- #1234 - @loosla - [databases]: add support for Opensearch advanced configuration
+
+MISC:
+
+- #1245 - @loosla - [documentation]: update requirements in readme
+- #1247 - @loosla - [documentation]: add a default for digitalocean_spaces_bucket acl
+- #1236 - @TheMarvelFan - Enabled Linting errcheck and fixed linting issues
+- #1240 - @andrewsomething - docs: fix formatting for apps log_destination
+- #1237 - @SpiffyEight77 - fix: enable failing staticchecks
+- #1235 - @SpiffyEight77 - fix: enable failing gosimple check
+- #1243 - @andrewsomething - Revert change moving from logging.NewTransportWithRequestLogging from logging.NewTransport.
+- #1249 - @andrewsomething - Re-introduce d.GetOkExists usage.
+
+## 2.42.0
+
+IMPROVEMENTS:
+
+- #1218 - @loosla - [databases]: add support for Kafka advanced configuration
+- #1215 - @bhardwajRahul - Update Terraform provider to include new opensearch acl changes
+- #1212 - @loosla - [databases]: add support for MongoDB advanced configuration
+
+MISC:
+
+- #1231 - @jameskim0987 - [ISSUE-1228] Resolve failing linter: ineffassign and enable back
+- #1230 - @jameskim0987 - [ISSUE-1229] Resolve failing linter: unused and enable back
+- #1214 - @andrewsomething - Update workflows for Go 1.22.
+- #1213 - @loosla - upgrade godo
+
+## 2.41.0
+
+IMPROVEMENTS:
+
+- #1209 - @andrewsomething - apps: expose live_domain computed attribute.
+- #1202 - @zoispag - Add support for Spaces in LON1
+- #1200 - @GiovanniColonni - Added support for opensearch configuration on log_destination block
+
+BUG FIXES:
+
+- #1204 - @andrewsomething - ssh: protect against database race condition in create
+- #1193 - @linuxluigi - Fix Postgres Config TimescaleDB configuration
+
+MISC:
+
+- #1208 - @andrewsomething - apps: update examples to remove environment_slug
+- #1203 - @andrewsomething - dbaas: Use standardized name prefix in tests.
+- #1198 - @seano-vs - Add opensearch to cluster reference
+- #1197 - @stooj - fix(docs): include newly supported alerts
+
+## 2.40.0
+
+IMPROVEMENTS:
+
+- #1189 - @moritzbruder - digitalocean_app: Service Autoscaling
+- #1188 - @andrewsomething - apps: support DEPLOYMENT_STARTED and DEPLOYMENT_CANCELLED alerts.
+- #1182 - @andrewsomething - apps: support additional database engines
+- #1173 - @asaha2 - Support load balancers network type
+
+BUG FIXES:
+
+- #1186 - @andrewsomething - databases: set replica size to state on read.
+- #1184 - @andrewsomething - apps: protect against panic when CORS has no allow_origins
+
+MISC:
+
+- #1192 - @halkeye - fix: run https://github.com/crate-ci/typos --write-changes to fix up typos
+- #1177 - @cotyhamilton - Update kubernetes_cluster surge_upgrade default in docs
+- #1180 - @andrewsomething - apps: document registry_credentials argument.
+- #1178 - @andrewsomething - Update for goreleaser 2.0
+- #1174 - @dependabot[bot] - build(deps): bump github.com/hashicorp/go-retryablehttp from 0.7.4 to 0.7.7
+
+
+## 2.39.2
+
+MISC:
+
+- #1171 - @apinonformoso - docs: add vpc peering alpha only note
+
+## 2.39.1
+
+BUG FIXES:
+
+- #1166 - @razum90 - Databases: Save DB password from initial POST request
+- #1169 - @andrewsomething - dbaas:  ensure password is always retained in connection URIs, replicas, and connection pools.
+
+## 2.39.0
+
+IMPROVEMENTS:
+
+- #1164 - @danaelhe - Apps: Add egress/dedicated IPs support
+- #1160 - @apinonformoso - [VPC-3361] Add VPC Peering resource
+- #1157 - @danaelhe - Record: Add warning if TTL has changed
+- #1155 - @asaha2 - Add support for GLB active-passive failover config
+
+BUG FIXES:
+- #1156 - @danaelhe - CI: Fix golangci linter failure
+
+MISC:
+- #1159 - @apinonformoso - chore: upgraded godo to latest version
+
+## 2.38.0
+
+IMPROVEMENTS:
+
+- #1140 - @bhardwajRahul - Terraform Provider updates for OpenSearch
+
+BUG FIXES:
+
+- #1150 - @danaelhe - Project: Remove project from state if tf project creation plan fails
+
+MISC:
+
+- #1145 - @yordis - chore: fix header of changelog
+- #1144 - @yordis - chore: remove go.mod replace for old unused pkg
+- #1142 - @dependabot[bot] - build(deps): bump golang.org/x/net from 0.17.0 to 0.23.0
+
+## 2.37.1
+
+BUG FIXES:
+- #1148 - @danaelhe - Apps: Mark registry_credentials as optional
+
+## 2.37.0
+
+IMPROVEMENTS:
+- #1139 - @linuxluigi - Add PostgreSQL configuration resource and test
+- #1133 - @asaha2 - Add config options for global load balancers
+
+BUG FIXES:
+- #1127 - @danaelhe - Load Balancer: Deprecate "algorithm" attribute
+
+MISC:
+- #1128 - @danaelhe - Update database_firewall example
+- #1125 - @dependabot[bot] - build(deps): bump google.golang.org/protobuf from 1.31.0 to 1.33.0
+- #1137 - @andrewsomething - apps: included registry_credentials option for images
+
+## 2.36.0
+
+IMPROVEMENTS:
+- #1115 - @guptado - [NETPROD-3585] Optimised fetching certificates by name
+
+BUG FIXES:
+- #1116 - @andrewsomething - certificates: handle missing certificate.
+- #1119 - @andrewsomething - uptime alerts: fix importing existing alerts
+
+MISC:
+- #1120 - @andrewsomething - docs: apps can be added to projects.
+
+## 2.35.0
+
+IMPROVEMENTS: 
+- #1113 - @danaelhe - Apps: Support Project Assignment
+- #1109 - @andrewsomething - apps: Add GHCR as a supported registry type.
+- #1103 - @dweinshenker - Support scalable storage settings separately for read-replica vs. primary
+- #1102 - @moreinhardt - database: Add access_cert and access_key for kafka users
+
+BUG FIXES:
+- #1100 - @danaelhe - uptime_alert: 1hr -> 1h
+
+MISC:
+- #1111 - @andrewsomething - droplet: Document and warn that enabling IPv6 requires OS-level config changes.
+- #1108 - @andrewsomething - redis config: allow setting timeout to 0
+- #1105 - @danktec - Force replacement if user tries to disable IPv6 on a droplet
+
+## 2.34.1
+
+BUG FIXES:
+
+- `digitalocean_cdn`: handle 'needs-cloudflare-cert' case in read func (#1095). - @andrewsomething
+- `digitalocean_database_cluster`: ignore seconds in maintenance_window.hour (#1094). - @andrewsomething
+- build(deps): bump golang.org/x/crypto from 0.14.0 to 0.17.0 (#1096). - @dependabot[bot]
+
+## 2.34.0
+
+IMPROVEMENTS:
+
+- `digitalocean_database_user`: Support updating ACL settings (#1090). - @dweinshenker
+
+BUG FIXES:
+
+- `digitalocean_cdn`: Add Support for "needs-cloudflare-cert" (#1089). - @danaelhe
+- `digitalocean_spaces_bucket`: blr1 is a supported region (#1085). - @andrewsomething
+- `digitalocean_database_kafka_topic`: Kafka topic + user ACL management doc fixes (#1082). - @dweinshenker
+
+## 2.33.0
+
+IMPROVEMENTS:
+
+- #1073 - @T-jegou - Add `digitalocean_database_connection_pool` datasource
+
+BUG FIXES:
+
+- #1078 - @nemcikjan - fix: added missing option to set port on health_check
+- #1076 - @dweinshenker - Remove unclean_leader_election_enable for kafka topic configuration
+- #1080 - @danaelhe - Apps: Reference Port in expandAppHealthCheck and flattenAppHealthCheck
+- #1074 - @T-jegou - Fixing Case Handling for Volume Resource
+
+
+## 2.32.0
+
+IMPROVEMENTS:
+
+- `digitalocean_app`: Support `features` in App spec (#1066). - @T-jegou
+- `digitalocean_database_user`: Add support for Kafka Topic User ACL management (#1056). - @dweinshenker
+- `digitalocean_kubernetes_cluster`: Support enabling HA post-create (#1058). - @andrewsomething
+
+BUG FIXES:
+
+- `digitalocean_loadbalancer`: ignore 404 on delete (#1067). - @andrewsomething
+- `digitalocean_database_mysql_config`: Use GetOkExists for bools (#1063). - @andrewsomething
+- `digitalocean_kubernetes_cluster`: Handle error from GetCredentials and protect against panic (#1064). - @andrewsomething
+
+MISC:
+
+- `provider`: Bump godo to v1.105.1 (#1071). - @andrewsomething
+- `provider`: bump google.golang.org/grpc from 1.53.0 to 1.56.3 (#1057). - @dependabot[bot]
+
+## 2.31.0
+
+FEATURES:
+
+- **New Resource:** `digitalocean_database_kafka_topic` (#1052) - @dweinshenker
+- **New Resource:** `digitalocean_database_mysql_config` (#1051) - @kallydev
+- **New Resource:** `digitalocean_database_redis_config` (#1037) - @andrewsomething
+
+IMPROVEMENTS:
+
+- `digitalocean_database_cluster`: Add support for Scalable Storage (#1054). - @dweinshenker
+- `digitalocean_app`: Add support for ingress for component routing, rewrites, and redirects (#1053). - @andrewsomething
+- `digitalocean_loadbalancer`: Add support type param (#1023). - @asaha2
+
+BUG FIXES:
+
+- `digitalocean_loadbalancer`: no region field needed for global lb type (#1046). - @apinonformoso
+- `digitalocean_loadbalancer`: Parse nil region for global lb (#1043). - @asaha2
+- `digitalocean_app`: Rework deployment logic (#1048). - @davidsbond
+- `digitalocean_spaces_bucket`: set force_destroy false on import (#1041). - @andrewsomething
+
+MISC:
+
+- `build(deps)`: bump golang.org/x/net from 0.14.0 to 0.17.0 (#1050). - @dependabot[bot]
+- `docs`: Clarify Database Docs for Referencing DB Replicas (#1045). - @danaelhe
+- `testing`: Use terrafmt on docs directory (#1036). - @andrewsomething 
+- `docs`: Update Droplet example (#1035). - @danaelhe
+
+## 2.30.0
 
 FEATURES:
 
@@ -22,7 +382,7 @@ MISC:
 - `provider`: Update godo dependency to v1.102.0 (#1018). - @danaelhe
 - `provider`: Update godo dependency to v1.101.0 (#1017.) - @danaelhe
 
-# 2.29.0
+## 2.29.0
 
 FEATURES:
 
@@ -43,7 +403,7 @@ MISC:
 - `testing`: Update Postgres versions in acceptance tests (#1002). - @andrewsomething
 - `provider`: build(deps): bump google.golang.org/grpc from 1.51.0 to 1.53.0 (#1003). - @dependabot[bot]
 
-# 2.28.1
+## 2.28.1
 
 BUG FIXES:
 
@@ -51,7 +411,7 @@ BUG FIXES:
 - `digitalocean_droplet`: Prevent inconsistent plan when enabling IPv6 (#982). - @andrewsomething
 - `digitalocean_custom_image`: use custom create timeout (#985). - @andrewsomething
 
-# 2.28.0
+## 2.28.0
 
 IMPROVEMENTS:
 
@@ -72,7 +432,7 @@ MISC:
 - `docs`: Use correct links in uptime docs. #973 - @andrewsomething
 - `provider`: Update Terraform SDK to v2.26.1. #975 - @andrewsomething
 
-# 2.27.1
+## 2.27.1
 
 BUG FIXES:
 
@@ -83,7 +443,7 @@ MISC:
 - dependencies: bump golang.org/x/net (#957). - @dependabot
 - dependencies: bump golang.org/x/crypto (#960). - @dependabot
 
-# 2.27.0
+## 2.27.0
 
 IMPROVEMENTS:
 
@@ -121,7 +481,7 @@ MISC:
 - `testing`: Fix flaky database acceptance tests (#953). - @andrewsomething
 - Remove .go-version and add to .gitignore (#958). - @ChiefMateStarbuck
 
-# 2.26.0
+## 2.26.0
 
 IMPROVEMENTS:
 
@@ -138,19 +498,19 @@ MISC:
 - `docs`: Fix typo in README (#920) - @mbardelmeijer
 - `docs`: Add releasing notes & missing changelog entries (#922) - @scotchneat
 
-# 2.25.2
+## 2.25.2
 
 IMPROVEMENTS:
 
 - `database_replica`: add retry on db replica create (#907) - @DMW2151
 
-# 2.25.1
+## 2.25.1
 
 IMPROVEMENTS:
 
 - `monitoring`: Support HTTP idle timeout & Project ID (#897) - @StephenVarela
 
-# 2.24.0
+## 2.24.0
 
 IMPROVEMENTS:
 
@@ -163,7 +523,7 @@ MISC:
 
 - `docs`: Fix reference in documentation of project_resources (#890) - @Lavode
 
-# 2.23.0 (September 27, 2022)
+## 2.23.0 (September 27, 2022)
 
 IMPROVEMENTS:
 
@@ -178,13 +538,13 @@ MISC:
 
 - Upgrade to Go 1.19  ([#884](https://github.com/digitalocean/terraform-provider-digitalocean/pull/884)). - @andrewsomething
 
-# 2.22.3 (September 12, 2022)
+## 2.22.3 (September 12, 2022)
 
 BUG FIXES:
 
 - `digitalocean_droplet`: Fix configurable timeouts for Droplet creates ([#867](https://github.com/digitalocean/terraform-provider-digitalocean/pull/867)). - @andrewsomething
 
-# 2.22.2 (August 31, 2022)
+## 2.22.2 (August 31, 2022)
 
 IMPROVEMENTS:
 
@@ -195,7 +555,7 @@ MISC:
 - `digitalocean_database_cluster`: Suppress diffs on forced Redis version upgrades ([#873](https://github.com/digitalocean/terraform-provider-digitalocean/pull/873)) - @scotchneat
 - `docs`: fix app spec link([#871](https://github.com/digitalocean/terraform-provider-digitalocean/pull/871)) - @jkpe
 
-# 2.22.1 (August 16, 2022)
+## 2.22.1 (August 16, 2022)
 
 BUG FIXES:
 
@@ -483,7 +843,7 @@ IMPROVEMENTS:
 * Run tests on pull_request not pull_request_target. ([#589](https://github.com/digitalocean/terraform-provider-digitalocean/pull/589))
 * kubernetes - enable surge upgrades by default during cluster creation ([#584](https://github.com/digitalocean/terraform-provider-digitalocean/pull/584))
 * Assign and remove project resources without unnecessary churn (Fixes: #585). ([#586](https://github.com/digitalocean/terraform-provider-digitalocean/pull/586))
-* dbaas replica: Add missing attrbutes to docs. ([#588](https://github.com/digitalocean/terraform-provider-digitalocean/pull/588))
+* dbaas replica: Add missing attributes to docs. ([#588](https://github.com/digitalocean/terraform-provider-digitalocean/pull/588))
 * Bump Kubernetes version used in documentation ([#583](https://github.com/digitalocean/terraform-provider-digitalocean/pull/583))
 
 BUG FIXES:
@@ -556,7 +916,7 @@ BUG FIXES:
 
 NOTES:
 
-* DigitalOcean Container Registry is now in general availablity and requires a [subscription plan](https://www.digitalocean.com/docs/container-registry/#plans-and-pricing). As a result, the `digitalocean_container_registry` resource now requires setting a `subscription_tier_slug`.
+* DigitalOcean Container Registry is now in general availability and requires a [subscription plan](https://www.digitalocean.com/docs/container-registry/#plans-and-pricing). As a result, the `digitalocean_container_registry` resource now requires setting a `subscription_tier_slug`.
 
 IMPROVEMENTS:
 
@@ -584,7 +944,7 @@ BUG FIXES:
 NOTES:
 
 * This release uses v2.0.3 of the Terraform Plugin SDK and now only supports Terraform v0.12 and higher.
-* The `certificate_id` attribute of the `digitalocean_cdn` and `digitalocean_loadbalancer` resources has been deprecated in favor of `certificate_name`. It will become a read-only computed attrbute in a future release.
+* The `certificate_id` attribute of the `digitalocean_cdn` and `digitalocean_loadbalancer` resources has been deprecated in favor of `certificate_name`. It will become a read-only computed attribute in a future release.
 
 FEATURES:
 

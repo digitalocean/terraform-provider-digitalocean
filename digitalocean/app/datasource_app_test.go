@@ -35,6 +35,8 @@ func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
 						"data.digitalocean_app.foobar", "spec.0.name", appName),
 					resource.TestCheckResourceAttrPair("digitalocean_app.foobar", "default_ingress",
 						"data.digitalocean_app.foobar", "default_ingress"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_app.foobar", "project_id"),
 					resource.TestCheckResourceAttrPair("digitalocean_app.foobar", "live_url",
 						"data.digitalocean_app.foobar", "live_url"),
 					resource.TestCheckResourceAttrPair("digitalocean_app.foobar", "active_deployment_id",
@@ -52,7 +54,9 @@ func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_app.foobar", "spec.0.service.0.instance_size_slug", "basic-xxs"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/"),
+						"data.digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.name", "go-service"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_app.foobar", "spec.0.service.0.git.0.repo_clone_url",
 						"https://github.com/digitalocean/sample-golang.git"),
@@ -81,11 +85,19 @@ func TestAccDataSourceDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_app.foobar", "spec.0.service.0.name", "go-service"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_app.foobar", "spec.0.service.0.routes.0.path", "/go"),
+						"data.digitalocean_app.foobar", "spec.0.ingress.0.rule.0.match.0.path.0.prefix", "/go"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.preserve_path_prefix", "false"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_app.foobar", "spec.0.ingress.0.rule.0.component.0.name", "go-service"),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_app.foobar", "spec.0.service.1.name", "python-service"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_app.foobar", "spec.0.service.1.routes.0.path", "/python"),
+						"data.digitalocean_app.foobar", "spec.0.ingress.0.rule.1.match.0.path.0.prefix", "/python"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_app.foobar", "spec.0.ingress.0.rule.1.component.0.preserve_path_prefix", "true"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_app.foobar", "spec.0.ingress.0.rule.1.component.0.name", "python-service"),
 				),
 			},
 		},

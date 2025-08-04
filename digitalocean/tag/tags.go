@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-var tagNameRe = regexp.MustCompile("^[a-zA-Z0-9:\\-_]{1,255}$")
+var tagNameRe = regexp.MustCompile(`^[a-zA-Z0-9:\-_]{1,255}$`)
 
 func TagsSchema() *schema.Schema {
 	return &schema.Schema{

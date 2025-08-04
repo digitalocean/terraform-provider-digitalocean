@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_droplet"
+subcategory: "Droplets"
 ---
 
 # digitalocean\_droplet
@@ -13,10 +14,16 @@ modify, and delete Droplets. Droplets also support
 ```hcl
 # Create a new Web Droplet in the nyc2 region
 resource "digitalocean_droplet" "web" {
-  image  = "ubuntu-18-04-x64"
-  name   = "web-1"
-  region = "nyc2"
-  size   = "s-1vcpu-1gb"
+  image   = "ubuntu-20-04-x64"
+  name    = "web-1"
+  region  = "nyc2"
+  size    = "s-1vcpu-1gb"
+  backups = true
+  backup_policy {
+    plan    = "weekly"
+    weekday = "TUE"
+    hour    = 8
+  }
 }
 ```
 
@@ -24,23 +31,29 @@ resource "digitalocean_droplet" "web" {
 
 The following arguments are supported:
 
-* `image` - (Required) The Droplet image ID or slug. This could be either image ID or droplet snapshot ID.
+* `image` - (Required) The Droplet image ID or slug. This could be either image ID or droplet snapshot ID. You can find image IDs and slugs using the [DigitalOcean API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Images).
 * `name` - (Required) The Droplet name.
 * `region` - The region where the Droplet will be created.
-* `size` - (Required) The unique slug that indentifies the type of Droplet. You can find a list of available slugs on [DigitalOcean API documentation](https://docs.digitalocean.com/reference/api/api-reference/#tag/Sizes).
+* `size` - (Required) The unique slug that identifies the type of Droplet. You may list the available slugs using the [DigitalOcean API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Sizes).
 * `backups` - (Optional) Boolean controlling if backups are made. Defaults to
    false.
+* `backup_policy` - (Optional) An object specifying the backup policy for the Droplet. If omitted and `backups` is `true`, the backup plan will default to daily.
+  - `plan` - The backup plan used for the Droplet. The plan can be either `daily` or `weekly`.
+  - `weekday` - The day of the week on which the backup will occur (`SUN`, `MON`, `TUE`, `WED`, `THU`, `FRI`, `SAT`).
+  - `hour` - The hour of the day that the backup window will start (`0`, `4`, `8`, `12`, `16`, `20`).
 * `monitoring` - (Optional) Boolean controlling whether monitoring agent is installed.
    Defaults to false. If set to `true`, you can configure monitor alert policies
    [monitor alert resource](/providers/digitalocean/digitalocean/latest/docs/resources/monitor_alert)
 * `ipv6` - (Optional) Boolean controlling if IPv6 is enabled. Defaults to false.
+   Once enabled for a Droplet, IPv6 can not be disabled. When enabling IPv6 on
+   an existing Droplet, [additional OS-level configuration](https://docs.digitalocean.com/products/networking/ipv6/how-to/enable/#on-existing-droplets)
+   is required.
 * `vpc_uuid` - (Optional) The ID of the VPC where the Droplet will be located.
 * `private_networking` - (Optional) **Deprecated** Boolean controlling if private networking
   is enabled. This parameter has been deprecated. Use `vpc_uuid` instead to specify a VPC network for the Droplet. If no `vpc_uuid` is provided, the Droplet will be placed in your account's default VPC for the region.
-
 * `ssh_keys` - (Optional) A list of SSH key IDs or fingerprints to enable in
    the format `[12345, 123456]`. To retrieve this info, use the
-   [DigitalOcean API](https://docs.digitalocean.com/reference/api/api-reference/#tag/SSH-Keys)
+   [DigitalOcean API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/SSH-Keys)
    or CLI (`doctl compute ssh-key list`). Once a Droplet is created keys can not
    be added or removed via this provider. Modifying this field will prompt you
    to destroy and recreate the Droplet.
@@ -49,7 +62,7 @@ The following arguments are supported:
    only the Droplet's RAM and CPU will be resized. **Increasing a Droplet's disk
    size is a permanent change**. Increasing only RAM and CPU is reversible.
 * `tags` - (Optional) A list of the tags to be applied to this Droplet.
-* `user_data` (Optional) - A string of the desired User Data for the Droplet.
+* `user_data` (Optional) - A string of the desired User Data provided [during Droplet creation](https://docs.digitalocean.com/products/droplets/how-to/provide-user-data/). Changing this forces a new resource to be created.
 * `volume_ids` (Optional) - A list of the IDs of each [block storage volume](/providers/digitalocean/digitalocean/latest/docs/resources/volume) to be attached to the Droplet.
 * `droplet_agent` (Optional) - A boolean indicating whether to install the
    DigitalOcean agent used for providing access to the Droplet web console in

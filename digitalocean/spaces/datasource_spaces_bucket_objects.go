@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -81,7 +81,7 @@ func dataSourceDigitalOceanSpacesBucketObjectsRead(ctx context.Context, d *schem
 	bucket := d.Get("bucket").(string)
 	prefix := d.Get("prefix").(string)
 
-	d.SetId(resource.UniqueId())
+	d.SetId(id.UniqueId())
 
 	listInput := s3.ListObjectsInput{
 		Bucket: aws.String(bucket),

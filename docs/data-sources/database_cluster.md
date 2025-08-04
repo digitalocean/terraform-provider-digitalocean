@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_database_cluster"
+subcategory: "Databases"
 ---
 
 # digitalocean\_database\_cluster
@@ -46,8 +47,19 @@ The following attributes are exported:
 * `user` - Username for the cluster's default user.
 * `password` - Password for the cluster's default user.
 * `project_id` - The ID of the project that the database cluster is assigned to.
+* `metrics_endpoints` - A list of metrics endpoints for the database cluster, providing URLs to access Prometheus-compatible metrics.
 
 `maintenance_window` supports the following:
 
 * `day` - The day of the week on which to apply maintenance updates.
 * `hour` - The hour in UTC at which maintenance updates will be applied in 24 hour format.
+
+OpenSearch clusters will have the following additional attributes with connection
+details for their dashboard:
+
+* `ui_host` - Hostname for the OpenSearch dashboard.
+* `ui_port` - Network port that the OpenSearch dashboard is listening on.
+* `ui_uri` - The full URI for connecting to the OpenSearch dashboard.
+* `ui_database` - Name of the OpenSearch dashboard db.
+* `ui_user` - Username for OpenSearch dashboard's default user.
+* `ui_password` - Password for the OpenSearch dashboard's default user.

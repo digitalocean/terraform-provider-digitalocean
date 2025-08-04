@@ -1,11 +1,12 @@
 ---
 page_title: "DigitalOcean: digitalocean_uptime_alert"
+subcategory: "Monitoring"
 ---
 
 # digitalocean_uptime_alert
 
-Provides a [DigitalOcean Uptime Alerts](https://docs.digitalocean.com/reference/api/api-reference/#operation/uptime_alert_create)
-resource. Uptime Alerts provide the ability to add alerts to your [DigitalOcean Uptime Checks](https://docs.digitalocean.com/reference/api/api-reference/#tag/Uptime) when your endpoints are slow, unavailable, or SSL certificates are expiring.
+Provides a [DigitalOcean Uptime Alerts](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Uptime/operation/uptime_create_alert)
+resource. Uptime Alerts provide the ability to add alerts to your [DigitalOcean Uptime Checks](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Uptime) when your endpoints are slow, unavailable, or SSL certificates are expiring.
 
 
 ### Basic Example
@@ -63,8 +64,9 @@ The following attributes are exported.
 
 ## Import
 
-Uptime checks can be imported using the uptime alert's `id`, e.g.
+Uptime alerts can be imported using both the ID of the alert's parent check and
+its own separated by a comma in the format: `check_id,alert_id`. For example:
 
 ```shell
-terraform import digitalocean_uptime_alert.target 5a4981aa-9653-4bd1-bef5-d6bff52042e4
+terraform import digitalocean_uptime_alert.target 94a7d216-d821-11ee-a327-33d3239ffc4b,5a4981aa-9653-4bd1-bef5-d6bff52042e4
 ```

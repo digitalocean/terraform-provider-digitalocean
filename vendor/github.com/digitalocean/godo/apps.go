@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	netURL "net/url"
 )
 
 const (
@@ -21,6 +22,8 @@ const (
 	AppLogTypeDeploy AppLogType = "DEPLOY"
 	// AppLogTypeRun represents run logs.
 	AppLogTypeRun AppLogType = "RUN"
+	// AppLogTypeRunRestarted represents logs of crashed/restarted instances during runtime.
+	AppLogTypeRunRestarted AppLogType = "RUN_RESTARTED"
 )
 
 // AppsService is an interface for interfacing with the App Platform endpoints
@@ -33,11 +36,15 @@ type AppsService interface {
 	Delete(ctx context.Context, appID string) (*Response, error)
 	Propose(ctx context.Context, propose *AppProposeRequest) (*AppProposeResponse, *Response, error)
 
+	Restart(ctx context.Context, appID string, opts *AppRestartRequest) (*Deployment, *Response, error)
 	GetDeployment(ctx context.Context, appID, deploymentID string) (*Deployment, *Response, error)
 	ListDeployments(ctx context.Context, appID string, opts *ListOptions) ([]*Deployment, *Response, error)
 	CreateDeployment(ctx context.Context, appID string, create ...*DeploymentCreateRequest) (*Deployment, *Response, error)
 
 	GetLogs(ctx context.Context, appID, deploymentID, component string, logType AppLogType, follow bool, tailLines int) (*AppLogs, *Response, error)
+	// Deprecated: Use GetExecWithOpts instead.
+	GetExec(ctx context.Context, appID, deploymentID, component string) (*AppExec, *Response, error)
+	GetExecWithOpts(ctx context.Context, appID, componentName string, opts *AppGetExecOptions) (*AppExec, *Response, error)
 
 	ListRegions(ctx context.Context) ([]*AppRegion, *Response, error)
 
@@ -54,6 +61,21 @@ type AppsService interface {
 
 	ListBuildpacks(ctx context.Context) ([]*Buildpack, *Response, error)
 	UpgradeBuildpack(ctx context.Context, appID string, opts UpgradeBuildpackOptions) (*UpgradeBuildpackResponse, *Response, error)
+	GetAppHealth(ctx context.Context, appID string) (*AppHealth, *Response, error)
+	GetAppDatabaseConnectionDetails(ctx context.Context, appID string) ([]*GetDatabaseConnectionDetailsResponse, *Response, error)
+	ResetDatabasePassword(ctx context.Context, appID string, component string) (*Deployment, *Response, error)
+	ToggleDatabaseTrustedSource(
+		ctx context.Context,
+		appID string,
+		component string,
+		opts ToggleDatabaseTrustedSourceOptions,
+	) (
+		*ToggleDatabaseTrustedSourceResponse,
+		*Response,
+		error,
+	)
+
+	GetAppInstances(ctx context.Context, appID string, opts *GetAppInstancesOpts) ([]*AppInstance, *Response, error)
 }
 
 // AppLogs represent app logs.
@@ -62,14 +84,34 @@ type AppLogs struct {
 	HistoricURLs []string `json:"historic_urls"`
 }
 
+// AppExec represents the websocket URL used for sending/receiving console input and output.
+type AppExec struct {
+	URL string `json:"url"`
+}
+
 // AppUpdateRequest represents a request to update an app.
 type AppUpdateRequest struct {
 	Spec *AppSpec `json:"spec"`
+	// Whether or not to update the source versions (for example fetching a new commit or image digest) of all components. By default (when this is false) only newly added sources will be updated to avoid changes like updating the scale of a component from also updating the respective code.
+	UpdateAllSourceVersions bool `json:"update_all_source_versions"`
+}
+
+// GetExecOptions represents options for retrieving the websocket URL used for sending/receiving console input and output.
+type AppGetExecOptions struct {
+	DeploymentID string `json:"deployment_id,omitempty"`
+	// InstanceName is the unique name of the instance to connect to. It is an optional parameter.
+	// If not provided, the first available instance will be used.
+	InstanceName string `json:"instance_name,omitempty"`
 }
 
 // DeploymentCreateRequest represents a request to create a deployment.
 type DeploymentCreateRequest struct {
 	ForceBuild bool `json:"force_build"`
+}
+
+// AppRestartRequest represents a request to restart an app.
+type AppRestartRequest struct {
+	Components []string `json:"components"`
 }
 
 // AlertDestinationUpdateRequest represents a request to update alert destinations.
@@ -86,6 +128,12 @@ type UpgradeBuildpackOptions struct {
 	MajorVersion int32 `json:"major_version,omitempty"`
 	// Whether or not to trigger a deployment for the app after upgrading the buildpack.
 	TriggerDeployment bool `json:"trigger_deployment,omitempty"`
+}
+
+// ToggleDatabaseTrustedSourceOptions provides optional parameters for ToggleDatabaseTrustedSource.
+type ToggleDatabaseTrustedSourceOptions struct {
+	// Enable, if true, indicates the database should enable the trusted sources firewall.
+	Enable bool
 }
 
 type appRoot struct {
@@ -145,9 +193,31 @@ type AppsServiceOp struct {
 	client *Client
 }
 
+type GetAppInstancesOpts struct {
+	// reserved for future use.
+}
+
 // URN returns a URN identifier for the app
 func (a App) URN() string {
 	return ToURN("app", a.ID)
+}
+
+type appHealthRoot struct {
+	Health *AppHealth `json:"app_health"`
+}
+
+func (s *AppsServiceOp) GetAppHealth(ctx context.Context, appID string) (*AppHealth, *Response, error) {
+	path := fmt.Sprintf("%s/%s/health", appsBasePath, appID)
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	root := new(appHealthRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root.Health, resp, nil
 }
 
 // Create an app.
@@ -256,6 +326,22 @@ func (s *AppsServiceOp) Propose(ctx context.Context, propose *AppProposeRequest)
 	return res, resp, nil
 }
 
+// Restart restarts an app.
+func (s *AppsServiceOp) Restart(ctx context.Context, appID string, opts *AppRestartRequest) (*Deployment, *Response, error) {
+	path := fmt.Sprintf("%s/%s/restart", appsBasePath, appID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, opts)
+	if err != nil {
+		return nil, nil, err
+	}
+	root := new(deploymentRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root.Deployment, resp, nil
+}
+
 // GetDeployment gets an app deployment.
 func (s *AppsServiceOp) GetDeployment(ctx context.Context, appID, deploymentID string) (*Deployment, *Response, error) {
 	path := fmt.Sprintf("%s/%s/deployments/%s", appsBasePath, appID, deploymentID)
@@ -345,6 +431,53 @@ func (s *AppsServiceOp) GetLogs(ctx context.Context, appID, deploymentID, compon
 	return logs, resp, nil
 }
 
+// GetExec retrieves the websocket URL used for sending/receiving console input and output.
+// Deprecated: Use GetExecWithOpts instead.
+func (s *AppsServiceOp) GetExec(ctx context.Context, appID, deploymentID, component string) (*AppExec, *Response, error) {
+	return s.GetExecWithOpts(ctx, appID, component, &AppGetExecOptions{
+		DeploymentID: deploymentID,
+	})
+}
+
+// GetExecWithOpts retrieves the websocket URL used for sending/receiving console input and output.
+func (s *AppsServiceOp) GetExecWithOpts(ctx context.Context, appID, componentName string, opts *AppGetExecOptions) (*AppExec, *Response, error) {
+	var url string
+	if opts.DeploymentID == "" {
+		url = fmt.Sprintf("%s/%s/components/%s/exec", appsBasePath, appID, componentName)
+	} else {
+		url = fmt.Sprintf("%s/%s/deployments/%s/components/%s/exec", appsBasePath, appID, opts.DeploymentID, componentName)
+	}
+
+	params := map[string]string{
+		"instance_name": opts.InstanceName,
+	}
+
+	urlValues := netURL.Values{}
+
+	for k, v := range params {
+		if v == "" {
+			continue
+		}
+
+		urlValues.Add(k, v)
+	}
+
+	if len(urlValues) > 0 {
+		url = fmt.Sprintf("%s?%s", url, urlValues.Encode())
+	}
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	logs := new(AppExec)
+	resp, err := s.client.Do(ctx, req, logs)
+	if err != nil {
+		return nil, resp, err
+	}
+	return logs, resp, nil
+}
+
 // ListRegions lists all regions supported by App Platform.
 func (s *AppsServiceOp) ListRegions(ctx context.Context) ([]*AppRegion, *Response, error) {
 	path := fmt.Sprintf("%s/regions", appsBasePath)
@@ -361,6 +494,9 @@ func (s *AppsServiceOp) ListRegions(ctx context.Context) ([]*AppRegion, *Respons
 }
 
 // ListTiers lists available app tiers.
+//
+// Deprecated: The '/v2/apps/tiers' endpoint has been deprecated as app tiers
+// are no longer tied to instance sizes. The concept of tiers is being retired.
 func (s *AppsServiceOp) ListTiers(ctx context.Context) ([]*AppTier, *Response, error) {
 	path := fmt.Sprintf("%s/tiers", appsBasePath)
 	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
@@ -376,6 +512,9 @@ func (s *AppsServiceOp) ListTiers(ctx context.Context) ([]*AppTier, *Response, e
 }
 
 // GetTier retrieves information about a specific app tier.
+//
+// Deprecated: The '/v2/apps/tiers/{slug}' endpoints have been deprecated as app
+// tiers are no longer tied to instance sizes. The concept of tiers is being retired.
 func (s *AppsServiceOp) GetTier(ctx context.Context, slug string) (*AppTier, *Response, error) {
 	path := fmt.Sprintf("%s/tiers/%s", appsBasePath, slug)
 	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
@@ -496,6 +635,77 @@ func (s *AppsServiceOp) UpgradeBuildpack(ctx context.Context, appID string, opts
 	return root, resp, nil
 }
 
+// GetAppDatabaseConnectionDetails retrieves credentials for databases associated with the app.
+func (s *AppsServiceOp) GetAppDatabaseConnectionDetails(ctx context.Context, appID string) ([]*GetDatabaseConnectionDetailsResponse, *Response, error) {
+	path := fmt.Sprintf("%s/%s/database_connection_details", appsBasePath, appID)
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	root := new(GetAppDatabaseConnectionDetailsResponse)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root.ConnectionDetails, resp, nil
+}
+
+// ResetDatabasePassword resets credentials for a database component associated with the app.
+func (s *AppsServiceOp) ResetDatabasePassword(ctx context.Context, appID string, component string) (*Deployment, *Response, error) {
+	path := fmt.Sprintf("%s/%s/components/%s/reset_password", appsBasePath, appID, component)
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	root := new(deploymentRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root.Deployment, resp, nil
+}
+
+// ToggleDatabaseTrustedSource enables/disables trusted sources on the specified dev database component.
+func (s *AppsServiceOp) ToggleDatabaseTrustedSource(
+	ctx context.Context,
+	appID string,
+	component string,
+	opts ToggleDatabaseTrustedSourceOptions,
+) (
+	*ToggleDatabaseTrustedSourceResponse,
+	*Response,
+	error,
+) {
+	path := fmt.Sprintf("%s/%s/components/%s/trusted_sources", appsBasePath, appID, component)
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, opts)
+	if err != nil {
+		return nil, nil, err
+	}
+	root := new(ToggleDatabaseTrustedSourceResponse)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root, resp, nil
+}
+
+// GetAppInstances returns a list of emphemeral compute instances of the current deployment for an app.
+// opts is reserved for future use.
+func (s *AppsServiceOp) GetAppInstances(ctx context.Context, appID string, opts *GetAppInstancesOpts) ([]*AppInstance, *Response, error) {
+	path := fmt.Sprintf("%s/%s/instances", appsBasePath, appID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	root := new(GetAppInstancesResponse)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root.Instances, resp, nil
+}
+
 // AppComponentType is an app component type.
 type AppComponentType string
 
@@ -557,6 +767,7 @@ type AppBuildableComponentSpec interface {
 	GetGit() *GitSourceSpec
 	GetGitHub() *GitHubSourceSpec
 	GetGitLab() *GitLabSourceSpec
+	GetBitbucket() *BitbucketSourceSpec
 
 	GetSourceDir() string
 
@@ -599,15 +810,21 @@ type AppRoutableComponentSpec interface {
 type AppSourceType string
 
 const (
-	AppSourceTypeGitHub AppSourceType = "github"
-	AppSourceTypeGitLab AppSourceType = "gitlab"
-	AppSourceTypeGit    AppSourceType = "git"
-	AppSourceTypeImage  AppSourceType = "image"
+	AppSourceTypeBitbucket AppSourceType = "bitbucket"
+	AppSourceTypeGitHub    AppSourceType = "github"
+	AppSourceTypeGitLab    AppSourceType = "gitlab"
+	AppSourceTypeGit       AppSourceType = "git"
+	AppSourceTypeImage     AppSourceType = "image"
 )
 
 // SourceSpec represents a source.
 type SourceSpec interface {
 	GetType() AppSourceType
+}
+
+// GetType returns the Bitbucket source type.
+func (s *BitbucketSourceSpec) GetType() AppSourceType {
+	return AppSourceTypeBitbucket
 }
 
 // GetType returns the GitHub source type.

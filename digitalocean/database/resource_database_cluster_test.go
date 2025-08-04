@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strconv"
 	"testing"
 	"time"
 
@@ -55,10 +56,45 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "private_network_uuid"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "project_id"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "storage_size_mib"),
+					testAccCheckDigitalOceanDatabaseClusterMetricsEndpoints("digitalocean_database_cluster.foobar"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
 						"digitalocean_database_cluster.foobar", "uri"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
 						"digitalocean_database_cluster.foobar", "private_uri"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDatabaseCluster_KafkaConnectionDetails(t *testing.T) {
+	var database godo.Database
+	databaseName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterKafka, databaseName, "3.7"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "name", databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "engine", "kafka"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "port", "25073"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "uri"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "private_uri"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_database_cluster.foobar", "host"),
 				),
 			},
 		},
@@ -99,6 +135,46 @@ func TestAccDigitalOceanDatabaseCluster_WithUpdate(t *testing.T) {
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_database_cluster.foobar", "size", "db-s-2vcpu-4gb"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDatabaseCluster_WithAdditionalStorage(t *testing.T) {
+	var database godo.Database
+	databaseName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "storage_size_mib", "30720"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigBasic, databaseName),
+				Check: resource.TestCheckFunc(
+					func(s *terraform.State) error {
+						time.Sleep(30 * time.Second)
+						return nil
+					},
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithAdditionalStorage, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "storage_size_mib", "61440"),
 				),
 			},
 		},
@@ -210,6 +286,7 @@ func TestAccDigitalOceanDatabaseCluster_CheckSQLModeSupport(t *testing.T) {
 }
 
 func TestAccDigitalOceanDatabaseCluster_RedisNoVersion(t *testing.T) {
+	t.Skip("Skipping redis cluster tests.TODO:- remove them")
 	var database godo.Database
 	databaseName := acceptance.RandomTestName()
 
@@ -308,6 +385,58 @@ func TestAccDigitalOceanDatabaseCluster_RedisWithEvictionPolicy(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
 					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDatabaseCluster_ValkeyWithEvictionPolicy(t *testing.T) {
+	var database godo.Database
+	databaseName := acceptance.RandomTestName()
+
+	initialConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterValkeyConfigWithEvictionPolicy, databaseName, "volatile_random")
+	updatedConfig := fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterValkeyConfigWithEvictionPolicy, databaseName, "allkeys_lru")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			// Create with an eviction policy
+			{
+				Config: initialConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "name", databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "engine", "valkey"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "uri"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "private_uri"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "eviction_policy", "volatile_random"),
+				),
+			},
+			// Update eviction policy
+			{
+				Config: updatedConfig,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "name", databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "engine", "valkey"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "uri"),
+					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "private_uri"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "eviction_policy", "allkeys_lru"),
 				),
 			},
 		},
@@ -553,6 +682,30 @@ func testAccCheckDigitalOceanDatabaseClusterAttributes(database *godo.Database, 
 	}
 }
 
+func testAccCheckDigitalOceanDatabaseClusterMetricsEndpoints(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		count, err := strconv.Atoi(rs.Primary.Attributes["metrics_endpoints.#"])
+		if err != nil {
+			return fmt.Errorf("Error parsing metrics_endpoints count: %s", err)
+		}
+		if count == 0 {
+			return fmt.Errorf("metrics_endpoints is empty")
+		}
+
+		firstEndpoint := rs.Primary.Attributes["metrics_endpoints.0"]
+		if firstEndpoint == "" {
+			return fmt.Errorf("First endpoint in metrics_endpoints is empty")
+		}
+
+		return nil
+	}
+}
+
 func testAccCheckDigitalOceanDatabaseClusterExists(n string, database *godo.Database) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -704,6 +857,18 @@ resource "digitalocean_database_cluster" "foobar" {
   tags       = ["production"]
 }`
 
+const testAccCheckDigitalOceanDatabaseClusterConfigWithAdditionalStorage = `
+resource "digitalocean_database_cluster" "foobar" {
+  name             = "%s"
+  engine           = "pg"
+  version          = "15"
+  size             = "db-s-1vcpu-2gb"
+  region           = "nyc1"
+  node_count       = 1
+  tags             = ["production"]
+  storage_size_mib = 61440
+}`
+
 const testAccCheckDigitalOceanDatabaseClusterConfigWithMigration = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
@@ -727,7 +892,7 @@ resource "digitalocean_database_cluster" "foobar" {
 
   maintenance_window {
     day  = "friday"
-    hour = "13:00:00"
+    hour = "13:00"
   }
 }`
 
@@ -784,6 +949,72 @@ resource "digitalocean_database_cluster" "foobar" {
   tags       = ["production"]
 }`
 
+const testAccCheckDigitalOceanDatabaseClusterValkey = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "valkey"
+  version    = "%s"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterKafka = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "kafka"
+  version    = "%s"
+  size       = "db-s-2vcpu-2gb"
+  region     = "nyc1"
+  node_count = 3
+  tags       = ["production"]
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterMySQL = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "mysql"
+  version    = "%s"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterPostgreSQL = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "pg"
+  version    = "%s"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterMongoDB = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "mongodb"
+  version    = "%s"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterOpensearch = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "opensearch"
+  version    = "%s"
+  size       = "db-s-1vcpu-2gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+}`
+
 const testAccCheckDigitalOceanDatabaseClusterConfigWithEvictionPolicy = `
 resource "digitalocean_database_cluster" "foobar" {
   name            = "%s"
@@ -794,6 +1025,19 @@ resource "digitalocean_database_cluster" "foobar" {
   node_count      = 1
   tags            = ["production"]
   eviction_policy = "volatile_random"
+}
+`
+
+const testAccCheckDigitalOceanDatabaseClusterValkeyConfigWithEvictionPolicy = `
+resource "digitalocean_database_cluster" "foobar" {
+  name            = "%s"
+  engine          = "valkey"
+  version         = "8"
+  size            = "db-s-1vcpu-1gb"
+  region          = "nyc1"
+  node_count      = 1
+  tags            = ["production"]
+  eviction_policy = "%s"
 }
 `
 
@@ -854,7 +1098,7 @@ const testAccCheckDigitalOceanDatabaseClusterConfigMongoDB = `
 resource "digitalocean_database_cluster" "foobar" {
   name       = "%s"
   engine     = "mongodb"
-  version    = "4"
+  version    = "6"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc3"
   node_count = 1

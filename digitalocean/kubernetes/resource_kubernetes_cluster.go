@@ -23,6 +23,11 @@ var (
 	MultipleNodePoolImportError = fmt.Errorf("Cluster contains multiple node pools. Manually add the `%s` tag to the pool that should be used as the default. Additional pools must be imported separately as 'digitalocean_kubernetes_node_pool' resources.", DigitaloceanKubernetesDefaultNodePoolTag)
 )
 
+const (
+	controlPlaneFirewallField = "control_plane_firewall"
+	routingAgentField         = "routing_agent"
+)
+
 func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanKubernetesClusterCreate,
@@ -62,7 +67,6 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-				ForceNew: true,
 			},
 
 			"registry_integration": {
@@ -86,13 +90,19 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			"cluster_subnet": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.IsCIDR,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
 			},
 
 			"service_subnet": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:         schema.TypeString,
+				ValidateFunc: validation.IsCIDR,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
 			},
 
 			"ipv4_address": {
@@ -119,6 +129,17 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Computed: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"any",
+								"monday",
+								"tuesday",
+								"wednesday",
+								"thursday",
+								"friday",
+								"saturday",
+								"sunday"},
+								true,
+							),
 						},
 						"start_time": {
 							Type:     schema.TypeString,
@@ -140,6 +161,30 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: nodePoolSchema(false),
+				},
+			},
+
+			"cluster_autoscaler_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"scale_down_utilization_threshold": {
+							Type:     schema.TypeFloat,
+							Optional: true,
+						},
+						"scale_down_unneeded_time": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"expanders": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
 				},
 			},
 
@@ -174,6 +219,49 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"kubeconfig_expire_seconds": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+
+			controlPlaneFirewallField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+						"allowed_addresses": {
+							Type:     schema.TypeList,
+							Required: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+
+			routingAgentField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
 			},
 		},
 
@@ -292,8 +380,28 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.VPCUUID = vpc.(string)
 	}
 
+	if clusterSubnet, ok := d.GetOk("cluster_subnet"); ok {
+		opts.ClusterSubnet = clusterSubnet.(string)
+	}
+
+	if serviceSubnet, ok := d.GetOk("service_subnet"); ok {
+		opts.ServiceSubnet = serviceSubnet.(string)
+	}
+
 	if autoUpgrade, ok := d.GetOk("auto_upgrade"); ok {
 		opts.AutoUpgrade = autoUpgrade.(bool)
+	}
+
+	if controlPlaneFirewall, ok := d.GetOk(controlPlaneFirewallField); ok {
+		opts.ControlPlaneFirewall = expandControlPlaneFirewallOpts(controlPlaneFirewall.([]interface{}))
+	}
+
+	if caConfig, ok := d.GetOk("cluster_autoscaler_configuration"); ok {
+		opts.ClusterAutoscalerConfiguration = expandCAConfigOpts(caConfig.([]interface{}))
+	}
+
+	if routingAgent, ok := d.GetOk(routingAgentField); ok {
+		opts.RoutingAgent = expandRoutingAgentOpts(routingAgent.([]interface{}))
 	}
 
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
@@ -359,8 +467,20 @@ func digitaloceanKubernetesClusterRead(
 	d.Set("auto_upgrade", cluster.AutoUpgrade)
 	d.Set("urn", cluster.URN())
 
+	if err := d.Set(controlPlaneFirewallField, flattenControlPlaneFirewallOpts(cluster.ControlPlaneFirewall)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", controlPlaneFirewallField, err)
+	}
+
+	if err := d.Set(routingAgentField, flattenRoutingAgentOpts(cluster.RoutingAgent)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", routingAgentField, err)
+	}
+
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
+	}
+
+	if err := d.Set("cluster_autoscaler_configuration", flattenCAConfigOpts(cluster.ClusterAutoscalerConfiguration)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting cluster_autoscaler_configuration - error: %#v", err)
 	}
 
 	// find the default node pool from all the pools in the cluster
@@ -400,11 +520,12 @@ func digitaloceanKubernetesClusterRead(
 		}
 	}
 	if expiresAt.IsZero() || expiresAt.Before(time.Now()) {
-		creds, resp, err := client.Kubernetes.GetCredentials(context.Background(), cluster.ID, &godo.KubernetesClusterCredentialsGetRequest{})
+		expireSeconds := d.Get("kubeconfig_expire_seconds").(int)
+		creds, _, err := client.Kubernetes.GetCredentials(context.Background(), cluster.ID, &godo.KubernetesClusterCredentialsGetRequest{
+			ExpirySeconds: &expireSeconds,
+		})
 		if err != nil {
-			if resp != nil && resp.StatusCode == 404 {
-				return diag.Errorf("Unable to fetch Kubernetes credentials: %s", err)
-			}
+			return diag.Errorf("Unable to fetch Kubernetes credentials: %s", err)
 		}
 		d.Set("kube_config", flattenCredentials(cluster.Name, cluster.RegionSlug, creds))
 	}
@@ -416,13 +537,17 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy") {
+	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha", controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField) {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
-			Name:         d.Get("name").(string),
-			Tags:         tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
-			AutoUpgrade:  godo.Bool(d.Get("auto_upgrade").(bool)),
-			SurgeUpgrade: d.Get("surge_upgrade").(bool),
+			Name:                           d.Get("name").(string),
+			Tags:                           tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
+			AutoUpgrade:                    godo.PtrTo(d.Get("auto_upgrade").(bool)),
+			SurgeUpgrade:                   d.Get("surge_upgrade").(bool),
+			HA:                             godo.PtrTo(d.Get("ha").(bool)),
+			ControlPlaneFirewall:           expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
+			RoutingAgent:                   expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
+			ClusterAutoscalerConfiguration: expandCAConfigOptsForUpdate(d.Get("cluster_autoscaler_configuration").([]interface{})),
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {
@@ -676,6 +801,10 @@ type kubernetesConfigUserData struct {
 }
 
 func flattenCredentials(name string, region string, creds *godo.KubernetesClusterCredentials) []interface{} {
+	if creds == nil {
+		return nil
+	}
+
 	raw := map[string]interface{}{
 		"cluster_ca_certificate": base64.StdEncoding.EncodeToString(creds.CertificateAuthorityData),
 		"host":                   creds.Server,

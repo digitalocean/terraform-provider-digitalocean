@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_container_registry_docker_credentials"
+subcategory: "Container Registry"
 ---
 
 # digitalocean_container_registry_docker_credentials
@@ -58,8 +59,8 @@ data "digitalocean_kubernetes_cluster" "example" {
 }
 
 provider "kubernetes" {
-  host             = data.digitalocean_kubernetes_cluster.example.endpoint
-  token            = data.digitalocean_kubernetes_cluster.example.kube_config[0].token
+  host  = data.digitalocean_kubernetes_cluster.example.endpoint
+  token = data.digitalocean_kubernetes_cluster.example.kube_config[0].token
   cluster_ca_certificate = base64decode(
     data.digitalocean_kubernetes_cluster.example.kube_config[0].cluster_ca_certificate
   )

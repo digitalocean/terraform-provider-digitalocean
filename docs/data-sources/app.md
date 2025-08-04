@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_app"
+subcategory: "App Platform"
 ---
 
 # digitalocean_app
@@ -29,12 +30,18 @@ output "default_ingress" {
 The following attributes are exported:
 
 * `default_ingress` - The default URL to access the app.
+* `dedicated_ips` - A list of dedicated egress IP addresses associated with the app.
+  - `ip` - The IP address of the dedicated egress IP.
+  - `id` - The ID of the dedicated egress IP.
+  - `status` - The status of the dedicated egress IP.
 * `live_url` - The live URL of the app.
+* `live_domain` - The live domain of the app.
 * `active_deployment_id` - The ID the app's currently active deployment.
 * `urn` - The uniform resource identifier for the app.
 * `updated_at` - The date and time of when the app was last updated.
 * `created_at` - The date and time of when the app was created.
 * `spec` - A DigitalOcean App spec describing the app.
+* `project_id` - The ID of the project that the app is assigned to.
 
 A spec can contain multiple components.
 
@@ -50,22 +57,27 @@ A `service` can contain:
 * `instance_count` - The amount of instances that this component should be scaled to.
 * `http_port` - The internal port on which this service's run command will listen.
 * `internal_ports` - A list of ports on which this service will listen for internal traffic.
-* `git` - A Git repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `git` - A Git repo to use as component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
-* `github` - A GitHub repo to use as component's source. Only one of `git`, `github` or `gitlab`  may be set.
+* `github` - A GitHub repo to use as component's source. Only one of `git`, `github` or `gitlab`  may be set. To read your repo, App Platform must be authorized to access your GitHub account. Go to this URL to link App Platform to your GitHub account: `https://cloud.digitalocean.com/apps/github/install`.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `gitlab` - A Gitlab repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `bitbucket` - A Bitbucket repo to use as component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set. To read your repo, App Platform must be authorized to access your Bitbucket account. Go to this URL to link App Platform to your Bitbucket account: `https://cloud.digitalocean.com/apps/bitbucket/install`.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `image` - An image to use as the component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `gitlab` - A Gitlab repo to use as component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set. To read your repo, App Platform must be authorized to access your GitLab account. Go to this URL to link App Platform to your GitLab account: `https://cloud.digitalocean.com/apps/gitlab/install`. 
+  - `repo` - The name of the repo in the format `owner/repo`.
+  - `branch` - The name of the branch to use.
+  - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+* `image` - An image to use as the component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
   - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`.
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
+  - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
       - `enabled` - Whether to automatically deploy images pushed to DOCR.
 * `env` - Describes an environment variable made available to an app competent.
@@ -83,6 +95,31 @@ A `service` can contain:
   - `timeout_seconds` - The number of seconds after which the check times out.
   - `success_threshold` - The number of successful health checks before considered healthy.
   - `failure_threshold` - The number of failed health checks before considered unhealthy.
+* `autoscaling` - Configuration for automatically scaling this component based on metrics.
+  - `min_instance_count` - The minimum amount of instances for this component. Must be less than max_instance_count.
+  - `max_instance_count` - The maximum amount of instances for this component. Must be more than min_instance_count.
+  - `metrics` - The metrics that the component is scaled on.
+    - `cpu` - Settings for scaling the component based on CPU utilization.
+      - `percent` - The average target CPU utilization for the component.
+* `log_destination` - Describes a log forwarding destination.
+  - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
+  - `papertrail` - Papertrail configuration.
+      - `endpoint` - Papertrail syslog endpoint.
+  - `datadog` - Datadog configuration.
+      - `endpoint` - Datadog HTTP log intake endpoint.
+      - `api_key` - Datadog API key.
+  - `logtail` - Logtail configuration.
+      - `token` - Logtail token.
+  - `opensearch` - OpenSearch configuration
+      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+      - `basic_auth` - OpenSearch basic auth
+          - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to doadmin when cluster_name is set.
+          - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
+      - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
+      - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
+* `termination` - Contains a component's termination parameters.
+  - `grace_period_seconds` - The number of seconds to wait between sending a TERM signal to a container and issuing a KILL which causes immediate shutdown. Default: 120, Minimum 1, Maximum 600.
+  - `drain_seconds` - The number of seconds to wait between selecting a container instance for termination and issuing the TERM signal. Selecting a container instance for termination begins an asynchronous drain of new requests on upstream load-balancers. Default: 15 seconds, Minimum 1, Maximum 110.
 
 A `static_site` can contain:
 
@@ -95,14 +132,18 @@ A `static_site` can contain:
 * `index_document` - The name of the index document to use when serving this static site.
 * `error_document` - The name of the error document to use when serving this static site.
 * `catchall_document` - The name of the document to use as the fallback for any requests to documents that are not found when serving this static site.
-* `git` - A Git repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `git` - A Git repo to use as component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
-* `github` - A GitHub repo to use as component's source. Only one of `git`, `github` or `gitlab`  may be set.
+* `github` - A GitHub repo to use as component's source. Only one of `git`, `github` or `gitlab`  may be set. To read your repo, App Platform must be authorized to access your GitHub account. Go to this URL to link App Platform to your GitHub account: `https://cloud.digitalocean.com/apps/github/install`.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `gitlab` - A Gitlab repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `bitbucket` - A Bitbucket repo to use as component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set. To read your repo, App Platform must be authorized to access your Bitbucket account. Go to this URL to link App Platform to your Bitbucket account: `https://cloud.digitalocean.com/apps/bitbucket/install`.
+  - `repo` - The name of the repo in the format `owner/repo`.
+  - `branch` - The name of the branch to use.
+  - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+* `gitlab` - A Gitlab repo to use as component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set. To read your repo, App Platform must be authorized to access your GitLab account. Go to this URL to link App Platform to your GitLab account: `https://cloud.digitalocean.com/apps/gitlab/install`.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
@@ -125,22 +166,27 @@ A `worker` can contain:
 * `environment_slug` - An environment slug describing the type of this app.
 * `instance_size_slug` - The instance size to use for this component.
 * `instance_count` - The amount of instances that this component should be scaled to.
-* `git` - A Git repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `git` - A Git repo to use as component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
-* `github` - A GitHub repo to use as component's source. Only one of `git`, `github` or `gitlab`  may be set.
+* `github` - A GitHub repo to use as component's source. Only one of `git`, `github` or `gitlab`  may be set. To read your repo, App Platform must be authorized to access your GitHub account. Go to this URL to link App Platform to your GitHub account: `https://cloud.digitalocean.com/apps/github/install`.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `gitlab` - A Gitlab repo to use as component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `bitbucket` - A Bitbucket repo to use as component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set. To read your repo, App Platform must be authorized to access your Bitbucket account. Go to this URL to link App Platform to your Bitbucket account: `https://cloud.digitalocean.com/apps/bitbucket/install`.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `image` - An image to use as the component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `gitlab` - A Gitlab repo to use as component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set. To read your repo, App Platform must be authorized to access your GitLab account. Go to this URL to link App Platform to your GitLab account: `https://cloud.digitalocean.com/apps/gitlab/install`.
+  - `repo` - The name of the repo in the format `owner/repo`.
+  - `branch` - The name of the branch to use.
+  - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+* `image` - An image to use as the component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
   - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`.
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
+  - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
       - `enabled` - Whether to automatically deploy images pushed to DOCR.
 * `env` - Describes an environment variable made available to an app competent.
@@ -148,6 +194,30 @@ A `worker` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+* `log_destination` - Describes a log forwarding destination.
+  - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
+  - `papertrail` - Papertrail configuration.
+      - `endpoint` - Papertrail syslog endpoint.
+  - `datadog` - Datadog configuration.
+      - `endpoint` - Datadog HTTP log intake endpoint.
+      - `api_key` - Datadog API key.
+  - `logtail` - Logtail configuration.
+      - `token` - Logtail token.
+  - `opensearch` - OpenSearch configuration
+      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+      - `basic_auth` - OpenSearch basic auth
+          - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to doadmin when cluster_name is set.
+          - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
+      - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
+      - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
+* `autoscaling` - Configuration for automatically scaling this component based on metrics.
+  - `min_instance_count` - The minimum amount of instances for this component. Must be less than max_instance_count.
+  - `max_instance_count` - The maximum amount of instances for this component. Must be more than min_instance_count.
+  - `metrics` - The metrics that the component is scaled on.
+    - `cpu` - Settings for scaling the component based on CPU utilization.
+      - `percent` - The average target CPU utilization for the component.
+* `termination` - Contains a component's termination parameters.
+  - `grace_period_seconds` - The number of seconds to wait between sending a TERM signal to a container and issuing a KILL which causes immediate shutdown. Default: 120, Minimum 1, Maximum 600.
 
 A `job` can contain:
 
@@ -167,19 +237,24 @@ A `job` can contain:
 * `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication.  Only one of `git`, `github` or `gitlab`  may be set.
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
-* `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `bitbucket` - A Bitbucket repo to use as component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set. To read your repo, App Platform must be authorized to access your Bitbucket account. Go to this URL to link App Platform to your Bitbucket account: `https://cloud.digitalocean.com/apps/bitbucket/install`.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `image` - An image to use as the component's source. Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
+  - `repo` - The name of the repo in the format `owner/repo`.
+  - `branch` - The name of the branch to use.
+  - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+* `image` - An image to use as the component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
   - `registry_type` - The registry type. One of `DOCR` (DigitalOcean container registry) or `DOCKER_HUB`.
   - `registry` - The registry name. Must be left empty for the `DOCR` registry type. Required for the `DOCKER_HUB` registry type.
   - `repository` - The repository name.
   - `tag` - The repository tag. Defaults to `latest` if not provided.
+  - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
       - `enabled` - Whether to automatically deploy images pushed to DOCR.
 * `env` - Describes an environment variable made available to an app competent.
@@ -187,6 +262,24 @@ A `job` can contain:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+* `log_destination` - Describes a log forwarding destination.
+  - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
+  - `papertrail` - Papertrail configuration.
+      - `endpoint` - Papertrail syslog endpoint.
+  - `datadog` - Datadog configuration.
+      - `endpoint` - Datadog HTTP log intake endpoint.
+      - `api_key` - Datadog API key.
+  - `logtail` - Logtail configuration.
+      - `token` - Logtail token.
+  - `opensearch` - OpenSearch configuration
+      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+      - `basic_auth` - OpenSearch basic auth
+          - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to doadmin when cluster_name is set.
+          - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
+      - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
+      - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
+* `termination` - Contains a component's termination parameters.
+  - `grace_period_seconds` - The number of seconds to wait between sending a TERM signal to a container and issuing a KILL which causes immediate shutdown. Default: 120, Minimum 1, Maximum 600.
 
 A `function` component can contain:
 
@@ -195,11 +288,15 @@ A `function` component can contain:
 * `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication.  Only one of `git`, `github` or `gitlab`  may be set.
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.
-* `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `github` - A GitHub repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/github/install). Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-* `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github`, `gitlab`, or `image` may be set.
+* `bitbucket` - A Bitbucket repo to use as component's source. Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set. To read your repo, App Platform must be authorized to access your Bitbucket account. Go to this URL to link App Platform to your Bitbucket account: `https://cloud.digitalocean.com/apps/bitbucket/install`.
+  - `repo` - The name of the repo in the format `owner/repo`.
+  - `branch` - The name of the branch to use.
+  - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
+* `gitlab` - A Gitlab repo to use as the component's source. DigitalOcean App Platform must have [access to the repository](https://cloud.digitalocean.com/apps/gitlab/install). Only one of `git`, `github`, `bitbucket`, `gitlab`, or `image` may be set.
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
@@ -230,12 +327,19 @@ A `function` component can contain:
 * `log_destination` - Describes a log forwarding destination.
   - `name` - Name of the log destination. Minimum length: 2. Maximum length: 42.
   - `papertrail` - Papertrail configuration.
-    - `endpoint` - Papertrail syslog endpoint.
+      - `endpoint` - Papertrail syslog endpoint.
   - `datadog` - Datadog configuration.
-    - `endpoint` - Datadog HTTP log intake endpoint.
-    - `api_key` - Datadog API key.
+      - `endpoint` - Datadog HTTP log intake endpoint.
+      - `api_key` - Datadog API key.
   - `logtail` - Logtail configuration.
-    - `token` - Logtail token.
+      - `token` - Logtail token.
+  - `opensearch` - OpenSearch configuration
+      - `endpoint` - OpenSearch API Endpoint. Only HTTPS is supported. Format: https://<host>:<port>. 
+      - `basic_auth` - OpenSearch basic auth
+          - `user` - Username to authenticate with. Only required when endpoint is set. Defaults to doadmin when cluster_name is set.
+          - `password` - Password for user defined in User. Is required when endpoint is set. Cannot be set if using a DigitalOcean DBaaS OpenSearch cluster.
+      - `index_name` - The index name to use for the logs. If not set, the default index name is `logs`.
+      - `cluster_name` - The name of a DigitalOcean DBaaS OpenSearch cluster to use as a log forwarding destination. Cannot be specified if endpoint is also specified.
 
 A `database` can contain:
 

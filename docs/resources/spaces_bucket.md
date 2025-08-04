@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_spaces_bucket"
+subcategory: "Spaces Object Storage"
 ---
 
 # digitalocean\_spaces\_bucket
@@ -18,9 +19,9 @@ the provider's `spaces_access_id` and `spaces_secret_key` arguments to the
 access ID and secret you generate via the DigitalOcean control panel. For
 example:
 
-```
+```hcl
 provider "digitalocean" {
-  token             = var.digitalocean_token
+  token = var.digitalocean_token
 
   spaces_access_id  = var.access_id
   spaces_secret_key = var.secret_key
@@ -73,7 +74,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the bucket
 * `region` - The region where the bucket resides (Defaults to `nyc3`)
-* `acl` - Canned ACL applied on bucket creation (`private` or `public-read`)
+* `acl` - Canned ACL applied on bucket creation: `private` or `public-read` (Defaults to `private`)
 * `cors_rule` - (Optional) A rule of Cross-Origin Resource Sharing (documented below).
 * `lifecycle_rule` - (Optional) A configuration of object lifecycle management (documented below).
 * `versioning` - (Optional) A state of versioning (documented below)

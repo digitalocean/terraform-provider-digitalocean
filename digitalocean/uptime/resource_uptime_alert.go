@@ -2,7 +2,9 @@ package uptime
 
 import (
 	"context"
+	"errors"
 	"log"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -20,7 +22,7 @@ func ResourceDigitalOceanUptimeAlert() *schema.Resource {
 		UpdateContext: resourceDigitalOceanUptimeAlertUpdate,
 		DeleteContext: resourceDigitalOceanUptimeAlertDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: resourceDigitalOceanUptimeAlertImport,
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -73,7 +75,7 @@ func ResourceDigitalOceanUptimeAlert() *schema.Resource {
 					"10m",
 					"15m",
 					"30m",
-					"1hr",
+					"1h",
 				}, false),
 				Optional: true,
 			},
@@ -129,7 +131,7 @@ func resourceDigitalOceanUptimeAlertCreate(ctx context.Context, d *schema.Resour
 		Name:          d.Get("name").(string),
 		Type:          d.Get("type").(string),
 		Notifications: expandNotifications(d.Get("notifications").([]interface{})),
-		Comparison:    d.Get("comparison").(string),
+		Comparison:    godo.UptimeAlertComp(d.Get("comparison").(string)),
 		Threshold:     d.Get("threshold").(int),
 		Period:        d.Get("period").(string),
 	}
@@ -167,7 +169,7 @@ func resourceDigitalOceanUptimeAlertUpdate(ctx context.Context, d *schema.Resour
 	}
 
 	if v, ok := d.GetOk("comparison"); ok {
-		opts.Comparison = v.(string)
+		opts.Comparison = godo.UptimeAlertComp(v.(string))
 	}
 	if v, ok := d.GetOk("threshold"); ok {
 		opts.Threshold = v.(int)
@@ -240,4 +242,17 @@ func flattenNotifications(alerts *godo.Notifications) []interface{} {
 			"slack": monitoring.FlattenSlack(alerts.Slack),
 		},
 	}
+}
+
+func resourceDigitalOceanUptimeAlertImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if strings.Contains(d.Id(), ",") {
+		s := strings.Split(d.Id(), ",")
+
+		d.SetId(s[1])
+		d.Set("check_id", s[0])
+	} else {
+		return nil, errors.New("must use the IDs of the check and alert joined with a comma (e.g. `check_id,alert_id`)")
+	}
+
+	return []*schema.ResourceData{d}, nil
 }

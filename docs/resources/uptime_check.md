@@ -1,20 +1,21 @@
 ---
 page_title: "DigitalOcean: digitalocean_uptime_check"
+subcategory: "Monitoring"
 ---
 
 # digitalocean_uptime_check
 
-Provides a [DigitalOcean Uptime Checks](https://docs.digitalocean.com/reference/api/api-reference/#tag/Uptime)
+Provides a [DigitalOcean Uptime Checks](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Uptime)
 resource. Uptime Checks provide the ability to monitor your endpoints from around the world, and alert you when they're slow, unavailable, or SSL certificates are expiring.
 
 
 ### Basic Example
 
 ```hcl
-# Create a new check for the target endpoint in a specifc region
+# Create a new check for the target endpoint in a specific region
 resource "digitalocean_uptime_check" "foobar" {
-  name  = "example-europe-check"
-  target = "https://www.example.com"
+  name    = "example-europe-check"
+  target  = "https://www.example.com"
   regions = ["eu_west"]
 }
 ```

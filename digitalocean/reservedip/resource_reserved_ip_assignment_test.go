@@ -202,7 +202,7 @@ resource "digitalocean_reserved_ip_assignment" "foobar" {
 
 var testAccCheckDigitalOceanReservedIPAssignmentConfig_createBeforeDestroyReassign = `
 resource "digitalocean_droplet" "foobar" {
-  image  = "ubuntu-18-04-x64"
+  image  = "ubuntu-22-04-x64"
   name   = "tf-acc-test-01"
   region = "nyc3"
   size   = "s-1vcpu-1gb"

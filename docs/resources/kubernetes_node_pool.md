@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_kubernetes_node_pool"
+subcategory: "Kubernetes"
 ---
 
 # digitalocean\_kubernetes\_node\_pool

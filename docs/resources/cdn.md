@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_cdn"
+subcategory: "Spaces Object Storage"
 ---
 
 # digitalocean\_cdn

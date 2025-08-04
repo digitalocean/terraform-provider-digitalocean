@@ -34,6 +34,10 @@ func TestAccDataSourceDigitalOceanDatabaseUser_Basic(t *testing.T) {
 						"digitalocean_database_user.foobar_user", "role"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_user.foobar_user", "password"),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_database_user.foobar_user", "access_cert"),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_database_user.foobar_user", "access_key"),
 				),
 			},
 			{
@@ -45,6 +49,15 @@ func TestAccDataSourceDigitalOceanDatabaseUser_Basic(t *testing.T) {
 						"data.digitalocean_database_user.foobar_user", "role"),
 					resource.TestCheckResourceAttrPair("digitalocean_database_user.foobar_user", "password",
 						"data.digitalocean_database_user.foobar_user", "password"),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_database_user.foobar_user", "access_cert"),
+					resource.TestCheckNoResourceAttr(
+						"digitalocean_database_user.foobar_user", "access_key"),
+
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_database_user.doadmin", "name", "doadmin"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_database_user.doadmin", "role", "primary"),
 				),
 			},
 		},
@@ -52,6 +65,11 @@ func TestAccDataSourceDigitalOceanDatabaseUser_Basic(t *testing.T) {
 }
 
 const testAccCheckDigitalOceanDatasourceDatabaseUserConfigBasic = `
+data "digitalocean_database_user" "doadmin" {
+  cluster_id = digitalocean_database_cluster.foobar.id
+  name       = "doadmin"
+}
+
 data "digitalocean_database_user" "foobar_user" {
   cluster_id = digitalocean_database_cluster.foobar.id
   name       = "%s"

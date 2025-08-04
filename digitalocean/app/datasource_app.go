@@ -28,7 +28,43 @@ func DataSourceDigitalOceanApp() *schema.Resource {
 				Computed:    true,
 				Description: "The default URL to access the App",
 			},
+			"dedicated_ips": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				Computed:    true,
+				Description: "The dedicated egress IP addresses associated with the app.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"ip": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Optional:    true,
+							Description: "The IP address of the dedicated egress IP.",
+						},
+						"id": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Optional:    true,
+							Description: "The ID of the dedicated egress IP.",
+						},
+						"status": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Optional:    true,
+							Description: "The status of the dedicated egress IP: 'UNKNOWN', 'ASSIGNING', 'ASSIGNED', or 'REMOVED'",
+						},
+					},
+				},
+			},
+			"project_id": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"live_url": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"live_domain": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},

@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_domain"
+subcategory: "Networking"
 ---
 
 # digitalocean\_domain

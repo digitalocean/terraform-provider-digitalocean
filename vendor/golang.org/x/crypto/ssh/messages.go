@@ -349,6 +349,20 @@ type userAuthGSSAPIError struct {
 	LanguageTag string
 }
 
+// Transport layer OpenSSH extension. See [PROTOCOL], section 1.9
+const msgPing = 192
+
+type pingMsg struct {
+	Data string `sshtype:"192"`
+}
+
+// Transport layer OpenSSH extension. See [PROTOCOL], section 1.9
+const msgPong = 193
+
+type pongMsg struct {
+	Data string `sshtype:"193"`
+}
+
 // typeTags returns the possible type bytes for the given reflect.Type, which
 // should be a struct. The possible values are separated by a '|' character.
 func typeTags(structType reflect.Type) (tags []byte) {
@@ -804,6 +818,8 @@ func decode(packet []byte) (interface{}, error) {
 		return new(userAuthSuccessMsg), nil
 	case msgUserAuthFailure:
 		msg = new(userAuthFailureMsg)
+	case msgUserAuthBanner:
+		msg = new(userAuthBannerMsg)
 	case msgUserAuthPubKeyOk:
 		msg = new(userAuthPubKeyOkMsg)
 	case msgGlobalRequest:

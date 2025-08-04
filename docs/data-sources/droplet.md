@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_droplet"
+subcategory: "Droplets"
 ---
 
 # digitalocean_droplet
@@ -50,6 +51,10 @@ One of the following arguments must be provided:
 * `name` - (Optional) The name of the Droplet.
 * `tag` - (Optional) A tag applied to the Droplet.
 
+To include GPU Droplets when searching by name, use:
+
+* `gpu` - (Optional) A boolean value specifying whether or not to search GPU Droplets
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -58,7 +63,7 @@ The following attributes are exported:
 * `urn` - The uniform resource name of the Droplet
 * `region` - The region the Droplet is running in.
 * `image` - The Droplet image ID or slug.
-* `size` - The unique slug that indentifies the type of Droplet.
+* `size` - The unique slug that identifies the type of Droplet.
 * `disk` - The size of the Droplets disk in GB.
 * `vcpus` - The number of the Droplets virtual CPUs.
 * `memory` - The amount of the Droplets memory in MB.

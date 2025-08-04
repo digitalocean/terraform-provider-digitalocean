@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -122,6 +123,12 @@ func ResourceDigitalOceanDatabaseReplica() *schema.Resource {
 				},
 				Set: util.HashStringIgnoreCase,
 			},
+
+			"storage_size_mib": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -141,27 +148,40 @@ func resourceDigitalOceanDatabaseReplicaCreate(ctx context.Context, d *schema.Re
 		opts.PrivateNetworkUUID = v.(string)
 	}
 
+	if v, ok := d.GetOk("storage_size_mib"); ok {
+		v, err := strconv.ParseUint(v.(string), 10, 64)
+		if err == nil {
+			opts.StorageSizeMib = v
+		}
+	}
+
 	log.Printf("[DEBUG] DatabaseReplica create configuration: %#v", opts)
 
 	var replicaCluster *godo.DatabaseReplica
 
 	// Retry requests that fail w. Failed Precondition (412). New DBs can be marked ready while
 	// first backup is still being created.
-	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
 		rc, resp, err := client.Databases.CreateReplica(context.Background(), clusterId, opts)
 		if err != nil {
 			if resp.StatusCode == 412 {
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			} else {
-				return resource.NonRetryableError(fmt.Errorf("Error creating DatabaseReplica: %s", err))
+				return retry.NonRetryableError(fmt.Errorf("Error creating DatabaseReplica: %s", err))
 			}
 		}
 		replicaCluster = rc
+
 		return nil
 	})
 
 	if err != nil {
 		return diag.FromErr(err)
+	}
+
+	err = setReplicaConnectionInfo(replicaCluster, d)
+	if err != nil {
+		return diag.Errorf("Error building connection URI: %s", err)
 	}
 
 	replica, err := waitForDatabaseReplica(client, clusterId, "online", replicaCluster.Name)
@@ -199,20 +219,52 @@ func resourceDigitalOceanDatabaseReplicaRead(ctx context.Context, d *schema.Reso
 		return diag.Errorf("Error retrieving DatabaseReplica: %s", err)
 	}
 
+	d.Set("size", replica.Size)
 	d.Set("region", replica.Region)
 	d.Set("tags", tag.FlattenTags(replica.Tags))
 
 	// Computed values
 	d.Set("uuid", replica.ID)
-	d.Set("host", replica.Connection.Host)
-	d.Set("private_host", replica.PrivateConnection.Host)
-	d.Set("port", replica.Connection.Port)
-	d.Set("uri", replica.Connection.URI)
-	d.Set("private_uri", replica.PrivateConnection.URI)
-	d.Set("database", replica.Connection.Database)
-	d.Set("user", replica.Connection.User)
-	d.Set("password", replica.Connection.Password)
 	d.Set("private_network_uuid", replica.PrivateNetworkUUID)
+	d.Set("storage_size_mib", strconv.FormatUint(replica.StorageSizeMib, 10))
+
+	err = setReplicaConnectionInfo(replica, d)
+	if err != nil {
+		return diag.Errorf("Error building connection URI: %s", err)
+	}
+
+	return nil
+}
+
+func setReplicaConnectionInfo(replica *godo.DatabaseReplica, d *schema.ResourceData) error {
+	if replica.Connection != nil {
+		d.Set("host", replica.Connection.Host)
+		d.Set("port", replica.Connection.Port)
+		d.Set("database", replica.Connection.Database)
+		d.Set("user", replica.Connection.User)
+
+		if replica.Connection.Password != "" {
+			d.Set("password", replica.Connection.Password)
+		}
+
+		uri, err := buildDBConnectionURI(replica.Connection, d)
+		if err != nil {
+			return err
+		}
+
+		d.Set("uri", uri)
+	}
+
+	if replica.PrivateConnection != nil {
+		d.Set("private_host", replica.PrivateConnection.Host)
+
+		privateURI, err := buildDBConnectionURI(replica.PrivateConnection, d)
+		if err != nil {
+			return err
+		}
+
+		d.Set("private_uri", privateURI)
+	}
 
 	return nil
 }
@@ -223,10 +275,17 @@ func resourceDigitalOceanDatabaseReplicaUpdate(ctx context.Context, d *schema.Re
 	replicaID := d.Get("uuid").(string)
 	replicaName := d.Get("name").(string)
 
-	if d.HasChanges("size") {
+	if d.HasChanges("size", "storage_size_mib") {
 		opts := &godo.DatabaseResizeRequest{
 			SizeSlug: d.Get("size").(string),
 			NumNodes: 1, // Read-only replicas only support a single node configuration.
+		}
+
+		if v, ok := d.GetOk("storage_size_mib"); ok {
+			v, err := strconv.ParseUint(v.(string), 10, 64)
+			if err == nil {
+				opts.StorageSizeMib = v
+			}
 		}
 
 		resp, err := client.Databases.Resize(context.Background(), replicaID, opts)

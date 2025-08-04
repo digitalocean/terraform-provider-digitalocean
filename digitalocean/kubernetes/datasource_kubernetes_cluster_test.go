@@ -51,6 +51,10 @@ data "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day", "monday"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.start_time", "00:00"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.duration"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold", "0.5"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "1m30s"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.expanders.0", "priority"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "routing_agent.0.enabled", "true"),
 				),
 			},
 		},
@@ -79,6 +83,16 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   maintenance_policy {
     day        = "monday"
     start_time = "00:00"
+  }
+
+  cluster_autoscaler_configuration {
+    scale_down_utilization_threshold = 0.5
+    scale_down_unneeded_time         = "1m30s"
+    expanders                        = ["priority"]
+  }
+
+  routing_agent {
+    enabled = true
   }
 }`, version, rName)
 }
@@ -111,4 +125,39 @@ func testAccCheckDataSourceDigitalOceanKubernetesClusterExists(n string, cluster
 
 		return nil
 	}
+}
+
+func TestAccDataSourceDigitalOceanKubernetesCluster_NodeCountZero(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	clusterConfig := fmt.Sprintf(`%s
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    = "%s"
+  region  = "lon1"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
+  tags    = ["foo", "bar"]
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 0
+    tags       = ["one", "two"]
+  }
+}
+`, testClusterVersionLatest, rName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: clusterConfig,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+				),
+			},
+		},
+	})
 }

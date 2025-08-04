@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_ssh_keys"
+subcategory: "Account"
 ---
 
 # digitalocean_ssh_keys

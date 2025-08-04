@@ -6,7 +6,7 @@ import (
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/id"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -39,7 +39,7 @@ func dataSourceDigitalOceanKubernetesVersionsRead(ctx context.Context, d *schema
 		return diag.Errorf("Error retrieving Kubernetes options: %s", err)
 	}
 
-	d.SetId(resource.UniqueId())
+	d.SetId(id.UniqueId())
 
 	validVersions := make([]string, 0)
 	for _, v := range k8sOptions.Versions {

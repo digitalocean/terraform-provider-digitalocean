@@ -35,7 +35,7 @@ goimports:
 	@find . -name '*.go' | grep -v vendor | grep -v generator-resource-id | while read f; do goimports -w "$$f"; done
 
 install-golangci-lint:
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
 
 lint: install-golangci-lint
 	@golangci-lint run -v ./...
@@ -51,9 +51,11 @@ install-terrafmt:
 
 terrafmt: install-terrafmt # Formats Terraform configuration blocks in tests.
 	@terrafmt fmt --fmtcompat digitalocean/
+	@terrafmt fmt --fmtcompat docs/
 
 terrafmt-check: install-terrafmt # Returns non-0 exit code if terrafmt would make a change.
 	@terrafmt diff --check --fmtcompat digitalocean/
+	@terrafmt diff --check --fmtcompat docs/
 
 errcheck:
 	@sh -c "'$(CURDIR)/scripts/errcheck.sh'"
@@ -62,3 +64,19 @@ website:
 	@echo "Use this site to preview markdown rendering: https://registry.terraform.io/tools/doc-preview"
 
 .PHONY: build test testacc vet fmt fmtcheck errcheck test-compile website sweep
+
+.PHONY: _upgrade_godo
+_upgrade_godo:
+	go get -u github.com/digitalocean/godo
+
+.PHONY: upgrade_godo
+upgrade_godo: _upgrade_godo vendor
+	@echo "==> upgrade the godo version"
+	@echo ""
+
+.PHONY: vendor
+vendor:
+	@echo "==> vendor dependencies"
+	@echo ""
+	go mod vendor
+	go mod tidy

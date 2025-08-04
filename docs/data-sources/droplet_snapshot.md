@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_droplet_snapshot"
+subcategory: "Backups & Snapshots"
 ---
 
 # digitalocean\_droplet\_snapshot

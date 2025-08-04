@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -69,6 +70,11 @@ func DataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"private_host": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -79,13 +85,30 @@ func DataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_port": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"password": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
 			},
 
+			"ui_password": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
 			"uri": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"ui_uri": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -102,7 +125,17 @@ func DataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_database": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"user": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"ui_user": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -123,6 +156,19 @@ func DataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 			},
 
 			"tags": tag.TagsSchema(),
+
+			"storage_size_mib": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"metrics_endpoints": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
+			},
 		},
 	}
 }
@@ -174,6 +220,7 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 			d.Set("region", db.RegionSlug)
 			d.Set("node_count", db.NumNodes)
 			d.Set("tags", tag.FlattenTags(db.Tags))
+			d.Set("storage_size_mib", strconv.FormatUint(db.StorageSizeMib, 10))
 
 			if _, ok := d.GetOk("maintenance_window"); ok {
 				if err := d.Set("maintenance_window", flattenMaintWindowOpts(*db.MaintenanceWindow)); err != nil {
@@ -185,9 +232,20 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 			if err != nil {
 				return diag.Errorf("Error setting connection info for database cluster: %s", err)
 			}
+
+			uiErr := setUIConnectionInfo(&db, d)
+			if uiErr != nil {
+				return diag.Errorf("Error setting ui connection info for database cluster: %s", err)
+			}
+
 			d.Set("urn", db.URN())
 			d.Set("private_network_uuid", db.PrivateNetworkUUID)
 			d.Set("project_id", db.ProjectID)
+
+			metricsErr := setMetricsEndpoints(&db, d)
+			if metricsErr != nil {
+				return diag.Errorf("Error setting metrics endpoints for database cluster: %s", metricsErr)
+			}
 
 			break
 		}

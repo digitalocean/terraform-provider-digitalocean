@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_spaces_bucket_policy"
+subcategory: "Spaces Object Storage"
 ---
 
 # digitalocean\_spaces\_bucket_policy
@@ -20,9 +21,9 @@ the provider's `spaces_access_id` and `spaces_secret_key` arguments to the
 access ID and secret you generate via the DigitalOcean control panel. For
 example:
 
-```
+```hcl
 provider "digitalocean" {
-  token             = var.digitalocean_token
+  token = var.digitalocean_token
 
   spaces_access_id  = var.access_id
   spaces_secret_key = var.secret_key
@@ -49,23 +50,23 @@ resource "digitalocean_spaces_bucket_policy" "foobar" {
   region = digitalocean_spaces_bucket.foobar.region
   bucket = digitalocean_spaces_bucket.foobar.name
   policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "IPAllow",
-            "Effect": "Deny",
-            "Principal": "*",
-            "Action": "s3:*",
-            "Resource": [
-                "arn:aws:s3:::${digitalocean_spaces_bucket.foobar.name}",
-                "arn:aws:s3:::${digitalocean_spaces_bucket.foobar.name}/*"
-            ],
-            "Condition": {
-                "NotIpAddress": {
-                    "aws:SourceIp": "54.240.143.0/24"
-                }
-            }
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Sid" : "IPAllow",
+        "Effect" : "Deny",
+        "Principal" : "*",
+        "Action" : "s3:*",
+        "Resource" : [
+          "arn:aws:s3:::${digitalocean_spaces_bucket.foobar.name}",
+          "arn:aws:s3:::${digitalocean_spaces_bucket.foobar.name}/*"
+        ],
+        "Condition" : {
+          "NotIpAddress" : {
+            "aws:SourceIp" : "54.240.143.0/24"
+          }
         }
+      }
     ]
   })
 }

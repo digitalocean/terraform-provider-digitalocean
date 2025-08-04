@@ -92,6 +92,59 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 	})
 }
 
+func TestAccDigitalOceanKubernetesNodePool_MinNodesZero(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+	var k8sPool godo.KubernetesNodePool
+
+	clusterConfig := fmt.Sprintf(`%s
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    = "%s"
+  region  = "lon1"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
+  tags    = ["foo", "bar"]
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 2
+    tags       = ["one", "two"]
+  }
+}
+`, testClusterVersionLatest, rName)
+
+	nodePoolConfig := fmt.Sprintf(`resource "digitalocean_kubernetes_node_pool" "barfoo" {
+  cluster_id = digitalocean_kubernetes_cluster.foobar.id
+
+  name       = "%s"
+  size       = "s-1vcpu-2gb"
+  auto_scale = true
+  min_nodes  = 0
+  max_nodes  = 3
+  tags       = ["three", "four"]
+}
+`, rName)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: clusterConfig + nodePoolConfig,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					testAccCheckDigitalOceanKubernetesNodePoolExists("digitalocean_kubernetes_node_pool.barfoo", &k8s, &k8sPool),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "name", rName),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "auto_scale", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "min_nodes", "0"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_node_pool.barfoo", "max_nodes", "3"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanKubernetesNodePool_Update(t *testing.T) {
 	rName := acceptance.RandomTestName()
 	var k8s godo.KubernetesCluster

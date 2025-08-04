@@ -35,6 +35,47 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"kubeconfig_expire_seconds": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(0),
+			},
+
+			controlPlaneFirewallField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"allowed_addresses": {
+							Type:     schema.TypeList,
+							Computed: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
+					},
+				},
+			},
+
+			routingAgentField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"version": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -93,6 +134,30 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 						"start_time": {
 							Type:     schema.TypeString,
 							Computed: true,
+						},
+					},
+				},
+			},
+
+			"cluster_autoscaler_configuration": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"scale_down_utilization_threshold": {
+							Type:     schema.TypeFloat,
+							Optional: true,
+						},
+						"scale_down_unneeded_time": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"expanders": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
 						},
 					},
 				},

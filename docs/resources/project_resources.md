@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_project_resources"
+subcategory: "Account"
 ---
 
 # digitalocean\_project\_resources
@@ -9,14 +10,15 @@ managed in Terraform to a DigitalOcean Project managed outside of Terraform.
 
 The following resource types can be associated with a project:
 
+* App Platform Apps
 * Database Clusters
 * Domains
 * Droplets
-* Floating IP
-* Kubernetes Cluster
+* Floating IPs
+* Kubernetes Clusters
 * Load Balancers
-* Spaces Bucket
-* Volume
+* Spaces Buckets
+* Volumes
 
 ## Example Usage
 

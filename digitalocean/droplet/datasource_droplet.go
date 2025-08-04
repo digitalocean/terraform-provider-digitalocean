@@ -24,6 +24,12 @@ func DataSourceDigitalOceanDroplet() *schema.Resource {
 	recordSchema["id"].Optional = true
 	recordSchema["name"].ExactlyOneOf = []string{"id", "tag", "name"}
 	recordSchema["name"].Optional = true
+	recordSchema["gpu"] = &schema.Schema{
+		Type:          schema.TypeBool,
+		Optional:      true,
+		Default:       false,
+		ConflictsWith: []string{"tag"},
+	}
 
 	recordSchema["tag"] = &schema.Schema{
 		Type:         schema.TypeString,
@@ -64,7 +70,13 @@ func dataSourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceDa
 
 		foundDroplet = *droplet
 	} else if v, ok := d.GetOk("name"); ok {
-		dropletList, err := getDigitalOceanDroplets(meta, nil)
+		gpus := d.Get("gpu").(bool)
+		extra := make(map[string]interface{})
+		if gpus {
+			extra["gpus"] = true
+		}
+
+		dropletList, err := getDigitalOceanDroplets(meta, extra)
 		if err != nil {
 			return diag.FromErr(err)
 		}

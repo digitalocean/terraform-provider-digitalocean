@@ -77,6 +77,8 @@ func TestAccDataSourceDigitalOceanDatabaseReplica_Basic(t *testing.T) {
 						"data.digitalocean_database_replica.my_db_replica", "tags.#", "1"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_database_replica.my_db_replica", "private_network_uuid"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_database_replica.my_db_replica", "storage_size_mib", "30720"),
 				),
 			},
 		},

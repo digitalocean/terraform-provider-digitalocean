@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/url"
 	"strconv"
 	"strings"
@@ -19,9 +20,10 @@ import (
 )
 
 const (
-	mongoDBEngineSlug = "mongodb"
-	mysqlDBEngineSlug = "mysql"
-	redisDBEngineSlug = "redis"
+	mysqlDBEngineSlug  = "mysql"
+	redisDBEngineSlug  = "redis"
+	valkeyDBEngineSlug = "valkey"
+	kafkaDBEngineSlug  = "kafka"
 )
 
 func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
@@ -47,6 +49,14 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					// Suppress diff if switching between redis and valkey
+					cachingEngines := map[string]bool{
+						redisDBEngineSlug:  true,
+						valkeyDBEngineSlug: true,
+					}
+					return cachingEngines[old] && cachingEngines[new]
+				},
 			},
 
 			"version": {
@@ -61,8 +71,10 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 					remoteVersion, _ := strconv.Atoi(old)
 					configVersion, _ := strconv.Atoi(new)
+					engine := d.Get("engine").(string)
+					cachingEngine := engine == redisDBEngineSlug || engine == valkeyDBEngineSlug
 
-					return d.Get("engine") == redisDBEngineSlug && remoteVersion > configVersion
+					return cachingEngine && remoteVersion > configVersion
 				},
 			},
 
@@ -95,8 +107,9 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"day": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:         schema.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsDayOfTheWeek(true),
 						},
 						"hour": {
 							Type:     schema.TypeString,
@@ -104,9 +117,12 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 							// Prevent a diff when seconds in response, e.g: "13:00" -> "13:00:00"
 							DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
 								newSplit := strings.Split(new, ":")
+								oldSplit := strings.Split(old, ":")
 								if len(newSplit) == 3 {
-									newTrimed := strings.Join(newSplit[:2], ":")
-									return newTrimed == old
+									new = strings.Join(newSplit[:2], ":")
+								}
+								if len(oldSplit) == 3 {
+									old = strings.Join(oldSplit[:2], ":")
 								}
 								return old == new
 							},
@@ -147,6 +163,11 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_host": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"private_host": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -157,7 +178,18 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_port": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+
 			"uri": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"ui_uri": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -174,12 +206,28 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"ui_database": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"user": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 
+			"ui_user": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"password": {
+				Type:      schema.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"ui_password": {
 				Type:      schema.TypeString,
 				Computed:  true,
 				Sensitive: true,
@@ -207,6 +255,20 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 							Optional: true,
 						},
 					},
+				},
+			},
+
+			"storage_size_mib": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+			},
+
+			"metrics_endpoints": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
 				},
 			},
 		},
@@ -250,8 +312,9 @@ func validateExclusiveAttributes() schema.CustomizeDiffFunc {
 			return fmt.Errorf("sql_mode is only supported for MySQL Database Clusters")
 		}
 
-		if hasEvictionPolicy && engine != redisDBEngineSlug {
-			return fmt.Errorf("eviction_policy is only supported for Redis Database Clusters")
+		cachingEngine := engine == redisDBEngineSlug || engine == valkeyDBEngineSlug
+		if hasEvictionPolicy && !cachingEngine {
+			return fmt.Errorf("eviction_policy is only supported for Redis or Valkey Database Clusters")
 		}
 
 		return nil
@@ -283,25 +346,28 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 		opts.BackupRestore = expandBackupRestore(v.([]interface{}))
 	}
 
+	if v, ok := d.GetOk("storage_size_mib"); ok {
+		v, err := strconv.ParseUint(v.(string), 10, 64)
+		if err == nil {
+			opts.StorageSizeMib = v
+		}
+	}
+
 	log.Printf("[DEBUG] database cluster create configuration: %#v", opts)
 	database, _, err := client.Databases.Create(context.Background(), opts)
 	if err != nil {
 		return diag.Errorf("Error creating database cluster: %s", err)
 	}
 
-	// MongoDB clusters only return the password in response to the initial POST.
-	// We need to set it here before any subsequent GETs.
-	if database.EngineSlug == mongoDBEngineSlug {
-		err = setDatabaseConnectionInfo(database, d)
-		if err != nil {
-			return diag.Errorf("Error setting connection info for database cluster: %s", err)
-		}
+	err = setDatabaseConnectionInfo(database, d)
+	if err != nil {
+		return diag.Errorf("Error setting connection info for database cluster: %s", err)
 	}
 
 	d.SetId(database.ID)
 	log.Printf("[INFO] database cluster Name: %s", database.Name)
 
-	database, err = waitForDatabaseCluster(client, d, "online")
+	_, err = waitForDatabaseCluster(client, d, "online")
 	if err != nil {
 		d.SetId("")
 		return diag.Errorf("Error creating database cluster: %s", err)
@@ -343,12 +409,21 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	if d.HasChanges("size", "node_count") {
+	if d.HasChanges("size", "node_count", "storage_size_mib") {
 		opts := &godo.DatabaseResizeRequest{
 			SizeSlug: d.Get("size").(string),
 			NumNodes: d.Get("node_count").(int),
 		}
 
+		// only include the storage_size_mib in the resize request if it has changed
+		// this avoids invalid values when plans sizes are increasing that require higher base levels of storage
+		// excluding this parameter will utilize default base storage levels for the given plan size
+		if v, ok := d.GetOk("storage_size_mib"); ok && d.HasChange("storage_size_mib") {
+			v, err := strconv.ParseUint(v.(string), 10, 64)
+			if err == nil {
+				opts.StorageSizeMib = v
+			}
+		}
 		resp, err := client.Databases.Resize(context.Background(), d.Id(), opts)
 		if err != nil {
 			// If the database is somehow already destroyed, mark as
@@ -467,6 +542,7 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	d.Set("size", database.SizeSlug)
 	d.Set("region", database.RegionSlug)
 	d.Set("node_count", database.NumNodes)
+	d.Set("storage_size_mib", strconv.FormatUint(database.StorageSizeMib, 10))
 	d.Set("tags", tag.FlattenTags(database.Tags))
 
 	if _, ok := d.GetOk("maintenance_window"); ok {
@@ -498,6 +574,17 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	if err != nil {
 		return diag.Errorf("Error setting connection info for database cluster: %s", err)
 	}
+
+	uiErr := setUIConnectionInfo(database, d)
+	if uiErr != nil {
+		return diag.Errorf("Error setting ui connection info for database cluster: %s", err)
+	}
+
+	metricsErr := setMetricsEndpoints(database, d)
+	if metricsErr != nil {
+		return diag.Errorf("Error setting metrics endpoints for database cluster: %s", metricsErr)
+	}
+
 	d.Set("urn", database.URN())
 	d.Set("private_network_uuid", database.PrivateNetworkUUID)
 	d.Set("project_id", database.ProjectID)
@@ -584,45 +671,76 @@ func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) 
 	if database.Connection != nil {
 		d.Set("host", database.Connection.Host)
 		d.Set("port", database.Connection.Port)
-		d.Set("uri", database.Connection.URI)
+
+		uri, err := buildDBConnectionURI(database.Connection, d)
+		if err != nil {
+			return err
+		}
+
+		d.Set("uri", uri)
 		d.Set("database", database.Connection.Database)
 		d.Set("user", database.Connection.User)
-		if database.EngineSlug == mongoDBEngineSlug {
-			if database.Connection.Password != "" {
-				d.Set("password", database.Connection.Password)
-			}
-			uri, err := buildMongoDBConnectionURI(database.Connection, d)
-			if err != nil {
-				return err
-			}
-			d.Set("uri", uri)
-		} else {
+		if database.Connection.Password != "" {
 			d.Set("password", database.Connection.Password)
-			d.Set("uri", database.Connection.URI)
 		}
 	}
 
 	if database.PrivateConnection != nil {
 		d.Set("private_host", database.PrivateConnection.Host)
-		if database.EngineSlug == mongoDBEngineSlug {
-			uri, err := buildMongoDBConnectionURI(database.PrivateConnection, d)
-			if err != nil {
-				return err
-			}
-			d.Set("private_uri", uri)
-		} else {
-			d.Set("private_uri", database.PrivateConnection.URI)
+
+		privateUri, err := buildDBPrivateURI(database.PrivateConnection, d)
+		if err != nil {
+			return err
 		}
+
+		d.Set("private_uri", privateUri)
 	}
 
 	return nil
 }
 
+func setUIConnectionInfo(database *godo.Database, d *schema.ResourceData) error {
+	if database.UIConnection != nil {
+		d.Set("ui_host", database.UIConnection.Host)
+		d.Set("ui_port", database.UIConnection.Port)
+		d.Set("ui_uri", database.UIConnection.URI)
+		d.Set("ui_database", database.UIConnection.Database)
+		d.Set("ui_user", database.UIConnection.User)
+		d.Set("ui_password", database.UIConnection.Password)
+	}
+
+	return nil
+}
+
+func setMetricsEndpoints(database *godo.Database, d *schema.ResourceData) error {
+	if len(database.MetricsEndpoints) == 0 {
+		return fmt.Errorf("no metrics endpoints available for database cluster")
+	}
+
+	endpoints := make([]string, 0, len(database.MetricsEndpoints))
+	for _, addr := range database.MetricsEndpoints {
+		endpoints = append(endpoints, fmt.Sprintf("https://%s:%d/metrics", addr.Host, addr.Port))
+	}
+	d.Set("metrics_endpoints", endpoints)
+
+	return nil
+}
+
+// buildDBConnectionURI constructs a connection URI using the password stored in state.
+//
 // MongoDB clusters only return their password in response to the initial POST.
 // The host for the cluster is not known until it becomes available. In order to
 // build a usable connection URI, we must save the password and then add it to
 // the URL returned latter.
-func buildMongoDBConnectionURI(conn *godo.DatabaseConnection, d *schema.ResourceData) (string, error) {
+//
+// This also protects against the password being removed from the URI if the user
+// switches to using a read-only token. All database engines redact the password
+// in that case
+func buildDBConnectionURI(conn *godo.DatabaseConnection, d *schema.ResourceData) (string, error) {
+	if d.Get("engine") == kafkaDBEngineSlug {
+		return net.JoinHostPort(conn.Host, strconv.Itoa(conn.Port)), nil
+	}
+
 	password := d.Get("password")
 	uri, err := url.Parse(conn.URI)
 	if err != nil {
@@ -633,6 +751,10 @@ func buildMongoDBConnectionURI(conn *godo.DatabaseConnection, d *schema.Resource
 	uri.User = userInfo
 
 	return uri.String(), nil
+}
+
+func buildDBPrivateURI(conn *godo.DatabaseConnection, d *schema.ResourceData) (string, error) {
+	return buildDBConnectionURI(conn, d)
 }
 
 func expandBackupRestore(config []interface{}) *godo.DatabaseBackupRestore {

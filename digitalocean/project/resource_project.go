@@ -12,7 +12,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -57,7 +57,7 @@ func ResourceDigitalOceanProject() *schema.Resource {
 				Description:  "the environment of the project's resources",
 				ValidateFunc: validation.StringInSlice([]string{"development", "staging", "production"}, true),
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return strings.ToLower(old) == strings.ToLower(new)
+					return strings.EqualFold(old, new)
 				},
 			},
 			"owner_uuid": {
@@ -127,8 +127,19 @@ func resourceDigitalOceanProjectCreate(ctx context.Context, d *schema.ResourceDa
 	if v, ok := d.GetOk("resources"); ok {
 
 		resources, err := assignResourcesToProject(client, project.ID, v.(*schema.Set))
+
 		if err != nil {
-			return diag.Errorf("Error creating project: %s", err)
+
+			if project.ID != "" {
+				_, err := client.Projects.Delete(context.Background(), project.ID)
+				if err != nil {
+					log.Printf("[DEBUG] Adding resources to project unsuccessful and project deletion unsuccessful: %s", project.ID)
+				}
+
+				log.Printf("[DEBUG] Adding resources to project unsuccessful, project deleted: %s", project.ID)
+			}
+
+			return diag.Errorf("Error creating Project: %s", err)
 		}
 
 		d.Set("resources", resources)
@@ -164,6 +175,7 @@ func resourceDigitalOceanProjectRead(ctx context.Context, d *schema.ResourceData
 		if resp != nil && resp.StatusCode == 404 {
 			log.Printf("[DEBUG] Project  (%s) was not found - removing from state", d.Id())
 			d.SetId("")
+			return nil
 		}
 
 		return diag.Errorf("Error reading Project: %s", err)
@@ -273,15 +285,15 @@ func resourceDigitalOceanProjectDelete(ctx context.Context, d *schema.ResourceDa
 	}
 
 	// Moving resources is async and projects can not be deleted till empty. Retries may be required.
-	err := resource.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *resource.RetryError {
+	err := retry.RetryContext(ctx, d.Timeout(schema.TimeoutDelete), func() *retry.RetryError {
 		_, err := client.Projects.Delete(context.Background(), projectID)
 		if err != nil {
 			if util.IsDigitalOceanError(err, http.StatusPreconditionFailed, "cannot delete a project with resources") {
 				log.Printf("[DEBUG] Received %s, retrying project deletion", err.Error())
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			}
 
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		}
 
 		return nil

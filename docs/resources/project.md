@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_project"
+subcategory: "Account"
 ---
 
 # digitalocean\_project
@@ -12,14 +13,15 @@ in ways that align with the applications you host on DigitalOcean.
 
 The following resource types can be associated with a project:
 
+* App Platform Apps
 * Database Clusters
 * Domains
 * Droplets
-* Floating IP
-* Kubernetes Cluster
+* Floating IPs
+* Kubernetes Clusters
 * Load Balancers
-* Spaces Bucket
-* Volume
+* Spaces Buckets
+* Volumes
 
 **Note:** A Terraform managed project cannot be set as a default project.
 

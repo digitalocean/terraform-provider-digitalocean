@@ -12,9 +12,13 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+var (
+	needsCloudflareCert = "needs-cloudflare-cert"
 )
 
 func ResourceDigitalOceanCDN() *schema.Resource {
@@ -142,12 +146,15 @@ func resourceDigitalOceanCDNCreate(ctx context.Context, d *schema.ResourceData, 
 	if name, nameOk := d.GetOk("certificate_name"); nameOk {
 		certName := name.(string)
 		if certName != "" {
-			cert, err := certificate.FindCertificateByName(client, certName)
-			if err != nil {
-				return diag.FromErr(err)
+			if certName == needsCloudflareCert {
+				cdnRequest.CertificateID = needsCloudflareCert
+			} else {
+				cert, err := certificate.FindCertificateByName(client, certName)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				cdnRequest.CertificateID = cert.ID
 			}
-
-			cdnRequest.CertificateID = cert.ID
 		}
 	}
 
@@ -205,7 +212,7 @@ func resourceDigitalOceanCDNRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("created_at", cdn.CreatedAt.UTC().String())
 	d.Set("custom_domain", cdn.CustomDomain)
 
-	if cdn.CertificateID != "" {
+	if cdn.CertificateID != "" && cdn.CertificateID != needsCloudflareCert {
 		// When the certificate type is lets_encrypt, the certificate
 		// ID will change when it's renewed, so we have to rely on the
 		// certificate name as the primary identifier instead.
@@ -215,6 +222,11 @@ func resourceDigitalOceanCDNRead(ctx context.Context, d *schema.ResourceData, me
 		}
 		d.Set("certificate_id", cert.Name)
 		d.Set("certificate_name", cert.Name)
+	}
+
+	if cdn.CertificateID == needsCloudflareCert {
+		d.Set("certificate_id", cdn.CertificateID)
+		d.Set("certificate_name", cdn.CertificateID)
 	}
 
 	return nil
@@ -227,21 +239,21 @@ func getCDNWithRetryBackoff(ctx context.Context, client *godo.Client, id string)
 		timeout = 30 * time.Second
 		err     error
 	)
-	err = resource.RetryContext(ctx, timeout, func() *resource.RetryError {
+	err = retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 		cdn, resp, err = client.CDNs.Get(ctx, id)
 		if err != nil {
 			if util.IsDigitalOceanError(err, http.StatusNotFound, "") {
 				log.Printf("[DEBUG] Received %s, retrying CDN", err.Error())
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			}
 
 			if util.IsDigitalOceanError(err, http.StatusTooManyRequests, "") {
 				log.Printf("[DEBUG] Received %s, backing off", err.Error())
 				time.Sleep(10 * time.Second)
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			}
 
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		}
 
 		return nil
@@ -277,12 +289,16 @@ func resourceDigitalOceanCDNUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		certName := d.Get("certificate_name").(string)
 		if certName != "" {
-			cert, err := certificate.FindCertificateByName(client, certName)
-			if err != nil {
-				return diag.FromErr(err)
-			}
+			if certName == needsCloudflareCert {
+				cdnUpdateRequest.CertificateID = needsCloudflareCert
+			} else {
+				cert, err := certificate.FindCertificateByName(client, certName)
+				if err != nil {
+					return diag.FromErr(err)
+				}
 
-			cdnUpdateRequest.CertificateID = cert.ID
+				cdnUpdateRequest.CertificateID = cert.ID
+			}
 		}
 
 		_, _, err := client.CDNs.UpdateCustomDomain(context.Background(), d.Id(), cdnUpdateRequest)
@@ -302,16 +318,16 @@ func resourceDigitalOceanCDNDelete(ctx context.Context, d *schema.ResourceData, 
 	resourceID := d.Id()
 
 	timeout := 30 * time.Second
-	err := resource.RetryContext(ctx, timeout, func() *resource.RetryError {
+	err := retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 		_, err := client.CDNs.Delete(context.Background(), resourceID)
 		if err != nil {
 			if util.IsDigitalOceanError(err, http.StatusTooManyRequests, "") {
 				log.Printf("[DEBUG] Received %s, backing off", err.Error())
 				time.Sleep(10 * time.Second)
-				return resource.RetryableError(err)
+				return retry.RetryableError(err)
 			}
 
-			return resource.NonRetryableError(err)
+			return retry.NonRetryableError(err)
 		}
 
 		return nil

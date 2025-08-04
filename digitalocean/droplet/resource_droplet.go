@@ -2,6 +2,7 @@ package droplet
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -15,9 +16,13 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
+
+var (
+	errDropletBackupPolicy = errors.New("backup_policy can only be set when backups are enabled")
 )
 
 func ResourceDigitalOceanDroplet() *schema.Resource {
@@ -141,6 +146,37 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 				Default:  false,
 			},
 
+			"backup_policy": {
+				Type:         schema.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				RequiredWith: []string{"backups"},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"plan": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"daily",
+								"weekly",
+							}, false),
+						},
+						"weekday": {
+							Type:     schema.TypeString,
+							Optional: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT",
+							}, false),
+						},
+						"hour": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(0, 20),
+						},
+					},
+				},
+			},
+
 			"ipv6": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -237,6 +273,13 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 					return d.Get("ipv6").(bool)
 				}),
 			),
+			// Forces replacement when IPv6 has attribute changes to `false`
+			// https://github.com/digitalocean/terraform-provider-digitalocean/issues/1104
+			customdiff.ForceNewIfChange("ipv6",
+				func(ctx context.Context, old, new, meta interface{}) bool {
+					return old.(bool) && !new.(bool)
+				},
+			),
 		),
 	}
 }
@@ -264,6 +307,10 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if attr, ok := d.GetOk("backups"); ok {
+		_, exist := d.GetOk("backup_policy")
+		if exist && !attr.(bool) { // Check there is no backup_policy specified when backups are disabled.
+			return diag.FromErr(errDropletBackupPolicy)
+		}
 		opts.Backups = attr.(bool)
 	}
 
@@ -314,6 +361,19 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 			return diag.FromErr(err)
 		}
 		opts.SSHKeys = expandedSshKeys
+	}
+
+	// Get configured backup_policy
+	if policy, ok := d.GetOk("backup_policy"); ok {
+		if !d.Get("backups").(bool) {
+			return diag.FromErr(errDropletBackupPolicy)
+		}
+
+		backupPolicy, err := expandBackupPolicy(policy)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		opts.BackupPolicy = backupPolicy
 	}
 
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
@@ -464,6 +524,7 @@ func FindIPv4AddrByType(d *godo.Droplet, addrType string) string {
 
 func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
+	var warnings []diag.Diagnostic
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
@@ -549,17 +610,36 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 	if d.HasChange("backups") {
 		if d.Get("backups").(bool) {
 			// Enable backups on droplet
-			action, _, err := client.DropletActions.EnableBackups(context.Background(), id)
-			if err != nil {
-				return diag.Errorf(
-					"Error enabling backups on droplet (%s): %s", d.Id(), err)
+			var action *godo.Action
+			// Apply backup_policy if specified, otherwise use the default policy
+			policy, ok := d.GetOk("backup_policy")
+			if ok {
+				backupPolicy, err := expandBackupPolicy(policy)
+				if err != nil {
+					return diag.FromErr(err)
+				}
+				action, _, err = client.DropletActions.EnableBackupsWithPolicy(context.Background(), id, backupPolicy)
+				if err != nil {
+					return diag.Errorf(
+						"Error enabling backups on droplet (%s): %s", d.Id(), err)
+				}
+			} else {
+				action, _, err = client.DropletActions.EnableBackups(context.Background(), id)
+				if err != nil {
+					return diag.Errorf(
+						"Error enabling backups on droplet (%s): %s", d.Id(), err)
+				}
 			}
-
 			if err := util.WaitForAction(client, action); err != nil {
 				return diag.Errorf("Error waiting for backups to be enabled for droplet (%s): %s", d.Id(), err)
 			}
 		} else {
 			// Disable backups on droplet
+			// Check there is no backup_policy specified
+			_, ok := d.GetOk("backup_policy")
+			if ok {
+				return diag.FromErr(errDropletBackupPolicy)
+			}
 			action, _, err := client.DropletActions.DisableBackups(context.Background(), id)
 			if err != nil {
 				return diag.Errorf(
@@ -568,6 +648,31 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 			if err := util.WaitForAction(client, action); err != nil {
 				return diag.Errorf("Error waiting for backups to be disabled for droplet (%s): %s", d.Id(), err)
+			}
+		}
+	}
+
+	if d.HasChange("backup_policy") {
+		_, ok := d.GetOk("backup_policy")
+		if ok {
+			if !d.Get("backups").(bool) {
+				return diag.FromErr(errDropletBackupPolicy)
+			}
+
+			_, new := d.GetChange("backup_policy")
+			newPolicy, err := expandBackupPolicy(new)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+
+			action, _, err := client.DropletActions.ChangeBackupPolicy(context.Background(), id, newPolicy)
+			if err != nil {
+				return diag.Errorf(
+					"error changing backup policy on droplet (%s): %s", d.Id(), err)
+			}
+
+			if err := util.WaitForAction(client, action); err != nil {
+				return diag.Errorf("error waiting for backup policy to be changed for droplet (%s): %s", d.Id(), err)
 			}
 		}
 	}
@@ -595,7 +700,6 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 	// As there is no way to disable IPv6, we only check if it needs to be enabled
 	if d.HasChange("ipv6") && d.Get("ipv6").(bool) {
 		_, _, err = client.DropletActions.EnableIPv6(context.Background(), id)
-
 		if err != nil {
 			return diag.Errorf(
 				"Error turning on ipv6 for droplet (%s): %s", d.Id(), err)
@@ -609,6 +713,12 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 			return diag.Errorf(
 				"Error waiting for ipv6 to be turned on for droplet (%s): %s", d.Id(), err)
 		}
+
+		warnings = append(warnings, diag.Diagnostic{
+			Severity: diag.Warning,
+			Summary:  "Enabling IPv6 requires additional OS-level configuration",
+			Detail:   "When enabling IPv6 on an existing Droplet, additional OS-level configuration is required. For more info, see: \nhttps://docs.digitalocean.com/products/networking/ipv6/how-to/enable/#on-existing-droplets",
+		})
 	}
 
 	if d.HasChange("tags") {
@@ -650,11 +760,20 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 			}
 		}
 		for volumeID := range leftDiff(oldIDSet, newIDSet) {
-			detachVolumeIDOnDroplet(d, volumeID, meta)
+			err := detachVolumeIDOnDroplet(d, volumeID, meta)
+			if err != nil {
+				return diag.Errorf("Error detaching volume %q on droplet %s: %s", volumeID, d.Id(), err)
+
+			}
 		}
 	}
 
-	return resourceDigitalOceanDropletRead(ctx, d, meta)
+	readErr := resourceDigitalOceanDropletRead(ctx, d, meta)
+	if readErr != nil {
+		warnings = append(warnings, readErr...)
+	}
+
+	return warnings
 }
 
 func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -722,16 +841,16 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta interface{}) (interface{}, error) {
 	log.Printf("[INFO] Waiting for droplet (%s) to be destroyed", d.Id())
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"active", "off"},
-		Target:     []string{"archived"},
+		Target:     []string{"archive"},
 		Refresh:    dropletStateRefreshFunc(ctx, d, "status", meta),
 		Timeout:    60 * time.Second,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
 	}
 
-	return stateConf.WaitForState()
+	return stateConf.WaitForStateContext(ctx)
 }
 
 func waitForDropletAttribute(
@@ -742,7 +861,7 @@ func waitForDropletAttribute(
 		"[INFO] Waiting for droplet (%s) to have %s of %s",
 		d.Id(), attribute, target)
 
-	stateConf := &resource.StateChangeConf{
+	stateConf := &retry.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
 		Refresh:    dropletStateRefreshFunc(ctx, d, attribute, meta),
@@ -756,13 +875,13 @@ func waitForDropletAttribute(
 		NotFoundChecks: 60,
 	}
 
-	return stateConf.WaitForState()
+	return stateConf.WaitForStateContext(ctx)
 }
 
 // TODO This function still needs a little more refactoring to make it
 // cleaner and more efficient
 func dropletStateRefreshFunc(
-	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}) resource.StateRefreshFunc {
+	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}) retry.StateRefreshFunc {
 	client := meta.(*config.CombinedConfig).GodoClient()
 	return func() (interface{}, string, error) {
 		id, err := strconv.Atoi(d.Id())
@@ -791,9 +910,9 @@ func dropletStateRefreshFunc(
 
 		// See if we can access our attribute
 		if attr, ok := d.GetOkExists(attribute); ok {
-			switch attr.(type) {
+			switch attr := attr.(type) {
 			case bool:
-				return &droplet, strconv.FormatBool(attr.(bool)), nil
+				return &droplet, strconv.FormatBool(attr), nil
 			default:
 				return &droplet, attr.(string), nil
 			}
@@ -831,7 +950,10 @@ func detachVolumesFromDroplet(d *schema.ResourceData, meta interface{}) error {
 	if attr, ok := d.GetOk("volume_ids"); ok {
 		errors = make([]error, 0, attr.(*schema.Set).Len())
 		for _, volumeID := range attr.(*schema.Set).List() {
-			detachVolumeIDOnDroplet(d, volumeID.(string), meta)
+			err := detachVolumeIDOnDroplet(d, volumeID.(string), meta)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -894,4 +1016,48 @@ func flattenDigitalOceanDropletVolumeIds(volumeids []string) *schema.Set {
 	}
 
 	return flattenedVolumes
+}
+
+func expandBackupPolicy(v interface{}) (*godo.DropletBackupPolicyRequest, error) {
+	var policy godo.DropletBackupPolicyRequest
+	policyList := v.([]interface{})
+
+	for _, rawPolicy := range policyList {
+		policyMap, ok := rawPolicy.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("droplet backup policy type assertion failed: expected map[string]interface{}, got %T", rawPolicy)
+		}
+
+		planVal, exists := policyMap["plan"]
+		if !exists {
+			return nil, errors.New("backup_policy plan key does not exist")
+		}
+		plan, ok := planVal.(string)
+		if !ok {
+			return nil, errors.New("backup_policy plan is not a string")
+		}
+		policy.Plan = plan
+
+		weekdayVal, exists := policyMap["weekday"]
+		if !exists {
+			return nil, errors.New("backup_policy weekday key does not exist")
+		}
+		weekday, ok := weekdayVal.(string)
+		if !ok {
+			return nil, errors.New("backup_policy weekday is not a string")
+		}
+		policy.Weekday = weekday
+
+		hourVal, exists := policyMap["hour"]
+		if !exists {
+			return nil, errors.New("backup_policy hour key does not exist")
+		}
+		hour, ok := hourVal.(int)
+		if !ok {
+			return nil, errors.New("backup_policy hour is not an int")
+		}
+		policy.Hour = &hour
+	}
+
+	return &policy, nil
 }

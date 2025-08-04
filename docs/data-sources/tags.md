@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_tags"
+subcategory: "Account"
 ---
 
 # digitalocean_tags

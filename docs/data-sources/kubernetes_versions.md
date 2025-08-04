@@ -1,5 +1,6 @@
 ---
 page_title: "DigitalOcean: digitalocean_kubernetes_versions"
+subcategory: "Kubernetes"
 ---
 
 # digitalocean\_kubernetes\_versions
