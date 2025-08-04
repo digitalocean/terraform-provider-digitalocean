@@ -10,7 +10,7 @@ for a DigitalOcean managed database cluster. Migrating a cluster establishes a
 connection with an existing cluster and replicates its contents to the target 
 cluster. If the existing database is continuously being written to, the migration 
 process will continue for up to two weeks unless it is manually stopped. 
-Online migration is only available for MySQL, PostgreSQL, and Redis clusters.
+Online migration is only available for MySQL, PostgreSQL, Caching, and Valkey clusters.
 
 ## Example Usage
 
