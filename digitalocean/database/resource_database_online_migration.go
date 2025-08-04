@@ -82,7 +82,7 @@ func ResourceDigitalOceanDatabaseOnlineMigration() *schema.Resource {
 						"password": {
 							Type:        schema.TypeString,
 							Required:    true,
-							Description: "The port on which the database cluster is listening.",
+							Description: "The password of the database.",
 						},
 					},
 				},
