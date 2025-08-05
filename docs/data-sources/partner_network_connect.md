@@ -5,8 +5,6 @@ subcategory: "Networking"
 
 # digitalocean_partner_attachment
 
--> Partner Attachment is currently in private preview. If you are not a member of the private preview group for this feature, you will not be able to use it until is has been more widely released. Please follow the official [DigitalOcean changelog](https://docs.digitalocean.com/release-notes/) for updates.
-
 Retrieve information about a Partner Attachment for use in other resources.
 
 This data source provides all of the Partner Attachment's properties as configured on your
@@ -55,3 +53,6 @@ The following arguments are supported and are mutually exclusive:
     * `auth_key` - The authentication key for the BGP session.
 * `state` - The state of the Partner Attachment.
 * `created_at` - The date and time of when the Partner Attachment was created.
+* `redundancy_zone` - The redundancy zone of the Partner Attachment.
+* `parent_uuid` - The UUID of the parent Partner Attachment, if applicable.
+* `children` - The UUIDs of Partner Attachment children, if applicable.

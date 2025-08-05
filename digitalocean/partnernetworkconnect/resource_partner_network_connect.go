@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 )
 
 func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
@@ -62,8 +63,8 @@ func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
 			"redundancy_zone": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "The redundancy zone for the NaaS",
-				ForceNew:    true,
 			},
 			"vpc_ids": {
 				Type:        schema.TypeSet,
@@ -85,8 +86,8 @@ func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
 			"bgp": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
 				MaxItems: 1,
-				ForceNew: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"local_router_ip": {
@@ -109,6 +110,17 @@ func ResourceDigitalOceanPartnerAttachment() *schema.Resource {
 					},
 				},
 			},
+			"parent_uuid": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The UUID of the Parent Partner Attachment ",
+			},
+			"children": {
+				Type:        schema.TypeList,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Computed:    true,
+				Description: "The children uuids of Partner Attachment",
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -127,6 +139,7 @@ func resourceDigitalOceanPartnerAttachmentCreate(ctx context.Context, d *schema.
 	naasProvider := d.Get("naas_provider").(string)
 	redundancyZone := d.Get("redundancy_zone").(string)
 	vpcIDs := d.Get("vpc_ids").(*schema.Set).List()
+	parentUUID := d.Get("parent_uuid").(string)
 
 	vpcIDsString := make([]string, len(vpcIDs))
 	for i, v := range vpcIDs {
@@ -140,6 +153,7 @@ func resourceDigitalOceanPartnerAttachmentCreate(ctx context.Context, d *schema.
 		NaaSProvider:              naasProvider,
 		RedundancyZone:            redundancyZone,
 		VPCIDs:                    vpcIDsString,
+		ParentUuid:                parentUUID,
 	}
 
 	if bgpRaw, ok := d.GetOk("bgp"); ok {
@@ -291,6 +305,8 @@ func resourceDigitalOceanPartnerAttachmentRead(ctx context.Context, d *schema.Re
 	d.Set("naas_provider", partnerAttachment.NaaSProvider)
 	d.Set("redundancy_zone", partnerAttachment.RedundancyZone)
 	d.Set("vpc_ids", partnerAttachment.VPCIDs)
+	d.Set("parent_uuid", partnerAttachment.ParentUuid)
+	d.Set("children", partnerAttachment.Children)
 
 	bgp := partnerAttachment.BGP
 	if bgp.PeerRouterIP != "" || bgp.LocalRouterIP != "" || bgp.PeerASN != 0 {

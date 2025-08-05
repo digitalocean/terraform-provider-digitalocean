@@ -6,10 +6,11 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 )
 
 func TestAccDigitalOceanPartnerAttachment_Basic(t *testing.T) {
@@ -129,6 +130,8 @@ resource "digitalocean_partner_attachment" "foobar" {
     peer_router_ip  = "169.254.100.22/29"
     auth_key        = "BGPAu7hK3y!"
   }
+  parent_uuid = "c8c204d8-18e9-4a81-a7d6-7bf5d1092f67"
+  children    = "22a2467c-0f83-4a04-abc7-07f9a4ec3a8a,44a2467c-0f83-4a04-abc7-07f9a4ec3a44"
 }
 `
 

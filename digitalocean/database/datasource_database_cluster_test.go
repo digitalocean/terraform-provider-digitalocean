@@ -3,6 +3,7 @@ package database_test
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/digitalocean/godo"
@@ -47,6 +48,7 @@ func TestAccDataSourceDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"data.digitalocean_database_cluster.foobar", "project_id"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_database_cluster.foobar", "storage_size_mib"),
+					testAccCheckDataSourceDigitalOceanDatabaseClusterMetricsEndpoints("data.digitalocean_database_cluster.foobar"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
 						"digitalocean_database_cluster.foobar", "uri"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
@@ -72,6 +74,7 @@ func testAccCheckDataSourceDigitalOceanDatabaseClusterExists(n string, databaseC
 		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
 		foundCluster, _, err := client.Databases.Get(context.Background(), rs.Primary.ID)
+
 		if err != nil {
 			return err
 		}
@@ -81,6 +84,32 @@ func testAccCheckDataSourceDigitalOceanDatabaseClusterExists(n string, databaseC
 		}
 
 		*databaseCluster = *foundCluster
+
+		return nil
+	}
+}
+
+func testAccCheckDataSourceDigitalOceanDatabaseClusterMetricsEndpoints(resourceName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[resourceName]
+		if !ok {
+			return fmt.Errorf("Not found: %s", resourceName)
+		}
+
+		// Check that metrics_endpoints is set and has at least one element
+		count, err := strconv.Atoi(rs.Primary.Attributes["metrics_endpoints.#"])
+		if err != nil {
+			return fmt.Errorf("Error parsing metrics_endpoints count: %s", err)
+		}
+		if count == 0 {
+			return fmt.Errorf("metrics_endpoints is empty")
+		}
+
+		// Check that the first endpoint is a valid URL
+		firstEndpoint := rs.Primary.Attributes["metrics_endpoints.0"]
+		if firstEndpoint == "" {
+			return fmt.Errorf("First endpoint in metrics_endpoints is empty")
+		}
 
 		return nil
 	}

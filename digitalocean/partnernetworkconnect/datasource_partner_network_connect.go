@@ -6,10 +6,11 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 )
 
 func DataSourceDigitalOceanPartnerAttachment() *schema.Resource {
@@ -82,6 +83,16 @@ func DataSourceDigitalOceanPartnerAttachment() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"parent_uuid": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"children": {
+				Type:        schema.TypeList,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+				Computed:    true,
+				Description: "The children uuids of the Partner Attachment.",
+			},
 		},
 	}
 }
@@ -134,6 +145,8 @@ func dataSourceDigitalOceanPartnerAttachmentRead(ctx context.Context, d *schema.
 	}
 	d.Set("state", foundPartnerAttachment.State)
 	d.Set("created_at", foundPartnerAttachment.CreatedAt.UTC().String())
+	d.Set("parent_uuid", foundPartnerAttachment.ParentUuid)
+	d.Set("children", foundPartnerAttachment.Children)
 
 	return nil
 }

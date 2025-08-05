@@ -5,8 +5,6 @@ subcategory: "Networking"
 
 # digitalocean_partner_attachment
 
--> Partner Attachment is currently in private preview. If you are not a member of the private preview group for this feature, you will not be able to use it until is has been more widely released. Please follow the official [DigitalOcean changelog](https://docs.digitalocean.com/release-notes/) for updates.
-
 Provides a [DigitalOcean Partner Attachment](#digitalocean_partner_attachment) resource.
 
 Partner Attachments enable private connectivity between VPC networks across different cloud providers via a supported service provider.
@@ -46,6 +44,8 @@ The following arguments are supported and are mutually exclusive:
     * `peer_router_asn` - The peer autonomous system number.
     * `peer_router_ip` - The peer router IP address in CIDR notation.
     * `auth_key` - The authentication key for the BGP session.
+* `redundancy_zone` - (Optional) The redundancy zone of the Partner Attachment.
+* `parent_uuid` - (Optional) The UUID of the parent Partner Attachment HA.
 
 ## Attributes Reference
 

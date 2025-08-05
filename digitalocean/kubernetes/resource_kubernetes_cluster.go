@@ -177,6 +177,13 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 						},
+						"expanders": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Schema{
+								Type: schema.TypeString,
+							},
+						},
 					},
 				},
 			},
@@ -533,13 +540,14 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha", controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField) {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
-			Name:                 d.Get("name").(string),
-			Tags:                 tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
-			AutoUpgrade:          godo.PtrTo(d.Get("auto_upgrade").(bool)),
-			SurgeUpgrade:         d.Get("surge_upgrade").(bool),
-			HA:                   godo.PtrTo(d.Get("ha").(bool)),
-			ControlPlaneFirewall: expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
-			RoutingAgent:         expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
+			Name:                           d.Get("name").(string),
+			Tags:                           tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
+			AutoUpgrade:                    godo.PtrTo(d.Get("auto_upgrade").(bool)),
+			SurgeUpgrade:                   d.Get("surge_upgrade").(bool),
+			HA:                             godo.PtrTo(d.Get("ha").(bool)),
+			ControlPlaneFirewall:           expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
+			RoutingAgent:                   expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
+			ClusterAutoscalerConfiguration: expandCAConfigOptsForUpdate(d.Get("cluster_autoscaler_configuration").([]interface{})),
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {
@@ -548,10 +556,6 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 				return diag.Errorf("Error setting Kubernetes maintenance policy : %s", err)
 			}
 			opts.MaintenancePolicy = maintPolicy
-		}
-
-		if caConfig, ok := d.GetOk("cluster_autoscaler_configuration"); ok {
-			opts.ClusterAutoscalerConfiguration = expandCAConfigOpts(caConfig.([]interface{}))
 		}
 
 		_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)

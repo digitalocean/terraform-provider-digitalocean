@@ -49,6 +49,14 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					// Suppress diff if switching between redis and valkey
+					cachingEngines := map[string]bool{
+						redisDBEngineSlug:  true,
+						valkeyDBEngineSlug: true,
+					}
+					return cachingEngines[old] && cachingEngines[new]
+				},
 			},
 
 			"version": {
@@ -254,6 +262,14 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
+			},
+
+			"metrics_endpoints": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Schema{
+					Type: schema.TypeString,
+				},
 			},
 		},
 
@@ -564,6 +580,11 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 		return diag.Errorf("Error setting ui connection info for database cluster: %s", err)
 	}
 
+	metricsErr := setMetricsEndpoints(database, d)
+	if metricsErr != nil {
+		return diag.Errorf("Error setting metrics endpoints for database cluster: %s", metricsErr)
+	}
+
 	d.Set("urn", database.URN())
 	d.Set("private_network_uuid", database.PrivateNetworkUUID)
 	d.Set("project_id", database.ProjectID)
@@ -687,6 +708,20 @@ func setUIConnectionInfo(database *godo.Database, d *schema.ResourceData) error 
 		d.Set("ui_user", database.UIConnection.User)
 		d.Set("ui_password", database.UIConnection.Password)
 	}
+
+	return nil
+}
+
+func setMetricsEndpoints(database *godo.Database, d *schema.ResourceData) error {
+	if len(database.MetricsEndpoints) == 0 {
+		return fmt.Errorf("no metrics endpoints available for database cluster")
+	}
+
+	endpoints := make([]string, 0, len(database.MetricsEndpoints))
+	for _, addr := range database.MetricsEndpoints {
+		endpoints = append(endpoints, fmt.Sprintf("https://%s:%d/metrics", addr.Host, addr.Port))
+	}
+	d.Set("metrics_endpoints", endpoints)
 
 	return nil
 }
