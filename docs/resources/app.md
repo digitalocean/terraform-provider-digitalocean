@@ -231,6 +231,34 @@ resource "digitalocean_app" "golang-sample" {
   }
 }
 ```
+
+### Maintenance Example
+
+```hcl
+resource "digitalocean_app" "maintenance-example" {
+  spec {
+    name   = "maintenance-example"
+    region = "ams"
+
+    # Enable maintenance mode with a custom offline page
+    maintenance {
+      enabled          = true
+      offline_page_url = "https://example.com/maintenance.html"
+    }
+
+    service {
+      name               = "go-service"
+      instance_count     = 1
+      instance_size_slug = "apps-s-1vcpu-1gb"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+    }
+  }
+}
+```
 ## Argument Reference
 
 The following arguments are supported:
@@ -264,6 +292,10 @@ The following arguments are supported:
     - `slack_webhooks` - Determines which slack channels or users receive alerts (optional).
 * `egress` - Specification for app egress configurations.
   - `type` - The app egress type: `AUTOASSIGN`, `DEDICATED_IP`
+* `maintenance` - Specification to configure maintenance settings for the app, such as maintenance mode and archiving the app.
+  - `enabled` - Indicates whether maintenance mode should be enabled for the app.
+  - `archive` - Indicates whether the app should be archived. Setting this to true implies that enabled is set to true.
+  - `offline_page_url` - A custom offline page to display when maintenance mode is enabled or the app is archived.
 * `ingress` - Specification for component routing, rewrites, and redirects.
   - `rule` - Rules for configuring HTTP ingress for component routes, CORS, rewrites, and redirects.
     - `component` - The component to route to. Only one of `component` or `redirect` may be set.
