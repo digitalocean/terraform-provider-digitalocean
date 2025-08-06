@@ -166,6 +166,10 @@ resource "digitalocean_app" "mono-repo-example" {
         }
       }
     }
+
+    vpc {
+      id = "c22d8f48-4bc4-49f5-8ca0-58e7164427ac"
+    }
   }
 }
 ```
@@ -227,6 +231,34 @@ resource "digitalocean_app" "golang-sample" {
   }
 }
 ```
+
+### Maintenance Example
+
+```hcl
+resource "digitalocean_app" "maintenance-example" {
+  spec {
+    name   = "maintenance-example"
+    region = "ams"
+
+    # Enable maintenance mode with a custom offline page
+    maintenance {
+      enabled          = true
+      offline_page_url = "https://example.com/maintenance.html"
+    }
+
+    service {
+      name               = "go-service"
+      instance_count     = 1
+      instance_size_slug = "apps-s-1vcpu-1gb"
+
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+    }
+  }
+}
+```
 ## Argument Reference
 
 The following arguments are supported:
@@ -253,13 +285,17 @@ The following arguments are supported:
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `alert` - Describes an alert policy for the app.
-  - `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_CANCELLED`, `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DEPLOYMENT_STARTED`, `DOMAIN_FAILED`, or `DOMAIN_LIVE`.
+  - `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_CANCELLED`, `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DEPLOYMENT_STARTED`, `DOMAIN_FAILED`, `DOMAIN_LIVE`, `AUTOSCALE_FAILED`, or `AUTOSCALE_SUCCEEDED`.
   - `disabled` - Determines whether the alert is disabled (default: `false`).
   - `destinations` - Specification for alert destination.
     - `emails` - Determines which emails receive alerts. The emails must be team members. If not set, the team's email is used by default.
     - `slack_webhooks` - Determines which slack channels or users receive alerts (optional).
 * `egress` - Specification for app egress configurations.
   - `type` - The app egress type: `AUTOASSIGN`, `DEDICATED_IP`
+* `maintenance` - Specification to configure maintenance settings for the app, such as maintenance mode and archiving the app.
+  - `enabled` - Indicates whether maintenance mode should be enabled for the app.
+  - `archive` - Indicates whether the app should be archived. Setting this to true implies that enabled is set to true.
+  - `offline_page_url` - A custom offline page to display when maintenance mode is enabled or the app is archived.
 * `ingress` - Specification for component routing, rewrites, and redirects.
   - `rule` - Rules for configuring HTTP ingress for component routes, CORS, rewrites, and redirects.
     - `component` - The component to route to. Only one of `component` or `redirect` may be set.
@@ -285,7 +321,8 @@ The following arguments are supported:
       - `expose_headers` - The set of HTTP response headers that browsers are allowed to access. This configures the `Access-Control-Expose-Headers` header.
       - `allow_methods` - The set of allowed HTTP methods. This configures the `Access-Control-Allow-Methods` header.
       - `allow_credentials` - Whether browsers should expose the response to the client-side JavaScript code when the request's credentials mode is `include`. This configures the `Access-Control-Allow-Credentials` header.
-
+* `vpc`: Specification for VPC.
+  - `id`: The ID of the VPC.
 - `project_id` - The ID of the project that the app is assigned to.
 
 A spec can contain multiple components.

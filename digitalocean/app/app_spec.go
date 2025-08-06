@@ -1,3 +1,4 @@
+// AppMaintenanceSpec defines maintenance settings for the app.
 package app
 
 import (
@@ -143,6 +144,36 @@ func appSpecSchema(isResource bool) map[string]*schema.Schema {
 				},
 			},
 		},
+		"maintenance": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "Specification to configure maintenance settings for the app, such as maintenance mode and archiving the app.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"enabled": {
+						Type:        schema.TypeBool,
+						Optional:    true,
+						Description: "Indicates whether maintenance mode should be enabled for the app.",
+					},
+					"archive": {
+						Type:        schema.TypeBool,
+						Optional:    true,
+						Description: "Indicates whether the app should be archived. Setting this to true implies that enabled is set to true.",
+					},
+					"offline_page_url": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "A custom offline page to display when maintenance mode is enabled or the app is archived.",
+					},
+				},
+			},
+		},
+		"vpc": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem:     appSpecVPCSchema(),
+		},
 	}
 
 	if isResource {
@@ -186,6 +217,18 @@ func appSpecDomainSchema() *schema.Resource {
 	}
 }
 
+func appSpecVPCSchema() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The ID of the VPC.",
+			},
+		},
+	}
+}
+
 func appSpecAppLevelAlerts() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
@@ -199,6 +242,8 @@ func appSpecAppLevelAlerts() *schema.Resource {
 					string(godo.AppAlertSpecRule_DeploymentCanceled),
 					string(godo.AppAlertSpecRule_DomainFailed),
 					string(godo.AppAlertSpecRule_DomainLive),
+					string(godo.AppAlertSpecRule_AutoscaleFailed),
+					string(godo.AppAlertSpecRule_AutoscaleSucceeded),
 				}, false),
 			},
 			"disabled": {
@@ -1296,6 +1341,14 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		appSpec.Domains = expandAppDomainSpec(appSpecConfig["domains"].(*schema.Set).List())
 	}
 
+	// Handle maintenance
+	if v, ok := appSpecConfig["maintenance"]; ok {
+		maint := expandAppMaintenance(v.([]interface{}))
+		if maint != nil {
+			appSpec.Maintenance = maint
+		}
+	}
+
 	return appSpec
 }
 
@@ -1303,7 +1356,6 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 	result := make([]map[string]interface{}, 0, 1)
 
 	if spec != nil {
-
 		r := make(map[string]interface{})
 		r["name"] = (*spec).Name
 		r["region"] = (*spec).Region
@@ -1359,10 +1411,42 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 			r["egress"] = flattenAppEgress((*spec).Egress)
 		}
 
+		// Handle maintenance
+		if (*spec).Maintenance != nil {
+			r["maintenance"] = flattenAppMaintenance((*spec).Maintenance)
+		}
+
 		result = append(result, r)
 	}
 
 	return result
+}
+
+// expandAppMaintenance expands the maintenance block from the schema to AppMaintenanceSpec
+func expandAppMaintenance(config []interface{}) *godo.AppMaintenanceSpec {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+	m := config[0].(map[string]interface{})
+	return &godo.AppMaintenanceSpec{
+		Enabled:        m["enabled"].(bool),
+		Archive:        m["archive"].(bool),
+		OfflinePageURL: m["offline_page_url"].(string),
+	}
+}
+
+// flattenAppMaintenance flattens AppMaintenanceSpec to the schema format
+func flattenAppMaintenance(m *godo.AppMaintenanceSpec) []map[string]interface{} {
+	if m == nil {
+		return nil
+	}
+	return []map[string]interface{}{
+		{
+			"enabled":          m.Enabled,
+			"archive":          m.Archive,
+			"offline_page_url": m.OfflinePageURL,
+		},
+	}
 }
 
 func expandAppAlerts(config []interface{}) []*godo.AppAlertSpec {
