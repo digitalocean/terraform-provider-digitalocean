@@ -695,6 +695,11 @@ func ModelSchema() *schema.Resource {
 
 func KnowledgeBaseSchema() *schema.Resource {
 	knowledgeBaseSchema := map[string]*schema.Schema{
+		"uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "UUID of the Knowledge Base",
+		},
 		"added_to_agent_at": {
 			Type:        schema.TypeString,
 			Computed:    true,
