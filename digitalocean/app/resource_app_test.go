@@ -203,9 +203,9 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.ingress.2.rule.0.component.0.preserve_path_prefix", "false"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.ingress.2.rule.0.component.0.name", "go-service"),
-        ),
-      },
-      {
+				),
+			},
+			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withAlerts, appName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
