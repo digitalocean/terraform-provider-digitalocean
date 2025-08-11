@@ -547,7 +547,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 			HA:                             godo.PtrTo(d.Get("ha").(bool)),
 			ControlPlaneFirewall:           expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
 			RoutingAgent:                   expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
-			ClusterAutoscalerConfiguration: expandCAConfigOptsForUpdate(d.Get("cluster_autoscaler_configuration").([]interface{})),
+			ClusterAutoscalerConfiguration: expandCAConfigOptsForUpdate(d.GetChange("cluster_autoscaler_configuration")),
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {
