@@ -714,7 +714,7 @@ func setUIConnectionInfo(database *godo.Database, d *schema.ResourceData) error 
 
 func setMetricsEndpoints(database *godo.Database, d *schema.ResourceData) error {
 	if len(database.MetricsEndpoints) == 0 {
-		return fmt.Errorf("no metrics endpoints available for database cluster")
+		return nil
 	}
 
 	endpoints := make([]string, 0, len(database.MetricsEndpoints))
