@@ -170,7 +170,7 @@ func resourceDigitalOceanVPCDelete(ctx context.Context, d *schema.ResourceData, 
 		resp, err := client.VPCs.Delete(context.Background(), vpcID)
 		if err != nil {
 			// Retry if VPC still contains member resources to prevent race condition
-			if resp.StatusCode == http.StatusForbidden {
+			if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusConflict {
 				return retry.RetryableError(err)
 			} else {
 				return retry.NonRetryableError(fmt.Errorf("Error deleting VPC: %s", err))

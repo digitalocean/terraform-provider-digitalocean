@@ -1172,6 +1172,7 @@ func appSpecDatabaseSchema() *schema.Resource {
 					"MONGODB",
 					"KAFKA",
 					"OPENSEARCH",
+					"VALKEY",
 				}, false),
 				Description: "The database engine to use.",
 			},
