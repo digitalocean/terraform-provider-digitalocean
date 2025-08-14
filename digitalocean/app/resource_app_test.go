@@ -1533,7 +1533,7 @@ resource "digitalocean_app" "foobar" {
         }
       }
 
-    rule {
+      rule {
         component {
           name = "go-service"
         }
