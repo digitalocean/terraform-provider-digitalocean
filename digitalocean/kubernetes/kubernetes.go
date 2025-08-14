@@ -442,6 +442,10 @@ func FilterTags(tags []string) []string {
 
 func expandCAConfigOpts(config []interface{}) *godo.KubernetesClusterAutoscalerConfiguration {
 	caConfig := &godo.KubernetesClusterAutoscalerConfiguration{}
+	if len(config) == 0 || config[0] == nil {
+		return caConfig
+	}
+
 	configMap := config[0].(map[string]interface{})
 
 	if v, ok := configMap["scale_down_utilization_threshold"]; ok {
@@ -462,20 +466,34 @@ func expandCAConfigOpts(config []interface{}) *godo.KubernetesClusterAutoscalerC
 	return caConfig
 }
 
-func expandCAConfigOptsForUpdate(config []interface{}) *godo.KubernetesClusterAutoscalerConfiguration {
-	caConfig := &godo.KubernetesClusterAutoscalerConfiguration{
-		// in terraform, the updated resource should be the source of truth, so if a field is removed (set to null)
-		// we should remove it from the DO resource rather than skip updating this field
-		ScaleDownUtilizationThreshold: godo.PtrTo(0.0),
-		ScaleDownUnneededTime:         godo.PtrTo(""),
-		Expanders:                     []string{},
+func expandCAConfigOptsForUpdate(oldConfig, newConfig interface{}) *godo.KubernetesClusterAutoscalerConfiguration {
+	oldCA := oldConfig.([]interface{})
+	newCA := newConfig.([]interface{})
+
+	caConfig := &godo.KubernetesClusterAutoscalerConfiguration{}
+	if len(oldCA) > 0 && oldCA[0] != nil {
+		// setting these zero values is important when CA config fields are being removed:
+		// if the old (current) CA config fields are set (non-nil), then removing them via TF
+		// should be equivalent to explicitly _un_setting,
+		// but if the old (current) CA config fields are nil, then removing them via TF should not cause an empty update
+
+		oldCAConfig := oldCA[0].(map[string]interface{})
+		if v, ok := oldCAConfig["scale_down_utilization_threshold"]; ok && v.(float64) != 0.0 {
+			caConfig.ScaleDownUtilizationThreshold = godo.PtrTo(0.0)
+		}
+		if v, ok := oldCAConfig["scale_down_unneeded_time"]; ok && v.(string) != "" {
+			caConfig.ScaleDownUnneededTime = godo.PtrTo("")
+		}
+		if v, ok := oldCAConfig["expanders"]; ok && len(v.([]interface{})) > 0 {
+			caConfig.Expanders = []string{}
+		}
 	}
 
-	if len(config) == 0 {
+	if len(newCA) == 0 || newCA[0] == nil {
 		return caConfig
 	}
 
-	configMap := config[0].(map[string]interface{})
+	configMap := newCA[0].(map[string]interface{})
 
 	if v, ok := configMap["scale_down_utilization_threshold"]; ok {
 		caConfig.ScaleDownUtilizationThreshold = godo.PtrTo(v.(float64))
