@@ -66,6 +66,7 @@ func ResourceDigitalOceanVPCNATGateway() *schema.Resource {
 							Type:        schema.TypeString,
 							Required:    true,
 							Description: "ID of the ingress VPC",
+							ForceNew:    true,
 						},
 						"gateway_ip": {
 							Type:        schema.TypeString,

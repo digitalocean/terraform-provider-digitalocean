@@ -5,8 +5,6 @@ subcategory: "Networking"
 
 # digitalocean_vpc_peering
 
--> VPC peering is currently in alpha. If you are not a member of the alpha group for this feature, you will not be able to use it until it has been more widely released. Please follow the official [DigitalOcean changelog](https://docs.digitalocean.com/release-notes/) for updates.
-
 Retrieve information about a VPC Peering for use in other resources.
 
 This data source provides all of the VPC Peering's properties as configured on your 
