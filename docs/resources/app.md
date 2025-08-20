@@ -305,6 +305,8 @@ The following arguments are supported:
     - `match` - The match configuration for the rule
       - `path` - The path to match on.
         - `prefix` - Prefix-based match.
+      - `authority` - The authority (domain) to match on.
+        - `exact` - Exact match.
     - `redirect` - The redirect configuration for the rule. Only one of `component` or `redirect` may be set.
       - `uri` - An optional URI path to redirect to.
       - `authority` - The authority/host to redirect to. This can be a hostname or IP address.
