@@ -55,6 +55,8 @@ data "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "1m30s"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.expanders.0", "priority"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "routing_agent.0.enabled", "true"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_plugin.0.enabled", "true"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_metrics_exporter_plugin.0.enabled", "true"),
 				),
 			},
 		},
@@ -92,6 +94,14 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   }
 
   routing_agent {
+    enabled = true
+  }
+
+  amd_gpu_device_plugin {
+    enabled = true
+  }
+
+  amd_gpu_device_metrics_exporter_plugin {
     enabled = true
   }
 }`, version, rName)

@@ -24,8 +24,10 @@ var (
 )
 
 const (
-	controlPlaneFirewallField = "control_plane_firewall"
-	routingAgentField         = "routing_agent"
+	controlPlaneFirewallField         = "control_plane_firewall"
+	routingAgentField                 = "routing_agent"
+	amdGpuDevicePluginField           = "amd_gpu_device_plugin"
+	amdGpuDeviceMetricsExporterPlugin = "amd_gpu_device_metrics_exporter_plugin"
 )
 
 func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
@@ -263,6 +265,35 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 					},
 				},
 			},
+			amdGpuDevicePluginField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			amdGpuDeviceMetricsExporterPlugin: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -404,6 +435,14 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.RoutingAgent = expandRoutingAgentOpts(routingAgent.([]interface{}))
 	}
 
+	if amdGpuDevicePlugin, ok := d.GetOk(amdGpuDevicePluginField); ok {
+		opts.AmdGpuDevicePlugin = expandAmdGpuDevicePluginOpts(amdGpuDevicePlugin.([]interface{}))
+	}
+
+	if amdGpuDeviceMetricsExporterPlugin, ok := d.GetOk(amdGpuDeviceMetricsExporterPlugin); ok {
+		opts.AmdGpuDeviceMetricsExporterPlugin = expandAmdGpuDeviceMetricsExporterPluginOpts(amdGpuDeviceMetricsExporterPlugin.([]interface{}))
+	}
+
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
 	if err != nil {
 		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
@@ -475,6 +514,14 @@ func digitaloceanKubernetesClusterRead(
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", routingAgentField, err)
 	}
 
+	if err := d.Set(amdGpuDevicePluginField, flattenAmdGpuDevicePluginOpts(cluster.AmdGpuDevicePlugin)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", amdGpuDevicePluginField, err)
+	}
+
+	if err := d.Set(amdGpuDeviceMetricsExporterPlugin, flattenAmdGpuDeviceMetricsExporterPluginOpts(cluster.AmdGpuDeviceMetricsExporterPlugin)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", amdGpuDeviceMetricsExporterPlugin, err)
+	}
+
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
 	}
@@ -537,17 +584,19 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha", controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField) {
+	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha", controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField, amdGpuDevicePluginField, amdGpuDeviceMetricsExporterPlugin) {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
-			Name:                           d.Get("name").(string),
-			Tags:                           tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
-			AutoUpgrade:                    godo.PtrTo(d.Get("auto_upgrade").(bool)),
-			SurgeUpgrade:                   d.Get("surge_upgrade").(bool),
-			HA:                             godo.PtrTo(d.Get("ha").(bool)),
-			ControlPlaneFirewall:           expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
-			RoutingAgent:                   expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
-			ClusterAutoscalerConfiguration: expandCAConfigOptsForUpdate(d.GetChange("cluster_autoscaler_configuration")),
+			Name:                              d.Get("name").(string),
+			Tags:                              tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
+			AutoUpgrade:                       godo.PtrTo(d.Get("auto_upgrade").(bool)),
+			SurgeUpgrade:                      d.Get("surge_upgrade").(bool),
+			HA:                                godo.PtrTo(d.Get("ha").(bool)),
+			ControlPlaneFirewall:              expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
+			RoutingAgent:                      expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
+			AmdGpuDevicePlugin:                expandAmdGpuDevicePluginOpts(d.Get(amdGpuDevicePluginField).([]interface{})),
+			AmdGpuDeviceMetricsExporterPlugin: expandAmdGpuDeviceMetricsExporterPluginOpts(d.Get(amdGpuDeviceMetricsExporterPlugin).([]interface{})),
+			ClusterAutoscalerConfiguration:    expandCAConfigOptsForUpdate(d.GetChange("cluster_autoscaler_configuration")),
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {
