@@ -31,11 +31,13 @@ func ResourceDigitalOceanDatabaseKafkaSchemaRegistry() *schema.Resource {
 			},
 			"subject_name": {
 				Type:     schema.TypeString,
+				ForceNew: true,
 				Required: true,
 			},
 			"schema_type": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					"AVRO",
 					"JSON",
@@ -44,6 +46,7 @@ func ResourceDigitalOceanDatabaseKafkaSchemaRegistry() *schema.Resource {
 			},
 			"schema": {
 				Type:     schema.TypeString,
+				ForceNew: true,
 				Required: true,
 			},
 		},

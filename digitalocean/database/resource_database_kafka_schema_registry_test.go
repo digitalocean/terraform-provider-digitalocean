@@ -94,11 +94,28 @@ resource "digitalocean_database_cluster" "kafka" {
   version    = "3.5"
   size       = "db-s-1vcpu-1gb"
   region     = "nyc1"
-  node_count = 1
+  node_count = 3
 }
 
 resource "digitalocean_database_kafka_schema_registry" "foobar" {
-  cluster_id = digitalocean_database_cluster.kafka.id
-  name       = "%s"
+  cluster_id   = digitalocean_database_cluster.kafka.id
+  subject_name = "%s"
+  schema_type  = "AVRO"
+  schema      = <<EOF
+{
+  "type": "record",
+  "name": "example",
+  "fields": [
+    {
+      "name": "id",
+      "type": "int"
+    },
+    {
+      "name": "name",
+      "type": "string"
+    }
+  ]
+}
+EOF
 }
 `
