@@ -39,9 +39,9 @@ func ResourceDigitalOceanDatabaseKafkaSchemaRegistry() *schema.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					"AVRO",
-					"JSON",
-					"PROTOBUF",
+					"avro",
+					"json",
+					"protobuf",
 				}, false),
 			},
 			"schema": {

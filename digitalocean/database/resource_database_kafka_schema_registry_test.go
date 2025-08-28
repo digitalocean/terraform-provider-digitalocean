@@ -100,7 +100,7 @@ resource "digitalocean_database_cluster" "kafka" {
 resource "digitalocean_database_kafka_schema_registry" "foobar" {
   cluster_id   = digitalocean_database_cluster.kafka.id
   subject_name = "%s"
-  schema_type  = "AVRO"
+  schema_type  = "avro"
   schema       = <<EOF
 {
   "type": "record",

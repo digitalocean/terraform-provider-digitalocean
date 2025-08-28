@@ -45,5 +45,5 @@ resource "digitalocean_database_cluster" "kafka-example" {
 The following arguments are supported:
 * `cluster_id` - (Required) The ID of the target Kafka cluster.
 * `subject_name` - (Required) The name of the schema subject.
-* `schema_type` - (Required) The schema type. Available values are: AVRO, JSON, or PROTOBUF.
+* `schema_type` - (Required) The schema type. Available values are: avro, json, or protobuf.
 * `schema` - (Required) The schema definition as a string.
