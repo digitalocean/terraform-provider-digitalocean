@@ -12,10 +12,10 @@ Provides a DigitalOcean Kafka schema registry for Kafka clusters.
 ### Create a new Kafka Schema Registry
 ```hcl
 resource "digitalocean_database_kafka_schema_registry" "schema-01" {
-cluster_id   = digitalocean_database_cluster.kafka-example.id
-subject_name = "test-schema"
-schema_type  = "AVRO"
-schema       = <<EOF
+  cluster_id   = digitalocean_database_cluster.kafka-example.id
+  subject_name = "test-schema"
+  schema_type  = "AVRO"
+  schema       = <<EOF
 {
   "type": "record",
   "namespace": "example",
