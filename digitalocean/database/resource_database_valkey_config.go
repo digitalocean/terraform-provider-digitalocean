@@ -182,7 +182,7 @@ func updateValkeyConfig(ctx context.Context, d *schema.ResourceData, client *god
 	opts := &godo.ValkeyConfig{}
 
 	if v, ok := d.GetOk("pubsub_client_output_buffer_limit"); ok {
-		opts.ValkeyPubsubClientOutputBufferLimit = godo.PtrTo(v.(int))
+		opts.ValkeyPubSubClientOutputBufferLimit = godo.PtrTo(v.(int))
 	}
 
 	if v, ok := d.GetOk("number_of_databases"); ok {
@@ -245,7 +245,7 @@ func resourceDigitalOceanDatabaseValkeyConfigRead(ctx context.Context, d *schema
 	}
 
 	d.Set("maxmemory_policy", config.ValkeyMaxmemoryPolicy)
-	d.Set("pubsub_client_output_buffer_limit", config.ValkeyPubsubClientOutputBufferLimit)
+	d.Set("pubsub_client_output_buffer_limit", config.ValkeyPubSubClientOutputBufferLimit)
 	d.Set("number_of_databases", config.ValkeyNumberOfDatabases)
 	d.Set("io_threads", config.ValkeyIOThreads)
 	d.Set("lfu_log_factor", config.ValkeyLFULogFactor)
