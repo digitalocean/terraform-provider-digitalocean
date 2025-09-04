@@ -276,6 +276,145 @@ func FlattenOpenAIApiKeyInfo(openAIApiKey *godo.OpenAiApiKey) (map[string]interf
 	return result, nil
 }
 
+func flattenDigitalOceanModel(rawDomain, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
+	model, ok := rawDomain.(*godo.Model)
+	if !ok {
+		return nil, nil
+	}
+	if model == nil {
+		return nil, nil
+	}
+
+	return FlattenDigitalOceanModel(model)
+}
+
+func FlattenDigitalOceanModel(model *godo.Model) (map[string]interface{}, error) {
+	if model == nil {
+		return nil, nil
+	}
+
+	result := map[string]interface{}{
+		"is_foundational": model.IsFoundational,
+		"name":            model.Name,
+		"parent_uuid":     model.ParentUuid,
+		"upload_complete": model.UploadComplete,
+		"url":             model.Url,
+		"uuid":            model.Uuid,
+	}
+
+	// Handle timestamps
+	if model.CreatedAt != nil {
+		result["created_at"] = model.CreatedAt.UTC().String()
+	}
+	if model.UpdatedAt != nil {
+		result["updated_at"] = model.UpdatedAt.UTC().String()
+	}
+
+	// Handle agreement
+	if model.Agreement != nil {
+		result["agreement"] = []interface{}{
+			map[string]interface{}{
+				"description": model.Agreement.Description,
+				"name":        model.Agreement.Name,
+				"url":         model.Agreement.Url,
+				"uuid":        model.Agreement.Uuid,
+			},
+		}
+	} else {
+		result["agreement"] = []interface{}{}
+	}
+
+	// Handle version
+	if model.Version != nil {
+		result["version"] = []interface{}{
+			map[string]interface{}{
+				"major": model.Version.Major,
+				"minor": model.Version.Minor,
+				"patch": model.Version.Patch,
+			},
+		}
+	} else {
+		result["version"] = []interface{}{}
+	}
+
+	return result, nil
+}
+
+func getDigitalOceanModels(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	opts := &godo.ListOptions{
+		Page:    1,
+		PerPage: 200,
+	}
+
+	var allModels []interface{}
+	for {
+		models, resp, err := client.GenAI.ListAvailableModels(context.Background(), opts)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving models : %s", err)
+		}
+
+		for i := range models {
+			allModels = append(allModels, models[i])
+		}
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving models: %s", err)
+		}
+
+		opts.Page = page + 1
+	}
+	return allModels, nil
+}
+
+func flattenDigitalOceanRegion(rawDomain, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
+	region, ok := rawDomain.(*godo.DatacenterRegions)
+	if !ok || region == nil {
+		// Return nil without error to safely skip nil or wrong type entries
+		return nil, nil
+	}
+	return FlattenDigitalOceanRegion(region)
+}
+
+func FlattenDigitalOceanRegion(region *godo.DatacenterRegions) (map[string]interface{}, error) {
+	if region == nil {
+		return nil, nil
+	}
+
+	result := map[string]interface{}{
+		"region":               region.Region,
+		"inference_url":        region.InferenceUrl,
+		"serves_batch":         region.ServesBatch,
+		"serves_inference":     region.ServesInference,
+		"stream_inference_url": region.StreamInferenceUrl,
+	}
+
+	return result, nil
+}
+
+func getDigitalOceanRegions(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	var allRegions []interface{}
+	servesInference := (*bool)(nil)
+	servesBatch := (*bool)(nil)
+
+	regions, _, err := client.GenAI.ListDatacenterRegions(context.Background(), servesInference, servesBatch)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving regions : %s", err)
+	}
+
+	for i := range regions {
+		allRegions = append(allRegions, regions[i])
+	}
+	return allRegions, nil
+}
+
 func extractDeploymentVisibility(old, new interface{}) (string, string) {
 	oldVisibility := ""
 	newVisibility := ""
