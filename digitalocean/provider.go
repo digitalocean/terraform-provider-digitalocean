@@ -159,6 +159,8 @@ func Provider() *schema.Provider {
 			"digitalocean_genai_openai_api_key":              genai.DataSourceDigitalOceanOpenAIApiKey(),
 			"digitalocean_genai_openai_api_keys":             genai.DataSourceDigitalOceanOpenAIApiKeys(),
 			"digitalocean_genai_agents_by_openai_api_key":    genai.DataSourceDigitalOceanAgentsByOpenAIApiKey(),
+			"digitalocean_genai_models":                      genai.DataSourceDigitalOceanModels(),
+			"digitalocean_genai_regions":                     genai.DataSourceDigitalOceanRegions(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{

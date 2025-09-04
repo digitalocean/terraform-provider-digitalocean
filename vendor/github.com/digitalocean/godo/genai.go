@@ -11,6 +11,7 @@ import (
 const (
 	genAIBasePath                = "/v2/gen-ai/agents"
 	agentModelBasePath           = "/v2/gen-ai/models"
+	datacenterRegionsPath        = "/v2/gen-ai/regions"
 	agentRouteBasePath           = genAIBasePath + "/%s/child_agents/%s"
 	KnowledgeBasePath            = "/v2/gen-ai/knowledge_bases"
 	functionRouteBasePath        = genAIBasePath + "/%s/functions"
@@ -20,6 +21,7 @@ const (
 	DeleteKnowledgeBaseByIDPath  = KnowledgeBasePath + "/%s"
 	AgentKnowledgeBasePath       = "/v2/gen-ai/agents" + "/%s/knowledge_bases/%s"
 	DeleteDataSourcePath         = KnowledgeBasePath + "/%s/data_sources/%s"
+	IndexingJobsPath             = "/v2/gen-ai/indexing_jobs"
 	AnthropicAPIKeysPath         = "/v2/gen-ai/anthropic/keys"
 	AnthropicAPIKeyByIDPath      = AnthropicAPIKeysPath + "/%s"
 	OpenAIAPIKeysPath            = "/v2/gen-ai/openai/keys"
@@ -42,7 +44,6 @@ type GenAIService interface {
 	UpdateAgent(context.Context, string, *AgentUpdateRequest) (*Agent, *Response, error)
 	DeleteAgent(context.Context, string) (*Agent, *Response, error)
 	UpdateAgentVisibility(context.Context, string, *AgentVisibilityUpdateRequest) (*Agent, *Response, error)
-	ListModels(context.Context, *ListOptions) ([]*Model, *Response, error)
 	ListKnowledgeBases(ctx context.Context, opt *ListOptions) ([]KnowledgeBase, *Response, error)
 	CreateKnowledgeBase(ctx context.Context, knowledgeBaseCreate *KnowledgeBaseCreateRequest) (*KnowledgeBase, *Response, error)
 	ListKnowledgeBaseDataSources(ctx context.Context, knowledgeBaseID string, opt *ListOptions) ([]KnowledgeBaseDataSource, *Response, error)
@@ -51,6 +52,7 @@ type GenAIService interface {
 	GetKnowledgeBase(ctx context.Context, knowledgeBaseID string) (*KnowledgeBase, string, *Response, error)
 	UpdateKnowledgeBase(ctx context.Context, knowledgeBaseID string, update *UpdateKnowledgeBaseRequest) (*KnowledgeBase, *Response, error)
 	DeleteKnowledgeBase(ctx context.Context, knowledgeBaseID string) (string, *Response, error)
+	ListIndexingJobs(ctx context.Context, opt *ListOptions) (*IndexingJobsResponse, *Response, error)
 	AttachKnowledgeBaseToAgent(ctx context.Context, agentID string, knowledgeBaseID string) (*Agent, *Response, error)
 	DetachKnowledgeBaseToAgent(ctx context.Context, agentID string, knowledgeBaseID string) (*Agent, *Response, error)
 	AddAgentRoute(context.Context, string, string, *AgentRouteCreateRequest) (*AgentRouteResponse, *Response, error)
@@ -73,6 +75,8 @@ type GenAIService interface {
 	CreateFunctionRoute(context.Context, string, *FunctionRouteCreateRequest) (*Agent, *Response, error)
 	DeleteFunctionRoute(context.Context, string, string) (*Agent, *Response, error)
 	UpdateFunctionRoute(context.Context, string, string, *FunctionRouteUpdateRequest) (*Agent, *Response, error)
+	ListAvailableModels(context.Context, *ListOptions) ([]*Model, *Response, error)
+	ListDatacenterRegions(context.Context, *bool, *bool) ([]*DatacenterRegions, *Response, error)
 }
 
 var _ GenAIService = &GenAIServiceOp{}
@@ -345,10 +349,18 @@ type LastIndexingJob struct {
 	KnowledgeBaseUuid    string     `json:"knowledge_base_uuid,omitempty"`
 	Phase                string     `json:"phase,omitempty"`
 	StartedAt            *Timestamp `json:"started_at,omitempty"`
+	Status               string     `json:"status,omitempty"`
 	Tokens               int        `json:"tokens,omitempty"`
 	TotalDatasources     int        `json:"total_datasources,omitempty"`
 	UpdatedAt            *Timestamp `json:"updated_at,omitempty"`
 	Uuid                 string     `json:"uuid,omitempty"`
+}
+
+// IndexingJobsResponse represents the response from listing indexing jobs
+type IndexingJobsResponse struct {
+	Jobs  []LastIndexingJob `json:"jobs"`
+	Links *Links            `json:"links,omitempty"`
+	Meta  *Meta             `json:"meta,omitempty"`
 }
 
 type AgentChatbotIdentifier struct {
@@ -536,6 +548,12 @@ type knowledgebasesRoot struct {
 	Meta           *Meta           `json:"meta"`
 }
 
+type indexingJobsRoot struct {
+	Jobs  []LastIndexingJob `json:"jobs"`
+	Links *Links            `json:"links"`
+	Meta  *Meta             `json:"meta"`
+}
+
 type knowledgebaseRoot struct {
 	KnowledgeBase  *KnowledgeBase `json:"knowledge_base"`
 	DatabaseStatus string         `json:"database_status,omitempty"`
@@ -633,6 +651,18 @@ type FunctionRouteUpdateRequest struct {
 	FunctionUuid  string              `json:"function_uuid,omitempty"`
 	InputSchema   FunctionInputSchema `json:"input_schema,omitempty"`
 	OutputSchema  json.RawMessage     `json:"output_schema,omitempty"`
+}
+
+type DatacenterRegions struct {
+	Region             string `json:"region"`
+	InferenceUrl       string `json:"inference_url"`
+	ServesBatch        bool   `json:"serves_batch"`
+	ServesInference    bool   `json:"serves_inference"`
+	StreamInferenceUrl string `json:"stream_inference_url"`
+}
+
+type datacenterRegionsRoot struct {
+	DatacenterRegions []*DatacenterRegions `json:"regions"`
 }
 
 type genAIAgentKBRoot struct {
@@ -867,29 +897,6 @@ func (s *GenAIServiceOp) UpdateAgentVisibility(ctx context.Context, id string, u
 	return root.Agent, resp, nil
 }
 
-// ListModels function returns a list of Gen AI Models
-func (s *GenAIServiceOp) ListModels(ctx context.Context, opt *ListOptions) ([]*Model, *Response, error) {
-	path, err := addOptions(agentModelBasePath, opt)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-	root := new(genAIModelsRoot)
-	resp, err := s.client.Do(ctx, req, root)
-	if err != nil {
-		return nil, resp, err
-	}
-	if l := root.Links; l != nil {
-		resp.Links = l
-	}
-
-	return root.Models, resp, nil
-}
-
 // List all knowledge bases
 func (s *GenAIServiceOp) ListKnowledgeBases(ctx context.Context, opt *ListOptions) ([]KnowledgeBase, *Response, error) {
 
@@ -916,6 +923,40 @@ func (s *GenAIServiceOp) ListKnowledgeBases(ctx context.Context, opt *ListOption
 		resp.Meta = m
 	}
 	return root.KnowledgeBases, resp, err
+}
+
+// ListIndexingJobs returns a list of all indexing jobs for knowledge bases
+func (s *GenAIServiceOp) ListIndexingJobs(ctx context.Context, opt *ListOptions) (*IndexingJobsResponse, *Response, error) {
+	path := IndexingJobsPath
+	path, err := addOptions(path, opt)
+	if err != nil {
+		return nil, nil, err
+	}
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(indexingJobsRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	if l := root.Links; l != nil {
+		resp.Links = l
+	}
+	if m := root.Meta; m != nil {
+		resp.Meta = m
+	}
+
+	result := &IndexingJobsResponse{
+		Jobs:  root.Jobs,
+		Links: root.Links,
+		Meta:  root.Meta,
+	}
+
+	return result, resp, err
 }
 
 // Create a knowledge base
@@ -1537,6 +1578,57 @@ func (g *GenAIServiceOp) UpdateFunctionRoute(ctx context.Context, agent_id strin
 	}
 
 	return root.Agent, resp, nil
+}
+
+// ListAvailableModels returns a list of available Gen AI models
+func (g *GenAIServiceOp) ListAvailableModels(ctx context.Context, opt *ListOptions) ([]*Model, *Response, error) {
+	path, err := addOptions(agentModelBasePath, opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := g.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(genAIModelsRoot)
+	resp, err := g.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	if l := root.Links; l != nil {
+		resp.Links = l
+	}
+
+	return root.Models, resp, nil
+}
+
+// ListDatacenterRegions returns a list of available datacenter regions for Gen AI services
+func (g *GenAIServiceOp) ListDatacenterRegions(ctx context.Context, servesInference, servesBatch *bool) ([]*DatacenterRegions, *Response, error) {
+	path := datacenterRegionsPath
+
+	var params []string
+	if servesInference != nil {
+		params = append(params, fmt.Sprintf("serves_inference=%t", *servesInference))
+	}
+	if servesBatch != nil {
+		params = append(params, fmt.Sprintf("serves_batch=%t", *servesBatch))
+	}
+	if len(params) > 0 {
+		path = path + "?" + strings.Join(params, "&")
+	}
+
+	req, err := g.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	root := new(datacenterRegionsRoot)
+	resp, err := g.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root.DatacenterRegions, resp, nil
 }
 
 func (a Agent) String() string {
