@@ -266,4 +266,84 @@ output "agents_by_openai_key" {
 
 These data sources can be used to dynamically fetch details of existing GenAI resources into your Terraform configuration. You may reference exported attributes in other resources or outputs.
 
+---
 
+# digitalocean_genai_models
+
+Provides a data source that lists all available GenAI models in DigitalOcean.
+
+## Example Usage
+
+```hcl
+data "digitalocean_genai_models" "available_models" {}
+
+output "all_models" {
+  value = data.digitalocean_genai_models.available_models.models
+}
+
+output "model_names" {
+  description = "Names of available models"
+  value = [for model in data.digitalocean_genai_models.available_models.models : model.name]
+}
+```
+
+## Attributes Reference
+
+- **models** – List of available GenAI models. Each model contains:
+  - **id** - The human-readable unique identifier of the model
+  - **uuid** - The UUID of the model
+  - **name** - The name of the model
+  - **is_foundational** - Whether the model is a foundational model
+  - **parent_uuid** - The UUID of the parent model (if applicable)
+  - **upload_complete** - Whether the model upload is complete
+  - **url** - The URL of the model
+  - **created_at** - When the model was created
+  - **updated_at** - When the model was last updated
+  - **agreement** - License agreement information for the model:
+    - **description** - Description of the agreement
+    - **name** - Name of the agreement
+    - **url** - URL to the full license text
+    - **uuid** - UUID of the agreement
+  - **version** - Version information of the model:
+    - **major** - Major version number
+    - **minor** - Minor version number
+    - **patch** - Patch version number
+
+## Usage Notes
+
+This data source can be used to discover available GenAI models for use with agents or other GenAI resources. 
+
+
+---
+
+# digitalocean_genai_regions
+
+Provides a data source that lists all available GenAI regions in DigitalOcean.
+
+## Example Usage
+
+```hcl
+data "digitalocean_genai_regions" "available_regions" {}
+
+output "all_regions" {
+  value = data.digitalocean_genai_regions.available_regions.regions
+}
+
+output "region_names" {
+  description = "Names of available regions"
+  value = [for region in data.digitalocean_genai_regions.available_regions.regions : region.region]
+}
+```
+
+## Attributes Reference
+
+- **regions** – List of available GenAI regions. Each region contains:
+  - **region** - The region identifier (e.g., "tor1")
+  - **inference_url** - The inference URL for the region
+  - **serves_batch** - Whether the region supports batch processing
+  - **serves_inference** - Whether the region supports inference requests
+  - **stream_inference_url** - The streaming inference URL for the region
+
+## Usage Notes
+
+This data source can be used to discover available regions for deploying GenAI resources like agents or knowledge bases. 
