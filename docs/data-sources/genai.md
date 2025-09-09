@@ -283,7 +283,7 @@ output "all_models" {
 
 output "model_names" {
   description = "Names of available models"
-  value = [for model in data.digitalocean_genai_models.available_models.models : model.name]
+  value       = [for model in data.digitalocean_genai_models.available_models.models : model.name]
 }
 ```
 
@@ -331,7 +331,7 @@ output "all_regions" {
 
 output "region_names" {
   description = "Names of available regions"
-  value = [for region in data.digitalocean_genai_regions.available_regions.regions : region.region]
+  value       = [for region in data.digitalocean_genai_regions.available_regions.regions : region.region]
 }
 ```
 
