@@ -1347,6 +1347,7 @@ func expandAppSpec(config []interface{}) *godo.AppSpec {
 		Alerts:                       expandAppAlerts(appSpecConfig["alert"].([]interface{})),
 		Ingress:                      expandAppIngress(appSpecConfig["ingress"].([]interface{})),
 		Egress:                       expandAppEgress(appSpecConfig["egress"].([]interface{})),
+		Vpc:                          expandAppVPC(appSpecConfig["vpc"].([]interface{})),
 	}
 
 	// Prefer the `domain` block over `domains` if it is set.
@@ -1431,6 +1432,9 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 		if (*spec).Maintenance != nil {
 			r["maintenance"] = flattenAppMaintenance((*spec).Maintenance)
 		}
+		if (*spec).Vpc != nil {
+			r["vpc"] = flattenAppVPC((*spec).Vpc)
+		}
 
 		result = append(result, r)
 	}
@@ -1461,6 +1465,27 @@ func flattenAppMaintenance(m *godo.AppMaintenanceSpec) []map[string]interface{} 
 			"enabled":          m.Enabled,
 			"archive":          m.Archive,
 			"offline_page_url": m.OfflinePageURL,
+		},
+	}
+}
+
+func expandAppVPC(config []interface{}) *godo.AppVpcSpec {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+	vpcConfig := config[0].(map[string]interface{})
+	return &godo.AppVpcSpec{
+		ID: vpcConfig["id"].(string),
+	}
+}
+
+func flattenAppVPC(vpc *godo.AppVpcSpec) []map[string]interface{} {
+	if vpc == nil {
+		return nil
+	}
+	return []map[string]interface{}{
+		{
+			"id": vpc.ID,
 		},
 	}
 }
