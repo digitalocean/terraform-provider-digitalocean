@@ -490,6 +490,122 @@ func OpenAiApiKeySchema() *schema.Resource {
 	}
 }
 
+func ModelSchemaRead() *schema.Resource {
+	modelSchema := map[string]*schema.Schema{
+		"agreement": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "Agreement information for the model",
+			Elem:        AgreementSchema(),
+		},
+		"created_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Created At timestamp for the Knowledge Base",
+		},
+		"id": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "ID of the Knowledge Base",
+		},
+		"is_foundational": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Indicates if the Model Base is foundational",
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the Knowledge Base",
+		},
+		"parent_uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Parent UUID of the Model",
+		},
+		"updated_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Timestamp when the Knowledge Base was updated",
+		},
+		"upload_complete": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Indicates if the Model upload is complete",
+		},
+		"url": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "URL of the Model",
+		},
+		"uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "UUID of the Model",
+		},
+		"version": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "List of Versions for the Model",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"major": {
+						Type:        schema.TypeInt,
+						Computed:    true,
+						Description: "Major version of the model",
+					},
+					"minor": {
+						Type:        schema.TypeInt,
+						Computed:    true,
+						Description: "Minor version of the model",
+					},
+					"patch": {
+						Type:        schema.TypeInt,
+						Computed:    true,
+						Description: "Patch version of the model",
+					},
+				},
+			},
+		},
+	}
+	return &schema.Resource{
+		Schema: modelSchema,
+	}
+}
+
+func RegionSchemaRead() *schema.Resource {
+	regionSchemaRead := map[string]*schema.Schema{
+		"inference_url": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Inference URL for the model",
+		},
+		"region": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Region where the model is deployed",
+		},
+		"serves_batch": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Indicates if the model serves batch requests",
+		},
+		"serves_inference": {
+			Type:        schema.TypeBool,
+			Computed:    true,
+			Description: "Indicates if the model serves inference requests",
+		},
+		"stream_inference_url": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Streaming inference URL for the model",
+		},
+	}
+	return &schema.Resource{
+		Schema: regionSchemaRead,
+	}
+}
+
 func ApiKeysSchema() *schema.Resource {
 	apiKeysSchema := map[string]*schema.Schema{
 		"created_at": {
