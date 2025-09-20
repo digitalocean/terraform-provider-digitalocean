@@ -80,3 +80,49 @@ vendor:
 	@echo ""
 	go mod vendor
 	go mod tidy
+
+# Release automation targets
+
+BUMP?=patch
+LATEST_TAG=$(shell git describe --tags --abbrev=0)
+
+bump_version:
+	@echo "Bumping version: $(BUMP) from $(LATEST_TAG)"
+	@BASE_VERSION=$$(echo $(LATEST_TAG) | sed 's/^v//'); \
+	IFS=. read MAJOR MINOR PATCH <<<"$$BASE_VERSION"; \
+	if [ "$(BUMP)" = "major" ] || [ "$(BUMP)" = "breaking" ]; then \
+		NEW_VERSION="v$$((MAJOR+1)).0.0"; \
+	elif [ "$(BUMP)" = "minor" ] || [ "$(BUMP)" = "feature" ]; then \
+		NEW_VERSION="v$$MAJOR.$$((MINOR+1)).0"; \
+	else \
+		NEW_VERSION="v$$MAJOR.$$MINOR.$$((PATCH+1))"; \
+	fi; \
+	git tag -a "$$NEW_VERSION" -m "release $$NEW_VERSION"; \
+	git push origin tag "$$NEW_VERSION"
+
+COMMIT?=HEAD
+ORIGIN?=origin
+TAG_VERSION=$(shell git describe --tags --abbrev=0)
+tag:
+			 @echo "Tagging commit $(COMMIT) as $(TAG_VERSION)"
+			 git tag -a "$(TAG_VERSION)" -m "release $(TAG_VERSION)" $(COMMIT)
+			 git push $(ORIGIN) tag "$(TAG_VERSION)"
+			 @echo "Generating changelog for tag $(TAG_VERSION)"
+			 @if ! command -v github_changelog_generator &> /dev/null; then \
+				 echo "github_changelog_generator not found. Installing..."; \
+				 gem install github_changelog_generator; \
+			 fi
+			 @github_changelog_generator --user digitalocean --project terraform-provider-digitalocean --future-release $(TAG_VERSION) --output CHANGELOG.md
+			 @echo "Creating or updating draft GitHub release for tag $(TAG_VERSION) with changelog"
+			 @if gh release view $(TAG_VERSION) > /dev/null 2>&1; then \
+				 gh release edit $(TAG_VERSION) --title "$(TAG_VERSION)" --notes-file CHANGELOG.md --draft; \
+			 else \
+				 gh release create $(TAG_VERSION) --title "$(TAG_VERSION)" --draft --notes-file CHANGELOG.md; \
+			 fi
+
+# Changelog generator (all commit logs since last tag)
+changes:
+	@git log $(shell git describe --tags --abbrev=0)..HEAD --pretty=format:'- %s (%an)'
+
+
+
