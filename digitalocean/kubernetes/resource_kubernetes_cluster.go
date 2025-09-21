@@ -445,7 +445,7 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
 	if err != nil {
-		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
+		return diag.Errorf("Error creating Kubernetes cluster with version %s: %s", d.Get("version").(string), err)
 	}
 
 	// set the cluster id
@@ -455,7 +455,7 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 	_, err = waitForKubernetesClusterCreate(client, d)
 	if err != nil {
 		d.SetId("")
-		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
+		return diag.Errorf("Error creating Kubernetes cluster with version %s: %s", d.Get("version").(string), err)
 	}
 
 	if d.Get("registry_integration") == true {
@@ -614,7 +614,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 				return nil
 			}
 
-			return diag.Errorf("Unable to update cluster: %s", err)
+			return diag.Errorf("Unable to update cluster with version %s: %s", d.Get("version").(string), err)
 		}
 	}
 
@@ -644,7 +644,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 
 		_, err := client.Kubernetes.Upgrade(context.Background(), d.Id(), opts)
 		if err != nil {
-			return diag.Errorf("Unable to upgrade cluster version: %s", err)
+			return diag.Errorf("Unable to upgrade cluster to version %s: %s", d.Get("version").(string), err)
 		}
 	}
 
