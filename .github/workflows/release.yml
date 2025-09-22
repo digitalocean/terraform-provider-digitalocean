@@ -42,7 +42,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate changelog
-        run: make changes > changelog.txt
+        run: make changes > CHANGELOG.md
 
       - name: Create GitHub Release (Draft)
         uses: softprops/action-gh-release@v2
@@ -50,6 +50,6 @@ jobs:
           draft: true
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
-          body_path: changelog.txt
+          body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
