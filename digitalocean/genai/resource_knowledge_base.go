@@ -64,6 +64,7 @@ func ResourceDigitalOceanKnowledgeBase() *schema.Resource {
 			"database_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "The unique identifier of the DigitalOcean OpenSearch database this knowledge base will use",
 			},
 			"embedding_model_uuid": {
@@ -164,6 +165,10 @@ func resourceDigitalOceanKnowledgeBaseCreate(ctx context.Context, d *schema.Reso
 	// Handle optional fields
 	if vpcUUID, ok := d.GetOk("vpc_uuid"); ok {
 		createRequest.VPCUuid = vpcUUID.(string)
+	}
+
+	if databaseID, ok := d.GetOk("database_id"); ok {
+		createRequest.DatabaseID = databaseID.(string)
 	}
 
 	// Handle tags
