@@ -156,7 +156,8 @@ $ make testacc
 For information about writing acceptance tests, see the main Terraform [contributing guide](https://github.com/hashicorp/terraform/blob/master/.github/CONTRIBUTING.md#writing-acceptance-tests).
 
 Releasing the Provider
-## Cutting a Release
+----------------------
+The dedicated DigitalOcean team is responsible for releasing the provider.
 
 **Note:** The release will be created in draft mode automatically by the workflow.
 
