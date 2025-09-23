@@ -93,5 +93,5 @@ changes:
 tag:
 	@echo "==> BUMP=$(BUMP) tag"
 	@echo ""
-	bash scripts/release.sh $(BUMP)
+	@bash scripts/release.sh $(BUMP)
 

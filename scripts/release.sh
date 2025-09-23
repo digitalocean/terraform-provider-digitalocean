@@ -32,9 +32,8 @@ case "$BUMP" in
   *) echo "Unknown bump type: $BUMP" >&2; exit 1 ;;
 esac
 
-release_notes=$(make changes)
-echo "Creating tag $new_version on $COMMIT with release notes..."
-git tag -a "$new_version" "$COMMIT" -m "$release_notes"
+echo "Creating tag $new_version"
+git tag -a "$new_version" "$COMMIT" -m "$new_version"
 git push "$ORIGIN" "$new_version"
 
 

@@ -42,14 +42,6 @@ jobs:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install github-changelog-generator
-        run: go install github.com/digitalocean/github-changelog-generator@latest
-
-      - name: Generate Release Notes
-        run: github-changelog-generator -org digitalocean -repo terraform-provider-digitalocean > release_notes.txt
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
       - name: Create GitHub Release (Draft)
         uses: softprops/action-gh-release@v2
         with:
@@ -57,6 +49,6 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           title: ${{ github.ref_name }}
-          body_path: release_notes.txt
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
