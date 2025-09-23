@@ -46,7 +46,7 @@ jobs:
         run: go install github.com/digitalocean/github-changelog-generator@latest
 
       - name: Generate Release Notes
-        run: github-changelog-generator -org digitalocean -repo terraform-provider-digitalocean -output release_notes.txt
+        run: github-changelog-generator -org digitalocean -repo terraform-provider-digitalocean > release_notes.txt
 
       - name: Create GitHub Release (Draft)
         uses: softprops/action-gh-release@v2
