@@ -216,11 +216,13 @@ func resourceDigitalOceanKnowledgeBaseRead(ctx context.Context, d *schema.Resour
 	_ = d.Set("name", kb.Name)
 	_ = d.Set("project_id", kb.ProjectId)
 	_ = d.Set("region", kb.Region)
-	_ = d.Set("created_at", kb.CreatedAt)
+	_ = d.Set("created_at", kb.CreatedAt.UTC().String())
 	_ = d.Set("database_id", kb.DatabaseId)
 	_ = d.Set("embedding_model_uuid", kb.EmbeddingModelUuid)
 	_ = d.Set("is_public", kb.IsPublic)
-	_ = d.Set("added_to_agent_at", kb.AddedToAgentAt)
+	if kb.AddedToAgentAt != nil {
+		_ = d.Set("added_to_agent_at", kb.AddedToAgentAt.UTC().String())
+	}
 
 	// Get datasources separately using ListKnowledgebaseDataSources API
 	datasources, _, err := client.GenAI.ListKnowledgeBaseDataSources(ctx, id, nil)

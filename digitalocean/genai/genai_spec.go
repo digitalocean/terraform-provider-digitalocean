@@ -1584,6 +1584,7 @@ func knowledgeBaseDatasourcesSchema() *schema.Resource {
 			"uuid": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "UUID of the Knowledge Base",
 			},
 		},
