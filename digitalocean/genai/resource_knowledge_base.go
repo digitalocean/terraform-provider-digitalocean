@@ -76,6 +76,7 @@ func ResourceDigitalOceanKnowledgeBase() *schema.Resource {
 			"is_public": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				ForceNew:    true,
 				Description: "Indicates whether the knowledge base is public or private.",
 			},
 			"last_indexing_job": {
