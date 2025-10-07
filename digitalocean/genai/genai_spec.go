@@ -164,6 +164,93 @@ func LastIndexingJobSchema() *schema.Resource {
 	}
 }
 
+func IndexingJobSchema() *schema.Resource {
+	indexingJobSchema := map[string]*schema.Schema{
+		"uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Unique identifier of the indexing job",
+		},
+		"knowledge_base_uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Knowledge base UUID",
+		},
+		"phase": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Current phase of the batch job",
+		},
+		"status": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Status of the indexing job",
+		},
+		"completed_datasources": {
+			Type:        schema.TypeInt,
+			Computed:    true,
+			Description: "Number of datasources indexed completed",
+		},
+		"total_datasources": {
+			Type:        schema.TypeInt,
+			Computed:    true,
+			Description: "Total number of datasources being indexed",
+		},
+		"tokens": {
+			Type:        schema.TypeInt,
+			Computed:    true,
+			Description: "Number of tokens",
+		},
+		"total_items_failed": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Total items failed",
+		},
+		"total_items_indexed": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Total items indexed",
+		},
+		"total_items_skipped": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Total items skipped",
+		},
+		"data_source_uuids": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "List of data source UUIDs",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
+		"created_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Creation timestamp",
+		},
+		"updated_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Last update timestamp",
+		},
+		"started_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Start timestamp",
+		},
+		"finished_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Finish timestamp",
+		},
+	}
+
+	return &schema.Resource{
+		Schema: indexingJobSchema,
+	}
+}
+
 func AgreementSchema() *schema.Resource {
 	agreementSchema := map[string]*schema.Schema{
 		"description": {

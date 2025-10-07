@@ -882,6 +882,58 @@ func flattenKnowledgeBaseLastIndexingJob(lastJob *godo.LastIndexingJob) []interf
 	return []interface{}{jobMap}
 }
 
+// flattenKnowledgeBaseIndexingJobs flattens a slice of LastIndexingJob structs
+func flattenKnowledgeBaseIndexingJobs(jobs []godo.LastIndexingJob) []interface{} {
+	if len(jobs) == 0 {
+		return []interface{}{}
+	}
+
+	flattenedJobs := make([]interface{}, len(jobs))
+	for i, job := range jobs {
+		jobMap := map[string]interface{}{
+			"uuid":                  job.Uuid,
+			"knowledge_base_uuid":   job.KnowledgeBaseUuid,
+			"phase":                 job.Phase,
+			"status":                job.Status,
+			"completed_datasources": job.CompletedDatasources,
+			"total_datasources":     job.TotalDatasources,
+			"tokens":                job.Tokens,
+			"total_items_failed":    job.TotalItemsFailed,
+			"total_items_indexed":   job.TotalItemsIndexed,
+			"total_items_skipped":   job.TotalItemsSkipped,
+		}
+
+		// Handle data source UUIDs
+		if job.DataSourceUuids != nil {
+			dataSourceUuids := make([]interface{}, len(job.DataSourceUuids))
+			for j, uuid := range job.DataSourceUuids {
+				dataSourceUuids[j] = uuid
+			}
+			jobMap["data_source_uuids"] = dataSourceUuids
+		} else {
+			jobMap["data_source_uuids"] = []interface{}{}
+		}
+
+		// Handle timestamps
+		if job.CreatedAt != nil {
+			jobMap["created_at"] = job.CreatedAt.UTC().String()
+		}
+		if job.UpdatedAt != nil {
+			jobMap["updated_at"] = job.UpdatedAt.UTC().String()
+		}
+		if job.StartedAt != nil {
+			jobMap["started_at"] = job.StartedAt.UTC().String()
+		}
+		if job.FinishedAt != nil {
+			jobMap["finished_at"] = job.FinishedAt.UTC().String()
+		}
+
+		flattenedJobs[i] = jobMap
+	}
+
+	return flattenedJobs
+}
+
 // flattenKnowledgeBaseFileUploadDataSource flattens a FileUploadDataSource struct
 func flattenKnowledgeBaseFileUploadDataSource(fileUpload *godo.FileUploadDataSource) []interface{} {
 	if fileUpload == nil {
