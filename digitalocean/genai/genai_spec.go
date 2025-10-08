@@ -251,6 +251,85 @@ func IndexingJobSchema() *schema.Resource {
 	}
 }
 
+func IndexedDataSourceSchema() *schema.Resource {
+	indexedDataSourceSchema := map[string]*schema.Schema{
+		"data_source_uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "UUID of the indexed data source",
+		},
+		"status": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Status of the indexed data source",
+		},
+		"started_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Timestamp when data source started indexing",
+		},
+		"completed_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Timestamp when data source completed indexing",
+		},
+		"error_msg": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Error message if indexing failed",
+		},
+		"error_details": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Detailed error description",
+		},
+		"total_file_count": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Total file count in the data source",
+		},
+		"indexed_file_count": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Total count of files that have been indexed",
+		},
+		"indexed_item_count": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Total count of items that have been indexed",
+		},
+		"failed_item_count": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Total count of items that have failed",
+		},
+		"skipped_item_count": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Total count of items that have been skipped",
+		},
+		"removed_item_count": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Total count of items that have been removed",
+		},
+		"total_bytes": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Total size of files in data source in bytes",
+		},
+		"total_bytes_indexed": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Total size of indexed files in bytes",
+		},
+	}
+
+	return &schema.Resource{
+		Schema: indexedDataSourceSchema,
+	}
+}
+
 func AgreementSchema() *schema.Resource {
 	agreementSchema := map[string]*schema.Schema{
 		"description": {

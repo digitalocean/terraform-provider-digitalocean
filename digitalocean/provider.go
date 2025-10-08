@@ -157,6 +157,8 @@ func Provider() *schema.Provider {
 			"digitalocean_genai_knowledge_bases":              genai.DataSourceDigitalOceanKnowledgeBases(),
 			"digitalocean_genai_knowledge_base_data_sources":  genai.DataSourceDigitalOceanKnowledgeBaseDatasources(),
 			"digitalocean_genai_knowledge_base_indexing_jobs": genai.DataSourceDigitalOceanKnowledgeBaseIndexingJobs(),
+			"digitalocean_genai_indexing_job":                 genai.DataSourceDigitalOceanIndexingJob(),
+			"digitalocean_genai_indexing_job_data_sources":    genai.DataSourceDigitalOceanIndexingJobDataSources(),
 			"digitalocean_genai_openai_api_key":               genai.DataSourceDigitalOceanOpenAIApiKey(),
 			"digitalocean_genai_openai_api_keys":              genai.DataSourceDigitalOceanOpenAIApiKeys(),
 			"digitalocean_genai_agents_by_openai_api_key":     genai.DataSourceDigitalOceanAgentsByOpenAIApiKey(),

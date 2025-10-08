@@ -934,6 +934,90 @@ func flattenKnowledgeBaseIndexingJobs(jobs []godo.LastIndexingJob) []interface{}
 	return flattenedJobs
 }
 
+// flattenIndexedDataSources flattens a slice of IndexedDataSource structs
+func flattenIndexedDataSources(dataSources []godo.IndexedDataSource) []interface{} {
+	if len(dataSources) == 0 {
+		return []interface{}{}
+	}
+
+	flattenedDataSources := make([]interface{}, len(dataSources))
+	for i, ds := range dataSources {
+		dsMap := map[string]interface{}{
+			"data_source_uuid":    ds.DataSourceUuid,
+			"status":              ds.Status,
+			"error_msg":           ds.ErrorMsg,
+			"error_details":       ds.ErrorDetails,
+			"total_file_count":    ds.TotalFileCount,
+			"indexed_file_count":  ds.IndexedFileCount,
+			"indexed_item_count":  ds.IndexedItemCount,
+			"failed_item_count":   ds.FailedItemCount,
+			"skipped_item_count":  ds.SkippedItemCount,
+			"removed_item_count":  ds.RemovedItemCount,
+			"total_bytes":         ds.TotalBytes,
+			"total_bytes_indexed": ds.TotalBytesIndexed,
+		}
+
+		// Handle timestamps
+		if ds.StartedAt != nil {
+			dsMap["started_at"] = ds.StartedAt.UTC().String()
+		}
+		if ds.CompletedAt != nil {
+			dsMap["completed_at"] = ds.CompletedAt.UTC().String()
+		}
+
+		flattenedDataSources[i] = dsMap
+	}
+
+	return flattenedDataSources
+}
+
+// flattenIndexingJob flattens a single LastIndexingJob struct
+func flattenIndexingJob(job *godo.LastIndexingJob) map[string]interface{} {
+	if job == nil {
+		return map[string]interface{}{}
+	}
+
+	jobMap := map[string]interface{}{
+		"uuid":                  job.Uuid,
+		"knowledge_base_uuid":   job.KnowledgeBaseUuid,
+		"phase":                 job.Phase,
+		"status":                job.Status,
+		"completed_datasources": job.CompletedDatasources,
+		"total_datasources":     job.TotalDatasources,
+		"tokens":                job.Tokens,
+		"total_items_failed":    job.TotalItemsFailed,
+		"total_items_indexed":   job.TotalItemsIndexed,
+		"total_items_skipped":   job.TotalItemsSkipped,
+	}
+
+	// Handle data source UUIDs
+	if job.DataSourceUuids != nil {
+		dataSourceUuids := make([]interface{}, len(job.DataSourceUuids))
+		for j, uuid := range job.DataSourceUuids {
+			dataSourceUuids[j] = uuid
+		}
+		jobMap["data_source_uuids"] = dataSourceUuids
+	} else {
+		jobMap["data_source_uuids"] = []interface{}{}
+	}
+
+	// Handle timestamps
+	if job.CreatedAt != nil {
+		jobMap["created_at"] = job.CreatedAt.UTC().String()
+	}
+	if job.UpdatedAt != nil {
+		jobMap["updated_at"] = job.UpdatedAt.UTC().String()
+	}
+	if job.StartedAt != nil {
+		jobMap["started_at"] = job.StartedAt.UTC().String()
+	}
+	if job.FinishedAt != nil {
+		jobMap["finished_at"] = job.FinishedAt.UTC().String()
+	}
+
+	return jobMap
+}
+
 // flattenKnowledgeBaseFileUploadDataSource flattens a FileUploadDataSource struct
 func flattenKnowledgeBaseFileUploadDataSource(fileUpload *godo.FileUploadDataSource) []interface{} {
 	if fileUpload == nil {
