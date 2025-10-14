@@ -338,7 +338,7 @@ func resourceDigitalOceanAgentRead(ctx context.Context, d *schema.ResourceData, 
 	}
 	var allFlattenedKnowledgeBases []interface{}
 	for _, kb := range agent.KnowledgeBases {
-		flattened, err := flattenDigitalOceanKnowledgeBase(&kb, nil, nil)
+		flattened, err := flattenDigitalOceanKnowledgeBase(kb, nil, nil)
 		if err != nil {
 			return diag.FromErr(err)
 		}
