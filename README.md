@@ -1,9 +1,20 @@
-DigitalOcean Terraform Provider
-==================
+# DigitalOcean Terraform Provider
 
-- Documentation: https://registry.terraform.io/providers/digitalocean/digitalocean/latest/docs
+[![Terraform Registry](https://img.shields.io/badge/terraform-registry-blue.svg)](https://registry.terraform.io/providers/digitalocean/digitalocean/latest)
+[![Go Report Card](https://goreportcard.com/badge/github.com/digitalocean/terraform-provider-digitalocean)](https://goreportcard.com/report/github.com/digitalocean/terraform-provider-digitalocean)
 
-Requirements
+The official Terraform provider for DigitalOcean.
+
+📖 **Documentation**: https://registry.terraform.io/providers/digitalocean/digitalocean/latest/docs
+
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Building The Provider](#building-the-provider)
+- [Using the Provider](#using-the-provider)
+- [Developing the Provider](#developing-the-provider)
+
+## Requirements
 ------------
 
 -	[Terraform](https://developer.hashicorp.com/terraform/install) 0.10+
