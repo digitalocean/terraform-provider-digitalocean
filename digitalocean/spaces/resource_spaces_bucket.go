@@ -95,15 +95,17 @@ func ResourceDigitalOceanBucket() *schema.Resource {
 			// This is structured as a subobject in case Spaces supports more of s3.VersioningConfiguration
 			// than just enabling bucket versioning.
 			"versioning": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				Description: "Configuration block for versioning settings. Must be specified as a block (e.g., versioning { enabled = true }), not as a boolean value.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
-							Type:     schema.TypeBool,
-							Optional: true,
-							Default:  false,
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Default:     false,
+							Description: "Enable versioning. Once you version-enable a bucket, it can never return to an unversioned state. You can, however, suspend versioning on that bucket.",
 						},
 					},
 				},

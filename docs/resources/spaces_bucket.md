@@ -68,6 +68,19 @@ resource "digitalocean_spaces_bucket" "foobar" {
 }
 ```
 
+### Create a New Bucket With Versioning Enabled
+
+```hcl
+resource "digitalocean_spaces_bucket" "foobar" {
+  name   = "foobar"
+  region = "nyc3"
+
+  versioning {
+    enabled = true
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -77,7 +90,7 @@ The following arguments are supported:
 * `acl` - Canned ACL applied on bucket creation: `private` or `public-read` (Defaults to `private`)
 * `cors_rule` - (Optional) A rule of Cross-Origin Resource Sharing (documented below).
 * `lifecycle_rule` - (Optional) A configuration of object lifecycle management (documented below).
-* `versioning` - (Optional) A state of versioning (documented below)
+* `versioning` - (Optional) A configuration block for versioning settings (documented below). **Note: This must be specified as a block, not a boolean value.**
 * `force_destroy` - Unless `true`, the bucket will only be destroyed if empty (Defaults to `false`)
 
 The `cors_rule` object supports the following:
@@ -111,10 +124,12 @@ The `noncurrent_version_expiration` object supports the following:
 
 * `days` - (Required) Specifies the number of days after which an object's non-current versions expire.
 
-The `versioning` object supports the following:
+The `versioning` configuration block supports the following:
 
 * `enabled` - (Optional) Enable versioning. Once you version-enable a bucket, it can never return to an unversioned
 state. You can, however, suspend versioning on that bucket.
+
+**Important:** The `versioning` argument must be specified as a configuration block, not as a boolean value. Use `versioning { enabled = true }` instead of `versioning = true`.
 
 ## Attributes Reference
 
