@@ -4,7 +4,7 @@ version = 1
 name = "go"
 
   [analyzers.meta]
-  import_root = "github.com/Oghenesuvwe-dev/terraform-provider-digitalocean"
+  import_root = "github.com/Oghenesuvwe-dev/doctl"
 
 [[transformers]]
 name = "gofmt"
