@@ -1,4 +1,4 @@
-DigitalOcean Terraform Providers .
+DigitalOcean Terraforrm Providers .
 ==================
 
 - Documentation: https://registry.terraform.io/providers/digitalocean/digitalocean/latest/docs
