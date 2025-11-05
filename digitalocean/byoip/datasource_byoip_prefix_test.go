@@ -76,17 +76,17 @@ func testAccCheckDataSourceDigitalOceanBYOIPPrefixConfig_basic(
 ) string {
 	config := fmt.Sprintf(`
 resource "digitalocean_byoip_prefix" "foo" {
-	prefix    = "%s"
-	signature = "test-signature-data"
-	region    = "%s"
-	advertised = false
+  prefix     = "%s"
+  signature  = "test-signature-data"
+  region     = "%s"
+  advertised = false
 }
 `, prefixCIDR, region)
 
 	if includeDataSource {
 		config += `
 data "digitalocean_byoip_prefix" "foobar" {
-	uuid = digitalocean_byoip_prefix.foo.uuid
+  uuid = digitalocean_byoip_prefix.foo.uuid
 }
 `
 	}

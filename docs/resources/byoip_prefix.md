@@ -16,9 +16,9 @@ use this feature to maintain your IP reputation or meet specific compliance requ
 ```hcl
 # Create a new BYOIP prefix
 resource "digitalocean_byoip_prefix" "example" {
-  prefix    = "192.0.2.0/24"
-  signature = var.prefix_signature
-  region    = "nyc3"
+  prefix     = "192.0.2.0/24"
+  signature  = var.prefix_signature
+  region     = "nyc3"
   advertised = false
 }
 ```
