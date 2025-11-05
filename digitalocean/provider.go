@@ -106,6 +106,8 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"digitalocean_account":                            account.DataSourceDigitalOceanAccount(),
 			"digitalocean_app":                                app.DataSourceDigitalOceanApp(),
+			"digitalocean_byoip_addresses":                    byoip.DataSourceDigitalOceanBYOIPAddresses(),
+			"digitalocean_byoip_prefix":                       byoip.DataSourceDigitalOceanBYOIPPrefix(),
 			"digitalocean_certificate":                        certificate.DataSourceDigitalOceanCertificate(),
 			"digitalocean_container_registry":                 registry.DataSourceDigitalOceanContainerRegistry(),
 			"digitalocean_database_cluster":                   database.DataSourceDigitalOceanDatabaseCluster(),

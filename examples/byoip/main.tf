@@ -1,0 +1,25 @@
+# Query the existing BYOIP prefix
+data "digitalocean_byoip_prefix" "example" {
+  uuid = var.byoip_prefix_uuid
+}
+
+# List all IP addresses from the BYOIP prefix
+data "digitalocean_byoip_addresses" "example" {
+  byoip_prefix_uuid = data.digitalocean_byoip_prefix.example.uuid
+}
+
+# Create a Droplet in the same region as the BYOIP prefix
+resource "digitalocean_droplet" "web" {
+  name   = var.droplet_name
+  size   = var.droplet_size
+  image  = "ubuntu-22-04-x64"
+  region = data.digitalocean_byoip_prefix.example.region
+}
+
+# Assign a BYOIP IP address to the Droplet
+resource "digitalocean_reserved_ip" "byoip_ip" {
+  # Use the first available IP from the BYOIP prefix
+  ip_address = data.digitalocean_byoip_addresses.example.addresses[0].ip_address
+  region     = data.digitalocean_byoip_prefix.example.region
+  droplet_id = digitalocean_droplet.web.id
+}

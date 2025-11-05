@@ -129,6 +129,7 @@ func resourceBYOIPPrefixDelete(d *schema.ResourceData, meta interface{}) error {
 	}
 	return nil
 }
+
 func resourceBYOIPPrefixImport(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
 	err := resourceBYOIPPrefixRead(d, meta)
 	if err != nil {
