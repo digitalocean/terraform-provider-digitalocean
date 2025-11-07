@@ -3,14 +3,14 @@ package nfs_test
 import (
 	"context"
 	"fmt"
-	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"testing"
 	"time"
 
+	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanNfsDataSource_Basic(t *testing.T) {

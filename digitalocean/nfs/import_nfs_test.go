@@ -2,12 +2,12 @@ package nfs_test
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"regexp"
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 func TestAccDigitalOceanNfs_importBasic(t *testing.T) {
