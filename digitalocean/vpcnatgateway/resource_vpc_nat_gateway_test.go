@@ -69,6 +69,8 @@ func TestAccResourceDigitalOceanVPCNATGateway(t *testing.T) {
 						"digitalocean_vpc_nat_gateway.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpc_nat_gateway.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_vpc_nat_gateway.foobar", "project_id"),
 				),
 			},
 			{
@@ -111,6 +113,8 @@ func TestAccResourceDigitalOceanVPCNATGateway(t *testing.T) {
 						"digitalocean_vpc_nat_gateway.foobar", "created_at"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpc_nat_gateway.foobar", "updated_at"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_vpc_nat_gateway.foobar", "project_id"),
 				),
 			},
 		},
