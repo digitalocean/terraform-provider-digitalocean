@@ -299,7 +299,7 @@ func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration)
 			// know if the InProgressDeployment has not started or if it has
 			// already completed. So instead we need to list all of the
 			// deployments for the application.
-			opts := &godo.ListOptions{PerPage: 20}
+			opts := &godo.ListOptions{PerPage: 2}
 			deployments, _, err := client.Apps.ListDeployments(context.Background(), id, opts)
 			if err != nil {
 				return fmt.Errorf("Error trying to read app deployment state: %s", err)
