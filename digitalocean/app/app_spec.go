@@ -1496,7 +1496,7 @@ func expandAppAlerts(config []interface{}) []*godo.AppAlertSpec {
 	for _, rawAlert := range config {
 		alert := rawAlert.(map[string]interface{})
 
-		a := &godo.AppAlertSpec{
+		a := godo.AppAlertSpec{
 			Rule:     godo.AppAlertSpecRule(alert["rule"].(string)),
 			Disabled: alert["disabled"].(bool),
 		}
@@ -1511,7 +1511,7 @@ func expandAppAlerts(config []interface{}) []*godo.AppAlertSpec {
 			a.Value = float32(alert["value"].(float64))
 		}
 
-		appAlerts = append(appAlerts, a)
+		appAlerts = append(appAlerts, &a)
 	}
 
 	return appAlerts
@@ -1547,7 +1547,7 @@ func expandAppLogDestinations(config []interface{}) []*godo.AppLogDestinationSpe
 	for _, rawDestination := range config {
 		destination := rawDestination.(map[string]interface{})
 
-		d := &godo.AppLogDestinationSpec{
+		d := godo.AppLogDestinationSpec{
 			Name: (destination["name"].(string)),
 		}
 
@@ -1587,7 +1587,7 @@ func expandAppLogDestinations(config []interface{}) []*godo.AppLogDestinationSpe
 			}
 		}
 
-		logDestinations = append(logDestinations, d)
+		logDestinations = append(logDestinations, &d)
 	}
 
 	return logDestinations
@@ -1719,11 +1719,11 @@ func expandAppDomainSpec(config []interface{}) []*godo.AppDomainSpec {
 	appDomains := make([]*godo.AppDomainSpec, 0, len(config))
 
 	for _, rawDomain := range config {
-		domain := &godo.AppDomainSpec{
+		domain := godo.AppDomainSpec{
 			Domain: rawDomain.(string),
 		}
 
-		appDomains = append(appDomains, domain)
+		appDomains = append(appDomains, &domain)
 	}
 
 	return appDomains
@@ -1735,14 +1735,14 @@ func expandAppSpecDomains(config []interface{}) []*godo.AppDomainSpec {
 	for _, rawDomain := range config {
 		domain := rawDomain.(map[string]interface{})
 
-		d := &godo.AppDomainSpec{
+		d := godo.AppDomainSpec{
 			Domain:   domain["name"].(string),
 			Type:     godo.AppDomainSpecType(domain["type"].(string)),
 			Wildcard: domain["wildcard"].(bool),
 			Zone:     domain["zone"].(string),
 		}
 
-		appDomains = append(appDomains, d)
+		appDomains = append(appDomains, &d)
 	}
 
 	return appDomains
@@ -1941,14 +1941,14 @@ func expandAppEnvs(config []interface{}) []*godo.AppVariableDefinition {
 	for _, rawEnv := range config {
 		env := rawEnv.(map[string]interface{})
 
-		e := &godo.AppVariableDefinition{
+		e := godo.AppVariableDefinition{
 			Value: env["value"].(string),
 			Scope: godo.AppVariableScope(env["scope"].(string)),
 			Key:   env["key"].(string),
 			Type:  godo.AppVariableType(env["type"].(string)),
 		}
 
-		appEnvs = append(appEnvs, e)
+		appEnvs = append(appEnvs, &e)
 	}
 
 	return appEnvs
@@ -2025,12 +2025,12 @@ func expandAppRoutes(config []interface{}) []*godo.AppRouteSpec {
 	for _, rawRoute := range config {
 		route := rawRoute.(map[string]interface{})
 
-		r := &godo.AppRouteSpec{
+		r := godo.AppRouteSpec{
 			Path:               route["path"].(string),
 			PreservePathPrefix: route["preserve_path_prefix"].(bool),
 		}
 
-		appRoutes = append(appRoutes, r)
+		appRoutes = append(appRoutes, &r)
 	}
 
 	return appRoutes
@@ -2066,7 +2066,7 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 	for _, rawService := range config {
 		service := rawService.(map[string]interface{})
 
-		s := &godo.AppServiceSpec{
+		s := godo.AppServiceSpec{
 			Name:             service["name"].(string),
 			RunCommand:       service["run_command"].(string),
 			BuildCommand:     service["build_command"].(string),
@@ -2144,7 +2144,7 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.Termination = expandAppTermination[godo.AppServiceSpecTermination](termination)
 		}
 
-		appServices = append(appServices, s)
+		appServices = append(appServices, &s)
 	}
 
 	return appServices
@@ -2192,7 +2192,7 @@ func expandAppSpecStaticSites(config []interface{}) []*godo.AppStaticSiteSpec {
 	for _, rawSite := range config {
 		site := rawSite.(map[string]interface{})
 
-		s := &godo.AppStaticSiteSpec{
+		s := godo.AppStaticSiteSpec{
 			Name:             site["name"].(string),
 			BuildCommand:     site["build_command"].(string),
 			DockerfilePath:   site["dockerfile_path"].(string),
@@ -2235,7 +2235,7 @@ func expandAppSpecStaticSites(config []interface{}) []*godo.AppStaticSiteSpec {
 			s.CORS = expandAppCORSPolicy(cors)
 		}
 
-		appSites = append(appSites, s)
+		appSites = append(appSites, &s)
 	}
 
 	return appSites
@@ -2288,7 +2288,7 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 	for _, rawWorker := range config {
 		worker := rawWorker.(map[string]interface{})
 
-		s := &godo.AppWorkerSpec{
+		s := godo.AppWorkerSpec{
 			Name:             worker["name"].(string),
 			RunCommand:       worker["run_command"].(string),
 			BuildCommand:     worker["build_command"].(string),
@@ -2345,7 +2345,7 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 			s.Termination = expandAppTermination[godo.AppWorkerSpecTermination](termination)
 		}
 
-		appWorkers = append(appWorkers, s)
+		appWorkers = append(appWorkers, &s)
 	}
 
 	return appWorkers
@@ -2388,7 +2388,7 @@ func expandAppSpecJobs(config []interface{}) []*godo.AppJobSpec {
 	for _, rawJob := range config {
 		job := rawJob.(map[string]interface{})
 
-		s := &godo.AppJobSpec{
+		s := godo.AppJobSpec{
 			Name:             job["name"].(string),
 			RunCommand:       job["run_command"].(string),
 			BuildCommand:     job["build_command"].(string),
@@ -2441,7 +2441,7 @@ func expandAppSpecJobs(config []interface{}) []*godo.AppJobSpec {
 			s.Termination = expandAppTermination[godo.AppJobSpecTermination](termination)
 		}
 
-		appJobs = append(appJobs, s)
+		appJobs = append(appJobs, &s)
 	}
 
 	return appJobs
@@ -2484,7 +2484,7 @@ func expandAppSpecFunctions(config []interface{}) []*godo.AppFunctionsSpec {
 	for _, rawFn := range config {
 		fn := rawFn.(map[string]interface{})
 
-		f := &godo.AppFunctionsSpec{
+		f := godo.AppFunctionsSpec{
 			Name:      fn["name"].(string),
 			Envs:      expandAppEnvs(fn["env"].(*schema.Set).List()),
 			SourceDir: fn["source_dir"].(string),
@@ -2530,7 +2530,7 @@ func expandAppSpecFunctions(config []interface{}) []*godo.AppFunctionsSpec {
 			f.CORS = expandAppCORSPolicy(cors)
 		}
 
-		appFn = append(appFn, f)
+		appFn = append(appFn, &f)
 	}
 
 	return appFn
@@ -2566,7 +2566,7 @@ func expandAppSpecDatabases(config []interface{}) []*godo.AppDatabaseSpec {
 	for _, rawDatabase := range config {
 		db := rawDatabase.(map[string]interface{})
 
-		s := &godo.AppDatabaseSpec{
+		s := godo.AppDatabaseSpec{
 			Name:        db["name"].(string),
 			Engine:      godo.AppDatabaseSpecEngine(db["engine"].(string)),
 			Version:     db["version"].(string),
@@ -2576,7 +2576,7 @@ func expandAppSpecDatabases(config []interface{}) []*godo.AppDatabaseSpec {
 			DBUser:      db["db_user"].(string),
 		}
 
-		appDatabases = append(appDatabases, s)
+		appDatabases = append(appDatabases, &s)
 	}
 
 	return appDatabases
@@ -2696,23 +2696,23 @@ func expandAppIngress(config []interface{}) *godo.AppIngressSpec {
 		return nil
 	}
 
-	ingress := &godo.AppIngressSpec{}
+	ingress := godo.AppIngressSpec{}
 	ingressConfig := config[0].(map[string]interface{})
 	rules := ingressConfig["rule"].([]interface{})
 
 	for _, r := range rules {
 		rule := r.(map[string]interface{})
-		result := &godo.AppIngressSpecRule{
+		result := godo.AppIngressSpecRule{
 			Match:     expandAppIngressMatch(rule["match"].([]interface{})),
 			Component: expandAppIngressComponent(rule["component"].([]interface{})),
 			Redirect:  expandAppIngressRedirect(rule["redirect"].([]interface{})),
 			CORS:      expandAppCORSPolicy(rule["cors"].([]interface{})),
 		}
 
-		ingress.Rules = append(ingress.Rules, result)
+		ingress.Rules = append(ingress.Rules, &result)
 	}
 
-	return ingress
+	return &ingress
 }
 
 func expandAppEgress(config []interface{}) *godo.AppEgressSpec {
@@ -2761,7 +2761,7 @@ func expandAppIngressMatch(config []interface{}) *godo.AppIngressSpecRuleMatch {
 		return nil
 	}
 
-	ruleMatch := &godo.AppIngressSpecRuleMatch{}
+	ruleMatch := godo.AppIngressSpecRuleMatch{}
 	match := config[0].(map[string]interface{})
 	path := match["path"].([]interface{})
 	if len(path) > 0 {
@@ -2776,7 +2776,7 @@ func expandAppIngressMatch(config []interface{}) *godo.AppIngressSpecRuleMatch {
 		}
 	}
 
-	return ruleMatch
+	return &ruleMatch
 }
 
 func expandAppTermination[T AppSpecTermination](config []interface{}) *T {
