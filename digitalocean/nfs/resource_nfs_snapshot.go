@@ -49,6 +49,10 @@ func ResourceDigitalOceanNfsSnapshot() *schema.Resource {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
+			"status": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
 			"created_at": {
 				Type:     schema.TypeString,
@@ -95,6 +99,7 @@ func resourceDigitalOceanNfsSnapshotRead(ctx context.Context, d *schema.Resource
 	d.Set("region", snapshot.Region)
 	d.Set("size", snapshot.SizeGib)
 	d.Set("created_at", snapshot.CreatedAt)
+	d.Set("status", snapshot.Status)
 
 	return nil
 }

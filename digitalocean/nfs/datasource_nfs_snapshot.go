@@ -44,6 +44,10 @@ func DataSourceDigitalOceanNfsSnapshot() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"status": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"share_id": {
 				Type:         schema.TypeString,
 				Required:     true,
