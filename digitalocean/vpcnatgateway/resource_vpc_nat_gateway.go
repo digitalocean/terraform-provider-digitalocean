@@ -127,6 +127,12 @@ func ResourceDigitalOceanVPCNATGateway() *schema.Resource {
 				Computed:    true,
 				Description: "VPC NAT Gateway update timestamp",
 			},
+			"project_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "ID of the project to which the VPC NAT Gateway will be assigned.",
+			},
 		},
 	}
 }
@@ -207,6 +213,7 @@ func resourceDigitalOceanVPCNATGatewayRead(ctx context.Context, d *schema.Resour
 	d.Set("tcp_timeout_seconds", int(gateway.TCPTimeoutSeconds))
 	d.Set("created_at", gateway.CreatedAt.UTC().String())
 	d.Set("updated_at", gateway.UpdatedAt.UTC().String())
+	d.Set("project_id", gateway.ProjectID)
 
 	return nil
 }
