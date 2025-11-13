@@ -22,9 +22,9 @@ func TestAccDataSourceDigitalOceanNfsSnapshot_basic(t *testing.T) {
 	snapshotConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanNfsSnapshot_snapshot, snapName)
 	dataSourceConfig := `
 data "digitalocean_nfs_snapshot" "foobar" {
-  name      = digitalocean_nfs_snapshot.foo.name
-  share_id  = digitalocean_nfs.foo.id
-  region    = "atl1"
+  name     = digitalocean_nfs_snapshot.foo.name
+  share_id = digitalocean_nfs.foo.id
+  region   = "atl1"
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
