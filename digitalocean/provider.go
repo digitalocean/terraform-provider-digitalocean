@@ -18,6 +18,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/monitoring"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/nfs"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/partnernetworkconnect"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/project"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/region"
@@ -164,6 +165,8 @@ func Provider() *schema.Provider {
 			"digitalocean_genai_agents_by_openai_api_key":     genai.DataSourceDigitalOceanAgentsByOpenAIApiKey(),
 			"digitalocean_genai_models":                       genai.DataSourceDigitalOceanModels(),
 			"digitalocean_genai_regions":                      genai.DataSourceDigitalOceanRegions(),
+			"digitalocean_nfs":                                nfs.DataSourceDigitalOceanNfs(),
+			"digitalocean_nfs_snapshot":                       nfs.DataSourceDigitalOceanNfsSnapshot(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -232,6 +235,9 @@ func Provider() *schema.Provider {
 			"digitalocean_genai_knowledge_base_data_source":      genai.ResourceDigitalOceanKnowledgeBaseDataSource(),
 			"digitalocean_genai_agent_knowledge_base_attachment": genai.ResourceDigitalOceanAgentKnowledgeBaseAttachment(),
 			"digitalocean_genai_openai_api_key":                  genai.ResourceDigitalOceanOpenAIApiKey(),
+			"digitalocean_nfs":                                   nfs.ResourceDigitalOceanNfs(),
+			"digitalocean_nfs_attachment":                        nfs.ResourceDigitalOceanNfsAttachment(),
+			"digitalocean_nfs_snapshot":                          nfs.ResourceDigitalOceanNfsSnapshot(),
 		},
 	}
 
