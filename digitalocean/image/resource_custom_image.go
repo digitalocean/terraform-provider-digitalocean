@@ -286,7 +286,7 @@ func imageStateRefreshFunc(ctx context.Context, d *schema.ResourceData, state st
 		}
 
 		if imageResponse.Status == ImageDeletedStatus {
-			return nil, "", fmt.Errorf(imageResponse.ErrorMessage)
+			return nil, "", fmt.Errorf("%s", imageResponse.ErrorMessage)
 		}
 
 		return imageResponse, imageResponse.Status, nil
