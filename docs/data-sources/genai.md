@@ -346,4 +346,186 @@ output "region_names" {
 
 ## Usage Notes
 
-This data source can be used to discover available regions for deploying GenAI resources like agents or knowledge bases. 
+This data source can be used to discover available regions for deploying GenAI resources like agents or knowledge bases.
+
+---
+
+# digitalocean_genai_knowledge_base_indexing_jobs
+
+Provides a data source that lists all indexing jobs for a specific DigitalOcean GenAI Knowledge Base. Use this data source to monitor and track indexing operations within a knowledge base.
+
+## Example Usage
+
+```hcl
+data "digitalocean_genai_knowledge_base_indexing_jobs" "kb_jobs" {
+  knowledge_base_uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
+}
+
+output "indexing_jobs" {
+  value = data.digitalocean_genai_knowledge_base_indexing_jobs.kb_jobs.jobs
+}
+
+# Filter for running jobs
+output "running_jobs" {
+  value = [for job in data.digitalocean_genai_knowledge_base_indexing_jobs.kb_jobs.jobs : job if job.status == "running"]
+}
+```
+
+## Argument Reference
+
+The following argument is supported:
+
+- **knowledge_base_uuid** (Required) – The unique identifier of the knowledge base to retrieve indexing jobs for.
+
+## Attributes Reference
+
+- **jobs** – List of indexing jobs for the knowledge base. Each job contains:
+  - **id** - The unique identifier of the indexing job
+  - **uuid** - The UUID of the indexing job
+  - **knowledge_base_uuid** - The UUID of the associated knowledge base
+  - **status** - The current status of the indexing job (e.g., "pending", "running", "completed", "failed", "cancelled")
+  - **created_at** - The timestamp when the indexing job was created (in RFC3339 format)
+  - **started_at** - The timestamp when the indexing job started processing (in RFC3339 format)
+  - **finished_at** - The timestamp when the indexing job finished (in RFC3339 format)
+  - **progress** - The current progress percentage (0-100)
+  - **error_message** - Error message if the job failed
+  - **total_documents** - Total number of documents to be indexed
+  - **processed_documents** - Number of documents processed so far
+  - **data_source_count** - Number of data sources in this indexing job
+
+## Usage Notes
+
+This data source is useful for:
+- Monitoring the progress of knowledge base indexing operations
+- Identifying failed indexing jobs that may need attention
+- Building automation around indexing job completion
+
+---
+
+# digitalocean_genai_indexing_job_data_sources
+
+Provides a data source that lists all data sources within a specific indexing job for a DigitalOcean GenAI Knowledge Base. Use this data source to understand what content is being processed in a particular indexing operation.
+
+## Example Usage
+
+```hcl
+data "digitalocean_genai_indexing_job_data_sources" "job_sources" {
+  indexing_job_uuid = "f1e2d3c4-5678-90ab-cdef-1234567890ab"
+}
+
+output "data_sources" {
+  value = data.digitalocean_genai_indexing_job_data_sources.job_sources.indexed_data_sources
+}
+
+# Filter for web crawler sources
+output "web_sources" {
+  value = [for ds in data.digitalocean_genai_indexing_job_data_sources.job_sources.indexed_data_sources : ds if ds.type == "web_crawler"]
+}
+```
+
+## Argument Reference
+
+The following argument is supported:
+
+- **indexing_job_uuid** (Required) – The unique identifier of the indexing job to retrieve data sources for.
+
+## Attributes Reference
+
+- **indexed_data_sources** – List of data sources within the indexing job. Each data source contains:
+  - **id** - The unique identifier of the data source
+  - **uuid** - The UUID of the data source
+  - **type** - The type of data source (e.g., "web_crawler", "spaces", "file_upload")
+  - **status** - The current status of this data source processing (e.g., "pending", "processing", "completed", "failed")
+  - **created_at** - The timestamp when the data source was added (in RFC3339 format)
+  - **updated_at** - The timestamp when the data source was last updated (in RFC3339 format)
+  - **processed_documents** - Number of documents processed from this data source
+  - **total_documents** - Total number of documents found in this data source
+  - **error_message** - Error message if processing failed
+  - **web_crawler_data_source** - Details for web crawler data sources:
+    - **base_url** - The base URL being crawled
+    - **crawling_option** - The crawling scope option
+    - **embed_media** - Whether media content is being embedded
+    - **pages_discovered** - Number of pages discovered during crawling
+  - **spaces_data_source** - Details for Spaces data sources:
+    - **bucket_name** - The name of the Spaces bucket
+    - **item_path** - The path within the bucket
+    - **region** - The region of the Spaces bucket
+    - **files_discovered** - Number of files discovered in the bucket
+  - **file_upload_data_source** - Details for file upload data sources:
+    - **files_uploaded** - Number of files uploaded
+    - **total_size_bytes** - Total size of uploaded files in bytes
+
+## Usage Notes
+
+This data source is useful for:
+- Debugging indexing jobs by examining individual data source progress
+- Understanding the composition of an indexing job
+- Monitoring processing status of different content types
+
+---
+
+# digitalocean_genai_indexing_job
+
+Provides a data source that retrieves detailed information about a specific indexing job for a DigitalOcean GenAI Knowledge Base. Use this data source to get comprehensive status and progress information for an indexing operation.
+
+## Example Usage
+
+```hcl
+data "digitalocean_genai_indexing_job" "specific_job" {
+  uuid = "f1e2d3c4-5678-90ab-cdef-1234567890ab"
+}
+
+output "job_details" {
+  value = data.digitalocean_genai_indexing_job.specific_job
+}
+
+# Check if job is complete
+output "is_complete" {
+  value = contains(["completed", "failed", "cancelled"], data.digitalocean_genai_indexing_job.specific_job.status)
+}
+```
+
+## Argument Reference
+
+The following argument is supported:
+
+- **uuid** (Required) – The unique identifier of the indexing job to retrieve.
+
+## Attributes Reference
+
+All fields below are exported and may be referenced:
+
+- **id** - The unique identifier of the indexing job (same as uuid)
+- **uuid** - The UUID of the indexing job
+- **knowledge_base_uuid** - The UUID of the associated knowledge base
+- **status** - The current status of the indexing job (e.g., "pending", "running", "completed", "failed", "cancelled")
+- **created_at** - The timestamp when the indexing job was created (in RFC3339 format)
+- **started_at** - The timestamp when the indexing job started processing (in RFC3339 format)
+- **finished_at** - The timestamp when the indexing job finished (in RFC3339 format)
+- **progress** - The current progress percentage (0-100)
+- **error_message** - Error message if the job failed
+- **total_documents** - Total number of documents to be indexed
+- **processed_documents** - Number of documents processed so far
+- **failed_documents** - Number of documents that failed to process
+- **data_source_count** - Number of data sources in this indexing job
+- **estimated_completion_time** - Estimated completion time (in RFC3339 format)
+- **processing_time_seconds** - Total processing time in seconds (for completed jobs)
+- **knowledge_base** - Information about the associated knowledge base:
+  - **name** - Name of the knowledge base
+  - **uuid** - UUID of the knowledge base
+  - **project_id** - Project ID of the knowledge base
+  - **region** - Region where the knowledge base is located
+- **data_sources** - List of data sources included in this indexing job
+- **logs** - Processing logs and events for the indexing job:
+  - **timestamp** - When the log entry was created
+  - **level** - Log level (e.g., "info", "warning", "error")
+  - **message** - Log message content
+  - **data_source_uuid** - Associated data source UUID (if applicable)
+
+## Usage Notes
+
+This data source is useful for:
+- Monitoring the detailed progress of a specific indexing job
+- Building conditional logic based on job status in Terraform configurations
+- Retrieving comprehensive diagnostics for troubleshooting failed jobs
+- Getting accurate completion estimates for long-running indexing operations 
