@@ -13,7 +13,7 @@ Get the NFS share by ID and region:
 
 ```hcl
 data "digitalocean_nfs" "example" {
-  id = "506f78a4-e098-11e5-ad9f-000f53306ae1"
+  id     = "506f78a4-e098-11e5-ad9f-000f53306ae1"
   region = "nyc1"
 }
 ```

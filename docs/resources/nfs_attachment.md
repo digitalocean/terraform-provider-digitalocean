@@ -23,8 +23,8 @@ resource "digitalocean_nfs" "foobar" {
 }
 
 resource "digitalocean_nfs_attachment" "foobar" {
-  share_id   = digitalocean_nfs.foobar.id
-  vpc_id = digitalocean_vpc.foobar.id
+  share_id = digitalocean_nfs.foobar.id
+  vpc_id   = digitalocean_vpc.foobar.id
 }
 
 ```
