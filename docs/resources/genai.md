@@ -440,3 +440,108 @@ terraform import digitalocean_genai_agent_route.weather_route 12345678-1234-1234
 - Agent routes enable hierarchical agent structures where parent agents can route requests to appropriate child agents based on conditions.
 - Both parent and child agents must exist before creating a route between them.
 - Changes to **parent_agent_uuid** or **child_agent_uuid** will force recreation of the route.
+
+---
+
+# digitalocean_genai_indexing_job_cancel
+
+Provides a resource to cancel running or pending indexing jobs for DigitalOcean GenAI Knowledge Bases. This resource is useful for managing long-running indexing operations that need to be stopped before completion.
+
+## Example Usage
+
+```hcl
+# Cancel a specific indexing job
+resource "digitalocean_genai_indexing_job_cancel" "cancel_job" {
+  uuid = "f1e2d3c4-5678-90ab-cdef-1234567890ab"
+}
+
+# Cancel a job conditionally based on its status
+data "digitalocean_genai_indexing_job" "monitor_job" {
+  uuid = "f1e2d3c4-5678-90ab-cdef-1234567890ab"
+}
+
+resource "digitalocean_genai_indexing_job_cancel" "conditional_cancel" {
+  count = data.digitalocean_genai_indexing_job.monitor_job.status == "running" && data.digitalocean_genai_indexing_job.monitor_job.phase == "processing" ? 1 : 0
+  
+  uuid = data.digitalocean_genai_indexing_job.monitor_job.uuid
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+- **uuid** (Required) - The unique identifier of the indexing job to cancel.
+
+## Attributes Reference
+
+After creation, the following attributes are exported:
+
+- **id** - The unique identifier of the indexing job (same as uuid).
+- **uuid** - The UUID of the indexing job.
+- **status** - The status of the indexing job after cancellation.
+- **knowledge_base_uuid** - The UUID of the knowledge base associated with this indexing job.
+- **phase** - Current phase of the indexing job.
+- **completed_datasources** - Number of data sources that were completed before cancellation.
+- **total_datasources** - Total number of data sources in the indexing job.
+- **tokens** - Number of tokens processed before cancellation.
+- **total_items_failed** - Total number of items that failed during indexing.
+- **total_items_indexed** - Total number of items that were successfully indexed.
+- **total_items_skipped** - Total number of items that were skipped during indexing.
+- **data_source_uuids** - List of data source UUIDs associated with this indexing job.
+- **created_at** - When the indexing job was created (in RFC3339 format).
+- **updated_at** - When the indexing job was last updated (in RFC3339 format).
+- **started_at** - When the indexing job was started (in RFC3339 format).
+- **finished_at** - When the indexing job was finished (in RFC3339 format).
+
+## Behavior Notes
+
+- **Immediate Effect**: Once this resource is created, the cancellation request is sent immediately to the DigitalOcean API.
+- **Status Requirements**: Only indexing jobs with status "pending" or "running" can be cancelled. Attempting to cancel completed, failed, or already cancelled jobs will result in an error.
+
+## Lifecycle Behavior
+
+- **Creation**: Sends cancellation request to the specified indexing job.
+- **Update**: This resource is immutable - changes to `uuid` will force recreation.
+- **Deletion**: Removing this resource from Terraform configuration does not restore or restart the cancelled indexing job.
+
+## Error Handling
+
+The resource will fail with an error in the following scenarios:
+- The indexing job UUID does not exist
+- The indexing job is not in a cancellable state ("pending" or "running")
+- Insufficient permissions to cancel the indexing job
+- The associated knowledge base has been deleted
+
+## Import
+
+A DigitalOcean GenAI Indexing Job Cancel operation cannot be imported as it represents a one-time action rather than a persistent resource state.
+
+## Usage Notes
+
+- **One-time Operation**: This resource represents a cancellation action. Once the job is cancelled, the resource serves as a record of the cancellation.
+- **Monitoring**: Use with data sources like `digitalocean_genai_indexing_job` to monitor job status before and after cancellation.
+- **Cleanup**: Consider using lifecycle rules or conditional logic to only cancel jobs when specific conditions are met.
+- **Auditing**: The `reason` field is useful for maintaining an audit trail of why indexing jobs were cancelled.
+
+## Example: Conditional Cancellation Based on Progress
+
+```hcl
+# Monitor job progress and cancel if stuck
+data "digitalocean_genai_indexing_job" "long_running" {
+  indexing_job_uuid = var.indexing_job_uuid
+}
+
+# Cancel if job has been running for too long with minimal progress
+resource "digitalocean_genai_indexing_job_cancel" "stuck_job" {
+  count = (
+    data.digitalocean_genai_indexing_job.long_running.status == "running" && 
+    data.digitalocean_genai_indexing_job.long_running.progress < 5 &&
+    timeadd(data.digitalocean_genai_indexing_job.long_running.started_at, "2h") < timestamp()
+  ) ? 1 : 0
+
+  indexing_job_uuid = data.digitalocean_genai_indexing_job.long_running.uuid
+  reason           = "Job appears stuck with minimal progress after 2 hours"
+  force_cancel     = true
+}
+```
