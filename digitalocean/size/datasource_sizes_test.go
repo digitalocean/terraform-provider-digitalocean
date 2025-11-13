@@ -2,6 +2,7 @@ package size_test
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"testing"
 
@@ -82,12 +83,7 @@ func testAccCheckDataSourceDigitalOceanSizesFilteredAndSorted(n string) resource
 		}
 
 		stringInSlice := func(value string, slice []string) bool {
-			for _, item := range slice {
-				if item == value {
-					return true
-				}
-			}
-			return false
+			return slices.Contains(slice, value)
 		}
 
 		var prevSlug string

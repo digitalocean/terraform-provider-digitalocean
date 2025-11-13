@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -983,12 +984,7 @@ func detachVolumeIDOnDroplet(d *schema.ResourceData, volumeID string, meta inter
 }
 
 func containsDigitalOceanDropletFeature(features []string, name string) bool {
-	for _, v := range features {
-		if v == name {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(features, name)
 }
 
 func expandSshKeys(sshKeys []interface{}) ([]godo.DropletCreateSSHKey, error) {
