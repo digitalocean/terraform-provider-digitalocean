@@ -65,9 +65,9 @@ func TestAccDataSourceDigitalOceanNfsSnapshot_regex(t *testing.T) {
 	snapshotConfig := fmt.Sprintf(testAccCheckDataSourceDigitalOceanNfsSnapshot_snapshot, snapName)
 	dataSourceConfig := `
 data "digitalocean_nfs_snapshot" "foobar" {
- name_regex = "^${digitalocean_nfs_snapshot.foo.name}"
- share_id   = digitalocean_nfs.foo.id
- region     = "atl1"
+  name_regex = "^${digitalocean_nfs_snapshot.foo.name}"
+  share_id   = digitalocean_nfs.foo.id
+  region     = "atl1"
 }`
 
 	resource.ParallelTest(t, resource.TestCase{

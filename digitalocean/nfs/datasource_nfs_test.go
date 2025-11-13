@@ -20,7 +20,7 @@ func TestAccDigitalOceanNfsDataSource_Basic(t *testing.T) {
 
 	dataSourceConfig := `
 data "digitalocean_nfs" "foobar" {
-  name = digitalocean_nfs.foo.name
+  name   = digitalocean_nfs.foo.name
   region = "atl1"
 
 }`
