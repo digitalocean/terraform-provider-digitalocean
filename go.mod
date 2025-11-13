@@ -1,6 +1,6 @@
 module github.com/digitalocean/terraform-provider-digitalocean
 
-// Contains retagging issue
+// Contains release branch issue
 retract (
 	v2.68.0
 )
