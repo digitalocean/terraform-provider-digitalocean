@@ -62,21 +62,23 @@ output "current_attachment" {
 
 
 # SNAPSHOT
+# Kindly note that Snapshots can be created after the NFS share is created.
 
-# resource "digitalocean_nfs_snapshot" "test" {
-#   share_id = digitalocean_nfs.test.id
-#   name     = "nfs-test-snapshot"
-#   region   = "atl1"
-# }
-#
-# output "snapshot_id" {
-#   value = digitalocean_nfs_snapshot.test.id
-# }
-#
-# output "snapshot_name" {
-#   value = digitalocean_nfs_snapshot.test.name
-# }
-#
-# output "snapshot_status"{
-#     value = digitalocean_nfs_snapshot.test.status
-# }
+
+resource "digitalocean_nfs_snapshot" "test" {
+  share_id = digitalocean_nfs.test.id
+  name     = "nfs-test-snapshot"
+  region   = "atl1"
+}
+
+output "snapshot_id" {
+  value = digitalocean_nfs_snapshot.test.id
+}
+
+output "snapshot_name" {
+  value = digitalocean_nfs_snapshot.test.name
+}
+
+output "snapshot_status" {
+  value = digitalocean_nfs_snapshot.test.status
+}
