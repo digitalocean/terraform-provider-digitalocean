@@ -111,7 +111,8 @@ After creation, the following attributes are exported:
 When the **visibility**, **description**, **instruction**, **k**, **max_tokens**, **model_uuid**, **name**, **open_ai_key_uuid**, **project_id**, **retrieval_method**, **region**, **tags**, **temperature**, or **top_p** attribute is changed, the provider invokes the update API endpoint to adjust the agent's configuration.
 
 # digitalocean_genai_function
-We can pick up the agent id from the agent terraform resource and input, output schema have json values as currently there is no defined schema  available. 
+
+We can pick up the agent id from the agent terraform resource and input, output schema have json values as currently there is no defined schema available.
 Checkout the following API docs - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GradientAI-Platform/operation/genai_attach_agent_function
 
 ```hcl
@@ -179,8 +180,8 @@ resource "digitalocean_genai_function" "check" {
 
 After creation, the following attributes are exported:
 
-- **agent_id** - The unique identifier of the agent. 
-- **description** -  Description for the function
+- **agent_id** - The unique identifier of the agent.
+- **description** - Description for the function
 - **faas_name** - The name of the function in the DigitalOcean functions platform
 - **faas_namespace** - The namespace of the function in the DigitalOcean functions platform
 - **function_name** - The name for function to be assigned inside agent, two functions inside agent cannot have same name
@@ -232,10 +233,10 @@ resource "digitalocean_genai_knowledge_base" "example" {
 The following arguments are supported:
 
 - **name** (Required) - The name of the knowledge base (between 2-32 characters).
-- **project_id** (Required) - The unique identifier of the project to which the - **knowledge base belongs.
+- **project_id** (Required) - The unique identifier of the project to which the - \*\*knowledge base belongs.
 - **region** (Required) - The region where the knowledge base is deployed.
-- **embedding_model_uuid** (Required) - The unique identifier of the - **embedding model.
-- **datasources** (Required) - One or more data source configurations - **for the knowledge base.
+- **embedding_model_uuid** (Required) - The unique identifier of the - \*\*embedding model.
+- **datasources** (Required) - One or more data source configurations - \*\*for the knowledge base.
   - **web_crawler_data_source** - Web crawler data source configuration:
     - **base_url** - The base URL for the web crawler to index.
     - **crawling_option** - The crawling option (e.g., "SCOPED").
@@ -245,9 +246,9 @@ The following arguments are supported:
     - **item_path** - The path to items within the bucket.
     - **region** - The region of the Spaces bucket.
   - **file_upload_data_source** - File upload data source configuration.
-- **vpc_uuid** (Optional) - The unique identifier of the VPC to which - **the knowledge base belongs.
-- **database_id** (Optional) - The unique identifier of the DigitalOcean - **OpenSearch database this knowledge base will use.
-- **is_public** (Optional) - Indicates whether the knowledge base is public or - **private.
+- **vpc_uuid** (Optional) - The unique identifier of the VPC to which - \*\*the knowledge base belongs.
+- **database_id** (Optional) - The unique identifier of the DigitalOcean - \*\*OpenSearch database this knowledge base will use.
+- **is_public** (Optional) - Indicates whether the knowledge base is public or - \*\*private.
 - **tags** (Optional) - A list of tags associated with the knowledge base.
 
 ## Attributes Reference
@@ -462,7 +463,7 @@ data "digitalocean_genai_indexing_job" "monitor_job" {
 
 resource "digitalocean_genai_indexing_job_cancel" "conditional_cancel" {
   count = data.digitalocean_genai_indexing_job.monitor_job.status == "running" && data.digitalocean_genai_indexing_job.monitor_job.phase == "processing" ? 1 : 0
-  
+
   uuid = data.digitalocean_genai_indexing_job.monitor_job.uuid
 }
 ```
@@ -508,6 +509,7 @@ After creation, the following attributes are exported:
 ## Error Handling
 
 The resource will fail with an error in the following scenarios:
+
 - The indexing job UUID does not exist
 - The indexing job is not in a cancellable state ("pending" or "running")
 - Insufficient permissions to cancel the indexing job
@@ -524,24 +526,21 @@ A DigitalOcean GenAI Indexing Job Cancel operation cannot be imported as it repr
 - **Cleanup**: Consider using lifecycle rules or conditional logic to only cancel jobs when specific conditions are met.
 - **Auditing**: The `reason` field is useful for maintaining an audit trail of why indexing jobs were cancelled.
 
-## Example: Conditional Cancellation Based on Progress
+## Example: Conditional Cancellation Based on Status
 
 ```hcl
-# Monitor job progress and cancel if stuck
+# Monitor job status and cancel if in certain state
 data "digitalocean_genai_indexing_job" "long_running" {
-  indexing_job_uuid = var.indexing_job_uuid
+  uuid = var.indexing_job_uuid
 }
 
-# Cancel if job has been running for too long with minimal progress
-resource "digitalocean_genai_indexing_job_cancel" "stuck_job" {
+# Cancel if job is running and in processing phase
+resource "digitalocean_genai_indexing_job_cancel" "cancel_processing" {
   count = (
-    data.digitalocean_genai_indexing_job.long_running.status == "running" && 
-    data.digitalocean_genai_indexing_job.long_running.progress < 5 &&
-    timeadd(data.digitalocean_genai_indexing_job.long_running.started_at, "2h") < timestamp()
+    data.digitalocean_genai_indexing_job.long_running.status == "running" &&
+    data.digitalocean_genai_indexing_job.long_running.phase == "processing"
   ) ? 1 : 0
 
-  indexing_job_uuid = data.digitalocean_genai_indexing_job.long_running.uuid
-  reason           = "Job appears stuck with minimal progress after 2 hours"
-  force_cancel     = true
+  uuid = data.digitalocean_genai_indexing_job.long_running.uuid
 }
 ```
