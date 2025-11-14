@@ -16,14 +16,14 @@ func DataSourceDigitalOceanBYOIPAddresses() *schema.Resource {
 			"byoip_prefix_uuid": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "UUID of the BYOIP prefix to list addresses from",
+				Description:  "UUID of the BYOIP prefix to list assigned addresses from",
 				ValidateFunc: validation.NoZeroValues,
 			},
 			// computed attributes
 			"addresses": {
 				Type:        schema.TypeList,
 				Computed:    true,
-				Description: "List of IP addresses allocated from the BYOIP prefix",
+				Description: "List of IP addresses already assigned from the BYOIP prefix to resources",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
@@ -57,10 +57,10 @@ func dataSourceDigitalOceanBYOIPAddressesRead(ctx context.Context, d *schema.Res
 	service := getBYOIPService(meta)
 	uuid := d.Get("byoip_prefix_uuid").(string)
 
-	// List all addresses from the BYOIP prefix
+	// List assigned addresses from the BYOIP prefix
 	addresses, _, err := service.GetResources(context.Background(), uuid, nil)
 	if err != nil {
-		return diag.Errorf("Error retrieving BYOIP addresses: %s", err)
+		return diag.Errorf("Error retrieving BYOIP assigned addresses: %s", err)
 	}
 
 	d.SetId(uuid)

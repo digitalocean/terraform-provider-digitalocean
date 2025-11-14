@@ -5,16 +5,16 @@ subcategory: "Networking"
 
 # digitalocean_byoip_addresses
 
-Get information about IP addresses allocated from a BYOIP (Bring Your Own IP) prefix.
-This data source provides a list of all IP addresses that have been allocated from a
-specific BYOIP prefix.
+Get information about IP addresses that have been **already assigned** from a 
+BYOIP (Bring Your Own IP) prefix. This data source provides a list of all IP addresses 
+that are currently assigned to resources from a specific BYOIP prefix.
 
-This is useful when you need to reference existing BYOIP-allocated IP addresses or
-manage resources that depend on BYOIP addresses.
+**Note:** This data source only lists IPs that are already assigned to resources (like Droplets
+or Load Balancers). To allocate new IPs from the BYOIP prefix, you need to use `digitalocean_reserved_ip` resource.
 
 ## Example Usage
 
-Get all addresses from a BYOIP prefix:
+List all assigned IP addresses from a BYOIP prefix:
 
 ```hcl
 data "digitalocean_byoip_prefix" "example" {
@@ -25,10 +25,15 @@ data "digitalocean_byoip_addresses" "example" {
   byoip_prefix_uuid = data.digitalocean_byoip_prefix.example.uuid
 }
 
-# Use a BYOIP address with a reserved IP
-resource "digitalocean_reserved_ip" "example" {
-  ip_address = data.digitalocean_byoip_addresses.example.addresses[0].ip_address
-  region     = data.digitalocean_byoip_prefix.example.region
+# Output the assigned IPs
+output "assigned_byoip_ips" {
+  value = [
+    for addr in data.digitalocean_byoip_addresses.example.addresses : {
+      ip        = addr.ip_address
+      region    = addr.region
+      assigned  = addr.assigned_at
+    }
+  ]
 }
 ```
 

@@ -25,7 +25,7 @@ data "digitalocean_byoip_prefix" "example" {
 }
 ```
 
-Use with BYOIP addresses data source:
+List assigned IP addresses from a BYOIP prefix:
 
 ```hcl
 data "digitalocean_byoip_prefix" "example" {
@@ -36,11 +36,14 @@ data "digitalocean_byoip_addresses" "example" {
   byoip_prefix_uuid = data.digitalocean_byoip_prefix.example.uuid
 }
 
-# Use a BYOIP address with reserved IP
-resource "digitalocean_reserved_ip" "example" {
-  ip_address = data.digitalocean_byoip_addresses.example.addresses[0].ip_address
-  region     = data.digitalocean_byoip_prefix.example.region
-  droplet_id = digitalocean_droplet.example.id
+# Output information about the BYOIP prefix and its assigned IPs
+output "byoip_info" {
+  value = {
+    prefix          = data.digitalocean_byoip_prefix.example.prefix
+    region          = data.digitalocean_byoip_prefix.example.region
+    status          = data.digitalocean_byoip_prefix.example.status
+    assigned_count  = length(data.digitalocean_byoip_addresses.example.addresses)
+  }
 }
 ```
 
