@@ -39,10 +39,10 @@ data "digitalocean_byoip_addresses" "example" {
 # Output information about the BYOIP prefix and its assigned IPs
 output "byoip_info" {
   value = {
-    prefix          = data.digitalocean_byoip_prefix.example.prefix
-    region          = data.digitalocean_byoip_prefix.example.region
-    status          = data.digitalocean_byoip_prefix.example.status
-    assigned_count  = length(data.digitalocean_byoip_addresses.example.addresses)
+    prefix         = data.digitalocean_byoip_prefix.example.prefix
+    region         = data.digitalocean_byoip_prefix.example.region
+    status         = data.digitalocean_byoip_prefix.example.status
+    assigned_count = length(data.digitalocean_byoip_addresses.example.addresses)
   }
 }
 ```

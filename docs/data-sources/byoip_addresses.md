@@ -29,9 +29,9 @@ data "digitalocean_byoip_addresses" "example" {
 output "assigned_byoip_ips" {
   value = [
     for addr in data.digitalocean_byoip_addresses.example.addresses : {
-      ip        = addr.ip_address
-      region    = addr.region
-      assigned  = addr.assigned_at
+      ip       = addr.ip_address
+      region   = addr.region
+      assigned = addr.assigned_at
     }
   ]
 }
