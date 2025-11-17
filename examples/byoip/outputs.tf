@@ -20,13 +20,13 @@ output "byoip_prefix_advertised" {
 
 output "assigned_ips_count" {
   description = "Number of IP addresses currently assigned from the BYOIP prefix"
-  value       = length(data.digitalocean_byoip_addresses.example.addresses)
+  value       = length(data.digitalocean_byoip_prefix_resources.example.addresses)
 }
 
 output "assigned_ips" {
   description = "List of IP addresses assigned from the BYOIP prefix"
   value = [
-    for addr in data.digitalocean_byoip_addresses.example.addresses : {
+    for addr in data.digitalocean_byoip_prefix_resources.example.addresses : {
       id          = addr.id
       ip_address  = addr.ip_address
       region      = addr.region

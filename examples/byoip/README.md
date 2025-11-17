@@ -41,7 +41,7 @@ data "digitalocean_byoip_prefix" "example" {
 3. List IP addresses already assigned from the BYOIP prefix:
 
 ```hcl
-data "digitalocean_byoip_addresses" "example" {
+data "digitalocean_byoip_prefix_resources" "example" {
   byoip_prefix_uuid = data.digitalocean_byoip_prefix.example.uuid
 }
 ```
@@ -54,7 +54,7 @@ output "byoip_summary" {
     prefix         = data.digitalocean_byoip_prefix.example.prefix
     region         = data.digitalocean_byoip_prefix.example.region
     status         = data.digitalocean_byoip_prefix.example.status
-    assigned_ips   = length(data.digitalocean_byoip_addresses.example.addresses)
+    assigned_ips   = length(data.digitalocean_byoip_prefix_resources.example.addresses)
   }
 }
 ```
@@ -63,5 +63,5 @@ output "byoip_summary" {
 
 - BYOIP prefixes can be created using the `digitalocean_byoip_prefix` resource or managed outside of Terraform
 - The prefix must be in "ACTIVE" status before IPs can be assigned to resources.
-- IP addresses listed by `digitalocean_byoip_addresses` are already assigned to resources.
+- IP addresses listed by `digitalocean_byoip_prefix_resources` are already assigned to resources.
 - To allocate new IPs from the BYOIP prefix, use `digitalocean_reserved_ip` resource.

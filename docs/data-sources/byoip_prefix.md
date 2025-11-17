@@ -32,7 +32,7 @@ data "digitalocean_byoip_prefix" "example" {
   uuid = "506f78a4-e098-11e5-ad9f-000f53306ae1"
 }
 
-data "digitalocean_byoip_addresses" "example" {
+data "digitalocean_byoip_prefix_resources" "example" {
   byoip_prefix_uuid = data.digitalocean_byoip_prefix.example.uuid
 }
 
@@ -42,7 +42,7 @@ output "byoip_info" {
     prefix         = data.digitalocean_byoip_prefix.example.prefix
     region         = data.digitalocean_byoip_prefix.example.region
     status         = data.digitalocean_byoip_prefix.example.status
-    assigned_count = length(data.digitalocean_byoip_addresses.example.addresses)
+    assigned_count = length(data.digitalocean_byoip_prefix_resources.example.addresses)
   }
 }
 ```

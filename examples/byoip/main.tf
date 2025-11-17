@@ -4,7 +4,7 @@ data "digitalocean_byoip_prefix" "example" {
 }
 
 # List all IP addresses already assigned from the BYOIP prefix
-data "digitalocean_byoip_addresses" "example" {
+data "digitalocean_byoip_prefix_resources" "example" {
   byoip_prefix_uuid = data.digitalocean_byoip_prefix.example.uuid
 }
 

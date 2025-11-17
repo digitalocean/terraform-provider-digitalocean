@@ -1,4 +1,4 @@
-package byoip_test
+package byoipprefix_test
 
 import (
 	"context"

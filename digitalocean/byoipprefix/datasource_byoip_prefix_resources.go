@@ -1,4 +1,4 @@
-package byoip
+package byoipprefix
 
 import (
 	"context"
@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func DataSourceDigitalOceanBYOIPAddresses() *schema.Resource {
+func DataSourceDigitalOceanBYOIPPrefixResources() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceDigitalOceanBYOIPAddressesRead,
+		ReadContext: dataSourceDigitalOceanBYOIPPrefixResourcesRead,
 		Schema: map[string]*schema.Schema{
 			"byoip_prefix_uuid": {
 				Type:         schema.TypeString,
@@ -53,7 +53,7 @@ func DataSourceDigitalOceanBYOIPAddresses() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanBYOIPAddressesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceDigitalOceanBYOIPPrefixResourcesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	service := getBYOIPService(meta)
 	uuid := d.Get("byoip_prefix_uuid").(string)
 
@@ -65,14 +65,14 @@ func dataSourceDigitalOceanBYOIPAddressesRead(ctx context.Context, d *schema.Res
 
 	d.SetId(uuid)
 
-	if err := d.Set("addresses", flattenBYOIPAddresses(addresses)); err != nil {
+	if err := d.Set("addresses", flattenBYOIPPrefixResources(addresses)); err != nil {
 		return diag.Errorf("Error setting addresses: %s", err)
 	}
 
 	return nil
 }
 
-func flattenBYOIPAddresses(addresses []godo.BYOIPPrefixResource) []interface{} {
+func flattenBYOIPPrefixResources(addresses []godo.BYOIPPrefixResource) []interface{} {
 	if addresses == nil {
 		return nil
 	}

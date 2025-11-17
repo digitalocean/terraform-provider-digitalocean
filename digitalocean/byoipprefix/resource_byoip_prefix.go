@@ -1,4 +1,4 @@
-package byoip
+package byoipprefix
 
 import (
 	"context"

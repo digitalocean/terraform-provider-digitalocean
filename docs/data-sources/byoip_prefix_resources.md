@@ -1,9 +1,9 @@
 ---
-page_title: "DigitalOcean: digitalocean_byoip_addresses"
+page_title: "DigitalOcean: digitalocean_byoip_prefix_resources"
 subcategory: "Networking"
 ---
 
-# digitalocean_byoip_addresses
+# digitalocean_byoip_prefix_resources
 
 Get information about IP addresses that have been **already assigned** from a 
 BYOIP (Bring Your Own IP) prefix. This data source provides a list of all IP addresses 
@@ -21,14 +21,14 @@ data "digitalocean_byoip_prefix" "example" {
   uuid = "506f78a4-e098-11e5-ad9f-000f53306ae1"
 }
 
-data "digitalocean_byoip_addresses" "example" {
+data "digitalocean_byoip_prefix_resources" "example" {
   byoip_prefix_uuid = data.digitalocean_byoip_prefix.example.uuid
 }
 
 # Output the assigned IPs
 output "assigned_byoip_ips" {
   value = [
-    for addr in data.digitalocean_byoip_addresses.example.addresses : {
+    for addr in data.digitalocean_byoip_prefix_resources.example.addresses : {
       ip       = addr.ip_address
       region   = addr.region
       assigned = addr.assigned_at

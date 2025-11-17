@@ -1,4 +1,4 @@
-package byoip_test
+package byoipprefix_test
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceDigitalOceanBYOIPAddresses_Basic(t *testing.T) {
+func TestAccDataSourceDigitalOceanBYOIPPrefixResources_Basic(t *testing.T) {
 	var prefix godo.BYOIPPrefix
 	prefixCIDR := "192.0.2.0/24"
 	region := "nyc3"
@@ -19,21 +19,21 @@ func TestAccDataSourceDigitalOceanBYOIPAddresses_Basic(t *testing.T) {
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDataSourceDigitalOceanBYOIPAddressesConfig_basic(prefixCIDR, region, false),
+				Config: testAccCheckDataSourceDigitalOceanBYOIPPrefixResourcesConfig_basic(prefixCIDR, region, false),
 			},
 			{
-				Config: testAccCheckDataSourceDigitalOceanBYOIPAddressesConfig_basic(prefixCIDR, region, true),
+				Config: testAccCheckDataSourceDigitalOceanBYOIPPrefixResourcesConfig_basic(prefixCIDR, region, true),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDataSourceDigitalOceanBYOIPPrefixExists("data.digitalocean_byoip_prefix.foobar", &prefix),
 					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_byoip_addresses.foobar", "addresses.#"),
+						"data.digitalocean_byoip_prefix_resources.foobar", "addresses.#"),
 				),
 			},
 		},
 	})
 }
 
-func testAccCheckDataSourceDigitalOceanBYOIPAddressesConfig_basic(
+func testAccCheckDataSourceDigitalOceanBYOIPPrefixResourcesConfig_basic(
 	prefixCIDR, region string,
 	includeDataSource bool,
 ) string {
@@ -52,7 +52,7 @@ data "digitalocean_byoip_prefix" "foobar" {
 
 	if includeDataSource {
 		config += `
-data "digitalocean_byoip_addresses" "foobar" {
+data "digitalocean_byoip_prefix_resources" "foobar" {
   byoip_prefix_uuid = data.digitalocean_byoip_prefix.foobar.uuid
 }
 `
