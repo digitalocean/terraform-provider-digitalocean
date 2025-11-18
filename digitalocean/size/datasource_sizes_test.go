@@ -86,7 +86,7 @@ func testAccCheckDataSourceDigitalOceanSizesFilteredAndSorted(n string) resource
 		var prevPriceMonthly float64
 		for i := 0; i < total; i++ {
 			slug := rs.Primary.Attributes[fmt.Sprintf("sizes.%d.slug", i)]
-			if !slices.Contains([]string{"s-1vcpu-1gb", "s-1vcpu-2gb", "s-2vcpu-2gb", "s-3vcpu-1gb", slug}) {
+			if !slices.Contains([]string{"s-1vcpu-1gb", "s-1vcpu-2gb", "s-2vcpu-2gb", "s-3vcpu-1gb"}, slug) {
 				return fmt.Errorf("Slug is not in expected test filter values")
 			}
 			if prevSlug != "" && prevSlug < slug {
