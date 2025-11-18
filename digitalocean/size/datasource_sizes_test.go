@@ -82,15 +82,11 @@ func testAccCheckDataSourceDigitalOceanSizesFilteredAndSorted(n string) resource
 			return err
 		}
 
-		stringInSlice := func(value string, slice []string) bool {
-			return slices.Contains(slice, value)
-		}
-
 		var prevSlug string
 		var prevPriceMonthly float64
 		for i := 0; i < total; i++ {
 			slug := rs.Primary.Attributes[fmt.Sprintf("sizes.%d.slug", i)]
-			if !stringInSlice(slug, []string{"s-1vcpu-1gb", "s-1vcpu-2gb", "s-2vcpu-2gb", "s-3vcpu-1gb"}) {
+			if !slices.Contains([]string{"s-1vcpu-1gb", "s-1vcpu-2gb", "s-2vcpu-2gb", "s-3vcpu-1gb", slug}) {
 				return fmt.Errorf("Slug is not in expected test filter values")
 			}
 			if prevSlug != "" && prevSlug < slug {
@@ -99,7 +95,7 @@ func testAccCheckDataSourceDigitalOceanSizesFilteredAndSorted(n string) resource
 			prevSlug = slug
 
 			vcpus := rs.Primary.Attributes[fmt.Sprintf("sizes.%d.vcpus", i)]
-			if !stringInSlice(vcpus, []string{"1", "2"}) {
+			if !slices.Contains([]string{"1", "2"}, vcpus) {
 				return fmt.Errorf("Virtual CPU is not in expected test filter values")
 			}
 
