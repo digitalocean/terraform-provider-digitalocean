@@ -114,6 +114,14 @@ func ResourceDigitalOceanApp() *schema.Resource {
 				Computed:    true,
 				Description: "The date and time of when the App was created",
 			},
+
+			// Configurable behavior for deployment polling
+			"deployment_per_page": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     20,
+				Description: "Number of deployments to request per page when polling for deployments",
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -140,7 +148,8 @@ func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, 
 	d.SetId(app.ID)
 	log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
 	timeout := d.Timeout(schema.TimeoutCreate)
-	err = waitForAppDeployment(client, app.ID, timeout)
+	perPage := d.Get("deployment_per_page").(int)
+	err = waitForAppDeployment(client, app.ID, timeout, perPage)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -249,7 +258,8 @@ func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
 		timeout := d.Timeout(schema.TimeoutCreate)
-		err = waitForAppDeployment(client, app.ID, timeout)
+		perPage := d.Get("deployment_per_page").(int)
+		err = waitForAppDeployment(client, app.ID, timeout, perPage)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -278,7 +288,7 @@ func resourceDigitalOceanAppDelete(ctx context.Context, d *schema.ResourceData, 
 	return nil
 }
 
-func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration) error {
+func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration, perPage int) error {
 	tickerInterval := 10 //10s
 	timeoutSeconds := int(timeout.Seconds())
 	n := 0
@@ -299,10 +309,10 @@ func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration)
 			// know if the InProgressDeployment has not started or if it has
 			// already completed. So instead we need to list all of the
 			// deployments for the application.
-			opts := &godo.ListOptions{PerPage: 20}
+			opts := &godo.ListOptions{PerPage: perPage}
 			deployments, _, err := client.Apps.ListDeployments(context.Background(), id, opts)
 			if err != nil {
-				return fmt.Errorf("Error trying to read app deployment state: %s", err)
+				return fmt.Errorf("error trying to read app deployment state: %s", err)
 			}
 
 			// We choose the most recent deployment. Note that there is a possibility
@@ -317,7 +327,7 @@ func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration)
 			deployment, _, err := client.Apps.GetDeployment(context.Background(), id, deploymentID)
 			if err != nil {
 				ticker.Stop()
-				return fmt.Errorf("Error trying to read app deployment state: %s", err)
+				return fmt.Errorf("error trying to read app deployment state: %s", err)
 			}
 
 			allSuccessful := true
