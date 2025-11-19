@@ -80,3 +80,18 @@ vendor:
 	@echo ""
 	go mod vendor
 	go mod tidy
+
+
+
+changes:
+	@if ! command -v github-changelog-generator &> /dev/null; then \
+		echo "github-changelog-generator not found. Installing..."; \
+		go install github.com/digitalocean/github-changelog-generator@latest; \
+	fi
+	@github-changelog-generator -org digitalocean -repo terraform-provider-digitalocean
+
+tag:
+	@echo "==> BUMP=$(BUMP) tag"
+	@echo ""
+	@bash scripts/release.sh $(BUMP)
+

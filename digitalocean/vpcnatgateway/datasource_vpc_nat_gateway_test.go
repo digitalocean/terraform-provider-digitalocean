@@ -74,6 +74,8 @@ data "digitalocean_vpc_nat_gateway" "foo" {
 						"data.digitalocean_vpc_nat_gateway.foo", "created_at"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_vpc_nat_gateway.foo", "updated_at"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_vpc_nat_gateway.foo", "project_id"),
 				),
 			},
 			{
@@ -116,6 +118,8 @@ data "digitalocean_vpc_nat_gateway" "foo" {
 						"data.digitalocean_vpc_nat_gateway.foo", "created_at"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_vpc_nat_gateway.foo", "updated_at"),
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_vpc_nat_gateway.foo", "project_id"),
 				),
 			},
 		},
