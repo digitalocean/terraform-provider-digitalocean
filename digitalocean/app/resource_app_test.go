@@ -7,12 +7,62 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
-
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
+	apppkg "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/app"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
+
+// Unit tests for deployment_per_page schema.
+func TestDeploymentPerPageSchemaExists(t *testing.T) {
+	r := apppkg.ResourceDigitalOceanApp()
+
+	s, ok := r.Schema["deployment_per_page"]
+	if !ok {
+		t.Fatalf("expected schema to contain 'deployment_per_page'")
+	}
+
+	if s.Type != 2 { // schema.TypeInt == 2
+		t.Fatalf("deployment_per_page should be TypeInt, got %v", s.Type)
+	}
+
+	if !s.Optional {
+		t.Fatalf("deployment_per_page should be Optional")
+	}
+
+	if s.Default == nil {
+		t.Fatalf("deployment_per_page should have a default")
+	}
+
+	def, ok := s.Default.(int)
+	if !ok || def != 20 {
+		t.Fatalf("deployment_per_page default expected 20, got %#v", s.Default)
+	}
+}
+
+func TestDeploymentPerPageDefaultValueInResourceData(t *testing.T) {
+	r := apppkg.ResourceDigitalOceanApp()
+	d := schema.TestResourceDataRaw(t, r.Schema, map[string]interface{}{})
+	got, ok := d.Get("deployment_per_page").(int)
+	if !ok {
+		t.Fatalf("deployment_per_page value missing or wrong type")
+	}
+	if got != 20 {
+		t.Fatalf("expected default deployment_per_page 20, got %d", got)
+	}
+}
+
+func TestDeploymentPerPageCustomValueInResourceData(t *testing.T) {
+	r := apppkg.ResourceDigitalOceanApp()
+	input := map[string]interface{}{"deployment_per_page": 5}
+	d := schema.TestResourceDataRaw(t, r.Schema, input)
+	got := d.Get("deployment_per_page").(int)
+	if got != 5 {
+		t.Fatalf("expected deployment_per_page 5, got %d", got)
+	}
+}
 
 func TestAccDigitalOceanApp_Image(t *testing.T) {
 	var app godo.App
