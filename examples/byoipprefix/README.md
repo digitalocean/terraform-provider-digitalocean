@@ -64,4 +64,4 @@ output "byoip_summary" {
 - BYOIP prefixes can be created using the `digitalocean_byoip_prefix` resource or managed outside of Terraform
 - The prefix must be in "ACTIVE" status before IPs can be assigned to resources.
 - IP addresses listed by `digitalocean_byoip_prefix_resources` are already assigned to resources.
-- To allocate new IPs from the BYOIP prefix, use `digitalocean_reserved_ip` resource.
+- To allocate new IPs from the BYOIP prefix, use `digitalocean_reserved_ip_assignment` resource.

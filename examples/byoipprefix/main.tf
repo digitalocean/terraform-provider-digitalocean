@@ -17,9 +17,7 @@ resource "digitalocean_droplet" "web" {
 }
 
 # Assign a BYOIP IP address to the Droplet
-resource "digitalocean_reserved_ip" "byoip_ip" {
-  # Use the first available IP from the BYOIP prefix
-  ip_address = "192.0.0.12"
-  region     = data.digitalocean_byoip_prefix.example.region
+resource "digitalocean_reserved_ip_assignment" "byoip_ip" {
+  ip_address = "192.0.2.2"
   droplet_id = digitalocean_droplet.web.id
 }

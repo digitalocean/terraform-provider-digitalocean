@@ -9,8 +9,8 @@ Get information about IP addresses that have been **already assigned** from a
 BYOIP (Bring Your Own IP) prefix. This data source provides a list of all IP addresses 
 that are currently assigned to resources from a specific BYOIP prefix.
 
-**Note:** This data source only lists IPs that are already assigned to resources (like Droplets
-or Load Balancers). To allocate new IPs from the BYOIP prefix, you need to use `digitalocean_reserved_ip` resource.
+**Note:** This data source only lists IPs that are already assigned to resources (like Droplets). 
+To allocate new IPs from the BYOIP prefix, you need to use `digitalocean_reserved_ip_assignment` resource.
 
 ## Example Usage
 
