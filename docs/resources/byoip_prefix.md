@@ -11,6 +11,8 @@ create, modify, and delete BYOIP prefixes.
 BYOIP prefixes allow you to bring your own IP address space to DigitalOcean. You can
 use this feature to maintain your IP reputation or meet specific compliance requirements.
 
+Note: By default, newly provisioned BYOIP prefixes are not advertised to the internet. After the initial `terraform apply`, BYOIP provisioning request is initiated and DigitalOcean provisions the prefix, the prefix status changes to Active. At this point, you can initiate advertising prefix to the internet by setting field `advertised = true` and apply the configuration to make your prefix fully usable and accessible from the internet. 
+
 ## Example Usage
 
 ```hcl

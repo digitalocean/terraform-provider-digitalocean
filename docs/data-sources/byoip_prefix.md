@@ -10,10 +10,8 @@ prefix CIDR, region, advertisement status, and current state as configured on yo
 DigitalOcean account. This is useful if the BYOIP prefix in question is not managed
 by Terraform or you need to utilize any of the prefix's data.
 
-**Note:** BYOIP prefixes are created and managed outside of Terraform through the
-DigitalOcean control panel or API. This data source is read-only.
-
-An error is triggered if the provided BYOIP prefix UUID does not exist.
+**Note:** If you need to manage BYOIP prefixes using Terraform, `digitalocean_byoip_prefix` 
+resource can be utilised instead. This data source is read-only.
 
 ## Example Usage
 
