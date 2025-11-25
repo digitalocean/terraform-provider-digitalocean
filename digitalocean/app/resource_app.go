@@ -149,7 +149,12 @@ func resourceDigitalOceanAppCreate(ctx context.Context, d *schema.ResourceData, 
 	log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
 	timeout := d.Timeout(schema.TimeoutCreate)
 	perPage := d.Get("deployment_per_page").(int)
-	err = waitForAppDeployment(client, app.ID, timeout, perPage)
+	var pendingDeploymentID string
+	// Extract PendingDeployment ID for efficient waiter polling, if available
+	if app.PendingDeployment != nil {
+		pendingDeploymentID = app.PendingDeployment.ID
+	}
+	err = WaitForAppDeployment(client, app.ID, timeout, perPage, pendingDeploymentID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -259,7 +264,12 @@ func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, 
 		log.Printf("[DEBUG] Waiting for app (%s) deployment to become active", app.ID)
 		timeout := d.Timeout(schema.TimeoutCreate)
 		perPage := d.Get("deployment_per_page").(int)
-		err = waitForAppDeployment(client, app.ID, timeout, perPage)
+		var pendingDeploymentID string
+		// Extract PendingDeployment ID for efficient waiter polling, if available
+		if app.PendingDeployment != nil {
+			pendingDeploymentID = app.PendingDeployment.ID
+		}
+		err = WaitForAppDeployment(client, app.ID, timeout, perPage, pendingDeploymentID)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -288,69 +298,92 @@ func resourceDigitalOceanAppDelete(ctx context.Context, d *schema.ResourceData, 
 	return nil
 }
 
-func waitForAppDeployment(client *godo.Client, id string, timeout time.Duration, perPage int) error {
+func WaitForAppDeployment(client *godo.Client, id string, timeout time.Duration, perPage int, pendingDeploymentID string) error {
+	log.Printf("[DEBUG] waitForAppDeployment called with pendingDeploymentID: %s", pendingDeploymentID)
 	tickerInterval := 10 //10s
 	timeoutSeconds := int(timeout.Seconds())
 	n := 0
 
 	var deploymentID string
+	// Prioritize pending deployment ID for direct polling; fall back to listing if unavailable
+	if pendingDeploymentID != "" {
+		deploymentID = pendingDeploymentID
+	} else {
+		// The InProgressDeployment is generally not known and returned as
+		// part of the initial response to the request. For config updates
+		// (as opposed to updates to the app's source), the "deployment"
+		// can complete before the first time we poll the app. We can not
+		// know if the InProgressDeployment has not started or if it has
+		// already completed. So instead we need to list all of the
+		// deployments for the application.
+		opts := &godo.ListOptions{PerPage: perPage}
+		deployments, _, err := client.Apps.ListDeployments(context.Background(), id, opts)
+		if err != nil {
+			return fmt.Errorf("error trying to read app deployment state: %s", err)
+		}
+
+		if len(deployments) > 0 {
+			deploymentID = deployments[0].ID
+		}
+	}
+
+	if deploymentID == "" {
+		return fmt.Errorf("no deployment found for app %s", id)
+	}
+
+	// Check deployment status immediately
+	deployment, _, err := client.Apps.GetDeployment(context.Background(), id, deploymentID)
+	if err != nil {
+		return fmt.Errorf("error trying to read app deployment state: %s", err)
+	}
+
+	allSuccessful := true
+	for _, step := range deployment.Progress.Steps {
+		if step.Status != godo.DeploymentProgressStepStatus_Success {
+			allSuccessful = false
+			break
+		}
+	}
+
+	if allSuccessful {
+		return nil
+	}
+
+	if deployment.Progress.ErrorSteps > 0 {
+		return fmt.Errorf("error deploying app (%s) (deployment ID: %s):\n%s", id, deployment.ID, godo.Stringify(deployment.Progress))
+	}
+
+	// Start polling if not yet successful
 	ticker := time.NewTicker(time.Duration(tickerInterval) * time.Second)
+	defer ticker.Stop()
 	for range ticker.C {
 		if n*tickerInterval > timeoutSeconds {
-			ticker.Stop()
 			break
 		}
 
-		if deploymentID == "" {
-			// The InProgressDeployment is generally not known and returned as
-			// part of the initial response to the request. For config updates
-			// (as opposed to updates to the app's source), the "deployment"
-			// can complete before the first time we poll the app. We can not
-			// know if the InProgressDeployment has not started or if it has
-			// already completed. So instead we need to list all of the
-			// deployments for the application.
-			opts := &godo.ListOptions{PerPage: perPage}
-			deployments, _, err := client.Apps.ListDeployments(context.Background(), id, opts)
-			if err != nil {
-				return fmt.Errorf("error trying to read app deployment state: %s", err)
-			}
-
-			// We choose the most recent deployment. Note that there is a possibility
-			// that the deployment has not been created yet. If that is true,
-			// we will do the wrong thing here and test the status of a previously
-			// completed deployment and exit. However there is no better way to
-			// correlate a deployment with the request that triggered it.
-			if len(deployments) > 0 {
-				deploymentID = deployments[0].ID
-			}
-		} else {
-			deployment, _, err := client.Apps.GetDeployment(context.Background(), id, deploymentID)
-			if err != nil {
-				ticker.Stop()
-				return fmt.Errorf("error trying to read app deployment state: %s", err)
-			}
-
-			allSuccessful := true
-			for _, step := range deployment.Progress.Steps {
-				if step.Status != godo.DeploymentProgressStepStatus_Success {
-					allSuccessful = false
-					break
-				}
-			}
-
-			if allSuccessful {
-				ticker.Stop()
-				return nil
-			}
-
-			if deployment.Progress.ErrorSteps > 0 {
-				ticker.Stop()
-				return fmt.Errorf("error deploying app (%s) (deployment ID: %s):\n%s", id, deployment.ID, godo.Stringify(deployment.Progress))
-			}
-
-			log.Printf("[DEBUG] Waiting for app (%s) deployment (%s) to become active. Phase: %s (%d/%d)",
-				id, deployment.ID, deployment.Phase, deployment.Progress.SuccessSteps, deployment.Progress.TotalSteps)
+		deployment, _, err := client.Apps.GetDeployment(context.Background(), id, deploymentID)
+		if err != nil {
+			return fmt.Errorf("error trying to read app deployment state: %s", err)
 		}
+
+		allSuccessful := true
+		for _, step := range deployment.Progress.Steps {
+			if step.Status != godo.DeploymentProgressStepStatus_Success {
+				allSuccessful = false
+				break
+			}
+		}
+
+		if allSuccessful {
+			return nil
+		}
+
+		if deployment.Progress.ErrorSteps > 0 {
+			return fmt.Errorf("error deploying app (%s) (deployment ID: %s):\n%s", id, deployment.ID, godo.Stringify(deployment.Progress))
+		}
+
+		log.Printf("[DEBUG] Waiting for app (%s) deployment (%s) to become active. Phase: %s (%d/%d)",
+			id, deployment.ID, deployment.Phase, deployment.Progress.SuccessSteps, deployment.Progress.TotalSteps)
 
 		n++
 	}
