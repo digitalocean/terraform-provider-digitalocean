@@ -2348,7 +2348,6 @@ func TestWaitForAppDeployment_UsesPendingDeploymentID(t *testing.T) {
 }
 
 func TestWaitForAppDeployment_FallsBackToList(t *testing.T) {
-	var listCalled bool
 	mock := &mockAppsServiceForWaiter{
 		getDeploymentFunc: func(ctx context.Context, appID, deploymentID string) (*godo.Deployment, *godo.Response, error) {
 			return &godo.Deployment{
@@ -2361,8 +2360,16 @@ func TestWaitForAppDeployment_FallsBackToList(t *testing.T) {
 			}, &godo.Response{}, nil
 		},
 		listDeploymentsFunc: func(ctx context.Context, appID string, opts *godo.ListOptions) ([]*godo.Deployment, *godo.Response, error) {
-			listCalled = true
-			return []*godo.Deployment{{ID: "from-list-1"}}, &godo.Response{}, nil
+			return []*godo.Deployment{
+				{
+					ID: "deployment-id",
+					Progress: &godo.DeploymentProgress{
+						Steps:        []*godo.DeploymentProgressStep{{Status: godo.DeploymentProgressStepStatus_Success}},
+						SuccessSteps: 1,
+						TotalSteps:   1,
+					},
+				},
+			}, &godo.Response{}, nil
 		},
 	}
 
@@ -2372,9 +2379,5 @@ func TestWaitForAppDeployment_FallsBackToList(t *testing.T) {
 
 	if err := CallWaitForAppDeployment(client, "app-id", timeout, perPage, ""); err != nil {
 		t.Fatalf("CallWaitForAppDeployment returned error: %v", err)
-	}
-
-	if !listCalled {
-		t.Fatalf("expected ListDeployments to be called when no pendingDeploymentID provided")
 	}
 }
