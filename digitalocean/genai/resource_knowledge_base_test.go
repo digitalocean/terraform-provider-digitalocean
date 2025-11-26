@@ -53,7 +53,7 @@ resource "digitalocean_genai_knowledge_base" "test" {
 
 func TestAccDigitalOceanKnowledgeBase_Update(t *testing.T) {
 	kbName := acceptance.RandomTestName() + "-kb"
-	updatedKbName := kbName + "-updated"
+	updatedKbName := kbName + "-up" // don't exceed 32 characters
 
 	resourceConfig := fmt.Sprintf(`
 resource "digitalocean_genai_knowledge_base" "test" {
@@ -81,7 +81,7 @@ resource "digitalocean_genai_knowledge_base" "test" {
   region               = "%s"
   embedding_model_uuid = "%s"
   tags                 = ["terraform-test", "update-test", "updated"]
-  is_public            = true
+  is_public            = false
 
   datasources {
     web_crawler_data_source {
@@ -109,7 +109,7 @@ resource "digitalocean_genai_knowledge_base" "test" {
 				Config: updatedResourceConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("digitalocean_genai_knowledge_base.test", "name", updatedKbName),
-					resource.TestCheckResourceAttr("digitalocean_genai_knowledge_base.test", "is_public", "true"),
+					resource.TestCheckResourceAttr("digitalocean_genai_knowledge_base.test", "is_public", "false"),
 					resource.TestCheckResourceAttr("digitalocean_genai_knowledge_base.test", "tags.#", "3"),
 				),
 			},
