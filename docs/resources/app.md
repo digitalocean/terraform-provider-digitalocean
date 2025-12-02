@@ -677,6 +677,7 @@ In addition to the above attributes, the following are exported:
 - `urn` - The uniform resource identifier for the app.
 - `updated_at` - The date and time of when the app was last updated.
 - `created_at` - The date and time of when the app was created.
+- `deployment_per_page` - (Optional) Controls how many deployments are requested per API page when listing deployments during create/update waits. Defaults to `20`. Reduce this value (for example `5`) if you experience API timeouts when listing deployments.
 
 ## Import
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/account"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/app"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/byoipprefix"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/cdn"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/certificate"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -105,6 +106,8 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"digitalocean_account":                            account.DataSourceDigitalOceanAccount(),
 			"digitalocean_app":                                app.DataSourceDigitalOceanApp(),
+			"digitalocean_byoip_prefix_resources":             byoipprefix.DataSourceDigitalOceanBYOIPPrefixResources(),
+			"digitalocean_byoip_prefix":                       byoipprefix.DataSourceDigitalOceanBYOIPPrefix(),
 			"digitalocean_certificate":                        certificate.DataSourceDigitalOceanCertificate(),
 			"digitalocean_container_registry":                 registry.DataSourceDigitalOceanContainerRegistry(),
 			"digitalocean_container_registries":               registry.DataSourceDigitalOceanContainerRegistries(),
@@ -172,6 +175,7 @@ func Provider() *schema.Provider {
 
 		ResourcesMap: map[string]*schema.Resource{
 			"digitalocean_app":                                   app.ResourceDigitalOceanApp(),
+			"digitalocean_byoip_prefix":                          byoipprefix.ResourceBYOIPPrefix(),
 			"digitalocean_certificate":                           certificate.ResourceDigitalOceanCertificate(),
 			"digitalocean_container_registry":                    registry.ResourceDigitalOceanContainerRegistry(),
 			"digitalocean_container_registries":                  registry.ResourceDigitalOceanContainerRegistries(),
