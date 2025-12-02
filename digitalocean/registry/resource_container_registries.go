@@ -12,14 +12,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-const RegistryHostname = "registry.digitalocean.com"
-
-func ResourceDigitalOceanContainerRegistry() *schema.Resource {
+func ResourceDigitalOceanContainerRegistries() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceDigitalOceanContainerRegistryCreate,
-		ReadContext:   resourceDigitalOceanContainerRegistryRead,
-		UpdateContext: resourceDigitalOceanContainerRegistryUpdate,
-		DeleteContext: resourceDigitalOceanContainerRegistryDelete,
+		CreateContext: resourceDigitalOceanContainerRegistriesCreate,
+		ReadContext:   resourceDigitalOceanContainerRegistriesRead,
+		UpdateContext: resourceDigitalOceanContainerRegistriesUpdate,
+		DeleteContext: resourceDigitalOceanContainerRegistriesDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -67,7 +65,7 @@ func ResourceDigitalOceanContainerRegistry() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanContainerRegistryCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanContainerRegistriesCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	// Build up our creation options
@@ -80,22 +78,21 @@ func resourceDigitalOceanContainerRegistryCreate(ctx context.Context, d *schema.
 		opts.Region = region.(string)
 	}
 
-	log.Printf("[DEBUG] Container Registry create configuration: %#v", opts)
-	reg, _, err := client.Registry.Create(context.Background(), opts)
+	log.Printf("[DEBUG] Container Registries create configuration: %#v", opts)
+	reg, _, err := client.Registries.Create(context.Background(), opts)
 	if err != nil {
-		return diag.Errorf("Error creating container registry: %s", err)
+		return diag.Errorf("Error creating container registries: %s", err)
 	}
 
 	d.SetId(reg.Name)
-	log.Printf("[INFO] Container Registry: %s", reg.Name)
+	log.Printf("[INFO] Container Registries: %s", reg.Name)
 
-	return resourceDigitalOceanContainerRegistryRead(ctx, d, meta)
+	return resourceDigitalOceanContainerRegistriesRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanContainerRegistriesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	// The new Registries.Get() function requires the registry name (d.Id())
 	reg, resp, err := client.Registries.Get(context.Background(), d.Id())
 	if err != nil {
 		// If the registry is somehow already destroyed, mark as
@@ -105,7 +102,7 @@ func resourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.Re
 			return nil
 		}
 
-		return diag.Errorf("Error retrieving container registry: %s", err)
+		return diag.Errorf("Error retrieving container registries: %s", err)
 	}
 
 	d.SetId(reg.Name)
@@ -116,17 +113,16 @@ func resourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.Re
 	d.Set("created_at", reg.CreatedAt.UTC().String())
 	d.Set("storage_usage_bytes", reg.StorageUsageBytes)
 
-	// This also needs to use the new Registries service
 	sub, _, err := client.Registries.GetSubscription(context.Background())
 	if err != nil {
-		return diag.Errorf("Error retrieving container registry subscription: %s", err)
+		return diag.Errorf("Error retrieving container registries subscription: %s", err)
 	}
 	d.Set("subscription_tier_slug", sub.Tier.Slug)
 
 	return nil
 }
 
-func resourceDigitalOceanContainerRegistryUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanContainerRegistriesUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 	if d.HasChange("subscription_tier_slug") {
 		req := &godo.RegistrySubscriptionUpdateRequest{
@@ -135,19 +131,19 @@ func resourceDigitalOceanContainerRegistryUpdate(ctx context.Context, d *schema.
 
 		_, _, err := client.Registries.UpdateSubscription(ctx, req)
 		if err != nil {
-			return diag.Errorf("Error updating container registry subscription: %s", err)
+			return diag.Errorf("Error updating container registries subscription: %s", err)
 		}
 	}
-	return resourceDigitalOceanContainerRegistryRead(ctx, d, meta)
+	return resourceDigitalOceanContainerRegistriesRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanContainerRegistryDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanContainerRegistriesDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	log.Printf("[INFO] Deleting container registry: %s", d.Id())
+	log.Printf("[INFO] Deleting container registries: %s", d.Id())
 	_, err := client.Registries.Delete(context.Background(), d.Id())
 	if err != nil {
-		return diag.Errorf("Error deleting container registry: %s", err)
+		return diag.Errorf("Error deleting container registries: %s", err)
 	}
 	d.SetId("")
 	return nil
