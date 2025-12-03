@@ -70,19 +70,20 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsCreate(ctx context.Co
 
 func resourceDigitalOceanContainerRegistryDockerCredentialsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
+	registryName := d.Get("registry_name").(string)
 
-	reg, response, err := client.Registry.Get(context.Background())
+	_, response, err := client.Registries.Get(ctx, registryName)
 
 	if err != nil {
 		if response != nil && response.StatusCode == 404 {
-			return diag.Errorf("registry not found: %s", err)
+			d.SetId("")
+			return nil
 		}
-		return diag.Errorf("Error retrieving registry: %s", err)
+		return diag.Errorf("registry %q not found: %s", registryName, err)
 	}
 
 	write := d.Get("write").(bool)
-	d.SetId(reg.Name)
-	d.Set("registry_name", reg.Name)
+	d.SetId(registryName)
 	d.Set("write", write)
 
 	err = updateExpiredDockerCredentials(d, write, client)
@@ -98,10 +99,11 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsUpdate(ctx context.Co
 		write := d.Get("write").(bool)
 		expirySeconds := d.Get("expiry_seconds").(int)
 		client := meta.(*config.CombinedConfig).GodoClient()
+		registryName := d.Get("registry_name").(string)
 		currentTime := time.Now().UTC()
 		expirationTime := currentTime.Add(time.Second * time.Duration(expirySeconds))
 		d.Set("credential_expiration_time", expirationTime.Format(time.RFC3339))
-		dockerConfigJSON, err := generateDockerCredentials(write, expirySeconds, client)
+		dockerConfigJSON, err := generateDockerCredentials(write, expirySeconds, client, registryName)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -112,7 +114,8 @@ func resourceDigitalOceanContainerRegistryDockerCredentialsUpdate(ctx context.Co
 			write := d.Get("write").(bool)
 			expirySeconds := d.Get("expiry_seconds").(int)
 			client := meta.(*config.CombinedConfig).GodoClient()
-			dockerConfigJSON, err := generateDockerCredentials(write, expirySeconds, client)
+			registryName := d.Get("registry_name").(string)
+			dockerConfigJSON, err := generateDockerCredentials(write, expirySeconds, client, registryName)
 			if err != nil {
 				return diag.FromErr(err)
 			}
@@ -190,8 +193,8 @@ func RevokeOAuthToken(token string, endpoint string) error {
 	return err
 }
 
-func generateDockerCredentials(readWrite bool, expirySeconds int, client *godo.Client) (string, error) {
-	dockerCreds, response, err := client.Registry.DockerCredentials(context.Background(), &godo.RegistryDockerCredentialsRequest{ReadWrite: readWrite, ExpirySeconds: &expirySeconds})
+func generateDockerCredentials(readWrite bool, expirySeconds int, client *godo.Client, registryName string) (string, error) {
+	dockerCreds, response, err := client.Registries.DockerCredentials(context.Background(), registryName, &godo.RegistryDockerCredentialsRequest{ReadWrite: readWrite, ExpirySeconds: &expirySeconds})
 	if err != nil {
 		if response != nil && response.StatusCode == 404 {
 			return "", fmt.Errorf("docker credentials not found: %s", err)
@@ -206,6 +209,7 @@ func updateExpiredDockerCredentials(d *schema.ResourceData, readWrite bool, clie
 	expirySeconds := d.Get("expiry_seconds").(int)
 	expirationTime := d.Get("credential_expiration_time").(string)
 	d.Set("expiry_seconds", expirySeconds)
+	registryName := d.Get("registry_name").(string)
 
 	currentTime := time.Now().UTC()
 	if expirationTime != "" {
@@ -215,7 +219,7 @@ func updateExpiredDockerCredentials(d *schema.ResourceData, readWrite bool, clie
 		}
 
 		if expirationTime.Before(currentTime) {
-			dockerConfigJSON, err := generateDockerCredentials(readWrite, expirySeconds, client)
+			dockerConfigJSON, err := generateDockerCredentials(readWrite, expirySeconds, client, registryName)
 			if err != nil {
 				return err
 			}
@@ -227,7 +231,7 @@ func updateExpiredDockerCredentials(d *schema.ResourceData, readWrite bool, clie
 	} else {
 		expirationTime := currentTime.Add(time.Second * time.Duration(expirySeconds))
 		d.Set("credential_expiration_time", expirationTime.Format(time.RFC3339))
-		dockerConfigJSON, err := generateDockerCredentials(readWrite, expirySeconds, client)
+		dockerConfigJSON, err := generateDockerCredentials(readWrite, expirySeconds, client, registryName)
 		if err != nil {
 			return err
 		}
