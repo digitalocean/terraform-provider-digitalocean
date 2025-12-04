@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -192,11 +193,9 @@ func resourceDigitalOceanKubernetesNodePoolImportState(d *schema.ResourceData, m
 	}
 
 	// Ensure that the node pool does not have the default tag set.
-	for _, tag := range nodePool.Tags {
-		if tag == DigitaloceanKubernetesDefaultNodePoolTag {
-			return nil, fmt.Errorf("Node pool %s has the default node pool tag set; import the owning digitalocean_kubernetes_cluster resource instead (cluster ID=%s)",
-				nodePoolId, clusterId)
-		}
+	if slices.Contains(nodePool.Tags, DigitaloceanKubernetesDefaultNodePoolTag) {
+		return nil, fmt.Errorf("Node pool %s has the default node pool tag set; import the owning digitalocean_kubernetes_cluster resource instead (cluster ID=%s)",
+			nodePoolId, clusterId)
 	}
 
 	// Set the cluster_id attribute with the cluster's ID.

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -68,9 +69,7 @@ func NewResource(config *ResourceConfig) *schema.Resource {
 		},
 	}
 
-	for key, value := range config.ExtraQuerySchema {
-		datasourceSchema[key] = value
-	}
+	maps.Copy(datasourceSchema, config.ExtraQuerySchema)
 
 	return &schema.Resource{
 		ReadContext: dataListResourceRead(config),

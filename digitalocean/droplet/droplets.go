@@ -3,6 +3,7 @@ package droplet
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -205,10 +206,10 @@ func flattenDigitalOceanDroplet(rawDroplet, meta interface{}, extra map[string]i
 	}
 
 	if features := droplet.Features; features != nil {
-		flattenedDroplet["backups"] = containsDigitalOceanDropletFeature(features, "backups")
-		flattenedDroplet["ipv6"] = containsDigitalOceanDropletFeature(features, "ipv6")
-		flattenedDroplet["private_networking"] = containsDigitalOceanDropletFeature(features, "private_networking")
-		flattenedDroplet["monitoring"] = containsDigitalOceanDropletFeature(features, "monitoring")
+		flattenedDroplet["backups"] = slices.Contains(features, "backups")
+		flattenedDroplet["ipv6"] = slices.Contains(features, "ipv6")
+		flattenedDroplet["private_networking"] = slices.Contains(features, "private_networking")
+		flattenedDroplet["monitoring"] = slices.Contains(features, "monitoring")
 	}
 
 	flattenedDroplet["volume_ids"] = flattenDigitalOceanDropletVolumeIds(droplet.VolumeIDs)
