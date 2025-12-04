@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"net/http"
 	"strings"
 	"time"
@@ -49,9 +50,7 @@ func resourceDigitalOceanCertificateV1() map[string]*schema.Schema {
 		},
 	}
 
-	for k, v := range resourceDigitalOceanCertificateV0().Schema {
-		certificateV1Schema[k] = v
-	}
+	maps.Copy(certificateV1Schema, resourceDigitalOceanCertificateV0().Schema)
 
 	return certificateV1Schema
 }

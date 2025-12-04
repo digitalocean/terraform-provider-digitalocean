@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"maps"
 	"net/http"
 	"strings"
 	"time"
@@ -104,15 +105,11 @@ func resourceDigitalOceanLoadBalancerV1() map[string]*schema.Schema {
 		},
 	}
 
-	for k, v := range loadBalancerV0Schema["forwarding_rule"].Elem.(*schema.Resource).Schema {
-		forwardingRuleSchema[k] = v
-	}
+	maps.Copy(forwardingRuleSchema, loadBalancerV0Schema["forwarding_rule"].Elem.(*schema.Resource).Schema)
 	forwardingRuleSchema["certificate_id"].Computed = true
 	forwardingRuleSchema["certificate_id"].Deprecated = "Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead."
 
-	for k, v := range loadBalancerV0Schema {
-		loadBalancerV1Schema[k] = v
-	}
+	maps.Copy(loadBalancerV1Schema, loadBalancerV0Schema)
 	loadBalancerV1Schema["forwarding_rule"].Elem.(*schema.Resource).Schema = forwardingRuleSchema
 
 	return loadBalancerV1Schema

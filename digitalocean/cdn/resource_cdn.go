@@ -3,6 +3,7 @@ package cdn
 import (
 	"context"
 	"log"
+	"maps"
 	"net/http"
 	"strings"
 	"time"
@@ -53,9 +54,7 @@ func resourceDigitalOceanCDNv1() map[string]*schema.Schema {
 		},
 	}
 
-	for k, v := range resourceDigitalOceanCDNv0().Schema {
-		cdnV1Schema[k] = v
-	}
+	maps.Copy(cdnV1Schema, resourceDigitalOceanCDNv0().Schema)
 	cdnV1Schema["certificate_id"].Computed = true
 	cdnV1Schema["certificate_id"].Deprecated = "Certificate IDs may change, for example when a Let's Encrypt certificate is auto-renewed. Please specify 'certificate_name' instead."
 

@@ -48,9 +48,9 @@ The following attributes are exported:
 
 ## Import
 
-NFS shares can be imported using the `share id`, e.g.
+NFS shares can be imported using the `share id` and the `region` , e.g.
 
 ```
-terraform import digitalocean_nfs.foobar 506f78a4-e098-11e5-ad9f-000f53306ae1
+terraform import digitalocean_nfs.foobar 506f78a4-e098-11e5-ad9f-000f53306ae1,atl1
 ```
 

@@ -3,6 +3,7 @@ package app
 
 import (
 	"log"
+	"maps"
 	"net/http"
 
 	"github.com/digitalocean/godo"
@@ -759,9 +760,7 @@ func appSpecServicesSchema() *schema.Resource {
 		},
 	}
 
-	for k, v := range appSpecComponentBase(serviceComponent) {
-		serviceSchema[k] = v
-	}
+	maps.Copy(serviceSchema, appSpecComponentBase(serviceComponent))
 
 	return &schema.Resource{
 		Schema: serviceSchema,
@@ -810,9 +809,7 @@ func appSpecStaticSiteSchema() *schema.Resource {
 		},
 	}
 
-	for k, v := range appSpecComponentBase(staticSiteComponent) {
-		staticSiteSchema[k] = v
-	}
+	maps.Copy(staticSiteSchema, appSpecComponentBase(staticSiteComponent))
 
 	return &schema.Resource{
 		Schema: staticSiteSchema,
@@ -862,9 +859,7 @@ func appSpecWorkerSchema() *schema.Resource {
 		},
 	}
 
-	for k, v := range appSpecComponentBase(workerComponent) {
-		workerSchema[k] = v
-	}
+	maps.Copy(workerSchema, appSpecComponentBase(workerComponent))
 
 	return &schema.Resource{
 		Schema: workerSchema,
@@ -918,9 +913,7 @@ func appSpecJobSchema() *schema.Resource {
 		},
 	}
 
-	for k, v := range appSpecComponentBase(jobComponent) {
-		jobSchema[k] = v
-	}
+	maps.Copy(jobSchema, appSpecComponentBase(jobComponent))
 
 	return &schema.Resource{
 		Schema: jobSchema,
@@ -949,9 +942,7 @@ func appSpecFunctionsSchema() *schema.Resource {
 		},
 	}
 
-	for k, v := range appSpecComponentBase(functionComponent) {
-		functionsSchema[k] = v
-	}
+	maps.Copy(functionsSchema, appSpecComponentBase(functionComponent))
 
 	return &schema.Resource{
 		Schema: functionsSchema,
