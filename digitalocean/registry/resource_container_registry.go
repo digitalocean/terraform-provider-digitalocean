@@ -95,7 +95,8 @@ func resourceDigitalOceanContainerRegistryCreate(ctx context.Context, d *schema.
 func resourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	reg, resp, err := client.Registry.Get(context.Background())
+	// The new Registries.Get() function requires the registry name (d.Id())
+	reg, resp, err := client.Registries.Get(context.Background(), d.Id())
 	if err != nil {
 		// If the registry is somehow already destroyed, mark as
 		// successfully gone
@@ -115,7 +116,8 @@ func resourceDigitalOceanContainerRegistryRead(ctx context.Context, d *schema.Re
 	d.Set("created_at", reg.CreatedAt.UTC().String())
 	d.Set("storage_usage_bytes", reg.StorageUsageBytes)
 
-	sub, _, err := client.Registry.GetSubscription(context.Background())
+	// This also needs to use the new Registries service
+	sub, _, err := client.Registries.GetSubscription(context.Background())
 	if err != nil {
 		return diag.Errorf("Error retrieving container registry subscription: %s", err)
 	}
@@ -131,7 +133,7 @@ func resourceDigitalOceanContainerRegistryUpdate(ctx context.Context, d *schema.
 			TierSlug: d.Get("subscription_tier_slug").(string),
 		}
 
-		_, _, err := client.Registry.UpdateSubscription(ctx, req)
+		_, _, err := client.Registries.UpdateSubscription(ctx, req)
 		if err != nil {
 			return diag.Errorf("Error updating container registry subscription: %s", err)
 		}
@@ -143,7 +145,7 @@ func resourceDigitalOceanContainerRegistryDelete(ctx context.Context, d *schema.
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	log.Printf("[INFO] Deleting container registry: %s", d.Id())
-	_, err := client.Registry.Delete(context.Background())
+	_, err := client.Registries.Delete(context.Background(), d.Id())
 	if err != nil {
 		return diag.Errorf("Error deleting container registry: %s", err)
 	}

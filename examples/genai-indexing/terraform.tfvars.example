@@ -1,0 +1,11 @@
+# Example configuration for GenAI Indexing Jobs
+# Copy this file to terraform.tfvars and customize the values
+
+# UUID of the knowledge base to query for indexing jobs
+# If left empty, the example will use the first available knowledge base
+knowledge_base_uuid = ""
+
+# Whether to cancel a running job if one exists
+# Set to true only if you want to test the cancel functionality
+# WARNING: This will actually cancel a running job if one exists
+cancel_running_job = false

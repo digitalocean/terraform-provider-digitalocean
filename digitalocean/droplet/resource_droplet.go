@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -452,10 +453,10 @@ func setDropletAttributes(d *schema.ResourceData, droplet *godo.Droplet) error {
 	d.Set("ipv6_address", strings.ToLower(FindIPv6AddrByType(droplet, "public")))
 
 	if features := droplet.Features; features != nil {
-		d.Set("backups", containsDigitalOceanDropletFeature(features, "backups"))
-		d.Set("ipv6", containsDigitalOceanDropletFeature(features, "ipv6"))
-		d.Set("private_networking", containsDigitalOceanDropletFeature(features, "private_networking"))
-		d.Set("monitoring", containsDigitalOceanDropletFeature(features, "monitoring"))
+		d.Set("backups", slices.Contains(features, "backups"))
+		d.Set("ipv6", slices.Contains(features, "ipv6"))
+		d.Set("private_networking", slices.Contains(features, "private_networking"))
+		d.Set("monitoring", slices.Contains(features, "monitoring"))
 	}
 
 	if err := d.Set("volume_ids", flattenDigitalOceanDropletVolumeIds(droplet.VolumeIDs)); err != nil {
@@ -980,15 +981,6 @@ func detachVolumeIDOnDroplet(d *schema.ResourceData, volumeID string, meta inter
 	}
 
 	return nil
-}
-
-func containsDigitalOceanDropletFeature(features []string, name string) bool {
-	for _, v := range features {
-		if v == name {
-			return true
-		}
-	}
-	return false
 }
 
 func expandSshKeys(sshKeys []interface{}) ([]godo.DropletCreateSSHKey, error) {

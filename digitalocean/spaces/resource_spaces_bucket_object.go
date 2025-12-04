@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -292,7 +293,7 @@ func resourceDigitalOceanSpacesBucketObjectRead(ctx context.Context, d *schema.R
 
 func resourceDigitalOceanSpacesBucketObjectUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	// Changes to any of these attributes requires creation of a new object version (if bucket is versioned):
-	for _, key := range []string{
+	if slices.ContainsFunc([]string{
 		"cache_control",
 		"content_base64",
 		"content_disposition",
@@ -304,10 +305,8 @@ func resourceDigitalOceanSpacesBucketObjectUpdate(ctx context.Context, d *schema
 		"metadata",
 		"source",
 		"website_redirect",
-	} {
-		if d.HasChange(key) {
-			return resourceDigitalOceanSpacesBucketObjectPut(ctx, d, meta)
-		}
+	}, d.HasChange) {
+		return resourceDigitalOceanSpacesBucketObjectPut(ctx, d, meta)
 	}
 
 	conn, err := s3connFromResourceData(d, meta)
