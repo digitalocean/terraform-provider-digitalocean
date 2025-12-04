@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -176,11 +177,8 @@ func filterSnapshotsByNameRegex(snapshots []godo.Snapshot, name string) []godo.S
 func filterSnapshotsByRegion(snapshots []godo.Snapshot, region string) []godo.Snapshot {
 	result := make([]godo.Snapshot, 0)
 	for _, s := range snapshots {
-		for _, r := range s.Regions {
-			if r == region {
-				result = append(result, s)
-				break
-			}
+		if slices.Contains(s.Regions, region) {
+			result = append(result, s)
 		}
 	}
 	return result
