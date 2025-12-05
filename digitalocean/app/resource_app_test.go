@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
@@ -2202,3 +2203,181 @@ resource "digitalocean_app" "foobar" {
     }
   }
 }`
+
+// Helper to expose waitForAppDeployment for unit testing from package app_test
+func CallWaitForAppDeployment(client *godo.Client, id string, timeout time.Duration, perPage int, pendingDeploymentID string) error {
+	return apppkg.WaitForAppDeployment(client, id, timeout, perPage, pendingDeploymentID)
+}
+
+// Tests for waitForAppDeployment behaviour: uses pending deployment ID when present
+// and falls back to listing deployments when absent.
+// These tests use the package helper to invoke the unexported waiter.
+type mockAppsServiceForWaiter struct {
+	getDeploymentFunc   func(ctx context.Context, appID, deploymentID string) (*godo.Deployment, *godo.Response, error)
+	listDeploymentsFunc func(ctx context.Context, appID string, opts *godo.ListOptions) ([]*godo.Deployment, *godo.Response, error)
+}
+
+func (m *mockAppsServiceForWaiter) GetDeployment(ctx context.Context, appID, deploymentID string) (*godo.Deployment, *godo.Response, error) {
+	return m.getDeploymentFunc(ctx, appID, deploymentID)
+}
+
+func (m *mockAppsServiceForWaiter) ListDeployments(ctx context.Context, appID string, opts *godo.ListOptions) ([]*godo.Deployment, *godo.Response, error) {
+	return m.listDeploymentsFunc(ctx, appID, opts)
+}
+
+// Stubs to satisfy the full AppsService interface
+func (m *mockAppsServiceForWaiter) Create(ctx context.Context, create *godo.AppCreateRequest) (*godo.App, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) Get(ctx context.Context, appID string) (*godo.App, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) List(ctx context.Context, opts *godo.ListOptions) ([]*godo.App, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) Update(ctx context.Context, appID string, update *godo.AppUpdateRequest) (*godo.App, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) Delete(ctx context.Context, appID string) (*godo.Response, error) {
+	return nil, nil
+}
+func (m *mockAppsServiceForWaiter) Propose(ctx context.Context, propose *godo.AppProposeRequest) (*godo.AppProposeResponse, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) Restart(ctx context.Context, appID string, opts *godo.AppRestartRequest) (*godo.Deployment, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) CreateDeployment(ctx context.Context, appID string, create ...*godo.DeploymentCreateRequest) (*godo.Deployment, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetLogs(ctx context.Context, appID, deploymentID, component string, logType godo.AppLogType, follow bool, tailLines int) (*godo.AppLogs, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetExec(ctx context.Context, appID, deploymentID, component string) (*godo.AppExec, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetExecWithOpts(ctx context.Context, appID string, componentName string, opts *godo.AppGetExecOptions) (*godo.AppExec, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) ListRegions(ctx context.Context) ([]*godo.AppRegion, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) ListTiers(ctx context.Context) ([]*godo.AppTier, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetTier(ctx context.Context, slug string) (*godo.AppTier, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) ListInstanceSizes(ctx context.Context) ([]*godo.AppInstanceSize, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetInstanceSize(ctx context.Context, slug string) (*godo.AppInstanceSize, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) ListAlerts(ctx context.Context, appID string) ([]*godo.AppAlert, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) UpdateAlertDestinations(ctx context.Context, appID string, alertID string, update *godo.AlertDestinationUpdateRequest) (*godo.AppAlert, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) Detect(ctx context.Context, detect *godo.DetectRequest) (*godo.DetectResponse, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) ListBuildpacks(ctx context.Context) ([]*godo.Buildpack, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) UpgradeBuildpack(ctx context.Context, appID string, opts godo.UpgradeBuildpackOptions) (*godo.UpgradeBuildpackResponse, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetAppHealth(ctx context.Context, appID string) (*godo.AppHealth, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetAppDatabaseConnectionDetails(ctx context.Context, appID string) ([]*godo.GetDatabaseConnectionDetailsResponse, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) ResetDatabasePassword(ctx context.Context, appID string, component string) (*godo.Deployment, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) ToggleDatabaseTrustedSource(ctx context.Context, appID string, component string, opts godo.ToggleDatabaseTrustedSourceOptions) (*godo.ToggleDatabaseTrustedSourceResponse, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetAppInstances(ctx context.Context, appID string, opts *godo.GetAppInstancesOpts) ([]*godo.AppInstance, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) ListJobInvocations(ctx context.Context, appID string, opts *godo.ListJobInvocationsOptions) ([]*godo.JobInvocation, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetJobInvocation(ctx context.Context, appID string, jobInvocationId string, opts *godo.GetJobInvocationOptions) (*godo.JobInvocation, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetJobInvocationLogs(ctx context.Context, appID, jobInvocationId string, opts *godo.GetJobInvocationLogsOptions) (*godo.AppLogs, *godo.Response, error) {
+	return nil, nil, nil
+}
+
+func clientWithMockAppsForWaiter(mock *mockAppsServiceForWaiter) *godo.Client {
+	c := &godo.Client{}
+	c.Apps = mock
+	return c
+}
+
+func TestWaitForAppDeployment_UsesPendingDeploymentID(t *testing.T) {
+	mock := &mockAppsServiceForWaiter{
+		getDeploymentFunc: func(ctx context.Context, appID, deploymentID string) (*godo.Deployment, *godo.Response, error) {
+			return &godo.Deployment{
+				ID: deploymentID,
+				Progress: &godo.DeploymentProgress{
+					Steps:        []*godo.DeploymentProgressStep{{Status: godo.DeploymentProgressStepStatus_Success}},
+					SuccessSteps: 1,
+					TotalSteps:   1,
+				},
+			}, &godo.Response{}, nil
+		},
+		listDeploymentsFunc: func(ctx context.Context, appID string, opts *godo.ListOptions) ([]*godo.Deployment, *godo.Response, error) {
+			t.Fatalf("ListDeployments should not be called when pendingDeploymentID is provided")
+			return nil, nil, nil
+		},
+	}
+
+	client := clientWithMockAppsForWaiter(mock)
+	timeout := 20 * time.Second
+	perPage := 1
+
+	if err := CallWaitForAppDeployment(client, "app-id", timeout, perPage, "pending-123"); err != nil {
+		t.Fatalf("CallWaitForAppDeployment returned error: %v", err)
+	}
+}
+
+func TestWaitForAppDeployment_FallsBackToList(t *testing.T) {
+	mock := &mockAppsServiceForWaiter{
+		getDeploymentFunc: func(ctx context.Context, appID, deploymentID string) (*godo.Deployment, *godo.Response, error) {
+			return &godo.Deployment{
+				ID: deploymentID,
+				Progress: &godo.DeploymentProgress{
+					Steps:        []*godo.DeploymentProgressStep{{Status: godo.DeploymentProgressStepStatus_Success}},
+					SuccessSteps: 1,
+					TotalSteps:   1,
+				},
+			}, &godo.Response{}, nil
+		},
+		listDeploymentsFunc: func(ctx context.Context, appID string, opts *godo.ListOptions) ([]*godo.Deployment, *godo.Response, error) {
+			return []*godo.Deployment{
+				{
+					ID: "deployment-id",
+					Progress: &godo.DeploymentProgress{
+						Steps:        []*godo.DeploymentProgressStep{{Status: godo.DeploymentProgressStepStatus_Success}},
+						SuccessSteps: 1,
+						TotalSteps:   1,
+					},
+				},
+			}, &godo.Response{}, nil
+		},
+	}
+
+	client := clientWithMockAppsForWaiter(mock)
+	timeout := 20 * time.Second
+	perPage := 1
+
+	if err := CallWaitForAppDeployment(client, "app-id", timeout, perPage, ""); err != nil {
+		t.Fatalf("CallWaitForAppDeployment returned error: %v", err)
+	}
+}
