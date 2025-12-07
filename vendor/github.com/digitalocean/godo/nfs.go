@@ -74,6 +74,8 @@ type Nfs struct {
 	CreatedAt string `json:"created_at"`
 	// VpcIDs is a list of VPC IDs that have access to the NFS share
 	VpcIDs []string `json:"vpc_ids"`
+	// MountPath is the path for mounting the NFS share
+	MountPath string `json:"mount_path"`
 }
 
 type NfsSnapshot struct {
