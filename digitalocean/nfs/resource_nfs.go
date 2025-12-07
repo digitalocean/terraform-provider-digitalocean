@@ -60,6 +60,10 @@ func ResourceDigitalOceanNfs() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"mount_path": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 
 			"tags": tag.TagsSchema(),
 		},
@@ -167,6 +171,7 @@ func resourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("size", share.SizeGib)
 	d.Set("status", share.Status)
 	d.Set("vpc_id", share.VpcIDs[0])
+	d.Set("mount_path", share.MountPath)
 
 	if err = d.Set("vpc_ids", flattenDigitalOceanShareVpcIds(share.VpcIDs)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting vpc_ids: %#v", err)

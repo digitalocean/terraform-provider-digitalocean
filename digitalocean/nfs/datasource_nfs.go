@@ -43,6 +43,10 @@ func DataSourceDigitalOceanNfs() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"mount_path": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"tags": tag.TagsDataSourceSchema(),
 		},
 	}
@@ -97,6 +101,7 @@ func dataSourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("region", share.Region)
 	d.Set("size", share.SizeGib)
 	d.Set("status", share.Status)
+	d.Set("mount_path", share.MountPath)
 
 	return nil
 }
