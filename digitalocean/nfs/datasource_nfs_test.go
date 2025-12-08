@@ -45,6 +45,7 @@ data "digitalocean_nfs" "foobar" {
 					resource.TestCheckResourceAttr("data.digitalocean_nfs.foobar", "region", "atl1"),
 					resource.TestCheckResourceAttr("data.digitalocean_nfs.foobar", "size", "50"),
 					resource.TestCheckResourceAttr("data.digitalocean_nfs.foobar", "status", "ACTIVE"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_nfs.foobar", "mount_path"),
 				),
 			},
 		},
@@ -79,8 +80,12 @@ func testAccCheckDataSourceDigitalOceanNfsExists(n string, nfs *godo.Nfs) resour
 		}
 
 		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
+		region := rs.Primary.Attributes["region"]
+		if region == "" {
+			region = "atl1" // fallback to default
+		}
 
-		foundNfs, _, err := client.Nfs.Get(context.Background(), rs.Primary.ID, "atl1")
+		foundNfs, _, err := client.Nfs.Get(context.Background(), rs.Primary.ID, region)
 
 		if err != nil {
 			return err
@@ -106,8 +111,12 @@ func testAccCheckDataSourceDigitalOceanNfsIsActive(n string) resource.TestCheckF
 			return fmt.Errorf("No NFS ID is set")
 		}
 		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
-		for i := 0; i < 10; i++ {
-			nfs, _, err := client.Nfs.Get(context.Background(), rs.Primary.ID, "atl1")
+		region := rs.Primary.Attributes["region"]
+		if region == "" {
+			region = "atl1" // fallback to default
+		}
+		for i := 0; i < 60; i++ {
+			nfs, _, err := client.Nfs.Get(context.Background(), rs.Primary.ID, region)
 			if err != nil {
 				return err
 			}
@@ -115,7 +124,7 @@ func testAccCheckDataSourceDigitalOceanNfsIsActive(n string) resource.TestCheckF
 				time.Sleep(5 * time.Second) // Extra buffer for state propagation
 				return nil
 			}
-			time.Sleep(10 * time.Second)
+			time.Sleep(5 * time.Second)
 		}
 		return fmt.Errorf("NFS did not become ACTIVE in time")
 	}

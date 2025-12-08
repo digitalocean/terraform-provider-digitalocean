@@ -26,7 +26,7 @@ func DataSourceDigitalOceanNfs() *schema.Resource {
 			},
 			"region": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "the region that the share is created in",
 				StateFunc: func(val interface{}) string {
 					// DO API V2 region slug is always lowercase
@@ -43,6 +43,10 @@ func DataSourceDigitalOceanNfs() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"mount_path": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"tags": tag.TagsDataSourceSchema(),
 		},
 	}
@@ -52,15 +56,10 @@ func dataSourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, 
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	name := d.Get("name").(string)
-
-	region := d.Get("region").(string)
+	region := strings.ToLower(d.Get("region").(string))
 
 	opts := &godo.ListOptions{
 		PerPage: 200,
-	}
-
-	if s, ok := d.GetOk("region"); ok {
-		region = s.(string)
 	}
 
 	sharesList := []*godo.Nfs{}
@@ -97,6 +96,7 @@ func dataSourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("region", share.Region)
 	d.Set("size", share.SizeGib)
 	d.Set("status", share.Status)
+	d.Set("mount_path", share.MountPath)
 
 	return nil
 }
