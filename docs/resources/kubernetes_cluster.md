@@ -179,6 +179,10 @@ The following arguments are supported:
   - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
 `amd_gpu_device_metrics_exporter_plugin` - (Optional) Block containing options for the AMD GPU device metrics exporter component. If not specified, the component will not be installed in the cluster.
     - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
+* `nvidia_gpu_device_plugin` - (Optional) Block containing options for the NVIDIA GPU device plugin component. If not specified, the component will be enabled by default for clusters with NVIDIA GPU nodes.
+  - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
+`rdma_shared_device_plugin` - (Optional) Block containing options for the RDMA Shared Device Plugin (k8s-rdma-shared-dev-plugin) component. If not specified, the component will be enabled by default for clusters with GPU nodes connected to a dedicated high-speed networking fabric.
+    - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
 * `cluster_autoscaler_configuration` - (Optional) Block containing options for cluster auto-scaling.
   - `scale_down_utilization_threshold` - (Optional) Float setting the Node utilization level, defined as sum of requested resources divided by capacity, in which a node can be considered for scale down.
   - `scale_down_unneeded_time` - (Optional) String setting how long a node should be unneeded before it's eligible for scale down.
