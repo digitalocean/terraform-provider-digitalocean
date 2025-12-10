@@ -43,6 +43,7 @@ The following attributes are exported:
 * `vpc_id` - The ID of the VPC where the NFS share is located.
 * `status` - The current status of the NFS share.
 * `created_at` - The date and time when the NFS share was created.
+* `host` - The host IP of the NFS server accessible from the associated VPC.
 * `mount_path` - The mount path for accessing the NFS share.  
 
 

@@ -9,11 +9,11 @@ Get information about a DigitalOcean NFS share.
 
 ## Example Usage
 
-Get the NFS share by ID and region:
+Get the NFS share by name and region:
 
 ```hcl
 data "digitalocean_nfs" "example" {
-  id     = "506f78a4-e098-11e5-ad9f-000f53306ae1"
+  name   = "example-nfs"
   region = "nyc1"
 }
 ```
@@ -22,9 +22,17 @@ data "digitalocean_nfs" "example" {
 
 The following arguments are supported:
 
-* `id` - (Required) The id of the NFS share.
-* `region` - (Required) The region where the NFS share is located.
+* `name` - (Required) The name of the NFS share.
+* `region` - (Optional) The region where the NFS share is located.
 
 ## Attributes Reference
 
-See the NFS Resource for details on the returned attributes — these are identical.  
+The following attributes are exported:
+
+* `id` - The unique identifier for the NFS share.
+* `name` - Name of the NFS share.
+* `region` - The region where the NFS share is located.
+* `size` - The size of the NFS share in GiB.
+* `status` - The current status of the NFS share.
+* `host` - The host IP of the NFS server accessible from the associated VPC.
+* `mount_path` - The mount path for accessing the NFS share.  
