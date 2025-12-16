@@ -99,6 +99,8 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "routing_agent.0.enabled", "false"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_plugin.0.enabled", "false"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_metrics_exporter_plugin.0.enabled", "false"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "nvidia_gpu_device_plugin.0.enabled", "false"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "rdma_shared_device_plugin.0.enabled", "false"),
 				),
 			},
 			// Update: remove default node_pool taints
@@ -975,6 +977,46 @@ func TestAccDigitalOceanKubernetesCluster_AmdGpuDeviceMetricsExporterPluginEnabl
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_NvidiaGpuDevicePluginEnabled(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfigNvidiaGpuDevicePluginEnabled(testClusterVersionPrevious, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "nvidia_gpu_device_plugin.0.enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesCluster_RdmaSharedDevicePluginEnabled(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfigRdmaSharedDevicePluginEnabled(testClusterVersionPrevious, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "rdma_shared_device_plugin.0.enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
 func testAccDigitalOceanKubernetesConfigBasic(testClusterVersion string, rName string) string {
 	return fmt.Sprintf(`%s
 
@@ -1299,6 +1341,44 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   region  = "nyc1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
   amd_gpu_device_metrics_exporter_plugin {
+    enabled = true
+  }
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+`, testClusterVersion, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigNvidiaGpuDevicePluginEnabled(testClusterVersion string, rName string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    = "%s"
+  region  = "nyc1"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
+  nvidia_gpu_device_plugin {
+    enabled = true
+  }
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+`, testClusterVersion, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigRdmaSharedDevicePluginEnabled(testClusterVersion string, rName string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    = "%s"
+  region  = "nyc1"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
+  rdma_shared_device_plugin {
     enabled = true
   }
   node_pool {

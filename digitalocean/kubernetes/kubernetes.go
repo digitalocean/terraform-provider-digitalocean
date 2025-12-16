@@ -345,6 +345,62 @@ func flattenAmdGpuDeviceMetricsExporterPluginOpts(opts *godo.KubernetesAmdGpuDev
 	return result
 }
 
+func expandNvidiaGpuDevicePluginOpts(raw []interface{}) *godo.KubernetesNvidiaGpuDevicePlugin {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesNvidiaGpuDevicePlugin{}
+	}
+
+	nvidiaGpuDevicePluginObj := raw[0].(map[string]interface{})
+
+	nvidiaGpuDevicePlugin := &godo.KubernetesNvidiaGpuDevicePlugin{
+		Enabled: godo.PtrTo(nvidiaGpuDevicePluginObj["enabled"].(bool)),
+	}
+
+	return nvidiaGpuDevicePlugin
+}
+
+func flattenNvidiaGpuDevicePluginOpts(opts *godo.KubernetesNvidiaGpuDevicePlugin) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
+func expandRdmaSharedDevicePluginOpts(raw []interface{}) *godo.KubernetesRdmaSharedDevicePlugin {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesRdmaSharedDevicePlugin{}
+	}
+
+	rdmaSharedDevicePluginObj := raw[0].(map[string]interface{})
+
+	rdmaSharedDevicePlugin := &godo.KubernetesRdmaSharedDevicePlugin{
+		Enabled: godo.PtrTo(rdmaSharedDevicePluginObj["enabled"].(bool)),
+	}
+
+	return rdmaSharedDevicePlugin
+}
+
+func flattenRdmaSharedDevicePluginOpts(opts *godo.KubernetesRdmaSharedDevicePlugin) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
 func flattenMaintPolicyOpts(opts *godo.KubernetesMaintenancePolicy) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 	item := make(map[string]interface{})

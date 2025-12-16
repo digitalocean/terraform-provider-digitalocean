@@ -43,6 +43,21 @@ output "nfs_id" {
   value = digitalocean_nfs.test.id
 }
 
+output "nfs_host" {
+  value       = digitalocean_nfs.test.host
+  description = "NFS server IP address"
+}
+
+output "nfs_mount_path" {
+  value       = digitalocean_nfs.test.mount_path
+  description = "NFS export path"
+}
+
+output "nfs_mount_command" {
+  value       = "mount -t nfs ${digitalocean_nfs.test.host}:${digitalocean_nfs.test.mount_path} /mnt/nfs"
+  description = "Example mount command"
+}
+
 output "vpc1_id" {
   value = digitalocean_vpc.test.id
 }
