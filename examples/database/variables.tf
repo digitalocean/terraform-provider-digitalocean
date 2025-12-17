@@ -33,3 +33,21 @@ variable "db_node_count" {
   type        = number
   default     = 2
 }
+
+variable "rsyslog_server" {
+  description = "Hostname or IP address of the rsyslog server"
+  type        = string
+  default     = "logs.example.com"
+}
+
+variable "rsyslog_port" {
+  description = "Port number for the rsyslog server"
+  type        = number
+  default     = 514
+}
+
+variable "rsyslog_format" {
+  description = "Log format to use (rfc5424, rfc3164, or custom)"
+  type        = string
+  default     = "rfc5424"
+}
