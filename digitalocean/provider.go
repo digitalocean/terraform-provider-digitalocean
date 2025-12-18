@@ -197,6 +197,8 @@ func Provider() *schema.Provider {
 			"digitalocean_database_kafka_topic":                  database.ResourceDigitalOceanDatabaseKafkaTopic(),
 			"digitalocean_database_kafka_schema_registry":        database.ResourceDigitalOceanDatabaseKafkaSchemaRegistry(),
 			"digitalocean_database_online_migration":             database.ResourceDigitalOceanDatabaseOnlineMigration(),
+			"digitalocean_database_logsink_rsyslog":              database.ResourceDigitalOceanDatabaseLogsinkRsyslog(),
+			"digitalocean_database_logsink_opensearch":           database.ResourceDigitalOceanDatabaseLogsinkOpensearch(),
 			"digitalocean_domain":                                domain.ResourceDigitalOceanDomain(),
 			"digitalocean_droplet":                               droplet.ResourceDigitalOceanDroplet(),
 			"digitalocean_droplet_autoscale":                     dropletautoscale.ResourceDigitalOceanDropletAutoscale(),
