@@ -64,6 +64,7 @@ func ResourceDigitalOceanKnowledgeBase() *schema.Resource {
 			"database_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Computed:    true,
 				Description: "The unique identifier of the DigitalOcean OpenSearch database this knowledge base will use",
 			},
 			"embedding_model_uuid": {
@@ -75,6 +76,7 @@ func ResourceDigitalOceanKnowledgeBase() *schema.Resource {
 			"is_public": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				ForceNew:    true,
 				Description: "Indicates whether the knowledge base is public or private.",
 			},
 			"last_indexing_job": {
@@ -166,6 +168,10 @@ func resourceDigitalOceanKnowledgeBaseCreate(ctx context.Context, d *schema.Reso
 		createRequest.VPCUuid = vpcUUID.(string)
 	}
 
+	if databaseID, ok := d.GetOk("database_id"); ok {
+		createRequest.DatabaseID = databaseID.(string)
+	}
+
 	// Handle tags
 	if tagsSet, ok := d.GetOk("tags"); ok {
 		tags := make([]string, 0)
@@ -211,11 +217,13 @@ func resourceDigitalOceanKnowledgeBaseRead(ctx context.Context, d *schema.Resour
 	_ = d.Set("name", kb.Name)
 	_ = d.Set("project_id", kb.ProjectId)
 	_ = d.Set("region", kb.Region)
-	_ = d.Set("created_at", kb.CreatedAt)
+	_ = d.Set("created_at", kb.CreatedAt.UTC().String())
 	_ = d.Set("database_id", kb.DatabaseId)
 	_ = d.Set("embedding_model_uuid", kb.EmbeddingModelUuid)
 	_ = d.Set("is_public", kb.IsPublic)
-	_ = d.Set("added_to_agent_at", kb.AddedToAgentAt)
+	if kb.AddedToAgentAt != nil {
+		_ = d.Set("added_to_agent_at", kb.AddedToAgentAt.UTC().String())
+	}
 
 	// Get datasources separately using ListKnowledgebaseDataSources API
 	datasources, _, err := client.GenAI.ListKnowledgeBaseDataSources(ctx, id, nil)
