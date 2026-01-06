@@ -178,6 +178,7 @@ In addition to the arguments listed above, the following attributes are exported
 
 * `id` - The ID of the Load Balancer
 * `ip`- The ip of the Load Balancer
+* `ipv6` - The IPv6 address of the Load Balancer
 * `urn` - The uniform resource name for the Load Balancer
 
 ## Import
