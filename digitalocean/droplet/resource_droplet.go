@@ -872,8 +872,10 @@ func waitForDropletAttribute(
 
 		// This is a hack around DO API strangeness.
 		// https://github.com/hashicorp/terraform/issues/481
-		//
-		NotFoundChecks: 60,
+		// Increased from 60 to 120 for reserved/contracted hypervisors where
+		// capacity may take longer to become available after a destroy.
+		// See: https://github.com/digitalocean/terraform-provider-digitalocean/issues/1486
+		NotFoundChecks: 120,
 	}
 
 	return stateConf.WaitForStateContext(ctx)
@@ -891,8 +893,17 @@ func dropletStateRefreshFunc(
 		}
 
 		// Retrieve the droplet properties
-		droplet, _, err := client.Droplets.Get(context.Background(), id)
+		droplet, resp, err := client.Droplets.Get(context.Background(), id)
 		if err != nil {
+			// Handle 404 as a retryable "not found" condition rather than a fatal error.
+			// This is important for reserved/contracted hypervisors where capacity may be
+			// temporarily unavailable after a destroy, causing async placement failures.
+			// Returning nil triggers NotFoundChecks retry logic in StateChangeConf.
+			// See: https://github.com/digitalocean/terraform-provider-digitalocean/issues/1486
+			if resp != nil && resp.StatusCode == 404 {
+				log.Printf("[DEBUG] Droplet (%d) not found (404), will retry", id)
+				return nil, "", nil
+			}
 			return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
 		}
 
