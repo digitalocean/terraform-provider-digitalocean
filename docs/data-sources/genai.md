@@ -1,21 +1,21 @@
 ---
-page_title: "DigitalOcean: digitalocean_genai_agent"
-subcategory: "GenAI"
+page_title: "DigitalOcean: digitalocean_gradientai_agent"
+subcategory: "GradientAI"
 ---
 
-# digitalocean_genai_agent
+# digitalocean_gradientai_agent
 
-Provides a data source that retrieves details about an existing DigitalOcean GenAI Agent. Use this data source to query an agent by its unique identifier.
+Provides a data source that retrieves details about an existing DigitalOcean Gradient AI Agent. Use this data source to query an agent by its unique identifier.
 
 ## Example Usage
 
 ```hcl
-data "digitalocean_genai_agent" "example" {
+data "digitalocean_gradientai_agent" "example" {
   agent_id = "79292fb6-3627-11f0-bf8f-4e013e2ddde4"
 }
 
 output "agent_detail" {
-  value = data.digitalocean_genai_agent.example
+  value = data.digitalocean_gradientai_agent.example
 }
 ```
 
@@ -77,19 +77,19 @@ For example, to reference the agent's name:
 This data source is useful for integrating agent details into your workflow or for performing validations against current configurations.
 
 
-# digitalocean_genai_knowledge_base
+# digitalocean_gradientai_knowledge_base
 
-Provides a data source that retrieves details about an existing DigitalOcean GenAI Knowledge Base. Use this data source to query a knowledge base by its unique identifier (UUID).
+Provides a data source that retrieves details about an existing DigitalOcean Gradient AI Knowledge Base. Use this data source to query a knowledge base by its unique identifier (UUID).
 
 ## Example Usage
 
 ```hcl
-data "digitalocean_genai_knowledge_base" "example" {
+data "digitalocean_gradientai_knowledge_base" "example" {
   uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
 }
 
 output "kb_details" {
-  value = data.digitalocean_genai_knowledge_base.example
+  value = data.digitalocean_gradientai_knowledge_base.example
 }
 ```
 
@@ -134,66 +134,66 @@ This data source can be used to dynamically fetch the details of an existing kno
 For example, to create an agent with an existing knowledge base:
 
 ```hcl
-data "digitalocean_genai_knowledge_base" "existing" {
+data "digitalocean_gradientai_knowledge_base" "existing" {e" {
   uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
 }
 
-resource "digitalocean_genai_agent_knowledge_base_attachment" "example" {
-  agent_uuid          = digitalocean_genai_agent.example.id
-  knowledge_base_uuid = data.digitalocean_genai_knowledge_base.existing.id
+resource "digitalocean_gradientai_agent_knowledge_base_attachment" "example" {
+  agent_uuid          = digitalocean_gradientai_agent.example.id
+  knowledge_base_uuid = data.digitalocean_gradientai_knowledge_base.existing.id
 }
 ```
 ## Example Usage: Fetching a Knowledge Base
 
 ```hcl
-data "digitalocean_genai_knowledge_base" "example" {
+data "digitalocean_gradientai_knowledge_base" "example" {
   uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
 }
 
 output "kb_details" {
-  value = data.digitalocean_genai_knowledge_base.example
+  value = data.digitalocean_gradientai_knowledge_base.example
 }
 ```
 
 ## Example Usage: Fetching Knowledge Base Data Sources
 
 ```hcl
-data "digitalocean_genai_knowledge_base_data_sources" "example" {
+data "digitalocean_gradientai_knowledge_base_data_sources" "example" {
   knowledge_base_uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
 }
 
 output "kb_datasources" {
-  value = data.digitalocean_genai_knowledge_base_data_sources.example.datasources
+  value = data.digitalocean_gradientai_knowledge_base_data_sources.example.datasources
 }
 ```
 
-# digitalocean_genai_agent_versions
+# digitalocean_gradientai_agent_versions
 
-Provides a data source that retrieves all versions of an existing DigitalOcean GenAI Agent. Use this data source to query an agent by its unique identifier.
+Provides a data source that retrieves all versions of an existing DigitalOcean Gradient AI Agent.
 
 ## Example Usage
 
 ```hcl
-data "digitalocean_genai_agent_versions" "example" {
+data "digitalocean_gradientai_agent_versions" "example" {
   agent_id = "79292fb6-3627-11f0-bf8f-4e013e2ddde4"
 }
 
 output "agent_detail" {
-  value = data.digitalocean_genai_agent_versions.example
+  value = data.digitalocean_gradientai_agent_versions.example
 }
 ```
 
-# digitalocean_genai_openai_api_keys
+# digitalocean_gradientai_openai_api_keys
 
 Provides a data source that lists all OpenAI API keys in your DigitalOcean account.
 
 ### Example Usage
 
 ```hcl
-data "digitalocean_genai_openai_api_keys" "all" {}
+data "digitalocean_gradientai_openai_api_keys" "all" {}
 
 output "all_openai_api_keys" {
-  value = data.digitalocean_genai_openai_api_keys.all.openai_api_keys
+  value = data.digitalocean_gradientai_openai_api_keys.all.openai_api_keys
 }
 ```
 
@@ -203,19 +203,19 @@ output "all_openai_api_keys" {
 
 ---
 
-## digitalocean_genai_openai_api_key
+## digitalocean_gradientai_openai_api_key
 
 Provides a data source that retrieves a single OpenAI API key by UUID.
 
 ### Example Usage
 
 ```hcl
-data "digitalocean_genai_openai_api_key" "by_id" {
+data "digitalocean_gradientai_openai_api_key" "by_id" {
   uuid = "your-openai-api-key-uuid"
 }
 
 output "openai_api_key_info" {
-  value = data.digitalocean_genai_openai_api_key.by_id
+  value = data.digitalocean_gradientai_openai_api_key.by_id
 }
 ```
 
@@ -236,19 +236,19 @@ output "openai_api_key_info" {
 
 ---
 
-### digitalocean_genai_agents_by_openai_api_key
+### digitalocean_gradientai_agents_by_openai_api_key
 
 Provides a data source that lists all agents associated with a specific OpenAI API key.
 
 ### Example Usage
 
 ```hcl
-data "digitalocean_genai_agents_by_openai_api_key" "by_key" {
+data "digitalocean_gradientai_agents_by_openai_api_key" "by_key" {
   uuid = "your-openai-api-key-uuid"
 }
 
 output "agents_by_openai_key" {
-  value = data.digitalocean_genai_agents_by_openai_api_key.by_key.agents
+  value = data.digitalocean_gradientai_agents_by_openai_api_key.by_key.agents
 }
 ```
 
@@ -264,32 +264,32 @@ output "agents_by_openai_key" {
 
 ## Usage Notes
 
-These data sources can be used to dynamically fetch details of existing GenAI resources into your Terraform configuration. You may reference exported attributes in other resources or outputs.
+These data sources can be used to dynamically fetch details of existing Gradient AI resources into your Terraform configuration. You may reference exported attributes in other resources or outputs.
 
 ---
 
-# digitalocean_genai_models
+# digitalocean_gradientai_models
 
-Provides a data source that lists all available GenAI models in DigitalOcean.
+Provides a data source that lists all available Gradient AI models in DigitalOcean.
 
 ## Example Usage
 
 ```hcl
-data "digitalocean_genai_models" "available_models" {}
+data "digitalocean_gradientai_models" "available_models" {}
 
 output "all_models" {
-  value = data.digitalocean_genai_models.available_models.models
+  value = data.digitalocean_gradientai_models.available_models.models
 }
 
 output "model_names" {
   description = "Names of available models"
-  value       = [for model in data.digitalocean_genai_models.available_models.models : model.name]
+  value       = [for model in data.digitalocean_gradientai_models.available_models.models : model.name]
 }
 ```
 
 ## Attributes Reference
 
-- **models** – List of available GenAI models. Each model contains:
+- **models** – List of available Gradient AI models. Each model contains:
   - **id** - The human-readable unique identifier of the model
   - **uuid** - The UUID of the model
   - **name** - The name of the model
@@ -311,33 +311,33 @@ output "model_names" {
 
 ## Usage Notes
 
-This data source can be used to discover available GenAI models for use with agents or other GenAI resources. 
+This data source can be used to discover available Gradient AI models for use with agents or other Gradient AI resources. 
 
 
 ---
 
-# digitalocean_genai_regions
+# digitalocean_gradientai_regions
 
-Provides a data source that lists all available GenAI regions in DigitalOcean.
+Provides a data source that lists all available Gradient AI regions in DigitalOcean.
 
 ## Example Usage
 
 ```hcl
-data "digitalocean_genai_regions" "available_regions" {}
+data "digitalocean_gradientai_regions" "available_regions" {}
 
 output "all_regions" {
-  value = data.digitalocean_genai_regions.available_regions.regions
+  value = data.digitalocean_gradientai_regions.available_regions.regions
 }
 
 output "region_names" {
   description = "Names of available regions"
-  value       = [for region in data.digitalocean_genai_regions.available_regions.regions : region.region]
+  value       = [for region in data.digitalocean_gradientai_regions.available_regions.regions : region.region]
 }
 ```
 
 ## Attributes Reference
 
-- **regions** – List of available GenAI regions. Each region contains:
+- **regions** – List of available Gradient AI regions. Each region contains:
   - **region** - The region identifier (e.g., "tor1")
   - **inference_url** - The inference URL for the region
   - **serves_batch** - Whether the region supports batch processing
@@ -346,28 +346,28 @@ output "region_names" {
 
 ## Usage Notes
 
-This data source can be used to discover available regions for deploying GenAI resources like agents or knowledge bases.
+This data source can be used to discover available regions for deploying Gradient AI resources like agents or knowledge bases.
 
 ---
 
-# digitalocean_genai_knowledge_base_indexing_jobs
+# digitalocean_gradientai_knowledge_base_indexing_jobs
 
-Provides a data source that lists all indexing jobs for a specific DigitalOcean GenAI Knowledge Base. Use this data source to monitor and track indexing operations within a knowledge base.
+Provides a data source that lists all indexing jobs for a specific DigitalOcean Gradient AI Knowledge Base. Use this data source to monitor and track indexing operations within a knowledge base.
 
 ## Example Usage
 
 ```hcl
-data "digitalocean_genai_knowledge_base_indexing_jobs" "kb_jobs" {
+data "digitalocean_gradientai_knowledge_base_indexing_jobs" "kb_jobs" {
   knowledge_base_uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
 }
 
 output "indexing_jobs" {
-  value = data.digitalocean_genai_knowledge_base_indexing_jobs.kb_jobs.jobs
+  value = data.digitalocean_gradientai_knowledge_base_indexing_jobs.kb_jobs.jobs
 }
 
 # Filter for running jobs
 output "running_jobs" {
-  value = [for job in data.digitalocean_genai_knowledge_base_indexing_jobs.kb_jobs.jobs : job if job.status == "running"]
+  value = [for job in data.digitalocean_gradientai_knowledge_base_indexing_jobs.kb_jobs.jobs : job if job.status == "running"]
 }
 ```
 
@@ -402,24 +402,24 @@ This data source is useful for:
 
 ---
 
-# digitalocean_genai_indexing_job_data_sources
+# digitalocean_gradientai_indexing_job_data_sources
 
-Provides a data source that lists all data sources within a specific indexing job for a DigitalOcean GenAI Knowledge Base. Use this data source to understand what content is being processed in a particular indexing operation.
+Provides a data source that lists all data sources within a specific indexing job for a DigitalOcean Gradient AI Knowledge Base. Use this data source to understand what content is being processed in a particular indexing operation.
 
 ## Example Usage
 
 ```hcl
-data "digitalocean_genai_indexing_job_data_sources" "job_sources" {
+data "digitalocean_gradientai_indexing_job_data_sources" "job_sources" {
   indexing_job_uuid = "f1e2d3c4-5678-90ab-cdef-1234567890ab"
 }
 
 output "data_sources" {
-  value = data.digitalocean_genai_indexing_job_data_sources.job_sources.indexed_data_sources
+  value = data.digitalocean_gradientai_indexing_job_data_sources.job_sources.indexed_data_sources
 }
 
 # Filter for web crawler sources
 output "web_sources" {
-  value = [for ds in data.digitalocean_genai_indexing_job_data_sources.job_sources.indexed_data_sources : ds if ds.type == "web_crawler"]
+  value = [for ds in data.digitalocean_gradientai_indexing_job_data_sources.job_sources.indexed_data_sources : ds if ds.type == "web_crawler"]
 }
 ```
 
@@ -464,24 +464,24 @@ This data source is useful for:
 
 ---
 
-# digitalocean_genai_indexing_job
+# digitalocean_gradientai_indexing_job
 
-Provides a data source that retrieves detailed information about a specific indexing job for a DigitalOcean GenAI Knowledge Base. Use this data source to get comprehensive status and progress information for an indexing operation.
+Provides a data source that retrieves detailed information about a specific indexing job for a DigitalOcean Gradient AI Knowledge Base. Use this data source to get comprehensive status and progress information for an indexing operation.
 
 ## Example Usage
 
 ```hcl
-data "digitalocean_genai_indexing_job" "specific_job" {
+data "digitalocean_gradientai_indexing_job" "specific_job" {
   uuid = "f1e2d3c4-5678-90ab-cdef-1234567890ab"
 }
 
 output "job_details" {
-  value = data.digitalocean_genai_indexing_job.specific_job
+  value = data.digitalocean_gradientai_indexing_job.specific_job
 }
 
 # Check if job is complete
 output "is_complete" {
-  value = contains(["completed", "failed", "cancelled"], data.digitalocean_genai_indexing_job.specific_job.status)
+  value = contains(["completed", "failed", "cancelled"], data.digitalocean_gradientai_indexing_job.specific_job.status)
 }
 ```
 
