@@ -134,7 +134,7 @@ This data source can be used to dynamically fetch the details of an existing kno
 For example, to create an agent with an existing knowledge base:
 
 ```hcl
-data "digitalocean_gradientai_knowledge_base" "existing" {e" {
+data "digitalocean_gradientai_knowledge_base" "existing" {
   uuid = "a1b2c3d4-5678-90ab-cdef-1234567890ab"
 }
 
