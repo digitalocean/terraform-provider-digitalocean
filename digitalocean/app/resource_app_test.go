@@ -2313,6 +2313,9 @@ func (m *mockAppsServiceForWaiter) GetJobInvocation(ctx context.Context, appID s
 func (m *mockAppsServiceForWaiter) GetJobInvocationLogs(ctx context.Context, appID, jobInvocationId string, opts *godo.GetJobInvocationLogsOptions) (*godo.AppLogs, *godo.Response, error) {
 	return nil, nil, nil
 }
+func (m *mockAppsServiceForWaiter) CancelJobInvocation(ctx context.Context, appID, jobInvocationID string, opts *godo.CancelJobInvocationOptions) (*godo.JobInvocation, *godo.Response, error) {
+	return nil, nil, nil
+}
 
 func clientWithMockAppsForWaiter(mock *mockAppsServiceForWaiter) *godo.Client {
 	c := &godo.Client{}

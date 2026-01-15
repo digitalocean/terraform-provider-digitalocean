@@ -14,18 +14,18 @@ provider "digitalocean" {
 }
 
 # Get all available knowledge bases
-data "digitalocean_genai_knowledge_bases" "example" {}
+data "digitalocean_gradientai_knowledge_bases" "example" {}
 
 # Use a specific knowledge base or the first available one
 locals {
-  knowledge_base_uuid = var.knowledge_base_uuid != "" ? var.knowledge_base_uuid : data.digitalocean_genai_knowledge_bases.example.knowledge_bases[0].uuid
+  knowledge_base_uuid = var.knowledge_base_uuid != "" ? var.knowledge_base_uuid : data.digitalocean_gradientai_knowledge_bases.example.knowledge_bases[0].uuid
 }
 
 # ========================================
 # API 1: List Indexing Jobs for a Knowledge Base
 # ========================================
 
-data "digitalocean_genai_knowledge_base_indexing_jobs" "example" {
+data "digitalocean_gradientai_knowledge_base_indexing_jobs" "example" {
   knowledge_base_uuid = local.knowledge_base_uuid
 }
 
@@ -34,10 +34,10 @@ data "digitalocean_genai_knowledge_base_indexing_jobs" "example" {
 # ========================================
 
 # Get data sources for the first job (if any jobs exist)
-data "digitalocean_genai_indexing_job_data_sources" "example" {
-  count = length(data.digitalocean_genai_knowledge_base_indexing_jobs.example.jobs) > 0 ? 1 : 0
+data "digitalocean_gradientai_indexing_job_data_sources" "example" {
+  count = length(data.digitalocean_gradientai_knowledge_base_indexing_jobs.example.jobs) > 0 ? 1 : 0
 
-  indexing_job_uuid = data.digitalocean_genai_knowledge_base_indexing_jobs.example.jobs[0].uuid
+  indexing_job_uuid = data.digitalocean_gradientai_knowledge_base_indexing_jobs.example.jobs[0].uuid
 }
 
 # ========================================
@@ -45,10 +45,10 @@ data "digitalocean_genai_indexing_job_data_sources" "example" {
 # ========================================
 
 # Get detailed status of the first job (if any jobs exist)
-data "digitalocean_genai_indexing_job" "example" {
-  count = length(data.digitalocean_genai_knowledge_base_indexing_jobs.example.jobs) > 0 ? 1 : 0
+data "digitalocean_gradientai_indexing_job" "example" {
+  count = length(data.digitalocean_gradientai_knowledge_base_indexing_jobs.example.jobs) > 0 ? 1 : 0
 
-  uuid = data.digitalocean_genai_knowledge_base_indexing_jobs.example.jobs[0].uuid
+  uuid = data.digitalocean_gradientai_knowledge_base_indexing_jobs.example.jobs[0].uuid
 }
 
 # ========================================
@@ -56,8 +56,8 @@ data "digitalocean_genai_indexing_job" "example" {
 # ========================================
 
 # Only create the cancel resource if explicitly requested
-resource "digitalocean_genai_indexing_job_cancel" "example" {
-  count = var.cancel_running_job && length(data.digitalocean_genai_knowledge_base_indexing_jobs.example.jobs) > 0 ? 1 : 0
+resource "digitalocean_gradientai_indexing_job_cancel" "example" {
+  count = var.cancel_running_job && length(data.digitalocean_gradientai_knowledge_base_indexing_jobs.example.jobs) > 0 ? 1 : 0
 
-  uuid = data.digitalocean_genai_knowledge_base_indexing_jobs.example.jobs[0].uuid
+  uuid = data.digitalocean_gradientai_knowledge_base_indexing_jobs.example.jobs[0].uuid
 }

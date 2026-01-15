@@ -1,16 +1,16 @@
 ---
-page_title: "DigitalOcean: digitalocean_genai"
-subcategory: "GenAI"
+page_title: "DigitalOcean: digitalocean_gradientai"
+subcategory: "GradientAI"
 ---
 
-# digitalocean_genai_agent
+# digitalocean_gradientai_agent
 
-Provides a resource to manage a DigitalOcean GenAI Agent. With this resource you can create, update, and delete agents, as well as update the agent's visibility status.
+Provides a resource to manage a DigitalOcean Gradient AI Agent. With this resource you can create, update, and delete agents, as well as update the agent's visibility status.
 
 ## Example Usage
 
 ```hcl
-resource "digitalocean_genai_agent" "terraform-testing" {
+resource "digitalocean_gradientai_agent" "terraform-testing" {
   description = "Agent for testing update and delete functionality."
   instruction = "You are DigitalOcean's Solutions Architect Assistant, designed to help users find the perfect solution for their technical needs."
   model_uuid  = "d754f2d7-d1f0-11ef-bf8f-4e013e2ddde4"
@@ -110,15 +110,15 @@ After creation, the following attributes are exported:
 
 When the **visibility**, **description**, **instruction**, **k**, **max_tokens**, **model_uuid**, **name**, **open_ai_key_uuid**, **project_id**, **retrieval_method**, **region**, **tags**, **temperature**, or **top_p** attribute is changed, the provider invokes the update API endpoint to adjust the agent's configuration.
 
-# digitalocean_genai_function
+# digitalocean_gradientai_function
 
 We can pick up the agent id from the agent terraform resource and input, output schema have json values as currently there is no defined schema available.
-Checkout the following API docs - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GradientAI-Platform/operation/genai_attach_agent_function
+Checkout the following API docs - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GradientAI-Platform/operation/gradient_ai_attach_agent_function
 
 ```hcl
 
-resource "digitalocean_genai_function" "check" {
-  agent_id       = digitalocean_genai_agent.terraform-testing.id
+resource "digitalocean_gradientai_function" "check" {
+  agent_id       = digitalocean_gradientai_agent.terraform-testing.id
   description    = "Adding a function route and this will also tell temperature"
   faas_name      = "default/testing"
   faas_namespace = "fn-b90faf52-2b42-49c2-9792-75edfbb6f397"
@@ -188,30 +188,30 @@ After creation, the following attributes are exported:
 - **input_schema** - The input schema associated with the function.
 - **output_schema** - The output schema associated with the function.
 
-**input_schema** and **output_schema** have a json input please check out this docs for more clarity - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GradientAI-Platform/operation/genai_attach_agent_function
+**input_schema** and **output_schema** have a json input please check out this docs for more clarity - https://docs.digitalocean.com/reference/api/digitalocean/#tag/GradientAI-Platform/operation/gradient_ai_attach_agent_function
 
 ## Import
 
-A DigitalOcean GenAI Agent can be imported using its UUID. For example:
+A DigitalOcean Gradient AI Agent can be imported using its UUID. For example:
 
 ```sh
-terraform import digitalocean_genai_agent.terraform-testing 79292fb6-3627-11f0-bf8f-4e013e2ddde4
+terraform import digitalocean_gradientai_agent.terraform-testing 79292fb6-3627-11f0-bf8f-4e013e2ddde4
 ```
 
 ## Usage Notes
 
-Changes to the agent's configuration, such as updating the instruction, description, or visibility, will trigger the corresponding update functions in the provider. This resource enables you to manage the complete lifecycle of a DigitalOcean GenAI Agent within your Terraform configuration.
+Changes to the agent's configuration, such as updating the instruction, description, or visibility, will trigger the corresponding update functions in the provider. This resource enables you to manage the complete lifecycle of a DigitalOcean Gradient AI Agent within your Terraform configuration.
 
 ---
 
-# digitalocean_genai_knowledge_base
+# digitalocean_gradientai_knowledge_base
 
-Provides a resource to manage a DigitalOcean GenAI Knowledge Base. With this resource you can create, update, and delete knowledge bases, as well as configure their data sources.
+Provides a resource to manage a DigitalOcean Gradient AI Knowledge Base. With this resource you can create, update, and delete knowledge bases, as well as configure their data sources.
 
 ## Example Usage
 
 ```hcl
-resource "digitalocean_genai_knowledge_base" "example" {
+resource "digitalocean_gradientai_knowledge_base" "example" {
   name                 = "terraform-kb-example"
   project_id           = "84e1e297-ee40-41ac-95ff-1067cf2206e9"
   region               = "tor1"
@@ -279,42 +279,42 @@ When the **database_id**, **embedding_model_uuid**, **name**, **project_id**, **
 
 ## Import
 
-A DigitalOcean GenAI Knowledge Base can be imported using its UUID. For example:
+A DigitalOcean Gradient AI Knowledge Base can be imported using its UUID. For example:
 
 ```sh
-terraform import digitalocean_genai_knowledge_base.example a1b2c3d4-5678-90ab-cdef-1234567890ab
+terraform import digitalocean_gradientai_knowledge_base.example a1b2c3d4-5678-90ab-cdef-1234567890ab
 ```
 
 ## Usage Notes
 
 - Changes to **datasources**, **embedding_model_uuid**, **spaces_data_source**, **web_crawler_data_source**, **agent_uuid** and **vpc_uuid** will force recreation of the knowledge base.
-- To add additional data sources after creation, use the `digitalocean_genai_knowledge_base_data_source` resource.
-- To attach a knowledge base to an agent, use the `digitalocean_genai_agent_knowledge_base_attachment` resource.
+- To add additional data sources after creation, use the `digitalocean_gradientai_knowledge_base_data_source` resource.
+- To attach a knowledge base to an agent, use the `digitalocean_gradientai_agent_knowledge_base_attachment` resource.
 
-# digitalocean_genai_openai_api_key
+# digitalocean_gradientai_openai_api_key
 
-Provides a resource to manage a DigitalOcean GenAI OpenAI API Key. With this resource you can create, update, and delete OpenAI API keys, as well as reference them in other GenAI resources (such as agents).
+Provides a resource to manage a DigitalOcean Gradient AI OpenAI API Key. With this resource you can create, update, and delete OpenAI API keys, as well as reference them in other Gradient AI resources (such as agents).
 
 ## Example Usage
 
 ```hcl
-resource "digitalocean_genai_openai_api_key" "example" {
+resource "digitalocean_gradientai_openai_api_key" "example" {
   api_key = "sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
   name    = "Production Key"
 }
 
-data "digitalocean_genai_openai_api_keys" "all" {}
+data "digitalocean_gradientai_openai_api_keys" "all" {}
 
 output "all_openai_api_keys" {
-  value = data.digitalocean_genai_openai_api_keys.all.openai_api_keys
+  value = data.digitalocean_gradientai_openai_api_keys.all.openai_api_keys
 }
 
-data "digitalocean_genai_openai_api_key" "by_id" {
-  uuid = digitalocean_genai_openai_api_key.example.uuid
+data "digitalocean_gradientai_openai_api_key" "by_id" {
+  uuid = digitalocean_gradientai_openai_api_key.example.uuid
 }
 
 output "openai_api_key_info" {
-  value = data.digitalocean_genai_openai_api_key.by_id
+  value = data.digitalocean_gradientai_openai_api_key.by_id
 }
 ```
 
@@ -341,34 +341,34 @@ After creation, the following attributes are exported:
 ### List All OpenAI API Keys
 
 ```hcl
-data "digitalocean_genai_openai_api_keys" "all" {}
+data "digitalocean_gradientai_openai_api_keys" "all" {}
 
 output "all_openai_api_keys" {
-  value = data.digitalocean_genai_openai_api_keys.all.openai_api_keys
+  value = data.digitalocean_gradientai_openai_api_keys.all.openai_api_keys
 }
 ```
 
 ### Get OpenAI API Key by UUID
 
 ```hcl
-data "digitalocean_genai_openai_api_key" "by_id" {
+data "digitalocean_gradientai_openai_api_key" "by_id" {
   uuid = "your-openai-api-key-uuid"
 }
 
 output "openai_api_key_info" {
-  value = data.digitalocean_genai_openai_api_key.by_id
+  value = data.digitalocean_gradientai_openai_api_key.by_id
 }
 ```
 
 ### List Agents by OpenAI API Key
 
 ```hcl
-data "digitalocean_genai_agents_by_openai_api_key" "by_key" {
-  uuid = digitalocean_genai_openai_api_key.example.uuid
+data "digitalocean_gradientai_agents_by_openai_api_key" "by_key" {
+  uuid = digitalocean_gradientai_openai_api_key.example.uuid
 }
 
 output "agents_by_openai_key" {
-  value = data.digitalocean_genai_agents_by_openai_api_key.by_key.agents
+  value = data.digitalocean_gradientai_agents_by_openai_api_key.by_key.agents
 }
 ```
 
@@ -378,26 +378,26 @@ When the **name** attribute is changed, the provider invokes the update API endp
 
 ## Import
 
-A DigitalOcean GenAI OpenAI API Key can be imported using its UUID. For example:
+A DigitalOcean Gradient AI OpenAI API Key can be imported using its UUID. For example:
 
 ```sh
-terraform import digitalocean_genai_openai_api_key.example a1b2c3d4-5678-90ab-cdef-1234567890ab
+terraform import digitalocean_gradientai_openai_api_key.example a1b2c3d4-5678-90ab-cdef-1234567890ab
 ```
 
 ## Usage Notes
 
-- The OpenAI API key resource can be referenced by agents and other GenAI resources.
+- The OpenAI API key resource can be referenced by agents and other Gradient AI resources.
 - Deleting the API key resource in Terraform will remove it from your DigitalOcean account.
 
-# digitalocean_genai_agent_route
+# digitalocean_gradientai_agent_route
 
-Provides a resource to manage a DigitalOcean GenAI Agent Route. With this resource you can create, update, and delete agent routes to connect parent agents with child agents for routing functionality.
+Provides a resource to manage a DigitalOcean Gradient AI Agent Route. With this resource you can create, update, and delete agent routes to connect parent agents with child agents for routing functionality.
 
 ## Example Usage
 
 ```hcl
 
-resource "digitalocean_genai_agent_route" "weather_route" {
+resource "digitalocean_gradientai_agent_route" "weather_route" {
   parent_agent_uuid = "b90e05b8-566f-11f0-bf8f-4e013e2ddde4"
   child_agent_uuid  = "01efac06-500e-11f0-bf8f-4e013e2ddde4"
   route_name        = "weather_route"
@@ -430,10 +430,10 @@ When the **route_name** or **if_case** attributes are changed, the provider invo
 
 ## Import
 
-A DigitalOcean GenAI Agent Route can be imported using its UUID. For example:
+A DigitalOcean Gradient AI Agent Route can be imported using its UUID. For example:
 
 ```sh
-terraform import digitalocean_genai_agent_route.weather_route 12345678-1234-1234-1234-123456789012
+terraform import digitalocean_gradientai_agent_route.weather_route 12345678-1234-1234-1234-123456789012
 ```
 
 ## Usage Notes
@@ -444,27 +444,27 @@ terraform import digitalocean_genai_agent_route.weather_route 12345678-1234-1234
 
 ---
 
-# digitalocean_genai_indexing_job_cancel
+# digitalocean_gradientai_indexing_job_cancel
 
-Provides a resource to cancel running or pending indexing jobs for DigitalOcean GenAI Knowledge Bases. This resource is useful for managing long-running indexing operations that need to be stopped before completion.
+Provides a resource to cancel running or pending indexing jobs for DigitalOcean Gradient AI Knowledge Bases. This resource is useful for managing long-running indexing operations that need to be stopped before completion.
 
 ## Example Usage
 
 ```hcl
 # Cancel a specific indexing job
-resource "digitalocean_genai_indexing_job_cancel" "cancel_job" {
+resource "digitalocean_gradientai_indexing_job_cancel" "cancel_job" {
   uuid = "f1e2d3c4-5678-90ab-cdef-1234567890ab"
 }
 
 # Cancel a job conditionally based on its status
-data "digitalocean_genai_indexing_job" "monitor_job" {
+data "digitalocean_gradientai_indexing_job" "monitor_job" {
   uuid = "f1e2d3c4-5678-90ab-cdef-1234567890ab"
 }
 
-resource "digitalocean_genai_indexing_job_cancel" "conditional_cancel" {
-  count = data.digitalocean_genai_indexing_job.monitor_job.status == "running" && data.digitalocean_genai_indexing_job.monitor_job.phase == "processing" ? 1 : 0
+resource "digitalocean_gradientai_indexing_job_cancel" "conditional_cancel" {
+  count = data.digitalocean_gradientai_indexing_job.monitor_job.status == "running" && data.digitalocean_gradientai_indexing_job.monitor_job.phase == "processing" ? 1 : 0
 
-  uuid = data.digitalocean_genai_indexing_job.monitor_job.uuid
+  uuid = data.digitalocean_gradientai_indexing_job.monitor_job.uuid
 }
 ```
 
@@ -517,12 +517,12 @@ The resource will fail with an error in the following scenarios:
 
 ## Import
 
-A DigitalOcean GenAI Indexing Job Cancel operation cannot be imported as it represents a one-time action rather than a persistent resource state.
+A DigitalOcean Gradient AI Indexing Job Cancel operation cannot be imported as it represents a one-time action rather than a persistent resource state.
 
 ## Usage Notes
 
 - **One-time Operation**: This resource represents a cancellation action. Once the job is cancelled, the resource serves as a record of the cancellation.
-- **Monitoring**: Use with data sources like `digitalocean_genai_indexing_job` to monitor job status before and after cancellation.
+- **Monitoring**: Use with data sources like `digitalocean_gradientai_indexing_job` to monitor job status before and after cancellation.
 - **Cleanup**: Consider using lifecycle rules or conditional logic to only cancel jobs when specific conditions are met.
 - **Auditing**: The `reason` field is useful for maintaining an audit trail of why indexing jobs were cancelled.
 
@@ -530,17 +530,17 @@ A DigitalOcean GenAI Indexing Job Cancel operation cannot be imported as it repr
 
 ```hcl
 # Monitor job status and cancel if in certain state
-data "digitalocean_genai_indexing_job" "long_running" {
+data "digitalocean_gradientai_indexing_job" "long_running" {
   uuid = var.indexing_job_uuid
 }
 
 # Cancel if job is running and in processing phase
-resource "digitalocean_genai_indexing_job_cancel" "cancel_processing" {
+resource "digitalocean_gradientai_indexing_job_cancel" "cancel_processing" {
   count = (
-    data.digitalocean_genai_indexing_job.long_running.status == "running" &&
-    data.digitalocean_genai_indexing_job.long_running.phase == "processing"
+    data.digitalocean_gradientai_indexing_job.long_running.status == "running" &&
+    data.digitalocean_gradientai_indexing_job.long_running.phase == "processing"
   ) ? 1 : 0
 
-  uuid = data.digitalocean_genai_indexing_job.long_running.uuid
+  uuid = data.digitalocean_gradientai_indexing_job.long_running.uuid
 }
 ```

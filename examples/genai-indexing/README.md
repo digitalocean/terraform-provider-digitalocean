@@ -1,6 +1,6 @@
-# GenAI Indexing APIs Example
+# Gradient AI Indexing APIs Example
 
-This example demonstrates how to use the DigitalOcean GenAI Indexing APIs with Terraform.
+This example demonstrates how to use the DigitalOcean Gradient AI Indexing APIs with Terraform.
 
 ## Features
 
@@ -13,7 +13,7 @@ This example shows how to:
 
 ## Prerequisites
 
-- DigitalOcean account with GenAI services enabled
+- DigitalOcean account with Gradient AI services enabled
 - Knowledge base UUID
 - Terraform >= 1.0
 
