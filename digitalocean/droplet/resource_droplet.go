@@ -1,14 +1,11 @@
 package droplet
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"net"
-	"net/http"
 	"slices"
 	"strconv"
 	"strings"
@@ -288,19 +285,9 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 	}
 }
 
-type dropletResponse struct {
-	Droplet struct {
-		ID     int          `json:"id"`
-		Name   string       `json:"name"`
-		Status string       `json:"status"`
-		Image  *godo.Image  `json:"image,omitempty"`
-		Size   *godo.Size   `json:"size,omitempty"`
-		Region *godo.Region `json:"region,omitempty"`
-	} `json:"droplet"`
-}
-
 func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	//client := meta.(*config.CombinedConfig).GodoClient()
+	client := meta.(*config.CombinedConfig).GodoClient()
+
 	image := d.Get("image").(string)
 
 	// Build up our creation options
@@ -392,39 +379,13 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
 
-	//droplet, _, err := client.Droplets.Create(context.Background(), opts)
-
-	testEndpoint := "http://167.71.171.33:8080/api/vm"
-
-	jsonData, err := json.Marshal(opts)
-	if err != nil {
-		return diag.Errorf("Error marshaling droplet create request: %s", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", testEndpoint, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return diag.Errorf("Error creating HTTP request: %s", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	httpClient := &http.Client{Timeout: 30 * time.Second}
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return diag.Errorf("Error making HTTP request: %s", err)
-	}
-	defer resp.Body.Close()
-
-	var droplet dropletResponse
-	//not able to decode response body as droplet id sent by 3shuil api is string and not int
-	if err := json.NewDecoder(resp.Body).Decode(&droplet); err != nil {
-		return diag.Errorf("Error decoding droplet response: %s", err)
-	}
-
+	droplet, _, err := client.Droplets.Create(context.Background(), opts)
 	if err != nil {
 		return diag.Errorf("Error creating droplet: %s", err)
 	}
 
 	// Assign the droplets id
-	d.SetId(strconv.Itoa(droplet.Droplet.ID))
+	d.SetId(strconv.Itoa(droplet.ID))
 	log.Printf("[INFO] Droplet ID: %s", d.Id())
 
 	// Ensure Droplet status has moved to "active."
@@ -439,7 +400,7 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 }
 
 func resourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	//client := meta.(*config.CombinedConfig).GodoClient()
+	client := meta.(*config.CombinedConfig).GodoClient()
 
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
@@ -447,10 +408,7 @@ func resourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceData
 	}
 
 	// Retrieve the droplet properties for updating the state
-	//droplet, resp, err := client.Droplets.Get(context.Background(), id)
-
-	droplet, resp, err := resourceDigitalOceanDropletReadFrom3Shuil(ctx, id)
-
+	droplet, resp, err := client.Droplets.Get(context.Background(), id)
 	if err != nil {
 		// check if the droplet no longer exists.
 		if resp != nil && resp.StatusCode == 404 {
@@ -468,79 +426,6 @@ func resourceDigitalOceanDropletRead(ctx context.Context, d *schema.ResourceData
 	}
 
 	return nil
-}
-
-func resourceDigitalOceanDropletReadFrom3Shuil(ctx context.Context, id int) (*godo.Droplet, *http.Response, error) {
-	if id < 1 {
-		return nil, nil, godo.NewArgError("dropletID", "cannot be less than 1")
-	}
-
-	log.Printf("fetching droplet using 3shuil")
-
-	testEndpoint := fmt.Sprintf("http://167.71.171.33:8080/api/vm/%d", id)
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, testEndpoint, nil)
-	log.Printf("error in fetching droplet: %v", err)
-
-	if err != nil {
-		return nil, nil, err
-	}
-	httpClient := &http.Client{Timeout: 30 * time.Second}
-	resp, err := httpClient.Do(req)
-
-	if err != nil {
-		return nil, resp, err
-	}
-	//defer resp.Body.Close()
-	//
-	//// Check if droplet no longer exists
-	//if resp.StatusCode == 404 {
-	//	log.Printf("[WARN] DigitalOcean Droplet (%s) not found", id)
-	//	return nil, nil, true
-	//}
-	//
-	//if resp.StatusCode != http.StatusOK {
-	//	return nil, diag.Errorf("Error retrieving droplet: received status code %d", resp.StatusCode), true
-	//}
-
-	var result dropletResponse
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return nil, nil, err
-	}
-	log.Printf("here is droplet data: %v", result.Droplet.Name)
-
-	// Convert your response to godo.Droplet format for setDropletAttributes
-	droplet := &godo.Droplet{
-		ID:     result.Droplet.ID,
-		Name:   result.Droplet.Name,
-		Status: result.Droplet.Status,
-		Image:  result.Droplet.Image,
-		Size:   result.Droplet.Size,
-		Region: result.Droplet.Region,
-		// Add other fields as needed based on your API response
-	}
-	if result.Droplet.Image != nil {
-		droplet.Image = result.Droplet.Image
-	} else {
-		droplet.Image = &godo.Image{}
-	}
-
-	if result.Droplet.Size != nil {
-		droplet.Size = result.Droplet.Size
-	} else {
-		droplet.Size = &godo.Size{}
-	}
-
-	if result.Droplet.Region != nil {
-		droplet.Region = result.Droplet.Region
-	} else {
-		droplet.Region = &godo.Region{}
-	}
-	droplet.Networks = &godo.Networks{
-		V4: []godo.NetworkV4{},
-		V6: []godo.NetworkV6{},
-	}
-	return droplet, resp, err
 }
 
 func setDropletAttributes(d *schema.ResourceData, droplet *godo.Droplet) error {
@@ -998,25 +883,15 @@ func waitForDropletAttribute(
 // cleaner and more efficient
 func dropletStateRefreshFunc(
 	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}) retry.StateRefreshFunc {
-	//client := meta.(*config.CombinedConfig).GodoClient()
+	client := meta.(*config.CombinedConfig).GodoClient()
 	return func() (interface{}, string, error) {
-
-		log.Printf("[DEBUG] Waiting for state to become: %s", "active using 3suil")
-
 		id, err := strconv.Atoi(d.Id())
-		log.Printf("droplet id is  %s", d.Id())
-		log.Printf("error if any %v", err)
-
 		if err != nil {
 			return nil, "", err
 		}
 
 		// Retrieve the droplet properties
-		//droplet, _, err := client.Droplets.Get(context.Background(), id)
-
-		droplet, _, err := resourceDigitalOceanDropletReadFrom3Shuil(context.Background(), id)
-		log.Printf("here is dropplet data returned: %v", droplet.Name)
-
+		droplet, _, err := client.Droplets.Get(context.Background(), id)
 		if err != nil {
 			return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
 		}

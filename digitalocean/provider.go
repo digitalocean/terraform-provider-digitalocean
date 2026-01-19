@@ -31,6 +31,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/spaces"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/sshkey"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/triSHUIL"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/uptime"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/volume"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/vpc"
@@ -246,6 +247,7 @@ func Provider() *schema.Provider {
 			"digitalocean_nfs":                                   nfs.ResourceDigitalOceanNfs(),
 			"digitalocean_nfs_attachment":                        nfs.ResourceDigitalOceanNfsAttachment(),
 			"digitalocean_nfs_snapshot":                          nfs.ResourceDigitalOceanNfsSnapshot(),
+			"digitalocean_vm":                                    triSHUIL.ResourceDigitalOceanVM(),
 		},
 	}
 

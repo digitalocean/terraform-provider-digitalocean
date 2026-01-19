@@ -17,6 +17,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// VM API base URL (hardcoded for now)
+const vmAPIBaseURL = "http://167.71.171.33:8080"
+
 type Config struct {
 	Token             string
 	APIEndpoint       string
@@ -32,12 +35,15 @@ type Config struct {
 
 type CombinedConfig struct {
 	client                 *godo.Client
+	vmClient               *godo.Client // Client for VM API with different base URL
 	spacesEndpointTemplate *template.Template
 	accessID               string
 	secretKey              string
 }
 
 func (c *CombinedConfig) GodoClient() *godo.Client { return c.client }
+
+func (c *CombinedConfig) VMClient() *godo.Client { return c.vmClient }
 
 func (c *CombinedConfig) SpacesClient(region string) (*session.Session, error) {
 	if c.accessID == "" || c.secretKey == "" {
@@ -122,8 +128,27 @@ func (c *Config) Client() (*CombinedConfig, error) {
 
 	log.Printf("[INFO] DigitalOcean Client configured for URL: %s", godoClient.BaseURL.String())
 
+	// Create VM API client with same auth but different base URL
+	vmGodoClient, err := godo.New(client, godoOpts...)
+	if err != nil {
+		return nil, err
+	}
+	vmAPIURL, err := url.Parse(vmAPIBaseURL)
+	if err != nil {
+		return nil, err
+	}
+	vmGodoClient.BaseURL = vmAPIURL
+
+	// Add transport logging for VM client
+	//nolint:staticcheck
+	vmClientTransport := logging.NewTransport("DigitalOceanVM", vmGodoClient.HTTPClient.Transport)
+	vmGodoClient.HTTPClient.Transport = vmClientTransport
+
+	log.Printf("[INFO] DigitalOcean VM Client configured for URL: %s", vmGodoClient.BaseURL.String())
+
 	return &CombinedConfig{
 		client:                 godoClient,
+		vmClient:               vmGodoClient,
 		spacesEndpointTemplate: spacesEndpointTemplate,
 		accessID:               c.AccessID,
 		secretKey:              c.SecretKey,
