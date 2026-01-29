@@ -9,6 +9,7 @@ Provides a resource to manage a DigitalOcean Gradient AI Agent. With this resour
 
 ## Example Usage
 
+
 ```hcl
 resource "digitalocean_gradientai_agent" "terraform-testing" {
   description = "Agent for testing update and delete functionality."
@@ -18,8 +19,14 @@ resource "digitalocean_gradientai_agent" "terraform-testing" {
   project_id  = "84e1e297-ee40-41ac-95ff-1067cf2206e9"
   region      = "tor1"
   tags        = ["marketplace-agent-terraform"]
+
+  deployment {
+    visibility = "VISIBILITY_PRIVATE" # Valid values: VISIBILITY_PRIVATE, VISIBILITY_PUBLIC, VISIBILITY_PLAYGROUND, VISIBILITY_DISABLED, VISIBILITY_UNKNOWN
+  }
 }
 ```
+
+> **Note:** The `visibility` argument must be set inside the `deployment` block, and must use one of the following values: `VISIBILITY_PRIVATE`, `VISIBILITY_PUBLIC`, `VISIBILITY_PLAYGROUND`, `VISIBILITY_DISABLED`, or `VISIBILITY_UNKNOWN`.
 
 ## Argument Reference
 
@@ -32,7 +39,7 @@ The following arguments are supported:
 - **project_id** (Required) - The project identifier for the agent.
 - **region** (Required) - The region where the agent is deployed.
 - **tags** (Optional) - A list of tags associated with the agent.
-- **visibility** (Optional) - The visibility of the agent (e.g., "public" or "private").
+- **deployment** (Optional) - One or more deployment blocks. The `visibility` argument must be set inside this block. Valid values for `visibility` are: `VISIBILITY_PRIVATE`, `VISIBILITY_PUBLIC`, `VISIBILITY_PLAYGROUND`, `VISIBILITY_DISABLED`, or `VISIBILITY_UNKNOWN`.
 - **anthropic_key_uuid** (Optional) - Anthropic API key UUID to use with Anthropic models.
 - **knowledge_base_uuid** (Optional) - List of knowledge base UUIDs to attach to the agent.
 - **open_ai_key_uuid** (Optional) - OpenAI API key UUID to use with OpenAI models.
@@ -42,7 +49,47 @@ The following arguments are supported:
 - **chatbot_identifiers** (Optional) - List of chatbot identifiers.
 - **deployment** (Optional) - List of deployment blocks.
 - **functions** (Optional) - List of function blocks.
-- **agent_guardrail** (Optional) - List of agent guardrail blocks.
+
+**agent_guardrail** (Optional) - List of agent guardrail blocks. Each block supports the following:
+  - **agent_uuid** (Optional) - The UUID of the agent the guardrail is attached to.
+  - **created_at** (Computed) - Timestamp when the guardrail was created.
+  - **default_response** (Optional) - The default response if the guardrail is triggered.
+  - **description** (Optional) - Description of the guardrail.
+  - **guardrail_uuid** (Optional) - The unique identifier for the guardrail.
+  - **is_attached** (Computed) - Whether the guardrail is currently attached to the agent (boolean).
+  - **is_default** (Optional) - Whether this guardrail is the default (boolean).
+  - **name** (Optional) - Name of the guardrail.
+  - **priority** (Optional) - Priority of the guardrail (integer).
+  - **type** (Optional) - The type of guardrail. Possible values:
+    - "GUARDRAIL_TYPE_UNKNOWN" (default)
+    - "GUARDRAIL_TYPE_JAILBREAK"
+    - "GUARDRAIL_TYPE_SENSITIVE_DATA"
+    - "GUARDRAIL_TYPE_CONTENT_MODERATION"
+  - **updated_at** (Computed) - Timestamp when the guardrail was last updated.
+  - **uuid** (Optional) - The unique identifier for the guardrail.
+
+#### Example: Adding an Agent Guardrail
+
+```hcl
+resource "digitalocean_gradientai_agent" "with_guardrail" {
+  # ... other required arguments ...
+  deployment {
+    visibility = "VISIBILITY_PRIVATE"
+  }
+  agent_guardrail {
+    guardrail_uuid   = "12345678-1234-1234-1234-123456789012"
+    name             = "My Guardrail"
+    type             = "GUARDRAIL_TYPE_UNKNOWN"
+    priority         = 123
+    default_response = "example string."
+    description      = "example string"
+    is_default       = true
+  }
+}
+```
+# digitalocean_gradientai_function
+
+> **Note:** There is currently no way to create or associate Workspaces with a Gradient AI Agent using this Terraform provider. Agents deployed by Terraform will not be associated with any Workspace and may be orphaned.
 - **chatbot** (Optional) - Chatbot configuration block.
 - **if_case** (Optional) - If case condition.
 - **k** (Optional) - K value.
