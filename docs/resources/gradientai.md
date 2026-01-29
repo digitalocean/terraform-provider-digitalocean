@@ -77,7 +77,7 @@ resource "digitalocean_gradientai_agent" "with_guardrail" {
     visibility = "VISIBILITY_PRIVATE"
   }
   agent_guardrail {
-    guardrail_uuid   = ""12345678-1234-1234-1234-123456789012"
+    guardrail_uuid   = "12345678-1234-1234-1234-123456789012"
     name             = "My Guardrail"
     type             = "GUARDRAIL_TYPE_UNKNOWN"
     priority         = 123
