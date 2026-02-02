@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"slices"
 	"strconv"
 	"strings"
@@ -24,6 +25,19 @@ import (
 
 var (
 	errDropletBackupPolicy = errors.New("backup_policy can only be set when backups are enabled")
+)
+
+// dropletOperation indicates the context in which droplet state is being checked.
+// HTTP 404 has different meanings depending on the operation:
+// - CREATE: 404 means resource not yet available (retry for reserved hypervisors)
+// - DELETE: 404 means resource was successfully deleted (success)
+// - UPDATE: 404 means resource unexpectedly disappeared (error)
+type dropletOperation int
+
+const (
+	dropletOpCreate dropletOperation = iota
+	dropletOpDelete
+	dropletOpUpdate
 )
 
 func ResourceDigitalOceanDroplet() *schema.Resource {
@@ -389,7 +403,7 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 	log.Printf("[INFO] Droplet ID: %s", d.Id())
 
 	// Ensure Droplet status has moved to "active."
-	_, err = waitForDropletAttribute(ctx, d, "active", []string{"new"}, "status", schema.TimeoutCreate, meta)
+	_, err = waitForDropletAttribute(ctx, d, "active", []string{"new"}, "status", schema.TimeoutCreate, meta, dropletOpCreate)
 	if err != nil {
 		return diag.Errorf("Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
 	}
@@ -543,7 +557,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		// Wait for power off
-		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", schema.TimeoutUpdate, meta)
+		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", schema.TimeoutUpdate, meta, dropletOpUpdate)
 		if err != nil {
 			return diag.Errorf(
 				"Error waiting for droplet (%s) to become powered off: %s", d.Id(), err)
@@ -581,7 +595,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		// Wait for power on
-		_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", schema.TimeoutUpdate, meta)
+		_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", schema.TimeoutUpdate, meta, dropletOpUpdate)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -600,7 +614,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for the name to change
 		_, err = waitForDropletAttribute(
-			ctx, d, newName.(string), []string{"", oldName.(string)}, "name", schema.TimeoutUpdate, meta)
+			ctx, d, newName.(string), []string{"", oldName.(string)}, "name", schema.TimeoutUpdate, meta, dropletOpUpdate)
 
 		if err != nil {
 			return diag.Errorf(
@@ -690,7 +704,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for the private_networking to turn on
 		_, err = waitForDropletAttribute(
-			ctx, d, "true", []string{"", "false"}, "private_networking", schema.TimeoutUpdate, meta)
+			ctx, d, "true", []string{"", "false"}, "private_networking", schema.TimeoutUpdate, meta, dropletOpUpdate)
 
 		if err != nil {
 			return diag.Errorf(
@@ -708,7 +722,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for ipv6 to turn on
 		_, err = waitForDropletAttribute(
-			ctx, d, "true", []string{"", "false"}, "ipv6", schema.TimeoutUpdate, meta)
+			ctx, d, "true", []string{"", "false"}, "ipv6", schema.TimeoutUpdate, meta, dropletOpUpdate)
 
 		if err != nil {
 			return diag.Errorf(
@@ -786,7 +800,7 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 	}
 
 	_, err = waitForDropletAttribute(
-		ctx, d, "false", []string{"", "true"}, "locked", schema.TimeoutDelete, meta)
+		ctx, d, "false", []string{"", "true"}, "locked", schema.TimeoutDelete, meta, dropletOpDelete)
 
 	if err != nil {
 		return diag.Errorf(
@@ -806,7 +820,7 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 		}
 
 		// Wait for shutdown
-		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", schema.TimeoutDelete, meta)
+		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", schema.TimeoutDelete, meta, dropletOpDelete)
 		if err != nil {
 			return diag.Errorf("Error waiting for droplet (%s) to become off: %s", d.Id(), err)
 		}
@@ -844,8 +858,8 @@ func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta int
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"active", "off"},
-		Target:     []string{"archive"},
-		Refresh:    dropletStateRefreshFunc(ctx, d, "status", meta),
+		Target:     []string{http.StatusText(http.StatusNotFound)},
+		Refresh:    dropletStateRefreshFunc(ctx, d, "status", meta, dropletOpDelete),
 		Timeout:    60 * time.Second,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -855,7 +869,7 @@ func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta int
 }
 
 func waitForDropletAttribute(
-	ctx context.Context, d *schema.ResourceData, target string, pending []string, attribute string, timeoutKey string, meta interface{}) (interface{}, error) {
+	ctx context.Context, d *schema.ResourceData, target string, pending []string, attribute string, timeoutKey string, meta interface{}, op dropletOperation) (interface{}, error) {
 	// Wait for the droplet so we can get the networking attributes
 	// that show up after a while
 	log.Printf(
@@ -865,7 +879,7 @@ func waitForDropletAttribute(
 	stateConf := &retry.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
-		Refresh:    dropletStateRefreshFunc(ctx, d, attribute, meta),
+		Refresh:    dropletStateRefreshFunc(ctx, d, attribute, meta, op),
 		Timeout:    d.Timeout(timeoutKey),
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -884,7 +898,7 @@ func waitForDropletAttribute(
 // TODO This function still needs a little more refactoring to make it
 // cleaner and more efficient
 func dropletStateRefreshFunc(
-	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}) retry.StateRefreshFunc {
+	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}, op dropletOperation) retry.StateRefreshFunc {
 	client := meta.(*config.CombinedConfig).GodoClient()
 	return func() (interface{}, string, error) {
 		id, err := strconv.Atoi(d.Id())
@@ -893,9 +907,27 @@ func dropletStateRefreshFunc(
 		}
 
 		// Retrieve the droplet properties
-		droplet, _, err := client.Droplets.Get(context.Background(), id)
+		droplet, resp, err := client.Droplets.Get(context.Background(), id)
 		if err != nil {
-
+			if resp != nil && resp.StatusCode == 404 {
+				// Handle 404 based on operation context:
+				switch op {
+				case dropletOpDelete:
+					// DELETE: 404 means the droplet was successfully deleted
+					// Return a non-nil result to signal completion (nil would trigger NotFoundChecks retry)
+					log.Printf("[DEBUG] Droplet (%d) not found (404), deletion successful", id)
+					return &godo.Droplet{}, http.StatusText(http.StatusNotFound), nil
+				case dropletOpCreate:
+					// CREATE: 404 means resource not yet available (retry for reserved hypervisors)
+					// Returning nil triggers NotFoundChecks retry logic in StateChangeConf.
+					// See: https://github.com/digitalocean/terraform-provider-digitalocean/issues/1486
+					log.Printf("[DEBUG] Droplet (%d) not found (404), will retry", id)
+					return nil, "", nil
+				case dropletOpUpdate:
+					// UPDATE: 404 means resource unexpectedly disappeared (error)
+					return nil, "", fmt.Errorf("droplet (%d) not found during update", id)
+				}
+			}
 			return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
 		}
 
@@ -940,7 +972,7 @@ func powerOnAndWait(ctx context.Context, d *schema.ResourceData, meta interface{
 	}
 	// this method is only used for droplet updates so use that as the timeout parameter
 	// Wait for power on
-	_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", schema.TimeoutUpdate, meta)
+	_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", schema.TimeoutUpdate, meta, dropletOpUpdate)
 	if err != nil {
 		return err
 	}
