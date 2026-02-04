@@ -91,7 +91,37 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			amdGpuDeviceMetricsExporterPlugin: {
+			amdGpuDeviceMetricsExporterPluginField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			nvidiaGpuDevicePluginField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			rdmaSharedDevicePluginField: {
 				Type:     schema.TypeList,
 				Computed: true,
 				Optional: true,

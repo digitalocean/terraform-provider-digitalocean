@@ -24,10 +24,12 @@ var (
 )
 
 const (
-	controlPlaneFirewallField         = "control_plane_firewall"
-	routingAgentField                 = "routing_agent"
-	amdGpuDevicePluginField           = "amd_gpu_device_plugin"
-	amdGpuDeviceMetricsExporterPlugin = "amd_gpu_device_metrics_exporter_plugin"
+	controlPlaneFirewallField              = "control_plane_firewall"
+	routingAgentField                      = "routing_agent"
+	amdGpuDevicePluginField                = "amd_gpu_device_plugin"
+	amdGpuDeviceMetricsExporterPluginField = "amd_gpu_device_metrics_exporter_plugin"
+	nvidiaGpuDevicePluginField             = "nvidia_gpu_device_plugin"
+	rdmaSharedDevicePluginField            = "rdma_shared_device_plugin"
 )
 
 func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
@@ -265,6 +267,7 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 					},
 				},
 			},
+
 			amdGpuDevicePluginField: {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -280,7 +283,37 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			amdGpuDeviceMetricsExporterPlugin: {
+			amdGpuDeviceMetricsExporterPluginField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			nvidiaGpuDevicePluginField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			rdmaSharedDevicePluginField: {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
@@ -439,8 +472,16 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.AmdGpuDevicePlugin = expandAmdGpuDevicePluginOpts(amdGpuDevicePlugin.([]interface{}))
 	}
 
-	if amdGpuDeviceMetricsExporterPlugin, ok := d.GetOk(amdGpuDeviceMetricsExporterPlugin); ok {
+	if amdGpuDeviceMetricsExporterPlugin, ok := d.GetOk(amdGpuDeviceMetricsExporterPluginField); ok {
 		opts.AmdGpuDeviceMetricsExporterPlugin = expandAmdGpuDeviceMetricsExporterPluginOpts(amdGpuDeviceMetricsExporterPlugin.([]interface{}))
+	}
+
+	if nvidiaGpuDevicePlugin, ok := d.GetOk(nvidiaGpuDevicePluginField); ok {
+		opts.NvidiaGpuDevicePlugin = expandNvidiaGpuDevicePluginOpts(nvidiaGpuDevicePlugin.([]interface{}))
+	}
+
+	if rdmaSharedDevicePlugin, ok := d.GetOk(rdmaSharedDevicePluginField); ok {
+		opts.RdmaSharedDevicePlugin = expandRdmaSharedDevicePluginOpts(rdmaSharedDevicePlugin.([]interface{}))
 	}
 
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
@@ -518,8 +559,16 @@ func digitaloceanKubernetesClusterRead(
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", amdGpuDevicePluginField, err)
 	}
 
-	if err := d.Set(amdGpuDeviceMetricsExporterPlugin, flattenAmdGpuDeviceMetricsExporterPluginOpts(cluster.AmdGpuDeviceMetricsExporterPlugin)); err != nil {
-		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", amdGpuDeviceMetricsExporterPlugin, err)
+	if err := d.Set(amdGpuDeviceMetricsExporterPluginField, flattenAmdGpuDeviceMetricsExporterPluginOpts(cluster.AmdGpuDeviceMetricsExporterPlugin)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", amdGpuDeviceMetricsExporterPluginField, err)
+	}
+
+	if err := d.Set(nvidiaGpuDevicePluginField, flattenNvidiaGpuDevicePluginOpts(cluster.NvidiaGpuDevicePlugin)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", nvidiaGpuDevicePluginField, err)
+	}
+
+	if err := d.Set(rdmaSharedDevicePluginField, flattenRdmaSharedDevicePluginOpts(cluster.RdmaSharedDevicePlugin)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", rdmaSharedDevicePluginField, err)
 	}
 
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
@@ -584,7 +633,9 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	// Figure out the changes and then call the appropriate API methods
-	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha", controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField, amdGpuDevicePluginField, amdGpuDeviceMetricsExporterPlugin) {
+	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha",
+		controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField, amdGpuDevicePluginField,
+		amdGpuDeviceMetricsExporterPluginField, nvidiaGpuDevicePluginField, rdmaSharedDevicePluginField) {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
 			Name:                              d.Get("name").(string),
@@ -595,7 +646,9 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 			ControlPlaneFirewall:              expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
 			RoutingAgent:                      expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
 			AmdGpuDevicePlugin:                expandAmdGpuDevicePluginOpts(d.Get(amdGpuDevicePluginField).([]interface{})),
-			AmdGpuDeviceMetricsExporterPlugin: expandAmdGpuDeviceMetricsExporterPluginOpts(d.Get(amdGpuDeviceMetricsExporterPlugin).([]interface{})),
+			AmdGpuDeviceMetricsExporterPlugin: expandAmdGpuDeviceMetricsExporterPluginOpts(d.Get(amdGpuDeviceMetricsExporterPluginField).([]interface{})),
+			NvidiaGpuDevicePlugin:             expandNvidiaGpuDevicePluginOpts(d.Get(nvidiaGpuDevicePluginField).([]interface{})),
+			RdmaSharedDevicePlugin:            expandRdmaSharedDevicePluginOpts(d.Get(rdmaSharedDevicePluginField).([]interface{})),
 			ClusterAutoscalerConfiguration:    expandCAConfigOptsForUpdate(d.GetChange("cluster_autoscaler_configuration")),
 		}
 

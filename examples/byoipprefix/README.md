@@ -23,10 +23,10 @@ See [DigitalOcean's BYOIP provisioning guide](https://docs.digitalocean.com/prod
 
 ```hcl
 resource "digitalocean_byoip_prefix" "example" {
-  prefix      = "192.0.2.0/24"
-  signature   = var.prefix_signature  # Required: cryptographic signature proving ownership
-  region      = "nyc3"
-  advertised  = false  # Optional: defaults to false
+  prefix     = "192.0.2.0/24"
+  signature  = var.prefix_signature # Required: cryptographic signature proving ownership
+  region     = "nyc3"
+  advertised = false # Optional: defaults to false
 }
 ```
 
@@ -51,10 +51,10 @@ data "digitalocean_byoip_prefix_resources" "example" {
 ```hcl
 output "byoip_summary" {
   value = {
-    prefix         = data.digitalocean_byoip_prefix.example.prefix
-    region         = data.digitalocean_byoip_prefix.example.region
-    status         = data.digitalocean_byoip_prefix.example.status
-    assigned_ips   = length(data.digitalocean_byoip_prefix_resources.example.addresses)
+    prefix       = data.digitalocean_byoip_prefix.example.prefix
+    region       = data.digitalocean_byoip_prefix.example.region
+    status       = data.digitalocean_byoip_prefix.example.status
+    assigned_ips = length(data.digitalocean_byoip_prefix_resources.example.addresses)
   }
 }
 ```

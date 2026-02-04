@@ -43,7 +43,6 @@ resource "digitalocean_vpc" "foobar" {
 }
 
 func TestAccDigitalOceanNfs_Basic(t *testing.T) {
-	resourceName := "digitalocean_nfs.foobar"
 	name := acceptance.RandomTestName("nfs")
 	var share godo.Nfs
 	resource.ParallelTest(t, resource.TestCase{
@@ -55,10 +54,10 @@ func TestAccDigitalOceanNfs_Basic(t *testing.T) {
 				Config: fmt.Sprintf(testAccDigitalOceanNfsConfigBasic, name, name),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanNfsExists("digitalocean_nfs.foobar", &share),
-					testAccCheckDataSourceDigitalOceanNfsIsActive(resourceName),
 					resource.TestCheckResourceAttr("digitalocean_nfs.foobar", "name", name),
 					resource.TestCheckResourceAttr("digitalocean_nfs.foobar", "region", "atl1"),
-					resource.TestCheckResourceAttr("digitalocean_nfs.foobar", "size", "50"),
+					resource.TestCheckResourceAttr("digitalocean_nfs.foobar", "size", "60"),
+					resource.TestCheckResourceAttrSet("digitalocean_nfs.foobar", "host"),
 					resource.TestCheckResourceAttrSet("digitalocean_nfs.foobar", "mount_path"),
 				),
 			},

@@ -60,9 +60,15 @@ func ResourceDigitalOceanNfs() *schema.Resource {
 				Computed: true,
 				Elem:     &schema.Schema{Type: schema.TypeString},
 			},
+			"host": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The host IP of the NFS server accessible from the associated VPC",
+			},
 			"mount_path": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The mount path for accessing the NFS share",
 			},
 
 			"tags": tag.TagsSchema(),
@@ -109,6 +115,12 @@ func resourceDigitalOceanNfsCreate(ctx context.Context, d *schema.ResourceData, 
 	d.SetId(share.ID)
 	log.Printf("[INFO] Share name: %s", share.Name)
 
+	// Wait for share to become ACTIVE so host and mount_path are populated
+	err = waitForNfsActive(ctx, client, share.ID, opts.Region)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	return resourceDigitalOceanNfsRead(ctx, d, meta)
 }
 
@@ -151,6 +163,23 @@ func waitForNfsResize(ctx context.Context, client *godo.Client, id, region strin
 	return fmt.Errorf("timeout waiting for NFS resize to complete")
 }
 
+func waitForNfsActive(ctx context.Context, client *godo.Client, id, region string) error {
+	for i := 0; i < 60; i++ {
+		share, _, err := client.Nfs.Get(ctx, id, region)
+		if err != nil {
+			return err
+		}
+
+		if share.Status == "ACTIVE" {
+			return nil
+		}
+
+		time.Sleep(5 * time.Second)
+	}
+
+	return fmt.Errorf("timeout waiting for NFS share to become active")
+}
+
 func resourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
@@ -171,6 +200,7 @@ func resourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("size", share.SizeGib)
 	d.Set("status", share.Status)
 	d.Set("vpc_id", share.VpcIDs[0])
+	d.Set("host", share.Host)
 	d.Set("mount_path", share.MountPath)
 
 	if err = d.Set("vpc_ids", flattenDigitalOceanShareVpcIds(share.VpcIDs)); err != nil {

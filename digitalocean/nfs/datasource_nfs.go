@@ -43,9 +43,15 @@ func DataSourceDigitalOceanNfs() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+			"host": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The host IP of the NFS server accessible from the associated VPC",
+			},
 			"mount_path": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The mount path for accessing the NFS share",
 			},
 			"tags": tag.TagsDataSourceSchema(),
 		},
@@ -96,6 +102,7 @@ func dataSourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("region", share.Region)
 	d.Set("size", share.SizeGib)
 	d.Set("status", share.Status)
+	d.Set("host", share.Host)
 	d.Set("mount_path", share.MountPath)
 
 	return nil

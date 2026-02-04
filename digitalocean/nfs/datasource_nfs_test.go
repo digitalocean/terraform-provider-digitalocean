@@ -45,6 +45,7 @@ data "digitalocean_nfs" "foobar" {
 					resource.TestCheckResourceAttr("data.digitalocean_nfs.foobar", "region", "atl1"),
 					resource.TestCheckResourceAttr("data.digitalocean_nfs.foobar", "size", "50"),
 					resource.TestCheckResourceAttr("data.digitalocean_nfs.foobar", "status", "ACTIVE"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_nfs.foobar", "host"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_nfs.foobar", "mount_path"),
 				),
 			},
