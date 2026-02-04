@@ -115,18 +115,24 @@ func testAccCheckDataSourceDigitalOceanNfsIsActive(n string) resource.TestCheckF
 		if region == "" {
 			region = "atl1" // fallback to default
 		}
-		for i := 0; i < 60; i++ {
-			nfs, _, err := client.Nfs.Get(context.Background(), rs.Primary.ID, region)
-			if err != nil {
-				return err
+		timeout := time.After(5 * time.Minute)
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-timeout:
+				return fmt.Errorf("NFS did not become ACTIVE in time")
+			case <-ticker.C:
+				nfs, _, err := client.Nfs.Get(context.Background(), rs.Primary.ID, region)
+				if err != nil {
+					return err
+				}
+				if nfs.Status == "ACTIVE" {
+					time.Sleep(5 * time.Second) // Extra buffer for state propagation
+					return nil
+				}
 			}
-			if nfs.Status == "ACTIVE" {
-				time.Sleep(5 * time.Second) // Extra buffer for state propagation
-				return nil
-			}
-			time.Sleep(5 * time.Second)
 		}
-		return fmt.Errorf("NFS did not become ACTIVE in time")
 	}
 }
 
