@@ -1311,6 +1311,26 @@ func appSpecIngressSchema() *schema.Resource {
 					},
 				},
 			},
+			"secure_header": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -2551,6 +2571,19 @@ func flattenAppSpecFunctions(functions []*godo.AppFunctionsSpec) []map[string]in
 	return result
 }
 
+func flattenAppSecureHeader(header *godo.AppSecureHeaderSpec) []map[string]interface{} {
+	if header == nil {
+		return nil
+	}
+
+	return []map[string]interface{}{
+		{
+			"key":   header.Key,
+			"value": header.Value,
+		},
+	}
+}
+
 func expandAppSpecDatabases(config []interface{}) []*godo.AppDatabaseSpec {
 	appDatabases := make([]*godo.AppDatabaseSpec, 0, len(config))
 
@@ -2703,6 +2736,8 @@ func expandAppIngress(config []interface{}) *godo.AppIngressSpec {
 		ingress.Rules = append(ingress.Rules, result)
 	}
 
+	ingress.SecureHeader = expandAppSecureHeader(ingressConfig["secure_header"].([]interface{}))
+
 	return ingress
 }
 
@@ -2768,6 +2803,19 @@ func expandAppIngressMatch(config []interface{}) *godo.AppIngressSpecRuleMatch {
 	}
 
 	return ruleMatch
+}
+
+func expandAppSecureHeader(config []interface{}) *godo.AppSecureHeaderSpec {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+
+	headerConfig := config[0].(map[string]interface{})
+
+	return &godo.AppSecureHeaderSpec{
+		Key:   headerConfig["key"].(string),
+		Value: headerConfig["value"].(string),
+	}
 }
 
 func expandAppTermination[T AppSpecTermination](config []interface{}) *T {
@@ -2837,7 +2885,8 @@ func flattenAppIngress(ingress *godo.AppIngressSpec) []map[string]interface{} {
 
 		return []map[string]interface{}{
 			{
-				"rule": rules,
+				"rule":          rules,
+				"secure_header": flattenAppSecureHeader(ingress.SecureHeader),
 			},
 		}
 	}
