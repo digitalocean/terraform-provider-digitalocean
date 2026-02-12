@@ -33,6 +33,7 @@ The following attributes are exported:
 * `name` - Name of the NFS share.
 * `region` - The region where the NFS share is located.
 * `size` - The size of the NFS share in GiB.
+* `performance_tier` - The performance tier of the NFS share (`standard` or `high`).
 * `status` - The current status of the NFS share.
 * `host` - The host IP of the NFS server accessible from the associated VPC.
 * `mount_path` - The mount path for accessing the NFS share.  

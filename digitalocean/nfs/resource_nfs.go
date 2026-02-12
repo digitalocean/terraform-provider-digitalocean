@@ -46,6 +46,16 @@ func ResourceDigitalOceanNfs() *schema.Resource {
 				Required:     true,
 				ValidateFunc: validation.IntAtLeast(50),
 			},
+			"performance_tier": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "standard",
+				ValidateFunc: validation.StringInSlice([]string{
+					"standard",
+					"high",
+				}, false),
+				Description: "Performance tier for the NFS share (standard or high)",
+			},
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -105,6 +115,9 @@ func resourceDigitalOceanNfsCreate(ctx context.Context, d *schema.ResourceData, 
 	if v, ok := d.GetOk("vpc_id"); ok && v.(string) != "" {
 		opts.VpcIDs = []string{v.(string)}
 	}
+	if v, ok := d.GetOk("performance_tier"); ok {
+		opts.PerformanceTier = v.(string)
+	}
 
 	log.Printf("[DEBUG] Nfs create configuration: %#v", opts)
 	share, _, err := client.Nfs.Create(context.Background(), opts)
@@ -126,8 +139,10 @@ func resourceDigitalOceanNfsCreate(ctx context.Context, d *schema.ResourceData, 
 
 func resourceDigitalOceanNfsUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
-	region := strings.ToLower(d.Get("region").(string))
-
+	region := ""
+	if v, ok := d.GetOk("region"); ok {
+		region = strings.ToLower(v.(string))
+	}
 	if d.HasChange("size") {
 		size := d.Get("size").(int)
 
@@ -137,7 +152,16 @@ func resourceDigitalOceanNfsUpdate(ctx context.Context, d *schema.ResourceData, 
 		}
 
 		// Wait for resize to complete
-		err = waitForNfsResize(ctx, client, d.Id(), d.Get("region").(string), d.Get("size").(int))
+		err = waitForNfsResize(ctx, client, d.Id(), region, d.Get("size").(int))
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	if d.HasChange("performance_tier") {
+		tier := d.Get("performance_tier").(string)
+
+		err := switchNfsPerformanceTier(ctx, client, d.Id(), region, tier)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -180,10 +204,39 @@ func waitForNfsActive(ctx context.Context, client *godo.Client, id, region strin
 	return fmt.Errorf("timeout waiting for NFS share to become active")
 }
 
+// switchNfsPerformanceTier switches the performance tier of an NFS share
+// and waits for the operation to complete
+func switchNfsPerformanceTier(ctx context.Context, client *godo.Client, id, region, tier string) error {
+	log.Printf("[INFO] Switching NFS share %s to performance tier: %s", id, tier)
+
+	// Validate tier
+	if tier != "standard" && tier != "high" && tier != "high_performance" {
+		return fmt.Errorf("invalid performance tier: %s. Must be 'standard' or 'high'", tier)
+	}
+
+	// Initiate the tier switch
+	_, _, err := client.NfsActions.SwitchPerformanceTier(ctx, id, tier)
+	if err != nil {
+		return fmt.Errorf("error switching performance tier: %s", err)
+	}
+
+	// Wait for the operation to complete
+	err = waitForNfsActive(ctx, client, id, region)
+	if err != nil {
+		return fmt.Errorf("error waiting for performance tier switch: %s", err)
+	}
+
+	log.Printf("[INFO] Successfully switched NFS share %s to performance tier: %s", id, tier)
+	return nil
+}
+
 func resourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
-
-	share, resp, err := client.Nfs.Get(context.Background(), d.Id(), d.Get("region").(string))
+	region := ""
+	if v, ok := d.GetOk("region"); ok {
+		region = v.(string)
+	}
+	share, resp, err := client.Nfs.Get(context.Background(), d.Id(), region)
 	if err != nil {
 		// If the share is somehow already destroyed, mark as
 		// successfully gone
@@ -202,6 +255,7 @@ func resourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("vpc_id", share.VpcIDs[0])
 	d.Set("host", share.Host)
 	d.Set("mount_path", share.MountPath)
+	d.Set("performance_tier", share.PerformanceTier)
 
 	if err = d.Set("vpc_ids", flattenDigitalOceanShareVpcIds(share.VpcIDs)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting vpc_ids: %#v", err)
@@ -212,9 +266,12 @@ func resourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, me
 
 func resourceDigitalOceanNfsDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
-
+	region := ""
+	if v, ok := d.GetOk("region"); ok {
+		region = v.(string)
+	}
 	log.Printf("[INFO] Deleting share: %s", d.Id())
-	_, err := client.Nfs.Delete(context.Background(), d.Id(), d.Get("region").(string))
+	_, err := client.Nfs.Delete(context.Background(), d.Id(), region)
 	if err != nil {
 		return diag.Errorf("Error deleting share: %s", err)
 	}
@@ -241,7 +298,10 @@ func resourceDigitalOceanNfsImport(ctx context.Context, d *schema.ResourceData, 
 
 	// Verify the resource exists before calling Read
 	client := meta.(*config.CombinedConfig).GodoClient()
-	region := d.Get("region").(string)
+	region := ""
+	if v, ok := d.GetOk("region"); ok {
+		region = v.(string)
+	}
 
 	_, resp, err := client.Nfs.Get(ctx, d.Id(), region)
 	if err != nil {

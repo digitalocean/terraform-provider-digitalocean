@@ -23,10 +23,11 @@ resource "digitalocean_vpc" "test" {
 }
 
 resource "digitalocean_nfs" "test" {
-  name   = "nfs-test"
-  region = "atl1"
-  size   = 50
-  vpc_id = digitalocean_vpc.test.id
+  name             = "nfs-test"
+  region           = "atl1"
+  size             = 50
+  vpc_id           = digitalocean_vpc.test.id
+  performance_tier = "high" # Options: "standard" or "high". Can be changed to switch tiers after creation.
 
   lifecycle {
     ignore_changes = [vpc_id]
@@ -56,6 +57,11 @@ output "nfs_mount_path" {
 output "nfs_mount_command" {
   value       = "mount -t nfs ${digitalocean_nfs.test.host}:${digitalocean_nfs.test.mount_path} /mnt/nfs"
   description = "Example mount command"
+}
+
+output "nfs_performance_tier" {
+  value       = digitalocean_nfs.test.performance_tier
+  description = "Performance tier of the NFS share"
 }
 
 output "vpc1_id" {
