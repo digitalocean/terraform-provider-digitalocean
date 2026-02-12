@@ -67,7 +67,10 @@ func resourceDigitalOceanNfsSnapshotCreate(ctx context.Context, d *schema.Resour
 
 	name := d.Get("name").(string)
 	shareID := d.Get("share_id").(string)
-	region := d.Get("region").(string)
+	region := ""
+	if v, ok := d.GetOk("region"); ok {
+		region = v.(string)
+	}
 
 	snapshot, _, err := client.NfsActions.Snapshot(context.Background(), shareID, name, region)
 	if err != nil {
@@ -81,7 +84,10 @@ func resourceDigitalOceanNfsSnapshotCreate(ctx context.Context, d *schema.Resour
 
 func resourceDigitalOceanNfsSnapshotRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
-	region := d.Get("region").(string)
+	region := ""
+	if v, ok := d.GetOk("region"); ok {
+		region = v.(string)
+	}
 	snapshot, resp, err := client.Nfs.GetSnapshot(context.Background(), d.Id(), region)
 	if err != nil {
 		// If the snapshot is somehow already destroyed, mark as
@@ -106,7 +112,10 @@ func resourceDigitalOceanNfsSnapshotRead(ctx context.Context, d *schema.Resource
 
 func resourceDigitalOceanNfsSnapshotDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
-	region := d.Get("region").(string)
+	region := ""
+	if v, ok := d.GetOk("region"); ok {
+		region = v.(string)
+	}
 
 	log.Printf("[INFO] Deleting snapshot: %s", d.Id())
 	_, err := client.Nfs.DeleteSnapshot(context.Background(), d.Id(), region)

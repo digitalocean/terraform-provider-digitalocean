@@ -68,7 +68,10 @@ func dataSourceDigitalOceanNfsSnapshotRead(ctx context.Context, d *schema.Resour
 
 	name, hasName := d.GetOk("name")
 	nameRegex, hasNameRegex := d.GetOk("name_regex")
-	region := d.Get("region")
+	region := ""
+	if v, ok := d.GetOk("region"); ok {
+		region = v.(string)
+	}
 	shareID := d.Get("share_id").(string)
 
 	if !hasName && !hasNameRegex {
@@ -83,7 +86,7 @@ func dataSourceDigitalOceanNfsSnapshotRead(ctx context.Context, d *schema.Resour
 	var snapshotList []godo.NfsSnapshot
 
 	for {
-		snapshots, resp, err := client.Nfs.ListSnapshots(context.Background(), opts, shareID, region.(string))
+		snapshots, resp, err := client.Nfs.ListSnapshots(context.Background(), opts, shareID, region)
 
 		if err != nil {
 			return diag.Errorf("Error retrieving share snapshots: %s", err)

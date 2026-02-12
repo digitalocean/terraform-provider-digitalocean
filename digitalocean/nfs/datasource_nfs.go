@@ -38,8 +38,11 @@ func DataSourceDigitalOceanNfs() *schema.Resource {
 				Type:        schema.TypeInt,
 				Computed:    true,
 				Description: "the size of the share in gigabytes",
-			},
-			"status": {
+			}, "performance_tier": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "the performance tier of the share",
+			}, "status": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -63,14 +66,13 @@ func dataSourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, 
 
 	name := d.Get("name").(string)
 
-	region := d.Get("region").(string)
+	region := ""
+	if v, ok := d.GetOk("region"); ok {
+		region = v.(string)
+	}
 
 	opts := &godo.ListOptions{
 		PerPage: 200,
-	}
-
-	if s, ok := d.GetOk("region"); ok {
-		region = s.(string)
 	}
 
 	sharesList := []*godo.Nfs{}
@@ -106,6 +108,7 @@ func dataSourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("name", share.Name)
 	d.Set("region", share.Region)
 	d.Set("size", share.SizeGib)
+	d.Set("performance_tier", share.PerformanceTier)
 	d.Set("status", share.Status)
 	d.Set("host", share.Host)
 	d.Set("mount_path", share.MountPath)

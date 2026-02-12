@@ -16,10 +16,11 @@ resource "digitalocean_vpc" "example" {
 }
 
 resource "digitalocean_nfs" "example" {
-  region = "nyc1"
-  name   = "example-nfs"
-  size   = 50
-  vpc_id = digitalocean_vpc.example.id
+  region            = "nyc1"
+  name              = "example-nfs"
+  size              = 50
+  vpc_id            = digitalocean_vpc.example.id
+  performance_tier  = "standard"
 }
 ```
 
@@ -31,6 +32,7 @@ The following arguments are supported:
 * `name` - (Required) A name for the NFS share. Must be lowercase and composed only of numbers, letters, and "-", up to a limit of 64 characters. The name must begin with a letter.
 * `size` - (Required) The size of the NFS share in GiB. Minimum size is 50 GiB.
 * `vpc_id` - (Required) The ID of the VPC where the NFS share will be created.
+* `performance_tier` - (Optional) The performance tier for the NFS share. Can be `standard` or `high`. Defaults to `standard`. Changing this will cause the performance tier to be switched.
 
 ## Attributes Reference
 
@@ -40,6 +42,7 @@ The following attributes are exported:
 * `name` - Name of the NFS share.
 * `region` - The region where the NFS share is created.
 * `size` - The size of the NFS share in GiB.
+* `performance_tier` - The performance tier of the NFS share (`standard` or `high`).
 * `vpc_id` - The ID of the VPC where the NFS share is located.
 * `status` - The current status of the NFS share.
 * `created_at` - The date and time when the NFS share was created.
