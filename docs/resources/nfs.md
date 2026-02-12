@@ -16,11 +16,11 @@ resource "digitalocean_vpc" "example" {
 }
 
 resource "digitalocean_nfs" "example" {
-  region            = "nyc1"
-  name              = "example-nfs"
-  size              = 50
-  vpc_id            = digitalocean_vpc.example.id
-  performance_tier  = "standard"
+  region           = "nyc1"
+  name             = "example-nfs"
+  size             = 50
+  vpc_id           = digitalocean_vpc.example.id
+  performance_tier = "standard"
 }
 ```
 

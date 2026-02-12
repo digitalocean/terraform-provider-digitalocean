@@ -45,11 +45,11 @@ resource "digitalocean_vpc" "foobar" {
 func testAccCheckDigitalOceanNfsConfig_performanceTier(name, tier string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_nfs" "foobar" {
-  region            = "atl1"
-  name              = "%s"
-  size              = 60
-  vpc_id            = digitalocean_vpc.foobar.id
-  performance_tier  = "%s"
+  region           = "atl1"
+  name             = "%s"
+  size             = 60
+  vpc_id           = digitalocean_vpc.foobar.id
+  performance_tier = "%s"
 }
 
 resource "digitalocean_vpc" "foobar" {
