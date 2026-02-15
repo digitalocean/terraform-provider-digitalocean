@@ -1,5 +1,11 @@
 module github.com/digitalocean/terraform-provider-digitalocean
 
+// Contains release branch issue
+retract (
+	v2.68.0
+)
+
+
 require (
 	github.com/aws/aws-sdk-go v1.42.18
 	github.com/digitalocean/godo v1.174.0
