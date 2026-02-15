@@ -81,8 +81,12 @@ func testAccCheckDataSourceDigitalOceanNfsExists(n string, nfs *godo.Nfs) resour
 		}
 
 		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
+		region := rs.Primary.Attributes["region"]
+		if region == "" {
+			region = "atl1" // fallback to default
+		}
 
-		foundNfs, _, err := client.Nfs.Get(context.Background(), rs.Primary.ID, "atl1")
+		foundNfs, _, err := client.Nfs.Get(context.Background(), rs.Primary.ID, region)
 
 		if err != nil {
 			return err
@@ -108,18 +112,28 @@ func testAccCheckDataSourceDigitalOceanNfsIsActive(n string) resource.TestCheckF
 			return fmt.Errorf("No NFS ID is set")
 		}
 		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
-		for i := 0; i < 10; i++ {
-			nfs, _, err := client.Nfs.Get(context.Background(), rs.Primary.ID, "atl1")
-			if err != nil {
-				return err
-			}
-			if nfs.Status == "ACTIVE" {
-				time.Sleep(5 * time.Second) // Extra buffer for state propagation
-				return nil
-			}
-			time.Sleep(10 * time.Second)
+		region := rs.Primary.Attributes["region"]
+		if region == "" {
+			region = "atl1" // fallback to default
 		}
-		return fmt.Errorf("NFS did not become ACTIVE in time")
+		timeout := time.After(5 * time.Minute)
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-timeout:
+				return fmt.Errorf("NFS did not become ACTIVE in time")
+			case <-ticker.C:
+				nfs, _, err := client.Nfs.Get(context.Background(), rs.Primary.ID, region)
+				if err != nil {
+					return err
+				}
+				if nfs.Status == "ACTIVE" {
+					time.Sleep(5 * time.Second) // Extra buffer for state propagation
+					return nil
+				}
+			}
+		}
 	}
 }
 

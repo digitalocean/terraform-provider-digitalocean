@@ -79,6 +79,7 @@ func TestAccDigitalOceanNfs_Resize(t *testing.T) {
 					testAccCheckDataSourceDigitalOceanNfsIsActive(resourceName),
 					testAccCheckDigitalOceanNfsSize(resourceName, 50),
 					resource.TestCheckResourceAttr("digitalocean_nfs.foobar", "size", "50"),
+					resource.TestCheckResourceAttrSet("digitalocean_nfs.foobar", "mount_path"),
 				),
 			},
 			{
@@ -87,6 +88,7 @@ func TestAccDigitalOceanNfs_Resize(t *testing.T) {
 					testAccCheckDataSourceDigitalOceanNfsIsActive(resourceName),
 					testAccCheckDigitalOceanNfsSize(resourceName, 60),
 					resource.TestCheckResourceAttr("digitalocean_nfs.foobar", "size", "60"),
+					resource.TestCheckResourceAttrSet("digitalocean_nfs.foobar", "mount_path"),
 				),
 			},
 		},
@@ -107,6 +109,7 @@ func TestAccDigitalOceanNfs_ShrinkError(t *testing.T) {
 					testAccCheckDataSourceDigitalOceanNfsIsActive(resourceName),
 					testAccCheckDigitalOceanNfsSize(resourceName, 60),
 					resource.TestCheckResourceAttr("digitalocean_nfs.foobar", "size", "60"),
+					resource.TestCheckResourceAttrSet("digitalocean_nfs.foobar", "mount_path"),
 				),
 			},
 			{
