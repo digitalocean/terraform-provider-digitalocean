@@ -697,6 +697,11 @@ func appSpecServicesSchema() *schema.Resource {
 			Optional:    true,
 			Description: "The instance size to use for this component.",
 		},
+		"protocol": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Whether to use HTTP2 or HTTP1.1.",
+		},
 		"instance_count": {
 			Type:        schema.TypeInt,
 			Optional:    true,
@@ -836,6 +841,11 @@ func appSpecWorkerSchema() *schema.Resource {
 			Optional:    true,
 			Description: "The instance size to use for this component.",
 		},
+		"protocol": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Whether to use HTTP2 or HTTP1.1.",
+		},
 		"instance_count": {
 			Type:        schema.TypeInt,
 			Optional:    true,
@@ -885,6 +895,11 @@ func appSpecJobSchema() *schema.Resource {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "The instance size to use for this component.",
+		},
+		"protocol": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "Whether to use HTTP2 or HTTP1.1.",
 		},
 		"instance_count": {
 			Type:        schema.TypeInt,
@@ -2079,6 +2094,7 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 
 		s := &godo.AppServiceSpec{
 			Name:             service["name"].(string),
+			Protocol:         godo.ServingProtocol(service["protocol"].(string)),
 			RunCommand:       service["run_command"].(string),
 			BuildCommand:     service["build_command"].(string),
 			HTTPPort:         int64(service["http_port"].(int)),
