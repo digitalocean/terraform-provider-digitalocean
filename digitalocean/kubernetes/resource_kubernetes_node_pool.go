@@ -340,7 +340,7 @@ func waitForKubernetesNodePoolDelete(client *godo.Client, d *schema.ResourceData
 		if err != nil {
 			ticker.Stop()
 
-			if resp.StatusCode == http.StatusNotFound {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
 				return nil
 			}
 
