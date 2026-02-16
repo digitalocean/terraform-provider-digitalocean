@@ -14,9 +14,9 @@ options for a DigitalOcean managed Valkey database cluster.
 
 ```hcl
 resource "digitalocean_database_valkey_config" "example" {
-  cluster_id             = digitalocean_database_cluster.example.id
-  notify_keyspace_events = "KEA"
-  timeout                = 90
+  cluster_id              = digitalocean_database_cluster.example.id
+  notify_keyspace_events  = "KEA"
+  timeout                 = 90
   valkey_maxmemory_policy = "allkeys-random"
 }
 

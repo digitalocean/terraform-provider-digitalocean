@@ -51,8 +51,8 @@ const testAccCheckDigitalOceanDatabaseValkeyConfigConfigBasic = `
 %s
 
 resource "digitalocean_database_valkey_config" "foobar" {
-  cluster_id             = digitalocean_database_cluster.foobar.id
-  timeout                = %d
-  notify_keyspace_events = "%s"
+  cluster_id              = digitalocean_database_cluster.foobar.id
+  timeout                 = %d
+  notify_keyspace_events  = "%s"
   valkey_maxmemory_policy = "%s"
 }`
