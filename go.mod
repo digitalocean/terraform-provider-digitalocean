@@ -70,8 +70,6 @@ require (
 
 replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
 
-replace github.com/digitalocean/terraform-provider-digitalocean => ../terraform-provider-digitalocean
-
 go 1.23.0
 
 toolchain go1.23.1
