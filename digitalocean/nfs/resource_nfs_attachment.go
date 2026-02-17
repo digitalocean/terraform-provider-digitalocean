@@ -50,7 +50,10 @@ func resourceDigitalOceanNfsAttachmentCreate(ctx context.Context, d *schema.Reso
 
 	vpcId := d.Get("vpc_id").(string)
 	shareId := d.Get("share_id").(string)
-	region := d.Get("region").(string)
+	region := ""
+	if v, ok := d.GetOk("region"); ok {
+		region = v.(string)
+	}
 
 	share, _, err := client.Nfs.Get(context.Background(), shareId, region)
 	if err != nil {
@@ -144,7 +147,10 @@ func resourceDigitalOceanNfsAttachmentRead(ctx context.Context, d *schema.Resour
 
 	vpcId := d.Get("vpc_id").(string)
 	shareId := d.Get("share_id").(string)
-	region := d.Get("region").(string)
+	region := ""
+	if v, ok := d.GetOk("region"); ok {
+		region = v.(string)
+	}
 
 	share, resp, err := client.Nfs.Get(context.Background(), shareId, region)
 	if err != nil {
@@ -171,7 +177,10 @@ func resourceDigitalOceanNfsAttachmentDelete(ctx context.Context, d *schema.Reso
 
 	vpcId := d.Get("vpc_id").(string)
 	shareId := d.Get("share_id").(string)
-	region := d.Get("region").(string)
+	region := ""
+	if v, ok := d.GetOk("region"); ok {
+		region = v.(string)
+	}
 
 	// Only one nfs can be detached at one time to a single vpc.
 	err := retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
