@@ -14,9 +14,10 @@ options for a DigitalOcean managed Valkey database cluster.
 
 ```hcl
 resource "digitalocean_database_valkey_config" "example" {
-  cluster_id             = digitalocean_database_cluster.example.id
-  notify_keyspace_events = "KEA"
-  timeout                = 90
+  cluster_id              = digitalocean_database_cluster.example.id
+  notify_keyspace_events  = "KEA"
+  timeout                 = 90
+  valkey_maxmemory_policy = "allkeys-random"
 }
 
 resource "digitalocean_database_cluster" "example" {
@@ -47,6 +48,13 @@ for additional details on each option.
 * `notify_keyspace_events` - (Optional) The `notify-keyspace-events` option. Requires at least `K` or `E`.
 * `persistence` - (Optional) When persistence is 'rdb', Valkey does RDB dumps each 10 minutes if any key is changed. Also RDB dumps are done according to backup schedule for backup purposes. When persistence is 'off', no RDB dumps and backups are done, so data can be lost at any moment if service is restarted for any reason, or if service is powered off. Also service can't be forked.
 * `acl_channels_default` - (Optional) Determines default pub/sub channels' ACL for new users if an ACL is not supplied. When this option is not defined, `allchannels` is assumed to keep backward compatibility. This option doesn't affect Valkey' `acl-pubsub-default` configuration. Supported values are: `allchannels` and `resetchannels`
+* `valkey_maxmemory_policy` - (Optional) Eviction policy model
+  * `noeviction`: Don't evict any data, returns error when memory limit is reached.
+  * `allkeys-lru`: Evict any key, least recently used (LRU) first.
+  * `allkeys-random`: Evict keys in a random order.
+  * `volatile-lru`: Evict keys with expiration only, least recently used (LRU) first.
+  * `volatile-random`: Evict keys with expiration only in a random order.
+  * `volatile-ttl`: Evict keys with expiration only, shortest time-to-live (TTL) first.
 
 ## Attributes Reference
 
