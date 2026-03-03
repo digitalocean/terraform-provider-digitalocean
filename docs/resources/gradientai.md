@@ -139,7 +139,7 @@ After creation, the following attributes are exported:
 - **anthropic_key_uuid** - Anthropic API key UUID.
 - **knowledge_base_uuid** - List of knowledge base UUIDs.
 - **open_ai_key_uuid** - OpenAI API key UUID.
-- **workspace_uuid** - Identifier for the workspace associated with the agent.
+- **workspace_uuid** - Identifier for the workspace.
 - **anthropic_api_key** - Anthropic API Key information.
 - **api_key_infos** - List of API Key Info blocks.
 - **api_keys** - List of API Key blocks.
