@@ -37,6 +37,7 @@ The following arguments are supported:
 * `name` - (Required) A name for the NFS snapshot. Must be lowercase and composed only of numbers, letters, and "-", up to a limit of 64 characters.
 * `share_id` - (Required) The ID of the NFS share to snapshot.
 * `region` - (Required) The region where the NFS snapshot will be created.
+* `performance_tier` - (Optional) The performance tier for the NFS share. Can be `standard` or `high`. Defaults to `high`. Changing this will cause the performance tier to be switched.
 
 > **Note:** You cannot downgrade the performance tier from `high` to `standard` after creation. Upgrades from `standard` to `high` are allowed.
 
