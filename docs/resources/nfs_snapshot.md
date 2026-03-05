@@ -16,10 +16,10 @@ resource "digitalocean_vpc" "foobar" {
 }
 
 resource "digitalocean_nfs" "foobar" {
-  region = "nyc1"
-  name   = "example-nfs"
-  size   = 50
-  vpc_id = digitalocean_vpc.foobar.id
+  region           = "nyc1"
+  name             = "example-nfs"
+  size             = 50
+  vpc_id           = digitalocean_vpc.foobar.id
   performance_tier = "high"
 }
 
@@ -37,6 +37,8 @@ The following arguments are supported:
 * `name` - (Required) A name for the NFS snapshot. Must be lowercase and composed only of numbers, letters, and "-", up to a limit of 64 characters.
 * `share_id` - (Required) The ID of the NFS share to snapshot.
 * `region` - (Required) The region where the NFS snapshot will be created.
+
+> **Note:** You cannot downgrade the performance tier from `high` to `standard` after creation. Upgrades from `standard` to `high` are allowed.
 
 ## Attributes Reference
 
