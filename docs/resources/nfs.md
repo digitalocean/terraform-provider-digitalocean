@@ -20,7 +20,7 @@ resource "digitalocean_nfs" "example" {
   name             = "example-nfs"
   size             = 50
   vpc_id           = digitalocean_vpc.example.id
-  performance_tier = "standard"
+  performance_tier = "high"
 }
 ```
 
@@ -32,8 +32,8 @@ The following arguments are supported:
 * `name` - (Required) A name for the NFS share. Must be lowercase and composed only of numbers, letters, and "-", up to a limit of 64 characters. The name must begin with a letter.
 * `size` - (Required) The size of the NFS share in GiB. Minimum size is 50 GiB.
 * `vpc_id` - (Required) The ID of the VPC where the NFS share will be created.
-* `performance_tier` - (Optional) The performance tier for the NFS share. Can be `standard` or `high`. Defaults to `standard`. Changing this will cause the performance tier to be switched.
-
+* `performance_tier` - (Optional) The performance tier for the NFS share. Can be `standard` or `high`. Defaults to `high`. Changing this will cause the performance tier to be switched.
+> **Note:** You cannot downgrade the performance tier from `high` to `standard` after creation. Upgrades from `standard` to `high` are allowed.
 ## Attributes Reference
 
 The following attributes are exported:

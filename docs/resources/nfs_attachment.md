@@ -16,10 +16,11 @@ resource "digitalocean_vpc" "foobar" {
 }
 
 resource "digitalocean_nfs" "foobar" {
-  region = "atl1"
-  name   = "example-nfs"
-  size   = 50
-  vpc_id = digitalocean_vpc.foobar.id
+  region            = "atl1"
+  name              = "example-nfs"
+  size              = 50
+  vpc_id             = digitalocean_vpc.foobar.id
+  performance_tier = "high"
 }
 
 resource "digitalocean_nfs_attachment" "foobar" {

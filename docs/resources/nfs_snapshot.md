@@ -20,6 +20,7 @@ resource "digitalocean_nfs" "foobar" {
   name   = "example-nfs"
   size   = 50
   vpc_id = digitalocean_vpc.foobar.id
+  performance_tier = "high"
 }
 
 resource "digitalocean_nfs_snapshot" "foobar" {
@@ -27,7 +28,6 @@ resource "digitalocean_nfs_snapshot" "foobar" {
   share_id = digitalocean_nfs.foobar.id
   region   = "nyc1"
 }
-
 ```
 
 ## Argument Reference
