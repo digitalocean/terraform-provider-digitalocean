@@ -34,6 +34,7 @@ The following arguments are supported:
 * `vpc_id` - (Required) The ID of the VPC where the NFS share will be created.
 * `performance_tier` - (Optional) The performance tier for the NFS share. Can be `standard` or `high`. Defaults to `high`. Changing this will cause the performance tier to be switched.
 > **Note:** You cannot downgrade the performance tier from `high` to `standard` after creation. Upgrades from `standard` to `high` are allowed.
+
 ## Attributes Reference
 
 The following attributes are exported:
@@ -49,7 +50,6 @@ The following attributes are exported:
 * `host` - The host IP of the NFS server accessible from the associated VPC.
 * `mount_path` - The mount path for accessing the NFS share.  
 
-
 ## Import
 
 NFS shares can be imported using the `share id` and the `region` , e.g.
@@ -57,4 +57,3 @@ NFS shares can be imported using the `share id` and the `region` , e.g.
 ```
 terraform import digitalocean_nfs.foobar 506f78a4-e098-11e5-ad9f-000f53306ae1,atl1
 ```
-
