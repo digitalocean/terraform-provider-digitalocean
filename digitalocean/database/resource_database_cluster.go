@@ -264,6 +264,34 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"storage_autoscale": {
+				Type:     schema.TypeList,
+				MaxItems: 1,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:        schema.TypeBool,
+							Required:    true,
+							Description: "Whether storage autoscaling is enabled",
+						},
+						"disk_usage_threshold_percent": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      90,
+							ValidateFunc: validation.IntBetween(15, 100),
+							Description:  "Disk usage threshold percentage (15-100) to trigger autoscaling",
+						},
+						"storage_increment_gib": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(10),
+							Description:  "Storage increase step size in GiB (minimum 10 GiB, rounded to nearest 10 GiB). If not specified, system auto-calculates (25% of current size, min 50 GiB, max 1024 GiB, rounded to 10 GiB steps). Cooldown: 1 hour between autoscale operations.",
+						},
+					},
+				},
+			},
+
 			"metrics_endpoints": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -351,6 +379,10 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 		if err == nil {
 			opts.StorageSizeMib = v
 		}
+	}
+
+	if v, ok := d.GetOk("storage_autoscale"); ok {
+		opts.StorageAutoscale = expandStorageAutoscale(v.([]interface{}))
 	}
 
 	log.Printf("[DEBUG] database cluster create configuration: %#v", opts)
@@ -511,6 +543,23 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 		}
 	}
 
+	if d.HasChange("storage_autoscale") {
+		if v, ok := d.GetOk("storage_autoscale"); ok {
+			autoscaleConfig := expandStorageAutoscale(v.([]interface{}))
+			_, err := client.Databases.UpdateStorageAutoscale(context.Background(), d.Id(), autoscaleConfig)
+			if err != nil {
+				return diag.Errorf("Error updating storage autoscale for database cluster: %s", err)
+			}
+		} else {
+			// Disable autoscaling if configuration is removed
+			disabledConfig := &godo.DatabaseStorageAutoscale{Enabled: false}
+			_, err := client.Databases.UpdateStorageAutoscale(context.Background(), d.Id(), disabledConfig)
+			if err != nil {
+				return diag.Errorf("Error disabling storage autoscale for database cluster: %s", err)
+			}
+		}
+	}
+
 	if d.HasChange("tags") {
 		err := tag.SetTags(client, d, godo.DatabaseResourceType)
 		if err != nil {
@@ -544,6 +593,12 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	d.Set("node_count", database.NumNodes)
 	d.Set("storage_size_mib", strconv.FormatUint(database.StorageSizeMib, 10))
 	d.Set("tags", tag.FlattenTags(database.Tags))
+
+	if database.StorageAutoscale != nil {
+		if err := d.Set("storage_autoscale", flattenStorageAutoscale(database.StorageAutoscale)); err != nil {
+			return diag.Errorf("[DEBUG] Error setting storage_autoscale - error: %#v", err)
+		}
+	}
 
 	if _, ok := d.GetOk("maintenance_window"); ok {
 		if err := d.Set("maintenance_window", flattenMaintWindowOpts(*database.MaintenanceWindow)); err != nil {
@@ -766,4 +821,52 @@ func expandBackupRestore(config []interface{}) *godo.DatabaseBackupRestore {
 	}
 
 	return backupRestore
+}
+func expandStorageAutoscale(config []interface{}) *godo.DatabaseStorageAutoscale {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+
+	autoscaleConfig := config[0].(map[string]interface{})
+	result := &godo.DatabaseStorageAutoscale{
+		Enabled: autoscaleConfig["enabled"].(bool),
+	}
+
+	if v, ok := autoscaleConfig["disk_usage_threshold_percent"]; ok && v.(int) > 0 {
+		threshold := v.(int)
+		result.ThresholdPercent = &threshold
+	}
+
+	if v, ok := autoscaleConfig["storage_increment_gib"]; ok && v.(int) > 0 {
+		// Convert GiB to MiB (1 GiB = 1024 MiB)
+		incrementMib := uint64(v.(int) * 1024)
+		result.IncrementMib = &incrementMib
+	}
+
+	return result
+}
+
+func flattenStorageAutoscale(autoscale *godo.DatabaseStorageAutoscale) []map[string]interface{} {
+	if autoscale == nil {
+		return nil
+	}
+
+	result := make([]map[string]interface{}, 0, 1)
+	item := make(map[string]interface{})
+
+	item["enabled"] = autoscale.Enabled
+
+	if autoscale.ThresholdPercent != nil {
+		item["disk_usage_threshold_percent"] = *autoscale.ThresholdPercent
+	} else {
+		item["disk_usage_threshold_percent"] = 90 // default
+	}
+
+	if autoscale.IncrementMib != nil {
+		// Convert MiB back to GiB
+		item["storage_increment_gib"] = int(*autoscale.IncrementMib / 1024)
+	}
+
+	result = append(result, item)
+	return result
 }
