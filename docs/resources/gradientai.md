@@ -43,6 +43,7 @@ The following arguments are supported:
 - **anthropic_key_uuid** (Optional) - Anthropic API key UUID to use with Anthropic models.
 - **knowledge_base_uuid** (Optional) - List of knowledge base UUIDs to attach to the agent.
 - **open_ai_key_uuid** (Optional) - OpenAI API key UUID to use with OpenAI models.
+- **workspace_uuid** (Optional) - Identifier for the workspace.
 - **anthropic_api_key** (Optional) - Anthropic API Key information block.
 - **api_key_infos** (Optional) - List of API Key Info blocks.
 - **api_keys** (Optional) - List of API Key blocks.
@@ -89,7 +90,6 @@ resource "digitalocean_gradientai_agent" "with_guardrail" {
 ```
 # digitalocean_gradientai_function
 
-> **Note:** There is currently no way to create or associate Workspaces with a Gradient AI Agent using this Terraform provider. Agents deployed by Terraform will not be associated with any Workspace and may be orphaned.
 - **chatbot** (Optional) - Chatbot configuration block.
 - **if_case** (Optional) - If case condition.
 - **k** (Optional) - K value.
@@ -139,6 +139,7 @@ After creation, the following attributes are exported:
 - **anthropic_key_uuid** - Anthropic API key UUID.
 - **knowledge_base_uuid** - List of knowledge base UUIDs.
 - **open_ai_key_uuid** - OpenAI API key UUID.
+- **workspace_uuid** - Identifier for the workspace.
 - **anthropic_api_key** - Anthropic API Key information.
 - **api_key_infos** - List of API Key Info blocks.
 - **api_keys** - List of API Key blocks.
