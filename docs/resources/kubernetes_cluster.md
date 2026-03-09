@@ -153,6 +153,9 @@ The following arguments are supported:
 * `control_plane_firewall` - (Optional) A block representing the cluster's control plane firewall
   - `enabled` - (Required) Boolean flag whether the firewall should be enabled or not.
   - `allowed_addresses` - (Required) A list of addresses allowed (CIDR notation).
+
+  NOTE: [Control plane firewalls](https://docs.digitalocean.com/products/kubernetes/how-to/add-control-plane-firewall/)
+  are in [private preview](https://docs.digitalocean.com/platform/product-lifecycle/).
 * `vpc_uuid` - (Optional) The ID of the VPC where the Kubernetes cluster will be located.
 * `auto_upgrade` - (Optional) A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: true
