@@ -76,8 +76,8 @@ type KubernetesClusterCreateRequest struct {
 	ClusterSubnet string   `json:"cluster_subnet,omitempty"`
 	ServiceSubnet string   `json:"service_subnet,omitempty"`
 
-	// Create cluster with highly available control plane
-	HA bool `json:"ha"`
+	// Create cluster with highly available control plane. When nil, API applies version-dependent default (true for 1.36+).
+	HA *bool `json:"ha,omitempty"`
 
 	NodePools []*KubernetesNodePoolCreateRequest `json:"node_pools,omitempty"`
 
