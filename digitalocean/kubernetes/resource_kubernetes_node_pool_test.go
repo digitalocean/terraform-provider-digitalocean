@@ -22,6 +22,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   tags    = ["foo", "bar"]
 
   node_pool {
@@ -102,6 +103,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   tags    = ["foo", "bar"]
 
   node_pool {
@@ -230,6 +232,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -269,6 +272,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -307,6 +311,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -346,6 +351,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -396,6 +402,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -432,6 +439,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -471,6 +479,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -512,6 +521,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   tags    = ["foo", "bar"]
 
   node_pool {
@@ -540,6 +550,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   tags    = ["foo", "bar"]
 
   node_pool {
@@ -576,6 +587,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   tags    = ["foo", "bar"]
 
   node_pool {
@@ -617,6 +629,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   tags    = ["foo", "bar"]
 
   node_pool {

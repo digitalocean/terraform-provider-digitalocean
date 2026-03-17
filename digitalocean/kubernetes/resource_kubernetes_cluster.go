@@ -32,6 +32,15 @@ const (
 	rdmaSharedDevicePluginField            = "rdma_shared_device_plugin"
 )
 
+// ExpandHAFromConfig returns the HA value for the create request. When ha is not
+// specified in config, returns nil so the API applies its version-dependent default.
+func ExpandHAFromConfig(value interface{}, ok bool) *bool {
+	if !ok {
+		return nil
+	}
+	return godo.PtrTo(value.(bool))
+}
+
 func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanKubernetesClusterCreate,
@@ -70,7 +79,7 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			"ha": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  true,
+				// Default is version-dependent: true for DOKS >= 1.36, false otherwise (set in CustomizeDiff)
 			},
 
 			"registry_integration": {
@@ -427,10 +436,11 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		RegionSlug:   d.Get("region").(string),
 		VersionSlug:  d.Get("version").(string),
 		SurgeUpgrade: d.Get("surge_upgrade").(bool),
-		HA:           d.Get("ha").(bool),
 		Tags:         tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
 		NodePools:    poolCreateRequests,
 	}
+	ha, haOk := d.GetOk("ha")
+	opts.HA = ExpandHAFromConfig(ha, haOk)
 
 	if maint, ok := d.GetOk("maintenance_policy"); ok {
 		maintPolicy, err := expandMaintPolicyOpts(maint.([]interface{}))
