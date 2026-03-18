@@ -7,6 +7,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/app"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/byoipprefix"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/cdn"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/dedicatedinference"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/certificate"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/database"
@@ -171,6 +172,7 @@ func Provider() *schema.Provider {
 			"digitalocean_gradientai_regions":                      gradientai.DataSourceDigitalOceanRegions(),
 			"digitalocean_nfs":                                     nfs.DataSourceDigitalOceanNfs(),
 			"digitalocean_nfs_snapshot":                            nfs.DataSourceDigitalOceanNfsSnapshot(),
+			"digitalocean_dedicated_inference":                     dedicatedinference.DataSourceDigitalOceanDedicatedInference(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -246,6 +248,7 @@ func Provider() *schema.Provider {
 			"digitalocean_nfs":                                        nfs.ResourceDigitalOceanNfs(),
 			"digitalocean_nfs_attachment":                             nfs.ResourceDigitalOceanNfsAttachment(),
 			"digitalocean_nfs_snapshot":                               nfs.ResourceDigitalOceanNfsSnapshot(),
+			"digitalocean_dedicated_inference":                        dedicatedinference.ResourceDigitalOceanDedicatedInference(),
 		},
 	}
 
