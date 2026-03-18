@@ -174,6 +174,7 @@ func Provider() *schema.Provider {
 			"digitalocean_nfs_snapshot":                            nfs.DataSourceDigitalOceanNfsSnapshot(),
 			"digitalocean_dedicated_inference":                     dedicatedinference.DataSourceDigitalOceanDedicatedInference(),
 			"digitalocean_dedicated_inferences":                    dedicatedinference.DataSourceDigitalOceanDedicatedInferences(),
+			"digitalocean_dedicated_inference_accelerators":        dedicatedinference.DataSourceDigitalOceanDedicatedInferenceAccelerators(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
