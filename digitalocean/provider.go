@@ -175,6 +175,7 @@ func Provider() *schema.Provider {
 			"digitalocean_dedicated_inference":                     dedicatedinference.DataSourceDigitalOceanDedicatedInference(),
 			"digitalocean_dedicated_inferences":                    dedicatedinference.DataSourceDigitalOceanDedicatedInferences(),
 			"digitalocean_dedicated_inference_accelerators":        dedicatedinference.DataSourceDigitalOceanDedicatedInferenceAccelerators(),
+			"digitalocean_dedicated_inference_tokens":              dedicatedinference.DataSourceDigitalOceanDedicatedInferenceTokens(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
@@ -251,6 +252,7 @@ func Provider() *schema.Provider {
 			"digitalocean_nfs_attachment":                             nfs.ResourceDigitalOceanNfsAttachment(),
 			"digitalocean_nfs_snapshot":                               nfs.ResourceDigitalOceanNfsSnapshot(),
 			"digitalocean_dedicated_inference":                        dedicatedinference.ResourceDigitalOceanDedicatedInference(),
+			"digitalocean_dedicated_inference_token":                  dedicatedinference.ResourceDigitalOceanDedicatedInferenceToken(),
 		},
 	}
 
