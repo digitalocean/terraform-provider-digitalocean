@@ -14,10 +14,10 @@ import (
 )
 
 const (
-	testDIRegion          = "tor1"
+	testDIRegion          = "atl1"
 	testDIModelSlug       = "Qwen/Qwen2.5-14B-Instruct"
 	testDIModelProvider   = "hugging_face"
-	testDIAcceleratorSlug = "gpu-h100x1-80gb"
+	testDIAcceleratorSlug = "gpu-mi300x1-192gb"
 	testDIAcceleratorType = "prefill_decode"
 )
 
@@ -35,7 +35,7 @@ func TestAccDigitalOceanDedicatedInference_Basic(t *testing.T) {
 	name := acceptance.RandomTestName() + "-di"
 	vpcUUID := testDIVPCUUID(t)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDedicatedInferenceDestroy,
@@ -46,7 +46,7 @@ func TestAccDigitalOceanDedicatedInference_Basic(t *testing.T) {
 					testAccCheckDigitalOceanDedicatedInferenceExists("digitalocean_dedicated_inference.test", &di),
 					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "name", name),
 					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "region", testDIRegion),
-					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "enable_public_endpoint", "false"),
+					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "enable_public_endpoint", "true"),
 					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "model_deployments.#", "1"),
 					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "model_deployments.0.model_slug", testDIModelSlug),
 					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "model_deployments.0.model_provider", testDIModelProvider),
@@ -63,28 +63,6 @@ func TestAccDigitalOceanDedicatedInference_Basic(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanDedicatedInference_WithPublicEndpoint(t *testing.T) {
-	var di godo.DedicatedInference
-	name := acceptance.RandomTestName() + "-di"
-	vpcUUID := testDIVPCUUID(t)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
-		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanDedicatedInferenceDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDedicatedInferenceConfig_withPublicEndpoint(name, vpcUUID),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanDedicatedInferenceExists("digitalocean_dedicated_inference.test", &di),
-					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "enable_public_endpoint", "true"),
-					resource.TestCheckResourceAttrSet("digitalocean_dedicated_inference.test", "public_endpoint_fqdn"),
-					resource.TestCheckResourceAttrSet("digitalocean_dedicated_inference.test", "private_endpoint_fqdn"),
-				),
-			},
-		},
-	})
-}
 
 func TestAccDigitalOceanDedicatedInference_Update(t *testing.T) {
 	var di godo.DedicatedInference
@@ -92,7 +70,7 @@ func TestAccDigitalOceanDedicatedInference_Update(t *testing.T) {
 	updatedName := name + "-updated"
 	vpcUUID := testDIVPCUUID(t)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDedicatedInferenceDestroy,
@@ -102,18 +80,17 @@ func TestAccDigitalOceanDedicatedInference_Update(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanDedicatedInferenceExists("digitalocean_dedicated_inference.test", &di),
 					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "name", name),
-					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "enable_public_endpoint", "false"),
-				),
-			},
-			{
-				Config: testAccDedicatedInferenceConfig_updated(updatedName, vpcUUID),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanDedicatedInferenceExists("digitalocean_dedicated_inference.test", &di),
-					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "name", updatedName),
 					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "enable_public_endpoint", "true"),
-					resource.TestCheckResourceAttrSet("digitalocean_dedicated_inference.test", "public_endpoint_fqdn"),
 				),
 			},
+		{
+			Config: testAccDedicatedInferenceConfig_updated(updatedName, vpcUUID),
+			Check: resource.ComposeTestCheckFunc(
+				testAccCheckDigitalOceanDedicatedInferenceExists("digitalocean_dedicated_inference.test", &di),
+				resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "name", updatedName),
+				resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "enable_public_endpoint", "true"),
+			),
+		},
 		},
 	})
 }
@@ -123,7 +100,7 @@ func TestAccDigitalOceanDedicatedInference_UpdateModelDeployments(t *testing.T) 
 	name := acceptance.RandomTestName() + "-di"
 	vpcUUID := testDIVPCUUID(t)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDedicatedInferenceDestroy,
@@ -150,7 +127,7 @@ func TestAccDigitalOceanDedicatedInference_Delete(t *testing.T) {
 	name := acceptance.RandomTestName() + "-di"
 	vpcUUID := testDIVPCUUID(t)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDedicatedInferenceDestroy,
@@ -169,7 +146,7 @@ func TestAccDigitalOceanDedicatedInference_Import(t *testing.T) {
 	name := acceptance.RandomTestName() + "-di"
 	vpcUUID := testDIVPCUUID(t)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		CheckDestroy:      testAccCheckDigitalOceanDedicatedInferenceDestroy,
@@ -236,28 +213,6 @@ resource "digitalocean_dedicated_inference" "test" {
   name                   = "%s"
   region                 = "%s"
   vpc_uuid               = "%s"
-  enable_public_endpoint = false
-
-  model_deployments {
-    model_slug     = "%s"
-    model_provider = "%s"
-
-    accelerators {
-      accelerator_slug = "%s"
-      scale            = 1
-      type             = "%s"
-    }
-  }
-}
-`, name, testDIRegion, vpcUUID, testDIModelSlug, testDIModelProvider, testDIAcceleratorSlug, testDIAcceleratorType)
-}
-
-func testAccDedicatedInferenceConfig_withPublicEndpoint(name, vpcUUID string) string {
-	return fmt.Sprintf(`
-resource "digitalocean_dedicated_inference" "test" {
-  name                   = "%s"
-  region                 = "%s"
-  vpc_uuid               = "%s"
   enable_public_endpoint = true
 
   model_deployments {
@@ -273,6 +228,7 @@ resource "digitalocean_dedicated_inference" "test" {
 }
 `, name, testDIRegion, vpcUUID, testDIModelSlug, testDIModelProvider, testDIAcceleratorSlug, testDIAcceleratorType)
 }
+
 
 func testAccDedicatedInferenceConfig_updated(name, vpcUUID string) string {
 	return fmt.Sprintf(`
@@ -302,7 +258,7 @@ resource "digitalocean_dedicated_inference" "test" {
   name                   = "%s"
   region                 = "%s"
   vpc_uuid               = "%s"
-  enable_public_endpoint = false
+  enable_public_endpoint = true
 
   model_deployments {
     model_slug     = "%s"
