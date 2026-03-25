@@ -71,7 +71,7 @@ resource "digitalocean_dedicated_inference" "test" {
   name                   = "%s"
   region                 = "%s"
   vpc_uuid               = "%s"
-  enable_public_endpoint = false
+  enable_public_endpoint = true
 
   model_deployments {
     model_slug     = "%s"
@@ -97,7 +97,7 @@ resource "digitalocean_dedicated_inference" "test" {
   name                   = "%s"
   region                 = "%s"
   vpc_uuid               = "%s"
-  enable_public_endpoint = false
+  enable_public_endpoint = true
 
   model_deployments {
     model_slug     = "%s"

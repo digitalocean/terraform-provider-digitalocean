@@ -2,12 +2,16 @@ package dedicatedinference
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -20,6 +24,12 @@ func ResourceDigitalOceanDedicatedInference() *schema.Resource {
 		DeleteContext: resourceDigitalOceanDedicatedInferenceDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
+		},
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(60 * time.Minute),
+			Update: schema.DefaultTimeout(60 * time.Minute),
+			Delete: schema.DefaultTimeout(60 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -36,12 +46,13 @@ func ResourceDigitalOceanDedicatedInference() *schema.Resource {
 				Description:  "The region slug where the dedicated inference endpoint will be deployed.",
 				ValidateFunc: validation.NoZeroValues,
 			},
-			"enable_public_endpoint": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Default:     false,
-				Description: "Whether to enable a public HTTPS endpoint for the dedicated inference endpoint.",
-			},
+		"enable_public_endpoint": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			ForceNew:    true,
+			Default:     false,
+			Description: "Whether to enable a public HTTPS endpoint for the dedicated inference endpoint. This field is immutable after creation.",
+		},
 			"vpc_uuid": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -162,7 +173,35 @@ func resourceDigitalOceanDedicatedInferenceCreate(ctx context.Context, d *schema
 	}
 
 	d.SetId(di.ID)
+
+	if err := waitForDedicatedInferenceReady(ctx, client, di.ID); err != nil {
+		return diag.FromErr(fmt.Errorf("dedicated inference endpoint (%s) did not become ready: %w", di.ID, err))
+	}
+
+	log.Printf("[DEBUG] DedicatedInference %s is active, waiting 2 minutes for stabilization before proceeding", di.ID)
+	time.Sleep(2 * time.Minute)
+
 	return resourceDigitalOceanDedicatedInferenceRead(ctx, d, meta)
+}
+
+func waitForDedicatedInferenceReady(ctx context.Context, client *godo.Client, id string) error {
+	return retry.RetryContext(ctx, 60*time.Minute, func() *retry.RetryError {
+		di, _, err := client.DedicatedInference.Get(ctx, id)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("error polling dedicated inference endpoint (%s): %w", id, err))
+		}
+		switch di.Status {
+		case "active", "running":
+			if di.PendingDeploymentSpec != nil {
+				return retry.RetryableError(fmt.Errorf("dedicated inference endpoint (%s) is active but still has a pending deployment, waiting", id))
+			}
+			return nil
+		case "error":
+			return retry.NonRetryableError(fmt.Errorf("dedicated inference endpoint (%s) entered error state", id))
+		default:
+			return retry.RetryableError(fmt.Errorf("dedicated inference endpoint (%s) is %s, waiting for active", id, di.Status))
+		}
+	})
 }
 
 func resourceDigitalOceanDedicatedInferenceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -211,27 +250,80 @@ func resourceDigitalOceanDedicatedInferenceRead(ctx context.Context, d *schema.R
 func resourceDigitalOceanDedicatedInferenceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	if !d.HasChanges("name", "enable_public_endpoint", "model_deployments", "hugging_face_token") {
+	if !d.HasChanges("name", "model_deployments", "hugging_face_token") {
 		return nil
 	}
 
-	spec := buildDedicatedInferenceSpec(d)
-	req := &godo.DedicatedInferenceUpdateRequest{
-		Spec: spec,
-	}
-
-	if v, ok := d.GetOk("hugging_face_token"); ok {
-		req.Secrets = &godo.DedicatedInferenceSecrets{
-			HuggingFaceToken: v.(string),
+	err := retry.RetryContext(ctx, 60*time.Minute, func() *retry.RetryError {
+		// Re-fetch on every attempt to get the current state and correct spec version.
+		di, _, fetchErr := client.DedicatedInference.Get(ctx, d.Id())
+		if fetchErr != nil {
+			return retry.NonRetryableError(fmt.Errorf("error fetching dedicated inference endpoint (%s) before update: %w", d.Id(), fetchErr))
 		}
+
+		log.Printf("[DEBUG] DedicatedInference %s pre-update state: status=%s, pending=%v", d.Id(), di.Status, di.PendingDeploymentSpec != nil)
+
+		if di.Status != "active" || di.PendingDeploymentSpec != nil {
+			return retry.RetryableError(fmt.Errorf("dedicated inference endpoint (%s) not ready for update (status=%s, pending=%v), waiting",
+				d.Id(), di.Status, di.PendingDeploymentSpec != nil))
+		}
+
+		spec := buildUpdateSpec(d, di)
+		req := &godo.DedicatedInferenceUpdateRequest{Spec: spec}
+
+		if v, ok := d.GetOk("hugging_face_token"); ok {
+			req.Secrets = &godo.DedicatedInferenceSecrets{
+				HuggingFaceToken: v.(string),
+			}
+		}
+
+		if reqJSON, err := json.MarshalIndent(req, "", "  "); err == nil {
+			log.Printf("[DEBUG] DedicatedInference Update request for %s: %s", d.Id(), string(reqJSON))
+		}
+
+		_, resp, updateErr := client.DedicatedInference.Update(ctx, d.Id(), req)
+		if updateErr != nil {
+			if resp != nil && resp.Response != nil && resp.StatusCode == http.StatusForbidden {
+				return retry.RetryableError(fmt.Errorf("dedicated inference endpoint (%s) not yet accepting updates (403), retrying: %w", d.Id(), updateErr))
+			}
+			return retry.NonRetryableError(fmt.Errorf("error updating dedicated inference endpoint (%s): %w", d.Id(), updateErr))
+		}
+		return nil
+	})
+	if err != nil {
+		return diag.FromErr(err)
 	}
 
-	_, _, err := client.DedicatedInference.Update(ctx, d.Id(), req)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error updating dedicated inference endpoint (%s): %w", d.Id(), err))
+	if err := waitForDedicatedInferenceReady(ctx, client, d.Id()); err != nil {
+		return diag.FromErr(fmt.Errorf("dedicated inference endpoint (%s) did not finish updating: %w", d.Id(), err))
 	}
 
 	return resourceDigitalOceanDedicatedInferenceRead(ctx, d, meta)
+}
+
+// buildUpdateSpec builds a minimal update spec using only the fields the API supports for updates.
+// It reads the current version from the live endpoint to satisfy any version-match precondition.
+func buildUpdateSpec(d *schema.ResourceData, current *godo.DedicatedInference) *godo.DedicatedInferenceSpecRequest {
+	spec := &godo.DedicatedInferenceSpecRequest{
+		Name: d.Get("name").(string),
+	}
+
+	if current != nil && current.DeploymentSpec != nil {
+		spec.Version = int(current.DeploymentSpec.Version)
+		spec.Region = current.Region
+		spec.EnablePublicEndpoint = current.DeploymentSpec.EnablePublicEndpoint
+		if current.DeploymentSpec.VPCConfig != nil {
+			spec.VPC = &godo.DedicatedInferenceVPCRequest{
+				UUID: current.DeploymentSpec.VPCConfig.VPCUUID,
+			}
+		}
+	}
+
+	if v, ok := d.GetOk("model_deployments"); ok {
+		spec.ModelDeployments = expandModelDeployments(v.([]interface{}))
+	}
+
+	return spec
 }
 
 func resourceDigitalOceanDedicatedInferenceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -245,12 +337,30 @@ func resourceDigitalOceanDedicatedInferenceDelete(ctx context.Context, d *schema
 		return diag.FromErr(fmt.Errorf("error deleting dedicated inference endpoint (%s): %w", d.Id(), err))
 	}
 
+	if err := waitForDedicatedInferenceDeletion(ctx, client, d.Id()); err != nil {
+		return diag.FromErr(fmt.Errorf("dedicated inference endpoint (%s) did not finish deleting: %w", d.Id(), err))
+	}
+
 	d.SetId("")
 	return nil
 }
 
+func waitForDedicatedInferenceDeletion(ctx context.Context, client *godo.Client, id string) error {
+	return retry.RetryContext(ctx, 60*time.Minute, func() *retry.RetryError {
+		_, resp, err := client.DedicatedInference.Get(ctx, id)
+		if err != nil {
+			if resp != nil && resp.Response != nil && resp.StatusCode == http.StatusNotFound {
+				return nil
+			}
+			return retry.NonRetryableError(fmt.Errorf("error polling dedicated inference endpoint (%s) deletion: %w", id, err))
+		}
+		return retry.RetryableError(fmt.Errorf("dedicated inference endpoint (%s) still exists, waiting for deletion", id))
+	})
+}
+
 func buildDedicatedInferenceSpec(d *schema.ResourceData) *godo.DedicatedInferenceSpecRequest {
 	spec := &godo.DedicatedInferenceSpecRequest{
+		Version:              1,
 		Name:                 d.Get("name").(string),
 		Region:               d.Get("region").(string),
 		EnablePublicEndpoint: d.Get("enable_public_endpoint").(bool),
