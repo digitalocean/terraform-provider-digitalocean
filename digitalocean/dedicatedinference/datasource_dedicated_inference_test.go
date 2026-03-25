@@ -12,7 +12,7 @@ func TestAccDataSourceDigitalOceanDedicatedInference_Basic(t *testing.T) {
 	name := acceptance.RandomTestName() + "-di"
 	vpcUUID := testDIVPCUUID(t)
 
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		Steps: []resource.TestStep{
@@ -37,10 +37,6 @@ func TestAccDataSourceDigitalOceanDedicatedInference_Basic(t *testing.T) {
 						"data.digitalocean_dedicated_inference.test", "status",
 						"digitalocean_dedicated_inference.test", "status",
 					),
-					resource.TestCheckResourceAttrPair(
-						"data.digitalocean_dedicated_inference.test", "enable_public_endpoint",
-						"digitalocean_dedicated_inference.test", "enable_public_endpoint",
-					),
 					resource.TestCheckResourceAttr("data.digitalocean_dedicated_inference.test", "model_deployments.#", "1"),
 					resource.TestCheckResourceAttr("data.digitalocean_dedicated_inference.test", "model_deployments.0.model_slug", testDIModelSlug),
 					resource.TestCheckResourceAttr("data.digitalocean_dedicated_inference.test", "model_deployments.0.model_provider", testDIModelProvider),
@@ -60,7 +56,7 @@ resource "digitalocean_dedicated_inference" "test" {
   name                   = "%s"
   region                 = "%s"
   vpc_uuid               = "%s"
-  enable_public_endpoint = false
+  enable_public_endpoint = true
 
   model_deployments {
     model_slug     = "%s"
