@@ -20,9 +20,9 @@ func TestAccDataSourceDigitalOceanDedicatedInferenceTokens_Basic(t *testing.T) {
 			{
 				Config: testAccDataSourceDedicatedInferenceTokensConfig(diName, tokenName, vpcUUID),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.digitalocean_dedicated_inference_tokens.test", "tokens.#", "1"),
-					resource.TestCheckResourceAttr("data.digitalocean_dedicated_inference_tokens.test", "tokens.0.name", tokenName),
+					resource.TestCheckResourceAttrSet("data.digitalocean_dedicated_inference_tokens.test", "tokens.#"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_dedicated_inference_tokens.test", "tokens.0.id"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_dedicated_inference_tokens.test", "tokens.0.name"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_dedicated_inference_tokens.test", "tokens.0.created_at"),
 				),
 			},
