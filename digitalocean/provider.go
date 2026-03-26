@@ -176,6 +176,7 @@ func Provider() *schema.Provider {
 			"digitalocean_dedicated_inferences":                    dedicatedinference.DataSourceDigitalOceanDedicatedInferences(),
 			"digitalocean_dedicated_inference_accelerators":        dedicatedinference.DataSourceDigitalOceanDedicatedInferenceAccelerators(),
 			"digitalocean_dedicated_inference_tokens":              dedicatedinference.DataSourceDigitalOceanDedicatedInferenceTokens(),
+			"digitalocean_dedicated_inference_sizes":               dedicatedinference.DataSourceDigitalOceanDedicatedInferenceSizes(),
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
