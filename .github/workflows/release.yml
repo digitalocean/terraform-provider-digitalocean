@@ -23,7 +23,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.22.x
+          go-version: 1.24.x
 
       - name: Import GPG key
         id: import_gpg
@@ -49,7 +49,7 @@ jobs:
         run: github-changelog-generator -org digitalocean -repo terraform-provider-digitalocean > release_notes.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Create GitHub Release (Draft)
         uses: softprops/action-gh-release@v2
         with:

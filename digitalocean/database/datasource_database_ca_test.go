@@ -54,7 +54,7 @@ func TestAccDataSourceDigitalOceanDatabaseCA(t *testing.T) {
 							}
 							cert, err := x509.ParseCertificate(block.Bytes)
 							if err != nil {
-								return fmt.Errorf("failed to parse certificate: " + err.Error())
+								return fmt.Errorf("failed to parse certificate: %s", err.Error())
 							}
 
 							if !cert.IsCA {
