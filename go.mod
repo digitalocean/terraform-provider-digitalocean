@@ -1,5 +1,7 @@
 module github.com/digitalocean/terraform-provider-digitalocean
 
+go 1.25
+
 require (
 	github.com/aws/aws-sdk-go v1.42.18
 	github.com/digitalocean/godo v1.178.0
@@ -67,9 +69,3 @@ require (
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
-
-go 1.23.0
-
-toolchain go1.23.1
