@@ -18,13 +18,7 @@ testacc: fmtcheck
 	TF_ACC=1 go test -v ./$(PKG_NAME)/... $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -parallel=$(ACCTEST_PARALLELISM)
 
 vet:
-	@echo "go vet ."
-	@go vet $$(go list ./... | grep -v vendor/) ; if [ $$? -eq 1 ]; then \
-		echo ""; \
-		echo "Vet found suspicious constructs. Please check the reported constructs"; \
-		echo "and fix them if necessary before submitting the code for review."; \
-		exit 1; \
-	fi
+	go vet ./...
 
 sweep:
 	@echo "WARNING: This will destroy infrastructure. Use only in development accounts."
@@ -78,10 +72,8 @@ upgrade_godo: _upgrade_godo vendor
 vendor:
 	@echo "==> vendor dependencies"
 	@echo ""
-	go mod vendor
 	go mod tidy
-
-
+	go mod vendor
 
 changes:
 	@if ! command -v github-changelog-generator &> /dev/null; then \
