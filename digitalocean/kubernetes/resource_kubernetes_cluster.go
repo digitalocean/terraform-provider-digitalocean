@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -875,7 +876,7 @@ func waitForKubernetesClusterCreate(client *godo.Client, d *schema.ResourceData)
 
 		if cluster.Status.State == "error" {
 			ticker.Stop()
-			return nil, fmt.Errorf(cluster.Status.Message)
+			return nil, errors.New(cluster.Status.Message)
 		}
 
 		if n > timeout {
