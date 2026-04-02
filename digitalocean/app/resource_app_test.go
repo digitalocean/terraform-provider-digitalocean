@@ -2377,6 +2377,18 @@ func (m *mockAppsServiceForWaiter) GetJobInvocationLogs(ctx context.Context, app
 func (m *mockAppsServiceForWaiter) CancelJobInvocation(ctx context.Context, appID, jobInvocationID string, opts *godo.CancelJobInvocationOptions) (*godo.JobInvocation, *godo.Response, error) {
 	return nil, nil, nil
 }
+func (m *mockAppsServiceForWaiter) ListEvents(ctx context.Context, appID string, opts *godo.ListEventsOptions) ([]*godo.Event, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetEvent(ctx context.Context, appID, eventID string) (*godo.Event, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) CancelEvent(ctx context.Context, appID, eventID string) (*godo.Event, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetEventLogs(ctx context.Context, appID, eventID string, opts *godo.GetEventLogsOptions) (*godo.AppLogs, *godo.Response, error) {
+	return nil, nil, nil
+}
 
 func (m *mockAppsServiceForWaiter) ListEvents(ctx context.Context, appID string, opts *godo.ListEventsOptions) ([]*godo.Event, *godo.Response, error) {
 	return nil, nil, nil
