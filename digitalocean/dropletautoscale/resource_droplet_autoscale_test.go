@@ -59,6 +59,8 @@ func TestAccDigitalOceanDropletAutoscale_Static(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.with_droplet_agent", "true"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.public_networking", "true"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.ipv6", "true"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.user_data", "\n#cloud-config\nruncmd:\n- apt-get update\n- apt-get install -y stress-ng\n"),
@@ -106,6 +108,8 @@ func TestAccDigitalOceanDropletAutoscale_Static(t *testing.T) {
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.image"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.with_droplet_agent", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.public_networking", "true"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.ipv6", "true"),
 					resource.TestCheckResourceAttr(
@@ -171,6 +175,8 @@ func TestAccDigitalOceanDropletAutoscale_Dynamic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.with_droplet_agent", "true"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.public_networking", "true"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.ipv6", "true"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.user_data", "\n#cloud-config\nruncmd:\n- apt-get update\n- apt-get install -y stress-ng\n"),
@@ -218,6 +224,8 @@ func TestAccDigitalOceanDropletAutoscale_Dynamic(t *testing.T) {
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.image"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.with_droplet_agent", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.public_networking", "true"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet_autoscale.foobar", "droplet_template.0.ipv6", "true"),
 					resource.TestCheckResourceAttr(
