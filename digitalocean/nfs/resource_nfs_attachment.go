@@ -60,22 +60,15 @@ func resourceDigitalOceanNfsAttachmentCreate(ctx context.Context, d *schema.Reso
 		return diag.Errorf("Error retrieving share: %s", err)
 	}
 
-	// If share is attached to a different VPC, detach first
+	// If share is attached to a different VPC, use reassign
 	if len(share.VpcIDs) > 0 && share.VpcIDs[0] != vpcId {
-		log.Printf("[DEBUG] Detaching share (%s) from VPC (%s) before attaching to (%s)", shareId, share.VpcIDs[0], vpcId)
-		_, _, err := client.NfsActions.Detach(context.Background(), shareId, share.VpcIDs[0], region)
+		log.Printf("[DEBUG] Reassigning share (%s) from VPC (%s) to VPC (%s)", shareId, share.VpcIDs[0], vpcId)
+		err := reassignNfs(ctx, client, shareId, region, share.VpcIDs[0], vpcId)
 		if err != nil {
-			return diag.Errorf("Error detaching share from existing VPC: %s", err)
+			return diag.Errorf("Error reassigning share: %s", err)
 		}
-
-		if err = waitForNfsDetach(ctx, client, shareId, region, share.VpcIDs[0]); err != nil {
-			return diag.Errorf("Error waiting for detach: %s", err)
-		}
-	}
-
-	if len(share.VpcIDs) == 0 || share.VpcIDs[0] != vpcId {
-
-		// Only one share can be attached at one time to a single vpc.
+	} else if len(share.VpcIDs) == 0 {
+		// Share is not attached to any VPC, attach it to the target VPC
 		err := retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
 
 			log.Printf("[DEBUG] Attaching Share (%s) to VPC (%s)", shareId, vpcId)
