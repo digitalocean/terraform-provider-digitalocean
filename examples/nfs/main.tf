@@ -25,12 +25,12 @@ resource "digitalocean_vpc" "test" {
 resource "digitalocean_nfs" "test" {
   name             = "nfs-test"
   region           = "atl1"
-  size             = 50
+  size             = 500
   vpc_id           = digitalocean_vpc.test.id
   performance_tier = "high" # Options: "standard" or "high". Can be changed to switch tiers after creation.
 
   lifecycle {
-    ignore_changes = [vpc_id]
+    ignore_changes = [vpc_id, performance_tier]
   }
 }
 
@@ -79,6 +79,22 @@ output "vpc2_id" {
 
 output "current_attachment" {
   value = digitalocean_nfs_attachment.test.vpc_id
+}
+
+# REASSIGN TEST
+# Test moving NFS share from one VPC to another using the efficient Reassign API
+
+resource "digitalocean_nfs_attachment" "reassign" {
+  vpc_id   = digitalocean_vpc.test2.id
+  share_id = digitalocean_nfs.test.id
+  region   = "atl1"
+
+  depends_on = [digitalocean_nfs_attachment.test]
+}
+
+output "reassign_attachment" {
+  value       = digitalocean_nfs_attachment.reassign.vpc_id
+  description = "VPC ID after reassign"
 }
 
 
