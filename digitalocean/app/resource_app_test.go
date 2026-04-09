@@ -2390,22 +2390,6 @@ func (m *mockAppsServiceForWaiter) GetEventLogs(ctx context.Context, appID, even
 	return nil, nil, nil
 }
 
-func (m *mockAppsServiceForWaiter) ListEvents(ctx context.Context, appID string, opts *godo.ListEventsOptions) ([]*godo.Event, *godo.Response, error) {
-	return nil, nil, nil
-}
-
-func (m *mockAppsServiceForWaiter) GetEvent(ctx context.Context, appID, deploymentID string) (*godo.Event, *godo.Response, error) {
-	return nil, nil, nil
-}
-
-func (m *mockAppsServiceForWaiter) CancelEvent(ctx context.Context, appID, deploymentID string) (*godo.Event, *godo.Response, error) {
-	return nil, nil, nil
-}
-
-func (m *mockAppsServiceForWaiter) GetEventLogs(ctx context.Context, appID, deploymentID string, opts *godo.GetEventLogsOptions) (*godo.AppLogs, *godo.Response, error) {
-	return nil, nil, nil
-}
-
 func clientWithMockAppsForWaiter(mock *mockAppsServiceForWaiter) *godo.Client {
 	c := &godo.Client{}
 	c.Apps = mock
