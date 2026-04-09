@@ -51,7 +51,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           
       - name: Create GitHub Release (Draft)
-        uses: softprops/action-gh-release@v6
+        uses: softprops/action-gh-release@v2
         with:
           draft: true
           tag_name: ${{ github.ref_name }}
