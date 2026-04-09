@@ -62,10 +62,20 @@ func resourceDigitalOceanNfsAttachmentCreate(ctx context.Context, d *schema.Reso
 
 	// If share is attached to a different VPC, use reassign
 	if len(share.VpcIDs) > 0 && share.VpcIDs[0] != vpcId {
-		log.Printf("[DEBUG] Reassigning share (%s) from VPC (%s) to VPC (%s)", shareId, share.VpcIDs[0], vpcId)
-		err := reassignNfs(ctx, client, shareId, region, share.VpcIDs[0], vpcId)
+		err := retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
+			log.Printf("[DEBUG] Reassigning share (%s) from VPC (%s) to VPC (%s)", shareId, share.VpcIDs[0], vpcId)
+
+			err := reassignNfs(ctx, client, shareId, region, share.VpcIDs[0], vpcId)
+			if err != nil {
+				return retry.NonRetryableError(
+					fmt.Errorf("[WARN] Error reassigning share (%s) from VPC (%s) to VPC (%s): %s", shareId, share.VpcIDs[0], vpcId, err))
+			}
+
+			return nil
+		})
+
 		if err != nil {
-			return diag.Errorf("Error reassigning share: %s", err)
+			return diag.Errorf("Error reassigning share after retry timeout: %s", err)
 		}
 	} else if len(share.VpcIDs) == 0 {
 		// Share is not attached to any VPC, attach it to the target VPC
