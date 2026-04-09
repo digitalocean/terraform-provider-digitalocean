@@ -141,12 +141,12 @@ func dataSourceDigitalOceanDedicatedInferenceSizesRead(ctx context.Context, d *s
 	flatSizes := make([]map[string]interface{}, 0, len(sizesResp.Sizes))
 	for _, s := range sizesResp.Sizes {
 		flat := map[string]interface{}{
-			"gpu_slug":      s.GPUSlug,
+			"gpu_slug":       s.GPUSlug,
 			"price_per_hour": s.PricePerHour,
-			"currency":      s.Currency,
-			"cpu":           int(s.CPU),
-			"memory":        int(s.Memory),
-			"regions":       s.Regions,
+			"currency":       s.Currency,
+			"cpu":            int(s.CPU),
+			"memory":         int(s.Memory),
+			"regions":        s.Regions,
 		}
 
 		if s.GPU != nil {

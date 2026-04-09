@@ -100,10 +100,10 @@ func flattenDigitalOceanDedicatedInferenceListItem(record, _ interface{}, _ map[
 	item := record.(godo.DedicatedInferenceListItem)
 
 	flat := map[string]interface{}{
-		"id":      item.ID,
-		"name":    item.Name,
-		"region":  item.Region,
-		"status":  item.Status,
+		"id":       item.ID,
+		"name":     item.Name,
+		"region":   item.Region,
+		"status":   item.Status,
 		"vpc_uuid": item.VPCUUID,
 	}
 

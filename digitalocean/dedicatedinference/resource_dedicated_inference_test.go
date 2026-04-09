@@ -63,7 +63,6 @@ func TestAccDigitalOceanDedicatedInference_Basic(t *testing.T) {
 	})
 }
 
-
 func TestAccDigitalOceanDedicatedInference_Update(t *testing.T) {
 	var di godo.DedicatedInference
 	name := acceptance.RandomTestName() + "-di"
@@ -83,14 +82,14 @@ func TestAccDigitalOceanDedicatedInference_Update(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "enable_public_endpoint", "true"),
 				),
 			},
-		{
-			Config: testAccDedicatedInferenceConfig_updated(updatedName, vpcUUID),
-			Check: resource.ComposeTestCheckFunc(
-				testAccCheckDigitalOceanDedicatedInferenceExists("digitalocean_dedicated_inference.test", &di),
-				resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "name", updatedName),
-				resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "enable_public_endpoint", "true"),
-			),
-		},
+			{
+				Config: testAccDedicatedInferenceConfig_updated(updatedName, vpcUUID),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDedicatedInferenceExists("digitalocean_dedicated_inference.test", &di),
+					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "name", updatedName),
+					resource.TestCheckResourceAttr("digitalocean_dedicated_inference.test", "enable_public_endpoint", "true"),
+				),
+			},
 		},
 	})
 }
@@ -228,7 +227,6 @@ resource "digitalocean_dedicated_inference" "test" {
 }
 `, name, testDIRegion, vpcUUID, testDIModelSlug, testDIModelProvider, testDIAcceleratorSlug, testDIAcceleratorType)
 }
-
 
 func testAccDedicatedInferenceConfig_updated(name, vpcUUID string) string {
 	return fmt.Sprintf(`
