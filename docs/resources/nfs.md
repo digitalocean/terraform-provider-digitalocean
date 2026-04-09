@@ -24,6 +24,46 @@ resource "digitalocean_nfs" "example" {
 }
 ```
 
+## Example Usage - Moving Share Between VPCs
+
+To move an NFS share from one VPC to another using the Reassign API:
+
+```hcl
+resource "digitalocean_vpc" "source" {
+  name   = "source-vpc"
+  region = "nyc1"
+}
+
+resource "digitalocean_vpc" "destination" {
+  name   = "destination-vpc"
+  region = "nyc1"
+}
+
+resource "digitalocean_nfs" "example" {
+  region           = "nyc1"
+  name             = "example-nfs"
+  size             = 50
+  vpc_id           = digitalocean_vpc.source.id
+  performance_tier = "high"
+}
+
+# Attach to source VPC
+resource "digitalocean_nfs_attachment" "source" {
+  share_id = digitalocean_nfs.example.id
+  vpc_id   = digitalocean_vpc.source.id
+  region   = "nyc1"
+}
+
+# Reassign to destination VPC - uses the efficient Reassign API
+resource "digitalocean_nfs_attachment" "destination" {
+  share_id = digitalocean_nfs.example.id
+  vpc_id   = digitalocean_vpc.destination.id
+  region   = "nyc1"
+
+  depends_on = [digitalocean_nfs_attachment.source]
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -48,11 +88,15 @@ The following attributes are exported:
 * `status` - The current status of the NFS share.
 * `created_at` - The date and time when the NFS share was created.
 * `host` - The host IP of the NFS server accessible from the associated VPC.
-* `mount_path` - The mount path for accessing the NFS share.  
+* `mount_path` - The mount path for accessing the NFS share.
+
+## Notes
+
+Multiple NFS shares can now be attached to the same VPC, providing greater flexibility for storage management.
 
 ## Import
 
-NFS shares can be imported using the `share id` and the `region` , e.g.
+NFS shares can be imported using the `share id` and the `region`, e.g.
 
 ```
 terraform import digitalocean_nfs.foobar 506f78a4-e098-11e5-ad9f-000f53306ae1,atl1

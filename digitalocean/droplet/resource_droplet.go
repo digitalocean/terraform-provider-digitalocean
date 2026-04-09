@@ -211,6 +211,14 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 				Deprecated: "This parameter has been deprecated. Use `vpc_uuid` instead to specify a VPC network for the Droplet. If no `vpc_uuid` is provided, the Droplet will be placed in your account's default VPC for the region.",
 			},
 
+			"public_networking": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				ForceNew:    true,
+				Default:     true,
+				Description: "Enables public networking for the Droplet. By default, this is always enabled on new droplets, but by explicitly setting it to false, you can create a droplet with public networking entirely disabled.",
+			},
+
 			"ipv4_address": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -335,6 +343,11 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	if attr, ok := d.GetOk("private_networking"); ok {
 		opts.PrivateNetworking = attr.(bool)
+	}
+
+	if attr, ok := d.GetOk("public_networking"); ok {
+		b := attr.(bool)
+		opts.PublicNetworking = &b
 	}
 
 	if attr, ok := d.GetOk("user_data"); ok {

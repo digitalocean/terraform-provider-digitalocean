@@ -638,3 +638,34 @@ func flattenCAConfigOpts(opts *godo.KubernetesClusterAutoscalerConfiguration) []
 
 	return result
 }
+
+func expandSSOOptsIfSet(d *schema.ResourceData) *godo.KubernetesClusterSSO {
+	if _, isSet := d.GetOk("sso"); !isSet {
+		return nil
+	}
+
+	ssoConfig := &godo.KubernetesClusterSSO{}
+
+	if v, isSet := d.GetOkExists("sso.0.enabled"); isSet {
+		ssoConfig.Enabled = godo.PtrTo(v.(bool))
+	}
+	if v, isSet := d.GetOkExists("sso.0.required"); isSet {
+		ssoConfig.Required = godo.PtrTo(v.(bool))
+	}
+
+	return ssoConfig
+}
+
+func flattenSSOOpts(opts *godo.KubernetesClusterSSO) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+	item["required"] = opts.Required
+	result = append(result, item)
+
+	return result
+}

@@ -759,6 +759,109 @@ func TestAccDigitalOceanDroplet_withDropletAgentExpectError(t *testing.T) {
 	})
 }
 
+// TestAccDigitalOceanDroplet_withPublicNetworkingSetTrue tests that no error is returned
+// from the API when creating a Droplet with the "public_networking" field is explicitly set to true.
+func TestAccDigitalOceanDroplet_withPublicNetworkingSetTrue(t *testing.T) {
+	var droplet godo.Droplet
+	keyName := acceptance.RandomTestName()
+	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
+	if err != nil {
+		t.Fatalf("Cannot generate test SSH key pair: %s", err)
+	}
+	dropletName := acceptance.RandomTestName()
+	publicNetworkingStanza := "public_networking = true"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_PublicNetworking(keyName, publicKeyMaterial, dropletName, "ubuntu-20-04-x64", publicNetworkingStanza),
+				Check: resource.ComposeTestCheckFunc(
+					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", dropletName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "public_networking", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "image", "ubuntu-20-04-x64"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccDigitalOceanDroplet_withPublicNetworkingSetTrue tests that no error is returned
+// from the API when creating a Droplet with the "public_networking" field is explicitly set to false.
+func TestAccDigitalOceanDroplet_withPublicNetworkingSetFalse(t *testing.T) {
+	var droplet godo.Droplet
+	keyName := acceptance.RandomTestName()
+	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
+	if err != nil {
+		t.Fatalf("Cannot generate test SSH key pair: %s", err)
+	}
+	dropletName := acceptance.RandomTestName()
+	publicNetworkingStanza := "public_networking = false"
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_PublicNetworking(keyName, publicKeyMaterial, dropletName, "rancheros", publicNetworkingStanza),
+				Check: resource.ComposeTestCheckFunc(
+					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", dropletName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "public_networking", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "image", "rancheros"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccDigitalOceanDroplet_withPublicNetworkingSetTrue tests that no error is returned
+// from the API when creating a Droplet with the "public_networking" field is explicitly not set,
+// defaulting to true.
+func TestAccDigitalOceanDroplet_withPublicNetworkingNotSet(t *testing.T) {
+	var droplet godo.Droplet
+	keyName := acceptance.RandomTestName()
+	publicKeyMaterial, _, err := acctest.RandSSHKeyPair("digitalocean@ssh-acceptance-test")
+	if err != nil {
+		t.Fatalf("Cannot generate test SSH key pair: %s", err)
+	}
+	dropletName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanDropletConfig_PublicNetworking(keyName, publicKeyMaterial, dropletName, "rancheros", ""),
+				Check: resource.ComposeTestCheckFunc(
+					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "name", dropletName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "image", "rancheros"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "region", "nyc3"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_droplet.foobar", "public_networking", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDroplet_withTimeout(t *testing.T) {
 	dropletName := acceptance.RandomTestName()
 
@@ -1162,6 +1265,23 @@ resource "digitalocean_droplet" "foobar" {
   ssh_keys = [digitalocean_ssh_key.foobar.id]
   %s
 }`, keyName, testAccValidPublicKey, dropletName, defaultSize, image, agent)
+}
+
+func testAccCheckDigitalOceanDropletConfig_PublicNetworking(keyName, testAccValidPublicKey, dropletName, image, publicNetworking string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_ssh_key" "foobar" {
+  name       = "%s"
+  public_key = "%s"
+}
+
+resource "digitalocean_droplet" "foobar" {
+  name     = "%s"
+  size     = "%s"
+  image    = "%s"
+  region   = "nyc3"
+  ssh_keys = [digitalocean_ssh_key.foobar.id]
+  %s
+}`, keyName, testAccValidPublicKey, dropletName, defaultSize, image, publicNetworking)
 }
 
 func testAccCheckDigitalOceanDropletConfig_EnableGracefulShutdown(name string) string {

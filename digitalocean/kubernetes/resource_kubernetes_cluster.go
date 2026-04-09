@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -187,6 +188,25 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
+						},
+					},
+				},
+			},
+
+			"sso": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"required": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
 						},
 					},
 				},
@@ -430,6 +450,7 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		HA:           d.Get("ha").(bool),
 		Tags:         tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
 		NodePools:    poolCreateRequests,
+		SSO:          expandSSOOptsIfSet(d),
 	}
 
 	if maint, ok := d.GetOk("maintenance_policy"); ok {
@@ -579,6 +600,10 @@ func digitaloceanKubernetesClusterRead(
 		return diag.Errorf("[DEBUG] Error setting cluster_autoscaler_configuration - error: %#v", err)
 	}
 
+	if err := d.Set("sso", flattenSSOOpts(cluster.SSO)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting sso - error: %#v", err)
+	}
+
 	// find the default node pool from all the pools in the cluster
 	// the default node pool has a custom tag terraform:default-node-pool
 	foundDefaultNodePool := false
@@ -635,7 +660,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	// Figure out the changes and then call the appropriate API methods
 	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha",
 		controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField, amdGpuDevicePluginField,
-		amdGpuDeviceMetricsExporterPluginField, nvidiaGpuDevicePluginField, rdmaSharedDevicePluginField) {
+		amdGpuDeviceMetricsExporterPluginField, nvidiaGpuDevicePluginField, rdmaSharedDevicePluginField, "sso") {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
 			Name:                              d.Get("name").(string),
@@ -650,6 +675,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 			NvidiaGpuDevicePlugin:             expandNvidiaGpuDevicePluginOpts(d.Get(nvidiaGpuDevicePluginField).([]interface{})),
 			RdmaSharedDevicePlugin:            expandRdmaSharedDevicePluginOpts(d.Get(rdmaSharedDevicePluginField).([]interface{})),
 			ClusterAutoscalerConfiguration:    expandCAConfigOptsForUpdate(d.GetChange("cluster_autoscaler_configuration")),
+			SSO:                               expandSSOOptsIfSet(d),
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {
@@ -850,7 +876,7 @@ func waitForKubernetesClusterCreate(client *godo.Client, d *schema.ResourceData)
 
 		if cluster.Status.State == "error" {
 			ticker.Stop()
-			return nil, fmt.Errorf(cluster.Status.Message)
+			return nil, errors.New(cluster.Status.Message)
 		}
 
 		if n > timeout {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -14,6 +15,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
+
+func isTransientNfsActionError(err error) bool {
+	if strings.Contains(strings.ToLower(err.Error()), "timeout") {
+		return true
+	}
+
+	if doErr, ok := err.(*godo.ErrorResponse); ok && doErr.Response != nil {
+		status := doErr.Response.StatusCode
+		return status == 409 || status == 429 || status >= 500
+	}
+
+	return false
+}
 
 func ResourceDigitalOceanNfsAttachment() *schema.Resource {
 	return &schema.Resource{
@@ -60,22 +74,29 @@ func resourceDigitalOceanNfsAttachmentCreate(ctx context.Context, d *schema.Reso
 		return diag.Errorf("Error retrieving share: %s", err)
 	}
 
-	// If share is attached to a different VPC, detach first
+	// If share is attached to a different VPC, use reassign
 	if len(share.VpcIDs) > 0 && share.VpcIDs[0] != vpcId {
-		log.Printf("[DEBUG] Detaching share (%s) from VPC (%s) before attaching to (%s)", shareId, share.VpcIDs[0], vpcId)
-		_, _, err := client.NfsActions.Detach(context.Background(), shareId, share.VpcIDs[0], region)
+		err := retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
+			log.Printf("[DEBUG] Reassigning share (%s) from VPC (%s) to VPC (%s)", shareId, share.VpcIDs[0], vpcId)
+
+			err := reassignNfs(ctx, client, shareId, region, share.VpcIDs[0], vpcId)
+			if err != nil {
+				retryErr := fmt.Errorf("[WARN] Error reassigning share (%s) from VPC (%s) to VPC (%s): %s", shareId, share.VpcIDs[0], vpcId, err)
+				if isTransientNfsActionError(err) {
+					return retry.RetryableError(retryErr)
+				}
+
+				return retry.NonRetryableError(retryErr)
+			}
+
+			return nil
+		})
+
 		if err != nil {
-			return diag.Errorf("Error detaching share from existing VPC: %s", err)
+			return diag.Errorf("Error reassigning share after retry timeout: %s", err)
 		}
-
-		if err = waitForNfsDetach(ctx, client, shareId, region, share.VpcIDs[0]); err != nil {
-			return diag.Errorf("Error waiting for detach: %s", err)
-		}
-	}
-
-	if len(share.VpcIDs) == 0 || share.VpcIDs[0] != vpcId {
-
-		// Only one share can be attached at one time to a single vpc.
+	} else if len(share.VpcIDs) == 0 {
+		// Share is not attached to any VPC, attach it to the target VPC
 		err := retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
 
 			log.Printf("[DEBUG] Attaching Share (%s) to VPC (%s)", shareId, vpcId)

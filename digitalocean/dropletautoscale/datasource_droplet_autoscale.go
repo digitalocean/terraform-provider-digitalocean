@@ -123,6 +123,12 @@ func DataSourceDigitalOceanDropletAutoscale() *schema.Resource {
 							Computed:    true,
 							Description: "Droplet user data",
 						},
+						"public_networking": {
+							Type:        schema.TypeBool,
+							Computed:    true,
+							Optional:    true,
+							Description: "Enables public networking for the Droplet. By default, this is always enabled on new Droplets, but by explicitly setting it to false, you can create a Droplet with public networking entirely disabled.",
+						},
 					},
 				},
 			},
@@ -248,6 +254,9 @@ func flattenTemplate(template *godo.DropletAutoscaleResourceTemplate) []map[stri
 		r["project_id"] = template.ProjectID
 		r["ipv6"] = template.IPV6
 		r["user_data"] = template.UserData
+		if template.PublicNetworking != nil {
+			r["public_networking"] = *template.PublicNetworking
+		}
 
 		tagSet := schema.NewSet(schema.HashString, []interface{}{})
 		for _, tag := range template.Tags {

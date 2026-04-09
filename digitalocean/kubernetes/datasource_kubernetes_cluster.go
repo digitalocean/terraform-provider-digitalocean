@@ -223,6 +223,25 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"sso": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+						"required": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"node_pool": {
 				Type:     schema.TypeList,
 				Computed: true,

@@ -500,6 +500,55 @@ func TestAccDigitalOceanKubernetesCluster_ClusterAutoscalerConfiguration(t *test
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_SSO(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	ssoEnabledFalse := `
+		sso {
+			enabled = false
+		}
+	`
+
+	ssoEnabledTrueRequiredFalse := `
+		sso {
+			enabled  = true
+			required = false
+		}
+	`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				// regression test for configs with no sso block.
+				Config: testAccDigitalOceanKubernetesConfigSSO(testClusterVersionLatest, rName, ""),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckNoResourceAttr("digitalocean_kubernetes_cluster.foobar", "sso.0.enabled"),
+				),
+			},
+			{
+				Config: testAccDigitalOceanKubernetesConfigSSO(testClusterVersionLatest, rName, ssoEnabledFalse),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "sso.0.enabled", "false"),
+				),
+			},
+			{
+				Config: testAccDigitalOceanKubernetesConfigSSO(testClusterVersionLatest, rName, ssoEnabledTrueRequiredFalse),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "sso.0.enabled", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "sso.0.required", "false"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
 	rName := acceptance.RandomTestName()
 	var k8s godo.KubernetesCluster
@@ -1138,6 +1187,25 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   }
 }
 `, testClusterVersion, rName, controlPlaneFirewall)
+}
+
+func testAccDigitalOceanKubernetesConfigSSO(testClusterVersion string, rName string, sso string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    = "%s"
+  region  = "lon1"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
+
+%s
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+`, testClusterVersion, rName, sso)
 }
 
 func testAccDigitalOceanKubernetesConfigBasic2(testClusterVersion string, rName string) string {

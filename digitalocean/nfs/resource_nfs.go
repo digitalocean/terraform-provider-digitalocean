@@ -230,6 +230,27 @@ func switchNfsPerformanceTier(ctx context.Context, client *godo.Client, id, regi
 	return nil
 }
 
+// reassignNfs reassigns an NFS share from one VPC to another
+// and waits for the operation to complete
+func reassignNfs(ctx context.Context, client *godo.Client, id, region, fromVpcID, toVpcID string) error {
+	log.Printf("[INFO] Reassigning NFS share %s from VPC %s to VPC %s", id, fromVpcID, toVpcID)
+
+	// Initiate the reassign
+	_, _, err := client.NfsActions.Reassign(ctx, id, fromVpcID, toVpcID)
+	if err != nil {
+		return fmt.Errorf("error reassigning share: %s", err)
+	}
+
+	// Wait for the operation to complete
+	err = waitForNfsAttach(ctx, client, id, region, toVpcID)
+	if err != nil {
+		return fmt.Errorf("error waiting for reassign to complete: %s", err)
+	}
+
+	log.Printf("[INFO] Successfully reassigned NFS share %s from VPC %s to VPC %s", id, fromVpcID, toVpcID)
+	return nil
+}
+
 func resourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 	region := ""
