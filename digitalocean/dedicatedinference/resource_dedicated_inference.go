@@ -46,13 +46,13 @@ func ResourceDigitalOceanDedicatedInference() *schema.Resource {
 				Description:  "The region slug where the dedicated inference endpoint will be deployed.",
 				ValidateFunc: validation.NoZeroValues,
 			},
-		"enable_public_endpoint": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			ForceNew:    true,
-			Default:     false,
-			Description: "Whether to enable a public HTTPS endpoint for the dedicated inference endpoint. This field is immutable after creation.",
-		},
+			"enable_public_endpoint": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				ForceNew:    true,
+				Default:     false,
+				Description: "Whether to enable a public HTTPS endpoint for the dedicated inference endpoint. This field is immutable after creation.",
+			},
 			"vpc_uuid": {
 				Type:         schema.TypeString,
 				Optional:     true,
@@ -177,9 +177,6 @@ func resourceDigitalOceanDedicatedInferenceCreate(ctx context.Context, d *schema
 	if err := waitForDedicatedInferenceReady(ctx, client, di.ID); err != nil {
 		return diag.FromErr(fmt.Errorf("dedicated inference endpoint (%s) did not become ready: %w", di.ID, err))
 	}
-
-	log.Printf("[DEBUG] DedicatedInference %s is active, waiting 2 minutes for stabilization before proceeding", di.ID)
-	time.Sleep(2 * time.Minute)
 
 	return resourceDigitalOceanDedicatedInferenceRead(ctx, d, meta)
 }
