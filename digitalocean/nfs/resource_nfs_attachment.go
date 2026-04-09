@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -14,6 +15,19 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
+
+func isTransientNfsActionError(err error) bool {
+	if strings.Contains(strings.ToLower(err.Error()), "timeout") {
+		return true
+	}
+
+	if doErr, ok := err.(*godo.ErrorResponse); ok && doErr.Response != nil {
+		status := doErr.Response.StatusCode
+		return status == 409 || status == 429 || status >= 500
+	}
+
+	return false
+}
 
 func ResourceDigitalOceanNfsAttachment() *schema.Resource {
 	return &schema.Resource{
@@ -67,8 +81,12 @@ func resourceDigitalOceanNfsAttachmentCreate(ctx context.Context, d *schema.Reso
 
 			err := reassignNfs(ctx, client, shareId, region, share.VpcIDs[0], vpcId)
 			if err != nil {
-				return retry.NonRetryableError(
-					fmt.Errorf("[WARN] Error reassigning share (%s) from VPC (%s) to VPC (%s): %s", shareId, share.VpcIDs[0], vpcId, err))
+				retryErr := fmt.Errorf("[WARN] Error reassigning share (%s) from VPC (%s) to VPC (%s): %s", shareId, share.VpcIDs[0], vpcId, err)
+				if isTransientNfsActionError(err) {
+					return retry.RetryableError(retryErr)
+				}
+
+				return retry.NonRetryableError(retryErr)
 			}
 
 			return nil
