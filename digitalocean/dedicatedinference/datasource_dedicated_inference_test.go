@@ -40,6 +40,7 @@ func TestAccDataSourceDigitalOceanDedicatedInference_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("data.digitalocean_dedicated_inference.test", "model_deployments.#", "1"),
 					resource.TestCheckResourceAttr("data.digitalocean_dedicated_inference.test", "model_deployments.0.model_slug", testDIModelSlug),
 					resource.TestCheckResourceAttr("data.digitalocean_dedicated_inference.test", "model_deployments.0.model_provider", testDIModelProvider),
+					resource.TestCheckResourceAttr("data.digitalocean_dedicated_inference.test", "model_deployments.0.provider_model_id", testDIProviderModelID),
 					resource.TestCheckResourceAttr("data.digitalocean_dedicated_inference.test", "model_deployments.0.accelerators.#", "1"),
 					resource.TestCheckResourceAttr("data.digitalocean_dedicated_inference.test", "model_deployments.0.accelerators.0.accelerator_slug", testDIAcceleratorSlug),
 					resource.TestCheckResourceAttrSet("data.digitalocean_dedicated_inference.test", "created_at"),
@@ -59,8 +60,9 @@ resource "digitalocean_dedicated_inference" "test" {
   enable_public_endpoint = true
 
   model_deployments {
-    model_slug     = "%s"
-    model_provider = "%s"
+    model_slug        = "%s"
+    model_provider    = "%s"
+    provider_model_id = "%s"
 
     accelerators {
       accelerator_slug = "%s"
@@ -73,5 +75,5 @@ resource "digitalocean_dedicated_inference" "test" {
 data "digitalocean_dedicated_inference" "test" {
   id = digitalocean_dedicated_inference.test.id
 }
-`, name, testDIRegion, vpcUUID, testDIModelSlug, testDIModelProvider, testDIAcceleratorSlug, testDIAcceleratorType)
+`, name, testDIRegion, vpcUUID, testDIModelSlug, testDIModelProvider, testDIProviderModelID, testDIAcceleratorSlug, testDIAcceleratorType)
 }

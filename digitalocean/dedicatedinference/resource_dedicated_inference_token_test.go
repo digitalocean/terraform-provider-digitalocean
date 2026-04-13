@@ -91,8 +91,9 @@ resource "digitalocean_dedicated_inference" "test" {
   enable_public_endpoint = true
 
   model_deployments {
-    model_slug     = "%s"
-    model_provider = "%s"
+    model_slug        = "%s"
+    model_provider    = "%s"
+    provider_model_id = "%s"
 
     accelerators {
       accelerator_slug = "%s"
@@ -106,5 +107,5 @@ resource "digitalocean_dedicated_inference_token" "test" {
   dedicated_inference_id = digitalocean_dedicated_inference.test.id
   name                   = "%s"
 }
-`, diName, testDIRegion, vpcUUID, testDIModelSlug, testDIModelProvider, testDIAcceleratorSlug, testDIAcceleratorType, tokenName)
+`, diName, testDIRegion, vpcUUID, testDIModelSlug, testDIModelProvider, testDIProviderModelID, testDIAcceleratorSlug, testDIAcceleratorType, tokenName)
 }

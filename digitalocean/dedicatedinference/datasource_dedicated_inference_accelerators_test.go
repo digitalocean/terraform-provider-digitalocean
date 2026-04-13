@@ -56,8 +56,9 @@ resource "digitalocean_dedicated_inference" "test" {
   enable_public_endpoint = true
 
   model_deployments {
-    model_slug     = "%s"
-    model_provider = "%s"
+    model_slug        = "%s"
+    model_provider    = "%s"
+    provider_model_id = "%s"
 
     accelerators {
       accelerator_slug = "%s"
@@ -70,7 +71,7 @@ resource "digitalocean_dedicated_inference" "test" {
 data "digitalocean_dedicated_inference_accelerators" "test" {
   dedicated_inference_id = digitalocean_dedicated_inference.test.id
 }
-`, name, testDIRegion, vpcUUID, testDIModelSlug, testDIModelProvider, testDIAcceleratorSlug, testDIAcceleratorType)
+`, name, testDIRegion, vpcUUID, testDIModelSlug, testDIModelProvider, testDIProviderModelID, testDIAcceleratorSlug, testDIAcceleratorType)
 }
 
 func testAccDataSourceDedicatedInferenceAcceleratorsFilterConfig(name, vpcUUID string) string {
@@ -82,8 +83,9 @@ resource "digitalocean_dedicated_inference" "test" {
   enable_public_endpoint = true
 
   model_deployments {
-    model_slug     = "%s"
-    model_provider = "%s"
+    model_slug        = "%s"
+    model_provider    = "%s"
+    provider_model_id = "%s"
 
     accelerators {
       accelerator_slug = "%s"
@@ -101,5 +103,5 @@ data "digitalocean_dedicated_inference_accelerators" "by_slug" {
     values = ["%s"]
   }
 }
-`, name, testDIRegion, vpcUUID, testDIModelSlug, testDIModelProvider, testDIAcceleratorSlug, testDIAcceleratorType, testDIAcceleratorSlug)
+`, name, testDIRegion, vpcUUID, testDIModelSlug, testDIModelProvider, testDIProviderModelID, testDIAcceleratorSlug, testDIAcceleratorType, testDIAcceleratorSlug)
 }
