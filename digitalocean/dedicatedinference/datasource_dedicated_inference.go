@@ -80,7 +80,7 @@ func DataSourceDigitalOceanDedicatedInference() *schema.Resource {
 						"provider_model_id": {
 							Type:        schema.TypeString,
 							Computed:    true,
-							Description: "The provider model ID.",
+							Description: "The provider-specific model ID.",
 						},
 						"accelerators": {
 							Type:        schema.TypeList,
