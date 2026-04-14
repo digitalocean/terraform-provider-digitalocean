@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/aws/aws-sdk-go v1.42.18
-	github.com/digitalocean/godo v1.184.0
+	github.com/digitalocean/godo v1.184.1-0.20260410132851-6a015e2e3b32
 	github.com/hashicorp/awspolicyequivalence v1.5.0
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-uuid v1.0.3
