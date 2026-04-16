@@ -59,6 +59,13 @@ func dedicatedInferenceListItemSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Description: "The date and time when the dedicated inference endpoint was last updated.",
 		},
+		"provider_model_id": {
+			Type:        schema.TypeList,
+			Description: "The list of provider model IDs for the dedicated inference endpoint.",
+			Elem: &schema.Schema{
+				Type: schema.TypeString,
+			},
+		},
 	}
 }
 

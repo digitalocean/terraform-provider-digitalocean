@@ -387,8 +387,9 @@ func expandModelDeployments(raw []interface{}) []*godo.DedicatedInferenceModelRe
 	for _, item := range raw {
 		m := item.(map[string]interface{})
 		deployment := &godo.DedicatedInferenceModelRequest{
-			ModelSlug:     m["model_slug"].(string),
-			ModelProvider: m["model_provider"].(string),
+			ModelSlug:       m["model_slug"].(string),
+			ModelProvider:   m["model_provider"].(string),
+			ProviderModelID: m["provider_model_id"].(string),
 		}
 		if v, ok := m["model_id"].(string); ok && v != "" {
 			deployment.ModelID = v
