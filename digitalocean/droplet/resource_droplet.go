@@ -214,8 +214,8 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 			"public_networking": {
 				Type:        schema.TypeBool,
 				Optional:    true,
+				Computed:    true,
 				ForceNew:    true,
-				Default:     true,
 				Description: "Enables public networking for the Droplet. By default, this is always enabled on new droplets, but by explicitly setting it to false, you can create a droplet with public networking entirely disabled.",
 			},
 
@@ -478,6 +478,7 @@ func setDropletAttributes(d *schema.ResourceData, droplet *godo.Droplet) error {
 	d.Set("ipv4_address", FindIPv4AddrByType(droplet, "public"))
 	d.Set("ipv4_address_private", FindIPv4AddrByType(droplet, "private"))
 	d.Set("ipv6_address", strings.ToLower(FindIPv6AddrByType(droplet, "public")))
+	d.Set("public_networking", FindIPv4AddrByType(droplet, "public") != "")
 
 	if features := droplet.Features; features != nil {
 		d.Set("backups", slices.Contains(features, "backups"))

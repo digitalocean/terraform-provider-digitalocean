@@ -825,9 +825,9 @@ func TestAccDigitalOceanDroplet_withPublicNetworkingSetFalse(t *testing.T) {
 	})
 }
 
-// TestAccDigitalOceanDroplet_withPublicNetworkingSetTrue tests that no error is returned
+// TestAccDigitalOceanDroplet_withPublicNetworkingNotSet tests that no error is returned
 // from the API when creating a Droplet with the "public_networking" field is explicitly not set,
-// defaulting to true.
+// and that the computed value is true (public networking is enabled by default).
 func TestAccDigitalOceanDroplet_withPublicNetworkingNotSet(t *testing.T) {
 	var droplet godo.Droplet
 	keyName := acceptance.RandomTestName()
