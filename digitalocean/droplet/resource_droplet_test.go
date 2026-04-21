@@ -819,6 +819,16 @@ func TestAccDigitalOceanDroplet_withPublicNetworkingSetFalse(t *testing.T) {
 						"digitalocean_droplet.foobar", "public_networking", "false"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "image", "rancheros"),
+					// Verify against the live API object that the droplet was
+					// actually created with no public NIC — guards against a
+					// regression where the attribute is correct in state but
+					// the API override is silently dropped.
+					func(s *terraform.State) error {
+						if ip, _ := droplet.PublicIPv4(); ip != "" {
+							return fmt.Errorf("expected no public IPv4, got %q", ip)
+						}
+						return nil
+					},
 				),
 			},
 		},

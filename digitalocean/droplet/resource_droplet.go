@@ -345,9 +345,12 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		opts.PrivateNetworking = attr.(bool)
 	}
 
-	if attr, ok := d.GetOk("public_networking"); ok {
-		b := attr.(bool)
-		opts.PublicNetworking = &b
+	// GetOkExists (rather than GetOk) so that an explicit `false` is
+	// forwarded to the API. GetOk treats the zero value (false) as
+	// "unset" and would silently drop the override, leaving the droplet
+	// with a public NIC. Mirrors the droplet_agent pattern below.
+	if attr, ok := d.GetOkExists("public_networking"); ok {
+		opts.PublicNetworking = godo.PtrTo(attr.(bool))
 	}
 
 	if attr, ok := d.GetOk("user_data"); ok {
