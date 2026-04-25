@@ -230,13 +230,19 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
+							Required: true,
 						},
 						"required": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Computed: true,
+						},
+						"issuer_url": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"client_id": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -265,6 +271,10 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"kube_config_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 			"kube_config": kubernetesConfigSchema(),
 
 			"auto_upgrade": {
