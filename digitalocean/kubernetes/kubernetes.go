@@ -647,10 +647,10 @@ func expandSSOOptsIfSet(d *schema.ResourceData) *godo.KubernetesClusterSSO {
 	ssoConfig := &godo.KubernetesClusterSSO{}
 
 	if v, isSet := d.GetOkExists("sso.0.enabled"); isSet {
-		ssoConfig.Enabled = godo.PtrTo(v.(bool))
+		ssoConfig.Enabled = v.(bool)
 	}
 	if v, isSet := d.GetOkExists("sso.0.required"); isSet {
-		ssoConfig.Required = godo.PtrTo(v.(bool))
+		ssoConfig.Required = v.(bool)
 	}
 
 	return ssoConfig

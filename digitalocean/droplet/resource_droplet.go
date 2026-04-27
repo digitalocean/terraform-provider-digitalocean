@@ -345,9 +345,9 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		opts.PrivateNetworking = attr.(bool)
 	}
 
-	if attr, ok := d.GetOk("public_networking"); ok {
-		b := attr.(bool)
-		opts.PublicNetworking = &b
+	pubNet := d.Get("public_networking").(bool)
+	if !pubNet {
+		opts.PublicNetworking = godo.PtrTo(false)
 	}
 
 	if attr, ok := d.GetOk("user_data"); ok {
