@@ -639,16 +639,18 @@ func flattenCAConfigOpts(opts *godo.KubernetesClusterAutoscalerConfiguration) []
 	return result
 }
 
-func expandSSOOpts(d *schema.ResourceData) *godo.KubernetesClusterSSO {
+func expandSSOOpts(sso []interface{}) *godo.KubernetesClusterSSO {
 	ssoConfig := &godo.KubernetesClusterSSO{}
-	if _, isSet := d.GetOk("sso"); !isSet {
+	if len(sso) == 0 || sso[0] == nil {
 		return ssoConfig
 	}
 
-	ssoConfig.Enabled = d.Get("sso.0.enabled").(bool)
-	ssoConfig.Required = d.Get("sso.0.required").(bool)
-	ssoConfig.IssuerURL = d.Get("sso.0.issuer_url").(string)
-	ssoConfig.ClientID = d.Get("sso.0.client_id").(string)
+	ssoMap := sso[0].(map[string]interface{})
+
+	ssoConfig.Enabled = ssoMap["enabled"].(bool)
+	ssoConfig.Required = ssoMap["required"].(bool)
+	ssoConfig.IssuerURL = ssoMap["issuer_url"].(string)
+	ssoConfig.ClientID = ssoMap["client_id"].(string)
 
 	return ssoConfig
 }

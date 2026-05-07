@@ -196,6 +196,8 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			"sso": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -456,7 +458,7 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		HA:           d.Get("ha").(bool),
 		Tags:         tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
 		NodePools:    poolCreateRequests,
-		SSO:          expandSSOOpts(d),
+		SSO:          expandSSOOpts(d.Get("sso").([]interface{})),
 	}
 
 	if maint, ok := d.GetOk("maintenance_policy"); ok {
@@ -681,7 +683,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 			NvidiaGpuDevicePlugin:             expandNvidiaGpuDevicePluginOpts(d.Get(nvidiaGpuDevicePluginField).([]interface{})),
 			RdmaSharedDevicePlugin:            expandRdmaSharedDevicePluginOpts(d.Get(rdmaSharedDevicePluginField).([]interface{})),
 			ClusterAutoscalerConfiguration:    expandCAConfigOptsForUpdate(d.GetChange("cluster_autoscaler_configuration")),
-			SSO:                               expandSSOOpts(d),
+			SSO:                               expandSSOOpts(d.Get("sso").([]interface{})),
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {
