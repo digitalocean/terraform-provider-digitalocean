@@ -640,10 +640,11 @@ func flattenCAConfigOpts(opts *godo.KubernetesClusterAutoscalerConfiguration) []
 }
 
 func expandSSOOpts(sso []interface{}) *godo.KubernetesClusterSSO {
-	ssoConfig := &godo.KubernetesClusterSSO{}
 	if len(sso) == 0 || sso[0] == nil {
-		return ssoConfig
+		return nil
 	}
+
+	ssoConfig := &godo.KubernetesClusterSSO{}
 
 	ssoMap := sso[0].(map[string]interface{})
 
