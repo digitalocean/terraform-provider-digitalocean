@@ -93,6 +93,39 @@ func TestAccDigitalOceanNfsAttachment_VPCAlreadyHasShare(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanNfsAttachment_Reassign(t *testing.T) {
+	var share godo.Nfs
+	shareName := acceptance.RandomTestName("nfs-reassign")
+	vpc1Name := acceptance.RandomTestName("vpc-1")
+	vpc2Name := acceptance.RandomTestName("vpc-2")
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanNfsAttachmentDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanNfsAttachmentConfig_reassign(shareName, vpc1Name, vpc2Name, "vpc1"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanNfsExists("digitalocean_nfs.foobar", &share),
+					testAccCheckDigitalOceanNfsAttachmentExists("digitalocean_nfs_attachment.foobar"),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_nfs_attachment.foobar", "vpc_id", "digitalocean_vpc.vpc1", "id"),
+				),
+			},
+			{
+				Config: testAccCheckDigitalOceanNfsAttachmentConfig_reassign(shareName, vpc1Name, vpc2Name, "vpc2"),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanNfsExists("digitalocean_nfs.foobar", &share),
+					testAccCheckDigitalOceanNfsAttachmentExists("digitalocean_nfs_attachment.foobar"),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_nfs_attachment.foobar", "vpc_id", "digitalocean_vpc.vpc2", "id"),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDigitalOceanNfsAttachmentExists(rn string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[rn]
@@ -234,4 +267,35 @@ resource "digitalocean_nfs_attachment" "second" {
   share_id = digitalocean_nfs.second.id
   region   = "atl1"
 }`, firstVpcName, secondVpcName, firstShareName, secondShareName)
+}
+
+// testAccCheckDigitalOceanNfsAttachmentConfig_reassign generates config for reassign test, attaching to specified VPC
+func testAccCheckDigitalOceanNfsAttachmentConfig_reassign(shareName, vpc1Name, vpc2Name, attachToVpc string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_vpc" "vpc1" {
+  name   = "%s"
+  region = "atl1"
+}
+
+resource "digitalocean_vpc" "vpc2" {
+  name   = "%s"
+  region = "atl1"
+}
+
+resource "digitalocean_nfs" "foobar" {
+  name   = "%s"
+  region = "atl1"
+  size   = 50
+  vpc_id = digitalocean_vpc.vpc1.id
+
+  lifecycle {
+    ignore_changes = [vpc_id]
+  }
+}
+
+resource "digitalocean_nfs_attachment" "foobar" {
+  vpc_id   = digitalocean_vpc.%s.id
+  share_id = digitalocean_nfs.foobar.id
+  region   = "atl1"
+}`, vpc1Name, vpc2Name, shareName, attachToVpc)
 }

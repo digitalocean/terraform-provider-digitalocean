@@ -72,6 +72,9 @@ The following arguments are supported:
    set it to `true`.
 * `graceful_shutdown` (Optional) - A boolean indicating whether the droplet
    should be gracefully shut down before it is deleted.
+* `public_networking` (Optional) - A boolean indicating whether to enables public networking for the Droplet or not.
+   By default, this is always enabled on new droplets.
+   But, by explicitly setting it to false, you can create a droplet with public networking entirely disabled.
 
 ~> **NOTE:** If you use `volume_ids` on a Droplet, Terraform will assume management over the full set volumes for the instance, and treat additional volumes as a drift. For this reason, `volume_ids` must not be mixed with external `digitalocean_volume_attachment` resources for a given instance.
 

@@ -96,6 +96,10 @@ resource "digitalocean_kubernetes_cluster" "foo" {
     expanders                        = ["priority"]
   }
 
+  sso {
+    enabled = true
+  }
+
   routing_agent {
     enabled = true
   }

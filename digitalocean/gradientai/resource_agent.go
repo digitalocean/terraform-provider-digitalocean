@@ -62,6 +62,11 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 				Description: "Ids of the knowledge base(s) to attach to the agent",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
+			"workspace_uuid": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Identifier for the workspace",
+			},
 			"open_ai_key_uuid": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -269,6 +274,7 @@ func resourceDigitalOceanAgentCreate(ctx context.Context, d *schema.ResourceData
 		ProjectId:         d.Get("project_id").(string),
 		Region:            d.Get("region").(string),
 		Tags:              convertToStringSlice(d.Get("tags")),
+		WorkspaceUuid:     d.Get("workspace_uuid").(string),
 	}
 
 	agent, _, err := client.GradientAI.CreateAgent(ctx, agentRequest)

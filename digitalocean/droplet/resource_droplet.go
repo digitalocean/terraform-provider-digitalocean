@@ -211,6 +211,14 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 				Deprecated: "This parameter has been deprecated. Use `vpc_uuid` instead to specify a VPC network for the Droplet. If no `vpc_uuid` is provided, the Droplet will be placed in your account's default VPC for the region.",
 			},
 
+			"public_networking": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				ForceNew:    true,
+				Computed:    true,
+				Description: "Enables public networking for the Droplet. By default, this is always enabled on new droplets, but by explicitly setting it to false, you can create a droplet with public networking entirely disabled.",
+			},
+
 			"ipv4_address": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -335,6 +343,12 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	if attr, ok := d.GetOk("private_networking"); ok {
 		opts.PrivateNetworking = attr.(bool)
+	}
+
+	if attr, ok := d.GetOkExists("public_networking"); ok {
+		if !attr.(bool) {
+			opts.PublicNetworking = godo.PtrTo(false)
+		}
 	}
 
 	if attr, ok := d.GetOk("user_data"); ok {
@@ -462,9 +476,11 @@ func setDropletAttributes(d *schema.ResourceData, droplet *godo.Droplet) error {
 	d.Set("created_at", droplet.Created)
 	d.Set("vpc_uuid", droplet.VPCUUID)
 
-	d.Set("ipv4_address", FindIPv4AddrByType(droplet, "public"))
+	publicIPv4 := FindIPv4AddrByType(droplet, "public")
+	d.Set("ipv4_address", publicIPv4)
 	d.Set("ipv4_address_private", FindIPv4AddrByType(droplet, "private"))
 	d.Set("ipv6_address", strings.ToLower(FindIPv6AddrByType(droplet, "public")))
+	d.Set("public_networking", publicIPv4 != "")
 
 	if features := droplet.Features; features != nil {
 		d.Set("backups", slices.Contains(features, "backups"))
