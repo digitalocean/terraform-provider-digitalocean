@@ -36,4 +36,4 @@ Or use the value from `terraform output attach_this_certificate_name_to_glb_doma
 
 ## If you start from a single certificate resource
 
-Use `terraform state mv` to split one resource into `old` / `new` addresses, or add a second resource and import — pair with support on the first migration if needed. See `docs/design/glb-certificate-terraform-rotation.md` section **Immediate safe process**.
+Use `terraform state mv` to split one resource into `old` / `new` addresses, or add a second resource and import — pair with support on the first migration if needed.
