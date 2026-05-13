@@ -81,7 +81,10 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			"ha": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				// Default is version-dependent: true for DOKS >= 1.36, false otherwise (set in CustomizeDiff)
+				Computed: true,
+				// When omitted from config, create sends nil HA so the API applies its version-dependent
+				// default; read stores the actual value. Computed avoids perpetual diff (config zero false
+				// vs state true on newer DOKS). Explicit ha = true/false is still honored (GetOkExists).
 			},
 
 			"registry_integration": {
