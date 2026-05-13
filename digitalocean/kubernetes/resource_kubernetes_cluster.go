@@ -34,7 +34,8 @@ const (
 )
 
 // ExpandHAFromConfig returns the HA value for the create request. When ha is not
-// specified in config, returns nil so the API applies its version-dependent default.
+// specified in config (ok from GetOkExists is false), returns nil so the API applies
+// its version-dependent default. When ok is true, value may be false (explicit HA off).
 func ExpandHAFromConfig(value interface{}, ok bool) *bool {
 	if !ok {
 		return nil
@@ -468,7 +469,8 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		NodePools:    poolCreateRequests,
 		SSO:          expandSSOOpts(d.Get("sso").([]interface{})),
 	}
-	ha, haOk := d.GetOk("ha")
+	// GetOkExists: optional bool without Default — GetOk would treat ha = false as unset.
+	ha, haOk := d.GetOkExists("ha")
 	opts.HA = ExpandHAFromConfig(ha, haOk)
 
 	if maint, ok := d.GetOk("maintenance_policy"); ok {
