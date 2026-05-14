@@ -39,6 +39,7 @@ Or add `token = "..."` to the provider block in main.tf.
 
 ```bash
 cd /Users/pyadagiri/dev/digitalocean/terraform-provider-digitalocean/examples/ha-default-test
+export TF_LOG=TRACE # enable debug logs
 terraform init
 terraform plan
 terraform apply

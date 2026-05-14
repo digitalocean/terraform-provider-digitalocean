@@ -17,12 +17,14 @@ provider "digitalocean" {
 data "digitalocean_kubernetes_versions" "test" {}
 
 resource "digitalocean_kubernetes_cluster" "test" {
-  name    = "ha-default-test-1"
+  name    = "terra-ha-true1"
   region  = "nyc1"
-  version = data.digitalocean_kubernetes_versions.test.latest_version
-
+  version = "1.35.1-do.6"
+#  "1.36.0-do.0"
+# "1.35.1-do.6"
   # ha is intentionally OMITTED - API applies version-dependent default
-  # ha = true
+ # ha = true
+ # ha = false
   node_pool {
     name       = "default"
     size       = "s-1vcpu-2gb"
