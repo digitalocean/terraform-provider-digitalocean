@@ -220,7 +220,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name                 = "%s"
   region               = "nyc3"
   ha                   = false
-  registry_integration  = true
+  registry_integration = true
   version              = data.digitalocean_kubernetes_versions.test.latest_version
 
   node_pool {
