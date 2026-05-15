@@ -33,6 +33,16 @@ const (
 	rdmaSharedDevicePluginField            = "rdma_shared_device_plugin"
 )
 
+// ExpandHAFromConfig returns the HA value for the create request. When ha is not
+// specified in config (ok from GetOkExists is false), returns nil so the API applies
+// its version-dependent default. When ok is true, value may be false (explicit HA off).
+func ExpandHAFromConfig(value interface{}, ok bool) *bool {
+	if !ok {
+		return nil
+	}
+	return godo.PtrTo(value.(bool))
+}
+
 func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanKubernetesClusterCreate,
@@ -71,7 +81,10 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			"ha": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
+				// When omitted from config, create sends nil HA so the API applies its version-dependent
+				// default; read stores the actual value. Computed avoids perpetual diff (config zero false
+				// vs state true on newer DOKS). Explicit ha = true/false is still honored (GetOkExists).
 			},
 
 			"registry_integration": {
@@ -455,11 +468,13 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		RegionSlug:   d.Get("region").(string),
 		VersionSlug:  d.Get("version").(string),
 		SurgeUpgrade: d.Get("surge_upgrade").(bool),
-		HA:           d.Get("ha").(bool),
 		Tags:         tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
 		NodePools:    poolCreateRequests,
 		SSO:          expandSSOOpts(d.Get("sso").([]interface{})),
 	}
+	// GetOkExists: optional bool without Default — GetOk would treat ha = false as unset.
+	ha, haOk := d.GetOkExists("ha")
+	opts.HA = ExpandHAFromConfig(ha, haOk)
 
 	if maint, ok := d.GetOk("maintenance_policy"); ok {
 		maintPolicy, err := expandMaintPolicyOpts(maint.([]interface{}))
