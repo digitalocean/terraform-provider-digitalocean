@@ -742,6 +742,10 @@ func resourceDigitalOceanLoadbalancerCreate(ctx context.Context, d *schema.Resou
 		return diag.Errorf("Error waiting for Load Balancer (%s) to become active: %s", d.Get("name"), err)
 	}
 
+	if err := waitForGLBDomainCertificatesIfNeeded(ctx, d, client, loadbalancer.ID); err != nil {
+		return diag.Errorf("Error waiting for Global Load Balancer domain certificate bindings: %s", err)
+	}
+
 	return resourceDigitalOceanLoadbalancerRead(ctx, d, meta)
 }
 
@@ -846,6 +850,12 @@ func resourceDigitalOceanLoadbalancerUpdate(ctx context.Context, d *schema.Resou
 	_, _, err = client.LoadBalancers.Update(context.Background(), d.Id(), lbOpts)
 	if err != nil {
 		return diag.Errorf("Error updating Load Balancer: %s", err)
+	}
+
+	if d.HasChange("domains") {
+		if err := waitForGLBDomainCertificatesIfNeeded(ctx, d, client, d.Id()); err != nil {
+			return diag.Errorf("Error waiting for Global Load Balancer domain certificate bindings after update: %s", err)
+		}
 	}
 
 	return resourceDigitalOceanLoadbalancerRead(ctx, d, meta)
