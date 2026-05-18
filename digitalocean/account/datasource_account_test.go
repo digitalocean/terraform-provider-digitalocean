@@ -20,6 +20,13 @@ func TestAccDataSourceDigitalOceanAccount_Basic(t *testing.T) {
 						"data.digitalocean_account.foobar", "uuid"),
 				),
 			},
+			{
+				Config: testAccCheckDataSourceDigitalOceanAccountConfig_basic,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttrSet(
+						"data.digitalocean_account.foobar", "team_uuid"),
+				),
+			},
 		},
 	})
 }
