@@ -167,9 +167,21 @@ func testAccCheckDigitalOceanCustomModelExists(resourceName string, model *godo.
 }
 
 func testAccCustomModelConfig_basic(name string) string {
-	hfTokenAttr := ""
 	if t := testCustomModelHfToken(); t != "" {
-		hfTokenAttr = fmt.Sprintf("    hf_token    = %q\n", t)
+		return fmt.Sprintf(`
+resource "digitalocean_gradientai_custom_model" "test" {
+  name                        = %q
+  source_type                 = "SOURCE_TYPE_HUGGINGFACE"
+  preferred_gpu_region        = %q
+  accept_terms_and_conditions = true
+
+  source_ref {
+    repo_id     = %q
+    access_type = %q
+    hf_token    = %q
+  }
+}
+`, name, testCustomModelGpuRegion(), testCustomModelRepo(), testCustomModelAccessType(), t)
 	}
 	return fmt.Sprintf(`
 resource "digitalocean_gradientai_custom_model" "test" {
@@ -181,15 +193,29 @@ resource "digitalocean_gradientai_custom_model" "test" {
   source_ref {
     repo_id     = %q
     access_type = %q
-%s  }
+  }
 }
-`, name, testCustomModelGpuRegion(), testCustomModelRepo(), testCustomModelAccessType(), hfTokenAttr)
+`, name, testCustomModelGpuRegion(), testCustomModelRepo(), testCustomModelAccessType())
 }
 
 func testAccCustomModelConfig_updated(name string) string {
-	hfTokenAttr := ""
 	if t := testCustomModelHfToken(); t != "" {
-		hfTokenAttr = fmt.Sprintf("    hf_token    = %q\n", t)
+		return fmt.Sprintf(`
+resource "digitalocean_gradientai_custom_model" "test" {
+  name                        = %q
+  description                 = "updated by terraform acceptance test"
+  source_type                 = "SOURCE_TYPE_HUGGINGFACE"
+  preferred_gpu_region        = %q
+  accept_terms_and_conditions = true
+  tags                        = ["terraform-test", "acceptance"]
+
+  source_ref {
+    repo_id     = %q
+    access_type = %q
+    hf_token    = %q
+  }
+}
+`, name, testCustomModelGpuRegion(), testCustomModelRepo(), testCustomModelAccessType(), t)
 	}
 	return fmt.Sprintf(`
 resource "digitalocean_gradientai_custom_model" "test" {
@@ -203,7 +229,7 @@ resource "digitalocean_gradientai_custom_model" "test" {
   source_ref {
     repo_id     = %q
     access_type = %q
-%s  }
+  }
 }
-`, name, testCustomModelGpuRegion(), testCustomModelRepo(), testCustomModelAccessType(), hfTokenAttr)
+`, name, testCustomModelGpuRegion(), testCustomModelRepo(), testCustomModelAccessType())
 }
