@@ -1,5 +1,14 @@
 # Change Log
 
+## [1.192.0] - 2026-05-19
+
+- #1010 - @SSharma-10 - Update readme
+- #1007 - @venkatranabothu - Add GetCustomModel API
+
+## [1.191.0] - 2026-05-14
+
+- #1005 - Add Serverless Inference APIs
+
 ## [1.190.0] - 2026-05-14
 
 - #1001 - ensure that kubernetes GetKubeConfigWithExpiry fetches a token-based kubeconfig
