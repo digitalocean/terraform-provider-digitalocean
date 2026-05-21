@@ -683,7 +683,6 @@ func appSpecServicesSchema() *schema.Resource {
 		"run_command": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Computed:    true,
 			Description: "An optional run command to override the component's default.",
 		},
 		"http_port": {
@@ -1207,21 +1206,18 @@ func appSpecIngressSchema() *schema.Resource {
 						"match": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"path": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Computed: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"prefix": {
 													Type:     schema.TypeString,
 													Optional: true,
-													Computed: true,
 												},
 											},
 										},
@@ -1229,14 +1225,12 @@ func appSpecIngressSchema() *schema.Resource {
 									"authority": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Computed: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"exact": {
 													Type:     schema.TypeString,
 													Optional: true,
-													Computed: true,
 												},
 											},
 										},
@@ -1247,7 +1241,6 @@ func appSpecIngressSchema() *schema.Resource {
 						"cors": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: appSpecCORSSchema(),
@@ -1256,24 +1249,20 @@ func appSpecIngressSchema() *schema.Resource {
 						"component": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Computed: true,
 									},
 									"preserve_path_prefix": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Computed: true,
 									},
 									"rewrite": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Computed: true,
 									},
 								},
 							},
@@ -1314,19 +1303,16 @@ func appSpecIngressSchema() *schema.Resource {
 			"secure_header": {
 				Type:     schema.TypeList,
 				Optional: true,
-				Computed: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"key": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 						"value": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Computed: true,
 						},
 					},
 				},
