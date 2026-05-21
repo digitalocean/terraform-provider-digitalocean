@@ -30,6 +30,51 @@ const (
 	OpenAIAPIKeysPath            = "/v2/gen-ai/openai/keys"
 	UpdateFunctionRoutePath      = functionRouteBasePath + "/%s"
 	DeleteFunctionRoutePath      = functionRouteBasePath + "/%s"
+	customModelsBasePath         = "/v2/gen-ai/custom_models"
+	customModelImportPath        = customModelsBasePath + "/import"
+	customModelByIDPath          = customModelsBasePath + "/%s"
+	customModelMetadataPath      = customModelsBasePath + "/%s/metadata"
+)
+
+// CustomModelStatus represents the status of a custom model.
+type CustomModelStatus string
+
+const (
+	CustomModelStatusUnspecified CustomModelStatus = "STATUS_UNSPECIFIED"
+	CustomModelStatusImporting   CustomModelStatus = "STATUS_IMPORTING"
+	CustomModelStatusReady       CustomModelStatus = "STATUS_READY"
+	CustomModelStatusFailed      CustomModelStatus = "STATUS_FAILED"
+	CustomModelStatusDeleted     CustomModelStatus = "STATUS_DELETED"
+)
+
+// CustomModelSourceType represents the source from which a custom model was imported.
+type CustomModelSourceType string
+
+const (
+	CustomModelSourceTypeUnspecified  CustomModelSourceType = "SOURCE_TYPE_UNSPECIFIED"
+	CustomModelSourceTypeHuggingFace  CustomModelSourceType = "SOURCE_TYPE_HUGGINGFACE"
+	CustomModelSourceTypeSpacesBucket CustomModelSourceType = "SOURCE_TYPE_SPACES_BUCKET"
+	CustomModelSourceTypeSDKUpload    CustomModelSourceType = "SOURCE_TYPE_SDK_UPLOAD"
+	CustomModelSourceTypeFineTuning   CustomModelSourceType = "SOURCE_TYPE_FINE_TUNING"
+)
+
+// CustomModelSourceRefAccessType represents the access level required for a custom model source repository.
+type CustomModelSourceRefAccessType string
+
+const (
+	CustomModelSourceRefAccessTypeUnspecified CustomModelSourceRefAccessType = "ACCESS_TYPE_UNSPECIFIED"
+	CustomModelSourceRefAccessTypePublic      CustomModelSourceRefAccessType = "ACCESS_TYPE_PUBLIC"
+	CustomModelSourceRefAccessTypePrivate     CustomModelSourceRefAccessType = "ACCESS_TYPE_PRIVATE"
+	CustomModelSourceRefAccessTypeGated       CustomModelSourceRefAccessType = "ACCESS_TYPE_GATED"
+)
+
+// DeleteCustomModelStatus represents the status of a delete custom model operation.
+type DeleteCustomModelStatus string
+
+const (
+	DeleteCustomModelStatusUnspecified DeleteCustomModelStatus = "DELETE_CUSTOM_MODEL_STATUS_UNSPECIFIED"
+	DeleteCustomModelStatusSuccess     DeleteCustomModelStatus = "DELETE_CUSTOM_MODEL_STATUS_SUCCESS"
+	DeleteCustomModelStatusFail        DeleteCustomModelStatus = "DELETE_CUSTOM_MODEL_STATUS_FAIL"
 )
 
 // GradientAIService is an interface for interfacing with the Gradient AI Agent endpoints
@@ -85,6 +130,11 @@ type GradientAIService interface {
 	SearchModels(context.Context, string) ([]string, *Response, error)
 	GetModelByUUID(context.Context, string) (*Model, *Response, error)
 	ListDatacenterRegions(context.Context, *bool, *bool) ([]*DatacenterRegions, *Response, error)
+	ListCustomModels(ctx context.Context, opt *CustomModelListOptions) (*CustomModelListResponse, *Response, error)
+	GetCustomModel(ctx context.Context, uuid string) (*CustomModel, *Response, error)
+	ImportCustomModel(ctx context.Context, importRequest *CustomModelImportRequest) (*CustomModelImportResponse, *Response, error)
+	DeleteCustomModel(ctx context.Context, uuid string) (*CustomModelDeleteResponse, *Response, error)
+	UpdateCustomModelMetadata(ctx context.Context, uuid string, updateRequest *CustomModelMetadataUpdateRequest) (*CustomModel, *Response, error)
 }
 
 var _ GradientAIService = &GradientAIServiceOp{}
@@ -541,6 +591,7 @@ type ChatBot struct {
 // Model represents a Gradient AI Model
 type Model struct {
 	Agreement         *Agreement       `json:"agreement,omitempty"`
+	BenchmarkScore    json.RawMessage  `json:"benchmark_score,omitempty"`
 	Capabilities      []string         `json:"capabilities,omitempty"`
 	ContextWindow     string           `json:"context_window,omitempty"`
 	CreatedAt         *Timestamp       `json:"created_at,omitempty"`
@@ -553,6 +604,7 @@ type Model struct {
 	Name              string           `json:"name,omitempty"`
 	ParameterCount    float64          `json:"parameter_count,omitempty"`
 	ParentUuid        string           `json:"parent_uuid,omitempty"`
+	Pricing           *ModelPricing    `json:"pricing,omitempty"`
 	Provider          string           `json:"provider,omitempty"`
 	Type              string           `json:"type,omitempty"`
 	UpdatedAt         *Timestamp       `json:"updated_at,omitempty"`
@@ -581,6 +633,12 @@ type ModelVersion struct {
 	Major int `json:"major,omitempty"`
 	Minor int `json:"minor,omitempty"`
 	Patch int `json:"patch,omitempty"`
+}
+
+// ModelPricing represents the pricing per million tokens for a model
+type ModelPricing struct {
+	InputPricePerMillion  float64 `json:"input_price_per_million,omitempty"`
+	OutputPricePerMillion float64 `json:"output_price_per_million,omitempty"`
 }
 
 // AgentCreateRequest represents the request to create a new Gradient AI Agent
@@ -1886,6 +1944,251 @@ func (g *GradientAIServiceOp) ListDatacenterRegions(ctx context.Context, servesI
 		return nil, resp, err
 	}
 	return root.DatacenterRegions, resp, nil
+}
+
+// CustomModel represents a user-imported model (from HuggingFace, Spaces, etc.).
+type CustomModel struct {
+	Uuid                 string                         `json:"uuid,omitempty"`
+	Name                 string                         `json:"name,omitempty"`
+	Description          string                         `json:"description,omitempty"`
+	Status               CustomModelStatus              `json:"status,omitempty"`
+	Architecture         string                         `json:"architecture,omitempty"`
+	SourceType           CustomModelSourceType          `json:"source_type,omitempty"`
+	SourceRef            *CustomModelSourceRef          `json:"source_ref,omitempty"`
+	TotalSizeBytes       string                         `json:"total_size_bytes,omitempty"`
+	FileCount            int                            `json:"file_count,omitempty"`
+	License              string                         `json:"license,omitempty"`
+	Tags                 *CustomModelTags               `json:"tags,omitempty"`
+	CreatedAt            *Timestamp                     `json:"created_at,omitempty"`
+	UpdatedAt            *Timestamp                     `json:"updated_at,omitempty"`
+	ActiveDeployments    []*CustomModelActiveDeployment `json:"active_deployments,omitempty"`
+	ContextLength        int                            `json:"context_length,omitempty"`
+	CostEstimatePerMonth int                            `json:"cost_estimate_per_month,omitempty"`
+	InputModalities      []string                       `json:"input_modalities,omitempty"`
+	OutputModalities     []string                       `json:"output_modalities,omitempty"`
+	Parameters           string                         `json:"parameters,omitempty"`
+	TeamId               string                         `json:"team_id,omitempty"`
+	ConfigJson           map[string]any                 `json:"config_json,omitempty"`
+	StorageRegion        string                         `json:"storage_region,omitempty"`
+}
+
+// CustomModelSourceRef references the original source of a custom model.
+type CustomModelSourceRef struct {
+	RepoId     string                         `json:"repo_id,omitempty"`
+	CommitSha  string                         `json:"commit_sha,omitempty"`
+	AccessType CustomModelSourceRefAccessType `json:"access_type,omitempty"`
+	Bucket     string                         `json:"bucket,omitempty"`
+	Region     string                         `json:"region,omitempty"`
+	Prefix     string                         `json:"prefix,omitempty"`
+	HfToken    string                         `json:"hf_token,omitempty"`
+}
+
+// CustomModelTags contains user-defined tags for organizing custom models.
+type CustomModelTags struct {
+	Tags []string `json:"tags,omitempty"`
+}
+
+// CustomModelActiveDeployment represents an active dedicated inference deployment using a custom model.
+type CustomModelActiveDeployment struct {
+	Id         string                                `json:"id,omitempty"`
+	Name       string                                `json:"name,omitempty"`
+	RegionSlug string                                `json:"region_slug,omitempty"`
+	State      string                                `json:"state,omitempty"`
+	Endpoints  *CustomModelActiveDeploymentEndpoints `json:"endpoints,omitempty"`
+	CreatedAt  string                                `json:"created_at,omitempty"`
+	UpdatedAt  string                                `json:"updated_at,omitempty"`
+}
+
+// CustomModelActiveDeploymentEndpoints contains the endpoint URLs for a custom-model deployment.
+type CustomModelActiveDeploymentEndpoints struct {
+	PublicEndpointFqdn  string `json:"public_endpoint_fqdn,omitempty"`
+	PrivateEndpointFqdn string `json:"private_endpoint_fqdn,omitempty"`
+}
+
+// CustomModelImportJob tracks the progress of a custom model import.
+type CustomModelImportJob struct {
+	Uuid         string     `json:"uuid,omitempty"`
+	Status       string     `json:"status,omitempty"`
+	FilesTotal   int        `json:"files_total,omitempty"`
+	FilesDone    int        `json:"files_done,omitempty"`
+	BytesTotal   string     `json:"bytes_total,omitempty"`
+	BytesDone    string     `json:"bytes_done,omitempty"`
+	ErrorMessage string     `json:"error_message,omitempty"`
+	ErrorStep    string     `json:"error_step,omitempty"`
+	StartedAt    *Timestamp `json:"started_at,omitempty"`
+	CompletedAt  *Timestamp `json:"completed_at,omitempty"`
+	CreatedAt    *Timestamp `json:"created_at,omitempty"`
+}
+
+// CustomModelImportValidationStep describes a single validation step performed during a custom model import.
+type CustomModelImportValidationStep struct {
+	Name   string `json:"name,omitempty"`
+	Passed bool   `json:"passed,omitempty"`
+	Error  string `json:"error,omitempty"`
+}
+
+// CustomModelListOptions specifies optional parameters for listing custom models.
+type CustomModelListOptions struct {
+	Status CustomModelStatus `url:"status,omitempty"`
+	ListOptions
+}
+
+// CustomModelImportRequest is the request body for importing a custom model.
+type CustomModelImportRequest struct {
+	Name                     string                `json:"name"`
+	SourceType               CustomModelSourceType `json:"source_type"`
+	SourceRef                *CustomModelSourceRef `json:"source_ref,omitempty"`
+	Description              string                `json:"description,omitempty"`
+	PreferredGpuRegion       string                `json:"preferred_gpu_region,omitempty"`
+	AcceptTermsAndConditions bool                  `json:"accept_terms_and_conditions,omitempty"`
+	Tags                     *CustomModelTags      `json:"tags,omitempty"`
+}
+
+// CustomModelMetadataUpdateRequest is the request body for updating custom model metadata.
+type CustomModelMetadataUpdateRequest struct {
+	Name        string           `json:"name,omitempty"`
+	Description string           `json:"description,omitempty"`
+	Tags        *CustomModelTags `json:"tags,omitempty"`
+}
+
+// CustomModelListResponse is the response returned by ListCustomModels.
+type CustomModelListResponse struct {
+	Models       []*CustomModel `json:"models,omitempty"`
+	Links        *Links         `json:"links,omitempty"`
+	Meta         *Meta          `json:"meta,omitempty"`
+	MaxThreshold int            `json:"max_threshold,omitempty"`
+}
+
+// CustomModelImportResponse is the response returned by ImportCustomModel.
+type CustomModelImportResponse struct {
+	Model           *CustomModel                       `json:"model,omitempty"`
+	ImportJob       *CustomModelImportJob              `json:"import_job,omitempty"`
+	ValidationSteps []*CustomModelImportValidationStep `json:"validation_steps,omitempty"`
+	Error           string                             `json:"error,omitempty"`
+}
+
+// CustomModelDeleteResponse is the response returned by DeleteCustomModel.
+type CustomModelDeleteResponse struct {
+	Status DeleteCustomModelStatus `json:"status,omitempty"`
+	Error  string                  `json:"error,omitempty"`
+}
+
+type customModelRoot struct {
+	Model *CustomModel `json:"model"`
+}
+
+// ListCustomModels returns the list of custom models for the team.
+func (s *GradientAIServiceOp) ListCustomModels(ctx context.Context, opt *CustomModelListOptions) (*CustomModelListResponse, *Response, error) {
+	path, err := addOptions(customModelsBasePath, opt)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(CustomModelListResponse)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	if l := root.Links; l != nil {
+		resp.Links = l
+	}
+	if m := root.Meta; m != nil {
+		resp.Meta = m
+	}
+	return root, resp, nil
+}
+
+// GetCustomModel retrieves a single custom model by UUID.
+func (s *GradientAIServiceOp) GetCustomModel(ctx context.Context, uuid string) (*CustomModel, *Response, error) {
+	if uuid == "" {
+		return nil, nil, fmt.Errorf("uuid is required")
+	}
+	path := fmt.Sprintf(customModelByIDPath, uuid)
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(customModelRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root.Model, resp, nil
+}
+
+// ImportCustomModel imports a new custom model from a supported source (HuggingFace, Spaces, etc.).
+func (s *GradientAIServiceOp) ImportCustomModel(ctx context.Context, importRequest *CustomModelImportRequest) (*CustomModelImportResponse, *Response, error) {
+	if importRequest == nil {
+		return nil, nil, fmt.Errorf("import request is required")
+	}
+	if importRequest.Name == "" {
+		return nil, nil, fmt.Errorf("Name is required")
+	}
+	if importRequest.SourceType == "" {
+		return nil, nil, fmt.Errorf("SourceType is required")
+	}
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, customModelImportPath, importRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(CustomModelImportResponse)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root, resp, nil
+}
+
+// DeleteCustomModel deletes the custom model with the given UUID.
+func (s *GradientAIServiceOp) DeleteCustomModel(ctx context.Context, uuid string) (*CustomModelDeleteResponse, *Response, error) {
+	if uuid == "" {
+		return nil, nil, fmt.Errorf("uuid is required")
+	}
+	path := fmt.Sprintf(customModelByIDPath, uuid)
+
+	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(CustomModelDeleteResponse)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root, resp, nil
+}
+
+// UpdateCustomModelMetadata updates the metadata (description, tags, name) of an existing custom model.
+func (s *GradientAIServiceOp) UpdateCustomModelMetadata(ctx context.Context, uuid string, updateRequest *CustomModelMetadataUpdateRequest) (*CustomModel, *Response, error) {
+	if uuid == "" {
+		return nil, nil, fmt.Errorf("uuid is required")
+	}
+	if updateRequest == nil {
+		return nil, nil, fmt.Errorf("update request is required")
+	}
+	path := fmt.Sprintf(customModelMetadataPath, uuid)
+
+	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(customModelRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root.Model, resp, nil
 }
 
 func (a Agent) String() string {

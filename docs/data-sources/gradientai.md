@@ -528,4 +528,116 @@ This data source is useful for:
 - Monitoring the detailed progress of a specific indexing job
 - Building conditional logic based on job status in Terraform configurations
 - Retrieving comprehensive diagnostics for troubleshooting failed jobs
-- Getting accurate completion estimates for long-running indexing operations 
+- Getting accurate completion estimates for long-running indexing operations
+
+---
+
+# digitalocean_gradientai_custom_model
+
+Provides a data source that retrieves details about a single Gradient AI custom model by its UUID.
+
+## Example Usage
+
+```hcl
+data "digitalocean_gradientai_custom_model" "example" {
+  uuid = "1c2dca47-c1f3-4d6b-9d39-04a9b0c81f7a"
+}
+
+output "model" {
+  value = data.digitalocean_gradientai_custom_model.example
+}
+
+output "model_status" {
+  value = data.digitalocean_gradientai_custom_model.example.status
+}
+```
+
+## Argument Reference
+
+The following argument is supported:
+
+- **uuid** (Required) – The UUID of the custom model to look up.
+
+## Attributes Reference
+
+All fields below are exported and may be referenced:
+
+- **uuid** - The UUID of the custom model.
+- **name** - Human-readable name of the model.
+- **description** - Description of the model.
+- **status** - Current status of the model (e.g. `STATUS_IMPORTING`, `STATUS_READY`, `STATUS_FAILED`).
+- **architecture** - Model architecture reported by the importer.
+- **source_type** - Source type the model was imported from (e.g. `SOURCE_TYPE_HUGGINGFACE`, `SOURCE_TYPE_SPACES_BUCKET`).
+- **source_ref** - Reference to the source from which the model was imported. Contains `repo_id`, `commit_sha`, `access_type`, `bucket`, `region`, `prefix`.
+- **total_size_bytes** - Total size of the imported artifacts in bytes (string-encoded int64).
+- **file_count** - Number of files that make up the model.
+- **license** - License of the model, as reported by the source.
+- **tags** - Set of user-defined tags associated with the model.
+- **context_length** - Maximum context length supported by the model.
+- **cost_estimate_per_month** - Estimated monthly cost of running the model.
+- **input_modalities** / **output_modalities** - Input and output modalities supported by the model.
+- **parameters** - Parameter-count summary reported by the importer.
+- **team_id** - ID of the team that owns the model.
+- **storage_region** - Region where the model artifacts are stored.
+- **created_at** / **updated_at** - Lifecycle timestamps.
+- **active_deployments** - List of dedicated inference deployments referencing this model. Each entry contains `id`, `name`, `region_slug`, `state`, `created_at`, `updated_at`, and an `endpoints` block with `public_endpoint_fqdn` and `private_endpoint_fqdn`.
+
+## Usage Notes
+
+This data source is useful for:
+- Looking up the resolved `commit_sha`, `architecture`, or `total_size_bytes` of an imported model
+- Checking the current `status` of a model (e.g. before wiring it into a dedicated inference deployment)
+- Discovering which dedicated inference deployments currently reference the model via `active_deployments`
+
+---
+
+# digitalocean_gradientai_custom_models
+
+Provides a data source that lists Gradient AI custom models for the team, with optional filtering and sorting.
+
+## Example Usage
+
+```hcl
+# List every custom model on the team
+data "digitalocean_gradientai_custom_models" "all" {}
+
+output "all_models" {
+  value = data.digitalocean_gradientai_custom_models.all.custom_models
+}
+
+output "model_uuids" {
+  value = [for m in data.digitalocean_gradientai_custom_models.all.custom_models : m.uuid]
+}
+
+# Server-side status filter
+data "digitalocean_gradientai_custom_models" "ready" {
+  status = "STATUS_READY"
+}
+
+# Client-side filter on a top-level attribute
+data "digitalocean_gradientai_custom_models" "by_name" {
+  filter {
+    key    = "name"
+    values = ["qwen3-8b"]
+  }
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+- **status** (Optional) – Status filter forwarded to the list API (e.g. `STATUS_READY`, `STATUS_IMPORTING`, `STATUS_FAILED`).
+- **filter** (Optional) – Filter the results. See the [shared filter documentation](https://registry.terraform.io/providers/digitalocean/digitalocean/latest/docs/data-sources/sizes#filter) for usage. Filterable keys mirror the top-level per-record attributes exported by the [`digitalocean_gradientai_custom_model`](#digitalocean_gradientai_custom_model) data source (nested keys such as `source_ref.repo_id` are not supported).
+- **sort** (Optional) – Sort the results.
+
+## Attributes Reference
+
+- **custom_models** – List of custom models on the team. Each entry exports the same fields as the [`digitalocean_gradientai_custom_model`](#digitalocean_gradientai_custom_model) data source above.
+
+## Usage Notes
+
+This data source is useful for:
+- Discovering every custom model on the team (e.g. building an inventory output)
+- Narrowing results to a specific lifecycle state via `status` (server-side) or any top-level attribute via `filter` (client-side)
+- Driving downstream resources such as dedicated inference deployments from a filtered subset of models

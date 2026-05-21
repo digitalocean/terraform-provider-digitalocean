@@ -1,5 +1,45 @@
 # Change Log
 
+## [1.192.0] - 2026-05-19
+
+- #1010 - @SSharma-10 - Update readme
+- #1007 - @venkatranabothu - Add GetCustomModel API
+
+## [1.191.0] - 2026-05-14
+
+- #1005 - Add Serverless Inference APIs
+
+## [1.190.0] - 2026-05-14
+
+- #1001 - ensure that kubernetes GetKubeConfigWithExpiry fetches a token-based kubeconfig
+- #1004 - Add custom models API and tests
+- #970 - Make HA flag optional in Kubernetes cluster create request for version-based API defaults
+
+## [1.189.0] - 2026-05-04
+
+**BREAKING CHANGE:** `AppIngressSpecRuleStringMatch.Prefix` and `.Exact` changed from `string` to `*string` to fix empty-string matching. Consumers that directly read or assign these fields will need to update their code. Use `godo.PtrTo("value")` for assignment and the `GetPrefix()`/`GetExact()` accessors for reading.
+
+- #994 - @aupadhyay-shark - App Ingress authority routing only supports exact matching #937
+
+## [1.188.0] - 2026-04-27
+
+- #1000 - @m3co-code - add new fields to k8s node pool template for auto-scaler
+
+## [1.187.0] - 2026-04-22
+
+- #998 - @nhenning-do - Add BatchInferenceService for the inference proxy batch API
+- #995 - @d-honeybadger - DOKS: per cluster sso config
+
+## [1.186.0] - 2026-04-15
+
+- #992 - @venkatranabothu - Add model benchmark_score and pricing
+
+## [1.185.0] - 2026-04-14
+
+- #990 - @greeshmapill - APPS-12973: Add request based autoscaling changes to app spec
+- #989 - @andrehernandez0 - NfsAction - type inconsistency bug fix
+- #988 - @divyanshgupta-dodeveloper - NFRNC-701: Added provider model id to accommodate schema updates in DI Creation request
+
 ## [1.184.0] - 2026-04-01
 
 - #984 - Change ContextWindow to string

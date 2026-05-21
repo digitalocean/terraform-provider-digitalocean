@@ -164,6 +164,8 @@ the backend service. Default value is `false`.
 * `certificate_id` - (Optional) **Deprecated** The certificate ID to be used for TLS handshaking.
 * `certificate_name` - (Optional) The certificate name to be used for TLS handshaking.
 
+After create and after update when `domains` changes, the provider polls the load balancer (for up to 15 minutes) until each non-managed domain’s `certificate_name` reported by the API matches the configuration. That reduces race conditions when replacing `digitalocean_certificate` resources that use `create_before_destroy`.
+
 `glb_settings` supports the following:
 
 * `target_protocol` - (Required) The protocol used for traffic from the Load Balancer to the backend Droplets. The possible values are: `http` and `https`.

@@ -759,8 +759,8 @@ func TestAccDigitalOceanDroplet_withDropletAgentExpectError(t *testing.T) {
 	})
 }
 
-// TestAccDigitalOceanDroplet_withPublicNetworkingSetTrue tests that no error is returned
-// from the API when creating a Droplet with the "public_networking" field is explicitly set to true.
+// TestAccDigitalOceanDroplet_withPublicNetworkingSetTrue tests that a Droplet
+// created with public_networking = true has a public IPv4 address.
 func TestAccDigitalOceanDroplet_withPublicNetworkingSetTrue(t *testing.T) {
 	var droplet godo.Droplet
 	keyName := acceptance.RandomTestName()
@@ -777,23 +777,23 @@ func TestAccDigitalOceanDroplet_withPublicNetworkingSetTrue(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_PublicNetworking(keyName, publicKeyMaterial, dropletName, "ubuntu-20-04-x64", publicNetworkingStanza),
+				Config: testAccCheckDigitalOceanDropletConfig_PublicNetworking(keyName, publicKeyMaterial, dropletName, defaultImage, publicNetworkingStanza),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", dropletName),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "public_networking", "true"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "image", "ubuntu-20-04-x64"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_droplet.foobar", "ipv4_address"),
 				),
 			},
 		},
 	})
 }
 
-// TestAccDigitalOceanDroplet_withPublicNetworkingSetTrue tests that no error is returned
-// from the API when creating a Droplet with the "public_networking" field is explicitly set to false.
+// TestAccDigitalOceanDroplet_withPublicNetworkingSetFalse tests that a Droplet
+// created with public_networking = false is a private droplet with no public IPv4.
 func TestAccDigitalOceanDroplet_withPublicNetworkingSetFalse(t *testing.T) {
 	var droplet godo.Droplet
 	keyName := acceptance.RandomTestName()
@@ -810,7 +810,7 @@ func TestAccDigitalOceanDroplet_withPublicNetworkingSetFalse(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_PublicNetworking(keyName, publicKeyMaterial, dropletName, "rancheros", publicNetworkingStanza),
+				Config: testAccCheckDigitalOceanDropletConfig_PublicNetworking(keyName, publicKeyMaterial, dropletName, defaultImage, publicNetworkingStanza),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
@@ -818,16 +818,17 @@ func TestAccDigitalOceanDroplet_withPublicNetworkingSetFalse(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "public_networking", "false"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "image", "rancheros"),
+						"digitalocean_droplet.foobar", "ipv4_address", ""),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_droplet.foobar", "ipv4_address_private"),
 				),
 			},
 		},
 	})
 }
 
-// TestAccDigitalOceanDroplet_withPublicNetworkingSetTrue tests that no error is returned
-// from the API when creating a Droplet with the "public_networking" field is explicitly not set,
-// defaulting to true.
+// TestAccDigitalOceanDroplet_withPublicNetworkingNotSet tests that a Droplet
+// created without the public_networking field defaults to true (public networking enabled).
 func TestAccDigitalOceanDroplet_withPublicNetworkingNotSet(t *testing.T) {
 	var droplet godo.Droplet
 	keyName := acceptance.RandomTestName()
@@ -843,19 +844,19 @@ func TestAccDigitalOceanDroplet_withPublicNetworkingNotSet(t *testing.T) {
 		CheckDestroy:      acceptance.TestAccCheckDigitalOceanDropletDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanDropletConfig_PublicNetworking(keyName, publicKeyMaterial, dropletName, "rancheros", ""),
+				Config: testAccCheckDigitalOceanDropletConfig_PublicNetworking(keyName, publicKeyMaterial, dropletName, defaultImage, ""),
 				Check: resource.ComposeTestCheckFunc(
 					acceptance.TestAccCheckDigitalOceanDropletExists("digitalocean_droplet.foobar", &droplet),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "name", dropletName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "size", "s-1vcpu-1gb"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_droplet.foobar", "image", "rancheros"),
+						"digitalocean_droplet.foobar", "size", defaultSize),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "region", "nyc3"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_droplet.foobar", "public_networking", "true"),
+					resource.TestCheckResourceAttrSet(
+						"digitalocean_droplet.foobar", "ipv4_address"),
 				),
 			},
 		},

@@ -112,6 +112,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   region        = "lon1"
   version       = data.digitalocean_kubernetes_versions.test.latest_version
   surge_upgrade = true
+  ha            = false
   tags          = ["foo", "bar", "one"]
 
   node_pool {
@@ -218,6 +219,7 @@ resource "digitalocean_container_registry" "foobar" {
 resource "digitalocean_kubernetes_cluster" "foobar" {
   name                 = "%s"
   region               = "nyc3"
+  ha                   = false
   registry_integration = true
   version              = data.digitalocean_kubernetes_versions.test.latest_version
 
@@ -249,6 +251,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "nyc3"
+  ha      = false
   version = data.digitalocean_kubernetes_versions.test.latest_version
 
   node_pool {
@@ -272,6 +275,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
 resource "digitalocean_kubernetes_cluster" "foobar" {
   name                 = "%s"
   region               = "nyc3"
+  ha                   = false
   version              = data.digitalocean_kubernetes_versions.test.latest_version
   registry_integration = true
 
@@ -640,6 +644,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name         = "%s"
   region       = "lon1"
   version      = data.digitalocean_kubernetes_versions.test.latest_version
+  ha           = false
   auto_upgrade = true
 
   node_pool {
@@ -679,6 +684,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -709,6 +715,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -740,6 +747,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -781,6 +789,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -809,6 +818,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -840,6 +850,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -1074,6 +1085,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   region        = "nyc1"
   version       = data.digitalocean_kubernetes_versions.test.latest_version
   surge_upgrade = true
+  ha            = false
   tags          = ["foo", "bar", "one"]
 
   node_pool {
@@ -1107,6 +1119,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   region        = "lon1"
   version       = data.digitalocean_kubernetes_versions.test.latest_version
   surge_upgrade = true
+  ha            = false
   tags          = ["foo", "bar", "one"]
 
 %s
@@ -1137,6 +1150,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   region        = "lon1"
   version       = data.digitalocean_kubernetes_versions.test.latest_version
   surge_upgrade = true
+  ha            = false
   tags          = ["foo", "bar", "one"]
 
 %s
@@ -1167,6 +1181,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   region        = "lon1"
   version       = data.digitalocean_kubernetes_versions.test.latest_version
   surge_upgrade = true
+  ha            = false
   tags          = ["foo", "bar", "one"]
 
 %s
@@ -1216,6 +1231,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   region        = "lon1"
   version       = data.digitalocean_kubernetes_versions.test.latest_version
   surge_upgrade = true
+  ha            = false
   tags          = ["foo", "bar"]
 
   node_pool {
@@ -1239,6 +1255,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   tags    = ["foo", "bar"]
 
   node_pool {
@@ -1284,6 +1301,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
 
   node_pool {
     name       = "default"
@@ -1315,6 +1333,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name                             = "%s"
   region                           = "nyc1"
   version                          = data.digitalocean_kubernetes_versions.test.latest_version
+  ha                               = false
   destroy_all_associated_resources = true
 
   node_pool {
@@ -1333,6 +1352,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name           = "%s"
   region         = "nyc1"
   version        = data.digitalocean_kubernetes_versions.test.latest_version
+  ha             = false
   cluster_subnet = "192.168.0.0/20"
   service_subnet = "192.168.16.0/22"
   node_pool {
@@ -1370,6 +1390,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "nyc1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   routing_agent {
     enabled = true
   }
@@ -1389,6 +1410,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "nyc1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   amd_gpu_device_plugin {
     enabled = true
   }
@@ -1408,6 +1430,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "nyc1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   amd_gpu_device_metrics_exporter_plugin {
     enabled = true
   }
@@ -1427,6 +1450,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "nyc1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   nvidia_gpu_device_plugin {
     enabled = true
   }
@@ -1446,6 +1470,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "nyc1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   rdma_shared_device_plugin {
     enabled = true
   }
@@ -1487,6 +1512,32 @@ func testAccCheckDigitalOceanKubernetesClusterExists(n string, cluster *godo.Kub
 		return nil
 	}
 }
+
+func Test_expandHAFromConfig(t *testing.T) {
+	tests := []struct {
+		name  string
+		value interface{}
+		ok    bool
+		want  *bool
+	}{
+		{"ha not provided", nil, false, nil},
+		{"ha true", true, true, ptrTo(true)},
+		{"ha false", false, true, ptrTo(false)},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := kubernetes.ExpandHAFromConfig(tt.value, tt.ok)
+			if (got == nil) != (tt.want == nil) {
+				t.Errorf("expandHAFromConfig() got nil=%v, want nil=%v", got == nil, tt.want == nil)
+			}
+			if got != nil && tt.want != nil && *got != *tt.want {
+				t.Errorf("expandHAFromConfig() = %v, want %v", *got, *tt.want)
+			}
+		})
+	}
+}
+
+func ptrTo(b bool) *bool { return &b }
 
 func Test_filterTags(t *testing.T) {
 	tests := []struct {

@@ -107,7 +107,7 @@ func resourceDigitalOceanNfsAttachmentCreate(ctx context.Context, d *schema.Reso
 					fmt.Errorf("[WARN] Error attaching share (%s) to VPC (%s): %s", shareId, vpcId, err))
 			}
 
-			log.Printf("[DEBUG] Share attach action id: %d", action.ID)
+			log.Printf("[DEBUG] Share attach action id: %s", action.ID)
 
 			// Poll the share to check VPC Id
 			if err = waitForNfsAttach(ctx, client, shareId, region, vpcId); err != nil {
@@ -214,7 +214,7 @@ func resourceDigitalOceanNfsAttachmentDelete(ctx context.Context, d *schema.Reso
 				fmt.Errorf("[WARN] Error detaching share (%s) from VPC (%s): %s", shareId, vpcId, err))
 		}
 
-		log.Printf("[DEBUG] Share detach action id: %d", action.ID)
+		log.Printf("[DEBUG] Share detach action id: %s", action.ID)
 		// Poll the share to check
 		if err = waitForNfsDetach(ctx, client, shareId, region, vpcId); err != nil {
 

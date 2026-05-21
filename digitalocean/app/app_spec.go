@@ -2778,13 +2778,13 @@ func expandAppIngressMatch(config []interface{}) *godo.AppIngressSpecRuleMatch {
 	path := match["path"].([]interface{})
 	if len(path) > 0 {
 		ruleMatch.Path = &godo.AppIngressSpecRuleStringMatch{
-			Prefix: path[0].(map[string]interface{})["prefix"].(string),
+			Prefix: godo.PtrTo(path[0].(map[string]interface{})["prefix"].(string)),
 		}
 	}
 	authority := match["authority"].([]interface{})
 	if len(authority) > 0 {
 		ruleMatch.Authority = &godo.AppIngressSpecRuleStringMatch{
-			Exact: authority[0].(map[string]interface{})["exact"].(string),
+			Exact: godo.PtrTo(authority[0].(map[string]interface{})["exact"].(string)),
 		}
 	}
 
@@ -2922,14 +2922,14 @@ func flattenAppIngressRuleMatch(match *godo.AppIngressSpecRuleMatch) []map[strin
 		if match.Path != nil {
 			r["path"] = []map[string]interface{}{
 				{
-					"prefix": match.Path.Prefix,
+					"prefix": match.Path.GetPrefix(),
 				},
 			}
 		}
 		if match.Authority != nil {
 			r["authority"] = []map[string]interface{}{
 				{
-					"exact": match.Authority.Exact,
+					"exact": match.Authority.GetExact(),
 				},
 			}
 		}
