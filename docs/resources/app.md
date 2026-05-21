@@ -365,7 +365,7 @@ A `service` can contain:
   - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
     - `enabled` - Whether to automatically deploy images pushed to DOCR.
-- `env` - Describes an environment variable made available to an app competent.
+- `env` - Describes an environment variable made available to an app component.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
@@ -443,7 +443,7 @@ A `static_site` can contain:
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-- `env` - Describes an environment variable made available to an app competent.
+- `env` - Describes an environment variable made available to an app component.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
@@ -487,7 +487,7 @@ A `worker` can contain:
   - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
     - `enabled` - Whether to automatically deploy images pushed to DOCR.
-- `env` - Describes an environment variable made available to an app competent.
+- `env` - Describes an environment variable made available to an app component.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
@@ -565,7 +565,7 @@ A `job` can contain:
   - `digest` - The image digest. Cannot be specified if `tag` is provided.
   - `deploy_on_push` - Configures automatically deploying images pushed to DOCR.
     - `enabled` - Whether to automatically deploy images pushed to DOCR.
-- `env` - Describes an environment variable made available to an app competent.
+- `env` - Describes an environment variable made available to an app component.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
@@ -617,7 +617,7 @@ A `function` component can contain:
   - `repo` - The name of the repo in the format `owner/repo`.
   - `branch` - The name of the branch to use.
   - `deploy_on_push` - Whether to automatically deploy new commits made to the repo.
-- `env` - Describes an environment variable made available to an app competent.
+- `env` - Describes an environment variable made available to an app component.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
