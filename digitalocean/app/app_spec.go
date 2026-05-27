@@ -710,6 +710,14 @@ func appSpecServicesSchema() *schema.Resource {
 				Schema: appSpecHealthCheckSchema(),
 			},
 		},
+		"liveness_health_check": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecHealthCheckSchema(),
+			},
+		},
 		"image": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -2169,6 +2177,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.HealthCheck = expandAppHealthCheck(checks)
 		}
 
+		livenessHealthChecks := service["liveness_health_check"].([]interface{})
+		if len(livenessHealthChecks) > 0 {
+			s.LivenessHealthCheck = expandAppLivenessHealthCheck(livenessHealthChecks)
+		}
+
 		internalPorts := service["internal_ports"].(*schema.Set).List()
 		if len(internalPorts) > 0 {
 			s.InternalPorts = expandAppInternalPorts(internalPorts)
@@ -2225,6 +2238,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["dockerfile_path"] = s.DockerfilePath
 		r["env"] = flattenAppEnvs(s.Envs)
 		r["health_check"] = flattenAppHealthCheck(s.HealthCheck)
+		r["liveness_health_check"] = flattenAppLivenessHealthCheck(s.LivenessHealthCheck)
 		r["instance_size_slug"] = s.InstanceSizeSlug
 		r["instance_count"] = int(s.InstanceCount)
 		r["source_dir"] = s.SourceDir

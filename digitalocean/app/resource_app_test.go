@@ -147,6 +147,12 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.port", "1234"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.liveness_health_check.0.http_path", "/live"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.liveness_health_check.0.failure_threshold", "6"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.liveness_health_check.0.port", "1234"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "75"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.operator", "GREATER_THAN"),
@@ -670,6 +676,12 @@ func TestAccDigitalOceanApp_Worker(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.worker.0.log_destination.0.name", "WorkerLogs"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.worker.0.log_destination.0.logtail.0.token", "test-api-token"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.liveness_health_check.0.http_path", "/live"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.liveness_health_check.0.failure_threshold", "6"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.liveness_health_check.0.port", "8080"),
 				),
 			},
 			{
@@ -1364,6 +1376,12 @@ resource "digitalocean_app" "foobar" {
         port            = 1234
       }
 
+      liveness_health_check {
+        http_path         = "/live"
+        failure_threshold = 6
+        port              = 1234
+      }
+
       alert {
         value    = 75
         operator = "GREATER_THAN"
@@ -1868,6 +1886,12 @@ resource "digitalocean_app" "foobar" {
       git {
         repo_clone_url = "https://github.com/digitalocean/sample-sleeper.git"
         branch         = "main"
+      }
+
+      liveness_health_check {
+        http_path         = "/live"
+        failure_threshold = 6
+        port              = 8080
       }
 
       log_destination {
