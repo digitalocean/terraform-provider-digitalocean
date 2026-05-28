@@ -107,6 +107,13 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"worker_subnet_uuid": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+
 			"cluster_subnet": {
 				Type:         schema.TypeString,
 				ValidateFunc: validation.IsCIDR,
@@ -488,6 +495,10 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.VPCUUID = vpc.(string)
 	}
 
+	if workerSubnet, ok := d.GetOk("worker_subnet_uuid"); ok {
+		opts.WorkerSubnetUUID = workerSubnet.(string)
+	}
+
 	if clusterSubnet, ok := d.GetOk("cluster_subnet"); ok {
 		opts.ClusterSubnet = clusterSubnet.(string)
 	}
@@ -588,6 +599,7 @@ func digitaloceanKubernetesClusterRead(
 	d.Set("created_at", cluster.CreatedAt.UTC().String())
 	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
 	d.Set("vpc_uuid", cluster.VPCUUID)
+	d.Set("worker_subnet_uuid", cluster.WorkerSubnetUUID)
 	d.Set("auto_upgrade", cluster.AutoUpgrade)
 	d.Set("urn", cluster.URN())
 
