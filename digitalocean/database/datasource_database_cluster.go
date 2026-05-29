@@ -162,6 +162,27 @@ func DataSourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"storage_autoscale": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"threshold_percent": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+						"increment_gib": {
+							Type:     schema.TypeInt,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"metrics_endpoints": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -221,6 +242,18 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 			d.Set("node_count", db.NumNodes)
 			d.Set("tags", tag.FlattenTags(db.Tags))
 			d.Set("storage_size_mib", strconv.FormatUint(db.StorageSizeMib, 10))
+
+			autoscale := db.StorageAutoscale
+			if autoscale == nil {
+				var autoscaleErr error
+				autoscale, _, autoscaleErr = client.Databases.GetStorageAutoscale(context.Background(), db.ID)
+				if autoscaleErr != nil {
+					return diag.Errorf("Error retrieving storage autoscale for database cluster: %s", autoscaleErr)
+				}
+			}
+			if err := d.Set("storage_autoscale", flattenStorageAutoscale(autoscale)); err != nil {
+				return diag.Errorf("[DEBUG] Error setting storage_autoscale - error: %#v", err)
+			}
 
 			if _, ok := d.GetOk("maintenance_window"); ok {
 				if err := d.Set("maintenance_window", flattenMaintWindowOpts(*db.MaintenanceWindow)); err != nil {
