@@ -592,3 +592,158 @@ resource "digitalocean_gradientai_indexing_job_cancel" "cancel_processing" {
   uuid = data.digitalocean_gradientai_indexing_job.long_running.uuid
 }
 ```
+
+---
+
+# digitalocean_gradientai_custom_model
+
+Provides a DigitalOcean Gradient AI Custom Model resource. This can be used to import a model from a supported source (HuggingFace, Spaces, etc.) so that it can be deployed on dedicated inference endpoints.
+
+The resource blocks until the underlying import completes (status becomes `STATUS_READY`).
+
+## Example Usage
+
+### Import a public HuggingFace model
+
+```hcl
+resource "digitalocean_gradientai_custom_model" "example" {
+  name                        = "qwen3-8b"
+  description                 = "Qwen3 8B chat model"
+  source_type                 = "SOURCE_TYPE_HUGGINGFACE"
+  preferred_gpu_region        = "tor1"
+  accept_terms_and_conditions = true
+  tags                        = ["chat", "qwen"]
+
+  source_ref {
+    repo_id     = "Qwen/Qwen3-8B"
+    access_type = "ACCESS_TYPE_PUBLIC"
+  }
+}
+```
+
+### Import a gated HuggingFace model
+
+```hcl
+resource "digitalocean_gradientai_custom_model" "gated" {
+  name                        = "llama-3-8b"
+  source_type                 = "SOURCE_TYPE_HUGGINGFACE"
+  preferred_gpu_region        = "tor1"
+  accept_terms_and_conditions = true
+
+  source_ref {
+    repo_id     = "meta-llama/Meta-Llama-3-8B"
+    access_type = "ACCESS_TYPE_GATED"
+    hf_token    = var.hugging_face_token
+  }
+}
+```
+
+### Import from a Spaces bucket
+
+```hcl
+resource "digitalocean_gradientai_custom_model" "spaces" {
+  name                        = "my-finetune"
+  source_type                 = "SOURCE_TYPE_SPACES_BUCKET"
+  accept_terms_and_conditions = true
+
+  source_ref {
+    bucket = "my-model-artifacts"
+    region = "nyc3"
+    prefix = "models/my-finetune/"
+  }
+}
+```
+
+### Update description and tags
+
+Once a model has been imported, its `description` and `tags` can be updated in place. Re-applying the configuration below against an existing model will issue a metadata-update API call without re-importing the artifacts.
+
+```hcl
+resource "digitalocean_gradientai_custom_model" "example" {
+  name                        = "qwen3-8b"
+  description                 = "Production Qwen3 8B chat model"
+  source_type                 = "SOURCE_TYPE_HUGGINGFACE"
+  preferred_gpu_region        = "tor1"
+  accept_terms_and_conditions = true
+  tags                        = ["chat", "qwen", "production"]
+
+  source_ref {
+    repo_id     = "Qwen/Qwen3-8B"
+    access_type = "ACCESS_TYPE_PUBLIC"
+  }
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+- **name** (Required) - A human-readable name for the custom model.
+- **source_type** (Required) - The source the model is being imported from. One of `SOURCE_TYPE_HUGGINGFACE`, `SOURCE_TYPE_SPACES_BUCKET`, `SOURCE_TYPE_SDK_UPLOAD`, `SOURCE_TYPE_FINE_TUNING`. The underlying API does not support changing source fields after import; changes in HCL will not take effect on the existing model — destroy and recreate the resource to use a different source.
+- **source_ref** (Required) - A single nested block describing the source. The underlying API does not support changing any source field after import. Supports:
+  - **repo_id** (Optional) - Repository identifier (required for `SOURCE_TYPE_HUGGINGFACE`).
+  - **commit_sha** (Optional, Computed) - Commit SHA to pin for the import. If omitted, the API resolves the SHA and writes it back to state.
+  - **access_type** (Optional) - One of `ACCESS_TYPE_PUBLIC`, `ACCESS_TYPE_PRIVATE`, `ACCESS_TYPE_GATED`.
+  - **bucket** (Optional) - Spaces bucket name for `SOURCE_TYPE_SPACES_BUCKET` sources.
+  - **region** (Optional) - Region of the source bucket.
+  - **prefix** (Optional) - Key prefix inside the source bucket.
+  - **hf_token** (Optional, Sensitive) - HuggingFace token used to access `ACCESS_TYPE_PRIVATE` or `ACCESS_TYPE_GATED` repositories. Write-only — the API never echoes it back and Terraform retains the value only in state.
+- **description** (Optional) - Description of the custom model.
+- **tags** (Optional) - Set of user-defined tags associated with the custom model.
+- **preferred_gpu_region** (Optional) - Preferred GPU region where the model artifacts should be staged. Set at import time only.
+- **accept_terms_and_conditions** (Optional) - Whether the caller accepts the model provider's terms and conditions. Defaults to `false`. Write-only and consulted only at import time.
+
+## Attributes Reference
+
+In addition to the arguments listed above, the following attributes are exported:
+
+- **id** / **uuid** - The UUID of the custom model.
+- **status** - The current status of the custom model.
+- **architecture** - Model architecture reported by the importer.
+- **total_size_bytes** - Total size of the imported model artifacts in bytes (string-encoded int64).
+- **file_count** - Number of files that make up the imported model.
+- **license** - License of the model as reported by the source.
+- **context_length** - Maximum context length supported by the model.
+- **cost_estimate_per_month** - Estimated monthly cost of running the model.
+- **input_modalities** - Input modalities supported by the model.
+- **output_modalities** - Output modalities produced by the model.
+- **parameters** - Parameter-count summary reported by the importer.
+- **team_id** - ID of the team that owns the custom model.
+- **storage_region** - Region where the custom model artifacts are stored.
+- **created_at** - Timestamp when the custom model was created.
+- **updated_at** - Timestamp when the custom model was last updated.
+- **active_deployments** - A list of dedicated inference deployments referencing this model. Each entry exports `id`, `name`, `region_slug`, `state`, `created_at`, `updated_at`, and an `endpoints` block with `public_endpoint_fqdn` and `private_endpoint_fqdn`.
+
+## Update Behavior
+
+The metadata-update API only accepts changes to the model's `description` and `tags`. All other arguments — `name`, `source_type`, every `source_ref` field, `preferred_gpu_region`, and `accept_terms_and_conditions` — are fixed at import time and ignored by subsequent applies.
+
+- Editing **description** or **tags** triggers an in-place metadata update; the model is not re-imported.
+- Editing any other argument is a no-op against the API. Terraform will keep reconciling state against the values that were originally imported. To change a fixed field, destroy and recreate the resource.
+- **commit_sha** is `Computed`: leave it unset to let the API resolve and record the SHA, or pin it explicitly at import time.
+
+## Delete Behavior
+
+`terraform destroy` issues a synchronous delete API call; the call returns only after the model has been removed. After a successful destroy:
+
+- The resource is removed from Terraform state.
+- Subsequent `GET` calls against the same UUID return `404`.
+- Any dedicated inference deployments that referenced the model continue to exist independently and must be cleaned up separately.
+
+## Importing Existing Models into Terraform
+
+Custom models that already exist in your DigitalOcean account can be brought under Terraform management with `terraform import`:
+
+```
+terraform import digitalocean_gradientai_custom_model.example 1c2dca47-c1f3-4d6b-9d39-04a9b0c81f7a
+```
+
+Because the API never echoes write-only fields back, `hf_token` and `accept_terms_and_conditions` will not be populated by import; add them to your configuration to match the originally imported values.
+
+## Timeouts
+
+`digitalocean_gradientai_custom_model` provides the following [Timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts) configuration options:
+
+- **create** - (Default `60 minutes`) Used while waiting for the model import to reach `STATUS_READY`.
+- **update** - (Default `5 minutes`) Used for metadata updates.
+- **delete** - (Default `5 minutes`) Used for the delete API call.
