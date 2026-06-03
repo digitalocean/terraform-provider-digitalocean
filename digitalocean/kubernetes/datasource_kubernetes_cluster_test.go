@@ -46,6 +46,7 @@ data "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttrPair("data.digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "node_pool.0.labels.priority", "high"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "vpc_uuid"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "worker_subnet_uuid"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "auto_upgrade"),
 					resource.TestMatchResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "urn", expectedURNRegEx),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day", "monday"),

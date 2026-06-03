@@ -88,6 +88,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.token"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.expires_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "vpc_uuid"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "worker_subnet_uuid"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "auto_upgrade"),
 					resource.TestMatchResourceAttr("digitalocean_kubernetes_cluster.foobar", "urn", expectedURNRegEx),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day"),
