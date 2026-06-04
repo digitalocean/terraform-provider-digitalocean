@@ -401,6 +401,34 @@ func flattenRdmaSharedDevicePluginOpts(opts *godo.KubernetesRdmaSharedDevicePlug
 	return result
 }
 
+func expandCorednsAutoscalerOpts(raw []interface{}) *godo.KubernetesCorednsAutoscaler {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesCorednsAutoscaler{}
+	}
+
+	corednsAutoscalerObj := raw[0].(map[string]interface{})
+
+	corednsAutoscaler := &godo.KubernetesCorednsAutoscaler{
+		Enabled: godo.PtrTo(corednsAutoscalerObj["enabled"].(bool)),
+	}
+
+	return corednsAutoscaler
+}
+
+func flattenCorednsAutoscalerOpts(opts *godo.KubernetesCorednsAutoscaler) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
 func flattenMaintPolicyOpts(opts *godo.KubernetesMaintenancePolicy) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 	item := make(map[string]interface{})
