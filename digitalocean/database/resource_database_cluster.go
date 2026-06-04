@@ -767,6 +767,7 @@ func setUIConnectionInfo(database *godo.Database, d *schema.ResourceData) error 
 
 func setMetricsEndpoints(database *godo.Database, d *schema.ResourceData) error {
 	if len(database.MetricsEndpoints) == 0 {
+		d.Set("metrics_endpoints", []string{})
 		return nil
 	}
 
