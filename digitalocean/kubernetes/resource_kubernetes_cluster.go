@@ -31,6 +31,7 @@ const (
 	amdGpuDeviceMetricsExporterPluginField = "amd_gpu_device_metrics_exporter_plugin"
 	nvidiaGpuDevicePluginField             = "nvidia_gpu_device_plugin"
 	rdmaSharedDevicePluginField            = "rdma_shared_device_plugin"
+	corednsAutoscalerField                 = "coredns_autoscaler"
 )
 
 // ExpandHAFromConfig returns the HA value for the create request. When ha is not
@@ -375,6 +376,21 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 					},
 				},
 			},
+
+			corednsAutoscalerField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -539,6 +555,10 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.RdmaSharedDevicePlugin = expandRdmaSharedDevicePluginOpts(rdmaSharedDevicePlugin.([]interface{}))
 	}
 
+	if corednsAutoscaler, ok := d.GetOk(corednsAutoscalerField); ok {
+		opts.CorednsAutoscaler = expandCorednsAutoscalerOpts(corednsAutoscaler.([]interface{}))
+	}
+
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
 	if err != nil {
 		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
@@ -627,6 +647,10 @@ func digitaloceanKubernetesClusterRead(
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", rdmaSharedDevicePluginField, err)
 	}
 
+	if err := d.Set(corednsAutoscalerField, flattenCorednsAutoscalerOpts(cluster.CorednsAutoscaler)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", corednsAutoscalerField, err)
+	}
+
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
 	}
@@ -695,7 +719,8 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	// Figure out the changes and then call the appropriate API methods
 	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha",
 		controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField, amdGpuDevicePluginField,
-		amdGpuDeviceMetricsExporterPluginField, nvidiaGpuDevicePluginField, rdmaSharedDevicePluginField, "sso") {
+		amdGpuDeviceMetricsExporterPluginField, nvidiaGpuDevicePluginField, rdmaSharedDevicePluginField,
+		corednsAutoscalerField, "sso") {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
 			Name:                              d.Get("name").(string),
@@ -709,6 +734,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 			AmdGpuDeviceMetricsExporterPlugin: expandAmdGpuDeviceMetricsExporterPluginOpts(d.Get(amdGpuDeviceMetricsExporterPluginField).([]interface{})),
 			NvidiaGpuDevicePlugin:             expandNvidiaGpuDevicePluginOpts(d.Get(nvidiaGpuDevicePluginField).([]interface{})),
 			RdmaSharedDevicePlugin:            expandRdmaSharedDevicePluginOpts(d.Get(rdmaSharedDevicePluginField).([]interface{})),
+			CorednsAutoscaler:                 expandCorednsAutoscalerOpts(d.Get(corednsAutoscalerField).([]interface{})),
 			ClusterAutoscalerConfiguration:    expandCAConfigOptsForUpdate(d.GetChange("cluster_autoscaler_configuration")),
 			SSO:                               expandSSOOpts(d.Get("sso").([]interface{})),
 		}

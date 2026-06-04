@@ -184,6 +184,8 @@ The following arguments are supported:
   - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
 `rdma_shared_device_plugin` - (Optional) Block containing options for the RDMA Shared Device Plugin (k8s-rdma-shared-dev-plugin) component. If not specified, the component will be enabled by default for clusters with GPU nodes connected to a dedicated high-speed networking fabric.
     - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
+* `coredns_autoscaler` - (Optional) Block containing options for the CoreDNS Autoscaler component, which scales CoreDNS replicas in proportion to the cluster's size. Default: true (for 1.36.0 and later)
+  - `enabled` - (Required) Boolean flag whether the CoreDNS Autoscaler should be enabled or not.
 * `cluster_autoscaler_configuration` - (Optional) Block containing options for cluster auto-scaling. For more information.
   - `scale_down_utilization_threshold` - (Optional) Float setting the Node utilization level, defined as sum of requested resources divided by capacity, in which a node can be considered for scale down.
   - `scale_down_unneeded_time` - (Optional) String setting how long a node should be unneeded before it's eligible for scale down.
@@ -240,6 +242,8 @@ In addition to the arguments listed above, the following additional attributes a
   - `enabled` - Boolean flag whether the component is enabled or not.
 * `amd_gpu_device_metrics_exporter_plugin` - Block containing options for the AMD GPU device metrics exporter component.
   - `enabled` - Boolean flag whether the component is enabled or not.
+* `coredns_autoscaler` - Block containing options for the CoreDNS Autoscaler component, which scales CoreDNS replicas in proportion to the cluster's size. Default: true (for 1.36.0 and later)
+  - `enabled` - Boolean flag whether the CoreDNS Autoscaler is enabled or not.
 
 ## Import
 
