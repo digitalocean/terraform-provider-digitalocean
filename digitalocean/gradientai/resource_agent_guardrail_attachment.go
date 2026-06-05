@@ -16,8 +16,7 @@ type agentGuardrailItem struct {
 	Priority      int    `json:"priority"`
 }
 
-// agentGuardrailAttachBody is the JSON body for
-// POST /v2/gen-ai/agents/{agent_uuid}/guardrails.
+// agentGuardrailAttachBody is the body for the guardrail attach request.
 type agentGuardrailAttachBody struct {
 	Guardrails []agentGuardrailItem `json:"guardrails"`
 }
@@ -57,8 +56,7 @@ func resourceDigitalOceanAgentGuardrailAttachmentCreate(ctx context.Context, d *
 	guardrailUUID := d.Get("guardrail_uuid").(string)
 	priority := d.Get("priority").(int)
 
-	// godo has no guardrail attach method, so issue the request through the godo
-	// client's exported primitives rather than modifying the vendored SDK.
+	// godo has no guardrail attach method, so use the client's raw request primitives.
 	path := fmt.Sprintf("/v2/gen-ai/agents/%s/guardrails", agentUUID)
 	body := &agentGuardrailAttachBody{
 		Guardrails: []agentGuardrailItem{{GuardrailUuid: guardrailUUID, Priority: priority}},

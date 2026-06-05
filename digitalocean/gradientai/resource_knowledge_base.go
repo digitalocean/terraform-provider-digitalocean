@@ -16,20 +16,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// knowledgeBaseRootResponse mirrors the godo (unexported) knowledgebaseRoot so the
-// provider can issue raw GenAI requests via client.NewRequest/client.Do without
-// modifying the vendored godo SDK.
+// knowledgeBaseRootResponse mirrors godo's unexported knowledge base root for raw requests.
 type knowledgeBaseRootResponse struct {
 	KnowledgeBase *godo.KnowledgeBase `json:"knowledge_base"`
 }
 
-// agentRootResponse mirrors the godo (unexported) agent root for raw requests.
+// agentRootResponse mirrors godo's unexported agent root for raw requests.
 type agentRootResponse struct {
 	Agent *godo.Agent `json:"agent"`
 }
 
-// agentKnowledgeBaseAttachBody is the JSON body required by
-// POST /v2/gen-ai/agents/{agent_uuid}/knowledge_bases/{kb_uuid}.
+// agentKnowledgeBaseAttachBody is the body for the knowledge base attach request.
 type agentKnowledgeBaseAttachBody struct {
 	AgentUuid         string `json:"agent_uuid"`
 	KnowledgeBaseUuid string `json:"knowledge_base_uuid"`
@@ -217,7 +214,7 @@ func resourceDigitalOceanKnowledgeBaseCreate(ctx context.Context, d *schema.Reso
 		createRequest.Tags = tags
 	}
 
-	// Data sources are optional at create time (empty KB); use [] so JSON is [], not null.
+	// Datasources are optional; default to an empty list so the JSON is [] rather than null.
 	createRequest.DataSources = []godo.KnowledgeBaseDataSource{}
 	if datasourcesRaw, ok := d.GetOk("datasources"); ok {
 		if dsList := datasourcesRaw.([]interface{}); len(dsList) > 0 {
@@ -227,9 +224,7 @@ func resourceDigitalOceanKnowledgeBaseCreate(ctx context.Context, d *schema.Reso
 
 	var kb *godo.KnowledgeBase
 	if len(createRequest.DataSources) == 0 {
-		// godo's CreateKnowledgeBase rejects an empty datasource list client-side, but the
-		// API supports it. Issue the request directly through the godo client's exported
-		// primitives so the vendored SDK does not need to change.
+		// godo rejects an empty datasource list client-side even though the API allows it.
 		var err error
 		kb, err = createKnowledgeBaseRaw(ctx, client, createRequest)
 		if err != nil {
@@ -245,8 +240,8 @@ func resourceDigitalOceanKnowledgeBaseCreate(ctx context.Context, d *schema.Reso
 
 	d.SetId(kb.Uuid)
 
-	// The managed database provisions asynchronously (~4 min). Block until it is ONLINE so
-	// the knowledge base is actually usable (e.g. attachable to an agent) once created.
+	// The managed database provisions asynchronously and must be ONLINE before the
+	// knowledge base can be attached to an agent.
 	if d.Get("wait_for_database").(bool) {
 		if err := waitKnowledgeBaseDatabaseOnline(ctx, client, kb.Uuid, d.Timeout(schema.TimeoutCreate)); err != nil {
 			return diag.FromErr(err)
@@ -257,9 +252,8 @@ func resourceDigitalOceanKnowledgeBaseCreate(ctx context.Context, d *schema.Reso
 	return resourceDigitalOceanKnowledgeBaseRead(ctx, d, meta)
 }
 
-// createKnowledgeBaseRaw POSTs a knowledge base create request directly via the godo
-// client, bypassing godo's client-side "at least one datasource" guard. It mirrors the
-// validation godo performs for the fields the API requires.
+// createKnowledgeBaseRaw creates a knowledge base via the godo client's raw request
+// primitives, bypassing godo's client-side requirement of at least one datasource.
 func createKnowledgeBaseRaw(ctx context.Context, client *godo.Client, createRequest *godo.KnowledgeBaseCreateRequest) (*godo.KnowledgeBase, error) {
 	if createRequest.Name == "" {
 		return nil, fmt.Errorf("name is required")
@@ -511,10 +505,8 @@ func resourceDigitalOceanAgentKnowledgeBaseAttachmentCreate(ctx context.Context,
 	return resourceDigitalOceanAgentKnowledgeBaseAttachmentRead(ctx, d, meta)
 }
 
-// attachKnowledgeBaseToAgentRaw issues the KB->agent attach POST with the body the API
-// requires ({"agent_uuid","knowledge_base_uuid"}), via the godo client's exported
-// primitives so the vendored godo SDK (whose AttachKnowledgeBaseToAgent sends no body)
-// does not need to change.
+// attachKnowledgeBaseToAgentRaw attaches a knowledge base to an agent via the godo
+// client's raw request primitives, since godo's method sends no request body.
 func attachKnowledgeBaseToAgentRaw(ctx context.Context, client *godo.Client, agentUUID, kbUUID string) (*godo.Agent, error) {
 	path := fmt.Sprintf(godo.AgentKnowledgeBasePath, agentUUID, kbUUID)
 	body := &agentKnowledgeBaseAttachBody{
@@ -569,11 +561,7 @@ func resourceDigitalOceanAgentKnowledgeBaseAttachmentDelete(ctx context.Context,
 }
 
 // waitKnowledgeBaseDatabaseOnline blocks until the knowledge base's managed database
-// reports ONLINE. Empirically this (not indexing completion) is the precondition for
-// attaching a KB to an agent: while the database is still provisioning the attach
-// returns 400 "failed to update agent config cache after linking knowledge base".
-// Uses the provider's idiomatic retry.RetryContext pattern (see
-// dedicatedinference.waitForDedicatedInferenceReady).
+// reports ONLINE, which is the precondition for attaching the knowledge base to an agent.
 func waitKnowledgeBaseDatabaseOnline(ctx context.Context, client *godo.Client, kbUUID string, timeout time.Duration) error {
 	return retry.RetryContext(ctx, timeout, func() *retry.RetryError {
 		_, dbStatus, _, err := client.GradientAI.GetKnowledgeBase(ctx, kbUUID)
