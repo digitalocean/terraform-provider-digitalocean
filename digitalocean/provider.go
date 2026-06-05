@@ -249,6 +249,7 @@ func Provider() *schema.Provider {
 			"digitalocean_gradientai_knowledge_base":                  gradientai.ResourceDigitalOceanKnowledgeBase(),
 			"digitalocean_gradientai_knowledge_base_data_source":      gradientai.ResourceDigitalOceanKnowledgeBaseDataSource(),
 			"digitalocean_gradientai_agent_knowledge_base_attachment": gradientai.ResourceDigitalOceanAgentKnowledgeBaseAttachment(),
+			"digitalocean_gradientai_agent_guardrail_attachment":      gradientai.ResourceDigitalOceanAgentGuardrailAttachment(),
 			"digitalocean_gradientai_openai_api_key":                  gradientai.ResourceDigitalOceanOpenAIApiKey(),
 			"digitalocean_nfs":                                        nfs.ResourceDigitalOceanNfs(),
 			"digitalocean_nfs_attachment":                             nfs.ResourceDigitalOceanNfsAttachment(),
