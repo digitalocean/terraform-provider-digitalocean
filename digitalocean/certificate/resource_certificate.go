@@ -18,6 +18,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+const (
+	certificateDeleteDefaultTimeout = 15 * time.Minute
+	certificateDeleteInitialBackoff = 2 * time.Second
+	certificateDeleteMaxBackoff     = 30 * time.Second
+)
+
 func ResourceDigitalOceanCertificate() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanCertificateCreate,
@@ -28,6 +34,11 @@ func ResourceDigitalOceanCertificate() *schema.Resource {
 		},
 
 		Schema: resourceDigitalOceanCertificateV1(),
+
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+			Delete: schema.DefaultTimeout(certificateDeleteDefaultTimeout),
+		},
 
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
@@ -280,6 +291,15 @@ func resourceDigitalOceanCertificateRead(ctx context.Context, d *schema.Resource
 
 }
 
+func certificateDeleteBlockedByLoadBalancer(err error) bool {
+	if err == nil {
+		return false
+	}
+	// API message variants when a certificate is still attached to a load balancer.
+	return util.IsDigitalOceanError(err, http.StatusForbidden, "Make sure the certificate is not in use before deleting it") ||
+		util.IsDigitalOceanError(err, http.StatusForbidden, "being used by one or more load balancers")
+}
+
 func resourceDigitalOceanCertificateDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
@@ -292,20 +312,41 @@ func resourceDigitalOceanCertificateDelete(ctx context.Context, d *schema.Resour
 		return nil
 	}
 
-	timeout := 30 * time.Second
-	err = retry.RetryContext(ctx, timeout, func() *retry.RetryError {
-		_, err = client.Certificates.Delete(context.Background(), cert.ID)
-		if err != nil {
-			if util.IsDigitalOceanError(err, http.StatusForbidden, "Make sure the certificate is not in use before deleting it") {
-				log.Printf("[DEBUG] Received %s, retrying certificate deletion", err.Error())
-				time.Sleep(1 * time.Second)
-				return retry.RetryableError(err)
-			}
+	deleteTimeout := d.Timeout(schema.TimeoutDelete)
+	if deleteTimeout == 0 {
+		deleteTimeout = certificateDeleteDefaultTimeout
+	}
 
-			return retry.NonRetryableError(err)
+	waitCtx, cancel := context.WithTimeout(ctx, deleteTimeout)
+	defer cancel()
+
+	backoff := certificateDeleteInitialBackoff
+
+	err = retry.RetryContext(waitCtx, deleteTimeout, func() *retry.RetryError {
+		resp, delErr := client.Certificates.Delete(waitCtx, cert.ID)
+		if delErr == nil {
+			return nil
+		}
+		if resp != nil && resp.StatusCode == http.StatusNotFound {
+			return nil
+		}
+		if certificateDeleteBlockedByLoadBalancer(delErr) {
+			log.Printf("[DEBUG] Certificate %q delete blocked (likely still referenced by a load balancer); retrying after %s: %v", d.Id(), backoff, delErr)
+			select {
+			case <-waitCtx.Done():
+				return retry.NonRetryableError(fmt.Errorf("timeout waiting to delete certificate %q after load balancers released it: %w", d.Id(), waitCtx.Err()))
+			case <-time.After(backoff):
+			}
+			if backoff < certificateDeleteMaxBackoff {
+				backoff *= 2
+				if backoff > certificateDeleteMaxBackoff {
+					backoff = certificateDeleteMaxBackoff
+				}
+			}
+			return retry.RetryableError(delErr)
 		}
 
-		return nil
+		return retry.NonRetryableError(delErr)
 	})
 	if err != nil {
 		return diag.Errorf("Error deleting Certificate: %s", err)

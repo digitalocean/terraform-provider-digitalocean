@@ -639,19 +639,19 @@ func flattenCAConfigOpts(opts *godo.KubernetesClusterAutoscalerConfiguration) []
 	return result
 }
 
-func expandSSOOptsIfSet(d *schema.ResourceData) *godo.KubernetesClusterSSO {
-	if _, isSet := d.GetOk("sso"); !isSet {
+func expandSSOOpts(sso []interface{}) *godo.KubernetesClusterSSO {
+	if len(sso) == 0 || sso[0] == nil {
 		return nil
 	}
 
 	ssoConfig := &godo.KubernetesClusterSSO{}
 
-	if v, isSet := d.GetOkExists("sso.0.enabled"); isSet {
-		ssoConfig.Enabled = v.(bool)
-	}
-	if v, isSet := d.GetOkExists("sso.0.required"); isSet {
-		ssoConfig.Required = v.(bool)
-	}
+	ssoMap := sso[0].(map[string]interface{})
+
+	ssoConfig.Enabled = ssoMap["enabled"].(bool)
+	ssoConfig.Required = ssoMap["required"].(bool)
+	ssoConfig.IssuerURL = ssoMap["issuer_url"].(string)
+	ssoConfig.ClientID = ssoMap["client_id"].(string)
 
 	return ssoConfig
 }
@@ -665,6 +665,8 @@ func flattenSSOOpts(opts *godo.KubernetesClusterSSO) []map[string]interface{} {
 	item := make(map[string]interface{})
 	item["enabled"] = opts.Enabled
 	item["required"] = opts.Required
+	item["issuer_url"] = opts.IssuerURL
+	item["client_id"] = opts.ClientID
 	result = append(result, item)
 
 	return result

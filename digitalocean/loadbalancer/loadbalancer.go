@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/certificate"
@@ -383,4 +384,95 @@ func flattenLoadBalancerIds(list []string) *schema.Set {
 		flatSet.Add(v)
 	}
 	return flatSet
+}
+
+// glbCertificateBindingWaitTimeout is how long we poll the API after creating or
+// updating a GLOBAL load balancer until each custom domain's certificate_name
+// matches config. This narrows the race where a replaced certificate is deleted
+// while the control plane still reports it attached to the load balancer.
+const glbCertificateBindingWaitTimeout = 15 * time.Minute
+
+// glbDesiredDomainCertificates returns domain name -> certificate_name for
+// non-managed GLB domains that specify a custom certificate.
+func glbDesiredDomainCertificates(d *schema.ResourceData) map[string]string {
+	desired := make(map[string]string)
+	v, ok := d.GetOk("domains")
+	if !ok {
+		return desired
+	}
+	for _, raw := range v.(*schema.Set).List() {
+		m := raw.(map[string]interface{})
+		name, _ := m["name"].(string)
+		if name == "" {
+			continue
+		}
+		if managed, _ := m["is_managed"].(bool); managed {
+			continue
+		}
+		certName, ok := m["certificate_name"].(string)
+		if !ok || certName == "" {
+			continue
+		}
+		desired[name] = certName
+	}
+	return desired
+}
+
+func waitForGLBDomainCertificateBindings(ctx context.Context, client *godo.Client, lbID string, desired map[string]string) error {
+	if len(desired) == 0 {
+		return nil
+	}
+	conf := &retry.StateChangeConf{
+		Pending: []string{"pending"},
+		Target:  []string{"ready"},
+		Refresh: func() (interface{}, string, error) {
+			lb, _, err := client.LoadBalancers.Get(ctx, lbID)
+			if err != nil {
+				return nil, "", err
+			}
+			flat, err := flattenDomains(client, lb.Domains)
+			if err != nil {
+				return nil, "", err
+			}
+			actual := make(map[string]string)
+			for _, dm := range flat {
+				name, _ := dm["name"].(string)
+				if name == "" {
+					continue
+				}
+				certName, _ := dm["certificate_name"].(string)
+				if certName != "" {
+					actual[name] = certName
+				}
+			}
+			for dom, wantCert := range desired {
+				got, ok := actual[dom]
+				if !ok || got != wantCert {
+					return lb, "pending", nil
+				}
+			}
+			return lb, "ready", nil
+		},
+		Timeout:    glbCertificateBindingWaitTimeout,
+		Delay:      3 * time.Second,
+		MinTimeout: 2 * time.Second,
+	}
+	if _, err := conf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("timed out after %v waiting for global load balancer %q domain certificate bindings to match %#v: %w", glbCertificateBindingWaitTimeout, lbID, desired, err)
+	}
+	return nil
+}
+
+// waitForGLBDomainCertificatesIfNeeded polls after GLB writes when type is GLOBAL
+// and custom domain certificates are configured.
+func waitForGLBDomainCertificatesIfNeeded(ctx context.Context, d *schema.ResourceData, client *godo.Client, lbID string) error {
+	typ, ok := d.GetOk("type")
+	if !ok || !strings.EqualFold(typ.(string), "GLOBAL") {
+		return nil
+	}
+	desired := glbDesiredDomainCertificates(d)
+	if len(desired) == 0 {
+		return nil
+	}
+	return waitForGLBDomainCertificateBindings(ctx, client, lbID, desired)
 }

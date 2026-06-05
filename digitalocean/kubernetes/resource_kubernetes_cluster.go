@@ -33,6 +33,16 @@ const (
 	rdmaSharedDevicePluginField            = "rdma_shared_device_plugin"
 )
 
+// ExpandHAFromConfig returns the HA value for the create request. When ha is not
+// specified in config (ok from GetOkExists is false), returns nil so the API applies
+// its version-dependent default. When ok is true, value may be false (explicit HA off).
+func ExpandHAFromConfig(value interface{}, ok bool) *bool {
+	if !ok {
+		return nil
+	}
+	return godo.PtrTo(value.(bool))
+}
+
 func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanKubernetesClusterCreate,
@@ -71,7 +81,10 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			"ha": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
+				// When omitted from config, create sends nil HA so the API applies its version-dependent
+				// default; read stores the actual value. Computed avoids perpetual diff (config zero false
+				// vs state true on newer DOKS). Explicit ha = true/false is still honored (GetOkExists).
 			},
 
 			"registry_integration": {
@@ -88,6 +101,13 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			"vpc_uuid": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+
+			"worker_subnet_uuid": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -196,17 +216,25 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			"sso": {
 				Type:     schema.TypeList,
 				Optional: true,
+				Computed: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
 							Type:     schema.TypeBool,
-							Optional: true,
-							Computed: true,
+							Required: true,
 						},
 						"required": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Computed: true,
+						},
+						"issuer_url": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"client_id": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -447,11 +475,13 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		RegionSlug:   d.Get("region").(string),
 		VersionSlug:  d.Get("version").(string),
 		SurgeUpgrade: d.Get("surge_upgrade").(bool),
-		HA:           d.Get("ha").(bool),
 		Tags:         tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
 		NodePools:    poolCreateRequests,
-		SSO:          expandSSOOptsIfSet(d),
+		SSO:          expandSSOOpts(d.Get("sso").([]interface{})),
 	}
+	// GetOkExists: optional bool without Default — GetOk would treat ha = false as unset.
+	ha, haOk := d.GetOkExists("ha")
+	opts.HA = ExpandHAFromConfig(ha, haOk)
 
 	if maint, ok := d.GetOk("maintenance_policy"); ok {
 		maintPolicy, err := expandMaintPolicyOpts(maint.([]interface{}))
@@ -463,6 +493,10 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 
 	if vpc, ok := d.GetOk("vpc_uuid"); ok {
 		opts.VPCUUID = vpc.(string)
+	}
+
+	if workerSubnet, ok := d.GetOk("worker_subnet_uuid"); ok {
+		opts.WorkerSubnetUUID = workerSubnet.(string)
 	}
 
 	if clusterSubnet, ok := d.GetOk("cluster_subnet"); ok {
@@ -565,6 +599,7 @@ func digitaloceanKubernetesClusterRead(
 	d.Set("created_at", cluster.CreatedAt.UTC().String())
 	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
 	d.Set("vpc_uuid", cluster.VPCUUID)
+	d.Set("worker_subnet_uuid", cluster.WorkerSubnetUUID)
 	d.Set("auto_upgrade", cluster.AutoUpgrade)
 	d.Set("urn", cluster.URN())
 
@@ -675,7 +710,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 			NvidiaGpuDevicePlugin:             expandNvidiaGpuDevicePluginOpts(d.Get(nvidiaGpuDevicePluginField).([]interface{})),
 			RdmaSharedDevicePlugin:            expandRdmaSharedDevicePluginOpts(d.Get(rdmaSharedDevicePluginField).([]interface{})),
 			ClusterAutoscalerConfiguration:    expandCAConfigOptsForUpdate(d.GetChange("cluster_autoscaler_configuration")),
-			SSO:                               expandSSOOptsIfSet(d),
+			SSO:                               expandSSOOpts(d.Get("sso").([]interface{})),
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {

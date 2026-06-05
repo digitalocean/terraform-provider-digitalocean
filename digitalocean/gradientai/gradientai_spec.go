@@ -739,6 +739,218 @@ func ModelSchemaRead() *schema.Resource {
 	}
 }
 
+// CustomModelSchemaRead returns the all-computed schema for a custom model record.
+// It is shared between the digitalocean_gradientai_custom_model data source and the list
+// data source built on internal/datalist.
+func CustomModelSchemaRead() *schema.Resource {
+	customModelSchema := map[string]*schema.Schema{
+		"uuid": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "UUID of the custom model.",
+		},
+		"name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Human-readable name of the custom model.",
+		},
+		"description": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Description of the custom model.",
+		},
+		"status": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Current status of the custom model (e.g. STATUS_IMPORTING, STATUS_READY, STATUS_FAILED).",
+		},
+		"architecture": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Model architecture as reported by the importer.",
+		},
+		"source_type": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Source type of the custom model (e.g. SOURCE_TYPE_HUGGINGFACE, SOURCE_TYPE_SPACES_BUCKET).",
+		},
+		"source_ref": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "Reference to the source from which the custom model was imported.",
+			Elem:        customModelSourceRefSchemaRead(),
+		},
+		"total_size_bytes": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Total size of the imported model artifacts in bytes (string-encoded int64).",
+		},
+		"file_count": {
+			Type:        schema.TypeInt,
+			Computed:    true,
+			Description: "Number of files that make up the imported model.",
+		},
+		"license": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "License of the custom model, as reported by the source.",
+		},
+		"tags": {
+			Type:        schema.TypeSet,
+			Computed:    true,
+			Description: "User-defined tags associated with the custom model.",
+			Elem:        &schema.Schema{Type: schema.TypeString},
+		},
+		"created_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Timestamp when the custom model was created.",
+		},
+		"updated_at": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Timestamp when the custom model was last updated.",
+		},
+		"active_deployments": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "Active dedicated inference deployments referencing this custom model.",
+			Elem:        customModelActiveDeploymentSchemaRead(),
+		},
+		"context_length": {
+			Type:        schema.TypeInt,
+			Computed:    true,
+			Description: "Maximum context length supported by the model.",
+		},
+		"cost_estimate_per_month": {
+			Type:        schema.TypeInt,
+			Computed:    true,
+			Description: "Estimated monthly cost of running the custom model.",
+		},
+		"input_modalities": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "Input modalities supported by the model (e.g. text, image).",
+			Elem:        &schema.Schema{Type: schema.TypeString},
+		},
+		"output_modalities": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "Output modalities produced by the model.",
+			Elem:        &schema.Schema{Type: schema.TypeString},
+		},
+		"parameters": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Parameter-count summary reported by the importer.",
+		},
+		"team_id": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "ID of the team that owns the custom model.",
+		},
+		"storage_region": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Region where the custom model artifacts are stored.",
+		},
+	}
+	return &schema.Resource{Schema: customModelSchema}
+}
+
+func customModelSourceRefSchemaRead() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"repo_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Repository identifier (e.g. HuggingFace repo).",
+			},
+			"commit_sha": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Commit SHA pinned for the import.",
+			},
+			"access_type": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Access type for the source repository (e.g. ACCESS_TYPE_PUBLIC).",
+			},
+			"bucket": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Spaces bucket name for SPACES_BUCKET sources.",
+			},
+			"region": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Region of the source bucket.",
+			},
+			"prefix": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Key prefix inside the source bucket.",
+			},
+		},
+	}
+}
+
+func customModelActiveDeploymentSchemaRead() *schema.Resource {
+	return &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "ID of the dedicated inference deployment.",
+			},
+			"name": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Name of the dedicated inference deployment.",
+			},
+			"region_slug": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Region slug of the dedicated inference deployment.",
+			},
+			"state": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Current state of the deployment.",
+			},
+			"created_at": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Timestamp when the deployment was created.",
+			},
+			"updated_at": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Timestamp when the deployment was last updated.",
+			},
+			"endpoints": {
+				Type:        schema.TypeList,
+				Computed:    true,
+				Description: "Endpoint URLs exposed by the deployment.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"public_endpoint_fqdn": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Public endpoint FQDN, if enabled.",
+						},
+						"private_endpoint_fqdn": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "Private endpoint FQDN.",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func RegionSchemaRead() *schema.Resource {
 	regionSchemaRead := map[string]*schema.Schema{
 		"inference_url": {

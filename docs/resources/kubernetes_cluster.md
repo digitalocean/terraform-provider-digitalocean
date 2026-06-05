@@ -154,9 +154,10 @@ The following arguments are supported:
   - `enabled` - (Required) Boolean flag whether the firewall should be enabled or not.
   - `allowed_addresses` - (Required) A list of addresses allowed (CIDR notation).
 * `vpc_uuid` - (Optional) The ID of the VPC where the Kubernetes cluster will be located.
+* `worker_subnet_uuid` - (Optional) The ID of the VPC subnet for placing worker nodes. Must be a valid subnet in the cluster VPC. Requires that `vpc_uuid` is also set.
 * `auto_upgrade` - (Optional) A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: true
-* `ha` - (Optional) Enable/disable the high availability control plane for a cluster. Once enabled for a cluster, high availability cannot be disabled. Default: false
+* `ha` - (Optional) Enable/disable the high availability control plane for a cluster. Once enabled for a cluster, high availability cannot be disabled. Default: true (for 1.36.0 and later)
 * `registry_integration` - (optional) Enables or disables the DigitalOcean container registry integration for the cluster. This requires that a container registry has first been created for the account. Default: false
 * `node_pool` - (Required) A block representing the cluster's default node pool. Additional node pools may be added to the cluster using the `digitalocean_kubernetes_node_pool` resource. The following arguments may be specified:
   - `name` - (Required) A name for the node pool.
@@ -183,9 +184,15 @@ The following arguments are supported:
   - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
 `rdma_shared_device_plugin` - (Optional) Block containing options for the RDMA Shared Device Plugin (k8s-rdma-shared-dev-plugin) component. If not specified, the component will be enabled by default for clusters with GPU nodes connected to a dedicated high-speed networking fabric.
     - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
-* `cluster_autoscaler_configuration` - (Optional) Block containing options for cluster auto-scaling.
+* `cluster_autoscaler_configuration` - (Optional) Block containing options for cluster auto-scaling. For more information.
   - `scale_down_utilization_threshold` - (Optional) Float setting the Node utilization level, defined as sum of requested resources divided by capacity, in which a node can be considered for scale down.
   - `scale_down_unneeded_time` - (Optional) String setting how long a node should be unneeded before it's eligible for scale down.
+  - `expanders` - (Optional) A list of cluster autoscaler expander strategies to apply in order when selecting which node pool to scale up. Valid values are `random`, `priority`, and `least-waste`. The autoscaler uses each expander from the list to narrow the selection until a single node pool remains. If multiple node pools remain after all expanders are applied, one is chosen at random. When using the `priority` expander, configure priorities in the `cluster-autoscaler-priority-expander` ConfigMap in the `kube-system` namespace (see [Configuring Priority Expander](https://docs.digitalocean.com/products/kubernetes/how-to/autoscale/#configuring-priority-expander)).
+* `sso` - (Optional) Block containing Single Sign-On (SSO) configuration for the cluster using OpenID Connect (OIDC).
+  - `enabled` - (Required) Boolean flag indicating whether SSO is enabled as an authentication method for the cluster.
+  - `required` - (Optional) Boolean flag indicating whether SSO is required as the only authentication method for the cluster. Default: `false`
+  - `issuer_url` - (Optional) The OIDC issuer URL for the cluster SSO configuration.
+  - `client_id` - (Optional) The OIDC client ID for the cluster SSO configuration.
 
 This resource supports [customized create timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
 

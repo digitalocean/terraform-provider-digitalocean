@@ -372,6 +372,151 @@ func getDigitalOceanModels(meta interface{}, extra map[string]interface{}) ([]in
 	return allModels, nil
 }
 
+func flattenDigitalOceanCustomModel(rawDomain, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
+	model, ok := rawDomain.(*godo.CustomModel)
+	if !ok || model == nil {
+		return nil, nil
+	}
+	return FlattenDigitalOceanCustomModel(model)
+}
+
+// FlattenDigitalOceanCustomModel converts a godo.CustomModel into the Terraform
+// schema representation used by the resource and data sources.
+func FlattenDigitalOceanCustomModel(model *godo.CustomModel) (map[string]interface{}, error) {
+	if model == nil {
+		return nil, nil
+	}
+
+	result := map[string]interface{}{
+		"uuid":                    model.Uuid,
+		"name":                    model.Name,
+		"description":             model.Description,
+		"status":                  string(model.Status),
+		"architecture":            model.Architecture,
+		"source_type":             string(model.SourceType),
+		"total_size_bytes":        model.TotalSizeBytes,
+		"file_count":              model.FileCount,
+		"license":                 model.License,
+		"context_length":          model.ContextLength,
+		"cost_estimate_per_month": model.CostEstimatePerMonth,
+		"input_modalities":        flattenStringSlice(model.InputModalities),
+		"output_modalities":       flattenStringSlice(model.OutputModalities),
+		"parameters":              model.Parameters,
+		"team_id":                 model.TeamId,
+		"storage_region":          model.StorageRegion,
+		"source_ref":              flattenCustomModelSourceRef(model.SourceRef),
+		"active_deployments":      flattenCustomModelActiveDeployments(model.ActiveDeployments),
+		"tags":                    flattenCustomModelTags(model.Tags),
+	}
+
+	if model.CreatedAt != nil {
+		result["created_at"] = model.CreatedAt.UTC().String()
+	}
+	if model.UpdatedAt != nil {
+		result["updated_at"] = model.UpdatedAt.UTC().String()
+	}
+
+	return result, nil
+}
+
+func flattenCustomModelSourceRef(ref *godo.CustomModelSourceRef) []interface{} {
+	if ref == nil {
+		return []interface{}{}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"repo_id":     ref.RepoId,
+			"commit_sha":  ref.CommitSha,
+			"access_type": string(ref.AccessType),
+			"bucket":      ref.Bucket,
+			"region":      ref.Region,
+			"prefix":      ref.Prefix,
+		},
+	}
+}
+
+func flattenCustomModelTags(tags *godo.CustomModelTags) []interface{} {
+	if tags == nil || len(tags.Tags) == 0 {
+		return []interface{}{}
+	}
+	return flattenStringSlice(tags.Tags)
+}
+
+func flattenCustomModelActiveDeployments(deployments []*godo.CustomModelActiveDeployment) []interface{} {
+	result := make([]interface{}, 0, len(deployments))
+	for _, d := range deployments {
+		if d == nil {
+			continue
+		}
+		entry := map[string]interface{}{
+			"id":          d.Id,
+			"name":        d.Name,
+			"region_slug": d.RegionSlug,
+			"state":       d.State,
+			"created_at":  d.CreatedAt,
+			"updated_at":  d.UpdatedAt,
+		}
+		if d.Endpoints != nil {
+			entry["endpoints"] = []interface{}{
+				map[string]interface{}{
+					"public_endpoint_fqdn":  d.Endpoints.PublicEndpointFqdn,
+					"private_endpoint_fqdn": d.Endpoints.PrivateEndpointFqdn,
+				},
+			}
+		} else {
+			entry["endpoints"] = []interface{}{}
+		}
+		result = append(result, entry)
+	}
+	return result
+}
+
+func flattenStringSlice(in []string) []interface{} {
+	out := make([]interface{}, 0, len(in))
+	for _, s := range in {
+		out = append(out, s)
+	}
+	return out
+}
+
+// getDigitalOceanCustomModels paginates through GradientAI.ListCustomModels and
+// returns every record. An optional "status" filter may be supplied via extra
+// to forward to the underlying API call.
+func getDigitalOceanCustomModels(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	opts := &godo.CustomModelListOptions{
+		ListOptions: godo.ListOptions{Page: 1, PerPage: 200},
+	}
+	if v, ok := extra["status"]; ok {
+		if s, ok := v.(string); ok && s != "" {
+			opts.Status = godo.CustomModelStatus(s)
+		}
+	}
+
+	var all []interface{}
+	for {
+		listResp, resp, err := client.GradientAI.ListCustomModels(context.Background(), opts)
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving custom models: %s", err)
+		}
+		if listResp != nil {
+			for i := range listResp.Models {
+				all = append(all, listResp.Models[i])
+			}
+		}
+		if resp == nil || resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return nil, fmt.Errorf("error retrieving custom models: %s", err)
+		}
+		opts.Page = page + 1
+	}
+	return all, nil
+}
+
 func flattenDigitalOceanRegion(rawDomain, meta interface{}, extra map[string]interface{}) (map[string]interface{}, error) {
 	region, ok := rawDomain.(*godo.DatacenterRegions)
 	if !ok || region == nil {
