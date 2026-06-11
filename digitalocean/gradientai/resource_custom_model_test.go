@@ -366,8 +366,8 @@ resource "digitalocean_gradientai_custom_model" "test" {
   preferred_gpu_region        = %q
   accept_terms_and_conditions = true
 
-  license           = "apache-2.0"
-  input_modalities  = ["text"]
+  license          = "apache-2.0"
+  input_modalities = ["text"]
 
   source_ref {
     repo_id     = "example/should-never-import"
