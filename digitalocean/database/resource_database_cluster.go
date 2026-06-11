@@ -264,6 +264,31 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"storage_autoscale": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+						"threshold_percent": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(15, 95),
+						},
+						"increment_gib": {
+							Type:         schema.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntAtLeast(10),
+							Description:  "Storage increase step size in GiB (minimum 10 GiB, rounded to nearest 10 GiB). If not specified, system auto-calculates (25% of current size, min 50 GiB, max 1024 GiB, rounded to 10 GiB steps). Cooldown: 1 hour between autoscale operations.",
+						},
+					},
+				},
+			},
+
 			"metrics_endpoints": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -351,6 +376,10 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 		if err == nil {
 			opts.StorageSizeMib = v
 		}
+	}
+
+	if v, ok := d.GetOk("storage_autoscale"); ok {
+		opts.StorageAutoscale = expandStorageAutoscale(v.([]interface{}))
 	}
 
 	log.Printf("[DEBUG] database cluster create configuration: %#v", opts)
@@ -518,6 +547,16 @@ func resourceDigitalOceanDatabaseClusterUpdate(ctx context.Context, d *schema.Re
 		}
 	}
 
+	if d.HasChange("storage_autoscale") {
+		if v, ok := d.GetOk("storage_autoscale"); ok {
+			autoscale := expandStorageAutoscale(v.([]interface{}))
+			_, err := client.Databases.UpdateStorageAutoscale(context.Background(), d.Id(), autoscale)
+			if err != nil {
+				return diag.Errorf("Error updating storage autoscale for database cluster: %s", err)
+			}
+		}
+	}
+
 	return resourceDigitalOceanDatabaseClusterRead(ctx, d, meta)
 }
 
@@ -567,6 +606,20 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 		}
 
 		d.Set("sql_mode", mode)
+	}
+
+	if _, ok := d.GetOk("storage_autoscale"); ok {
+		autoscale := database.StorageAutoscale
+		if autoscale == nil {
+			autoscale, _, err = client.Databases.GetStorageAutoscale(context.Background(), d.Id())
+			if err != nil {
+				return diag.Errorf("Error retrieving storage autoscale for database cluster: %s", err)
+			}
+		}
+
+		if err := d.Set("storage_autoscale", flattenStorageAutoscale(autoscale)); err != nil {
+			return diag.Errorf("[DEBUG] Error setting storage_autoscale - error: %#v", err)
+		}
 	}
 
 	// Computed values
@@ -714,6 +767,7 @@ func setUIConnectionInfo(database *godo.Database, d *schema.ResourceData) error 
 
 func setMetricsEndpoints(database *godo.Database, d *schema.ResourceData) error {
 	if len(database.MetricsEndpoints) == 0 {
+		d.Set("metrics_endpoints", []string{})
 		return nil
 	}
 
@@ -755,6 +809,46 @@ func buildDBConnectionURI(conn *godo.DatabaseConnection, d *schema.ResourceData)
 
 func buildDBPrivateURI(conn *godo.DatabaseConnection, d *schema.ResourceData) (string, error) {
 	return buildDBConnectionURI(conn, d)
+}
+
+func expandStorageAutoscale(config []interface{}) *godo.DatabaseStorageAutoscale {
+	configMap := config[0].(map[string]interface{})
+
+	autoscale := &godo.DatabaseStorageAutoscale{
+		Enabled: configMap["enabled"].(bool),
+	}
+
+	if v, ok := configMap["threshold_percent"]; ok && v != nil {
+		threshold := v.(int)
+		autoscale.ThresholdPercent = &threshold
+	}
+
+	if v, ok := configMap["increment_gib"]; ok && v != nil {
+		increment := uint64(v.(int))
+		autoscale.IncrementGib = &increment
+	}
+
+	return autoscale
+}
+
+func flattenStorageAutoscale(autoscale *godo.DatabaseStorageAutoscale) []map[string]interface{} {
+	if autoscale == nil {
+		return nil
+	}
+
+	result := make([]map[string]interface{}, 0)
+	item := make(map[string]interface{})
+
+	item["enabled"] = autoscale.Enabled
+	if autoscale.ThresholdPercent != nil {
+		item["threshold_percent"] = *autoscale.ThresholdPercent
+	}
+	if autoscale.IncrementGib != nil {
+		item["increment_gib"] = int(*autoscale.IncrementGib)
+	}
+	result = append(result, item)
+
+	return result
 }
 
 func expandBackupRestore(config []interface{}) *godo.DatabaseBackupRestore {

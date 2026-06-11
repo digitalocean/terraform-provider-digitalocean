@@ -88,6 +88,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.token"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "kube_config.0.expires_at"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "vpc_uuid"),
+					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "worker_subnet_uuid"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "auto_upgrade"),
 					resource.TestMatchResourceAttr("digitalocean_kubernetes_cluster.foobar", "urn", expectedURNRegEx),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day"),
@@ -99,6 +100,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "routing_agent.0.enabled", "false"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_plugin.0.enabled", "false"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_metrics_exporter_plugin.0.enabled", "false"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "coredns_autoscaler.0.enabled", "false"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "nvidia_gpu_device_plugin.0.enabled", "false"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "rdma_shared_device_plugin.0.enabled", "false"),
 				),
@@ -997,6 +999,26 @@ func TestAccDigitalOceanKubernetesCluster_RoutingAgentEnabled(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_CorednsAutoscalerEnabled(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfigCorednsAutoscalerEnabled(testClusterVersionPrevious, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "coredns_autoscaler.0.enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanKubernetesCluster_AmdGpuDevicePluginEnabled(t *testing.T) {
 	rName := acceptance.RandomTestName()
 	var k8s godo.KubernetesCluster
@@ -1392,6 +1414,26 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   version = data.digitalocean_kubernetes_versions.test.latest_version
   ha      = false
   routing_agent {
+    enabled = true
+  }
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+`, testClusterVersion, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigCorednsAutoscalerEnabled(testClusterVersion string, rName string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    = "%s"
+  region  = "nyc1"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
+  coredns_autoscaler {
     enabled = true
   }
   node_pool {

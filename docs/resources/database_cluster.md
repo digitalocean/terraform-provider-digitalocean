@@ -130,6 +130,13 @@ The following arguments are supported:
 * `sql_mode` - (Optional) A comma separated string specifying the  SQL modes for a MySQL cluster.
 * `maintenance_window` - (Optional) Defines when the automatic maintenance should be performed for the database cluster.
 * `storage_size_mib` - (Optional) Defines the disk size, in MiB, allocated to the cluster. This can be adjusted on MySQL and PostreSQL clusters based on predefined ranges for each slug/droplet size.
+* `storage_autoscale` - (Optional) Storage autoscaling configuration for the database cluster.
+
+`storage_autoscale` supports the following:
+
+* `enabled` - (Required) Whether storage autoscaling is enabled for the cluster.
+* `threshold_percent` - (Optional) The storage utilization percentage at which autoscaling is triggered.
+* `increment_gib` - (Optional) The amount of storage, in GiB, to add when autoscaling is triggered.
 
 `maintenance_window` supports the following:
 
