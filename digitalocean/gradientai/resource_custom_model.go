@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -13,6 +14,25 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
+
+// customModelAlwaysMutableMetadataFields are accepted by the metadata-update
+// API for every source type.
+var customModelAlwaysMutableMetadataFields = []string{
+	"description",
+	"tags",
+}
+
+// customModelSpacesOnlyMetadataFields are accepted by the metadata-update API
+// only when the model was imported via SOURCE_TYPE_SPACES_BUCKET. For any
+// other source type the PATCH is silently ignored while GET keeps returning
+// the importer-reported values, which would cause a permanent terraform plan
+// diff — see resourceDigitalOceanCustomModelCustomizeDiff.
+var customModelSpacesOnlyMetadataFields = []string{
+	"license",
+	"parameters",
+	"input_modalities",
+	"output_modalities",
+}
 
 // Valid source_type and source_ref.access_type values accepted by the API.
 // The provider passes these strings through to the API as-is.
@@ -36,6 +56,7 @@ func ResourceDigitalOceanCustomModel() *schema.Resource {
 		ReadContext:   resourceDigitalOceanCustomModelRead,
 		UpdateContext: resourceDigitalOceanCustomModelUpdate,
 		DeleteContext: resourceDigitalOceanCustomModelDelete,
+		CustomizeDiff: resourceDigitalOceanCustomModelCustomizeDiff,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -159,8 +180,9 @@ func ResourceDigitalOceanCustomModel() *schema.Resource {
 			},
 			"license": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
-				Description: "License of the model as reported by the source.",
+				Description: "License of the model. Defaults to the value reported by the importer. Caller-supplied overrides are honored only for SOURCE_TYPE_SPACES_BUCKET imports.",
 			},
 			"context_length": {
 				Type:        schema.TypeInt,
@@ -174,20 +196,23 @@ func ResourceDigitalOceanCustomModel() *schema.Resource {
 			},
 			"input_modalities": {
 				Type:        schema.TypeList,
+				Optional:    true,
 				Computed:    true,
-				Description: "Input modalities supported by the model.",
+				Description: "Input modalities supported by the model. Defaults to the values reported by the importer. Caller-supplied overrides are honored only for SOURCE_TYPE_SPACES_BUCKET imports.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 			"output_modalities": {
 				Type:        schema.TypeList,
+				Optional:    true,
 				Computed:    true,
-				Description: "Output modalities produced by the model.",
+				Description: "Output modalities produced by the model. Defaults to the values reported by the importer. Caller-supplied overrides are honored only for SOURCE_TYPE_SPACES_BUCKET imports.",
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
 			"parameters": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
-				Description: "Parameter-count summary reported by the importer.",
+				Description: "Parameter-count summary for the model. Defaults to the value reported by the importer. Caller-supplied overrides are honored only for SOURCE_TYPE_SPACES_BUCKET imports.",
 			},
 			"team_id": {
 				Type:        schema.TypeString,
@@ -317,18 +342,76 @@ func normalizeCustomModelSourceRefForState(apiVal, existingVal interface{}) []in
 	return []interface{}{row}
 }
 
+// resourceDigitalOceanCustomModelCustomizeDiff rejects plans that set any of
+// the Spaces-only metadata fields on a non-SOURCE_TYPE_SPACES_BUCKET resource.
+// The API silently ignores those fields on PATCH for other source types, which
+// would otherwise produce a permanent plan diff that no apply can resolve.
+//
+// HasChange + a non-empty value distinguishes caller-set values from
+// API-reflected state values (e.g. license read back after `terraform import`
+// of an HF model), so the latter does not trigger a spurious error.
+func resourceDigitalOceanCustomModelCustomizeDiff(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
+	sourceType := d.Get("source_type").(string)
+	if sourceType == string(godo.CustomModelSourceTypeSpacesBucket) {
+		return nil
+	}
+
+	var conflicts []string
+	for _, field := range customModelSpacesOnlyMetadataFields {
+		if !d.HasChange(field) {
+			continue
+		}
+		switch v := d.Get(field).(type) {
+		case string:
+			if v != "" {
+				conflicts = append(conflicts, field)
+			}
+		case []interface{}:
+			if len(v) > 0 {
+				conflicts = append(conflicts, field)
+			}
+		}
+	}
+	if len(conflicts) > 0 {
+		return fmt.Errorf(
+			"%s can only be set when source_type = %q (got %q). "+
+				"Either set source_type to %q or remove these attributes from your configuration.",
+			strings.Join(conflicts, ", "),
+			godo.CustomModelSourceTypeSpacesBucket,
+			sourceType,
+			godo.CustomModelSourceTypeSpacesBucket,
+		)
+	}
+	return nil
+}
+
 func resourceDigitalOceanCustomModelUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	if !d.HasChanges("description", "tags") {
+	isSpaces := d.Get("source_type").(string) == string(godo.CustomModelSourceTypeSpacesBucket)
+
+	mutableFields := append([]string{}, customModelAlwaysMutableMetadataFields...)
+	if isSpaces {
+		mutableFields = append(mutableFields, customModelSpacesOnlyMetadataFields...)
+	}
+	if !d.HasChanges(mutableFields...) {
 		return resourceDigitalOceanCustomModelRead(ctx, d, meta)
 	}
 
 	// Name is intentionally omitted from the payload because the API does not
-	// support renaming a custom model. Only description/tags are mutable today.
+	// support renaming a custom model.
 	updateReq := &godo.CustomModelMetadataUpdateRequest{
 		Description: d.Get("description").(string),
 		Tags:        expandCustomModelTags(d.Get("tags")),
+	}
+	if isSpaces {
+		// The Spaces-only metadata fields are gated on source_type both here
+		// and in CustomizeDiff so non-Spaces PATCHes never carry attributes
+		// the API would silently discard.
+		updateReq.License = d.Get("license").(string)
+		updateReq.Parameters = d.Get("parameters").(string)
+		updateReq.InputModalities = expandCustomModelStringList(d.Get("input_modalities"))
+		updateReq.OutputModalities = expandCustomModelStringList(d.Get("output_modalities"))
 	}
 
 	if _, _, err := client.GradientAI.UpdateCustomModelMetadata(ctx, d.Id(), updateReq); err != nil {
@@ -420,4 +503,22 @@ func expandCustomModelTags(raw interface{}) *godo.CustomModelTags {
 		}
 	}
 	return &godo.CustomModelTags{Tags: tags}
+}
+
+// expandCustomModelStringList converts a TypeList schema value (e.g.
+// input_modalities, output_modalities) into a plain []string suitable for the
+// metadata update request. Empty/missing input yields nil so the field is
+// omitted from the JSON body.
+func expandCustomModelStringList(raw interface{}) []string {
+	list, ok := raw.([]interface{})
+	if !ok || len(list) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(list))
+	for _, v := range list {
+		if s, ok := v.(string); ok && s != "" {
+			out = append(out, s)
+		}
+	}
+	return out
 }
