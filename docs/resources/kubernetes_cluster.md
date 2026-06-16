@@ -154,6 +154,7 @@ The following arguments are supported:
   - `enabled` - (Required) Boolean flag whether the firewall should be enabled or not.
   - `allowed_addresses` - (Required) A list of addresses allowed (CIDR notation).
 * `vpc_uuid` - (Optional) The ID of the VPC where the Kubernetes cluster will be located.
+* `worker_subnet_uuid` - (Optional) The ID of the VPC subnet for placing worker nodes. Must be a valid subnet in the cluster VPC. Requires that `vpc_uuid` is also set.
 * `auto_upgrade` - (Optional) A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: true
 * `ha` - (Optional) Enable/disable the high availability control plane for a cluster. Once enabled for a cluster, high availability cannot be disabled. Default: true (for 1.36.0 and later)
@@ -183,9 +184,17 @@ The following arguments are supported:
   - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
 `rdma_shared_device_plugin` - (Optional) Block containing options for the RDMA Shared Device Plugin (k8s-rdma-shared-dev-plugin) component. If not specified, the component will be enabled by default for clusters with GPU nodes connected to a dedicated high-speed networking fabric.
     - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
-* `cluster_autoscaler_configuration` - (Optional) Block containing options for cluster auto-scaling.
+* `coredns_autoscaler` - (Optional) Block containing options for the CoreDNS Autoscaler component, which scales CoreDNS replicas in proportion to the cluster's size. Default: true (for 1.36.0 and later)
+  - `enabled` - (Required) Boolean flag whether the CoreDNS Autoscaler should be enabled or not.
+* `cluster_autoscaler_configuration` - (Optional) Block containing options for cluster auto-scaling. For more information.
   - `scale_down_utilization_threshold` - (Optional) Float setting the Node utilization level, defined as sum of requested resources divided by capacity, in which a node can be considered for scale down.
   - `scale_down_unneeded_time` - (Optional) String setting how long a node should be unneeded before it's eligible for scale down.
+  - `expanders` - (Optional) A list of cluster autoscaler expander strategies to apply in order when selecting which node pool to scale up. Valid values are `random`, `priority`, and `least-waste`. The autoscaler uses each expander from the list to narrow the selection until a single node pool remains. If multiple node pools remain after all expanders are applied, one is chosen at random. When using the `priority` expander, configure priorities in the `cluster-autoscaler-priority-expander` ConfigMap in the `kube-system` namespace (see [Configuring Priority Expander](https://docs.digitalocean.com/products/kubernetes/how-to/autoscale/#configuring-priority-expander)).
+* `sso` - (Optional) Block containing Single Sign-On (SSO) configuration for the cluster using OpenID Connect (OIDC).
+  - `enabled` - (Required) Boolean flag indicating whether SSO is enabled as an authentication method for the cluster.
+  - `required` - (Optional) Boolean flag indicating whether SSO is required as the only authentication method for the cluster. Default: `false`
+  - `issuer_url` - (Optional) The OIDC issuer URL for the cluster SSO configuration.
+  - `client_id` - (Optional) The OIDC client ID for the cluster SSO configuration.
 
 This resource supports [customized create timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
 
@@ -233,6 +242,8 @@ In addition to the arguments listed above, the following additional attributes a
   - `enabled` - Boolean flag whether the component is enabled or not.
 * `amd_gpu_device_metrics_exporter_plugin` - Block containing options for the AMD GPU device metrics exporter component.
   - `enabled` - Boolean flag whether the component is enabled or not.
+* `coredns_autoscaler` - Block containing options for the CoreDNS Autoscaler component, which scales CoreDNS replicas in proportion to the cluster's size. Default: true (for 1.36.0 and later)
+  - `enabled` - Boolean flag whether the CoreDNS Autoscaler is enabled or not.
 
 ## Import
 

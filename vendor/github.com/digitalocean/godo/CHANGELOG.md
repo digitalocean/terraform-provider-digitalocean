@@ -1,5 +1,29 @@
 # Change Log
 
+## [1.195.0] - 2026-06-09
+
+- #1033 - @chandrudo - Add UpdateModelEvaluationRun to GradientAI service
+- #1030 - @ritheek-pitti-do - Add ListEvaluationDatasets API and example
+- #1028 - @gangasingh01 - added support for ADVANCED PG configuration
+- #1026 - @gangasingh01 - Added support for ADVANCED_MYSQL and ADVANCED_PG engines in listoptions endpoint
+- #1027 - @SSharma-10 - rename beta release
+
+## [1.194.1] - 2026-06-03
+
+- #1023 - @SSharma-10 - godo beta release
+- #1024 - @venkatranabothu - Add Spaces editable fields to Custom Model metadata
+- #1019 - @ritheek-pitti-do - Added evals endpoints
+- #1017 - @d-isaacson - Add inference router APIs
+
+## [1.193.0] - 2026-05-26
+
+- #1015 - @nbhoot157 - Add VectorDBs service for vector database API support
+- #1018 - @gangasingh01 - mod: added support for get and update StorageAutoscale endpoints
+- #1016 - @ritheek-pitti-do - Added Cancel Eval and DeletePreset Endpoints
+- #1014 - @venkatranabothu - Add Delete Model Evaluation Run API support
+- #1013 - @d-honeybadger - add worker_subnet_uuid field to doks methods
+- #1012 - @sshirolkar - add pricing for non-token based models in godo 
+
 ## [1.192.0] - 2026-05-19
 
 - #1010 - @SSharma-10 - Update readme
