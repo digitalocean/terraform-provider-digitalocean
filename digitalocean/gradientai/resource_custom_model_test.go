@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 	"testing"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/gradientai"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -77,8 +80,9 @@ func TestAccDigitalOceanCustomModel_UpdateMetadata(t *testing.T) {
 	var model godo.CustomModel
 	name := acceptance.RandomTestName() + "-cm"
 
-	// The API does not support renaming a custom model, so we only exercise
-	// description/tags updates here. See resourceDigitalOceanCustomModelUpdate.
+	// HF imports only support description/tags updates. The Spaces-only
+	// metadata fields (license, parameters, input/output modalities) are
+	// exercised separately by TestAccDigitalOceanCustomModel_UpdateSpacesMetadata.
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
@@ -99,6 +103,80 @@ func TestAccDigitalOceanCustomModel_UpdateMetadata(t *testing.T) {
 					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "description", "updated by terraform acceptance test"),
 					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "tags.#", "2"),
 				),
+			},
+		},
+	})
+}
+
+// TestAccDigitalOceanCustomModel_UpdateSpacesMetadata exercises the Spaces-only
+// editable metadata fields (license, parameters, input_modalities,
+// output_modalities) which the API only honors for SOURCE_TYPE_SPACES_BUCKET
+// imports.
+//
+// The test is skipped unless the caller exports a Spaces bucket / region /
+// prefix that already contains importable model artifacts:
+//
+//	DO_CUSTOM_MODEL_SPACES_BUCKET
+//	DO_CUSTOM_MODEL_SPACES_REGION
+//	DO_CUSTOM_MODEL_SPACES_PREFIX
+func TestAccDigitalOceanCustomModel_UpdateSpacesMetadata(t *testing.T) {
+	bucket := os.Getenv("DO_CUSTOM_MODEL_SPACES_BUCKET")
+	region := os.Getenv("DO_CUSTOM_MODEL_SPACES_REGION")
+	prefix := os.Getenv("DO_CUSTOM_MODEL_SPACES_PREFIX")
+	if bucket == "" || region == "" || prefix == "" {
+		t.Skip("DO_CUSTOM_MODEL_SPACES_BUCKET / DO_CUSTOM_MODEL_SPACES_REGION / DO_CUSTOM_MODEL_SPACES_PREFIX must be set for the Spaces metadata update test")
+	}
+
+	var model godo.CustomModel
+	name := acceptance.RandomTestName() + "-cm"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanCustomModelDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCustomModelConfig_spacesBasic(name, bucket, region, prefix),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanCustomModelExists("digitalocean_gradientai_custom_model.test", &model),
+					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "name", name),
+					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "source_type", "SOURCE_TYPE_SPACES_BUCKET"),
+				),
+			},
+			{
+				Config: testAccCustomModelConfig_spacesUpdated(name, bucket, region, prefix),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanCustomModelExists("digitalocean_gradientai_custom_model.test", &model),
+					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "name", name),
+					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "description", "updated by terraform acceptance test"),
+					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "tags.#", "2"),
+					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "license", "apache-2.0"),
+					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "parameters", "8B"),
+					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "input_modalities.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "input_modalities.0", "text"),
+					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "output_modalities.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_gradientai_custom_model.test", "output_modalities.0", "text"),
+				),
+			},
+		},
+	})
+}
+
+// TestAccDigitalOceanCustomModel_RejectSpacesOnlyFieldsOnHF asserts that
+// setting any of the Spaces-only metadata fields on a non-Spaces source is
+// rejected at plan time by CustomizeDiff, so users do not get into a permanent
+// plan-diff state.
+func TestAccDigitalOceanCustomModel_RejectSpacesOnlyFieldsOnHF(t *testing.T) {
+	name := acceptance.RandomTestName() + "-cm"
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccCustomModelConfig_hfWithSpacesOnlyFields(name),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`can only be set when source_type = "SOURCE_TYPE_SPACES_BUCKET"`),
 			},
 		},
 	})
@@ -232,4 +310,216 @@ resource "digitalocean_gradientai_custom_model" "test" {
   }
 }
 `, name, testCustomModelGpuRegion(), testCustomModelRepo(), testCustomModelAccessType())
+}
+
+func testAccCustomModelConfig_spacesBasic(name, bucket, region, prefix string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_gradientai_custom_model" "test" {
+  name                        = %q
+  source_type                 = "SOURCE_TYPE_SPACES_BUCKET"
+  preferred_gpu_region        = %q
+  accept_terms_and_conditions = true
+
+  source_ref {
+    bucket = %q
+    region = %q
+    prefix = %q
+  }
+}
+`, name, testCustomModelGpuRegion(), bucket, region, prefix)
+}
+
+func testAccCustomModelConfig_spacesUpdated(name, bucket, region, prefix string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_gradientai_custom_model" "test" {
+  name                        = %q
+  description                 = "updated by terraform acceptance test"
+  source_type                 = "SOURCE_TYPE_SPACES_BUCKET"
+  preferred_gpu_region        = %q
+  accept_terms_and_conditions = true
+  tags                        = ["terraform-test", "acceptance"]
+
+  license           = "apache-2.0"
+  parameters        = "8B"
+  input_modalities  = ["text"]
+  output_modalities = ["text"]
+
+  source_ref {
+    bucket = %q
+    region = %q
+    prefix = %q
+  }
+}
+`, name, testCustomModelGpuRegion(), bucket, region, prefix)
+}
+
+// testAccCustomModelConfig_hfWithSpacesOnlyFields builds a config that combines
+// a HuggingFace source with the Spaces-only metadata fields. CustomizeDiff
+// should reject this at plan time before any API call is made, so the config
+// uses a clearly-fake repo_id to make the intent obvious and to make sure no
+// real import is ever issued.
+func testAccCustomModelConfig_hfWithSpacesOnlyFields(name string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_gradientai_custom_model" "test" {
+  name                        = %q
+  source_type                 = "SOURCE_TYPE_HUGGINGFACE"
+  preferred_gpu_region        = %q
+  accept_terms_and_conditions = true
+
+  license          = "apache-2.0"
+  input_modalities = ["text"]
+
+  source_ref {
+    repo_id     = "example/should-never-import"
+    access_type = "ACCESS_TYPE_PUBLIC"
+  }
+}
+`, name, testCustomModelGpuRegion())
+}
+
+// TestCustomModelCustomizeDiff_SpacesOnlyFields is a fast unit test (no TF_ACC,
+// no DO API) that exercises the CustomizeDiff guard which rejects the
+// Spaces-only metadata fields when source_type is not SOURCE_TYPE_SPACES_BUCKET.
+// It uses schema.Resource.Diff with a raw config map to drive the plan.
+func TestCustomModelCustomizeDiff_SpacesOnlyFields(t *testing.T) {
+	baseHF := func(extra map[string]interface{}) map[string]interface{} {
+		raw := map[string]interface{}{
+			"name":                        "tf-acc-test",
+			"source_type":                 "SOURCE_TYPE_HUGGINGFACE",
+			"preferred_gpu_region":        "tor1",
+			"accept_terms_and_conditions": true,
+			"source_ref": []interface{}{
+				map[string]interface{}{
+					"repo_id":     "example/repo",
+					"access_type": "ACCESS_TYPE_PUBLIC",
+				},
+			},
+		}
+		for k, v := range extra {
+			raw[k] = v
+		}
+		return raw
+	}
+
+	baseSpaces := func(extra map[string]interface{}) map[string]interface{} {
+		raw := map[string]interface{}{
+			"name":                        "tf-acc-test",
+			"source_type":                 "SOURCE_TYPE_SPACES_BUCKET",
+			"preferred_gpu_region":        "tor1",
+			"accept_terms_and_conditions": true,
+			"source_ref": []interface{}{
+				map[string]interface{}{
+					"bucket": "example-bucket",
+					"region": "nyc3",
+					"prefix": "models/example/",
+				},
+			},
+		}
+		for k, v := range extra {
+			raw[k] = v
+		}
+		return raw
+	}
+
+	cases := []struct {
+		name           string
+		attrs          map[string]interface{}
+		expectErr      bool
+		expectContains string
+	}{
+		{
+			name:      "HF without Spaces-only fields is accepted",
+			attrs:     baseHF(nil),
+			expectErr: false,
+		},
+		{
+			name:           "HF with license is rejected",
+			attrs:          baseHF(map[string]interface{}{"license": "apache-2.0"}),
+			expectErr:      true,
+			expectContains: `license can only be set when source_type = "SOURCE_TYPE_SPACES_BUCKET"`,
+		},
+		{
+			name:           "HF with parameters is rejected",
+			attrs:          baseHF(map[string]interface{}{"parameters": "8B"}),
+			expectErr:      true,
+			expectContains: `parameters can only be set`,
+		},
+		{
+			name:           "HF with input_modalities is rejected",
+			attrs:          baseHF(map[string]interface{}{"input_modalities": []interface{}{"text"}}),
+			expectErr:      true,
+			expectContains: `input_modalities can only be set`,
+		},
+		{
+			name:           "HF with output_modalities is rejected",
+			attrs:          baseHF(map[string]interface{}{"output_modalities": []interface{}{"text"}}),
+			expectErr:      true,
+			expectContains: `output_modalities can only be set`,
+		},
+		{
+			name: "HF with multiple Spaces-only fields lists all in error",
+			attrs: baseHF(map[string]interface{}{
+				"license":          "apache-2.0",
+				"parameters":       "8B",
+				"input_modalities": []interface{}{"text"},
+			}),
+			expectErr:      true,
+			expectContains: `license, parameters, input_modalities can only be set`,
+		},
+		{
+			name: "HF with multiple Spaces-only fields error names actionable remedy",
+			attrs: baseHF(map[string]interface{}{
+				"license": "apache-2.0",
+			}),
+			expectErr:      true,
+			expectContains: `Either set source_type to "SOURCE_TYPE_SPACES_BUCKET" or remove these attributes`,
+		},
+		{
+			name: "Spaces with all Spaces-only fields is accepted",
+			attrs: baseSpaces(map[string]interface{}{
+				"license":           "apache-2.0",
+				"parameters":        "8B",
+				"input_modalities":  []interface{}{"text"},
+				"output_modalities": []interface{}{"text"},
+			}),
+			expectErr: false,
+		},
+		{
+			name: "HF with empty Spaces-only string field is accepted",
+			attrs: baseHF(map[string]interface{}{
+				"license":    "",
+				"parameters": "",
+			}),
+			expectErr: false,
+		},
+		{
+			name: "HF with empty Spaces-only list fields is accepted",
+			attrs: baseHF(map[string]interface{}{
+				"input_modalities":  []interface{}{},
+				"output_modalities": []interface{}{},
+			}),
+			expectErr: false,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			r := gradientai.ResourceDigitalOceanCustomModel()
+			cfg := terraform.NewResourceConfigRaw(c.attrs)
+			_, err := r.Diff(context.Background(), nil, cfg, nil)
+
+			if c.expectErr {
+				if err == nil {
+					t.Fatalf("expected error containing %q, got nil", c.expectContains)
+				}
+				if !strings.Contains(err.Error(), c.expectContains) {
+					t.Fatalf("expected error containing %q, got %q", c.expectContains, err.Error())
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("expected no error, got %q", err.Error())
+			}
+		})
+	}
 }
