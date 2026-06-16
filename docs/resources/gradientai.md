@@ -656,7 +656,7 @@ resource "digitalocean_gradientai_custom_model" "spaces" {
 
 ### Update description and tags
 
-Once a model has been imported, its `description` and `tags` can be updated in place. Re-applying the configuration below against an existing model will issue a metadata-update API call without re-importing the artifacts.
+Once a model has been imported, its `description` and `tags` can be updated in place for any source type. Re-applying the configuration below against an existing model will issue a metadata-update API call without re-importing the artifacts.
 
 ```hcl
 resource "digitalocean_gradientai_custom_model" "example" {
@@ -670,6 +670,31 @@ resource "digitalocean_gradientai_custom_model" "example" {
   source_ref {
     repo_id     = "Qwen/Qwen3-8B"
     access_type = "ACCESS_TYPE_PUBLIC"
+  }
+}
+```
+
+### Override Spaces-only metadata fields
+
+For `SOURCE_TYPE_SPACES_BUCKET` imports, the API additionally accepts overrides for `license`, `parameters`, `input_modalities`, and `output_modalities`. Setting any of these attributes on a different source type (e.g. `SOURCE_TYPE_HUGGINGFACE`) is rejected by the provider at plan time, to prevent a permanent plan diff against API-reported values that the API would silently refuse to update.
+
+```hcl
+resource "digitalocean_gradientai_custom_model" "spaces" {
+  name                        = "my-finetune"
+  description                 = "Production fine-tune"
+  source_type                 = "SOURCE_TYPE_SPACES_BUCKET"
+  accept_terms_and_conditions = true
+  tags                        = ["chat", "production"]
+
+  license           = "apache-2.0"
+  parameters        = "8B"
+  input_modalities  = ["text"]
+  output_modalities = ["text"]
+
+  source_ref {
+    bucket = "my-model-artifacts"
+    region = "nyc3"
+    prefix = "models/my-finetune/"
   }
 }
 ```
@@ -690,6 +715,10 @@ The following arguments are supported:
   - **hf_token** (Optional, Sensitive) - HuggingFace token used to access `ACCESS_TYPE_PRIVATE` or `ACCESS_TYPE_GATED` repositories. Write-only — the API never echoes it back and Terraform retains the value only in state.
 - **description** (Optional) - Description of the custom model.
 - **tags** (Optional) - Set of user-defined tags associated with the custom model.
+- **license** (Optional, Computed) - License of the model. Defaults to the value reported by the importer. Caller-supplied overrides are accepted only for `SOURCE_TYPE_SPACES_BUCKET` imports; setting this attribute on any other source type is rejected at plan time.
+- **parameters** (Optional, Computed) - Parameter-count summary for the model (e.g. `8B`). Defaults to the value reported by the importer. Caller-supplied overrides are accepted only for `SOURCE_TYPE_SPACES_BUCKET` imports; setting this attribute on any other source type is rejected at plan time.
+- **input_modalities** (Optional, Computed) - List of input modalities supported by the model (e.g. `["text"]`). Defaults to the values reported by the importer. Caller-supplied overrides are accepted only for `SOURCE_TYPE_SPACES_BUCKET` imports; setting this attribute on any other source type is rejected at plan time.
+- **output_modalities** (Optional, Computed) - List of output modalities produced by the model. Defaults to the values reported by the importer. Caller-supplied overrides are accepted only for `SOURCE_TYPE_SPACES_BUCKET` imports; setting this attribute on any other source type is rejected at plan time.
 - **preferred_gpu_region** (Optional) - Preferred GPU region where the model artifacts should be staged. Set at import time only.
 - **accept_terms_and_conditions** (Optional) - Whether the caller accepts the model provider's terms and conditions. Defaults to `false`. Write-only and consulted only at import time.
 
@@ -702,12 +731,8 @@ In addition to the arguments listed above, the following attributes are exported
 - **architecture** - Model architecture reported by the importer.
 - **total_size_bytes** - Total size of the imported model artifacts in bytes (string-encoded int64).
 - **file_count** - Number of files that make up the imported model.
-- **license** - License of the model as reported by the source.
 - **context_length** - Maximum context length supported by the model.
 - **cost_estimate_per_month** - Estimated monthly cost of running the model.
-- **input_modalities** - Input modalities supported by the model.
-- **output_modalities** - Output modalities produced by the model.
-- **parameters** - Parameter-count summary reported by the importer.
 - **team_id** - ID of the team that owns the custom model.
 - **storage_region** - Region where the custom model artifacts are stored.
 - **created_at** - Timestamp when the custom model was created.
@@ -716,9 +741,10 @@ In addition to the arguments listed above, the following attributes are exported
 
 ## Update Behavior
 
-The metadata-update API only accepts changes to the model's `description` and `tags`. All other arguments — `name`, `source_type`, every `source_ref` field, `preferred_gpu_region`, and `accept_terms_and_conditions` — are fixed at import time and ignored by subsequent applies.
+The metadata-update API accepts changes to `description` and `tags` for any custom model, and additionally accepts changes to `license`, `parameters`, `input_modalities`, and `output_modalities` for `SOURCE_TYPE_SPACES_BUCKET` imports only. All other arguments — `name`, `source_type`, every `source_ref` field, `preferred_gpu_region`, and `accept_terms_and_conditions` — are fixed at import time and ignored by subsequent applies.
 
-- Editing **description** or **tags** triggers an in-place metadata update; the model is not re-imported.
+- Editing **description** or **tags** triggers an in-place metadata update for any source type; the model is not re-imported.
+- Editing **license**, **parameters**, **input_modalities**, or **output_modalities** is supported only when the model was imported with `source_type = "SOURCE_TYPE_SPACES_BUCKET"`. The provider rejects plans that set any of these attributes for other source types, since the API would silently ignore the PATCH and the resulting plan diff would never converge.
 - Editing any other argument is a no-op against the API. Terraform will keep reconciling state against the values that were originally imported. To change a fixed field, destroy and recreate the resource.
 - **commit_sha** is `Computed`: leave it unset to let the API resolve and record the SHA, or pin it explicitly at import time.
 
