@@ -381,6 +381,14 @@ A `service` can contain:
   - `success_threshold` - The number of successful health checks before considered healthy.
   - `failure_threshold` - The number of failed health checks before considered unhealthy.
   - `port` - The health check will be performed on this port instead of component's HTTP port.
+- `liveness_health_check` - A liveness health check to determine if the service should be restarted. Failing to respond will result in the component being restarted.
+  - `http_path` - The route path used for the HTTP health check ping. If not set, the HTTP health check will be disabled and a TCP health check used instead.
+  - `initial_delay_seconds` - The number of seconds to wait before beginning health checks.
+  - `period_seconds` - The number of seconds to wait between health checks.
+  - `timeout_seconds` - The number of seconds after which the check times out.
+  - `success_threshold` - The number of successful health checks before considered healthy.
+  - `failure_threshold` - The number of failed health checks before considered unhealthy.
+  - `port` - The port on which the health check will be performed.
 - `cors` - (Deprecated - use `ingress`) The [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) policies of the app.
 - `alert` - Describes an alert policy for the component.
   - `rule` - The type of the alert to configure. Component app alert policies can be: `CPU_UTILIZATION`, `MEM_UTILIZATION`, or `RESTART_COUNT`.
@@ -463,6 +471,14 @@ A `worker` can contain:
 - `environment_slug` - An environment slug describing the type of this app.
 - `instance_size_slug` - The instance size to use for this component. This determines the plan (basic or professional) and the available CPU and memory. The list of available instance sizes can be [found with the API](https://docs.digitalocean.com/reference/api/digitalocean/#tag/Apps/operation/apps_list_instanceSizes) or using the [doctl CLI](https://docs.digitalocean.com/reference/doctl/) (`doctl apps tier instance-size list`). Default: `basic-xxs`
 - `instance_count` - The amount of instances that this component should be scaled to.
+- `liveness_health_check` - A liveness health check to determine if the worker should be restarted. Workers do not accept inbound traffic, so only HTTP liveness probes are supported (TCP is not).
+  - `http_path` - The route path used for the HTTP health check ping.
+  - `initial_delay_seconds` - The number of seconds to wait before beginning health checks.
+  - `period_seconds` - The number of seconds to wait between health checks.
+  - `timeout_seconds` - The number of seconds after which the check times out.
+  - `success_threshold` - The number of successful health checks before considered healthy.
+  - `failure_threshold` - The number of failed health checks before considered unhealthy.
+  - `port` - The port on which the health check will be performed.
 - `git` - A Git repo to use as the component's source. The repository must be able to be cloned without authentication. Only one of `git`, `github` or `gitlab` may be set
   - `repo_clone_url` - The clone URL of the repo.
   - `branch` - The name of the branch to use.

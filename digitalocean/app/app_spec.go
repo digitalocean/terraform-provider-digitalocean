@@ -710,6 +710,14 @@ func appSpecServicesSchema() *schema.Resource {
 				Schema: appSpecHealthCheckSchema(),
 			},
 		},
+		"liveness_health_check": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecHealthCheckSchema(),
+			},
+		},
 		"image": {
 			Type:     schema.TypeList,
 			Optional: true,
@@ -840,6 +848,14 @@ func appSpecWorkerSchema() *schema.Resource {
 			Type:        schema.TypeInt,
 			Optional:    true,
 			Description: "The amount of instances that this component should be scaled to.",
+		},
+		"liveness_health_check": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecHealthCheckSchema(),
+			},
 		},
 		"autoscaling": {
 			Type:     schema.TypeList,
@@ -2020,6 +2036,42 @@ func flattenAppHealthCheck(check *godo.AppServiceSpecHealthCheck) []interface{} 
 	return result
 }
 
+func expandAppLivenessHealthCheck(config []interface{}) *godo.HealthCheckSpec {
+	healthCheckConfig := config[0].(map[string]interface{})
+
+	healthCheck := &godo.HealthCheckSpec{
+		HTTPPath:            healthCheckConfig["http_path"].(string),
+		InitialDelaySeconds: int32(healthCheckConfig["initial_delay_seconds"].(int)),
+		PeriodSeconds:       int32(healthCheckConfig["period_seconds"].(int)),
+		TimeoutSeconds:      int32(healthCheckConfig["timeout_seconds"].(int)),
+		SuccessThreshold:    int32(healthCheckConfig["success_threshold"].(int)),
+		FailureThreshold:    int32(healthCheckConfig["failure_threshold"].(int)),
+		Port:                int64(healthCheckConfig["port"].(int)),
+	}
+
+	return healthCheck
+}
+
+func flattenAppLivenessHealthCheck(check *godo.HealthCheckSpec) []interface{} {
+	result := make([]interface{}, 0)
+
+	if check != nil {
+
+		r := make(map[string]interface{})
+		r["http_path"] = check.HTTPPath
+		r["initial_delay_seconds"] = check.InitialDelaySeconds
+		r["period_seconds"] = check.PeriodSeconds
+		r["timeout_seconds"] = check.TimeoutSeconds
+		r["success_threshold"] = check.SuccessThreshold
+		r["failure_threshold"] = check.FailureThreshold
+		r["port"] = check.Port
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
 func expandAppInternalPorts(config []interface{}) []int64 {
 	appInternalPorts := make([]int64, len(config))
 
@@ -2125,6 +2177,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.HealthCheck = expandAppHealthCheck(checks)
 		}
 
+		livenessHealthChecks := service["liveness_health_check"].([]interface{})
+		if len(livenessHealthChecks) > 0 {
+			s.LivenessHealthCheck = expandAppLivenessHealthCheck(livenessHealthChecks)
+		}
+
 		internalPorts := service["internal_ports"].(*schema.Set).List()
 		if len(internalPorts) > 0 {
 			s.InternalPorts = expandAppInternalPorts(internalPorts)
@@ -2181,6 +2238,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["dockerfile_path"] = s.DockerfilePath
 		r["env"] = flattenAppEnvs(s.Envs)
 		r["health_check"] = flattenAppHealthCheck(s.HealthCheck)
+		r["liveness_health_check"] = flattenAppLivenessHealthCheck(s.LivenessHealthCheck)
 		r["instance_size_slug"] = s.InstanceSizeSlug
 		r["instance_count"] = int(s.InstanceCount)
 		r["source_dir"] = s.SourceDir
@@ -2336,6 +2394,11 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 			s.Image = expandAppImageSourceSpec(image)
 		}
 
+		livenessHealthChecks := worker["liveness_health_check"].([]interface{})
+		if len(livenessHealthChecks) > 0 {
+			s.LivenessHealthCheck = expandAppLivenessHealthCheck(livenessHealthChecks)
+		}
+
 		alerts := worker["alert"].([]interface{})
 		if len(alerts) > 0 {
 			s.Alerts = expandAppAlerts(alerts)
@@ -2382,6 +2445,7 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["instance_count"] = int(w.InstanceCount)
 		r["source_dir"] = w.SourceDir
 		r["environment_slug"] = w.EnvironmentSlug
+		r["liveness_health_check"] = flattenAppLivenessHealthCheck(w.LivenessHealthCheck)
 		r["alert"] = flattenAppAlerts(w.Alerts)
 		r["log_destination"] = flattenAppLogDestinations(w.LogDestinations)
 		r["autoscaling"] = flattenAppAutoscaling(w.Autoscaling)
