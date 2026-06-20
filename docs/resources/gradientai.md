@@ -595,6 +595,56 @@ resource "digitalocean_gradientai_indexing_job_cancel" "cancel_processing" {
 
 ---
 
+# digitalocean_gradientai_evaluation_dataset_delete
+
+Provides a resource to delete a DigitalOcean Gradient AI model evaluation dataset. The Gradient AI API only exposes list and delete operations for evaluation datasets, so this is modeled as a one-time action resource rather than a fully managed resource.
+
+## Example Usage
+
+```hcl
+# Delete a specific evaluation dataset
+resource "digitalocean_gradientai_evaluation_dataset_delete" "delete_dataset" {
+  uuid = "f1e2d3c4-5678-90ab-cdef-1234567890ab"
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+- **uuid** (Required) - The unique identifier of the evaluation dataset to delete.
+
+## Attributes Reference
+
+After creation, the following attributes are exported:
+
+- **id** - The unique identifier of the deleted evaluation dataset (same as uuid).
+- **uuid** - The UUID of the evaluation dataset that was deleted.
+
+## Lifecycle Behavior
+
+- **Creation**: Sends the delete request for the specified evaluation dataset immediately.
+- **Update**: This resource is immutable - changes to `uuid` will force recreation.
+- **Deletion**: Removing this resource from Terraform configuration only drops it from state; the underlying dataset has already been permanently deleted on creation.
+
+## Error Handling
+
+The resource will fail with an error in the following scenarios:
+
+- The evaluation dataset UUID does not exist
+- Insufficient permissions to delete the evaluation dataset
+
+## Import
+
+A DigitalOcean Gradient AI Evaluation Dataset Delete operation cannot be imported as it represents a one-time action rather than a persistent resource state.
+
+## Usage Notes
+
+- **One-time Operation**: This resource represents a deletion action. Once the dataset is deleted, the resource serves as a record of the deletion.
+- **Irreversible**: Deleting an evaluation dataset is permanent and cannot be undone.
+
+---
+
 # digitalocean_gradientai_custom_model
 
 Provides a DigitalOcean Gradient AI Custom Model resource. This can be used to import a model from a supported source (HuggingFace, Spaces, etc.) so that it can be deployed on dedicated inference endpoints.

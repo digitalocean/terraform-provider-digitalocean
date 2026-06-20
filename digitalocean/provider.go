@@ -249,6 +249,7 @@ func Provider() *schema.Provider {
 			"digitalocean_gradientai_function":                        gradientai.ResourceDigitalOceanGradientAIFunctionRoute(),
 			"digitalocean_gradientai_agent_route":                     gradientai.ResourceDigitalOceanAgentRoute(),
 			"digitalocean_gradientai_indexing_job_cancel":             gradientai.ResourceDigitalOceanIndexingJobCancel(),
+			"digitalocean_gradientai_evaluation_dataset_delete":       gradientai.ResourceDigitalOceanEvaluationDatasetDelete(),
 			"digitalocean_gradientai_knowledge_base":                  gradientai.ResourceDigitalOceanKnowledgeBase(),
 			"digitalocean_gradientai_knowledge_base_data_source":      gradientai.ResourceDigitalOceanKnowledgeBaseDataSource(),
 			"digitalocean_gradientai_agent_knowledge_base_attachment": gradientai.ResourceDigitalOceanAgentKnowledgeBaseAttachment(),
