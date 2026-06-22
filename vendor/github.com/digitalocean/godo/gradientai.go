@@ -45,7 +45,6 @@ const (
 	modelEvaluationMetricsBasePath           = "/v2/gen-ai/model_evaluation_metrics"
 	modelEvaluationDatasetUploadURLsPath     = "/v2/gen-ai/model_evaluation/datasets/file_upload_presigned_urls"
 	evaluationDatasetsBasePath               = "/v2/gen-ai/evaluation_datasets"
-	evaluationDatasetByIDPath                = evaluationDatasetsBasePath + "/%s"
 	UpdateModelEvaluationRunPath             = modelEvaluationRunsBasePath + "/%s"
 )
 
@@ -231,7 +230,6 @@ type GradientAIService interface {
 	ListModelEvaluationPresets(ctx context.Context) (*ModelEvaluationPresetListResponse, *Response, error)
 	ListModelEvaluationMetrics(ctx context.Context) (*ModelEvaluationMetricListResponse, *Response, error)
 	ListEvaluationDatasets(ctx context.Context, opt *EvaluationDatasetListOptions) (*EvaluationDatasetListResponse, *Response, error)
-	DeleteEvaluationDataset(ctx context.Context, datasetUUID string) (*EvaluationDatasetDeleteResponse, *Response, error)
 }
 
 var _ GradientAIService = &GradientAIServiceOp{}
@@ -2970,10 +2968,6 @@ type EvaluationDatasetListResponse struct {
 	EvaluationDatasets []*EvaluationDatasetInfo `json:"evaluation_datasets,omitempty"`
 }
 
-// EvaluationDatasetDeleteResponse is the response returned by
-// DeleteEvaluationDataset.
-type EvaluationDatasetDeleteResponse struct{}
-
 // CreateModelEvaluationRun creates a new model evaluation run.
 func (s *GradientAIServiceOp) CreateModelEvaluationRun(ctx context.Context, createRequest *CreateModelEvaluationRunRequest) (*ModelEvaluationRunCreateResponse, *Response, error) {
 	if createRequest == nil {
@@ -3160,26 +3154,6 @@ func (s *GradientAIServiceOp) ListEvaluationDatasets(ctx context.Context, opt *E
 	}
 
 	root := new(EvaluationDatasetListResponse)
-	resp, err := s.client.Do(ctx, req, root)
-	if err != nil {
-		return nil, resp, err
-	}
-	return root, resp, nil
-}
-
-// DeleteEvaluationDataset deletes the evaluation dataset with the given UUID.
-func (s *GradientAIServiceOp) DeleteEvaluationDataset(ctx context.Context, datasetUUID string) (*EvaluationDatasetDeleteResponse, *Response, error) {
-	if datasetUUID == "" {
-		return nil, nil, fmt.Errorf("dataset uuid is required")
-	}
-	path := fmt.Sprintf(evaluationDatasetByIDPath, datasetUUID)
-
-	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	root := new(EvaluationDatasetDeleteResponse)
 	resp, err := s.client.Do(ctx, req, root)
 	if err != nil {
 		return nil, resp, err
