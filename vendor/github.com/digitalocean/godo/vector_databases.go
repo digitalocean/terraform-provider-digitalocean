@@ -80,11 +80,10 @@ type VectorDBBackup struct {
 
 // VectorDBCreateRequest represents a request to create a vector database.
 type VectorDBCreateRequest struct {
-	Name      string   `json:"name,omitempty"`
-	Region    string   `json:"region,omitempty"`
-	Size      string   `json:"size,omitempty"`
-	Tags      []string `json:"tags,omitempty"`
-	ProjectID string   `json:"project_id,omitempty"`
+	Name   string   `json:"name,omitempty"`
+	Region string   `json:"region,omitempty"`
+	Size   string   `json:"size,omitempty"`
+	Tags   []string `json:"tags,omitempty"`
 }
 
 // VectorDBUpdateRequest represents a request to update a vector database.
