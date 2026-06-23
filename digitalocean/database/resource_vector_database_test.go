@@ -3,7 +3,9 @@ package database_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
@@ -22,7 +24,7 @@ func TestAccDigitalOceanVectorDatabase_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVectorDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanVectorDatabaseConfigBasic, vectorName),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVectorDatabaseConfigBasic, vectorName, os.Getenv("DIGITALOCEAN_PROJECT_ID")),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVectorDatabaseExists("digitalocean_vector_database.foobar", &vectorDB),
 					testAccCheckDigitalOceanVectorDatabaseAttributes(&vectorDB, vectorName),
@@ -31,7 +33,7 @@ func TestAccDigitalOceanVectorDatabase_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_vector_database.foobar", "region", "tor1"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_vector_database.foobar", "size", "db-s-1vcpu-1gb"),
+						"digitalocean_vector_database.foobar", "size", "small"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vector_database.foobar", "status"),
 					resource.TestCheckResourceAttrSet(
@@ -54,23 +56,23 @@ func TestAccDigitalOceanVectorDatabase_Update(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVectorDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanVectorDatabaseConfigBasic, vectorName),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVectorDatabaseConfigBasic, vectorName, os.Getenv("DIGITALOCEAN_PROJECT_ID")),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVectorDatabaseExists("digitalocean_vector_database.foobar", &vectorDB),
 					resource.TestCheckResourceAttr(
-						"digitalocean_vector_database.foobar", "size", "db-s-1vcpu-1gb"),
+						"digitalocean_vector_database.foobar", "size", "small"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanVectorDatabaseConfigResize, vectorName),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVectorDatabaseConfigResize, vectorName, os.Getenv("DIGITALOCEAN_PROJECT_ID")),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanVectorDatabaseExists("digitalocean_vector_database.foobar", &vectorDB),
 					resource.TestCheckResourceAttr(
-						"digitalocean_vector_database.foobar", "size", "db-s-2vcpu-2gb"),
+						"digitalocean_vector_database.foobar", "size", "medium"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_vector_database.foobar", "config.0.enable_auto_schema", "true"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_vector_database.foobar", "config.0.default_quantization", "none"),
+						"digitalocean_vector_database.foobar", "config.0.default_quantization", "pq"),
 				),
 			},
 		},
@@ -86,12 +88,15 @@ func TestAccDigitalOceanVectorDatabase_Import(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVectorDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanVectorDatabaseConfigBasic, vectorName),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVectorDatabaseConfigBasic, vectorName, os.Getenv("DIGITALOCEAN_PROJECT_ID")),
 			},
 			{
 				ResourceName:      "digitalocean_vector_database.foobar",
 				ImportState:       true,
 				ImportStateVerify: true,
+				// project_id is write-only on the API (not returned on read),
+				// so it cannot be verified against imported state.
+				ImportStateVerifyIgnore: []string{"project_id"},
 			},
 		},
 	})
@@ -105,15 +110,36 @@ func testAccCheckDigitalOceanVectorDatabaseDestroy(s *terraform.State) error {
 			continue
 		}
 
-		// Try to find the vector database
-		_, _, err := client.VectorDBs.Get(context.Background(), rs.Primary.ID)
-
-		if err == nil {
-			return fmt.Errorf("Vector database still exists")
+		// A vector database that is still in the "deleting" state continues to
+		// return a 200 from Get, so poll until the API reports it gone (404)
+		// rather than treating any successful response as a failure.
+		if err := waitForVectorDatabaseDestroyed(client, rs.Primary.ID); err != nil {
+			return err
 		}
 	}
 
 	return nil
+}
+
+func waitForVectorDatabaseDestroyed(client *godo.Client, id string) error {
+	const (
+		tickerInterval = 10 * time.Second
+		maxAttempts    = 60
+	)
+
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		_, resp, err := client.VectorDBs.Get(context.Background(), id)
+		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				return nil
+			}
+			return fmt.Errorf("error checking vector database destroy status: %s", err)
+		}
+
+		time.Sleep(tickerInterval)
+	}
+
+	return fmt.Errorf("Vector database still exists")
 }
 
 func testAccCheckDigitalOceanVectorDatabaseExists(n string, vectorDB *godo.VectorDB) resource.TestCheckFunc {
@@ -158,21 +184,23 @@ func testAccCheckDigitalOceanVectorDatabaseAttributes(vectorDB *godo.VectorDB, n
 
 const testAccCheckDigitalOceanVectorDatabaseConfigBasic = `
 resource "digitalocean_vector_database" "foobar" {
-  name   = "%s"
-  region = "tor1"
-  size   = "db-s-1vcpu-1gb"
-  tags   = ["production"]
+  name       = "%[1]s"
+  region     = "tor1"
+  size       = "small"
+  project_id = "%[2]s"
+  tags       = ["production"]
 }`
 
 const testAccCheckDigitalOceanVectorDatabaseConfigResize = `
 resource "digitalocean_vector_database" "foobar" {
-  name   = "%s"
-  region = "tor1"
-  size   = "db-s-2vcpu-2gb"
-  tags   = ["production"]
+  name       = "%[1]s"
+  region     = "tor1"
+  size       = "medium"
+  project_id = "%[2]s"
+  tags       = ["production"]
 
   config {
     enable_auto_schema   = true
-    default_quantization = "none"
+    default_quantization = "pq"
   }
 }`

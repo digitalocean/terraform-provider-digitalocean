@@ -2,6 +2,7 @@ package database_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
@@ -17,14 +18,14 @@ func TestAccDataSourceDigitalOceanVectorDatabase_ByName(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVectorDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanVectorDatabaseConfigByName, vectorName),
+				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanVectorDatabaseConfigByName, vectorName, os.Getenv("DIGITALOCEAN_PROJECT_ID")),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_vector_database.foobar", "name", vectorName),
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_vector_database.foobar", "region", "tor1"),
 					resource.TestCheckResourceAttr(
-						"data.digitalocean_vector_database.foobar", "size", "db-s-1vcpu-1gb"),
+						"data.digitalocean_vector_database.foobar", "size", "small"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_vector_database.foobar", "id"),
 					resource.TestCheckResourceAttrSet(
@@ -44,7 +45,7 @@ func TestAccDataSourceDigitalOceanVectorDatabase_ByID(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanVectorDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanVectorDatabaseConfigByID, vectorName),
+				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanVectorDatabaseConfigByID, vectorName, os.Getenv("DIGITALOCEAN_PROJECT_ID")),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(
 						"data.digitalocean_vector_database.foobar", "name", vectorName),
@@ -60,9 +61,10 @@ func TestAccDataSourceDigitalOceanVectorDatabase_ByID(t *testing.T) {
 
 const testAccCheckDataSourceDigitalOceanVectorDatabaseConfigByName = `
 resource "digitalocean_vector_database" "foobar" {
-  name   = "%s"
-  region = "tor1"
-  size   = "db-s-1vcpu-1gb"
+  name       = "%[1]s"
+  region     = "tor1"
+  size       = "small"
+  project_id = "%[2]s"
 }
 
 data "digitalocean_vector_database" "foobar" {
@@ -71,9 +73,10 @@ data "digitalocean_vector_database" "foobar" {
 
 const testAccCheckDataSourceDigitalOceanVectorDatabaseConfigByID = `
 resource "digitalocean_vector_database" "foobar" {
-  name   = "%s"
-  region = "tor1"
-  size   = "db-s-1vcpu-1gb"
+  name       = "%[1]s"
+  region     = "tor1"
+  size       = "small"
+  project_id = "%[2]s"
 }
 
 data "digitalocean_vector_database" "foobar" {
