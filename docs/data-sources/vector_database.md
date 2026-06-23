@@ -1,28 +1,28 @@
 ---
-page_title: "DigitalOcean: digitalocean_database_vector"
+page_title: "DigitalOcean: digitalocean_vector_database"
 subcategory: "Databases"
 ---
 
-# digitalocean\_database\_vector
+# digitalocean\_vector\_database
 
 Provides information on a DigitalOcean vector database resource.
 
 ## Example Usage
 
 ```hcl
-data "digitalocean_database_vector" "example" {
+data "digitalocean_vector_database" "example" {
   name = "example-vector-db"
 }
 
 output "vector_db_http_endpoint" {
-  value = data.digitalocean_database_vector.example.endpoints[0].http
+  value = data.digitalocean_vector_database.example.endpoints[0].http
 }
 ```
 
 A vector database may also be looked up by its `id`:
 
 ```hcl
-data "digitalocean_database_vector" "example" {
+data "digitalocean_vector_database" "example" {
   id = "245bcfd0-7f31-4ce6-a2bc-475a116cca97"
 }
 ```

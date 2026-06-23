@@ -1,9 +1,9 @@
 ---
-page_title: "DigitalOcean: digitalocean_database_vector"
+page_title: "DigitalOcean: digitalocean_vector_database"
 subcategory: "Databases"
 ---
 
-# digitalocean\_database\_vector
+# digitalocean\_vector\_database
 
 Provides a DigitalOcean vector database resource. Vector databases are powered by
 [Weaviate](https://weaviate.io/) and are managed independently from standard
@@ -13,7 +13,7 @@ managed database clusters.
 
 ### Create a new vector database
 ```hcl
-resource "digitalocean_database_vector" "example" {
+resource "digitalocean_vector_database" "example" {
   name   = "example-vector-db"
   region = "nyc1"
   size   = "db-s-1vcpu-1gb"
@@ -23,7 +23,7 @@ resource "digitalocean_database_vector" "example" {
 
 ### Create a vector database with advanced configuration
 ```hcl
-resource "digitalocean_database_vector" "example" {
+resource "digitalocean_vector_database" "example" {
   name   = "example-vector-db"
   region = "nyc1"
   size   = "db-s-2vcpu-2gb"
@@ -74,5 +74,5 @@ In addition to the above arguments, the following attributes are exported:
 Vector databases can be imported using their `id`, e.g.
 
 ```
-terraform import digitalocean_database_vector.example 245bcfd0-7f31-4ce6-a2bc-475a116cca97
+terraform import digitalocean_vector_database.example 245bcfd0-7f31-4ce6-a2bc-475a116cca97
 ```

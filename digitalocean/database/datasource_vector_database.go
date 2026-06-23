@@ -10,9 +10,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func DataSourceDigitalOceanDatabaseVector() *schema.Resource {
+func DataSourceDigitalOceanVectorDatabase() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceDigitalOceanDatabaseVectorRead,
+		ReadContext: dataSourceDigitalOceanVectorDatabaseRead,
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:         schema.TypeString,
@@ -101,7 +101,7 @@ func DataSourceDigitalOceanDatabaseVector() *schema.Resource {
 	}
 }
 
-func dataSourceDigitalOceanDatabaseVectorRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceDigitalOceanVectorDatabaseRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	var vectorDB *godo.VectorDB

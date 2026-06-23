@@ -12,84 +12,84 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-func TestAccDigitalOceanDatabaseVector_Basic(t *testing.T) {
+func TestAccDigitalOceanVectorDatabase_Basic(t *testing.T) {
 	var vectorDB godo.VectorDB
 	vectorName := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanDatabaseVectorDestroy,
+		CheckDestroy:      testAccCheckDigitalOceanVectorDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseVectorConfigBasic, vectorName),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVectorDatabaseConfigBasic, vectorName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanDatabaseVectorExists("digitalocean_database_vector.foobar", &vectorDB),
-					testAccCheckDigitalOceanDatabaseVectorAttributes(&vectorDB, vectorName),
+					testAccCheckDigitalOceanVectorDatabaseExists("digitalocean_vector_database.foobar", &vectorDB),
+					testAccCheckDigitalOceanVectorDatabaseAttributes(&vectorDB, vectorName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_vector.foobar", "name", vectorName),
+						"digitalocean_vector_database.foobar", "name", vectorName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_vector.foobar", "region", "tor1"),
+						"digitalocean_vector_database.foobar", "region", "tor1"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_vector.foobar", "size", "db-s-1vcpu-1gb"),
+						"digitalocean_vector_database.foobar", "size", "db-s-1vcpu-1gb"),
 					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_vector.foobar", "status"),
+						"digitalocean_vector_database.foobar", "status"),
 					resource.TestCheckResourceAttrSet(
-						"digitalocean_database_vector.foobar", "created_at"),
+						"digitalocean_vector_database.foobar", "created_at"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_vector.foobar", "tags.#", "1"),
+						"digitalocean_vector_database.foobar", "tags.#", "1"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDigitalOceanDatabaseVector_Update(t *testing.T) {
+func TestAccDigitalOceanVectorDatabase_Update(t *testing.T) {
 	var vectorDB godo.VectorDB
 	vectorName := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanDatabaseVectorDestroy,
+		CheckDestroy:      testAccCheckDigitalOceanVectorDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseVectorConfigBasic, vectorName),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVectorDatabaseConfigBasic, vectorName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanDatabaseVectorExists("digitalocean_database_vector.foobar", &vectorDB),
+					testAccCheckDigitalOceanVectorDatabaseExists("digitalocean_vector_database.foobar", &vectorDB),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_vector.foobar", "size", "db-s-1vcpu-1gb"),
+						"digitalocean_vector_database.foobar", "size", "db-s-1vcpu-1gb"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseVectorConfigResize, vectorName),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVectorDatabaseConfigResize, vectorName),
 				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanDatabaseVectorExists("digitalocean_database_vector.foobar", &vectorDB),
+					testAccCheckDigitalOceanVectorDatabaseExists("digitalocean_vector_database.foobar", &vectorDB),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_vector.foobar", "size", "db-s-2vcpu-2gb"),
+						"digitalocean_vector_database.foobar", "size", "db-s-2vcpu-2gb"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_vector.foobar", "config.0.enable_auto_schema", "true"),
+						"digitalocean_vector_database.foobar", "config.0.enable_auto_schema", "true"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_database_vector.foobar", "config.0.default_quantization", "none"),
+						"digitalocean_vector_database.foobar", "config.0.default_quantization", "none"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDigitalOceanDatabaseVector_Import(t *testing.T) {
+func TestAccDigitalOceanVectorDatabase_Import(t *testing.T) {
 	vectorName := acceptance.RandomTestName()
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanDatabaseVectorDestroy,
+		CheckDestroy:      testAccCheckDigitalOceanVectorDatabaseDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseVectorConfigBasic, vectorName),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanVectorDatabaseConfigBasic, vectorName),
 			},
 			{
-				ResourceName:      "digitalocean_database_vector.foobar",
+				ResourceName:      "digitalocean_vector_database.foobar",
 				ImportState:       true,
 				ImportStateVerify: true,
 			},
@@ -97,11 +97,11 @@ func TestAccDigitalOceanDatabaseVector_Import(t *testing.T) {
 	})
 }
 
-func testAccCheckDigitalOceanDatabaseVectorDestroy(s *terraform.State) error {
+func testAccCheckDigitalOceanVectorDatabaseDestroy(s *terraform.State) error {
 	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "digitalocean_database_vector" {
+		if rs.Type != "digitalocean_vector_database" {
 			continue
 		}
 
@@ -116,7 +116,7 @@ func testAccCheckDigitalOceanDatabaseVectorDestroy(s *terraform.State) error {
 	return nil
 }
 
-func testAccCheckDigitalOceanDatabaseVectorExists(n string, vectorDB *godo.VectorDB) resource.TestCheckFunc {
+func testAccCheckDigitalOceanVectorDatabaseExists(n string, vectorDB *godo.VectorDB) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
 
@@ -146,7 +146,7 @@ func testAccCheckDigitalOceanDatabaseVectorExists(n string, vectorDB *godo.Vecto
 	}
 }
 
-func testAccCheckDigitalOceanDatabaseVectorAttributes(vectorDB *godo.VectorDB, name string) resource.TestCheckFunc {
+func testAccCheckDigitalOceanVectorDatabaseAttributes(vectorDB *godo.VectorDB, name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		if vectorDB.Name != name {
 			return fmt.Errorf("Bad name: %s", vectorDB.Name)
@@ -156,16 +156,16 @@ func testAccCheckDigitalOceanDatabaseVectorAttributes(vectorDB *godo.VectorDB, n
 	}
 }
 
-const testAccCheckDigitalOceanDatabaseVectorConfigBasic = `
-resource "digitalocean_database_vector" "foobar" {
+const testAccCheckDigitalOceanVectorDatabaseConfigBasic = `
+resource "digitalocean_vector_database" "foobar" {
   name   = "%s"
   region = "tor1"
   size   = "db-s-1vcpu-1gb"
   tags   = ["production"]
 }`
 
-const testAccCheckDigitalOceanDatabaseVectorConfigResize = `
-resource "digitalocean_database_vector" "foobar" {
+const testAccCheckDigitalOceanVectorDatabaseConfigResize = `
+resource "digitalocean_vector_database" "foobar" {
   name   = "%s"
   region = "tor1"
   size   = "db-s-2vcpu-2gb"

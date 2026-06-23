@@ -16,12 +16,12 @@ import (
 
 const vectorDBActiveStatus = "active"
 
-func ResourceDigitalOceanDatabaseVector() *schema.Resource {
+func ResourceDigitalOceanVectorDatabase() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceDigitalOceanDatabaseVectorCreate,
-		ReadContext:   resourceDigitalOceanDatabaseVectorRead,
-		UpdateContext: resourceDigitalOceanDatabaseVectorUpdate,
-		DeleteContext: resourceDigitalOceanDatabaseVectorDelete,
+		CreateContext: resourceDigitalOceanVectorDatabaseCreate,
+		ReadContext:   resourceDigitalOceanVectorDatabaseRead,
+		UpdateContext: resourceDigitalOceanVectorDatabaseUpdate,
+		DeleteContext: resourceDigitalOceanVectorDatabaseDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -131,7 +131,7 @@ func ResourceDigitalOceanDatabaseVector() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDatabaseVectorCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanVectorDatabaseCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	opts := &godo.VectorDBCreateRequest{
@@ -165,10 +165,10 @@ func resourceDigitalOceanDatabaseVectorCreate(ctx context.Context, d *schema.Res
 		}
 	}
 
-	return resourceDigitalOceanDatabaseVectorRead(ctx, d, meta)
+	return resourceDigitalOceanVectorDatabaseRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDatabaseVectorRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanVectorDatabaseRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	vectorDB, resp, err := client.VectorDBs.Get(ctx, d.Id())
@@ -200,7 +200,7 @@ func resourceDigitalOceanDatabaseVectorRead(ctx context.Context, d *schema.Resou
 	return nil
 }
 
-func resourceDigitalOceanDatabaseVectorUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanVectorDatabaseUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	if d.HasChange("size") {
@@ -237,10 +237,10 @@ func resourceDigitalOceanDatabaseVectorUpdate(ctx context.Context, d *schema.Res
 		}
 	}
 
-	return resourceDigitalOceanDatabaseVectorRead(ctx, d, meta)
+	return resourceDigitalOceanVectorDatabaseRead(ctx, d, meta)
 }
 
-func resourceDigitalOceanDatabaseVectorDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceDigitalOceanVectorDatabaseDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	if _, err := client.VectorDBs.Delete(ctx, d.Id()); err != nil {
