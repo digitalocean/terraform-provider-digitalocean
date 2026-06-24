@@ -2,7 +2,6 @@ package reservedip
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -213,7 +212,7 @@ func waitForReservedIPReady(
 	stateConf := &retry.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
-		Refresh:    newReservedIPStateRefreshFunc(d, attribute, meta, actionID),
+		Refresh:    newReservedIPResourceActionStateRefreshFunc(d, meta, actionID),
 		Timeout:    60 * time.Minute,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -222,20 +221,4 @@ func waitForReservedIPReady(
 	}
 
 	return stateConf.WaitForStateContext(ctx)
-}
-
-func newReservedIPStateRefreshFunc(
-	d *schema.ResourceData, attribute string, meta interface{}, actionID int) retry.StateRefreshFunc {
-	client := meta.(*config.CombinedConfig).GodoClient()
-	return func() (interface{}, string, error) {
-
-		log.Printf("[INFO] Assigning the reserved IP to the Droplet")
-		action, _, err := client.ReservedIPActions.Get(context.Background(), d.Id(), actionID)
-		if err != nil {
-			return nil, "", fmt.Errorf("Error retrieving reserved IP (%s) ActionId (%d): %s", d.Id(), actionID, err)
-		}
-
-		log.Printf("[INFO] The reserved IP Action Status is %s", action.Status)
-		return &action, action.Status, nil
-	}
 }

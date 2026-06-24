@@ -127,7 +127,7 @@ func waitForReservedIPAssignmentReady(
 	stateConf := &retry.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
-		Refresh:    newReservedIPAssignmentStateRefreshFunc(d, attribute, meta, actionID),
+		Refresh:    newReservedIPAssignmentActionStateRefreshFunc(d, meta, actionID),
 		Timeout:    60 * time.Minute,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -136,22 +136,6 @@ func waitForReservedIPAssignmentReady(
 	}
 
 	return stateConf.WaitForStateContext(ctx)
-}
-
-func newReservedIPAssignmentStateRefreshFunc(
-	d *schema.ResourceData, attribute string, meta interface{}, actionID int) retry.StateRefreshFunc {
-	client := meta.(*config.CombinedConfig).GodoClient()
-	return func() (interface{}, string, error) {
-
-		log.Printf("[INFO] Refreshing the reserved IP state")
-		action, _, err := client.ReservedIPActions.Get(context.Background(), d.Get("ip_address").(string), actionID)
-		if err != nil {
-			return nil, "", fmt.Errorf("Error retrieving reserved IP (%s) ActionId (%d): %s", d.Get("ip_address").(string), actionID, err)
-		}
-
-		log.Printf("[INFO] The reserved IP Action Status is %s", action.Status)
-		return &action, action.Status, nil
-	}
 }
 
 func resourceDigitalOceanReservedIPAssignmentImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
