@@ -60,3 +60,60 @@ func TestIsReservedIPActionNotFound(t *testing.T) {
 		})
 	}
 }
+
+func TestReservedIPActionComplete(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		reservedIP *godo.ReservedIP
+		op         reservedIPActionOperation
+		dropletID  int
+		want       bool
+	}{
+		{
+			name:       "assign complete",
+			reservedIP: &godo.ReservedIP{Droplet: &godo.Droplet{ID: 123}},
+			op:         reservedIPActionAssign,
+			dropletID:  123,
+			want:       true,
+		},
+		{
+			name:       "assign pending",
+			reservedIP: &godo.ReservedIP{Droplet: nil},
+			op:         reservedIPActionAssign,
+			dropletID:  123,
+			want:       false,
+		},
+		{
+			name:       "assign wrong droplet",
+			reservedIP: &godo.ReservedIP{Droplet: &godo.Droplet{ID: 456}},
+			op:         reservedIPActionAssign,
+			dropletID:  123,
+			want:       false,
+		},
+		{
+			name:       "unassign complete",
+			reservedIP: &godo.ReservedIP{Droplet: nil},
+			op:         reservedIPActionUnassign,
+			want:       true,
+		},
+		{
+			name:       "unassign pending",
+			reservedIP: &godo.ReservedIP{Droplet: &godo.Droplet{ID: 123}},
+			op:         reservedIPActionUnassign,
+			want:       false,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := reservedIPActionComplete(tt.reservedIP, tt.op, tt.dropletID); got != tt.want {
+				t.Fatalf("reservedIPActionComplete() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
