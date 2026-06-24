@@ -24,7 +24,7 @@ func isReservedIPActionNotFound(resp *godo.Response, err error) bool {
 		return false
 	}
 
-	if resp != nil && resp.StatusCode == http.StatusNotFound {
+	if resp != nil && resp.Response != nil && resp.StatusCode == http.StatusNotFound {
 		return true
 	}
 
