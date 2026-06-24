@@ -170,6 +170,14 @@ func newReservedIPAssignmentStateRefreshFunc(
 	d *schema.ResourceData, attribute string, meta interface{}, actionID int, check reservedIPAssignmentCheck) retry.StateRefreshFunc {
 	client := meta.(*config.CombinedConfig).GodoClient()
 	ipAddress := d.Get("ip_address").(string)
+	return reservedIPAssignmentRefreshFunc(client, ipAddress, actionID, check)
+}
+
+// reservedIPAssignmentRefreshFunc polls the assign/unassign action status and,
+// when the action endpoint 404s, falls back to the reserved IP itself as the
+// source of truth. It is split out from newReservedIPAssignmentStateRefreshFunc
+// so it can be unit tested against a mock client.
+func reservedIPAssignmentRefreshFunc(client *godo.Client, ipAddress string, actionID int, check reservedIPAssignmentCheck) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 
 		log.Printf("[INFO] Refreshing the reserved IP state")
