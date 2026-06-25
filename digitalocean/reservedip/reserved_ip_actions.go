@@ -55,7 +55,7 @@ func newReservedIPActionStateRefreshFunc(client *godo.Client, ipAddress string, 
 			// IPs). Some BYOIP actions never appear on the actions endpoint even
 			// after the assignment completes, so fall back to reading the IP.
 			reservedIP, _, ipErr := client.ReservedIPs.Get(context.Background(), ipAddress)
-			if ipErr == nil && reservedIPActionComplete(reservedIP, op, dropletID) {
+			if ipErr == nil && reservedIP != nil && reservedIPActionComplete(reservedIP, op, dropletID) {
 				log.Printf("[INFO] Reserved IP (%s) action (%d) not found, but assignment state matches expected outcome", ipAddress, actionID)
 				return reservedIP, "completed", nil
 			}
@@ -75,7 +75,10 @@ func newReservedIPActionStateRefreshFunc(client *godo.Client, ipAddress string, 
 func newReservedIPAssignmentActionStateRefreshFunc(d *schema.ResourceData, meta interface{}, actionID int, op reservedIPActionOperation) retry.StateRefreshFunc {
 	client := meta.(*config.CombinedConfig).GodoClient()
 	ipAddress := d.Get("ip_address").(string)
-	dropletID := d.Get("droplet_id").(int)
+	dropletID := 0
+	if op == reservedIPActionAssign {
+		dropletID = d.Get("droplet_id").(int)
+	}
 
 	return func() (interface{}, string, error) {
 		log.Printf("[INFO] Refreshing the reserved IP state")
