@@ -80,7 +80,9 @@ func ResourceDigitalOceanNfsAccessPoint() *schema.Resource {
 						Type:     schema.TypeSet,
 						Optional: true,
 						Elem:     &schema.Schema{Type: schema.TypeString},
-						MinItems: 1,
+						DefaultFunc: func() (interface{}, error) {
+							return schema.NewSet(schema.HashString, []interface{}{"NFS4"}), nil
+						},
 					},
 					"squash_config": {
 						Type:         schema.TypeString,
@@ -156,15 +158,19 @@ func resourceDigitalOceanNfsAccessPointDelete(ctx context.Context, d *schema.Res
 	return nil
 }
 
+func defaultNfsAccessPointProtocols() []string {
+	return []string{"NFS4"}
+}
+
 func expandNfsAccessPointPolicy(v interface{}) nfsAccessPointPolicy {
 	list, ok := v.([]interface{})
 	if !ok || len(list) == 0 || list[0] == nil {
-		return nfsAccessPointPolicy{Anonuid: 65534, Anongid: 65534, Protocols: []string{"NFS4"}, SquashConfig: "ROOT_SQUASH"}
+		return nfsAccessPointPolicy{Anonuid: 65534, Anongid: 65534, Protocols: defaultNfsAccessPointProtocols(), SquashConfig: "ROOT_SQUASH"}
 	}
 
 	m, ok := list[0].(map[string]interface{})
 	if !ok {
-		return nfsAccessPointPolicy{Anonuid: 65534, Anongid: 65534, Protocols: []string{"NFS4"}, SquashConfig: "ROOT_SQUASH"}
+		return nfsAccessPointPolicy{Anonuid: 65534, Anongid: 65534, Protocols: defaultNfsAccessPointProtocols(), SquashConfig: "ROOT_SQUASH"}
 	}
 
 	policy := nfsAccessPointPolicy{
@@ -172,7 +178,7 @@ func expandNfsAccessPointPolicy(v interface{}) nfsAccessPointPolicy {
 		Anongid:                    uint64(m["anongid"].(int)),
 		SquashConfig:               strings.ToUpper(m["squash_config"].(string)),
 		IdentityEnforcementEnabled: m["identity_enforcement_enabled"].(bool),
-		Protocols:                  []string{"NFS4"},
+		Protocols:                  defaultNfsAccessPointProtocols(),
 	}
 
 	if protocols, ok := m["protocols"].(*schema.Set); ok && protocols != nil && protocols.Len() > 0 {
@@ -186,8 +192,13 @@ func expandNfsAccessPointPolicy(v interface{}) nfsAccessPointPolicy {
 }
 
 func flattenNfsAccessPointPolicy(policy nfsAccessPointPolicy) []map[string]interface{} {
-	protocols := make([]interface{}, 0, len(policy.Protocols))
-	for _, p := range policy.Protocols {
+	protocolsList := policy.Protocols
+	if len(protocolsList) == 0 {
+		protocolsList = defaultNfsAccessPointProtocols()
+	}
+
+	protocols := make([]interface{}, 0, len(protocolsList))
+	for _, p := range protocolsList {
 		protocols = append(protocols, p)
 	}
 

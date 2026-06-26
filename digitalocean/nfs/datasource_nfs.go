@@ -108,7 +108,7 @@ func dataSourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, 
 	d.Set("name", share.Name)
 	d.Set("region", share.Region)
 	d.Set("size", share.SizeGib)
-	d.Set("performance_tier", share.PerformanceTier)
+	d.Set("performance_tier", normalizeNfsPerformanceTier(share.PerformanceTier))
 	d.Set("status", share.Status)
 	d.Set("host", share.Host)
 	d.Set("mount_path", share.MountPath)

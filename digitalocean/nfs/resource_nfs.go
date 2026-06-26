@@ -242,7 +242,7 @@ func reassignNfs(ctx context.Context, client *godo.Client, id, region, fromVpcID
 	}
 
 	// Wait for the operation to complete
-	err = waitForNfsAttach(ctx, client, id, region, toVpcID)
+	err = waitForNfsVpcAttached(ctx, client, id, region, toVpcID)
 	if err != nil {
 		return fmt.Errorf("error waiting for reassign to complete: %s", err)
 	}
@@ -276,7 +276,7 @@ func resourceDigitalOceanNfsRead(ctx context.Context, d *schema.ResourceData, me
 	d.Set("vpc_id", share.VpcIDs[0])
 	d.Set("host", share.Host)
 	d.Set("mount_path", share.MountPath)
-	d.Set("performance_tier", share.PerformanceTier)
+	d.Set("performance_tier", normalizeNfsPerformanceTier(share.PerformanceTier))
 
 	if err = d.Set("vpc_ids", flattenDigitalOceanShareVpcIds(share.VpcIDs)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting vpc_ids: %#v", err)
@@ -339,4 +339,9 @@ func resourceDigitalOceanNfsImport(ctx context.Context, d *schema.ResourceData, 
 		return nil, fmt.Errorf("error reading NFS during import: %s", diags[0].Summary)
 	}
 	return []*schema.ResourceData{d}, nil
+}
+
+func normalizeNfsPerformanceTier(tier string) string {
+	t := strings.ToLower(tier)
+	return strings.TrimPrefix(t, "performance_tier_")
 }

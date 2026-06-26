@@ -6,6 +6,18 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+func TestResourceDigitalOceanNfsAccessPointInternalValidate(t *testing.T) {
+	if err := ResourceDigitalOceanNfsAccessPoint().InternalValidate(nil, true); err != nil {
+		t.Fatalf("resource schema invalid: %s", err)
+	}
+}
+
+func TestDataSourceDigitalOceanNfsAccessPointInternalValidate(t *testing.T) {
+	if err := DataSourceDigitalOceanNfsAccessPoint().InternalValidate(nil, false); err != nil {
+		t.Fatalf("data source schema invalid: %s", err)
+	}
+}
+
 func TestExpandNfsAccessPointPolicy(t *testing.T) {
 	set := schema.NewSet(schema.HashString, []interface{}{"nfs", "NFS4"})
 	input := []interface{}{map[string]interface{}{
@@ -71,5 +83,36 @@ func TestFlattenNfsAccessPointPolicy(t *testing.T) {
 	}
 	if flattened[0]["identity_enforcement_enabled"] != false {
 		t.Fatalf("unexpected identity_enforcement_enabled: %#v", flattened[0]["identity_enforcement_enabled"])
+	}
+}
+
+func TestExpandNfsAccessPointPolicy_defaultsWithoutProtocols(t *testing.T) {
+	input := []interface{}{map[string]interface{}{
+		"anonuid":                      65534,
+		"anongid":                      65534,
+		"protocols":                    schema.NewSet(schema.HashString, nil),
+		"squash_config":                "ROOT_SQUASH",
+		"identity_enforcement_enabled": false,
+	}}
+
+	policy := expandNfsAccessPointPolicy(input)
+	if len(policy.Protocols) != 1 || policy.Protocols[0] != "NFS4" {
+		t.Fatalf("expected default protocol NFS4, got: %#v", policy.Protocols)
+	}
+}
+
+func TestFlattenNfsAccessPointPolicy_emptyProtocols(t *testing.T) {
+	policy := nfsAccessPointPolicy{
+		Anonuid:                    65534,
+		Anongid:                    65534,
+		Protocols:                  nil,
+		SquashConfig:               "ROOT_SQUASH",
+		IdentityEnforcementEnabled: false,
+	}
+
+	flattened := flattenNfsAccessPointPolicy(policy)
+	protocols := flattened[0]["protocols"].(*schema.Set)
+	if protocols.Len() != 1 || !protocols.Contains("NFS4") {
+		t.Fatalf("expected default protocol NFS4, got: %#v", protocols.List())
 	}
 }

@@ -24,18 +24,18 @@ resource "digitalocean_nfs" "example" {
 }
 ```
 
-## Example Usage - Moving Share Between VPCs
+## Example Usage - Multiple VPC Attachments
 
-To move an NFS share from one VPC to another using the Reassign API:
+Attach an NFS share to additional VPCs one at a time using separate attachment resources:
 
 ```hcl
-resource "digitalocean_vpc" "source" {
-  name   = "source-vpc"
+resource "digitalocean_vpc" "primary" {
+  name   = "primary-vpc"
   region = "nyc1"
 }
 
-resource "digitalocean_vpc" "destination" {
-  name   = "destination-vpc"
+resource "digitalocean_vpc" "secondary" {
+  name   = "secondary-vpc"
   region = "nyc1"
 }
 
@@ -43,24 +43,22 @@ resource "digitalocean_nfs" "example" {
   region           = "nyc1"
   name             = "example-nfs"
   size             = 50
-  vpc_id           = digitalocean_vpc.source.id
+  vpc_id           = digitalocean_vpc.primary.id
   performance_tier = "high"
 }
 
-# Attach to source VPC
-resource "digitalocean_nfs_attachment" "source" {
+resource "digitalocean_nfs_attachment" "primary" {
   share_id = digitalocean_nfs.example.id
-  vpc_id   = digitalocean_vpc.source.id
+  vpc_id   = digitalocean_vpc.primary.id
   region   = "nyc1"
 }
 
-# Reassign to destination VPC - uses the efficient Reassign API
-resource "digitalocean_nfs_attachment" "destination" {
+resource "digitalocean_nfs_attachment" "secondary" {
   share_id = digitalocean_nfs.example.id
-  vpc_id   = digitalocean_vpc.destination.id
+  vpc_id   = digitalocean_vpc.secondary.id
   region   = "nyc1"
 
-  depends_on = [digitalocean_nfs_attachment.source]
+  depends_on = [digitalocean_nfs_attachment.primary]
 }
 ```
 
@@ -84,7 +82,8 @@ The following attributes are exported:
 * `region` - The region where the NFS share is created.
 * `size` - The size of the NFS share in GiB.
 * `performance_tier` - The performance tier of the NFS share (`standard` or `high`).
-* `vpc_id` - The ID of the VPC where the NFS share is located.
+* `vpc_id` - The ID of the primary VPC where the NFS share was created.
+* `vpc_ids` - The set of VPC IDs the NFS share is attached to.
 * `status` - The current status of the NFS share.
 * `created_at` - The date and time when the NFS share was created.
 * `host` - The host IP of the NFS server accessible from the associated VPC.
@@ -92,7 +91,7 @@ The following attributes are exported:
 
 ## Notes
 
-Multiple NFS shares can now be attached to the same VPC, providing greater flexibility for storage management.
+An NFS share can be attached to multiple VPCs. Use one `digitalocean_nfs_attachment` resource per VPC. Multiple NFS shares can also be attached to the same VPC.
 
 ## Import
 

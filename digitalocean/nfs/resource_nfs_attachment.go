@@ -29,6 +29,15 @@ func isTransientNfsActionError(err error) bool {
 	return false
 }
 
+func nfsShareHasVpcID(vpcIDs []string, vpcID string) bool {
+	for _, id := range vpcIDs {
+		if id == vpcID {
+			return true
+		}
+	}
+	return false
+}
+
 func ResourceDigitalOceanNfsAttachment() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanNfsAttachmentCreate,
@@ -74,14 +83,14 @@ func resourceDigitalOceanNfsAttachmentCreate(ctx context.Context, d *schema.Reso
 		return diag.Errorf("Error retrieving share: %s", err)
 	}
 
-	// If share is attached to a different VPC, use reassign
-	if len(share.VpcIDs) > 0 && share.VpcIDs[0] != vpcId {
+	if nfsShareHasVpcID(share.VpcIDs, vpcId) {
+		log.Printf("[DEBUG] Share (%s) is already attached to VPC (%s)", shareId, vpcId)
+	} else {
 		err := retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
-			log.Printf("[DEBUG] Reassigning share (%s) from VPC (%s) to VPC (%s)", shareId, share.VpcIDs[0], vpcId)
-
-			err := reassignNfs(ctx, client, shareId, region, share.VpcIDs[0], vpcId)
+			log.Printf("[DEBUG] Attaching Share (%s) to VPC (%s)", shareId, vpcId)
+			action, _, err := client.NfsActions.Attach(context.Background(), shareId, vpcId, region)
 			if err != nil {
-				retryErr := fmt.Errorf("[WARN] Error reassigning share (%s) from VPC (%s) to VPC (%s): %s", shareId, share.VpcIDs[0], vpcId, err)
+				retryErr := fmt.Errorf("[WARN] Error attaching share (%s) to VPC (%s): %s", shareId, vpcId, err)
 				if isTransientNfsActionError(err) {
 					return retry.RetryableError(retryErr)
 				}
@@ -89,31 +98,15 @@ func resourceDigitalOceanNfsAttachmentCreate(ctx context.Context, d *schema.Reso
 				return retry.NonRetryableError(retryErr)
 			}
 
-			return nil
-		})
-
-		if err != nil {
-			return diag.Errorf("Error reassigning share after retry timeout: %s", err)
-		}
-	} else if len(share.VpcIDs) == 0 {
-		// Share is not attached to any VPC, attach it to the target VPC
-		err := retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
-
-			log.Printf("[DEBUG] Attaching Share (%s) to VPC (%s)", shareId, vpcId)
-			action, _, err := client.NfsActions.Attach(context.Background(), shareId, vpcId, region)
-			if err != nil {
-
-				return retry.NonRetryableError(
-					fmt.Errorf("[WARN] Error attaching share (%s) to VPC (%s): %s", shareId, vpcId, err))
-			}
-
 			log.Printf("[DEBUG] Share attach action id: %s", action.ID)
 
-			// Poll the share to check VPC Id
-			if err = waitForNfsAttach(ctx, client, shareId, region, vpcId); err != nil {
+			if err = waitForNfsVpcAttached(ctx, client, shareId, region, vpcId); err != nil {
+				retryErr := fmt.Errorf("[DEBUG] Error waiting for attach share (%s) to VPC (%s) to finish: %s", shareId, vpcId, err)
+				if isTransientNfsActionError(err) {
+					return retry.RetryableError(retryErr)
+				}
 
-				return retry.NonRetryableError(
-					fmt.Errorf("[DEBUG] Error waiting for attach share (%s) to VPC (%s) to finish: %s", shareId, vpcId, err))
+				return retry.NonRetryableError(retryErr)
 			}
 
 			return nil
@@ -129,14 +122,14 @@ func resourceDigitalOceanNfsAttachmentCreate(ctx context.Context, d *schema.Reso
 	return nil
 }
 
-func waitForNfsAttach(ctx context.Context, client *godo.Client, id, region string, expectedVpcID string) error {
+func waitForNfsVpcAttached(ctx context.Context, client *godo.Client, id, region string, expectedVpcID string) error {
 	for i := 0; i < 60; i++ {
 		share, _, err := client.Nfs.Get(ctx, id, region)
 		if err != nil {
 			return err
 		}
 
-		if share.Status == "ACTIVE" && len(share.VpcIDs) != 0 && share.VpcIDs[0] == expectedVpcID {
+		if share.Status == "ACTIVE" && nfsShareHasVpcID(share.VpcIDs, expectedVpcID) {
 			return nil
 		}
 
@@ -146,21 +139,21 @@ func waitForNfsAttach(ctx context.Context, client *godo.Client, id, region strin
 	return fmt.Errorf("timeout waiting for NFS attach to complete")
 }
 
-func waitForNfsDetach(ctx context.Context, client *godo.Client, id, region string, expectedVpcID string) error {
+func waitForNfsVpcDetached(ctx context.Context, client *godo.Client, id, region string, vpcID string) error {
 	for i := 0; i < 60; i++ {
 		share, _, err := client.Nfs.Get(ctx, id, region)
 		if err != nil {
 			return err
 		}
 
-		if share.Status == "INACTIVE" && len(share.VpcIDs) == 0 {
+		if !nfsShareHasVpcID(share.VpcIDs, vpcID) {
 			return nil
 		}
 
 		time.Sleep(5 * time.Second)
 	}
 
-	return fmt.Errorf("timeout waiting for NFS detach to complete")
+	return fmt.Errorf("timeout waiting for NFS detach from VPC %s to complete", vpcID)
 }
 
 func resourceDigitalOceanNfsAttachmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -185,7 +178,7 @@ func resourceDigitalOceanNfsAttachmentRead(ctx context.Context, d *schema.Resour
 		return diag.Errorf("Error retrieving share: %s", err)
 	}
 
-	if share.Status == "ACTIVE" && len(share.VpcIDs) == 0 || share.VpcIDs[0] != vpcId {
+	if share.Status != "ACTIVE" || !nfsShareHasVpcID(share.VpcIDs, vpcId) {
 		log.Printf("[DEBUG] Share Attachment (%s) not found, removing from state", d.Id())
 		d.SetId("")
 	}
@@ -203,23 +196,22 @@ func resourceDigitalOceanNfsAttachmentDelete(ctx context.Context, d *schema.Reso
 		region = v.(string)
 	}
 
-	// Only one nfs can be detached at one time to a single vpc.
 	err := retry.RetryContext(ctx, 5*time.Minute, func() *retry.RetryError {
-
 		log.Printf("[DEBUG] Detaching Share (%s) from VPC (%s)", shareId, vpcId)
 		action, _, err := client.NfsActions.Detach(context.Background(), shareId, vpcId, region)
 		if err != nil {
-
 			return retry.NonRetryableError(
 				fmt.Errorf("[WARN] Error detaching share (%s) from VPC (%s): %s", shareId, vpcId, err))
 		}
 
 		log.Printf("[DEBUG] Share detach action id: %s", action.ID)
-		// Poll the share to check
-		if err = waitForNfsDetach(ctx, client, shareId, region, vpcId); err != nil {
+		if err = waitForNfsVpcDetached(ctx, client, shareId, region, vpcId); err != nil {
+			retryErr := fmt.Errorf("[DEBUG] Error waiting for detach share (%s) from VPC (%s) to finish: %s", shareId, vpcId, err)
+			if isTransientNfsActionError(err) {
+				return retry.RetryableError(retryErr)
+			}
 
-			return retry.NonRetryableError(
-				fmt.Errorf("[DEBUG] Error waiting for detach share (%s) to VPC (%s) to finish: %s", shareId, vpcId, err))
+			return retry.NonRetryableError(retryErr)
 		}
 
 		return nil

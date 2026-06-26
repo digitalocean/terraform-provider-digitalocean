@@ -3,7 +3,6 @@ package nfs
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -32,7 +31,6 @@ func DataSourceDigitalOceanNfsAccessPoint() *schema.Resource {
 			},
 			"status": {
 				Type:     schema.TypeString,
-				Optional: true,
 				Computed: true,
 			},
 			"vpc_id": {
@@ -90,17 +88,12 @@ func dataSourceDigitalOceanNfsAccessPointRead(ctx context.Context, d *schema.Res
 		return diag.Errorf("Either `id` or both `name` and `share_id` must be set")
 	}
 
-	status := ""
-	if v, ok := d.GetOk("status"); ok {
-		status = strings.ToUpper(v.(string))
-	}
-
 	vpcID := ""
 	if v, ok := d.GetOk("vpc_id"); ok {
 		vpcID = v.(string)
 	}
 
-	accessPoints, _, err := listNfsAccessPoints(ctx, client, shareID.(string), status, vpcID)
+	accessPoints, _, err := listNfsAccessPoints(ctx, client, shareID.(string), vpcID)
 	if err != nil {
 		return diag.Errorf("Error listing NFS access points: %s", err)
 	}

@@ -82,17 +82,10 @@ func getNfsAccessPoint(ctx context.Context, client *godo.Client, accessPointID s
 	return root.AccessPoint, resp, nil
 }
 
-func listNfsAccessPoints(ctx context.Context, client *godo.Client, shareID string, status string, vpcID string) ([]*nfsAccessPoint, *godo.Response, error) {
+func listNfsAccessPoints(ctx context.Context, client *godo.Client, shareID string, vpcID string) ([]*nfsAccessPoint, *godo.Response, error) {
 	path := fmt.Sprintf("v2/nfs/shares/%s/access_points", shareID)
-	values := url.Values{}
-	if status != "" {
-		values.Set("status", status)
-	}
 	if vpcID != "" {
-		values.Set("vpc_id", vpcID)
-	}
-	if len(values) > 0 {
-		path = path + "?" + values.Encode()
+		path = path + "?" + url.Values{"vpc_id": {vpcID}}.Encode()
 	}
 
 	req, err := client.NewRequest(ctx, http.MethodGet, path, nil)

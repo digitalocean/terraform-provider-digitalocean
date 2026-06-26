@@ -142,6 +142,7 @@ resource "digitalocean_nfs_access_point" "foo" {
   vpc_id   = digitalocean_vpc.foobar.id
 
   access_policy {
+    protocols     = ["NFS4"]
     squash_config = "ROOT_SQUASH"
   }
 }

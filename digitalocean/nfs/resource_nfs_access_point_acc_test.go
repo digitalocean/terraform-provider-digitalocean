@@ -35,6 +35,7 @@ func TestAccDigitalOceanNfsAccessPoint_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrPair(resourceName, "share_id", "digitalocean_nfs.foo", "id"),
 					resource.TestCheckResourceAttrPair(resourceName, "vpc_id", "digitalocean_vpc.foobar", "id"),
 					resource.TestCheckResourceAttr(resourceName, "access_policy.0.squash_config", "ROOT_SQUASH"),
+					resource.TestCheckResourceAttr(resourceName, "access_policy.0.protocols.#", "1"),
 					resource.TestCheckResourceAttr(resourceName, "access_policy.0.anonuid", "65534"),
 					resource.TestCheckResourceAttr(resourceName, "access_policy.0.anongid", "65534"),
 					resource.TestCheckResourceAttrSet(resourceName, "status"),
@@ -72,6 +73,7 @@ resource "digitalocean_nfs_access_point" "foobar" {
   vpc_id   = digitalocean_vpc.foobar.id
 
   access_policy {
+    protocols     = ["NFS4"]
     squash_config = "ROOT_SQUASH"
   }
 }
@@ -117,7 +119,7 @@ func testAccCheckDigitalOceanNfsAccessPointIsActive(n string) resource.TestCheck
 			if err != nil {
 				return err
 			}
-			if accessPoint.Status == "ACTIVE" {
+			if accessPoint.Status == "ACCESS_POINT_ACTIVE" {
 				time.Sleep(5 * time.Second)
 				return nil
 			}

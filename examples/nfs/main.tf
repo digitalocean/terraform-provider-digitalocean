@@ -81,10 +81,10 @@ output "current_attachment" {
   value = digitalocean_nfs_attachment.test.vpc_id
 }
 
-# REASSIGN TEST
-# Test moving NFS share from one VPC to another using the efficient Reassign API
+# MULTI-VPC ATTACHMENT
+# Attach the share to a second VPC without removing the first attachment.
 
-resource "digitalocean_nfs_attachment" "reassign" {
+resource "digitalocean_nfs_attachment" "test2" {
   vpc_id   = digitalocean_vpc.test2.id
   share_id = digitalocean_nfs.test.id
   region   = "atl1"
@@ -92,9 +92,9 @@ resource "digitalocean_nfs_attachment" "reassign" {
   depends_on = [digitalocean_nfs_attachment.test]
 }
 
-output "reassign_attachment" {
-  value       = digitalocean_nfs_attachment.reassign.vpc_id
-  description = "VPC ID after reassign"
+output "second_attachment_vpc_id" {
+  value       = digitalocean_nfs_attachment.test2.vpc_id
+  description = "Second VPC attached to the NFS share"
 }
 
 

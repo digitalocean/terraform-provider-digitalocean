@@ -35,7 +35,6 @@ The following arguments are supported:
 * `name` - (Optional) The name of the NFS access point. Must be used with `share_id`.
 * `share_id` - (Optional) The ID of the NFS share. Must be used with `name`.
 * `vpc_id` - (Optional) Filter access points by VPC ID when looking up by `name` and `share_id`.
-* `status` - (Optional) Filter access points by status when looking up by `name` and `share_id`.
 
 ## Attributes Reference
 
