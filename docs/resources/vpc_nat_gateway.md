@@ -49,6 +49,7 @@ documented below.
 `vpcs` supports the following attributes:
 
 * `vpc_uuid` - The ID of the ingress VPC
+* `subnet_uuid` - (Optional) The ID of the ingress subnet in the VPC
 * `gateway_ip` - (Read-only) The private IP of the VPC NAT Gateway
 * `default_gateway` - Boolean flag indicating if this should be the default gateway in this VPC
 

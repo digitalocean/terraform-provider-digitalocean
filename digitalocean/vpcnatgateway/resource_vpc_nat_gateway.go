@@ -68,6 +68,12 @@ func ResourceDigitalOceanVPCNATGateway() *schema.Resource {
 							Description: "ID of the ingress VPC",
 							ForceNew:    true,
 						},
+						"subnet_uuid": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "ID of the ingress subnet in the VPC",
+							ForceNew:    true,
+						},
 						"gateway_ip": {
 							Type:        schema.TypeString,
 							Computed:    true,
@@ -292,11 +298,15 @@ func expandVPCs(vpcs []interface{}) []*godo.IngressVPC {
 	ingressVPCs := make([]*godo.IngressVPC, 0, len(vpcs))
 	for i := range vpcs {
 		vpc := vpcs[i].(map[string]interface{})
-		ingressVPCs = append(ingressVPCs, &godo.IngressVPC{
+		ingressVPC := &godo.IngressVPC{
 			VpcUUID:        vpc["vpc_uuid"].(string),
 			GatewayIP:      vpc["gateway_ip"].(string),
 			DefaultGateway: vpc["default_gateway"].(bool),
-		})
+		}
+		if subnetUUID, ok := vpc["subnet_uuid"].(string); ok {
+			ingressVPC.SubnetUUID = subnetUUID
+		}
+		ingressVPCs = append(ingressVPCs, ingressVPC)
 	}
 	return ingressVPCs
 }

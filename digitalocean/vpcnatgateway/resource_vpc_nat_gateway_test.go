@@ -49,6 +49,8 @@ func TestAccResourceDigitalOceanVPCNATGateway(t *testing.T) {
 						"digitalocean_vpc_nat_gateway.foobar", "vpcs.#", "1"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpc_nat_gateway.foobar", "vpcs.0.vpc_uuid"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_vpc_nat_gateway.foobar", "vpcs.0.subnet_uuid", ""),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpc_nat_gateway.foobar", "vpcs.0.gateway_ip"),
 					resource.TestCheckResourceAttr(
@@ -93,6 +95,8 @@ func TestAccResourceDigitalOceanVPCNATGateway(t *testing.T) {
 						"digitalocean_vpc_nat_gateway.foobar", "vpcs.#", "1"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpc_nat_gateway.foobar", "vpcs.0.vpc_uuid"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_vpc_nat_gateway.foobar", "vpcs.0.subnet_uuid", ""),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpc_nat_gateway.foobar", "vpcs.0.gateway_ip"),
 					resource.TestCheckResourceAttr(
