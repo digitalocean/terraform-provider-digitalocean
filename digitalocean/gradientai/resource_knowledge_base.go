@@ -3,15 +3,34 @@ package gradientai
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
+
+// knowledgeBaseRootResponse mirrors godo's unexported knowledge base root for raw requests.
+type knowledgeBaseRootResponse struct {
+	KnowledgeBase *godo.KnowledgeBase `json:"knowledge_base"`
+}
+
+// agentRootResponse mirrors godo's unexported agent root for raw requests.
+type agentRootResponse struct {
+	Agent *godo.Agent `json:"agent"`
+}
+
+// agentKnowledgeBaseAttachBody is the body for the knowledge base attach request.
+type agentKnowledgeBaseAttachBody struct {
+	AgentUuid         string `json:"agent_uuid"`
+	KnowledgeBaseUuid string `json:"knowledge_base_uuid"`
+}
 
 func ResourceDigitalOceanKnowledgeBase() *schema.Resource {
 	return &schema.Resource{
@@ -21,6 +40,9 @@ func ResourceDigitalOceanKnowledgeBase() *schema.Resource {
 		DeleteContext: resourceDigitalOceanKnowledgeBaseDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
+		},
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(15 * time.Minute),
 		},
 
 		Schema: map[string]*schema.Schema{
@@ -90,10 +112,16 @@ func ResourceDigitalOceanKnowledgeBase() *schema.Resource {
 			},
 			"datasources": {
 				Type:        schema.TypeList,
-				Required:    true,
+				Optional:    true,
 				ForceNew:    true,
-				Description: "Data sources for the knowledge base",
+				Description: "Data sources for the knowledge base. Omit for an empty knowledge base; add data later with digitalocean_gradientai_knowledge_base_data_source.",
 				Elem:        knowledgeBaseDatasourcesSchema(),
+			},
+			"wait_for_database": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     true,
+				Description: "When true (default), waits for the knowledge base's managed database to become ONLINE before completing creation. This is required for an agent to attach the knowledge base (e.g. inline knowledge_base_uuid on agent create, which fails while the database is still provisioning).",
 			},
 		},
 	}
@@ -134,6 +162,9 @@ func ResourceDigitalOceanAgentKnowledgeBaseAttachment() *schema.Resource {
 		CreateContext: resourceDigitalOceanAgentKnowledgeBaseAttachmentCreate,
 		ReadContext:   resourceDigitalOceanAgentKnowledgeBaseAttachmentRead,
 		DeleteContext: resourceDigitalOceanAgentKnowledgeBaseAttachmentDelete,
+		Timeouts: &schema.ResourceTimeout{
+			Create: schema.DefaultTimeout(10 * time.Minute),
+		},
 		Schema: map[string]*schema.Schema{
 			"agent_uuid": {
 				Type:        schema.TypeString,
@@ -147,9 +178,17 @@ func ResourceDigitalOceanAgentKnowledgeBaseAttachment() *schema.Resource {
 				ForceNew:    true,
 				Description: "A unique identifier for a knowledge base.",
 			},
+			"wait_for_database": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				ForceNew:    true,
+				Default:     true,
+				Description: "When true (default), waits for the knowledge base's managed database to become ONLINE before attaching. The attach fails while the database is still provisioning. Indexing does not need to be complete.",
+			},
 		},
 	}
 }
+
 func resourceDigitalOceanKnowledgeBaseCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
@@ -175,22 +214,78 @@ func resourceDigitalOceanKnowledgeBaseCreate(ctx context.Context, d *schema.Reso
 		createRequest.Tags = tags
 	}
 
-	// Handle datasources
+	// Datasources are optional; default to an empty list so the JSON is [] rather than null.
+	createRequest.DataSources = []godo.KnowledgeBaseDataSource{}
 	if datasourcesRaw, ok := d.GetOk("datasources"); ok {
-		datasources := datasourcesRaw.([]interface{})
-		createRequest.DataSources = expandKnowledgeBaseDatasources(datasources)
+		if dsList := datasourcesRaw.([]interface{}); len(dsList) > 0 {
+			createRequest.DataSources = expandKnowledgeBaseDatasources(dsList)
+		}
 	}
 
-	// Make the API call
-	kb, _, err := client.GradientAI.CreateKnowledgeBase(ctx, createRequest)
-	if err != nil {
-		return diag.FromErr(fmt.Errorf("error creating knowledge base: %s", err))
+	var kb *godo.KnowledgeBase
+	if len(createRequest.DataSources) == 0 {
+		// godo rejects an empty datasource list client-side even though the API allows it.
+		var err error
+		kb, err = createKnowledgeBaseRaw(ctx, client, createRequest)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("error creating knowledge base: %s", err))
+		}
+	} else {
+		var err error
+		kb, _, err = client.GradientAI.CreateKnowledgeBase(ctx, createRequest)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("error creating knowledge base: %s", err))
+		}
 	}
 
 	d.SetId(kb.Uuid)
 
+	// The managed database provisions asynchronously and must be ONLINE before the
+	// knowledge base can be attached to an agent.
+	if d.Get("wait_for_database").(bool) {
+		if err := waitKnowledgeBaseDatabaseOnline(ctx, client, kb.Uuid, d.Timeout(schema.TimeoutCreate)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
 	// Read the created resource to populate all fields
 	return resourceDigitalOceanKnowledgeBaseRead(ctx, d, meta)
+}
+
+// createKnowledgeBaseRaw creates a knowledge base via the godo client's raw request
+// primitives, bypassing godo's client-side requirement of at least one datasource.
+func createKnowledgeBaseRaw(ctx context.Context, client *godo.Client, createRequest *godo.KnowledgeBaseCreateRequest) (*godo.KnowledgeBase, error) {
+	if createRequest.Name == "" {
+		return nil, fmt.Errorf("name is required")
+	}
+	if strings.Contains(createRequest.Name, " ") {
+		return nil, fmt.Errorf("name cannot contain spaces")
+	}
+	if createRequest.Region == "" {
+		createRequest.Region = "tor1"
+	}
+	if createRequest.EmbeddingModelUuid == "" {
+		return nil, fmt.Errorf("embedding_model_uuid is required")
+	}
+	if createRequest.ProjectID == "" {
+		return nil, fmt.Errorf("project_id is required")
+	}
+	if createRequest.DataSources == nil {
+		createRequest.DataSources = []godo.KnowledgeBaseDataSource{}
+	}
+
+	req, err := client.NewRequest(ctx, http.MethodPost, godo.KnowledgeBasePath, createRequest)
+	if err != nil {
+		return nil, err
+	}
+	root := new(knowledgeBaseRootResponse)
+	if _, err := client.Do(ctx, req, root); err != nil {
+		return nil, err
+	}
+	if root.KnowledgeBase == nil {
+		return nil, fmt.Errorf("knowledge base create returned an empty response")
+	}
+	return root.KnowledgeBase, nil
 }
 
 func resourceDigitalOceanKnowledgeBaseRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -223,12 +318,10 @@ func resourceDigitalOceanKnowledgeBaseRead(ctx context.Context, d *schema.Resour
 		return diag.FromErr(fmt.Errorf("error retrieving knowledge base datasources: %s", err))
 	}
 
-	// Flatten and set datasources if any exist
-	if len(datasources) > 0 {
-		flattenedDatasources := flattenKnowledgeBaseDataSources(datasources)
-		if err := d.Set("datasources", flattenedDatasources); err != nil {
-			return diag.FromErr(fmt.Errorf("error setting datasources: %s", err))
-		}
+	// Flatten and set datasources (including empty)
+	flattenedDatasources := flattenKnowledgeBaseDataSources(datasources)
+	if err := d.Set("datasources", flattenedDatasources); err != nil {
+		return diag.FromErr(fmt.Errorf("error setting datasources: %s", err))
 	}
 
 	// Set tags if they exist
@@ -389,19 +482,46 @@ func resourceDigitalOceanAgentKnowledgeBaseAttachmentCreate(ctx context.Context,
 	agentUUID := d.Get("agent_uuid").(string)
 	kbUUID := d.Get("knowledge_base_uuid").(string)
 
-	agent, _, err := client.GradientAI.AttachKnowledgeBaseToAgent(ctx, agentUUID, kbUUID)
+	if d.Get("wait_for_database").(bool) {
+		if err := waitKnowledgeBaseDatabaseOnline(ctx, client, kbUUID, d.Timeout(schema.TimeoutCreate)); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	agent, err := attachKnowledgeBaseToAgentRaw(ctx, client, agentUUID, kbUUID)
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error attaching knowledge base to agent: %s", err))
 	}
 
 	d.SetId(fmt.Sprintf("%s-%s", agentUUID, kbUUID))
 
-	flattenAgent, _ := FlattenDigitalOceanAgent(agent)
-	for k, v := range flattenAgent {
-		d.Set(k, v)
+	if agent != nil {
+		flattenAgent, _ := FlattenDigitalOceanAgent(agent)
+		for k, v := range flattenAgent {
+			d.Set(k, v)
+		}
 	}
 
 	return resourceDigitalOceanAgentKnowledgeBaseAttachmentRead(ctx, d, meta)
+}
+
+// attachKnowledgeBaseToAgentRaw attaches a knowledge base to an agent via the godo
+// client's raw request primitives, since godo's method sends no request body.
+func attachKnowledgeBaseToAgentRaw(ctx context.Context, client *godo.Client, agentUUID, kbUUID string) (*godo.Agent, error) {
+	path := fmt.Sprintf(godo.AgentKnowledgeBasePath, agentUUID, kbUUID)
+	body := &agentKnowledgeBaseAttachBody{
+		AgentUuid:         agentUUID,
+		KnowledgeBaseUuid: kbUUID,
+	}
+	req, err := client.NewRequest(ctx, http.MethodPost, path, body)
+	if err != nil {
+		return nil, err
+	}
+	root := new(agentRootResponse)
+	if _, err := client.Do(ctx, req, root); err != nil {
+		return nil, err
+	}
+	return root.Agent, nil
 }
 
 func resourceDigitalOceanAgentKnowledgeBaseAttachmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -438,4 +558,23 @@ func resourceDigitalOceanAgentKnowledgeBaseAttachmentDelete(ctx context.Context,
 
 	d.SetId("")
 	return nil
+}
+
+// waitKnowledgeBaseDatabaseOnline blocks until the knowledge base's managed database
+// reports ONLINE, which is the precondition for attaching the knowledge base to an agent.
+func waitKnowledgeBaseDatabaseOnline(ctx context.Context, client *godo.Client, kbUUID string, timeout time.Duration) error {
+	return retry.RetryContext(ctx, timeout, func() *retry.RetryError {
+		_, dbStatus, _, err := client.GradientAI.GetKnowledgeBase(ctx, kbUUID)
+		if err != nil {
+			return retry.NonRetryableError(fmt.Errorf("get knowledge base (%s) while waiting for database: %w", kbUUID, err))
+		}
+		switch strings.ToUpper(dbStatus) {
+		case "ONLINE":
+			return nil
+		case "DECOMMISSIONED", "UNHEALTHY":
+			return retry.NonRetryableError(fmt.Errorf("knowledge base (%s) database entered terminal state %q", kbUUID, dbStatus))
+		default:
+			return retry.RetryableError(fmt.Errorf("knowledge base (%s) database is %q, waiting for ONLINE", kbUUID, dbStatus))
+		}
+	})
 }
