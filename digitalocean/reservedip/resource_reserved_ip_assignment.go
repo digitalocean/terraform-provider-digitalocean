@@ -56,7 +56,7 @@ func resourceDigitalOceanReservedIPAssignmentCreate(ctx context.Context, d *sche
 			"Error Assigning reserved IP (%s) to the droplet: %s", ipAddress, err)
 	}
 
-	_, unassignedErr := waitForReservedIPAssignmentReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+	_, unassignedErr := waitForReservedIPAssignmentReady(ctx, d, meta, action.ID, reservedIPActionAssign)
 	if unassignedErr != nil {
 		return diag.Errorf(
 			"Error waiting for reserved IP (%s) to be Assigned: %s", ipAddress, unassignedErr)
@@ -105,7 +105,7 @@ func resourceDigitalOceanReservedIPAssignmentDelete(ctx context.Context, d *sche
 			return diag.Errorf("Error unassigning reserved IP (%s) from the droplet: %s", ipAddress, err)
 		}
 
-		_, unassignedErr := waitForReservedIPAssignmentReady(ctx, d, "completed", []string{"new", "in-progress"}, "status", meta, action.ID)
+		_, unassignedErr := waitForReservedIPAssignmentReady(ctx, d, meta, action.ID, reservedIPActionUnassign)
 		if unassignedErr != nil {
 			return diag.Errorf(
 				"Error waiting for reserved IP (%s) to be unassigned: %s", ipAddress, unassignedErr)
@@ -119,15 +119,15 @@ func resourceDigitalOceanReservedIPAssignmentDelete(ctx context.Context, d *sche
 }
 
 func waitForReservedIPAssignmentReady(
-	ctx context.Context, d *schema.ResourceData, target string, pending []string, attribute string, meta interface{}, actionID int) (interface{}, error) {
+	ctx context.Context, d *schema.ResourceData, meta interface{}, actionID int, op reservedIPActionOperation) (interface{}, error) {
 	log.Printf(
-		"[INFO] Waiting for reserved IP (%s) to have %s of %s",
-		d.Get("ip_address").(string), attribute, target)
+		"[INFO] Waiting for reserved IP (%s) action (%d) to complete",
+		d.Get("ip_address").(string), actionID)
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    pending,
-		Target:     []string{target},
-		Refresh:    newReservedIPAssignmentStateRefreshFunc(d, attribute, meta, actionID),
+		Pending:    []string{"new", "in-progress"},
+		Target:     []string{"completed"},
+		Refresh:    newReservedIPAssignmentActionStateRefreshFunc(d, meta, actionID, op),
 		Timeout:    60 * time.Minute,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -136,22 +136,6 @@ func waitForReservedIPAssignmentReady(
 	}
 
 	return stateConf.WaitForStateContext(ctx)
-}
-
-func newReservedIPAssignmentStateRefreshFunc(
-	d *schema.ResourceData, attribute string, meta interface{}, actionID int) retry.StateRefreshFunc {
-	client := meta.(*config.CombinedConfig).GodoClient()
-	return func() (interface{}, string, error) {
-
-		log.Printf("[INFO] Refreshing the reserved IP state")
-		action, _, err := client.ReservedIPActions.Get(context.Background(), d.Get("ip_address").(string), actionID)
-		if err != nil {
-			return nil, "", fmt.Errorf("Error retrieving reserved IP (%s) ActionId (%d): %s", d.Get("ip_address").(string), actionID, err)
-		}
-
-		log.Printf("[INFO] The reserved IP Action Status is %s", action.Status)
-		return &action, action.Status, nil
-	}
 }
 
 func resourceDigitalOceanReservedIPAssignmentImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
