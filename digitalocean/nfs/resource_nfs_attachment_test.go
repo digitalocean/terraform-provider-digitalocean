@@ -40,11 +40,11 @@ func TestAccDigitalOceanNfsAttachment_Basic(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanNfsAttachment_MoveToNewVPC(t *testing.T) {
+func TestAccDigitalOceanNfsAttachment_MultipleVPCs(t *testing.T) {
 	var share godo.Nfs
 	shareName := acceptance.RandomTestName("nfs")
 	initialVpcName := acceptance.RandomTestName("vpc-initial")
-	attachVpcName := acceptance.RandomTestName("vpc-attach")
+	secondVpcName := acceptance.RandomTestName("vpc-second")
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -52,22 +52,23 @@ func TestAccDigitalOceanNfsAttachment_MoveToNewVPC(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanNfsAttachmentDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanNfsAttachmentConfig_moveToNewVPC_initial(shareName, initialVpcName),
+				Config: testAccCheckDigitalOceanNfsAttachmentConfig_multipleVPCs_initial(shareName, initialVpcName, secondVpcName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanNfsExists("digitalocean_nfs.foobar", &share),
+					testAccCheckDigitalOceanNfsAttachmentExists("digitalocean_nfs_attachment.initial"),
 					resource.TestCheckResourceAttrPair(
-						"digitalocean_nfs.foobar", "vpc_id", "digitalocean_vpc.initial", "id"),
+						"digitalocean_nfs_attachment.initial", "vpc_id", "digitalocean_vpc.initial", "id"),
 				),
 			},
 			{
-				Config: testAccCheckDigitalOceanNfsAttachmentConfig_moveToNewVPC_attach(shareName, initialVpcName, attachVpcName),
+				Config: testAccCheckDigitalOceanNfsAttachmentConfig_multipleVPCs_both(shareName, initialVpcName, secondVpcName),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanNfsExists("digitalocean_nfs.foobar", &share),
-					testAccCheckDigitalOceanNfsAttachmentExists("digitalocean_nfs_attachment.foobar"),
+					testAccCheckDigitalOceanNfsAttachmentExists("digitalocean_nfs_attachment.initial"),
+					testAccCheckDigitalOceanNfsAttachmentExists("digitalocean_nfs_attachment.second"),
 					resource.TestCheckResourceAttrPair(
-						"digitalocean_nfs_attachment.foobar", "vpc_id", "digitalocean_vpc.attach", "id"),
-					resource.TestCheckResourceAttrPair(
-						"digitalocean_nfs_attachment.foobar", "share_id", "digitalocean_nfs.foobar", "id"),
+						"digitalocean_nfs_attachment.second", "vpc_id", "digitalocean_vpc.second", "id"),
+					resource.TestCheckResourceAttr("digitalocean_nfs.foobar", "vpc_ids.#", "2"),
 				),
 			},
 		},
@@ -147,7 +148,7 @@ func testAccCheckDigitalOceanNfsAttachmentExists(rn string) resource.TestCheckFu
 			return err
 		}
 
-		if len(share.VpcIDs) == 0 || share.VpcIDs[0] != vpcId {
+		if !testAccNfsShareHasVpcID(share.VpcIDs, vpcId) {
 			return fmt.Errorf("wrong NFS attachment found for share %s, got %q wanted %q", shareId, share.VpcIDs, vpcId)
 		}
 
@@ -164,6 +165,15 @@ func testAccCheckDigitalOceanNfsAttachmentDestroy(s *terraform.State) error {
 
 	return nil
 }
+func testAccNfsShareHasVpcID(vpcIDs []string, vpcID string) bool {
+	for _, id := range vpcIDs {
+		if id == vpcID {
+			return true
+		}
+	}
+	return false
+}
+
 func testAccCheckDigitalOceanNfsAttachmentConfig_basic(shareName, vpcName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_vpc" "foobar" {
@@ -185,49 +195,70 @@ resource "digitalocean_nfs_attachment" "foobar" {
 }`, vpcName, shareName)
 }
 
-func testAccCheckDigitalOceanNfsAttachmentConfig_moveToNewVPC_initial(shareName, initialVpcName string) string {
+func testAccCheckDigitalOceanNfsAttachmentConfig_multipleVPCs_initial(shareName, initialVpcName, secondVpcName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_vpc" "initial" {
   name   = "%s"
   region = "atl1"
 }
 
-resource "digitalocean_nfs" "foobar" {
+resource "digitalocean_vpc" "second" {
   name   = "%s"
   region = "atl1"
-  size   = 50
-  vpc_id = digitalocean_vpc.initial.id
-}`, initialVpcName, shareName)
 }
 
-func testAccCheckDigitalOceanNfsAttachmentConfig_moveToNewVPC_attach(shareName, initialVpcName, attachVpcName string) string {
+resource "digitalocean_nfs" "foobar" {
+  name             = "%s"
+  region           = "atl1"
+  size             = 50
+  vpc_id           = digitalocean_vpc.initial.id
+  performance_tier = "standard"
+}
+
+resource "digitalocean_nfs_attachment" "initial" {
+  vpc_id   = digitalocean_vpc.initial.id
+  share_id = digitalocean_nfs.foobar.id
+  region   = "atl1"
+}`, initialVpcName, secondVpcName, shareName)
+}
+
+func testAccCheckDigitalOceanNfsAttachmentConfig_multipleVPCs_both(shareName, initialVpcName, secondVpcName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_vpc" "initial" {
   name   = "%s"
   region = "atl1"
 }
 
-resource "digitalocean_vpc" "attach" {
+resource "digitalocean_vpc" "second" {
   name   = "%s"
   region = "atl1"
 }
 
 resource "digitalocean_nfs" "foobar" {
-  name   = "%s"
-  region = "atl1"
-  size   = 50
-  vpc_id = digitalocean_vpc.initial.id
+  name             = "%s"
+  region           = "atl1"
+  size             = 50
+  vpc_id           = digitalocean_vpc.initial.id
+  performance_tier = "standard"
 
   lifecycle {
     ignore_changes = [vpc_id]
   }
 }
 
-resource "digitalocean_nfs_attachment" "foobar" {
-  vpc_id   = digitalocean_vpc.attach.id
+resource "digitalocean_nfs_attachment" "initial" {
+  vpc_id   = digitalocean_vpc.initial.id
   share_id = digitalocean_nfs.foobar.id
   region   = "atl1"
-}`, initialVpcName, attachVpcName, shareName)
+}
+
+resource "digitalocean_nfs_attachment" "second" {
+  vpc_id   = digitalocean_vpc.second.id
+  share_id = digitalocean_nfs.foobar.id
+  region   = "atl1"
+
+  depends_on = [digitalocean_nfs_attachment.initial]
+}`, initialVpcName, secondVpcName, shareName)
 }
 
 func testAccCheckDigitalOceanNfsAttachmentConfig_vpcAlreadyHasShare(firstShareName, secondShareName, firstVpcName, secondVpcName string) string {
