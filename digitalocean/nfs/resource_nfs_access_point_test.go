@@ -3,6 +3,7 @@ package nfs
 import (
 	"testing"
 
+	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -35,7 +36,7 @@ func TestExpandNfsAccessPointPolicy(t *testing.T) {
 	if policy.Anongid != uint64(456) {
 		t.Fatalf("unexpected anongid: %d", policy.Anongid)
 	}
-	if policy.SquashConfig != "ROOT_SQUASH" {
+	if policy.SquashConfig != godo.NfsSquashConfigRootSquash {
 		t.Fatalf("unexpected squash_config: %s", policy.SquashConfig)
 	}
 	if len(policy.Protocols) != 2 {
@@ -44,10 +45,10 @@ func TestExpandNfsAccessPointPolicy(t *testing.T) {
 	hasNFS := false
 	hasNFS4 := false
 	for _, p := range policy.Protocols {
-		if p == "NFS" {
+		if p == godo.NfsAccessPolicyProtocolNFS {
 			hasNFS = true
 		}
-		if p == "NFS4" {
+		if p == godo.NfsAccessPolicyProtocolNFS4 {
 			hasNFS4 = true
 		}
 	}
@@ -60,11 +61,11 @@ func TestExpandNfsAccessPointPolicy(t *testing.T) {
 }
 
 func TestFlattenNfsAccessPointPolicy(t *testing.T) {
-	policy := nfsAccessPointPolicy{
+	policy := godo.NfsAccessPolicy{
 		Anonuid:                    65534,
 		Anongid:                    65534,
-		Protocols:                  []string{"NFS4"},
-		SquashConfig:               "ROOT_SQUASH",
+		Protocols:                  []godo.NfsAccessPolicyProtocol{godo.NfsAccessPolicyProtocolNFS4},
+		SquashConfig:               godo.NfsSquashConfigRootSquash,
 		IdentityEnforcementEnabled: false,
 	}
 
@@ -96,17 +97,17 @@ func TestExpandNfsAccessPointPolicy_defaultsWithoutProtocols(t *testing.T) {
 	}}
 
 	policy := expandNfsAccessPointPolicy(input)
-	if len(policy.Protocols) != 1 || policy.Protocols[0] != "NFS4" {
+	if len(policy.Protocols) != 1 || policy.Protocols[0] != godo.NfsAccessPolicyProtocolNFS4 {
 		t.Fatalf("expected default protocol NFS4, got: %#v", policy.Protocols)
 	}
 }
 
 func TestFlattenNfsAccessPointPolicy_emptyProtocols(t *testing.T) {
-	policy := nfsAccessPointPolicy{
+	policy := godo.NfsAccessPolicy{
 		Anonuid:                    65534,
 		Anongid:                    65534,
 		Protocols:                  nil,
-		SquashConfig:               "ROOT_SQUASH",
+		SquashConfig:               godo.NfsSquashConfigRootSquash,
 		IdentityEnforcementEnabled: false,
 	}
 

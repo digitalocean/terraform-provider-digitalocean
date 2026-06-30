@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/nfs"
@@ -119,7 +120,7 @@ func testAccCheckDigitalOceanNfsAccessPointIsActive(n string) resource.TestCheck
 			if err != nil {
 				return err
 			}
-			if accessPoint.Status == "ACCESS_POINT_ACTIVE" {
+			if accessPoint.Status == godo.NfsAccessPointActive {
 				time.Sleep(5 * time.Second)
 				return nil
 			}
@@ -138,8 +139,11 @@ func testAccCheckDigitalOceanNfsAccessPointDestroy(s *terraform.State) error {
 		}
 
 		for i := 0; i < 30; i++ {
-			_, resp, err := nfs.GetNfsAccessPoint(context.Background(), client, rs.Primary.ID)
+			accessPoint, resp, err := nfs.GetNfsAccessPoint(context.Background(), client, rs.Primary.ID)
 			if err != nil && resp != nil && resp.StatusCode == 404 {
+				return nil
+			}
+			if err == nil && (accessPoint == nil || accessPoint.Status == godo.NfsAccessPointDeleted) {
 				return nil
 			}
 			time.Sleep(2 * time.Second)

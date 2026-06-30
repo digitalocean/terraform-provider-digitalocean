@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -17,27 +18,32 @@ func DataSourceDigitalOceanNfsAccessPoint() *schema.Resource {
 			"id": {
 				Type:          schema.TypeString,
 				Optional:      true,
-				ConflictsWith: []string{"name", "share_id"},
+				ConflictsWith: []string{"name", "share_id", "vpc_id"},
 			},
 			"name": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.NoZeroValues,
+				Type:          schema.TypeString,
+				Optional:      true,
+				RequiredWith:  []string{"share_id"},
+				ConflictsWith: []string{"id"},
+				ValidateFunc:  validation.NoZeroValues,
 			},
 			"share_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.NoZeroValues,
+				Type:          schema.TypeString,
+				Optional:      true,
+				RequiredWith:  []string{"name"},
+				ConflictsWith: []string{"id"},
+				ValidateFunc:  validation.NoZeroValues,
 			},
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
 			"vpc_id": {
-				Type:         schema.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ValidateFunc: validation.NoZeroValues,
+				Type:          schema.TypeString,
+				Optional:      true,
+				Computed:      true,
+				ConflictsWith: []string{"id"},
+				ValidateFunc:  validation.NoZeroValues,
 			},
 			"path": {
 				Type:     schema.TypeString,
@@ -74,11 +80,17 @@ func dataSourceDigitalOceanNfsAccessPointRead(ctx context.Context, d *schema.Res
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	if id, ok := d.GetOk("id"); ok {
-		accessPoint, _, err := getNfsAccessPoint(ctx, client, id.(string))
+		accessPoint, resp, err := client.Nfs.GetAccessPoint(ctx, id.(string))
 		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				return diag.Errorf("NFS access point not found: %s", id.(string))
+			}
 			return diag.Errorf("Error retrieving NFS access point: %s", err)
 		}
-		setNfsAccessPointData(d, accessPoint)
+		if nfsAccessPointRemoved(accessPoint) {
+			return diag.Errorf("NFS access point not found: %s", id.(string))
+		}
+		setNfsAccessPointDataSourceData(d, accessPoint)
 		return nil
 	}
 
@@ -93,15 +105,15 @@ func dataSourceDigitalOceanNfsAccessPointRead(ctx context.Context, d *schema.Res
 		vpcID = v.(string)
 	}
 
-	accessPoints, _, err := listNfsAccessPoints(ctx, client, shareID.(string), vpcID)
+	accessPoints, _, err := client.Nfs.ListAccessPoints(ctx, shareID.(string), nil)
 	if err != nil {
 		return diag.Errorf("Error listing NFS access points: %s", err)
 	}
 
-	var selected *nfsAccessPoint
+	var selected *godo.NfsAccessPoint
 	for _, ap := range accessPoints {
 		if ap != nil && ap.Name == name.(string) {
-			if vpcID != "" && ap.VpcID != vpcID {
+			if vpcID != "" && nfsAccessPointVpcID(ap) != vpcID {
 				continue
 			}
 			if selected != nil {
@@ -114,19 +126,19 @@ func dataSourceDigitalOceanNfsAccessPointRead(ctx context.Context, d *schema.Res
 		return diag.FromErr(fmt.Errorf("no access point found with name %s on share %s", name.(string), shareID.(string)))
 	}
 
-	setNfsAccessPointData(d, selected)
+	setNfsAccessPointDataSourceData(d, selected)
 	return nil
 }
 
-func setNfsAccessPointData(d *schema.ResourceData, ap *nfsAccessPoint) {
-	d.SetId(ap.ID)
-	d.Set("name", ap.Name)
-	d.Set("share_id", ap.ShareID)
-	d.Set("status", ap.Status)
-	d.Set("path", ap.Path)
-	d.Set("is_default", ap.IsDefault)
-	d.Set("created_at", ap.CreatedAt)
-	d.Set("updated_at", ap.UpdatedAt)
-	d.Set("vpc_id", ap.VpcID)
-	d.Set("access_policy", flattenNfsAccessPointPolicy(ap.AccessPolicy))
+func setNfsAccessPointDataSourceData(d *schema.ResourceData, accessPoint *godo.NfsAccessPoint) {
+	d.SetId(accessPoint.ID)
+	d.Set("name", accessPoint.Name)
+	d.Set("share_id", accessPoint.ShareID)
+	d.Set("status", string(accessPoint.Status))
+	d.Set("path", accessPoint.Path)
+	d.Set("is_default", accessPoint.IsDefault)
+	d.Set("created_at", accessPoint.CreatedAt)
+	d.Set("updated_at", accessPoint.UpdatedAt)
+	d.Set("vpc_id", nfsAccessPointVpcID(accessPoint))
+	d.Set("access_policy", flattenNfsAccessPointPolicy(accessPoint.AccessPolicy))
 }

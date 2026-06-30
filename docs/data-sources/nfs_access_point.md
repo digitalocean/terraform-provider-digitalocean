@@ -31,10 +31,10 @@ data "digitalocean_nfs_access_point" "example" {
 
 The following arguments are supported:
 
-* `id` - (Optional) The ID of the NFS access point. Conflicts with `name` and `share_id`.
-* `name` - (Optional) The name of the NFS access point. Must be used with `share_id`.
-* `share_id` - (Optional) The ID of the NFS share. Must be used with `name`.
-* `vpc_id` - (Optional) Filter access points by VPC ID when looking up by `name` and `share_id`.
+* `id` - (Optional) The ID of the NFS access point. Conflicts with `name`, `share_id`, and `vpc_id`.
+* `name` - (Optional) The name of the NFS access point. Must be used with `share_id`. Conflicts with `id`.
+* `share_id` - (Optional) The ID of the NFS share. Must be used with `name`. Conflicts with `id`.
+* `vpc_id` - (Optional) When looking up by `name` and `share_id`, optionally filter to the access point attached to this VPC. Conflicts with `id`.
 
 ## Attributes Reference
 
