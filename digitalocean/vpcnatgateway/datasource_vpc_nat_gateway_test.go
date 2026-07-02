@@ -54,6 +54,8 @@ data "digitalocean_vpc_nat_gateway" "foo" {
 						"data.digitalocean_vpc_nat_gateway.foo", "vpcs.#", "1"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_vpc_nat_gateway.foo", "vpcs.0.vpc_uuid"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_vpc_nat_gateway.foo", "vpcs.0.subnet_uuid", ""),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_vpc_nat_gateway.foo", "vpcs.0.gateway_ip"),
 					resource.TestCheckResourceAttr(
@@ -98,6 +100,8 @@ data "digitalocean_vpc_nat_gateway" "foo" {
 						"data.digitalocean_vpc_nat_gateway.foo", "vpcs.#", "1"),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_vpc_nat_gateway.foo", "vpcs.0.vpc_uuid"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_vpc_nat_gateway.foo", "vpcs.0.subnet_uuid", ""),
 					resource.TestCheckResourceAttrSet(
 						"data.digitalocean_vpc_nat_gateway.foo", "vpcs.0.gateway_ip"),
 					resource.TestCheckResourceAttr(
