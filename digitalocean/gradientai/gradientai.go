@@ -392,6 +392,7 @@ func FlattenDigitalOceanCustomModel(model *godo.CustomModel) (map[string]interfa
 		"name":                    model.Name,
 		"description":             model.Description,
 		"status":                  string(model.Status),
+		"error_message":           model.ErrorMessage,
 		"architecture":            model.Architecture,
 		"source_type":             string(model.SourceType),
 		"total_size_bytes":        model.TotalSizeBytes,

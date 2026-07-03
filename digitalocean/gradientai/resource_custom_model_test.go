@@ -523,3 +523,23 @@ func TestCustomModelCustomizeDiff_SpacesOnlyFields(t *testing.T) {
 		})
 	}
 }
+
+func TestFlattenDigitalOceanCustomModel_ErrorMessage(t *testing.T) {
+	t.Parallel()
+
+	flat, err := gradientai.FlattenDigitalOceanCustomModel(&godo.CustomModel{
+		Uuid:         "55555555-5555-5555-5555-555555555555",
+		Name:         "team/failed-model",
+		Status:       godo.CustomModelStatusFailed,
+		ErrorMessage: "Repository not found or access denied",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got, want := flat["error_message"], "Repository not found or access denied"; got != want {
+		t.Fatalf("error_message = %q, want %q", got, want)
+	}
+	if got, want := flat["status"], string(godo.CustomModelStatusFailed); got != want {
+		t.Fatalf("status = %q, want %q", got, want)
+	}
+}

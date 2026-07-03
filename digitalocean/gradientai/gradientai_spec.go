@@ -764,6 +764,11 @@ func CustomModelSchemaRead() *schema.Resource {
 			Computed:    true,
 			Description: "Current status of the custom model (e.g. STATUS_IMPORTING, STATUS_READY, STATUS_FAILED).",
 		},
+		"error_message": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Error message if the custom model import failed.",
+		},
 		"architecture": {
 			Type:        schema.TypeString,
 			Computed:    true,
