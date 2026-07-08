@@ -52,10 +52,10 @@ func waitOnDroplet(ctx context.Context, client *godo.Client, dropletID int) erro
 
 			if dropletHasPendingEvent(actions) {
 				log.Printf("[DEBUG] Droplet (%d) has pending events, waiting before reserved IP assign", dropletID)
-				return nil, "waiting", nil
+				return actions, "waiting", nil
 			}
 
-			return nil, "ready", nil
+			return actions, "ready", nil
 		},
 		Timeout:    2 * time.Minute,
 		Delay:      3 * time.Second,
