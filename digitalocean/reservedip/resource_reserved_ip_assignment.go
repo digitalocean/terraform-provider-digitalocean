@@ -49,6 +49,10 @@ func resourceDigitalOceanReservedIPAssignmentCreate(ctx context.Context, d *sche
 	ipAddress := d.Get("ip_address").(string)
 	dropletID := d.Get("droplet_id").(int)
 
+	if err := waitOnDroplet(ctx, client, dropletID); err != nil {
+		return diag.Errorf("Error waiting for droplet (%d) to be ready for reserved IP assign: %s", dropletID, err)
+	}
+
 	log.Printf("[INFO] Assigning the reserved IP (%s) to the Droplet %d", ipAddress, dropletID)
 	action, _, err := client.ReservedIPActions.Assign(context.Background(), ipAddress, dropletID)
 	if err != nil {

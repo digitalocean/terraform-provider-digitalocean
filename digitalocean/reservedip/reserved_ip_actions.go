@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -18,6 +19,52 @@ const (
 	reservedIPActionAssign reservedIPActionOperation = iota
 	reservedIPActionUnassign
 )
+
+func isDropletActionPending(status string) bool {
+	switch status {
+	case godo.ActionCompleted, "errored":
+		return false
+	default:
+		return true
+	}
+}
+
+func dropletHasPendingEvent(actions []godo.Action) bool {
+	for _, action := range actions {
+		if isDropletActionPending(action.Status) {
+			return true
+		}
+	}
+	return false
+}
+
+func waitOnDroplet(ctx context.Context, client *godo.Client, dropletID int) error {
+	log.Printf("[INFO] Waiting for droplet (%d) pending events to finish before reserved IP assign", dropletID)
+
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"waiting"},
+		Target:  []string{"ready"},
+		Refresh: func() (interface{}, string, error) {
+			actions, _, err := client.Droplets.Actions(ctx, dropletID, &godo.ListOptions{PerPage: 50})
+			if err != nil {
+				return nil, "", fmt.Errorf("Error retrieving droplet (%d) actions: %s", dropletID, err)
+			}
+
+			if dropletHasPendingEvent(actions) {
+				log.Printf("[DEBUG] Droplet (%d) has pending events, waiting before reserved IP assign", dropletID)
+				return actions, "waiting", nil
+			}
+
+			return actions, "ready", nil
+		},
+		Timeout:    2 * time.Minute,
+		Delay:      3 * time.Second,
+		MinTimeout: 2 * time.Second,
+	}
+
+	_, err := stateConf.WaitForStateContext(ctx)
+	return err
+}
 
 func isReservedIPActionNotFound(resp *godo.Response, err error) bool {
 	if err == nil {

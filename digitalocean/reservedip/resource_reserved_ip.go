@@ -70,6 +70,10 @@ func resourceDigitalOceanReservedIPCreate(ctx context.Context, d *schema.Resourc
 	d.SetId(reservedIP.IP)
 
 	if v, ok := d.GetOk("droplet_id"); ok {
+		if err := waitOnDroplet(ctx, client, v.(int)); err != nil {
+			return diag.Errorf("Error waiting for droplet (%d) to be ready for reserved IP assign: %s", v.(int), err)
+		}
+
 		log.Printf("[INFO] Assigning the reserved IP to the Droplet %d", v.(int))
 		action, _, err := client.ReservedIPActions.Assign(context.Background(), d.Id(), v.(int))
 		if err != nil {
@@ -92,6 +96,10 @@ func resourceDigitalOceanReservedIPUpdate(ctx context.Context, d *schema.Resourc
 
 	if d.HasChange("droplet_id") {
 		if v, ok := d.GetOk("droplet_id"); ok {
+			if err := waitOnDroplet(ctx, client, v.(int)); err != nil {
+				return diag.Errorf("Error waiting for droplet (%d) to be ready for reserved IP assign: %s", v.(int), err)
+			}
+
 			log.Printf("[INFO] Assigning the reserved IP %s to the Droplet %d", d.Id(), v.(int))
 			action, _, err := client.ReservedIPActions.Assign(context.Background(), d.Id(), v.(int))
 			if err != nil {

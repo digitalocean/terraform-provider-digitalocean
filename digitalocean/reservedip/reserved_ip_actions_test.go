@@ -116,3 +116,72 @@ func TestReservedIPActionComplete(t *testing.T) {
 		})
 	}
 }
+
+func TestIsDropletActionPending(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		status string
+		want   bool
+	}{
+		{status: godo.ActionCompleted, want: false},
+		{status: "errored", want: false},
+		{status: godo.ActionInProgress, want: true},
+		{status: "new", want: true},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.status, func(t *testing.T) {
+			t.Parallel()
+
+			if got := isDropletActionPending(tt.status); got != tt.want {
+				t.Fatalf("isDropletActionPending(%q) = %v, want %v", tt.status, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDropletHasPendingEvent(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		actions []godo.Action
+		want    bool
+	}{
+		{
+			name: "no pending events",
+			actions: []godo.Action{
+				{Type: "create", Status: godo.ActionCompleted},
+				{Type: "droplet_metadata_create", Status: godo.ActionCompleted},
+			},
+			want: false,
+		},
+		{
+			name: "metadata create pending",
+			actions: []godo.Action{
+				{Type: "droplet_metadata_create", Status: godo.ActionInProgress},
+			},
+			want: true,
+		},
+		{
+			name: "any other pending event",
+			actions: []godo.Action{
+				{Type: "resize", Status: godo.ActionInProgress},
+			},
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			if got := dropletHasPendingEvent(tt.actions); got != tt.want {
+				t.Fatalf("dropletHasPendingEvent() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
