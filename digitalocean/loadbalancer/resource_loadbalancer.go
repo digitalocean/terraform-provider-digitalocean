@@ -387,8 +387,11 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 			},
 
 			"ip": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				ForceNew:    true,
+				Description: "Optional BYOIP address to assign on create. Must be an unassigned BYOIP on the account in the same region. When omitted, a system-allocated floating IP is provisioned.",
 			},
 
 			"ipv6": {
@@ -707,6 +710,10 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 
 	if v, ok := d.GetOk("tls_cipher_policy"); ok {
 		opts.TLSCipherPolicy = v.(string)
+	}
+
+	if v, ok := d.GetOk("ip"); ok {
+		opts.IP = v.(string)
 	}
 
 	return opts, nil

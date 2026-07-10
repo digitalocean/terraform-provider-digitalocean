@@ -181,7 +181,11 @@ func flattenEgresses(egresses *godo.Egresses) []map[string]interface{} {
 		for _, egress := range egresses.PublicGateways {
 			gatewaySet := schema.NewSet(schema.HashResource(egressPublicGatewaysSchemaResource()), []interface{}{})
 			r := make(map[string]interface{})
-			r["ipv4"] = egress.IPv4
+			ipv4 := egress.IPv4
+			if ipv4 == "" {
+				ipv4 = egress.IP
+			}
+			r["ipv4"] = ipv4
 			gatewaySet.Add(r)
 			result = append(result, map[string]interface{}{
 				"public_gateways": gatewaySet,
