@@ -10,14 +10,15 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	yaml "gopkg.in/yaml.v2"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 )
 
 var (
@@ -27,6 +28,7 @@ var (
 const (
 	controlPlaneFirewallField              = "control_plane_firewall"
 	routingAgentField                      = "routing_agent"
+	p2pOciRegistryPlugin                   = "p2p_oci_registry_plugin"
 	amdGpuDevicePluginField                = "amd_gpu_device_plugin"
 	amdGpuDeviceMetricsExporterPluginField = "amd_gpu_device_metrics_exporter_plugin"
 	nvidiaGpuDevicePluginField             = "nvidia_gpu_device_plugin"
