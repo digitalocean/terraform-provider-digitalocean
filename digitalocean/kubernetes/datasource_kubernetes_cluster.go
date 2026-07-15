@@ -4,11 +4,12 @@ import (
 	"context"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 )
 
 func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
@@ -62,6 +63,21 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			routingAgentField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			p2pOciRegistryPluginField: {
 				Type:     schema.TypeList,
 				Computed: true,
 				Optional: true,
