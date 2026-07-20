@@ -337,6 +337,14 @@ func TestAccDigitalOceanApp_Job(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.job.2.name", "example-failed-job"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.job.2.kind", "FAILED_DEPLOY"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.3.name", "example-scheduled-job"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.3.kind", "SCHEDULED"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.3.schedule.0.cron", "0 0 * * *"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.job.3.schedule.0.time_zone", "America/New_York"),
 				),
 			},
 		},
@@ -1966,6 +1974,26 @@ resource "digitalocean_app" "foobar" {
       instance_size_slug = "basic-xxs"
       kind               = "FAILED_DEPLOY"
       run_command        = "echo 'This is a failed deploy job.'"
+
+      image {
+        registry_type = "DOCKER_HUB"
+        registry      = "frolvlad"
+        repository    = "alpine-bash"
+        tag           = "latest"
+      }
+    }
+
+    job {
+      name               = "example-scheduled-job"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+      kind               = "SCHEDULED"
+      run_command        = "echo 'This is a scheduled job.'"
+
+      schedule {
+        cron      = "0 0 * * *"
+        time_zone = "America/New_York"
+      }
 
       image {
         registry_type = "DOCKER_HUB"
