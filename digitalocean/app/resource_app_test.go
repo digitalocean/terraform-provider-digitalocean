@@ -343,6 +343,27 @@ func TestAccDigitalOceanApp_Job(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_JobInvocationFailedAlert(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_jobInvocationFailedAlert, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.alert.0.rule", "JOB_INVOCATION_FAILED"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanApp_StaticSite(t *testing.T) {
 	var app godo.App
 	appName := acceptance.RandomTestName()
@@ -1966,6 +1987,32 @@ resource "digitalocean_app" "foobar" {
       instance_size_slug = "basic-xxs"
       kind               = "FAILED_DEPLOY"
       run_command        = "echo 'This is a failed deploy job.'"
+
+      image {
+        registry_type = "DOCKER_HUB"
+        registry      = "frolvlad"
+        repository    = "alpine-bash"
+        tag           = "latest"
+      }
+    }
+  }
+}`
+
+var testAccCheckDigitalOceanAppConfig_jobInvocationFailedAlert = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "ams"
+
+    alert {
+      rule = "JOB_INVOCATION_FAILED"
+    }
+
+    job {
+      name               = "example-scheduled-job"
+      instance_count     = 1
+      instance_size_slug = "basic-xxs"
+      run_command        = "echo 'This is a scheduled job.'"
 
       image {
         registry_type = "DOCKER_HUB"
