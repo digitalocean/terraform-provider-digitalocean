@@ -176,6 +176,8 @@ The following arguments are supported:
 * `kubeconfig_expire_seconds` - (Optional) The duration in seconds that the returned Kubernetes credentials will be valid. If not set or 0, the credentials will have a 7 day expiry.
 * `routing_agent` - (Optional) Block containing options for the routing-agent component. If not specified, the routing-agent component will not be installed in the cluster.
   - `enabled` - (Required) Boolean flag whether the routing-agent should be enabled or not.
+* `p2p_oci_registry_plugin` - (Optional) Block containing options for the Peer-to-peer OCI registry plugin component. If not specified, the p2p-oci-registry-plugin component will not be installed in the cluster.
+  - `enabled` - (Required) Boolean flag whether the p2p-oci-registry-plugin should be enabled or not.
 * `amd_gpu_device_plugin` - (Optional) Block containing options for the AMD GPU device plugin component. If not specified, the component will be enabled by default for clusters with AMD GPU nodes.
   - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
 `amd_gpu_device_metrics_exporter_plugin` - (Optional) Block containing options for the AMD GPU device metrics exporter component. If not specified, the component will not be installed in the cluster.
@@ -238,6 +240,8 @@ In addition to the arguments listed above, the following additional attributes a
   - `start_time` The hour in UTC when maintenance updates will be applied, in 24 hour format (e.g. “16:00”).
 * `routing_agent` - Block containing options for the routing-agent component.
   - `enabled` - Boolean flag whether the routing-agent is enabled or not.
+* `p2p_oci_registry_plugin` - Block containing options for the p2p_oci_registry_plugin component.
+  - `enabled` - Boolean flag whether the p2p_oci_registry_plugin is enabled or not.
 * `amd_gpu_device_plugin` - Block containing options for the AMD GPU device plugin component. If not specified, the component will be enabled by default for clusters with AMD GPU nodes.
   - `enabled` - Boolean flag whether the component is enabled or not.
 * `amd_gpu_device_metrics_exporter_plugin` - Block containing options for the AMD GPU device metrics exporter component.
