@@ -280,6 +280,19 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
+
+			"gpu_partition_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Description: "The partition mode for a GPU Droplet. Omit to create a full GPU " +
+					"(equivalent to PARTITION_MODE_SPX_NPS1). Only supported on GPU sizes that " +
+					"advertise the mode in their supported_partition_modes.",
+				ValidateFunc: validation.StringInSlice([]string{
+					godo.GPUPartitionModeSPXNPS1,
+					godo.GPUPartitionModeDPXNPS2,
+				}, false),
+			},
 		},
 
 		CustomizeDiff: customdiff.All(
@@ -307,9 +320,10 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*config.CombinedConfig).GodoClient()
-
+// expandDropletCreateRequest builds the API create request from the resource
+// data. It is separated from the create handler so the request construction can
+// be unit tested without performing any API calls.
+func expandDropletCreateRequest(d *schema.ResourceData) (*godo.DropletCreateRequest, error) {
 	image := d.Get("image").(string)
 
 	// Build up our creation options
@@ -321,8 +335,7 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		Tags:   tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
 	}
 
-	imageId, err := strconv.Atoi(image)
-	if err == nil {
+	if imageId, err := strconv.Atoi(image); err == nil {
 		// The image field is provided as an ID (number).
 		opts.Image.ID = imageId
 	} else {
@@ -332,7 +345,7 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 	if attr, ok := d.GetOk("backups"); ok {
 		_, exist := d.GetOk("backup_policy")
 		if exist && !attr.(bool) { // Check there is no backup_policy specified when backups are disabled.
-			return diag.FromErr(errDropletBackupPolicy)
+			return nil, errDropletBackupPolicy
 		}
 		opts.Backups = attr.(bool)
 	}
@@ -383,11 +396,15 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		opts.VPCUUID = attr.(string)
 	}
 
+	if attr, ok := d.GetOk("gpu_partition_mode"); ok {
+		opts.GPUPartitionMode = attr.(string)
+	}
+
 	// Get configured ssh_keys
 	if v, ok := d.GetOk("ssh_keys"); ok {
 		expandedSshKeys, err := expandSshKeys(v.(*schema.Set).List())
 		if err != nil {
-			return diag.FromErr(err)
+			return nil, err
 		}
 		opts.SSHKeys = expandedSshKeys
 	}
@@ -395,14 +412,25 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 	// Get configured backup_policy
 	if policy, ok := d.GetOk("backup_policy"); ok {
 		if !d.Get("backups").(bool) {
-			return diag.FromErr(errDropletBackupPolicy)
+			return nil, errDropletBackupPolicy
 		}
 
 		backupPolicy, err := expandBackupPolicy(policy)
 		if err != nil {
-			return diag.FromErr(err)
+			return nil, err
 		}
 		opts.BackupPolicy = backupPolicy
+	}
+
+	return opts, nil
+}
+
+func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	opts, err := expandDropletCreateRequest(d)
+	if err != nil {
+		return diag.FromErr(err)
 	}
 
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
@@ -475,6 +503,13 @@ func setDropletAttributes(d *schema.ResourceData, droplet *godo.Droplet) error {
 	d.Set("locked", droplet.Locked)
 	d.Set("created_at", droplet.Created)
 	d.Set("vpc_uuid", droplet.VPCUUID)
+
+	// The API only returns gpu_partition_mode on the create response; it is not
+	// currently returned when reading a Droplet. Only set it when populated so the
+	// configured value is preserved rather than being cleared on a refresh.
+	if droplet.GPUPartitionMode != "" {
+		d.Set("gpu_partition_mode", droplet.GPUPartitionMode)
+	}
 
 	publicIPv4 := FindIPv4AddrByType(droplet, "public")
 	d.Set("ipv4_address", publicIPv4)
