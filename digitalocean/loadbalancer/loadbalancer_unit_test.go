@@ -186,6 +186,15 @@ func TestWaitForGLBDomainCertificatesIfNeeded_NoOpPaths(t *testing.T) {
 // TestWaitForGLBDomainCertificateBindings_EmptyDesired makes sure the
 // underlying poller exits immediately when there is nothing to wait for,
 // without touching the godo client.
+func TestWaitForGLBDomainCertificateBindings_EmptyDesired(t *testing.T) {
+	if err := waitForGLBDomainCertificateBindings(context.Background(), nil, "ignored-lb-id", nil); err != nil {
+		t.Fatalf("expected nil error for empty desired set, got %v", err)
+	}
+	if err := waitForGLBDomainCertificateBindings(context.Background(), nil, "ignored-lb-id", map[string]string{}); err != nil {
+		t.Fatalf("expected nil error for empty desired map, got %v", err)
+	}
+}
+
 func TestBuildLoadBalancerRequest_SubnetUUID(t *testing.T) {
 	d := newLBResourceData(t, map[string]interface{}{
 		"name":   "lb-name",
@@ -213,14 +222,5 @@ func TestBuildLoadBalancerRequest_SubnetUUID(t *testing.T) {
 	}
 	if opts.VPCSubnetUUID != "d4ba5b5a-9738-4a6a-b78d-4a86efb9f9e0" {
 		t.Fatalf("VPCSubnetUUID = %q, want %q", opts.VPCSubnetUUID, "d4ba5b5a-9738-4a6a-b78d-4a86efb9f9e0")
-	}
-}
-
-func TestWaitForGLBDomainCertificateBindings_EmptyDesired(t *testing.T) {
-	if err := waitForGLBDomainCertificateBindings(context.Background(), nil, "ignored-lb-id", nil); err != nil {
-		t.Fatalf("expected nil error for empty desired set, got %v", err)
-	}
-	if err := waitForGLBDomainCertificateBindings(context.Background(), nil, "ignored-lb-id", map[string]string{}); err != nil {
-		t.Fatalf("expected nil error for empty desired map, got %v", err)
 	}
 }

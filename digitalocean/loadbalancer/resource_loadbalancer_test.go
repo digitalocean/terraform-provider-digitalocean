@@ -3,6 +3,7 @@ package loadbalancer_test
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 	"testing"
@@ -705,6 +706,8 @@ func TestAccDigitalOceanLoadbalancer_multipleRules(t *testing.T) {
 func TestAccDigitalOceanLoadbalancer_WithVPC(t *testing.T) {
 	var loadbalancer godo.LoadBalancer
 	lbName := acceptance.RandomTestName()
+	vpcName := acceptance.RandomTestName("vpc")
+	var accTestSubnetUUID string
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -712,15 +715,27 @@ func TestAccDigitalOceanLoadbalancer_WithVPC(t *testing.T) {
 		CheckDestroy:      testAccCheckDigitalOceanLoadbalancerDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccCheckDigitalOceanLoadbalancerConfig_WithVPC(lbName),
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_VPCOnly(vpcName),
+				Check:  testAccCreateVPCSubnet("digitalocean_vpc.foobar", &accTestSubnetUUID, t),
+			},
+			{
+				PreConfig: func() {
+					t.Setenv("TF_VAR_acc_subnet_uuid", accTestSubnetUUID)
+				},
+				Config: testAccCheckDigitalOceanLoadbalancerConfig_WithVPC(lbName, vpcName),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccCheckDigitalOceanLoadbalancerExists("digitalocean_loadbalancer.foobar", &loadbalancer),
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "name", lbName),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_loadbalancer.foobar", "vpc_uuid"),
-					resource.TestCheckResourceAttr(
-						"digitalocean_loadbalancer.foobar", "subnet_uuid", ""),
+					testAccCheckLoadBalancerSubnetUUID("digitalocean_loadbalancer.foobar", accTestSubnetUUID),
+					func(s *terraform.State) error {
+						if loadbalancer.VPCSubnetUUID != accTestSubnetUUID {
+							return fmt.Errorf("API subnet_uuid %q, want %q", loadbalancer.VPCSubnetUUID, accTestSubnetUUID)
+						}
+						return nil
+					},
 					resource.TestCheckResourceAttr(
 						"digitalocean_loadbalancer.foobar", "droplet_ids.#", "1"),
 				),
@@ -1284,11 +1299,25 @@ resource "digitalocean_loadbalancer" "foobar" {
 }`, rName)
 }
 
-func testAccCheckDigitalOceanLoadbalancerConfig_WithVPC(name string) string {
+func testAccCheckDigitalOceanLoadbalancerConfig_VPCOnly(vpcName string) string {
 	return fmt.Sprintf(`
 resource "digitalocean_vpc" "foobar" {
-  name   = "%s"
-  region = "nyc3"
+  name     = "%s"
+  region   = "nyc3"
+  ip_range = "10.10.0.0/16"
+}`, vpcName)
+}
+
+func testAccCheckDigitalOceanLoadbalancerConfig_WithVPC(lbName, vpcName string) string {
+	return fmt.Sprintf(`
+variable "acc_subnet_uuid" {
+  type = string
+}
+
+resource "digitalocean_vpc" "foobar" {
+  name     = "%s"
+  region   = "nyc3"
+  ip_range = "10.10.0.0/16"
 }
 
 resource "digitalocean_droplet" "foobar" {
@@ -1313,8 +1342,9 @@ resource "digitalocean_loadbalancer" "foobar" {
   }
 
   vpc_uuid    = digitalocean_vpc.foobar.id
+  subnet_uuid = var.acc_subnet_uuid
   droplet_ids = [digitalocean_droplet.foobar.id]
-}`, acceptance.RandomTestName(), acceptance.RandomTestName(), name)
+}`, vpcName, acceptance.RandomTestName(), lbName)
 }
 
 func testAccCheckDigitalOceanLoadbalancerConfig_Firewall(name string) string {
@@ -1483,4 +1513,91 @@ resource "digitalocean_loadbalancer" "lorem" {
 
   target_load_balancer_ids = [digitalocean_loadbalancer.foobar.id]
 }`, name, name, name)
+}
+
+type vpcSubnetCreateRequest struct {
+	Name    string `json:"name"`
+	IPRange string `json:"ip_range"`
+}
+
+type vpcSubnetResponse struct {
+	VPCSubnet struct {
+		ID string `json:"id"`
+	} `json:"vpc_subnet"`
+}
+
+func createAccTestVPCSubnet(ctx context.Context, client *godo.Client, vpcUUID, name, ipRange string) (string, error) {
+	path := fmt.Sprintf("/v2/vpcs/%s/subnets", vpcUUID)
+	req, err := client.NewRequest(ctx, http.MethodPost, path, &vpcSubnetCreateRequest{
+		Name:    name,
+		IPRange: ipRange,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	root := new(vpcSubnetResponse)
+	if _, err := client.Do(ctx, req, root); err != nil {
+		return "", err
+	}
+
+	if root.VPCSubnet.ID == "" {
+		return "", fmt.Errorf("create vpc subnet returned empty id")
+	}
+
+	return root.VPCSubnet.ID, nil
+}
+
+func deleteAccTestVPCSubnet(ctx context.Context, client *godo.Client, vpcUUID, subnetUUID string) error {
+	path := fmt.Sprintf("/v2/vpcs/%s/subnets/%s", vpcUUID, subnetUUID)
+	req, err := client.NewRequest(ctx, http.MethodDelete, path, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Do(ctx, req, nil)
+	return err
+}
+
+func testAccCreateVPCSubnet(vpcResourceName string, subnetUUID *string, t *testing.T) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[vpcResourceName]
+		if !ok {
+			return fmt.Errorf("resource %s not found", vpcResourceName)
+		}
+
+		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
+		subnetName := acceptance.RandomTestName("subnet")
+		id, err := createAccTestVPCSubnet(context.Background(), client, rs.Primary.ID, subnetName, "10.10.1.0/24")
+		if err != nil {
+			return fmt.Errorf("failed to create vpc subnet: %w", err)
+		}
+
+		*subnetUUID = id
+		vpcUUID := rs.Primary.ID
+
+		t.Cleanup(func() {
+			if err := deleteAccTestVPCSubnet(context.Background(), client, vpcUUID, id); err != nil {
+				t.Logf("failed to delete acc test vpc subnet %s: %v", id, err)
+			}
+		})
+
+		return nil
+	}
+}
+
+func testAccCheckLoadBalancerSubnetUUID(lbResourceName, expectedSubnetUUID string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[lbResourceName]
+		if !ok {
+			return fmt.Errorf("resource %s not found", lbResourceName)
+		}
+
+		got := rs.Primary.Attributes["subnet_uuid"]
+		if got != expectedSubnetUUID {
+			return fmt.Errorf("subnet_uuid %q, want %q", got, expectedSubnetUUID)
+		}
+
+		return nil
+	}
 }

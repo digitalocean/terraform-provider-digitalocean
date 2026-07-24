@@ -391,6 +391,7 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				Computed:     true,
+				RequiredWith: []string{"vpc_uuid"},
 				ValidateFunc: validation.NoZeroValues,
 			},
 
