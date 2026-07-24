@@ -712,8 +712,12 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 		opts.TLSCipherPolicy = v.(string)
 	}
 
-	if v, ok := d.GetOk("ip"); ok {
-		opts.IP = v.(string)
+	// IP is create-only. State always has a computed IP after create, so only
+	// include it on new resources to avoid sending it on every update.
+	if d.IsNewResource() {
+		if v, ok := d.GetOk("ip"); ok {
+			opts.IP = v.(string)
+		}
 	}
 
 	return opts, nil
