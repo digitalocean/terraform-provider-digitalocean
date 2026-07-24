@@ -315,8 +315,17 @@ func resourceDigitalOceanDatabaseKafkaTopicCreate(ctx context.Context, d *schema
 		return diag.Errorf("Error creating database kafka topic: %s", err)
 	}
 
-	d.SetId(makeKafkaTopicID(clusterID, topic.Name))
-	log.Printf("[INFO] Database kafka topic name: %s", topic.Name)
+	// The API can return a successful response without a topic object, in
+	// which case godo yields a nil topic alongside a nil error. The topic
+	// name is client-chosen, so fall back to the requested name rather than
+	// dereferencing the response.
+	topicName := opts.Name
+	if topic != nil && topic.Name != "" {
+		topicName = topic.Name
+	}
+
+	d.SetId(makeKafkaTopicID(clusterID, topicName))
+	log.Printf("[INFO] Database kafka topic name: %s", topicName)
 
 	return resourceDigitalOceanDatabaseKafkaTopicRead(ctx, d, meta)
 }
@@ -360,6 +369,13 @@ func resourceDigitalOceanDatabaseKafkaTopicRead(ctx context.Context, d *schema.R
 		}
 
 		return diag.Errorf("Error retrieving kafka topic: %s", err)
+	}
+
+	// Same defensive guard as Create: a successful response without a topic
+	// object yields a nil topic with a nil error. Treat it as not found.
+	if topic == nil {
+		d.SetId("")
+		return nil
 	}
 
 	d.Set("state", topic.State)
