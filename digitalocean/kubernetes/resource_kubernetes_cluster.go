@@ -10,14 +10,15 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	yaml "gopkg.in/yaml.v2"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 )
 
 var (
@@ -27,6 +28,7 @@ var (
 const (
 	controlPlaneFirewallField              = "control_plane_firewall"
 	routingAgentField                      = "routing_agent"
+	p2pOciRegistryPluginField              = "p2p_oci_registry_plugin"
 	amdGpuDevicePluginField                = "amd_gpu_device_plugin"
 	amdGpuDeviceMetricsExporterPluginField = "amd_gpu_device_metrics_exporter_plugin"
 	nvidiaGpuDevicePluginField             = "nvidia_gpu_device_plugin"
@@ -317,6 +319,21 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			p2pOciRegistryPluginField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			amdGpuDevicePluginField: {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -539,6 +556,10 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.RoutingAgent = expandRoutingAgentOpts(routingAgent.([]interface{}))
 	}
 
+	if p2pOciRegistryPlugin, ok := d.GetOk(p2pOciRegistryPluginField); ok {
+		opts.P2pOciRegistryPlugin = expandP2pOciRegistryPluginOpts(p2pOciRegistryPlugin.([]interface{}))
+	}
+
 	if amdGpuDevicePlugin, ok := d.GetOk(amdGpuDevicePluginField); ok {
 		opts.AmdGpuDevicePlugin = expandAmdGpuDevicePluginOpts(amdGpuDevicePlugin.([]interface{}))
 	}
@@ -631,6 +652,10 @@ func digitaloceanKubernetesClusterRead(
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", routingAgentField, err)
 	}
 
+	if err := d.Set(p2pOciRegistryPluginField, flattenP2pOciRegistryPluginOpts(cluster.P2pOciRegistryPlugin)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", p2pOciRegistryPluginField, err)
+	}
+
 	if err := d.Set(amdGpuDevicePluginField, flattenAmdGpuDevicePluginOpts(cluster.AmdGpuDevicePlugin)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", amdGpuDevicePluginField, err)
 	}
@@ -718,7 +743,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 
 	// Figure out the changes and then call the appropriate API methods
 	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha",
-		controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField, amdGpuDevicePluginField,
+		controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField, p2pOciRegistryPluginField, amdGpuDevicePluginField,
 		amdGpuDeviceMetricsExporterPluginField, nvidiaGpuDevicePluginField, rdmaSharedDevicePluginField,
 		corednsAutoscalerField, "sso") {
 
@@ -730,6 +755,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 			HA:                                godo.PtrTo(d.Get("ha").(bool)),
 			ControlPlaneFirewall:              expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
 			RoutingAgent:                      expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
+			P2pOciRegistryPlugin:              expandP2pOciRegistryPluginOpts(d.Get(p2pOciRegistryPluginField).([]interface{})),
 			AmdGpuDevicePlugin:                expandAmdGpuDevicePluginOpts(d.Get(amdGpuDevicePluginField).([]interface{})),
 			AmdGpuDeviceMetricsExporterPlugin: expandAmdGpuDeviceMetricsExporterPluginOpts(d.Get(amdGpuDeviceMetricsExporterPluginField).([]interface{})),
 			NvidiaGpuDevicePlugin:             expandNvidiaGpuDevicePluginOpts(d.Get(nvidiaGpuDevicePluginField).([]interface{})),

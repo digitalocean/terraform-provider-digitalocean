@@ -4,9 +4,10 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 )
 
 func nodePoolSchema(isResource bool) map[string]*schema.Schema {
@@ -276,6 +277,34 @@ func expandRoutingAgentOpts(raw []interface{}) *godo.KubernetesRoutingAgent {
 }
 
 func flattenRoutingAgentOpts(opts *godo.KubernetesRoutingAgent) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
+func expandP2pOciRegistryPluginOpts(raw []interface{}) *godo.KubernetesP2pOciRegistry {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesP2pOciRegistry{}
+	}
+
+	rawP2pOciRegistryPluginObj := raw[0].(map[string]interface{})
+
+	p2pOciRegistryPlugin := &godo.KubernetesP2pOciRegistry{
+		Enabled: godo.PtrTo(rawP2pOciRegistryPluginObj["enabled"].(bool)),
+	}
+
+	return p2pOciRegistryPlugin
+}
+
+func flattenP2pOciRegistryPluginOpts(opts *godo.KubernetesP2pOciRegistry) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 	if opts == nil {
 		return result

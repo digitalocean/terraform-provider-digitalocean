@@ -59,6 +59,11 @@ func DataSourceDigitalOceanVPCNATGateway() *schema.Resource {
 							Computed:    true,
 							Description: "ID of the ingress VPC",
 						},
+						"subnet_uuid": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "ID of the ingress subnet in the VPC",
+						},
 						"gateway_ip": {
 							Type:        schema.TypeString,
 							Computed:    true,
@@ -168,6 +173,7 @@ func flattenVPCs(vpcs []*godo.IngressVPC) []map[string]interface{} {
 	for _, vpc := range vpcs {
 		r := make(map[string]interface{})
 		r["vpc_uuid"] = vpc.VpcUUID
+		r["subnet_uuid"] = vpc.SubnetUUID
 		r["gateway_ip"] = vpc.GatewayIP
 		r["default_gateway"] = vpc.DefaultGateway
 		result = append(result, r)

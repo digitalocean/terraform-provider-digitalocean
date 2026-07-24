@@ -163,6 +163,11 @@ func ResourceDigitalOceanCustomModel() *schema.Resource {
 				Computed:    true,
 				Description: "Current status of the custom model.",
 			},
+			"error_message": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Error message if the custom model import failed.",
+			},
 			"architecture": {
 				Type:        schema.TypeString,
 				Computed:    true,
@@ -453,6 +458,9 @@ func waitForCustomModelReady(ctx context.Context, client *godo.Client, id string
 		case godo.CustomModelStatusReady:
 			return nil
 		case godo.CustomModelStatusFailed:
+			if model.ErrorMessage != "" {
+				return retry.NonRetryableError(fmt.Errorf("custom model (%s) entered failed state: %s", id, model.ErrorMessage))
+			}
 			return retry.NonRetryableError(fmt.Errorf("custom model (%s) entered failed state", id))
 		case godo.CustomModelStatusDeleted:
 			return retry.NonRetryableError(fmt.Errorf("custom model (%s) was deleted while waiting for ready", id))

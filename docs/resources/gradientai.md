@@ -728,6 +728,7 @@ In addition to the arguments listed above, the following attributes are exported
 
 - **id** / **uuid** - The UUID of the custom model.
 - **status** - The current status of the custom model.
+- **error_message** - Error message if the custom model import failed.
 - **architecture** - Model architecture reported by the importer.
 - **total_size_bytes** - Total size of the imported model artifacts in bytes (string-encoded int64).
 - **file_count** - Number of files that make up the imported model.

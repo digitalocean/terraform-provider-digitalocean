@@ -10,11 +10,12 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
 const (
@@ -98,6 +99,7 @@ func TestAccDigitalOceanKubernetesCluster_Basic(t *testing.T) {
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_utilization_threshold"),
 					resource.TestCheckResourceAttrSet("digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "routing_agent.0.enabled", "false"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "p2p_oci_registry_plugin.0.enabled", "false"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_plugin.0.enabled", "false"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_metrics_exporter_plugin.0.enabled", "false"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "coredns_autoscaler.0.enabled", "false"),
@@ -999,6 +1001,26 @@ func TestAccDigitalOceanKubernetesCluster_RoutingAgentEnabled(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_P2pOciRegistryPluginEnabled(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfigP2pOciRegistryPluginEnabled(testClusterVersionPrevious, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "p2p_oci_registry_plugin.0.enabled", "true"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanKubernetesCluster_CorednsAutoscalerEnabled(t *testing.T) {
 	rName := acceptance.RandomTestName()
 	var k8s godo.KubernetesCluster
@@ -1414,6 +1436,26 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   version = data.digitalocean_kubernetes_versions.test.latest_version
   ha      = false
   routing_agent {
+    enabled = true
+  }
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+`, testClusterVersion, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigP2pOciRegistryPluginEnabled(testClusterVersion string, rName string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    = "%s"
+  region  = "nyc1"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
+  p2p_oci_registry_plugin {
     enabled = true
   }
   node_pool {

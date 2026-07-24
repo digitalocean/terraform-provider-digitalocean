@@ -566,6 +566,7 @@ All fields below are exported and may be referenced:
 - **name** - Human-readable name of the model.
 - **description** - Description of the model.
 - **status** - Current status of the model (e.g. `STATUS_IMPORTING`, `STATUS_READY`, `STATUS_FAILED`).
+- **error_message** - Error message if the custom model import failed.
 - **architecture** - Model architecture reported by the importer.
 - **source_type** - Source type the model was imported from (e.g. `SOURCE_TYPE_HUGGINGFACE`, `SOURCE_TYPE_SPACES_BUCKET`).
 - **source_ref** - Reference to the source from which the model was imported. Contains `repo_id`, `commit_sha`, `access_type`, `bucket`, `region`, `prefix`.
