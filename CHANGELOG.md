@@ -2,6 +2,18 @@
 
 Changelog moved to Release Notes in [Github Releases](https://github.com/digitalocean/terraform-provider-digitalocean/releases)
 
+## Unreleased
+
+FEATURES:
+
+- MDROP-22: add `digitalocean_microdroplet` resource
+- MDROP-22: add `digitalocean_microdroplet_image` resource
+- MDROP-22: add `digitalocean_microdroplet` data source
+- MDROP-22: add `digitalocean_microdroplets` data source
+- MDROP-22: add `digitalocean_microdroplet_image` data source
+- MDROP-22: add `digitalocean_microdroplet_images` data source
+- MDROP-22: add `digitalocean_microdroplet_checkpoints` data source
+
 ## 2.48.2
 
 BUGFIXES:
