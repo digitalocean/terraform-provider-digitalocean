@@ -61,6 +61,8 @@ data "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_plugin.0.enabled", "true"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_metrics_exporter_plugin.0.enabled", "true"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "nvidia_gpu_device_plugin.0.enabled", "true"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "nvidia_gpu_dra_driver.0.enabled", "true"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "amd_gpu_dra_driver.0.enabled", "true"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "rdma_shared_device_plugin.0.enabled", "true"),
 				),
 			},
@@ -120,6 +122,14 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   }
 
   nvidia_gpu_device_plugin {
+    enabled = true
+  }
+
+  nvidia_gpu_dra_driver {
+    enabled = true
+  }
+
+  amd_gpu_dra_driver {
     enabled = true
   }
 
