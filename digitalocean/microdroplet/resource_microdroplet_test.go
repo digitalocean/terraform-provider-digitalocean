@@ -131,24 +131,33 @@ func TestAccDigitalOceanMicroDroplet_ResumeAfterPause(t *testing.T) {
 }
 
 // TestAccDigitalOceanMicroDroplet_RecreateOnAutoPauseChange verifies that
-// auto_pause is genuinely ForceNew: adding or changing the block recreates
-// the resource (new ID) rather than silently no-op'ing on the Update path.
+// auto_pause is genuinely ForceNew at every level users can edit: adding
+// the block, changing idle_timeout inside an existing block, and flipping
+// enabled true -> false all recreate the resource (new ID) rather than
+// silently no-op'ing on the Update path.
+//
 // The MicroDroplets API has no endpoint to mutate auto_pause in place, so
-// this recreate is the only way changes actually take effect.
+// recreate is the only way changes actually take effect. Without ForceNew
+// on the nested `enabled` and `idle_timeout` schemas, edits inside an
+// existing block produced RequiresNew=false plans that Update swallowed —
+// leaving a perpetual diff for users tuning or disabling auto-pause.
 func TestAccDigitalOceanMicroDroplet_RecreateOnAutoPauseChange(t *testing.T) {
 	name := acceptance.RandomTestName()
 	resourceName := "digitalocean_microdroplet.foobar"
 
 	without := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletImage)
-	with := fmt.Sprintf(testAccMicroDropletConfig_AutoPause, name, testMicroDropletImage, "10m")
+	withFive := fmt.Sprintf(testAccMicroDropletConfig_AutoPause, name, testMicroDropletImage, "5m")
+	withTen := fmt.Sprintf(testAccMicroDropletConfig_AutoPause, name, testMicroDropletImage, "10m")
+	withDisabled := fmt.Sprintf(testAccMicroDropletConfig_AutoPauseDisabled, name, testMicroDropletImage)
 
-	var firstID, secondID string
+	var firstID, secondID, thirdID, fourthID string
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		CheckDestroy:      testAccCheckMicroDropletDestroy,
 		Steps: []resource.TestStep{
+			// Baseline: no auto_pause block.
 			{
 				Config: without,
 				Check: resource.ComposeTestCheckFunc(
@@ -156,14 +165,38 @@ func TestAccDigitalOceanMicroDroplet_RecreateOnAutoPauseChange(t *testing.T) {
 					captureMicroDropletID(resourceName, &firstID),
 				),
 			},
+			// Add the block (0 -> 1). Existing coverage.
 			{
-				Config: with,
+				Config: withFive,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMicroDropletExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auto_pause.0.enabled", "true"),
+					resource.TestCheckResourceAttr(resourceName, "auto_pause.0.idle_timeout", "5m"),
+					captureMicroDropletID(resourceName, &secondID),
+					assertIDChanged(&firstID, &secondID),
+				),
+			},
+			// Edit idle_timeout inside the existing block (5m -> 10m). Guarded
+			// by ForceNew on the nested `idle_timeout` field.
+			{
+				Config: withTen,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMicroDropletExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "auto_pause.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "auto_pause.0.idle_timeout", "10m"),
-					captureMicroDropletID(resourceName, &secondID),
-					assertIDChanged(&firstID, &secondID),
+					captureMicroDropletID(resourceName, &thirdID),
+					assertIDChanged(&secondID, &thirdID),
+				),
+			},
+			// Flip enabled true -> false inside the existing block. Guarded
+			// by ForceNew on the nested `enabled` field.
+			{
+				Config: withDisabled,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMicroDropletExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "auto_pause.0.enabled", "false"),
+					captureMicroDropletID(resourceName, &fourthID),
+					assertIDChanged(&thirdID, &fourthID),
 				),
 			},
 		},
@@ -310,6 +343,23 @@ resource "digitalocean_microdroplet" "foobar" {
   auto_pause {
     enabled      = true
     idle_timeout = "%s"
+  }
+}
+`
+
+// testAccMicroDropletConfig_AutoPauseDisabled exercises the enabled=false
+// path so tests can assert that flipping the toggle inside an existing block
+// recreates the resource (guarded by ForceNew on the nested `enabled` field).
+// idle_timeout is omitted because the schema marks it Optional+Computed.
+const testAccMicroDropletConfig_AutoPauseDisabled = `
+resource "digitalocean_microdroplet" "foobar" {
+  name   = "%s"
+  region = "nyc3"
+  size   = "microdroplet-1"
+  image  = "%s"
+
+  auto_pause {
+    enabled = false
   }
 }
 `

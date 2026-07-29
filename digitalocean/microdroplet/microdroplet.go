@@ -127,13 +127,15 @@ func microDropletResourceSchema() map[string]*schema.Schema {
 					"enabled": {
 						Type:        schema.TypeBool,
 						Required:    true,
-						Description: "Whether auto-pause is enabled",
+						ForceNew:    true,
+						Description: "Whether auto-pause is enabled. Forces recreation on change (no in-place API path).",
 					},
 					"idle_timeout": {
 						Type:         schema.TypeString,
 						Optional:     true,
 						Computed:     true,
-						Description:  "Idle timeout as a Go duration string (e.g. '5m', '30s')",
+						ForceNew:     true,
+						Description:  "Idle timeout as a Go duration string (e.g. '5m', '30s'). Forces recreation on change (no in-place API path).",
 						ValidateFunc: validation.NoZeroValues,
 					},
 				},
