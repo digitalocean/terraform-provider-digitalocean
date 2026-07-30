@@ -168,6 +168,7 @@ The following arguments are supported:
   - `max_nodes` - (Optional) If auto-scaling is enabled, this represents the maximum number of nodes that the node pool can be scaled up to.
   - `tags` - (Optional) A list of tag names applied to the node pool.
   - `labels` - (Optional) A map of key/value pairs to apply to nodes in the pool. The labels are exposed in the Kubernetes API as labels in the metadata of the corresponding [Node resources](https://kubernetes.io/docs/concepts/architecture/nodes/).
+  - `gpu_partition_mode` - (Optional) The AMD GPU partition mode to use for nodes in this pool. Valid values are `AMD_PARTITION_MODE_SPX_NPS1` and `AMD_PARTITION_MODE_DPX_NPS2`. This can only be set when the pool is created.
 * `tags` - (Optional) A list of tag names to be applied to the Kubernetes cluster.
 * `maintenance_policy` - (Optional) A block representing the cluster's maintenance window. Updates will be applied within this window. If not specified, a default maintenance window will be chosen. `auto_upgrade` must be set to `true` for this to have an effect.
   - `day` - (Required) The day of the maintenance window policy. May be one of "monday" through "sunday", or "any" to indicate an arbitrary week day.
@@ -178,18 +179,18 @@ The following arguments are supported:
   - `enabled` - (Required) Boolean flag whether the routing-agent should be enabled or not.
 * `p2p_oci_registry_plugin` - (Optional) Block containing options for the Peer-to-peer OCI registry plugin component. If not specified, the p2p-oci-registry-plugin component will not be installed in the cluster.
   - `enabled` - (Required) Boolean flag whether the p2p-oci-registry-plugin should be enabled or not.
-* `amd_gpu_device_plugin` - (Optional) Block containing options for the AMD GPU device plugin component. If not specified, the component will be enabled by default for clusters with AMD GPU nodes.
+* `amd_gpu_device_plugin` - (Optional) Block containing options for the AMD GPU device plugin component. If not specified, the component will be enabled by default for clusters with AMD GPU nodes. Mutually exclusive with `amd_gpu_dra_driver`.
   - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
-`amd_gpu_device_metrics_exporter_plugin` - (Optional) Block containing options for the AMD GPU device metrics exporter component. If not specified, the component will not be installed in the cluster.
-    - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
-* `nvidia_gpu_device_plugin` - (Optional) Block containing options for the NVIDIA GPU device plugin component. If not specified, the component will be enabled by default for clusters with NVIDIA GPU nodes.
+* `amd_gpu_device_metrics_exporter_plugin` - (Optional) Block containing options for the AMD GPU device metrics exporter component. If not specified, the component will not be installed in the cluster.
   - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
-* `nvidia_gpu_dra_driver` - (Optional) Block containing options for the NVIDIA GPU DRA driver component. Mutually exclusive with `nvidia_gpu_device_plugin`. Create-only to enable.
+* `nvidia_gpu_device_plugin` - (Optional) Block containing options for the NVIDIA GPU device plugin component. If not specified, the component will be enabled by default for clusters with NVIDIA GPU nodes. Mutually exclusive with `nvidia_gpu_dra_driver`.
   - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
-* `amd_gpu_dra_driver` - (Optional) Block containing options for the AMD GPU DRA driver component. Mutually exclusive with `amd_gpu_device_plugin`. Create-only to enable.
+* `nvidia_gpu_dra_driver` - (Optional) Block containing options for the NVIDIA GPU DRA driver component. Mutually exclusive with `nvidia_gpu_device_plugin`.
   - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
-`rdma_shared_device_plugin` - (Optional) Block containing options for the RDMA Shared Device Plugin (k8s-rdma-shared-dev-plugin) component. If not specified, the component will be enabled by default for clusters with GPU nodes connected to a dedicated high-speed networking fabric.
-    - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
+* `amd_gpu_dra_driver` - (Optional) Block containing options for the AMD GPU DRA driver component. Mutually exclusive with `amd_gpu_device_plugin`.
+  - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
+* `rdma_shared_device_plugin` - (Optional) Block containing options for the RDMA Shared Device Plugin (k8s-rdma-shared-dev-plugin) component. If not specified, the component will be enabled by default for clusters with GPU nodes connected to a dedicated high-speed networking fabric.
+  - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
 * `coredns_autoscaler` - (Optional) Block containing options for the CoreDNS Autoscaler component, which scales CoreDNS replicas in proportion to the cluster's size. Default: true (for 1.36.0 and later)
   - `enabled` - (Required) Boolean flag whether the CoreDNS Autoscaler should be enabled or not.
 * `cluster_autoscaler_configuration` - (Optional) Block containing options for cluster auto-scaling. For more information.
