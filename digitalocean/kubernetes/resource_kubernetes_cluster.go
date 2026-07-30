@@ -337,10 +337,11 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			amdGpuDevicePluginField: {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{amdGpuDraDriverField},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -367,10 +368,11 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			nvidiaGpuDevicePluginField: {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{nvidiaGpuDraDriverField},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -382,10 +384,11 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			nvidiaGpuDraDriverField: {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{nvidiaGpuDevicePluginField},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -397,10 +400,11 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			amdGpuDraDriverField: {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{amdGpuDevicePluginField},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
