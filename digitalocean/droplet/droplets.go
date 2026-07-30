@@ -113,6 +113,10 @@ func dropletSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Description: "UUID of the VPC in which the Droplet is located",
 		},
+		"gpu_partition_mode": {
+			Type:        schema.TypeString,
+			Description: "the GPU partition mode the Droplet was created with",
+		},
 	}
 }
 
@@ -215,6 +219,10 @@ func flattenDigitalOceanDroplet(rawDroplet, meta interface{}, extra map[string]i
 	flattenedDroplet["volume_ids"] = flattenDigitalOceanDropletVolumeIds(droplet.VolumeIDs)
 
 	flattenedDroplet["tags"] = tag.FlattenTags(droplet.Tags)
+
+	// The API only returns gpu_partition_mode on the create response, not when
+	// reading a Droplet, so this is currently empty on the data source.
+	flattenedDroplet["gpu_partition_mode"] = droplet.GPUPartitionMode
 
 	return flattenedDroplet, nil
 }
