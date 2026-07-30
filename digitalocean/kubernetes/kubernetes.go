@@ -97,6 +97,16 @@ func nodePoolSchema(isResource bool) map[string]*schema.Schema {
 			Optional: true,
 			Elem:     nodePoolTaintSchema(),
 		},
+
+		"gpu_partition_mode": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				godo.KubernetesAMDPartitionModeSPXNPS1,
+				godo.KubernetesAMDPartitionModeDPXNPS2,
+			}, false),
+		},
 	}
 
 	if isResource {
@@ -200,18 +210,20 @@ func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
 	expandedNodePools := make([]*godo.KubernetesNodePool, 0, len(nodePools))
 	for _, rawPool := range nodePools {
 		pool := rawPool.(map[string]interface{})
+		gpuPartitionMode, _ := pool["gpu_partition_mode"].(string)
 		cr := &godo.KubernetesNodePool{
-			ID:        pool["id"].(string),
-			Name:      pool["name"].(string),
-			Size:      pool["size"].(string),
-			Count:     pool["node_count"].(int),
-			AutoScale: pool["auto_scale"].(bool),
-			MinNodes:  pool["min_nodes"].(int),
-			MaxNodes:  pool["max_nodes"].(int),
-			Tags:      tag.ExpandTags(pool["tags"].(*schema.Set).List()),
-			Labels:    expandLabels(pool["labels"].(map[string]interface{})),
-			Nodes:     expandNodes(pool["nodes"].([]interface{})),
-			Taints:    expandNodePoolTaints(pool["taint"].(*schema.Set).List()),
+			ID:               pool["id"].(string),
+			Name:             pool["name"].(string),
+			Size:             pool["size"].(string),
+			Count:            pool["node_count"].(int),
+			AutoScale:        pool["auto_scale"].(bool),
+			MinNodes:         pool["min_nodes"].(int),
+			MaxNodes:         pool["max_nodes"].(int),
+			Tags:             tag.ExpandTags(pool["tags"].(*schema.Set).List()),
+			Labels:           expandLabels(pool["labels"].(map[string]interface{})),
+			Nodes:            expandNodes(pool["nodes"].([]interface{})),
+			Taints:           expandNodePoolTaints(pool["taint"].(*schema.Set).List()),
+			GPUPartitionMode: gpuPartitionMode,
 		}
 
 		expandedNodePools = append(expandedNodePools, cr)
@@ -402,6 +414,58 @@ func flattenNvidiaGpuDevicePluginOpts(opts *godo.KubernetesNvidiaGpuDevicePlugin
 	return result
 }
 
+func expandNvidiaGpuDraDriverOpts(raw []interface{}) *godo.KubernetesNvidiaGpuDraDriver {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesNvidiaGpuDraDriver{}
+	}
+
+	nvidiaGpuDraDriverObj := raw[0].(map[string]interface{})
+
+	return &godo.KubernetesNvidiaGpuDraDriver{
+		Enabled: godo.PtrTo(nvidiaGpuDraDriverObj["enabled"].(bool)),
+	}
+}
+
+func flattenNvidiaGpuDraDriverOpts(opts *godo.KubernetesNvidiaGpuDraDriver) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
+func expandAmdGpuDraDriverOpts(raw []interface{}) *godo.KubernetesAmdGpuDraDriver {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesAmdGpuDraDriver{}
+	}
+
+	amdGpuDraDriverObj := raw[0].(map[string]interface{})
+
+	return &godo.KubernetesAmdGpuDraDriver{
+		Enabled: godo.PtrTo(amdGpuDraDriverObj["enabled"].(bool)),
+	}
+}
+
+func flattenAmdGpuDraDriverOpts(opts *godo.KubernetesAmdGpuDraDriver) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
 func expandRdmaSharedDevicePluginOpts(raw []interface{}) *godo.KubernetesRdmaSharedDevicePlugin {
 	if len(raw) == 0 || raw[0] == nil {
 		return &godo.KubernetesRdmaSharedDevicePlugin{}
@@ -487,14 +551,15 @@ func flattenControlPlaneFirewallOpts(opts *godo.KubernetesControlPlaneFirewall) 
 
 func flattenNodePool(d *schema.ResourceData, keyPrefix string, pool *godo.KubernetesNodePool, parentTags ...string) []interface{} {
 	rawPool := map[string]interface{}{
-		"id":                pool.ID,
-		"name":              pool.Name,
-		"size":              pool.Size,
-		"actual_node_count": pool.Count,
-		"auto_scale":        pool.AutoScale,
-		"min_nodes":         pool.MinNodes,
-		"max_nodes":         pool.MaxNodes,
-		"taint":             pool.Taints,
+		"id":                 pool.ID,
+		"name":               pool.Name,
+		"size":               pool.Size,
+		"actual_node_count":  pool.Count,
+		"auto_scale":         pool.AutoScale,
+		"min_nodes":          pool.MinNodes,
+		"max_nodes":          pool.MaxNodes,
+		"taint":              pool.Taints,
+		"gpu_partition_mode": pool.GPUPartitionMode,
 	}
 
 	if pool.Tags != nil {
