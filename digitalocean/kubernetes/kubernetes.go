@@ -210,6 +210,7 @@ func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
 	expandedNodePools := make([]*godo.KubernetesNodePool, 0, len(nodePools))
 	for _, rawPool := range nodePools {
 		pool := rawPool.(map[string]interface{})
+		gpuPartitionMode, _ := pool["gpu_partition_mode"].(string)
 		cr := &godo.KubernetesNodePool{
 			ID:               pool["id"].(string),
 			Name:             pool["name"].(string),
@@ -222,7 +223,7 @@ func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
 			Labels:           expandLabels(pool["labels"].(map[string]interface{})),
 			Nodes:            expandNodes(pool["nodes"].([]interface{})),
 			Taints:           expandNodePoolTaints(pool["taint"].(*schema.Set).List()),
-			GPUPartitionMode: pool["gpu_partition_mode"].(string),
+			GPUPartitionMode: gpuPartitionMode,
 		}
 
 		expandedNodePools = append(expandedNodePools, cr)

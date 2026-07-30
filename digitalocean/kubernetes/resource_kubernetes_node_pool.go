@@ -43,15 +43,16 @@ func resourceDigitalOceanKubernetesNodePoolCreate(ctx context.Context, d *schema
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	rawPool := map[string]interface{}{
-		"name":       d.Get("name"),
-		"size":       d.Get("size"),
-		"tags":       d.Get("tags"),
-		"labels":     d.Get("labels"),
-		"node_count": d.Get("node_count"),
-		"auto_scale": d.Get("auto_scale"),
-		"min_nodes":  d.Get("min_nodes"),
-		"max_nodes":  d.Get("max_nodes"),
-		"taint":      d.Get("taint"),
+		"name":               d.Get("name"),
+		"size":               d.Get("size"),
+		"tags":               d.Get("tags"),
+		"labels":             d.Get("labels"),
+		"node_count":         d.Get("node_count"),
+		"auto_scale":         d.Get("auto_scale"),
+		"min_nodes":          d.Get("min_nodes"),
+		"max_nodes":          d.Get("max_nodes"),
+		"taint":              d.Get("taint"),
+		"gpu_partition_mode": d.Get("gpu_partition_mode"),
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
@@ -209,6 +210,8 @@ func digitaloceanKubernetesNodePoolCreate(client *godo.Client, timeout time.Dura
 	tags := tag.ExpandTags(pool["tags"].(*schema.Set).List())
 	tags = append(tags, customTags...)
 
+	gpuPartitionMode, _ := pool["gpu_partition_mode"].(string)
+
 	req := &godo.KubernetesNodePoolCreateRequest{
 		Name:             pool["name"].(string),
 		Size:             pool["size"].(string),
@@ -219,7 +222,7 @@ func digitaloceanKubernetesNodePoolCreate(client *godo.Client, timeout time.Dura
 		MinNodes:         pool["min_nodes"].(int),
 		MaxNodes:         pool["max_nodes"].(int),
 		Taints:           expandNodePoolTaints(pool["taint"].(*schema.Set).List()),
-		GPUPartitionMode: pool["gpu_partition_mode"].(string),
+		GPUPartitionMode: gpuPartitionMode,
 	}
 
 	p, _, err := client.Kubernetes.CreateNodePool(context.Background(), clusterID, req)
