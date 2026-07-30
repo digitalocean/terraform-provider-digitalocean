@@ -75,8 +75,16 @@ The following arguments are supported:
 * `public_networking` (Optional) - A boolean indicating whether to enables public networking for the Droplet or not.
    By default, this is always enabled on new droplets.
    But, by explicitly setting it to false, you can create a droplet with public networking entirely disabled.
+* `gpu_partition_mode` (Optional) - The partition mode for a GPU Droplet. Omit to
+   create a full GPU (equivalent to `PARTITION_MODE_SPX_NPS1`). Valid values are
+   `PARTITION_MODE_SPX_NPS1` and `PARTITION_MODE_DPX_NPS2`. Only supported on GPU
+   sizes that advertise the mode in their `supported_partition_modes` (see the
+   `digitalocean_sizes` data source). Changing this forces a new resource to be
+   created.
 
 ~> **NOTE:** If you use `volume_ids` on a Droplet, Terraform will assume management over the full set volumes for the instance, and treat additional volumes as a drift. For this reason, `volume_ids` must not be mixed with external `digitalocean_volume_attachment` resources for a given instance.
+
+~> **NOTE:** Read-back of `gpu_partition_mode` on an existing Droplet is not yet available from the DigitalOcean API. The value is only returned when the Droplet is created, so this provider preserves the configured value rather than refreshing it.
 
 ## Attributes Reference
 
