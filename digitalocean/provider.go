@@ -19,7 +19,6 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/image"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/microdroplet"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/monitoring"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/nfs"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/partnernetworkconnect"
@@ -133,11 +132,6 @@ func Provider() *schema.Provider {
 			"digitalocean_kubernetes_cluster":                      kubernetes.DataSourceDigitalOceanKubernetesCluster(),
 			"digitalocean_kubernetes_versions":                     kubernetes.DataSourceDigitalOceanKubernetesVersions(),
 			"digitalocean_loadbalancer":                            loadbalancer.DataSourceDigitalOceanLoadbalancer(),
-			"digitalocean_microdroplet":                            microdroplet.DataSourceDigitalOceanMicroDroplet(),
-			"digitalocean_microdroplet_checkpoints":                microdroplet.DataSourceDigitalOceanMicroDropletCheckpoints(),
-			"digitalocean_microdroplet_image":                      microdroplet.DataSourceDigitalOceanMicroDropletImage(),
-			"digitalocean_microdroplet_images":                     microdroplet.DataSourceDigitalOceanMicroDropletImages(),
-			"digitalocean_microdroplets":                           microdroplet.DataSourceDigitalOceanMicroDroplets(),
 			"digitalocean_project":                                 project.DataSourceDigitalOceanProject(),
 			"digitalocean_projects":                                project.DataSourceDigitalOceanProjects(),
 			"digitalocean_record":                                  domain.DataSourceDigitalOceanRecord(),
@@ -229,8 +223,6 @@ func Provider() *schema.Provider {
 			"digitalocean_kubernetes_cluster":                         kubernetes.ResourceDigitalOceanKubernetesCluster(),
 			"digitalocean_kubernetes_node_pool":                       kubernetes.ResourceDigitalOceanKubernetesNodePool(),
 			"digitalocean_loadbalancer":                               loadbalancer.ResourceDigitalOceanLoadbalancer(),
-			"digitalocean_microdroplet":                               microdroplet.ResourceDigitalOceanMicroDroplet(),
-			"digitalocean_microdroplet_image":                         microdroplet.ResourceDigitalOceanMicroDropletImage(),
 			"digitalocean_monitor_alert":                              monitoring.ResourceDigitalOceanMonitorAlert(),
 			"digitalocean_project":                                    project.ResourceDigitalOceanProject(),
 			"digitalocean_project_resources":                          project.ResourceDigitalOceanProjectResources(),
