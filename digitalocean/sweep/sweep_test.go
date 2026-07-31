@@ -13,7 +13,6 @@ import (
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/image"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
-	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/microdroplet"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/monitoring"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/project"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/reservedip"
