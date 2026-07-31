@@ -53,7 +53,7 @@ resource "digitalocean_database_advanced_mysql_config" "foobar" {
   cluster_id = digitalocean_database_cluster.foobar.id
 
   mysql_parameters = {
-    time_zone = "%s"
-    connect_timeout   = "%s"
+    time_zone       = "%s"
+    connect_timeout = "%s"
   }
 }`
