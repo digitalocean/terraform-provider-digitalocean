@@ -20,14 +20,14 @@ func TestAccDigitalOceanDatabaseAdvancedMySQLConfig_Basic(t *testing.T) {
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseAdvancedMySQLConfigBasic, dbConfig, "UTC", "10"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("digitalocean_database_advanced_mysql_config.foobar", "mysql_parameters.default_time_zone", "UTC"),
+					resource.TestCheckResourceAttr("digitalocean_database_advanced_mysql_config.foobar", "mysql_parameters.time_zone", "UTC"),
 					resource.TestCheckResourceAttr("digitalocean_database_advanced_mysql_config.foobar", "mysql_parameters.connect_timeout", "10"),
 				),
 			},
 			{
 				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseAdvancedMySQLConfigBasic, dbConfig, "SYSTEM", "15"),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("digitalocean_database_advanced_mysql_config.foobar", "mysql_parameters.default_time_zone", "SYSTEM"),
+					resource.TestCheckResourceAttr("digitalocean_database_advanced_mysql_config.foobar", "mysql_parameters.time_zone", "SYSTEM"),
 					resource.TestCheckResourceAttr("digitalocean_database_advanced_mysql_config.foobar", "mysql_parameters.connect_timeout", "15"),
 				),
 			},
@@ -53,7 +53,7 @@ resource "digitalocean_database_advanced_mysql_config" "foobar" {
   cluster_id = digitalocean_database_cluster.foobar.id
 
   mysql_parameters = {
-    default_time_zone = "%s"
+    time_zone = "%s"
     connect_timeout   = "%s"
   }
 }`
