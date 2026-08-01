@@ -181,22 +181,27 @@ func flattenVPCs(vpcs []*godo.IngressVPC) []map[string]interface{} {
 	return result
 }
 
+// flattenEgresses returns a single egresses list entry whose public_gateways
+// set contains every gateway returned by the API.
 func flattenEgresses(egresses *godo.Egresses) []map[string]interface{} {
-	result := make([]map[string]interface{}, 0, 1)
-	if egresses != nil {
-		for _, egress := range egresses.PublicGateways {
-			gatewaySet := schema.NewSet(schema.HashResource(egressPublicGatewaysSchemaResource()), []interface{}{})
-			r := make(map[string]interface{})
-			ipv4 := egress.IPv4
-			if ipv4 == "" {
-				ipv4 = egress.IP
-			}
-			r["ipv4"] = ipv4
-			gatewaySet.Add(r)
-			result = append(result, map[string]interface{}{
-				"public_gateways": gatewaySet,
-			})
-		}
+	if egresses == nil || len(egresses.PublicGateways) == 0 {
+		return []map[string]interface{}{}
 	}
-	return result
+
+	gatewaySet := schema.NewSet(schema.HashResource(egressPublicGatewaysSchemaResource()), []interface{}{})
+	for _, egress := range egresses.PublicGateways {
+		ipv4 := egress.IPv4
+		if ipv4 == "" {
+			ipv4 = egress.IP
+		}
+		gatewaySet.Add(map[string]interface{}{
+			"ipv4": ipv4,
+		})
+	}
+
+	return []map[string]interface{}{
+		{
+			"public_gateways": gatewaySet,
+		},
+	}
 }
