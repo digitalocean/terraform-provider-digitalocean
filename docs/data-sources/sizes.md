@@ -119,3 +119,11 @@ The following attributes are exported:
 * `vcpus` - The number of CPUs allocated to Droplets of this size.
 * `disk` - The amount of disk space set aside for Droplets of this size. The value is measured in gigabytes.
 * `regions` - List of region slugs where Droplets can be created in this size.
+* `gpu_info` - Information about the GPU available to Droplets created with this size. Only present on GPU sizes. The `gpu_info` block is documented below.
+
+`gpu_info` exports the following attributes:
+
+* `count` - The number of GPUs allocated to Droplets of this size.
+* `model` - The model of the GPU.
+* `vram` - Information about the VRAM available to the GPU. The `vram` block exports `amount` (the amount of VRAM) and `unit` (the unit of measurement).
+* `supported_partition_modes` - The GPU partition modes available for this size (e.g. `PARTITION_MODE_SPX_NPS1`, `PARTITION_MODE_DPX_NPS2`). Only returned to callers with access to the feature; an empty list means partition-mode selection is unavailable.
