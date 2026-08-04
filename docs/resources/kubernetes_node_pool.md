@@ -75,6 +75,7 @@ The following arguments are supported:
 * `tags` - (Optional) A list of tag names to be applied to the Kubernetes cluster.
 * `labels` - (Optional) A map of key/value pairs to apply to nodes in the pool. The labels are exposed in the Kubernetes API as labels in the metadata of the corresponding [Node resources](https://kubernetes.io/docs/concepts/architecture/nodes/).
 * `taint` - (Optional) A list of taints applied to all nodes in the pool.
+* `gpu_partition_mode` - (Optional) The AMD GPU partition mode to use for nodes in this pool. Valid values are `AMD_PARTITION_MODE_SPX_NPS1` and `AMD_PARTITION_MODE_DPX_NPS2`. This can only be set when the pool is created.
 
 This resource supports [customized create timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
 
