@@ -221,6 +221,11 @@ func DataSourceDigitalOceanLoadbalancer() *schema.Resource {
 				Computed:    true,
 				Description: "UUID of the VPC in which the load balancer is located",
 			},
+			"subnet_uuid": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "UUID of the VPC subnet in which the load balancer is located",
+			},
 			"http_idle_timeout_seconds": {
 				Type:        schema.TypeInt,
 				Computed:    true,
@@ -431,6 +436,7 @@ func dataSourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resou
 	d.Set("enable_backend_keepalive", foundLoadbalancer.EnableBackendKeepalive)
 	d.Set("disable_lets_encrypt_dns_records", foundLoadbalancer.DisableLetsEncryptDNSRecords)
 	d.Set("vpc_uuid", foundLoadbalancer.VPCUUID)
+	d.Set("subnet_uuid", foundLoadbalancer.VPCSubnetUUID)
 	d.Set("http_idle_timeout_seconds", foundLoadbalancer.HTTPIdleTimeoutSeconds)
 	d.Set("project_id", foundLoadbalancer.ProjectID)
 	d.Set("type", foundLoadbalancer.Type)
