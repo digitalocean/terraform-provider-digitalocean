@@ -203,6 +203,7 @@ func Provider() *schema.Provider {
 			"digitalocean_database_valkey_config":                     database.ResourceDigitalOceanDatabaseValkeyConfig(),
 			"digitalocean_database_postgresql_config":                 database.ResourceDigitalOceanDatabasePostgreSQLConfig(),
 			"digitalocean_database_advanced_postgresql_config":        database.ResourceDigitalOceanDatabaseAdvancedPostgreSQLConfig(),
+			"digitalocean_database_advanced_mysql_config":             database.ResourceDigitalOceanDatabaseAdvancedMySQLConfig(),
 			"digitalocean_database_mysql_config":                      database.ResourceDigitalOceanDatabaseMySQLConfig(),
 			"digitalocean_database_mongodb_config":                    database.ResourceDigitalOceanDatabaseMongoDBConfig(),
 			"digitalocean_database_kafka_config":                      database.ResourceDigitalOceanDatabaseKafkaConfig(),

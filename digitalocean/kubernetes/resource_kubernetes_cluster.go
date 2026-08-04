@@ -32,6 +32,8 @@ const (
 	amdGpuDevicePluginField                = "amd_gpu_device_plugin"
 	amdGpuDeviceMetricsExporterPluginField = "amd_gpu_device_metrics_exporter_plugin"
 	nvidiaGpuDevicePluginField             = "nvidia_gpu_device_plugin"
+	nvidiaGpuDraDriverField                = "nvidia_gpu_dra_driver"
+	amdGpuDraDriverField                   = "amd_gpu_dra_driver"
 	rdmaSharedDevicePluginField            = "rdma_shared_device_plugin"
 	corednsAutoscalerField                 = "coredns_autoscaler"
 )
@@ -335,10 +337,11 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			amdGpuDevicePluginField: {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{amdGpuDraDriverField},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -365,10 +368,43 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			nvidiaGpuDevicePluginField: {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{nvidiaGpuDraDriverField},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			nvidiaGpuDraDriverField: {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{nvidiaGpuDevicePluginField},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			amdGpuDraDriverField: {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{amdGpuDevicePluginField},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -407,6 +443,13 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"isolated_workers": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
 			},
 		},
 
@@ -491,15 +534,16 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 	for i, pool := range pools {
 		tags := append(pool.Tags, DigitaloceanKubernetesDefaultNodePoolTag)
 		poolCreateRequests[i] = &godo.KubernetesNodePoolCreateRequest{
-			Name:      pool.Name,
-			Size:      pool.Size,
-			Tags:      tags,
-			Labels:    pool.Labels,
-			Count:     pool.Count,
-			AutoScale: pool.AutoScale,
-			MinNodes:  pool.MinNodes,
-			MaxNodes:  pool.MaxNodes,
-			Taints:    pool.Taints,
+			Name:             pool.Name,
+			Size:             pool.Size,
+			Tags:             tags,
+			Labels:           pool.Labels,
+			Count:            pool.Count,
+			AutoScale:        pool.AutoScale,
+			MinNodes:         pool.MinNodes,
+			MaxNodes:         pool.MaxNodes,
+			Taints:           pool.Taints,
+			GPUPartitionMode: pool.GPUPartitionMode,
 		}
 	}
 
@@ -572,12 +616,24 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.NvidiaGpuDevicePlugin = expandNvidiaGpuDevicePluginOpts(nvidiaGpuDevicePlugin.([]interface{}))
 	}
 
+	if nvidiaGpuDraDriver, ok := d.GetOk(nvidiaGpuDraDriverField); ok {
+		opts.NvidiaGpuDraDriver = expandNvidiaGpuDraDriverOpts(nvidiaGpuDraDriver.([]interface{}))
+	}
+
+	if amdGpuDraDriver, ok := d.GetOk(amdGpuDraDriverField); ok {
+		opts.AmdGpuDraDriver = expandAmdGpuDraDriverOpts(amdGpuDraDriver.([]interface{}))
+	}
+
 	if rdmaSharedDevicePlugin, ok := d.GetOk(rdmaSharedDevicePluginField); ok {
 		opts.RdmaSharedDevicePlugin = expandRdmaSharedDevicePluginOpts(rdmaSharedDevicePlugin.([]interface{}))
 	}
 
 	if corednsAutoscaler, ok := d.GetOk(corednsAutoscalerField); ok {
 		opts.CorednsAutoscaler = expandCorednsAutoscalerOpts(corednsAutoscaler.([]interface{}))
+	}
+
+	if isolatedWorkers, ok := d.GetOk("isolated_workers"); ok {
+		opts.IsolatedWorkers = isolatedWorkers.(bool)
 	}
 
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
@@ -668,6 +724,14 @@ func digitaloceanKubernetesClusterRead(
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", nvidiaGpuDevicePluginField, err)
 	}
 
+	if err := d.Set(nvidiaGpuDraDriverField, flattenNvidiaGpuDraDriverOpts(cluster.NvidiaGpuDraDriver)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", nvidiaGpuDraDriverField, err)
+	}
+
+	if err := d.Set(amdGpuDraDriverField, flattenAmdGpuDraDriverOpts(cluster.AmdGpuDraDriver)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", amdGpuDraDriverField, err)
+	}
+
 	if err := d.Set(rdmaSharedDevicePluginField, flattenRdmaSharedDevicePluginOpts(cluster.RdmaSharedDevicePlugin)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", rdmaSharedDevicePluginField, err)
 	}
@@ -675,6 +739,8 @@ func digitaloceanKubernetesClusterRead(
 	if err := d.Set(corednsAutoscalerField, flattenCorednsAutoscalerOpts(cluster.CorednsAutoscaler)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", corednsAutoscalerField, err)
 	}
+
+	d.Set("isolated_workers", cluster.IsolatedWorkers)
 
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
@@ -744,7 +810,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	// Figure out the changes and then call the appropriate API methods
 	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha",
 		controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField, p2pOciRegistryPluginField, amdGpuDevicePluginField,
-		amdGpuDeviceMetricsExporterPluginField, nvidiaGpuDevicePluginField, rdmaSharedDevicePluginField,
+		amdGpuDeviceMetricsExporterPluginField, nvidiaGpuDevicePluginField, nvidiaGpuDraDriverField, amdGpuDraDriverField, rdmaSharedDevicePluginField,
 		corednsAutoscalerField, "sso") {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
@@ -759,6 +825,8 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 			AmdGpuDevicePlugin:                expandAmdGpuDevicePluginOpts(d.Get(amdGpuDevicePluginField).([]interface{})),
 			AmdGpuDeviceMetricsExporterPlugin: expandAmdGpuDeviceMetricsExporterPluginOpts(d.Get(amdGpuDeviceMetricsExporterPluginField).([]interface{})),
 			NvidiaGpuDevicePlugin:             expandNvidiaGpuDevicePluginOpts(d.Get(nvidiaGpuDevicePluginField).([]interface{})),
+			NvidiaGpuDraDriver:                expandNvidiaGpuDraDriverOpts(d.Get(nvidiaGpuDraDriverField).([]interface{})),
+			AmdGpuDraDriver:                   expandAmdGpuDraDriverOpts(d.Get(amdGpuDraDriverField).([]interface{})),
 			RdmaSharedDevicePlugin:            expandRdmaSharedDevicePluginOpts(d.Get(rdmaSharedDevicePluginField).([]interface{})),
 			CorednsAutoscaler:                 expandCorednsAutoscalerOpts(d.Get(corednsAutoscalerField).([]interface{})),
 			ClusterAutoscalerConfiguration:    expandCAConfigOptsForUpdate(d.GetChange("cluster_autoscaler_configuration")),

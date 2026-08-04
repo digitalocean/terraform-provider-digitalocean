@@ -43,15 +43,16 @@ func resourceDigitalOceanKubernetesNodePoolCreate(ctx context.Context, d *schema
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	rawPool := map[string]interface{}{
-		"name":       d.Get("name"),
-		"size":       d.Get("size"),
-		"tags":       d.Get("tags"),
-		"labels":     d.Get("labels"),
-		"node_count": d.Get("node_count"),
-		"auto_scale": d.Get("auto_scale"),
-		"min_nodes":  d.Get("min_nodes"),
-		"max_nodes":  d.Get("max_nodes"),
-		"taint":      d.Get("taint"),
+		"name":               d.Get("name"),
+		"size":               d.Get("size"),
+		"tags":               d.Get("tags"),
+		"labels":             d.Get("labels"),
+		"node_count":         d.Get("node_count"),
+		"auto_scale":         d.Get("auto_scale"),
+		"min_nodes":          d.Get("min_nodes"),
+		"max_nodes":          d.Get("max_nodes"),
+		"taint":              d.Get("taint"),
+		"gpu_partition_mode": d.Get("gpu_partition_mode"),
 	}
 
 	timeout := d.Timeout(schema.TimeoutCreate)
@@ -89,6 +90,7 @@ func resourceDigitalOceanKubernetesNodePoolRead(ctx context.Context, d *schema.R
 	d.Set("max_nodes", pool.MaxNodes)
 	d.Set("nodes", flattenNodes(pool.Nodes))
 	d.Set("taint", flattenNodePoolTaints(pool.Taints))
+	d.Set("gpu_partition_mode", pool.GPUPartitionMode)
 
 	// Assign a node_count only if it's been set explicitly, since it's
 	// optional and we don't want to update with a 0 if it's not set.
@@ -208,16 +210,19 @@ func digitaloceanKubernetesNodePoolCreate(client *godo.Client, timeout time.Dura
 	tags := tag.ExpandTags(pool["tags"].(*schema.Set).List())
 	tags = append(tags, customTags...)
 
+	gpuPartitionMode, _ := pool["gpu_partition_mode"].(string)
+
 	req := &godo.KubernetesNodePoolCreateRequest{
-		Name:      pool["name"].(string),
-		Size:      pool["size"].(string),
-		Count:     pool["node_count"].(int),
-		Tags:      tags,
-		Labels:    expandLabels(pool["labels"].(map[string]interface{})),
-		AutoScale: pool["auto_scale"].(bool),
-		MinNodes:  pool["min_nodes"].(int),
-		MaxNodes:  pool["max_nodes"].(int),
-		Taints:    expandNodePoolTaints(pool["taint"].(*schema.Set).List()),
+		Name:             pool["name"].(string),
+		Size:             pool["size"].(string),
+		Count:            pool["node_count"].(int),
+		Tags:             tags,
+		Labels:           expandLabels(pool["labels"].(map[string]interface{})),
+		AutoScale:        pool["auto_scale"].(bool),
+		MinNodes:         pool["min_nodes"].(int),
+		MaxNodes:         pool["max_nodes"].(int),
+		Taints:           expandNodePoolTaints(pool["taint"].(*schema.Set).List()),
+		GPUPartitionMode: gpuPartitionMode,
 	}
 
 	p, _, err := client.Kubernetes.CreateNodePool(context.Background(), clusterID, req)
