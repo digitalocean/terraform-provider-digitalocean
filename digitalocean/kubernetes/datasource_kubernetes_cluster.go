@@ -137,6 +137,36 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			nvidiaGpuDraDriverField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			amdGpuDraDriverField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			rdmaSharedDevicePluginField: {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -315,7 +345,10 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-
+			"isolated_workers": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"urn": {
 				Type:     schema.TypeString,
 				Computed: true,
