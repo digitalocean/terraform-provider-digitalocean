@@ -33,6 +33,11 @@ func DataSourceDigitalOceanAccount() *schema.Resource {
 				Computed:    true,
 				Description: "The unique universal identifier for the current user.",
 			},
+			"team_uuid": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The unique universal identifier for the current user's team.",
+			},
 			"email_verified": {
 				Type:        schema.TypeBool,
 				Computed:    true,
@@ -65,6 +70,7 @@ func dataSourceDigitalOceanAccountRead(ctx context.Context, d *schema.ResourceDa
 	d.Set("floating_ip_limit", account.FloatingIPLimit)
 	d.Set("email", account.Email)
 	d.Set("uuid", account.UUID)
+	d.Set("team_uuid", account.Team.UUID)
 	d.Set("email_verified", account.EmailVerified)
 	d.Set("status", account.Status)
 	d.Set("status_message", account.StatusMessage)
