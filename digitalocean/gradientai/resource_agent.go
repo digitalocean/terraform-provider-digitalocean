@@ -57,10 +57,16 @@ func ResourceDigitalOceanAgent() *schema.Resource {
 				Description: "Optional Anthropic API key ID to use with Anthropic models",
 			},
 			"knowledge_base_uuid": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				Description: "Ids of the knowledge base(s) to attach to the agent",
-				Elem:        &schema.Schema{Type: schema.TypeString},
+				Type:     schema.TypeList,
+				Optional: true,
+				ForceNew: true,
+				Description: "UUIDs of knowledge base(s) to attach to the agent at create time. The knowledge " +
+					"base's managed database must be ONLINE before the agent is created; the knowledge base " +
+					"resource's wait_for_database (default true) ensures this. Changing this forces a new agent " +
+					"because the agent update API cannot modify knowledge bases. To attach or detach knowledge " +
+					"bases on an existing agent without recreating it, use " +
+					"digitalocean_gradientai_agent_knowledge_base_attachment instead.",
+				Elem: &schema.Schema{Type: schema.TypeString},
 			},
 			"workspace_uuid": {
 				Type:        schema.TypeString,
