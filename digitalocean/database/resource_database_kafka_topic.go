@@ -12,6 +12,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -310,13 +311,34 @@ func resourceDigitalOceanDatabaseKafkaTopicCreate(ctx context.Context, d *schema
 	}
 
 	log.Printf("[DEBUG] Database kafka topic create configuration: %#v", opts)
-	topic, _, err := client.Databases.CreateTopic(context.Background(), clusterID, opts)
+	_, _, err := client.Databases.CreateTopic(context.Background(), clusterID, opts)
 	if err != nil {
 		return diag.Errorf("Error creating database kafka topic: %s", err)
 	}
 
-	d.SetId(makeKafkaTopicID(clusterID, topic.Name))
-	log.Printf("[INFO] Database kafka topic name: %s", topic.Name)
+	// Topic creation is asynchronous: the API may respond before the topic
+	// is provisioned, without returning it in the response body. Derive the
+	// ID from the request rather than the response, and wait for the topic
+	// to become readable.
+	d.SetId(makeKafkaTopicID(clusterID, opts.Name))
+	log.Printf("[INFO] Database kafka topic name: %s", opts.Name)
+
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		topic, resp, err := client.Databases.GetTopic(ctx, clusterID, opts.Name)
+		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				return retry.RetryableError(err)
+			}
+			return retry.NonRetryableError(fmt.Errorf("Error retrieving kafka topic: %s", err))
+		}
+		if topic == nil {
+			return retry.RetryableError(fmt.Errorf("kafka topic %s is not available yet", opts.Name))
+		}
+		return nil
+	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return resourceDigitalOceanDatabaseKafkaTopicRead(ctx, d, meta)
 }
@@ -360,6 +382,10 @@ func resourceDigitalOceanDatabaseKafkaTopicRead(ctx context.Context, d *schema.R
 		}
 
 		return diag.Errorf("Error retrieving kafka topic: %s", err)
+	}
+
+	if topic == nil {
+		return diag.Errorf("Error retrieving kafka topic: no topic returned for %s", topicName)
 	}
 
 	d.Set("state", topic.State)
