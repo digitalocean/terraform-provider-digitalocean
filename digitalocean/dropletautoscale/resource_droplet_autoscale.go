@@ -199,38 +199,48 @@ func expandConfig(config []interface{}) *godo.DropletAutoscaleConfiguration {
 	return nil
 }
 
-func expandTemplate(template []interface{}) *godo.DropletAutoscaleResourceTemplate {
-	if len(template) > 0 {
-		poolTemplate := template[0].(map[string]interface{})
+func expandTemplate(d *schema.ResourceData) *godo.DropletAutoscaleResourceTemplate {
+	template := d.Get("droplet_template").([]interface{})
+	if len(template) == 0 {
+		return nil
+	}
 
-		var tags []string
-		if v, ok := poolTemplate["tags"]; ok {
-			for _, tag := range v.(*schema.Set).List() {
-				tags = append(tags, tag.(string))
-			}
-		}
+	poolTemplate := template[0].(map[string]interface{})
 
-		var sshKeys []string
-		if v, ok := poolTemplate["ssh_keys"]; ok {
-			for _, key := range v.(*schema.Set).List() {
-				sshKeys = append(sshKeys, key.(string))
-			}
-		}
-
-		return &godo.DropletAutoscaleResourceTemplate{
-			Size:             poolTemplate["size"].(string),
-			Region:           poolTemplate["region"].(string),
-			Image:            poolTemplate["image"].(string),
-			Tags:             tags,
-			SSHKeys:          sshKeys,
-			VpcUUID:          poolTemplate["vpc_uuid"].(string),
-			WithDropletAgent: poolTemplate["with_droplet_agent"].(bool),
-			ProjectID:        poolTemplate["project_id"].(string),
-			IPV6:             poolTemplate["ipv6"].(bool),
-			UserData:         poolTemplate["user_data"].(string),
+	var tags []string
+	if v, ok := poolTemplate["tags"]; ok {
+		for _, tag := range v.(*schema.Set).List() {
+			tags = append(tags, tag.(string))
 		}
 	}
-	return nil
+
+	var sshKeys []string
+	if v, ok := poolTemplate["ssh_keys"]; ok {
+		for _, key := range v.(*schema.Set).List() {
+			sshKeys = append(sshKeys, key.(string))
+		}
+	}
+
+	tmpl := &godo.DropletAutoscaleResourceTemplate{
+		Size:             poolTemplate["size"].(string),
+		Region:           poolTemplate["region"].(string),
+		Image:            poolTemplate["image"].(string),
+		Tags:             tags,
+		SSHKeys:          sshKeys,
+		VpcUUID:          poolTemplate["vpc_uuid"].(string),
+		WithDropletAgent: poolTemplate["with_droplet_agent"].(bool),
+		ProjectID:        poolTemplate["project_id"].(string),
+		IPV6:             poolTemplate["ipv6"].(bool),
+		UserData:         poolTemplate["user_data"].(string),
+	}
+
+	// Optional bool without Default: GetOk would treat false as unset.
+	// GetOkExists preserves an explicit false so private droplets can be created.
+	if attr, ok := d.GetOkExists("droplet_template.0.public_networking"); ok {
+		tmpl.PublicNetworking = godo.PtrTo(attr.(bool))
+	}
+
+	return tmpl
 }
 
 func resourceDigitalOceanDropletAutoscaleCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
@@ -239,7 +249,7 @@ func resourceDigitalOceanDropletAutoscaleCreate(ctx context.Context, d *schema.R
 	pool, _, err := client.DropletAutoscale.Create(context.Background(), &godo.DropletAutoscalePoolRequest{
 		Name:            d.Get("name").(string),
 		Config:          expandConfig(d.Get("config").([]interface{})),
-		DropletTemplate: expandTemplate(d.Get("droplet_template").([]interface{})),
+		DropletTemplate: expandTemplate(d),
 	})
 	if err != nil {
 		return diag.Errorf("Error creating Droplet autoscale pool: %v", err)
@@ -302,7 +312,7 @@ func resourceDigitalOceanDropletAutoscaleUpdate(ctx context.Context, d *schema.R
 	_, _, err := client.DropletAutoscale.Update(context.Background(), d.Id(), &godo.DropletAutoscalePoolRequest{
 		Name:            d.Get("name").(string),
 		Config:          expandConfig(d.Get("config").([]interface{})),
-		DropletTemplate: expandTemplate(d.Get("droplet_template").([]interface{})),
+		DropletTemplate: expandTemplate(d),
 	})
 	if err != nil {
 		return diag.Errorf("Error updating Droplet autoscale pool: %v", err)
