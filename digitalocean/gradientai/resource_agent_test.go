@@ -248,22 +248,33 @@ resource "digitalocean_gradientai_agent" "test" {
 
 func testAccCheckDigitalOceanAgentConfig_withKnowledgeBase(name string) string {
 	return fmt.Sprintf(`
+resource "digitalocean_gradientai_knowledge_base" "kb" {
+  name                 = "%[1]s-kb"
+  project_id           = "%[2]s"
+  region               = "tor1"
+  embedding_model_uuid = "%[3]s"
 
-resource "digitalocean_knowledge_base" "test" {
-  name        = "%s-kb"
-  description = "Test knowledge base"
-  project_id  = digitalocean_project.test.id
-  region      = "tor1"
+  datasources {
+    web_crawler_data_source {
+      base_url        = "https://docs.digitalocean.com/products/kubernetes/"
+      crawling_option = "SCOPED"
+      embed_media     = true
+    }
+  }
 }
 
 resource "digitalocean_gradientai_agent" "test" {
-  name                = "%s"
-  instruction         = "You are a helpful AI assistant with knowledge base access."
-  model_uuid          = "%s"
-  project_id          = "%s"
-  region              = "tor1"
-  knowledge_base_uuid = [digitalocean_knowledge_base.test.id]
-}`, name, name, defaultModelUUID, defaultProjecID)
+  name        = "%[1]s"
+  instruction = "You are a helpful AI assistant with knowledge base access."
+  model_uuid  = "%[4]s"
+  project_id  = "%[2]s"
+  region      = "tor1"
+
+  # Inline attach at create. The KB resource's wait_for_database (default true) ensures the
+  # managed database is ONLINE before the agent is created so the attach succeeds.
+  knowledge_base_uuid = [digitalocean_gradientai_knowledge_base.kb.id]
+}
+`, name, defaultProjecID, defaultEmbeddingModelUUID, defaultModelUUID)
 }
 
 func testAccCheckDigitalOceanAgentConfig_withDeployment(name, visibility string) string {
