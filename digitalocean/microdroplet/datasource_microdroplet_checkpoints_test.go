@@ -20,7 +20,7 @@ func TestAccDataSourceDigitalOceanMicroDropletCheckpoints_Basic(t *testing.T) {
 	name := acceptance.RandomTestName()
 
 	pausedConfig := fmt.Sprintf(testAccMicroDropletConfig_State,
-		name, testMicroDropletImage, string(godo.MicroDropletStatePaused))
+		name, string(godo.MicroDropletStatePaused), testMicroDropletOCIRef)
 
 	dsConfig := `
 data "digitalocean_microdroplet_checkpoints" "by_id" {

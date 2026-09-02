@@ -10,7 +10,7 @@ import (
 
 func TestAccDataSourceDigitalOceanMicroDroplet_ByID(t *testing.T) {
 	name := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletImage)
+	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
 	dataSourceConfig := `
 data "digitalocean_microdroplet" "byid" {
   id = digitalocean_microdroplet.foobar.id
@@ -26,7 +26,7 @@ data "digitalocean_microdroplet" "byid" {
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr("data.digitalocean_microdroplet.byid", "name", name),
 					resource.TestCheckResourceAttrSet("data.digitalocean_microdroplet.byid", "urn"),
-					resource.TestCheckResourceAttrSet("data.digitalocean_microdroplet.byid", "endpoint"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_microdroplet.byid", "urls.0.hostname"),
 				),
 			},
 		},
@@ -35,7 +35,7 @@ data "digitalocean_microdroplet" "byid" {
 
 func TestAccDataSourceDigitalOceanMicroDroplet_ByName(t *testing.T) {
 	name := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletImage)
+	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
 	dataSourceConfig := `
 data "digitalocean_microdroplet" "byname" {
   name = digitalocean_microdroplet.foobar.name

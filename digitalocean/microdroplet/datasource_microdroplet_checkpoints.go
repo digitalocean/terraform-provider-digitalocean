@@ -12,9 +12,8 @@ import (
 )
 
 // DataSourceDigitalOceanMicroDropletCheckpoints returns a plural data source
-// over the checkpoints belonging to a given MicroDroplet. Checkpoints are
-// created automatically by DigitalOcean when a MicroDroplet pauses; they are
-// read-only from the customer API, so no matching resource is provided.
+// over the sibling checkpoints collection. Optionally filter by the
+// MicroDroplet the checkpoints were captured from.
 func DataSourceDigitalOceanMicroDropletCheckpoints() *schema.Resource {
 	dataListConfig := &datalist.ResourceConfig{
 		RecordSchema:        microDropletCheckpointSchema(),
@@ -24,8 +23,8 @@ func DataSourceDigitalOceanMicroDropletCheckpoints() *schema.Resource {
 		ExtraQuerySchema: map[string]*schema.Schema{
 			"microdroplet_id": {
 				Type:         schema.TypeString,
-				Required:     true,
-				Description:  "ID of the MicroDroplet whose checkpoints should be listed",
+				Optional:     true,
+				Description:  "Filter checkpoints captured from this MicroDroplet UUID. Omit to list all checkpoints for the team.",
 				ValidateFunc: validation.NoZeroValues,
 			},
 		},
@@ -43,12 +42,22 @@ func microDropletCheckpointSchema() map[string]*schema.Schema {
 		"microdroplet_id": {
 			Type:        schema.TypeString,
 			Computed:    true,
-			Description: "ID of the parent MicroDroplet",
+			Description: "ID of the MicroDroplet the checkpoint was captured from",
+		},
+		"microdroplet_name": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Name of the MicroDroplet the checkpoint was captured from",
 		},
 		"name": {
 			Type:        schema.TypeString,
 			Computed:    true,
 			Description: "Checkpoint name",
+		},
+		"region": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Region slug where the checkpoint is stored",
 		},
 		"status": {
 			Type:        schema.TypeString,
@@ -79,34 +88,33 @@ func flattenMicroDropletCheckpoint(rawRecord, _ interface{}, _ map[string]interf
 		return nil, fmt.Errorf("unexpected record type %T", rawRecord)
 	}
 	return map[string]interface{}{
-		"id":              c.ID,
-		"microdroplet_id": c.MicroDropletID,
-		"name":            c.Name,
-		"status":          string(c.Status),
-		"memory_bytes":    int(c.MemoryBytes),
-		"disk_bytes":      int(c.DiskBytes),
-		"created_at":      c.Created,
+		"id":                c.ID,
+		"microdroplet_id":   c.MicroDropletID,
+		"microdroplet_name": c.MicroDropletName,
+		"name":              c.Name,
+		"region":            c.Region,
+		"status":            string(c.Status),
+		"memory_bytes":      int(c.MemoryBytes),
+		"disk_bytes":        int(c.DiskBytes),
+		"created_at":        c.Created,
 	}, nil
 }
 
-// getDigitalOceanMicroDropletCheckpoints paginates the ListCheckpoints godo
-// endpoint for the MicroDroplet identified by the required `microdroplet_id`
-// query attribute.
 func getDigitalOceanMicroDropletCheckpoints(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	microdropletID, _ := extra["microdroplet_id"].(string)
-	if microdropletID == "" {
-		return nil, fmt.Errorf("microdroplet_id is required")
-	}
 
-	opts := &godo.ListOptions{Page: 1, PerPage: 200}
+	opts := &godo.ListMicroDropletCheckpointsOptions{
+		ListOptions:    godo.ListOptions{Page: 1, PerPage: 200},
+		MicroDropletID: microdropletID,
+	}
 
 	var records []interface{}
 	for {
-		batch, resp, err := client.MicroDroplets.ListCheckpoints(context.Background(), microdropletID, opts)
+		batch, resp, err := client.MicroDroplets.ListCheckpoints(context.Background(), opts)
 		if err != nil {
-			return nil, fmt.Errorf("error retrieving checkpoints for MicroDroplet %s: %w", microdropletID, err)
+			return nil, fmt.Errorf("error retrieving MicroDroplet checkpoints: %w", err)
 		}
 		for _, c := range batch {
 			records = append(records, c)
