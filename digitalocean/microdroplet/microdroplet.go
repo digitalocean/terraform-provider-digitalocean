@@ -59,24 +59,69 @@ func microDropletResourceSchema() map[string]*schema.Schema {
 		},
 		"region": {
 			Type:         schema.TypeString,
-			Required:     true,
+			Optional:     true,
+			Computed:     true,
 			ForceNew:     true,
-			Description:  "DigitalOcean region slug where the MicroDroplet is deployed",
+			Description:  "DigitalOcean region slug. Required when creating from oci_ref; optional when restoring from a checkpoint (inherited).",
 			ValidateFunc: validation.NoZeroValues,
 		},
 		"size": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			Description:  "MicroDroplet size slug",
-			ValidateFunc: validation.NoZeroValues,
+			Type:        schema.TypeList,
+			Optional:    true,
+			Computed:    true,
+			ForceNew:    true,
+			MaxItems:    1,
+			Description: "Compute size. Required when creating from oci_ref; optional when restoring from a checkpoint (inherited).",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"cpu": {
+						Type:         schema.TypeInt,
+						Required:     true,
+						ForceNew:     true,
+						Description:  "Number of vCPUs",
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+					"memory": {
+						Type:         schema.TypeInt,
+						Required:     true,
+						ForceNew:     true,
+						Description:  "Memory in MiB",
+						ValidateFunc: validation.IntAtLeast(1),
+					},
+					"disk": {
+						Type:        schema.TypeInt,
+						Computed:    true,
+						Description: "Attached disk in GB (provisioned with the size)",
+					},
+				},
+			},
 		},
-		"image": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			Description:  "MicroDroplet image UUID or URN",
-			ValidateFunc: validation.NoZeroValues,
+		"source": {
+			Type:        schema.TypeList,
+			Required:    true,
+			ForceNew:    true,
+			MaxItems:    1,
+			Description: "Workload source. Exactly one of oci_ref or checkpoint_id must be set.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"oci_ref": {
+						Type:          schema.TypeString,
+						Optional:      true,
+						ForceNew:      true,
+						ConflictsWith: []string{"source.0.checkpoint_id"},
+						Description:   "OCI reference for the workload container",
+						ValidateFunc:  validation.NoZeroValues,
+					},
+					"checkpoint_id": {
+						Type:          schema.TypeString,
+						Optional:      true,
+						ForceNew:      true,
+						ConflictsWith: []string{"source.0.oci_ref"},
+						Description:   "Checkpoint UUID to restore",
+						ValidateFunc:  validation.NoZeroValues,
+					},
+				},
+			},
 		},
 		"networking": {
 			Type:         schema.TypeString,
@@ -107,6 +152,17 @@ func microDropletResourceSchema() map[string]*schema.Schema {
 			ForceNew:     true,
 			Description:  "HTTP protocol: 'http' or 'http2'",
 			ValidateFunc: validation.StringInSlice(httpProtocolValues, false),
+		},
+		"ports": {
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Computed:    true,
+			ForceNew:    true,
+			Description: "Guest ports open for ingress. Defaults to just http_port when omitted.",
+			Elem: &schema.Schema{
+				Type:         schema.TypeInt,
+				ValidateFunc: validation.IntBetween(1, 65535),
+			},
 		},
 		"environment": {
 			Type:        schema.TypeMap,
@@ -162,10 +218,39 @@ func microDropletResourceSchema() map[string]*schema.Schema {
 			Computed:    true,
 			Description: "Observed lifecycle state of the MicroDroplet",
 		},
-		"endpoint": {
+		"failure_reason": {
 			Type:        schema.TypeString,
 			Computed:    true,
-			Description: "Public endpoint URL for the MicroDroplet",
+			Description: "Human-readable explanation when current_state is failed",
+		},
+		"urls": {
+			Type:        schema.TypeList,
+			Computed:    true,
+			Description: "Ingress URLs for the MicroDroplet",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"hostname": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "Hostname (no scheme)",
+					},
+					"port": {
+						Type:        schema.TypeInt,
+						Computed:    true,
+						Description: "Guest port this URL forwards to",
+					},
+					"default": {
+						Type:        schema.TypeBool,
+						Computed:    true,
+						Description: "Whether this is the system default URL",
+					},
+					"status": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "URL lifecycle status (PENDING or ACTIVE)",
+					},
+				},
+			},
 		},
 		"created_at": {
 			Type:        schema.TypeString,
@@ -193,66 +278,7 @@ func microDropletDataSourceSchema() map[string]*schema.Schema {
 		clone.Default = nil
 		clone.ValidateFunc = nil
 		clone.DiffSuppressFunc = nil
-		clone.Computed = true
-		// MaxItems/MinItems are only meaningful for configurable attributes;
-		// the plugin SDK rejects them on Computed-only fields.
-		clone.MaxItems = 0
-		clone.MinItems = 0
-		base[k] = &clone
-	}
-	// godo.MicroDroplet has no Tags field, so tags cannot round-trip through
-	// the datasource. Dropping the attribute is more honest than exposing an
-	// always-empty set that would silently break filter { key = "tags" }.
-	delete(base, "tags")
-	return base
-}
-
-// microDropletImageResourceSchema returns the resource-side schema used by
-// ResourceDigitalOceanMicroDropletImage.
-func microDropletImageResourceSchema() map[string]*schema.Schema {
-	return map[string]*schema.Schema{
-		"name": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			Description:  "Name of the MicroDroplet image",
-			ValidateFunc: validation.NoZeroValues,
-		},
-		"source": {
-			Type:         schema.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			Description:  "Source OCI reference for the MicroDroplet image",
-			ValidateFunc: validation.NoZeroValues,
-		},
-		"status": {
-			Type:        schema.TypeString,
-			Computed:    true,
-			Description: "Lifecycle status of the MicroDroplet image",
-		},
-		"created_at": {
-			Type:        schema.TypeString,
-			Computed:    true,
-			Description: "The creation timestamp for the MicroDroplet image",
-		},
-		"urn": {
-			Type:        schema.TypeString,
-			Computed:    true,
-			Description: "The uniform resource name (URN) for the MicroDroplet image",
-		},
-	}
-}
-
-func microDropletImageDataSourceSchema() map[string]*schema.Schema {
-	base := microDropletImageResourceSchema()
-	for k, v := range base {
-		clone := *v
-		clone.Required = false
-		clone.Optional = false
-		clone.ForceNew = false
-		clone.Default = nil
-		clone.ValidateFunc = nil
-		clone.DiffSuppressFunc = nil
+		clone.ConflictsWith = nil
 		clone.Computed = true
 		clone.MaxItems = 0
 		clone.MinItems = 0
@@ -346,14 +372,105 @@ func expandEnvironment(raw interface{}) map[string]string {
 	return out
 }
 
+func expandSource(raw interface{}) (*godo.MicroDropletSource, error) {
+	list, ok := raw.([]interface{})
+	if !ok || len(list) == 0 || list[0] == nil {
+		return nil, fmt.Errorf("source is required")
+	}
+	entry, ok := list[0].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid source block")
+	}
+	ociRef, _ := entry["oci_ref"].(string)
+	checkpointID, _ := entry["checkpoint_id"].(string)
+	if (ociRef == "") == (checkpointID == "") {
+		return nil, fmt.Errorf("source must set exactly one of oci_ref or checkpoint_id")
+	}
+	src := &godo.MicroDropletSource{}
+	if ociRef != "" {
+		src.OCIRef = ociRef
+	} else {
+		src.CheckpointID = checkpointID
+	}
+	return src, nil
+}
+
+func flattenSource(src *godo.MicroDropletSource) []interface{} {
+	if src == nil {
+		return nil
+	}
+	entry := map[string]interface{}{}
+	if src.OCIRef != "" {
+		entry["oci_ref"] = src.OCIRef
+	}
+	if src.CheckpointID != "" {
+		entry["checkpoint_id"] = src.CheckpointID
+	}
+	return []interface{}{entry}
+}
+
+func expandSizeRequest(raw interface{}) *godo.MicroDropletSizeRequest {
+	list, ok := raw.([]interface{})
+	if !ok || len(list) == 0 || list[0] == nil {
+		return nil
+	}
+	entry, ok := list[0].(map[string]interface{})
+	if !ok {
+		return nil
+	}
+	return &godo.MicroDropletSizeRequest{
+		CPU:    uint32(entry["cpu"].(int)),
+		Memory: uint32(entry["memory"].(int)),
+	}
+}
+
+func flattenSize(size *godo.MicroDropletSize) []interface{} {
+	if size == nil {
+		return nil
+	}
+	return []interface{}{map[string]interface{}{
+		"cpu":    int(size.CPU),
+		"memory": int(size.Memory),
+		"disk":   int(size.Disk),
+	}}
+}
+
+func expandPorts(raw interface{}) []uint32 {
+	set, ok := raw.(*schema.Set)
+	if !ok || set == nil || set.Len() == 0 {
+		return nil
+	}
+	ports := make([]uint32, 0, set.Len())
+	for _, v := range set.List() {
+		ports = append(ports, uint32(v.(int)))
+	}
+	return ports
+}
+
+func flattenPorts(ports []uint32) *schema.Set {
+	vals := make([]interface{}, len(ports))
+	for i, p := range ports {
+		vals[i] = int(p)
+	}
+	return schema.NewSet(schema.HashInt, vals)
+}
+
+func flattenURLs(urls []godo.MicroDropletURL) []interface{} {
+	out := make([]interface{}, len(urls))
+	for i, u := range urls {
+		out[i] = map[string]interface{}{
+			"hostname": u.Hostname,
+			"port":     u.Port,
+			"default":  u.Default,
+			"status":   string(u.Status),
+		}
+	}
+	return out
+}
+
 // setMicroDropletAttributes writes the state observed on a godo.MicroDroplet
 // into the ResourceData without touching the settable `state` attribute
 // (which reflects user intent, not observed state).
-//
-// `tags` are deliberately not written back: godo.MicroDroplet has no Tags
-// field, so we cannot verify what the platform actually stored. The resource
-// keeps whatever tags the user configured at create time in state; changing
-// them recreates the resource (see tagsSchemaForceNew).
 func setMicroDropletAttributes(d *schema.ResourceData, m *godo.MicroDroplet) error {
 	if m == nil {
 		return fmt.Errorf("cannot set attributes from nil MicroDroplet")
@@ -361,19 +478,32 @@ func setMicroDropletAttributes(d *schema.ResourceData, m *godo.MicroDroplet) err
 	d.SetId(m.ID)
 	d.Set("name", m.Name)
 	d.Set("region", m.Region)
-	d.Set("size", m.Size)
-	d.Set("image", m.Image)
 	d.Set("networking", string(m.Networking))
-	d.Set("endpoint", m.Endpoint)
 	d.Set("current_state", string(m.State))
+	d.Set("failure_reason", m.FailureReason)
 	d.Set("created_at", m.Created)
 	d.Set("urn", m.URN())
 
+	if err := d.Set("size", flattenSize(m.Size)); err != nil {
+		return fmt.Errorf("error setting size: %w", err)
+	}
+	if err := d.Set("source", flattenSource(m.Source)); err != nil {
+		return fmt.Errorf("error setting source: %w", err)
+	}
+	if err := d.Set("urls", flattenURLs(m.URLs)); err != nil {
+		return fmt.Errorf("error setting urls: %w", err)
+	}
+	if err := d.Set("ports", flattenPorts(m.Ports)); err != nil {
+		return fmt.Errorf("error setting ports: %w", err)
+	}
 	if err := d.Set("auto_pause", flattenAutoPause(m.AutoPause)); err != nil {
 		return fmt.Errorf("error setting auto_pause: %w", err)
 	}
 	if m.AutoResume != nil {
 		d.Set("auto_resume", *m.AutoResume)
+	}
+	if err := d.Set("tags", tag.FlattenTags(m.Tags)); err != nil {
+		return fmt.Errorf("error setting tags: %w", err)
 	}
 	return nil
 }
@@ -386,18 +516,21 @@ func flattenMicroDroplet(rawRecord, _ interface{}, _ map[string]interface{}) (ma
 		return nil, fmt.Errorf("unexpected record type %T", rawRecord)
 	}
 	out := map[string]interface{}{
-		"id":            m.ID,
-		"name":          m.Name,
-		"region":        m.Region,
-		"size":          m.Size,
-		"image":         m.Image,
-		"networking":    string(m.Networking),
-		"endpoint":      m.Endpoint,
-		"current_state": string(m.State),
-		"state":         string(m.State),
-		"created_at":    m.Created,
-		"urn":           m.URN(),
-		"auto_pause":    flattenAutoPause(m.AutoPause),
+		"id":             m.ID,
+		"name":           m.Name,
+		"region":         m.Region,
+		"size":           flattenSize(m.Size),
+		"source":         flattenSource(m.Source),
+		"networking":     string(m.Networking),
+		"urls":           flattenURLs(m.URLs),
+		"ports":          flattenPorts(m.Ports),
+		"failure_reason": m.FailureReason,
+		"current_state":  string(m.State),
+		"state":          string(m.State),
+		"created_at":     m.Created,
+		"urn":            m.URN(),
+		"auto_pause":     flattenAutoPause(m.AutoPause),
+		"tags":           tag.FlattenTags(m.Tags),
 	}
 	if m.AutoResume != nil {
 		out["auto_resume"] = *m.AutoResume
@@ -405,23 +538,6 @@ func flattenMicroDroplet(rawRecord, _ interface{}, _ map[string]interface{}) (ma
 		out["auto_resume"] = false
 	}
 	return out, nil
-}
-
-// flattenMicroDropletImage flattens a godo.MicroDropletImage for the datalist
-// datasource.
-func flattenMicroDropletImage(rawRecord, _ interface{}, _ map[string]interface{}) (map[string]interface{}, error) {
-	i, ok := rawRecord.(godo.MicroDropletImage)
-	if !ok {
-		return nil, fmt.Errorf("unexpected record type %T", rawRecord)
-	}
-	return map[string]interface{}{
-		"id":         i.ID,
-		"name":       i.Name,
-		"source":     i.Source,
-		"status":     string(i.Status),
-		"created_at": i.Created,
-		"urn":        i.URN(),
-	}, nil
 }
 
 // getDigitalOceanMicroDroplets is the GetRecords callback for the plural
@@ -462,33 +578,6 @@ func getDigitalOceanMicroDroplets(meta interface{}, extra map[string]interface{}
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
 			return nil, fmt.Errorf("error paging MicroDroplets: %w", err)
-		}
-		opts.Page = page + 1
-	}
-	return records, nil
-}
-
-// getDigitalOceanMicroDropletImages is the GetRecords callback for the plural
-// MicroDroplet image datasource.
-func getDigitalOceanMicroDropletImages(meta interface{}, _ map[string]interface{}) ([]interface{}, error) {
-	client := meta.(*config.CombinedConfig).GodoClient()
-
-	opts := &godo.ListOptions{Page: 1, PerPage: 200}
-	var records []interface{}
-	for {
-		batch, resp, err := client.MicroDropletImages.List(context.Background(), opts)
-		if err != nil {
-			return nil, fmt.Errorf("error retrieving MicroDroplet images: %w", err)
-		}
-		for _, i := range batch {
-			records = append(records, i)
-		}
-		if resp == nil || resp.Links == nil || resp.Links.IsLastPage() {
-			break
-		}
-		page, err := resp.Links.CurrentPage()
-		if err != nil {
-			return nil, fmt.Errorf("error paging MicroDroplet images: %w", err)
 		}
 		opts.Page = page + 1
 	}

@@ -38,11 +38,29 @@ func ResourceDigitalOceanMicroDroplet() *schema.Resource {
 func resourceDigitalOceanMicroDropletCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
+	src, err := expandSource(d.Get("source"))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	req := &godo.MicroDropletCreateRequest{
 		Name:   d.Get("name").(string),
-		Region: d.Get("region").(string),
-		Size:   d.Get("size").(string),
-		Image:  d.Get("image").(string),
+		Source: src,
+	}
+
+	if v, ok := d.GetOk("region"); ok {
+		req.Region = v.(string)
+	}
+	if v, ok := d.GetOk("size"); ok {
+		req.Size = expandSizeRequest(v)
+	}
+	if src.OCIRef != "" {
+		if req.Region == "" {
+			return diag.Errorf("region is required when source.oci_ref is set")
+		}
+		if req.Size == nil {
+			return diag.Errorf("size is required when source.oci_ref is set")
+		}
 	}
 
 	if v, ok := d.GetOk("networking"); ok {
@@ -56,6 +74,9 @@ func resourceDigitalOceanMicroDropletCreate(ctx context.Context, d *schema.Resou
 	}
 	if v, ok := d.GetOk("http_protocol"); ok {
 		req.HTTPProtocol = godo.MicroDropletHTTPProtocol(v.(string))
+	}
+	if v, ok := d.GetOk("ports"); ok {
+		req.Ports = expandPorts(v)
 	}
 	if v, ok := d.GetOk("environment"); ok {
 		req.Environment = expandEnvironment(v)
@@ -226,7 +247,11 @@ func microDropletStateRefreshFunc(ctx context.Context, client *godo.Client, id s
 			return nil, "", err
 		}
 		if m.State == godo.MicroDropletStateFailed {
-			return m, string(m.State), fmt.Errorf("MicroDroplet %s entered failed state", id)
+			reason := m.FailureReason
+			if reason == "" {
+				reason = "unknown"
+			}
+			return m, string(m.State), fmt.Errorf("MicroDroplet %s entered failed state: %s", id, reason)
 		}
 		return m, string(m.State), nil
 	}

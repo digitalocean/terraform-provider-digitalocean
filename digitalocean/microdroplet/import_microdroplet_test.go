@@ -12,7 +12,7 @@ import (
 func TestAccDigitalOceanMicroDroplet_importBasic(t *testing.T) {
 	resourceName := "digitalocean_microdroplet.foobar"
 	name := acceptance.RandomTestName()
-	config := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletImage)
+	config := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -34,26 +34,6 @@ func TestAccDigitalOceanMicroDroplet_importBasic(t *testing.T) {
 				ImportStateVerify: false,
 				ImportStateId:     "not-a-real-uuid",
 				ExpectError:       regexp.MustCompile(`(not found|Cannot import non-existent remote object)`),
-			},
-		},
-	})
-}
-
-func TestAccDigitalOceanMicroDropletImage_importBasic(t *testing.T) {
-	resourceName := "digitalocean_microdroplet_image.foobar"
-	name := acceptance.RandomTestName()
-	config := fmt.Sprintf(testAccMicroDropletImageConfig_Basic, name, testMicroDropletImage)
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
-		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckMicroDropletImageDestroy,
-		Steps: []resource.TestStep{
-			{Config: config},
-			{
-				ResourceName:      resourceName,
-				ImportState:       true,
-				ImportStateVerify: true,
 			},
 		},
 	})

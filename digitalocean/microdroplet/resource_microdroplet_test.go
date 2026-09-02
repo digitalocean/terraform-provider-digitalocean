@@ -15,7 +15,7 @@ import (
 func TestAccDigitalOceanMicroDroplet_Basic(t *testing.T) {
 	name := acceptance.RandomTestName()
 	resourceName := "digitalocean_microdroplet.foobar"
-	config := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletImage)
+	config := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -28,7 +28,9 @@ func TestAccDigitalOceanMicroDroplet_Basic(t *testing.T) {
 					testAccCheckMicroDropletExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "name", name),
 					resource.TestCheckResourceAttr(resourceName, "region", testMicroDropletRegion),
-					resource.TestCheckResourceAttr(resourceName, "size", testMicroDropletSize),
+					resource.TestCheckResourceAttr(resourceName, "size.0.cpu", "2"),
+					resource.TestCheckResourceAttr(resourceName, "size.0.memory", "4096"),
+					resource.TestCheckResourceAttr(resourceName, "source.0.oci_ref", testMicroDropletOCIRef),
 					resource.TestCheckResourceAttr(resourceName, "state", string(godo.MicroDropletStateRunning)),
 					resource.TestCheckResourceAttr(resourceName, "current_state", string(godo.MicroDropletStateRunning)),
 					resource.TestCheckResourceAttrSet(resourceName, "created_at"),
@@ -42,7 +44,7 @@ func TestAccDigitalOceanMicroDroplet_Basic(t *testing.T) {
 func TestAccDigitalOceanMicroDroplet_Full(t *testing.T) {
 	name := acceptance.RandomTestName()
 	resourceName := "digitalocean_microdroplet.foobar"
-	config := fmt.Sprintf(testAccMicroDropletConfig_Full, name, testMicroDropletImage)
+	config := fmt.Sprintf(testAccMicroDropletConfig_Full, name, testMicroDropletOCIRef)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -62,6 +64,7 @@ func TestAccDigitalOceanMicroDroplet_Full(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "auto_resume", "true"),
 					resource.TestCheckResourceAttr(resourceName, "environment.FOO", "bar"),
 					resource.TestCheckResourceAttr(resourceName, "tags.#", "1"),
+					resource.TestCheckResourceAttr(resourceName, "ports.#", "2"),
 				),
 			},
 		},
@@ -72,8 +75,8 @@ func TestAccDigitalOceanMicroDroplet_Pause(t *testing.T) {
 	name := acceptance.RandomTestName()
 	resourceName := "digitalocean_microdroplet.foobar"
 
-	running := fmt.Sprintf(testAccMicroDropletConfig_State, name, testMicroDropletImage, string(godo.MicroDropletStateRunning))
-	paused := fmt.Sprintf(testAccMicroDropletConfig_State, name, testMicroDropletImage, string(godo.MicroDropletStatePaused))
+	running := fmt.Sprintf(testAccMicroDropletConfig_State, name, string(godo.MicroDropletStateRunning), testMicroDropletOCIRef)
+	paused := fmt.Sprintf(testAccMicroDropletConfig_State, name, string(godo.MicroDropletStatePaused), testMicroDropletOCIRef)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -104,8 +107,8 @@ func TestAccDigitalOceanMicroDroplet_ResumeAfterPause(t *testing.T) {
 	name := acceptance.RandomTestName()
 	resourceName := "digitalocean_microdroplet.foobar"
 
-	paused := fmt.Sprintf(testAccMicroDropletConfig_State, name, testMicroDropletImage, string(godo.MicroDropletStatePaused))
-	running := fmt.Sprintf(testAccMicroDropletConfig_State, name, testMicroDropletImage, string(godo.MicroDropletStateRunning))
+	paused := fmt.Sprintf(testAccMicroDropletConfig_State, name, string(godo.MicroDropletStatePaused), testMicroDropletOCIRef)
+	running := fmt.Sprintf(testAccMicroDropletConfig_State, name, string(godo.MicroDropletStateRunning), testMicroDropletOCIRef)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -130,25 +133,14 @@ func TestAccDigitalOceanMicroDroplet_ResumeAfterPause(t *testing.T) {
 	})
 }
 
-// TestAccDigitalOceanMicroDroplet_RecreateOnAutoPauseChange verifies that
-// auto_pause is genuinely ForceNew at every level users can edit: adding
-// the block, changing idle_timeout inside an existing block, and flipping
-// enabled true -> false all recreate the resource (new ID) rather than
-// silently no-op'ing on the Update path.
-//
-// The MicroDroplets API has no endpoint to mutate auto_pause in place, so
-// recreate is the only way changes actually take effect. Without ForceNew
-// on the nested `enabled` and `idle_timeout` schemas, edits inside an
-// existing block produced RequiresNew=false plans that Update swallowed —
-// leaving a perpetual diff for users tuning or disabling auto-pause.
 func TestAccDigitalOceanMicroDroplet_RecreateOnAutoPauseChange(t *testing.T) {
 	name := acceptance.RandomTestName()
 	resourceName := "digitalocean_microdroplet.foobar"
 
-	without := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletImage)
-	withFive := fmt.Sprintf(testAccMicroDropletConfig_AutoPause, name, testMicroDropletImage, "5m")
-	withTen := fmt.Sprintf(testAccMicroDropletConfig_AutoPause, name, testMicroDropletImage, "10m")
-	withDisabled := fmt.Sprintf(testAccMicroDropletConfig_AutoPauseDisabled, name, testMicroDropletImage)
+	without := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
+	withFive := fmt.Sprintf(testAccMicroDropletConfig_AutoPause, name, testMicroDropletOCIRef, "5m")
+	withTen := fmt.Sprintf(testAccMicroDropletConfig_AutoPause, name, testMicroDropletOCIRef, "10m")
+	withDisabled := fmt.Sprintf(testAccMicroDropletConfig_AutoPauseDisabled, name, testMicroDropletOCIRef)
 
 	var firstID, secondID, thirdID, fourthID string
 
@@ -157,7 +149,6 @@ func TestAccDigitalOceanMicroDroplet_RecreateOnAutoPauseChange(t *testing.T) {
 		ProviderFactories: acceptance.TestAccProviderFactories,
 		CheckDestroy:      testAccCheckMicroDropletDestroy,
 		Steps: []resource.TestStep{
-			// Baseline: no auto_pause block.
 			{
 				Config: without,
 				Check: resource.ComposeTestCheckFunc(
@@ -165,7 +156,6 @@ func TestAccDigitalOceanMicroDroplet_RecreateOnAutoPauseChange(t *testing.T) {
 					captureMicroDropletID(resourceName, &firstID),
 				),
 			},
-			// Add the block (0 -> 1). Existing coverage.
 			{
 				Config: withFive,
 				Check: resource.ComposeTestCheckFunc(
@@ -176,8 +166,6 @@ func TestAccDigitalOceanMicroDroplet_RecreateOnAutoPauseChange(t *testing.T) {
 					assertIDChanged(&firstID, &secondID),
 				),
 			},
-			// Edit idle_timeout inside the existing block (5m -> 10m). Guarded
-			// by ForceNew on the nested `idle_timeout` field.
 			{
 				Config: withTen,
 				Check: resource.ComposeTestCheckFunc(
@@ -188,8 +176,6 @@ func TestAccDigitalOceanMicroDroplet_RecreateOnAutoPauseChange(t *testing.T) {
 					assertIDChanged(&secondID, &thirdID),
 				),
 			},
-			// Flip enabled true -> false inside the existing block. Guarded
-			// by ForceNew on the nested `enabled` field.
 			{
 				Config: withDisabled,
 				Check: resource.ComposeTestCheckFunc(
@@ -203,9 +189,6 @@ func TestAccDigitalOceanMicroDroplet_RecreateOnAutoPauseChange(t *testing.T) {
 	})
 }
 
-// captureMicroDropletID snapshots the current primary ID of the named
-// resource into out, so a subsequent step can assert whether the resource
-// was recreated (ID changed) or updated in place (ID retained).
 func captureMicroDropletID(name string, out *string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
@@ -217,8 +200,6 @@ func captureMicroDropletID(name string, out *string) resource.TestCheckFunc {
 	}
 }
 
-// assertIDChanged fails if the two captured IDs match, i.e. Terraform kept
-// the resource in place when the test expected a ForceNew recreate.
 func assertIDChanged(before, after *string) resource.TestCheckFunc {
 	return func(_ *terraform.State) error {
 		if *before == "" || *after == "" {
@@ -235,11 +216,8 @@ func TestAccDigitalOceanMicroDroplet_ImmutableFields(t *testing.T) {
 	name := acceptance.RandomTestName()
 	resourceName := "digitalocean_microdroplet.foobar"
 
-	firstImage := testMicroDropletImage
-	secondImage := testMicroDropletImageAlt
-
-	first := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, firstImage)
-	second := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, secondImage)
+	first := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
+	second := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRefAlt)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
@@ -251,7 +229,7 @@ func TestAccDigitalOceanMicroDroplet_ImmutableFields(t *testing.T) {
 				Config: second,
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckMicroDropletExists(resourceName),
-					resource.TestCheckResourceAttr(resourceName, "image", secondImage),
+					resource.TestCheckResourceAttr(resourceName, "source.0.oci_ref", testMicroDropletOCIRefAlt),
 				),
 			},
 		},
@@ -297,29 +275,26 @@ func testAccCheckMicroDropletDestroy(s *terraform.State) error {
 }
 
 const (
-	// testMicroDropletRegion is the region used across microdroplet acceptance
-	// tests. Override with DO_MICRODROPLET_REGION if the default is not
-	// available on the test account.
 	testMicroDropletRegion = "nyc3"
 
-	// testMicroDropletSize is the smallest MicroDroplet size slug.
-	testMicroDropletSize = "microdroplet-1"
+	testMicroDropletOCIRef = "docker.io/library/nginx:latest"
 
-	// testMicroDropletImage is a MicroDroplet image reference known to the
-	// test account.
-	testMicroDropletImage = "docker.io/library/nginx:latest"
-
-	// testMicroDropletImageAlt is a second image reference used to prove
-	// ForceNew semantics on `image` changes.
-	testMicroDropletImageAlt = "docker.io/library/httpd:latest"
+	testMicroDropletOCIRefAlt = "docker.io/library/httpd:latest"
 )
 
 const testAccMicroDropletConfig_Basic = `
 resource "digitalocean_microdroplet" "foobar" {
   name   = "%s"
   region = "nyc3"
-  size   = "microdroplet-1"
-  image  = "%s"
+
+  size {
+    cpu    = 2
+    memory = 4096
+  }
+
+  source {
+    oci_ref = "%s"
+  }
 }
 `
 
@@ -327,9 +302,16 @@ const testAccMicroDropletConfig_State = `
 resource "digitalocean_microdroplet" "foobar" {
   name   = "%s"
   region = "nyc3"
-  size   = "microdroplet-1"
-  image  = "%s"
   state  = "%s"
+
+  size {
+    cpu    = 2
+    memory = 4096
+  }
+
+  source {
+    oci_ref = "%s"
+  }
 }
 `
 
@@ -337,8 +319,15 @@ const testAccMicroDropletConfig_AutoPause = `
 resource "digitalocean_microdroplet" "foobar" {
   name   = "%s"
   region = "nyc3"
-  size   = "microdroplet-1"
-  image  = "%s"
+
+  size {
+    cpu    = 2
+    memory = 4096
+  }
+
+  source {
+    oci_ref = "%s"
+  }
 
   auto_pause {
     enabled      = true
@@ -347,16 +336,19 @@ resource "digitalocean_microdroplet" "foobar" {
 }
 `
 
-// testAccMicroDropletConfig_AutoPauseDisabled exercises the enabled=false
-// path so tests can assert that flipping the toggle inside an existing block
-// recreates the resource (guarded by ForceNew on the nested `enabled` field).
-// idle_timeout is omitted because the schema marks it Optional+Computed.
 const testAccMicroDropletConfig_AutoPauseDisabled = `
 resource "digitalocean_microdroplet" "foobar" {
   name   = "%s"
   region = "nyc3"
-  size   = "microdroplet-1"
-  image  = "%s"
+
+  size {
+    cpu    = 2
+    memory = 4096
+  }
+
+  source {
+    oci_ref = "%s"
+  }
 
   auto_pause {
     enabled = false
@@ -368,11 +360,19 @@ const testAccMicroDropletConfig_Full = `
 resource "digitalocean_microdroplet" "foobar" {
   name          = "%s"
   region        = "nyc3"
-  size          = "microdroplet-1"
-  image         = "%s"
   http_port     = 8080
   http_protocol = "http"
   auto_resume   = true
+  ports         = [80, 8080]
+
+  size {
+    cpu    = 2
+    memory = 4096
+  }
+
+  source {
+    oci_ref = "%s"
+  }
 
   auto_pause {
     enabled      = true

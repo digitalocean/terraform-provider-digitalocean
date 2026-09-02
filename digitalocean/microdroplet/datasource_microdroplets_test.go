@@ -10,7 +10,7 @@ import (
 
 func TestAccDataSourceDigitalOceanMicroDroplets_All(t *testing.T) {
 	name := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletImage)
+	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
 	dataSourceConfig := `
 data "digitalocean_microdroplets" "all" {
   depends_on = [digitalocean_microdroplet.foobar]
@@ -33,7 +33,7 @@ data "digitalocean_microdroplets" "all" {
 
 func TestAccDataSourceDigitalOceanMicroDroplets_ByRegion(t *testing.T) {
 	name := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletImage)
+	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
 	dataSourceConfig := `
 data "digitalocean_microdroplets" "region" {
   region     = "nyc3"
@@ -57,7 +57,7 @@ data "digitalocean_microdroplets" "region" {
 
 func TestAccDataSourceDigitalOceanMicroDroplets_ByName(t *testing.T) {
 	name := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletImage)
+	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
 	dataSourceConfig := fmt.Sprintf(`
 data "digitalocean_microdroplets" "byname" {
   name       = "%s"
