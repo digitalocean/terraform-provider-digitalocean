@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/reservedip"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
@@ -73,6 +76,35 @@ func TestAccDigitalOceanReservedIP_Droplet(t *testing.T) {
 	})
 }
 
+func waitForReservedIPDeletion(ctx context.Context, client *godo.Client, ipAddress string) error {
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"exists"},
+		Target:  []string{"deleted"},
+		Refresh: func() (interface{}, string, error) {
+			reservedIP, resp, err := client.ReservedIPs.Get(ctx, ipAddress)
+
+			if reservedip.IsReservedIPNotFound(resp, err) {
+				// StateChangeConf requires a non-nil result when reaching
+				// a target state, we return an empty sentinel for this purpose
+				// to indicate successful deletion.
+				return struct{}{}, "deleted", nil
+			}
+
+			if err != nil {
+				return nil, "", err
+			}
+
+			return reservedIP, "exists", nil
+		},
+		Timeout:    30 * time.Second,
+		Delay:      1 * time.Second,
+		MinTimeout: 1 * time.Second,
+	}
+
+	_, err := stateConf.WaitForStateContext(ctx)
+	return err
+}
+
 func testAccCheckDigitalOceanReservedIPDestroy(s *terraform.State) error {
 	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
@@ -81,11 +113,8 @@ func testAccCheckDigitalOceanReservedIPDestroy(s *terraform.State) error {
 			continue
 		}
 
-		// Try to find the key
-		_, _, err := client.ReservedIPs.Get(context.Background(), rs.Primary.ID)
-
-		if err == nil {
-			return fmt.Errorf("Reserved IP still exists")
+		if err := waitForReservedIPDeletion(context.Background(), client, rs.Primary.ID); err != nil {
+			return fmt.Errorf("Reserved IP (%s) still exists: %w", rs.Primary.ID, err)
 		}
 	}
 
