@@ -997,8 +997,9 @@ func waitForDropletPublicIPv4(ctx context.Context, d *schema.ResourceData, meta 
 			log.Printf("[DEBUG] Droplet (%d) is active but public IPv4 is not readable yet", id)
 			return droplet, "missing", nil
 		},
-		Timeout:        d.Timeout(schema.TimeoutCreate),
-		Delay:          3 * time.Second,
+		Timeout: d.Timeout(schema.TimeoutCreate),
+		// No initial delay: we already waited for status=active.
+		Delay:          0,
 		MinTimeout:     3 * time.Second,
 		NotFoundChecks: 120,
 	}
