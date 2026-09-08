@@ -13,9 +13,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 )
 
-// TestResourceDigitalOceanDropletCreate_WaitsThroughMissingIPThenSucceeds covers
-// ESC-25905: create must not finish on status=active alone when public networking
-// is enabled. It keeps polling until a public IPv4 is readable.
+// Create should keep waiting if the droplet is active but has no public IP yet.
 func TestResourceDigitalOceanDropletCreate_WaitsThroughMissingIPThenSucceeds(t *testing.T) {
 	const dropletID = 598498975
 	const wantIP = "161.35.84.149"
@@ -57,7 +55,6 @@ func TestResourceDigitalOceanDropletCreate_WaitsThroughMissingIPThenSucceeds(t *
 			"v4": []interface{}{},
 			"v6": []interface{}{},
 		}
-		// First active reads still omit the public IP (the race window).
 		if n >= 3 {
 			networks["v4"] = []map[string]string{{
 				"ip_address": wantIP,
@@ -118,8 +115,7 @@ func TestResourceDigitalOceanDropletCreate_WaitsThroughMissingIPThenSucceeds(t *
 	}
 }
 
-// TestResourceDigitalOceanDropletCreate_ActiveWithoutPublicIPv4TimesOut ensures
-// create does not succeed with an empty public IP when public networking is on.
+// Create should error if a public IP never shows up.
 func TestResourceDigitalOceanDropletCreate_ActiveWithoutPublicIPv4TimesOut(t *testing.T) {
 	const dropletID = 598498974
 
@@ -188,7 +184,6 @@ func TestResourceDigitalOceanDropletCreate_ActiveWithoutPublicIPv4TimesOut(t *te
 	_ = d.Set("region", "ams3")
 	_ = d.Set("size", "s-1vcpu-1gb")
 
-	// Bound the wait so the test does not use the full create timeout.
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
@@ -198,8 +193,7 @@ func TestResourceDigitalOceanDropletCreate_ActiveWithoutPublicIPv4TimesOut(t *te
 	}
 }
 
-// TestResourceDigitalOceanDropletCreate_PrivateNetworkingSkipsPublicIPWait ensures
-// public_networking=false remains non-breaking: create succeeds without a public IP.
+// private-only droplets should not wait for a public IP.
 func TestResourceDigitalOceanDropletCreate_PrivateNetworkingSkipsPublicIPWait(t *testing.T) {
 	const dropletID = 598498976
 
