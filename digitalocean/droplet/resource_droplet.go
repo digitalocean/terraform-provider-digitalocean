@@ -444,14 +444,34 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 	d.SetId(strconv.Itoa(droplet.ID))
 	log.Printf("[INFO] Droplet ID: %s", d.Id())
 
+	// Capture before waiting: setDropletAttributes derives public_networking from
+	// whether a public IP is currently readable, which can be briefly empty after
+	// status becomes active (ESC-25905).
+	expectsPublicIPv4 := true
+	if v, ok := d.GetOkExists("public_networking"); ok {
+		expectsPublicIPv4 = v.(bool)
+	}
+
 	// Ensure Droplet status has moved to "active."
 	_, err = waitForDropletAttribute(ctx, d, "active", []string{"new"}, "status", schema.TimeoutCreate, meta, dropletOpCreate)
 	if err != nil {
 		return diag.Errorf("Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
 	}
 
-	// waitForDropletAttribute updates the Droplet's state and calls setDropletAttributes.
-	// So there is no need to call resourceDigitalOceanDropletRead and add additional API calls.
+	// Public Droplets can report status=active before network metadata (and thus
+	// ipv4_address) is readable. Wait for a public IPv4 so dependents such as
+	// digitalocean_record do not receive an empty or stale address on create.
+	// Private-only Droplets (public_networking=false) intentionally have no
+	// public IPv4, so skip this wait to avoid a breaking change for that path.
+	if expectsPublicIPv4 {
+		_, err = waitForDropletPublicIPv4(ctx, d, meta)
+		if err != nil {
+			return diag.Errorf("Error waiting for droplet (%s) public IPv4 address: %s", d.Id(), err)
+		}
+	}
+
+	// waitForDropletAttribute / waitForDropletPublicIPv4 update state via
+	// setDropletAttributes, so an extra read is unnecessary.
 	return nil
 }
 
@@ -940,6 +960,57 @@ func waitForDropletAttribute(
 		// Increased from 60 to 120 for reserved/contracted hypervisors where
 		// capacity may take longer to become available after a destroy.
 		// See: https://github.com/digitalocean/terraform-provider-digitalocean/issues/1486
+		NotFoundChecks: 120,
+	}
+
+	return stateConf.WaitForStateContext(ctx)
+}
+
+// waitForDropletPublicIPv4 polls until the Droplet has a readable public IPv4.
+// Used after status=active on create to close the network-metadata race in ESC-25905.
+func waitForDropletPublicIPv4(ctx context.Context, d *schema.ResourceData, meta interface{}) (interface{}, error) {
+	log.Printf("[INFO] Waiting for droplet (%s) to have a public IPv4 address", d.Id())
+
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"missing"},
+		Target:  []string{"ready"},
+		Refresh: func() (interface{}, string, error) {
+			id, err := strconv.Atoi(d.Id())
+			if err != nil {
+				return nil, "", err
+			}
+
+			client := meta.(*config.CombinedConfig).GodoClient()
+			droplet, resp, err := client.Droplets.Get(context.Background(), id)
+			if err != nil {
+				if resp != nil && resp.StatusCode == 404 {
+					// Same create semantics as dropletStateRefreshFunc: retry 404s.
+					log.Printf("[DEBUG] Droplet (%d) not found (404) while waiting for public IPv4, will retry", id)
+					return nil, "", nil
+				}
+				return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
+			}
+
+			if err := setDropletAttributes(d, droplet); err != nil {
+				return nil, "", err
+			}
+
+			if d.Get("locked").(bool) {
+				log.Println("[DEBUG] Droplet is locked while waiting for public IPv4, retrying")
+				return nil, "missing", nil
+			}
+
+			if FindIPv4AddrByType(droplet, "public") != "" {
+				return droplet, "ready", nil
+			}
+
+			log.Printf("[DEBUG] Droplet (%d) is active but public IPv4 is not readable yet", id)
+			return droplet, "missing", nil
+		},
+		Timeout:    d.Timeout(schema.TimeoutCreate),
+		Delay:      3 * time.Second,
+		MinTimeout: 3 * time.Second,
+		// Align with create waiter retries for reserved hypervisors.
 		NotFoundChecks: 120,
 	}
 
