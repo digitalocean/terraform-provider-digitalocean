@@ -300,6 +300,7 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 
 		Timeouts: &schema.ResourceTimeout{
 			Create: schema.DefaultTimeout(30 * time.Minute),
+			Delete: schema.DefaultTimeout(30 * time.Minute),
 		},
 
 		CustomizeDiff: customdiff.All(
@@ -654,8 +655,65 @@ func resourceDigitalOceanDatabaseClusterDelete(ctx context.Context, d *schema.Re
 		return diag.Errorf("Error deleting database cluster: %s", err)
 	}
 
+	err = waitForDatabaseClusterDestroy(client, d)
+	if err != nil {
+		return diag.Errorf("Error waiting for database cluster to be deleted: %s", err)
+	}
+
 	d.SetId("")
 	return nil
+}
+
+func waitForDatabaseClusterDestroy(client *godo.Client, d *schema.ResourceData) error {
+	var (
+		tickerInterval = 15 * time.Second
+		timeoutSeconds = d.Timeout(schema.TimeoutDelete).Seconds()
+		timeout        = int(timeoutSeconds / tickerInterval.Seconds())
+		n              = 0
+		ticker         = time.NewTicker(tickerInterval)
+	)
+	defer ticker.Stop()
+
+	log.Printf("[INFO] Waiting for database cluster (%s) to be deleted", d.Id())
+
+	deleted, err := databaseClusterDeleted(client, d.Id())
+	if err != nil {
+		return err
+	}
+	if deleted {
+		return nil
+	}
+
+	for range ticker.C {
+		deleted, err := databaseClusterDeleted(client, d.Id())
+		if err != nil {
+			return err
+		}
+		if deleted {
+			return nil
+		}
+
+		if n >= timeout {
+			break
+		}
+
+		n++
+	}
+
+	return fmt.Errorf("Timeout waiting for database cluster %s to be deleted", d.Id())
+}
+
+func databaseClusterDeleted(client *godo.Client, clusterID string) (bool, error) {
+	database, resp, err := client.Databases.Get(context.Background(), clusterID)
+	if err != nil {
+		if resp != nil && resp.StatusCode == 404 {
+			return true, nil
+		}
+		return false, fmt.Errorf("Error getting database cluster: %s", err)
+	}
+
+	log.Printf("[DEBUG] Database cluster %s still present (status: %s)", clusterID, database.Status)
+	return false, nil
 }
 
 func waitForDatabaseCluster(client *godo.Client, d *schema.ResourceData, status string) (*godo.Database, error) {
