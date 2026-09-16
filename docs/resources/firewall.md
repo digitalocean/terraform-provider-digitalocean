@@ -99,6 +99,8 @@ The following arguments are supported:
   of the Load Balancers from which the inbound traffic will be accepted.
 * `source_kubernetes_ids` - (Optional) An array containing the IDs of
   the Kubernetes clusters from which the inbound traffic will be accepted.
+* `action` - (Optional) The action to take for traffic matching this rule.
+  This may be one of "allow" or "deny". If not specified, defaults to "allow".
 
 `outbound_rule` supports the following:
 
@@ -120,6 +122,8 @@ The following arguments are supported:
   be allowed.
 * `destination_load_balancer_uids` - (Optional) An array containing the IDs
   of the Load Balancers to which the outbound traffic will be allowed.
+* `action` - (Optional) The action to take for traffic matching this rule.
+  This may be one of "allow" or "deny". If not specified, defaults to "allow".
 
 
 ## Attributes Reference

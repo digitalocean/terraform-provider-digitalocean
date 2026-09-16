@@ -63,6 +63,8 @@ The following attributes are exported:
   Droplets from which the inbound traffic will be accepted.
 * `source_load_balancer_uids` - An array containing the IDs
   of the Load Balancers from which the inbound traffic will be accepted.
+* `action` - The action to take for traffic matching this rule.
+  This may be one of "allow" or "deny". Defaults to "allow" when not set.
 
 `outbound_rule` supports the following:
 
@@ -83,3 +85,5 @@ The following attributes are exported:
   traffic.
 * `destination_load_balancer_uids` - An array containing the IDs
   of the Load Balancers to which the outbound traffic will be allowed.
+* `action` - The action to take for traffic matching this rule.
+  This may be one of "allow" or "deny". Defaults to "allow" when not set.
