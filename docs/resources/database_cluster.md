@@ -150,7 +150,7 @@ The following arguments are supported:
 * `database_name` - (Required) The name of an existing database cluster from which the backup will be restored.
 * `backup_created_at` - (Optional) The timestamp of an existing database cluster backup in ISO8601 combined date and time format. The most recent backup will be used if excluded.
 
-This resource supports [customized create timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
+This resource supports [customized create and delete timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
 
 ## Attributes Reference
 
