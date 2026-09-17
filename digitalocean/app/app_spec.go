@@ -245,6 +245,7 @@ func appSpecAppLevelAlerts() *schema.Resource {
 					string(godo.AppAlertSpecRule_DomainLive),
 					string(godo.AppAlertSpecRule_AutoscaleFailed),
 					string(godo.AppAlertSpecRule_AutoscaleSucceeded),
+					string(godo.AppAlertSpecRule_JobInvocationFailed),
 				}, false),
 			},
 			"disabled": {
