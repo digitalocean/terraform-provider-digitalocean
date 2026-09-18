@@ -433,6 +433,10 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
+	// Derive from create opts (not state): expand sets PublicNetworking only when
+	// explicitly false. Default/unset means public IPv4 is expected.
+	expectPublicIPv4 := opts.PublicNetworking == nil || *opts.PublicNetworking
+
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
 
 	droplet, _, err := client.Droplets.Create(context.Background(), opts)
@@ -450,7 +454,14 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
 	}
 
-	// waitForDropletAttribute updates the Droplet's state and calls setDropletAttributes.
+	// Status can become active before networking is populated. Wait for IPv4 so
+	// dependents (e.g. digitalocean_domain / digitalocean_record using
+	// ipv4_address) do not call the DNS API with an empty address.
+	if err := waitForDropletIPv4(ctx, d, meta, expectPublicIPv4); err != nil {
+		return diag.Errorf("Error waiting for droplet (%s) networking: %s", d.Id(), err)
+	}
+
+	// waitForDropletAttribute / waitForDropletIPv4 update state via setDropletAttributes.
 	// So there is no need to call resourceDigitalOceanDropletRead and add additional API calls.
 	return nil
 }
@@ -567,6 +578,9 @@ func resourceDigitalOceanDropletImport(d *schema.ResourceData, meta interface{})
 }
 
 func FindIPv6AddrByType(d *godo.Droplet, addrType string) string {
+	if d == nil || d.Networks == nil {
+		return ""
+	}
 	for _, addr := range d.Networks.V6 {
 		if addr.Type == addrType {
 			if ip := net.ParseIP(addr.IPAddress); ip != nil {
@@ -578,6 +592,9 @@ func FindIPv6AddrByType(d *godo.Droplet, addrType string) string {
 }
 
 func FindIPv4AddrByType(d *godo.Droplet, addrType string) string {
+	if d == nil || d.Networks == nil {
+		return ""
+	}
 	for _, addr := range d.Networks.V4 {
 		if addr.Type == addrType {
 			if ip := net.ParseIP(addr.IPAddress); ip != nil {
@@ -917,6 +934,56 @@ func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta int
 	}
 
 	return stateConf.WaitForStateContext(ctx)
+}
+
+// waitForDropletIPv4 waits until the Droplet has a usable IPv4 address.
+// When expectPublicIPv4 is true (default), it waits for a public address; otherwise
+// it waits for a private address (public_networking = false).
+func waitForDropletIPv4(ctx context.Context, d *schema.ResourceData, meta interface{}, expectPublicIPv4 bool) error {
+	addrType := "public"
+	if !expectPublicIPv4 {
+		addrType = "private"
+	}
+
+	log.Printf("[INFO] Waiting for droplet (%s) %s IPv4 to become available", d.Id(), addrType)
+
+	client := meta.(*config.CombinedConfig).GodoClient()
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"waiting"},
+		Target:  []string{"ready"},
+		Refresh: func() (interface{}, string, error) {
+			id, err := strconv.Atoi(d.Id())
+			if err != nil {
+				return nil, "", err
+			}
+
+			droplet, resp, err := client.Droplets.Get(context.Background(), id)
+			if err != nil {
+				if resp != nil && resp.StatusCode == http.StatusNotFound {
+					// Still provisioning; keep retrying under NotFoundChecks.
+					return nil, "", nil
+				}
+				return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
+			}
+
+			if err := setDropletAttributes(d, droplet); err != nil {
+				return nil, "", err
+			}
+
+			if FindIPv4AddrByType(droplet, addrType) != "" {
+				return droplet, "ready", nil
+			}
+
+			return droplet, "waiting", nil
+		},
+		Timeout:        d.Timeout(schema.TimeoutCreate),
+		Delay:          10 * time.Second,
+		MinTimeout:     3 * time.Second,
+		NotFoundChecks: 120,
+	}
+
+	_, err := stateConf.WaitForStateContext(ctx)
+	return err
 }
 
 func waitForDropletAttribute(
