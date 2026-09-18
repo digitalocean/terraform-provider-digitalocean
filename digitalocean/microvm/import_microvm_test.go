@@ -1,4 +1,4 @@
-package microdroplet_test
+package microvm_test
 
 import (
 	"fmt"
@@ -9,15 +9,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDigitalOceanMicroDroplet_importBasic(t *testing.T) {
-	resourceName := "digitalocean_microdroplet.foobar"
+func TestAccDigitalOceanMicroVM_importBasic(t *testing.T) {
+	resourceName := "digitalocean_microvm.foobar"
 	name := acceptance.RandomTestName()
-	config := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
+	config := fmt.Sprintf(testAccMicroVMConfig_Basic, name, testMicroVMOCIRef)
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckMicroDropletDestroy,
+		CheckDestroy:      testAccCheckMicroVMDestroy,
 		Steps: []resource.TestStep{
 			{Config: config},
 			{

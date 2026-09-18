@@ -1,4 +1,4 @@
-package microdroplet
+package microvm
 
 import (
 	"context"
@@ -12,30 +12,30 @@ import (
 )
 
 // stateValues is the closed set accepted by the settable `state` attribute on
-// digitalocean_microdroplet. The API also exposes transient values (creating,
+// digitalocean_microvm. The API also exposes transient values (creating,
 // pausing, resuming, ...) but users should never set those directly.
 var stateValues = []string{
-	string(godo.MicroDropletStateRunning),
-	string(godo.MicroDropletStatePaused),
+	string(godo.MicroVMStateRunning),
+	string(godo.MicroVMStatePaused),
 }
 
 // networkingValues enumerates the accepted values for the `networking`
-// attribute on digitalocean_microdroplet.
+// attribute on digitalocean_microvm.
 var networkingValues = []string{
-	string(godo.MicroDropletNetworkingPublic),
-	string(godo.MicroDropletNetworkingVPC),
+	string(godo.MicroVMNetworkingPublic),
+	string(godo.MicroVMNetworkingVPC),
 }
 
 // httpProtocolValues enumerates the accepted values for the `http_protocol`
-// attribute on digitalocean_microdroplet. The control plane accepts only
+// attribute on digitalocean_microvm. The control plane accepts only
 // `http` (HTTP/1.1) and `http2`; `https` is not a valid platform value.
 var httpProtocolValues = []string{
-	string(godo.MicroDropletHTTPProtocolHTTP),
-	string(godo.MicroDropletHTTPProtocolHTTP2),
+	string(godo.MicroVMHTTPProtocolHTTP),
+	string(godo.MicroVMHTTPProtocolHTTP2),
 }
 
 // tagsSchemaForceNew returns tag.TagsSchema() with ForceNew set. Tags are
-// accepted by MicroDropletCreateRequest but the MicroDroplets API exposes no
+// accepted by MicroVMCreateRequest but the MicroVMs API exposes no
 // endpoint to mutate them afterwards, so any change has to recreate the
 // resource. Marking ForceNew keeps Terraform's plan honest — without it,
 // changes would silently no-op on apply.
@@ -45,16 +45,16 @@ func tagsSchemaForceNew() *schema.Schema {
 	return s
 }
 
-// microDropletResourceSchema returns the resource-side schema used by
-// ResourceDigitalOceanMicroDroplet. The data source schemas reuse this via
-// microDropletDataSourceSchema which recasts everything to Computed.
-func microDropletResourceSchema() map[string]*schema.Schema {
+// microVMResourceSchema returns the resource-side schema used by
+// ResourceDigitalOceanMicroVM. The data source schemas reuse this via
+// microVMDataSourceSchema which recasts everything to Computed.
+func microVMResourceSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			Description:  "Name of the MicroDroplet",
+			Description:  "Name of the MicroVM",
 			ValidateFunc: validation.NoZeroValues,
 		},
 		"region": {
@@ -134,14 +134,14 @@ func microDropletResourceSchema() map[string]*schema.Schema {
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
-			Description:  "UUID of the VPC to attach the MicroDroplet to. Only valid when networking is 'vpc'.",
+			Description:  "UUID of the VPC to attach the MicroVM to. Only valid when networking is 'vpc'.",
 			ValidateFunc: validation.NoZeroValues,
 		},
 		"http_port": {
 			Type:         schema.TypeInt,
 			Optional:     true,
 			ForceNew:     true,
-			Description:  "Port the MicroDroplet exposes over HTTP",
+			Description:  "Port the MicroVM exposes over HTTP",
 			ValidateFunc: validation.IntBetween(1, 65535),
 		},
 		"http_protocol": {
@@ -166,7 +166,7 @@ func microDropletResourceSchema() map[string]*schema.Schema {
 			Type:        schema.TypeMap,
 			Optional:    true,
 			ForceNew:    true,
-			Description: "Environment variables passed to the MicroDroplet",
+			Description: "Environment variables passed to the MicroVM",
 			Elem:        &schema.Schema{Type: schema.TypeString},
 		},
 		"auto_pause": {
@@ -175,7 +175,7 @@ func microDropletResourceSchema() map[string]*schema.Schema {
 			Computed:    true,
 			ForceNew:    true,
 			MaxItems:    1,
-			Description: "Auto-pause configuration. Forces recreation on change: the MicroDroplets API has no in-place update path for auto_pause.",
+			Description: "Auto-pause configuration. Forces recreation on change: the MicroVMs API has no in-place update path for auto_pause.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"enabled": {
@@ -200,21 +200,21 @@ func microDropletResourceSchema() map[string]*schema.Schema {
 			Optional:    true,
 			Computed:    true,
 			ForceNew:    true,
-			Description: "Whether the MicroDroplet should auto-resume on request. Forces recreation on change: the MicroDroplets API has no in-place update path for auto_resume.",
+			Description: "Whether the MicroVM should auto-resume on request. Forces recreation on change: the MicroVMs API has no in-place update path for auto_resume.",
 		},
 		"tags": tagsSchemaForceNew(),
 		"state": {
 			Type:             schema.TypeString,
 			Optional:         true,
-			Default:          string(godo.MicroDropletStateRunning),
-			Description:      "Desired lifecycle state: 'running' or 'paused'. Changes are applied by calling the microdroplet pause / resume action endpoints.",
+			Default:          string(godo.MicroVMStateRunning),
+			Description:      "Desired lifecycle state: 'running' or 'paused'. Changes are applied by calling the microvm pause / resume action endpoints.",
 			ValidateFunc:     validation.StringInSlice(stateValues, false),
 			DiffSuppressFunc: suppressStateDiffWhenAutoPause,
 		},
 		"current_state": {
 			Type:        schema.TypeString,
 			Computed:    true,
-			Description: "Observed lifecycle state of the MicroDroplet",
+			Description: "Observed lifecycle state of the MicroVM",
 		},
 		"failure_reason": {
 			Type:        schema.TypeString,
@@ -224,7 +224,7 @@ func microDropletResourceSchema() map[string]*schema.Schema {
 		"urls": {
 			Type:        schema.TypeList,
 			Computed:    true,
-			Description: "Ingress URLs for the MicroDroplet",
+			Description: "Ingress URLs for the MicroVM",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"hostname": {
@@ -253,21 +253,21 @@ func microDropletResourceSchema() map[string]*schema.Schema {
 		"created_at": {
 			Type:        schema.TypeString,
 			Computed:    true,
-			Description: "The creation timestamp for the MicroDroplet",
+			Description: "The creation timestamp for the MicroVM",
 		},
 		"urn": {
 			Type:        schema.TypeString,
 			Computed:    true,
-			Description: "The uniform resource name (URN) for the MicroDroplet",
+			Description: "The uniform resource name (URN) for the MicroVM",
 		},
 	}
 }
 
-// microDropletDataSourceSchema returns the resource schema recast so every
+// microVMDataSourceSchema returns the resource schema recast so every
 // attribute is Computed and safe to expose on the datasource. Filter/select
 // attributes (id, name) are re-set to Optional+Computed by the caller.
-func microDropletDataSourceSchema() map[string]*schema.Schema {
-	base := microDropletResourceSchema()
+func microVMDataSourceSchema() map[string]*schema.Schema {
+	base := microVMResourceSchema()
 	for k, v := range base {
 		clone := *v
 		clone.Required = false
@@ -294,8 +294,8 @@ func suppressStateDiffWhenAutoPause(_, oldValue, newValue string, d *schema.Reso
 	if !autoPauseEnabled(d) {
 		return false
 	}
-	return oldValue == string(godo.MicroDropletStatePaused) &&
-		newValue == string(godo.MicroDropletStateRunning)
+	return oldValue == string(godo.MicroVMStatePaused) &&
+		newValue == string(godo.MicroVMStateRunning)
 }
 
 // autoPauseEnabled returns true when the resource config declares an
@@ -370,7 +370,7 @@ func expandEnvironment(raw interface{}) map[string]string {
 	return out
 }
 
-func expandSource(raw interface{}) (*godo.MicroDropletSource, error) {
+func expandSource(raw interface{}) (*godo.MicroVMSource, error) {
 	list, ok := raw.([]interface{})
 	if !ok || len(list) == 0 || list[0] == nil {
 		return nil, fmt.Errorf("source is required")
@@ -384,7 +384,7 @@ func expandSource(raw interface{}) (*godo.MicroDropletSource, error) {
 	if (ociRef == "") == (checkpointID == "") {
 		return nil, fmt.Errorf("source must set exactly one of oci_ref or checkpoint_id")
 	}
-	src := &godo.MicroDropletSource{}
+	src := &godo.MicroVMSource{}
 	if ociRef != "" {
 		src.OCIRef = ociRef
 	} else {
@@ -393,7 +393,7 @@ func expandSource(raw interface{}) (*godo.MicroDropletSource, error) {
 	return src, nil
 }
 
-func flattenSource(src *godo.MicroDropletSource) []interface{} {
+func flattenSource(src *godo.MicroVMSource) []interface{} {
 	if src == nil {
 		return nil
 	}
@@ -407,7 +407,7 @@ func flattenSource(src *godo.MicroDropletSource) []interface{} {
 	return []interface{}{entry}
 }
 
-func expandSizeRequest(raw interface{}) *godo.MicroDropletSizeRequest {
+func expandSizeRequest(raw interface{}) *godo.MicroVMSizeRequest {
 	list, ok := raw.([]interface{})
 	if !ok || len(list) == 0 || list[0] == nil {
 		return nil
@@ -416,13 +416,13 @@ func expandSizeRequest(raw interface{}) *godo.MicroDropletSizeRequest {
 	if !ok {
 		return nil
 	}
-	return &godo.MicroDropletSizeRequest{
+	return &godo.MicroVMSizeRequest{
 		CPU:    uint32(entry["cpu"].(int)),
 		Memory: uint32(entry["memory"].(int)),
 	}
 }
 
-func flattenSize(size *godo.MicroDropletSize) []interface{} {
+func flattenSize(size *godo.MicroVMSize) []interface{} {
 	if size == nil {
 		return nil
 	}
@@ -453,7 +453,7 @@ func flattenPorts(ports []uint32) *schema.Set {
 	return schema.NewSet(schema.HashInt, vals)
 }
 
-func flattenURLs(urls []godo.MicroDropletURL) []interface{} {
+func flattenURLs(urls []godo.MicroVMURL) []interface{} {
 	out := make([]interface{}, len(urls))
 	for i, u := range urls {
 		out[i] = map[string]interface{}{
@@ -466,12 +466,12 @@ func flattenURLs(urls []godo.MicroDropletURL) []interface{} {
 	return out
 }
 
-// setMicroDropletAttributes writes the state observed on a godo.MicroDroplet
+// setMicroVMAttributes writes the state observed on a godo.MicroVM
 // into the ResourceData without touching the settable `state` attribute
 // (which reflects user intent, not observed state).
-func setMicroDropletAttributes(d *schema.ResourceData, m *godo.MicroDroplet) error {
+func setMicroVMAttributes(d *schema.ResourceData, m *godo.MicroVM) error {
 	if m == nil {
-		return fmt.Errorf("cannot set attributes from nil MicroDroplet")
+		return fmt.Errorf("cannot set attributes from nil MicroVM")
 	}
 	d.SetId(m.ID)
 	d.Set("name", m.Name)
@@ -506,10 +506,10 @@ func setMicroDropletAttributes(d *schema.ResourceData, m *godo.MicroDroplet) err
 	return nil
 }
 
-// flattenMicroDroplet flattens a godo.MicroDroplet into the map shape the
+// flattenMicroVM flattens a godo.MicroVM into the map shape the
 // datalist datasource expects.
-func flattenMicroDroplet(rawRecord, _ interface{}, _ map[string]interface{}) (map[string]interface{}, error) {
-	m, ok := rawRecord.(godo.MicroDroplet)
+func flattenMicroVM(rawRecord, _ interface{}, _ map[string]interface{}) (map[string]interface{}, error) {
+	m, ok := rawRecord.(godo.MicroVM)
 	if !ok {
 		return nil, fmt.Errorf("unexpected record type %T", rawRecord)
 	}
@@ -538,10 +538,10 @@ func flattenMicroDroplet(rawRecord, _ interface{}, _ map[string]interface{}) (ma
 	return out, nil
 }
 
-// getDigitalOceanMicroDroplets is the GetRecords callback for the plural
-// MicroDroplet datasource. It supports optional region and name filters via
+// getDigitalOceanMicroVMs is the GetRecords callback for the plural
+// MicroVM datasource. It supports optional region and name filters via
 // the ExtraQuerySchema.
-func getDigitalOceanMicroDroplets(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
+func getDigitalOceanMicroVMs(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	region, _ := extra["region"].(string)
@@ -552,20 +552,20 @@ func getDigitalOceanMicroDroplets(meta interface{}, extra map[string]interface{}
 	var records []interface{}
 	for {
 		var (
-			batch []godo.MicroDroplet
+			batch []godo.MicroVM
 			resp  *godo.Response
 			err   error
 		)
 		switch {
 		case region != "":
-			batch, resp, err = client.MicroDroplets.ListByRegion(context.Background(), region, opts)
+			batch, resp, err = client.MicroVMs.ListByRegion(context.Background(), region, opts)
 		case name != "":
-			batch, resp, err = client.MicroDroplets.ListByName(context.Background(), name, opts)
+			batch, resp, err = client.MicroVMs.ListByName(context.Background(), name, opts)
 		default:
-			batch, resp, err = client.MicroDroplets.List(context.Background(), opts)
+			batch, resp, err = client.MicroVMs.List(context.Background(), opts)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("error retrieving MicroDroplets: %w", err)
+			return nil, fmt.Errorf("error retrieving MicroVMs: %w", err)
 		}
 		for _, m := range batch {
 			records = append(records, m)
@@ -575,7 +575,7 @@ func getDigitalOceanMicroDroplets(meta interface{}, extra map[string]interface{}
 		}
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return nil, fmt.Errorf("error paging MicroDroplets: %w", err)
+			return nil, fmt.Errorf("error paging MicroVMs: %w", err)
 		}
 		opts.Page = page + 1
 	}

@@ -1,4 +1,4 @@
-package microdroplet_test
+package microvm_test
 
 import (
 	"fmt"
@@ -8,12 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceDigitalOceanMicroDroplet_ByID(t *testing.T) {
+func TestAccDataSourceDigitalOceanMicroVM_ByID(t *testing.T) {
 	name := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
+	resourceConfig := fmt.Sprintf(testAccMicroVMConfig_Basic, name, testMicroVMOCIRef)
 	dataSourceConfig := `
-data "digitalocean_microdroplet" "byid" {
-  id = digitalocean_microdroplet.foobar.id
+data "digitalocean_microvm" "byid" {
+  id = digitalocean_microvm.foobar.id
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -24,21 +24,21 @@ data "digitalocean_microdroplet" "byid" {
 			{
 				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.digitalocean_microdroplet.byid", "name", name),
-					resource.TestCheckResourceAttrSet("data.digitalocean_microdroplet.byid", "urn"),
-					resource.TestCheckResourceAttrSet("data.digitalocean_microdroplet.byid", "urls.0.hostname"),
+					resource.TestCheckResourceAttr("data.digitalocean_microvm.byid", "name", name),
+					resource.TestCheckResourceAttrSet("data.digitalocean_microvm.byid", "urn"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_microvm.byid", "urls.0.hostname"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDataSourceDigitalOceanMicroDroplet_ByName(t *testing.T) {
+func TestAccDataSourceDigitalOceanMicroVM_ByName(t *testing.T) {
 	name := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
+	resourceConfig := fmt.Sprintf(testAccMicroVMConfig_Basic, name, testMicroVMOCIRef)
 	dataSourceConfig := `
-data "digitalocean_microdroplet" "byname" {
-  name = digitalocean_microdroplet.foobar.name
+data "digitalocean_microvm" "byname" {
+  name = digitalocean_microvm.foobar.name
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -49,8 +49,8 @@ data "digitalocean_microdroplet" "byname" {
 			{
 				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.digitalocean_microdroplet.byname", "name", name),
-					resource.TestCheckResourceAttrSet("data.digitalocean_microdroplet.byname", "id"),
+					resource.TestCheckResourceAttr("data.digitalocean_microvm.byname", "name", name),
+					resource.TestCheckResourceAttrSet("data.digitalocean_microvm.byname", "id"),
 				),
 			},
 		},

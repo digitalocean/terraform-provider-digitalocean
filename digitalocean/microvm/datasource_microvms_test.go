@@ -1,4 +1,4 @@
-package microdroplet_test
+package microvm_test
 
 import (
 	"fmt"
@@ -8,12 +8,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func TestAccDataSourceDigitalOceanMicroDroplets_All(t *testing.T) {
+func TestAccDataSourceDigitalOceanMicroVMs_All(t *testing.T) {
 	name := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
+	resourceConfig := fmt.Sprintf(testAccMicroVMConfig_Basic, name, testMicroVMOCIRef)
 	dataSourceConfig := `
-data "digitalocean_microdroplets" "all" {
-  depends_on = [digitalocean_microdroplet.foobar]
+data "digitalocean_microvms" "all" {
+  depends_on = [digitalocean_microvm.foobar]
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -24,20 +24,20 @@ data "digitalocean_microdroplets" "all" {
 			{
 				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.digitalocean_microdroplets.all", "micro_droplets.#"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_microvms.all", "micro_vms.#"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDataSourceDigitalOceanMicroDroplets_ByRegion(t *testing.T) {
+func TestAccDataSourceDigitalOceanMicroVMs_ByRegion(t *testing.T) {
 	name := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
+	resourceConfig := fmt.Sprintf(testAccMicroVMConfig_Basic, name, testMicroVMOCIRef)
 	dataSourceConfig := `
-data "digitalocean_microdroplets" "region" {
+data "digitalocean_microvms" "region" {
   region     = "nyc3"
-  depends_on = [digitalocean_microdroplet.foobar]
+  depends_on = [digitalocean_microvm.foobar]
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -48,20 +48,20 @@ data "digitalocean_microdroplets" "region" {
 			{
 				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttrSet("data.digitalocean_microdroplets.region", "micro_droplets.#"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_microvms.region", "micro_vms.#"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccDataSourceDigitalOceanMicroDroplets_ByName(t *testing.T) {
+func TestAccDataSourceDigitalOceanMicroVMs_ByName(t *testing.T) {
 	name := acceptance.RandomTestName()
-	resourceConfig := fmt.Sprintf(testAccMicroDropletConfig_Basic, name, testMicroDropletOCIRef)
+	resourceConfig := fmt.Sprintf(testAccMicroVMConfig_Basic, name, testMicroVMOCIRef)
 	dataSourceConfig := fmt.Sprintf(`
-data "digitalocean_microdroplets" "byname" {
+data "digitalocean_microvms" "byname" {
   name       = "%s"
-  depends_on = [digitalocean_microdroplet.foobar]
+  depends_on = [digitalocean_microvm.foobar]
 }`, name)
 
 	resource.ParallelTest(t, resource.TestCase{
@@ -72,8 +72,8 @@ data "digitalocean_microdroplets" "byname" {
 			{
 				Config: resourceConfig + dataSourceConfig,
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr("data.digitalocean_microdroplets.byname", "micro_droplets.#", "1"),
-					resource.TestCheckResourceAttr("data.digitalocean_microdroplets.byname", "micro_droplets.0.name", name),
+					resource.TestCheckResourceAttr("data.digitalocean_microvms.byname", "micro_vms.#", "1"),
+					resource.TestCheckResourceAttr("data.digitalocean_microvms.byname", "micro_vms.0.name", name),
 				),
 			},
 		},

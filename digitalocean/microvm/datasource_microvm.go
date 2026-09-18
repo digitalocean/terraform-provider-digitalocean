@@ -1,4 +1,4 @@
-package microdroplet
+package microvm
 
 import (
 	"context"
@@ -11,15 +11,15 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// DataSourceDigitalOceanMicroDroplet returns a data source that looks up a
-// MicroDroplet by `id` or by `name`.
-func DataSourceDigitalOceanMicroDroplet() *schema.Resource {
-	recordSchema := microDropletDataSourceSchema()
+// DataSourceDigitalOceanMicroVM returns a data source that looks up a
+// MicroVM by `id` or by `name`.
+func DataSourceDigitalOceanMicroVM() *schema.Resource {
+	recordSchema := microVMDataSourceSchema()
 	recordSchema["id"] = &schema.Schema{
 		Type:         schema.TypeString,
 		Optional:     true,
 		Computed:     true,
-		Description:  "MicroDroplet ID",
+		Description:  "MicroVM ID",
 		ValidateFunc: validation.NoZeroValues,
 		ExactlyOneOf: []string{"id", "name"},
 	}
@@ -27,53 +27,53 @@ func DataSourceDigitalOceanMicroDroplet() *schema.Resource {
 		Type:         schema.TypeString,
 		Optional:     true,
 		Computed:     true,
-		Description:  "MicroDroplet name",
+		Description:  "MicroVM name",
 		ValidateFunc: validation.NoZeroValues,
 		ExactlyOneOf: []string{"id", "name"},
 	}
 
 	return &schema.Resource{
-		ReadContext: dataSourceDigitalOceanMicroDropletRead,
+		ReadContext: dataSourceDigitalOceanMicroVMRead,
 		Schema:      recordSchema,
 	}
 }
 
-func dataSourceDigitalOceanMicroDropletRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func dataSourceDigitalOceanMicroVMRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	var found *godo.MicroDroplet
+	var found *godo.MicroVM
 	if id, ok := d.GetOk("id"); ok {
-		m, _, err := client.MicroDroplets.Get(ctx, id.(string))
+		m, _, err := client.MicroVMs.Get(ctx, id.(string))
 		if err != nil {
-			return diag.Errorf("Error retrieving MicroDroplet: %s", err)
+			return diag.Errorf("Error retrieving MicroVM: %s", err)
 		}
 		found = m
 	} else if name, ok := d.GetOk("name"); ok {
-		matches, err := listMicroDropletsByName(ctx, client, name.(string))
+		matches, err := listMicroVMsByName(ctx, client, name.(string))
 		if err != nil {
-			return diag.Errorf("Error listing MicroDroplets: %s", err)
+			return diag.Errorf("Error listing MicroVMs: %s", err)
 		}
 		switch len(matches) {
 		case 0:
-			return diag.Errorf("no MicroDroplet found with name %s", name.(string))
+			return diag.Errorf("no MicroVM found with name %s", name.(string))
 		case 1:
 			found = &matches[0]
 		default:
-			return diag.Errorf("too many MicroDroplets found with name %s (found %d, expected 1)", name.(string), len(matches))
+			return diag.Errorf("too many MicroVMs found with name %s (found %d, expected 1)", name.(string), len(matches))
 		}
 	}
 
-	if err := setMicroDropletAttributes(d, found); err != nil {
+	if err := setMicroVMAttributes(d, found); err != nil {
 		return diag.FromErr(err)
 	}
 	return nil
 }
 
-func listMicroDropletsByName(ctx context.Context, client *godo.Client, name string) ([]godo.MicroDroplet, error) {
+func listMicroVMsByName(ctx context.Context, client *godo.Client, name string) ([]godo.MicroVM, error) {
 	opts := &godo.ListOptions{Page: 1, PerPage: 200}
-	var out []godo.MicroDroplet
+	var out []godo.MicroVM
 	for {
-		batch, resp, err := client.MicroDroplets.ListByName(ctx, name, opts)
+		batch, resp, err := client.MicroVMs.ListByName(ctx, name, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +83,7 @@ func listMicroDropletsByName(ctx context.Context, client *godo.Client, name stri
 		}
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return nil, fmt.Errorf("error paging MicroDroplets: %w", err)
+			return nil, fmt.Errorf("error paging MicroVMs: %w", err)
 		}
 		opts.Page = page + 1
 	}
