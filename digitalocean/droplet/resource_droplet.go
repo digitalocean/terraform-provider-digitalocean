@@ -456,9 +456,21 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	// Status can become active before networking is populated. Wait for IPv4 so
 	// dependents (e.g. digitalocean_domain / digitalocean_record using
-	// ipv4_address) do not call the DNS API with an empty address.
-	if err := waitForDropletIPv4(ctx, d, meta, expectPublicIPv4); err != nil {
-		return diag.Errorf("Error waiting for droplet (%s) networking: %s", d.Id(), err)
+	// ipv4_address) do not call the DNS API with an empty address. Skip when the
+	// status wait already observed the expected address.
+	if !dropletHasExpectedIPv4(d, expectPublicIPv4) {
+		if err := waitForDropletIPv4(ctx, d, meta, expectPublicIPv4); err != nil {
+			// Restore intended value so a timed-out create does not leave
+			// ForceNew public_networking=false in state for a public Droplet.
+			d.Set("public_networking", expectPublicIPv4)
+			return diag.Errorf("Error waiting for droplet (%s) networking: %s", d.Id(), err)
+		}
+	}
+
+	// Finalize public_networking for private Droplets (skipped during create
+	// while IsNewResource to avoid the empty-public-IP race above).
+	if !expectPublicIPv4 {
+		d.Set("public_networking", false)
 	}
 
 	// waitForDropletAttribute / waitForDropletIPv4 update state via setDropletAttributes.
@@ -526,7 +538,17 @@ func setDropletAttributes(d *schema.ResourceData, droplet *godo.Droplet) error {
 	d.Set("ipv4_address", publicIPv4)
 	d.Set("ipv4_address_private", FindIPv4AddrByType(droplet, "private"))
 	d.Set("ipv6_address", strings.ToLower(FindIPv6AddrByType(droplet, "public")))
-	d.Set("public_networking", publicIPv4 != "")
+
+	// Avoid writing public_networking=false while a new Droplet is still
+	// provisioning networking. Status can be active before NetworkInfo has a
+	// public IP; persisting false (ForceNew) would recreate on the next apply
+	// if create fails mid-wait. On refresh of an existing resource, empty
+	// public IP means public networking is disabled.
+	if publicIPv4 != "" {
+		d.Set("public_networking", true)
+	} else if !d.IsNewResource() {
+		d.Set("public_networking", false)
+	}
 
 	if features := droplet.Features; features != nil {
 		d.Set("backups", slices.Contains(features, "backups"))
@@ -936,6 +958,17 @@ func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta int
 	return stateConf.WaitForStateContext(ctx)
 }
 
+// dropletHasExpectedIPv4 reports whether state already has the IPv4 address we
+// expect after create (public by default, private when public networking is off).
+func dropletHasExpectedIPv4(d *schema.ResourceData, expectPublicIPv4 bool) bool {
+	if expectPublicIPv4 {
+		v, _ := d.Get("ipv4_address").(string)
+		return v != ""
+	}
+	v, _ := d.Get("ipv4_address_private").(string)
+	return v != ""
+}
+
 // waitForDropletIPv4 waits until the Droplet has a usable IPv4 address.
 // When expectPublicIPv4 is true (default), it waits for a public address; otherwise
 // it waits for a private address (public_networking = false).
@@ -966,18 +999,22 @@ func waitForDropletIPv4(ctx context.Context, d *schema.ResourceData, meta interf
 				return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
 			}
 
+			if FindIPv4AddrByType(droplet, addrType) == "" {
+				// Do not call setDropletAttributes while the IP is still empty:
+				// that would persist public_networking=false during the race.
+				return droplet, "waiting", nil
+			}
+
 			if err := setDropletAttributes(d, droplet); err != nil {
 				return nil, "", err
 			}
 
-			if FindIPv4AddrByType(droplet, addrType) != "" {
-				return droplet, "ready", nil
-			}
-
-			return droplet, "waiting", nil
+			return droplet, "ready", nil
 		},
-		Timeout:        d.Timeout(schema.TimeoutCreate),
-		Delay:          10 * time.Second,
+		// Replica lag after status=active is typically seconds, not the full
+		// create timeout. Check immediately (no Delay) and fail in a few minutes.
+		Timeout:        5 * time.Minute,
+		Delay:          0,
 		MinTimeout:     3 * time.Second,
 		NotFoundChecks: 120,
 	}

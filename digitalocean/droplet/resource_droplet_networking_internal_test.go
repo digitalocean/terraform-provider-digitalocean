@@ -77,3 +77,73 @@ func TestExpectPublicIPv4FromCreateOpts(t *testing.T) {
 		})
 	}
 }
+
+func TestDropletHasExpectedIPv4(t *testing.T) {
+	d := ResourceDigitalOceanDroplet().TestResourceData()
+
+	assert.False(t, dropletHasExpectedIPv4(d, true))
+	assert.False(t, dropletHasExpectedIPv4(d, false))
+
+	d.Set("ipv4_address", "203.0.113.10")
+	assert.True(t, dropletHasExpectedIPv4(d, true))
+	assert.False(t, dropletHasExpectedIPv4(d, false))
+
+	d.Set("ipv4_address", "")
+	d.Set("ipv4_address_private", "10.0.0.5")
+	assert.False(t, dropletHasExpectedIPv4(d, true))
+	assert.True(t, dropletHasExpectedIPv4(d, false))
+}
+
+func TestSetDropletAttributes_PublicNetworkingCreateRace(t *testing.T) {
+	// During create (new resource), empty public IP must not persist
+	// public_networking=false (ForceNew recreate risk).
+	d := ResourceDigitalOceanDroplet().TestResourceData()
+	d.MarkNewResource()
+	d.Set("public_networking", true)
+
+	droplet := &godo.Droplet{
+		ID:     1,
+		Name:   "web",
+		Region: &godo.Region{Slug: "nyc3"},
+		Size:   &godo.Size{Slug: "s-1vcpu-1gb"},
+		Networks: &godo.Networks{
+			V4: []godo.NetworkV4{
+				{Type: "private", IPAddress: "10.0.0.5"},
+			},
+		},
+	}
+
+	assert.NoError(t, setDropletAttributes(d, droplet))
+	assert.Equal(t, true, d.Get("public_networking"))
+	assert.Equal(t, "", d.Get("ipv4_address"))
+	assert.Equal(t, "10.0.0.5", d.Get("ipv4_address_private"))
+
+	droplet.Networks.V4 = append(droplet.Networks.V4, godo.NetworkV4{
+		Type: "public", IPAddress: "203.0.113.10",
+	})
+	assert.NoError(t, setDropletAttributes(d, droplet))
+	assert.Equal(t, true, d.Get("public_networking"))
+	assert.Equal(t, "203.0.113.10", d.Get("ipv4_address"))
+}
+
+func TestSetDropletAttributes_PublicNetworkingRefreshPrivate(t *testing.T) {
+	// On refresh of an existing private Droplet, empty public IP should set false.
+	d := ResourceDigitalOceanDroplet().TestResourceData()
+	d.SetId("1")
+	d.Set("public_networking", true)
+
+	droplet := &godo.Droplet{
+		ID:     1,
+		Name:   "web",
+		Region: &godo.Region{Slug: "nyc3"},
+		Size:   &godo.Size{Slug: "s-1vcpu-1gb"},
+		Networks: &godo.Networks{
+			V4: []godo.NetworkV4{
+				{Type: "private", IPAddress: "10.0.0.5"},
+			},
+		},
+	}
+
+	assert.NoError(t, setDropletAttributes(d, droplet))
+	assert.Equal(t, false, d.Get("public_networking"))
+}
