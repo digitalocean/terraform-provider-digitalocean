@@ -1,4 +1,4 @@
-package microdroplet
+package microvm
 
 import (
 	"context"
@@ -12,13 +12,13 @@ import (
 )
 
 func init() {
-	resource.AddTestSweepers("digitalocean_microdroplet", &resource.Sweeper{
-		Name: "digitalocean_microdroplet",
-		F:    sweepMicroDroplets,
+	resource.AddTestSweepers("digitalocean_microvm", &resource.Sweeper{
+		Name: "digitalocean_microvm",
+		F:    sweepMicroVMs,
 	})
 }
 
-func sweepMicroDroplets(region string) error {
+func sweepMicroVMs(region string) error {
 	meta, err := sweep.SharedConfigForRegion(region)
 	if err != nil {
 		return err
@@ -27,7 +27,7 @@ func sweepMicroDroplets(region string) error {
 
 	opt := &godo.ListOptions{PerPage: 200}
 	for {
-		mds, resp, err := client.MicroDroplets.List(context.Background(), opt)
+		mds, resp, err := client.MicroVMs.List(context.Background(), opt)
 		if err != nil {
 			return err
 		}
@@ -35,8 +35,8 @@ func sweepMicroDroplets(region string) error {
 			if !strings.HasPrefix(m.Name, sweep.TestNamePrefix) {
 				continue
 			}
-			log.Printf("[DEBUG] Destroying MicroDroplet %s (%s)", m.Name, m.ID)
-			if _, err := client.MicroDroplets.Delete(context.Background(), m.ID); err != nil {
+			log.Printf("[DEBUG] Destroying MicroVM %s (%s)", m.Name, m.ID)
+			if _, err := client.MicroVMs.Delete(context.Background(), m.ID); err != nil {
 				return err
 			}
 		}

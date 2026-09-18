@@ -1,4 +1,4 @@
-package microdroplet
+package microvm
 
 import (
 	"context"
@@ -11,20 +11,20 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// DataSourceDigitalOceanMicroDropletCheckpoints returns a plural data source
+// DataSourceDigitalOceanMicroVMCheckpoints returns a plural data source
 // over the sibling checkpoints collection. Optionally filter by the
-// MicroDroplet the checkpoints were captured from.
-func DataSourceDigitalOceanMicroDropletCheckpoints() *schema.Resource {
+// MicroVM the checkpoints were captured from.
+func DataSourceDigitalOceanMicroVMCheckpoints() *schema.Resource {
 	dataListConfig := &datalist.ResourceConfig{
-		RecordSchema:        microDropletCheckpointSchema(),
+		RecordSchema:        microVMCheckpointSchema(),
 		ResultAttributeName: "checkpoints",
-		GetRecords:          getDigitalOceanMicroDropletCheckpoints,
-		FlattenRecord:       flattenMicroDropletCheckpoint,
+		GetRecords:          getDigitalOceanMicroVMCheckpoints,
+		FlattenRecord:       flattenMicroVMCheckpoint,
 		ExtraQuerySchema: map[string]*schema.Schema{
-			"microdroplet_id": {
+			"microvm_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Description:  "Filter checkpoints captured from this MicroDroplet UUID. Omit to list all checkpoints for the team.",
+				Description:  "Filter checkpoints captured from this MicroVM UUID. Omit to list all checkpoints for the team.",
 				ValidateFunc: validation.NoZeroValues,
 			},
 		},
@@ -32,22 +32,22 @@ func DataSourceDigitalOceanMicroDropletCheckpoints() *schema.Resource {
 	return datalist.NewResource(dataListConfig)
 }
 
-func microDropletCheckpointSchema() map[string]*schema.Schema {
+func microVMCheckpointSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:        schema.TypeString,
 			Computed:    true,
 			Description: "Checkpoint ID",
 		},
-		"microdroplet_id": {
+		"microvm_id": {
 			Type:        schema.TypeString,
 			Computed:    true,
-			Description: "ID of the MicroDroplet the checkpoint was captured from",
+			Description: "ID of the MicroVM the checkpoint was captured from",
 		},
-		"microdroplet_name": {
+		"microvm_name": {
 			Type:        schema.TypeString,
 			Computed:    true,
-			Description: "Name of the MicroDroplet the checkpoint was captured from",
+			Description: "Name of the MicroVM the checkpoint was captured from",
 		},
 		"name": {
 			Type:        schema.TypeString,
@@ -82,39 +82,39 @@ func microDropletCheckpointSchema() map[string]*schema.Schema {
 	}
 }
 
-func flattenMicroDropletCheckpoint(rawRecord, _ interface{}, _ map[string]interface{}) (map[string]interface{}, error) {
-	c, ok := rawRecord.(godo.MicroDropletCheckpoint)
+func flattenMicroVMCheckpoint(rawRecord, _ interface{}, _ map[string]interface{}) (map[string]interface{}, error) {
+	c, ok := rawRecord.(godo.MicroVMCheckpoint)
 	if !ok {
 		return nil, fmt.Errorf("unexpected record type %T", rawRecord)
 	}
 	return map[string]interface{}{
-		"id":                c.ID,
-		"microdroplet_id":   c.MicroDropletID,
-		"microdroplet_name": c.MicroDropletName,
-		"name":              c.Name,
-		"region":            c.Region,
-		"status":            string(c.Status),
-		"memory_bytes":      int(c.MemoryBytes),
-		"disk_bytes":        int(c.DiskBytes),
-		"created_at":        c.Created,
+		"id":           c.ID,
+		"microvm_id":   c.MicroVMID,
+		"microvm_name": c.MicroVMName,
+		"name":         c.Name,
+		"region":       c.Region,
+		"status":       string(c.Status),
+		"memory_bytes": int(c.MemoryBytes),
+		"disk_bytes":   int(c.DiskBytes),
+		"created_at":   c.Created,
 	}, nil
 }
 
-func getDigitalOceanMicroDropletCheckpoints(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
+func getDigitalOceanMicroVMCheckpoints(meta interface{}, extra map[string]interface{}) ([]interface{}, error) {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	microdropletID, _ := extra["microdroplet_id"].(string)
+	microvmID, _ := extra["microvm_id"].(string)
 
-	opts := &godo.ListMicroDropletCheckpointsOptions{
-		ListOptions:    godo.ListOptions{Page: 1, PerPage: 200},
-		MicroDropletID: microdropletID,
+	opts := &godo.ListMicroVMCheckpointsOptions{
+		ListOptions: godo.ListOptions{Page: 1, PerPage: 200},
+		MicroVMID:   microvmID,
 	}
 
 	var records []interface{}
 	for {
-		batch, resp, err := client.MicroDroplets.ListCheckpoints(context.Background(), opts)
+		batch, resp, err := client.MicroVMs.ListCheckpoints(context.Background(), opts)
 		if err != nil {
-			return nil, fmt.Errorf("error retrieving MicroDroplet checkpoints: %w", err)
+			return nil, fmt.Errorf("error retrieving MicroVM checkpoints: %w", err)
 		}
 		for _, c := range batch {
 			records = append(records, c)
@@ -124,7 +124,7 @@ func getDigitalOceanMicroDropletCheckpoints(meta interface{}, extra map[string]i
 		}
 		page, err := resp.Links.CurrentPage()
 		if err != nil {
-			return nil, fmt.Errorf("error paging MicroDroplet checkpoints: %w", err)
+			return nil, fmt.Errorf("error paging MicroVM checkpoints: %w", err)
 		}
 		opts.Page = page + 1
 	}

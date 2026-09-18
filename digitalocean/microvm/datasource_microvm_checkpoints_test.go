@@ -1,4 +1,4 @@
-package microdroplet_test
+package microvm_test
 
 import (
 	"fmt"
@@ -9,40 +9,40 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-// TestAccDataSourceDigitalOceanMicroDropletCheckpoints_Basic pauses a fresh
-// MicroDroplet (which triggers checkpoint creation platform-side) and then
-// reads the digitalocean_microdroplet_checkpoints data source. Because
+// TestAccDataSourceDigitalOceanMicroVMCheckpoints_Basic pauses a fresh
+// MicroVM (which triggers checkpoint creation platform-side) and then
+// reads the digitalocean_microvm_checkpoints data source. Because
 // checkpoint creation is asynchronous, we only assert that the datasource
 // returns a well-formed list and that `checkpoints.#` is populated. Callers
 // pausing on production traffic will get a non-zero count once the platform
 // has captured the checkpoint.
-func TestAccDataSourceDigitalOceanMicroDropletCheckpoints_Basic(t *testing.T) {
+func TestAccDataSourceDigitalOceanMicroVMCheckpoints_Basic(t *testing.T) {
 	name := acceptance.RandomTestName()
 
-	pausedConfig := fmt.Sprintf(testAccMicroDropletConfig_State,
-		name, string(godo.MicroDropletStatePaused), testMicroDropletOCIRef)
+	pausedConfig := fmt.Sprintf(testAccMicroVMConfig_State,
+		name, string(godo.MicroVMStatePaused), testMicroVMOCIRef)
 
 	dsConfig := `
-data "digitalocean_microdroplet_checkpoints" "by_id" {
-  microdroplet_id = digitalocean_microdroplet.foobar.id
+data "digitalocean_microvm_checkpoints" "by_id" {
+  microvm_id = digitalocean_microvm.foobar.id
 }`
 
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckMicroDropletDestroy,
+		CheckDestroy:      testAccCheckMicroVMDestroy,
 		Steps: []resource.TestStep{
 			{Config: pausedConfig},
 			{
 				Config: pausedConfig + dsConfig,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_microdroplet_checkpoints.by_id",
+						"data.digitalocean_microvm_checkpoints.by_id",
 						"checkpoints.#",
 					),
 					resource.TestCheckResourceAttrSet(
-						"data.digitalocean_microdroplet_checkpoints.by_id",
-						"microdroplet_id",
+						"data.digitalocean_microvm_checkpoints.by_id",
+						"microvm_id",
 					),
 				),
 			},
