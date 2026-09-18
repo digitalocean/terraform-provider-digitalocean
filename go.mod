@@ -74,4 +74,4 @@ require (
 
 replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
 
-replace github.com/digitalocean/godo => /Users/shubhamrajgupta/dev/digitalocean/godo-sgupta
+replace github.com/digitalocean/godo => github.com/kwadhwa-source/godo v0.0.0-20260916082708-d82daa1336a8
