@@ -50,12 +50,13 @@ func waitForReservedIPAvailability(ctx context.Context, d *schema.ResourceData, 
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	stateConf := &retry.StateChangeConf{
-		Pending:    []string{"not-found"},
-		Target:     []string{"available"},
-		Refresh:    newReservedIPAvailableStateRefreshFunc(client, d.Id()),
-		Timeout:    30 * time.Second,
-		Delay:      1 * time.Second,
-		MinTimeout: 1 * time.Second,
+		Pending:        []string{"not-found"},
+		Target:         []string{"available"},
+		Refresh:        newReservedIPAvailableStateRefreshFunc(client, d.Id()),
+		Timeout:        30 * time.Second,
+		Delay:          0,
+		MinTimeout:     3 * time.Second,
+		NotFoundChecks: 10,
 	}
 
 	_, err := stateConf.WaitForStateContext(ctx)
