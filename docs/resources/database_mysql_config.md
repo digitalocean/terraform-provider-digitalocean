@@ -59,7 +59,7 @@ for additional details on each option.
 * `max_heap_table_size` - (Optional) The maximum size, in bytes, of internal in-memory tables. Also set `tmp_table_size`. Default is `16777216` (16M)
 * `tmp_table_size` - (Optional) The maximum size, in bytes, of internal in-memory tables. Also set `max_heap_table_size`. Default is `16777216` (16M).
 * `slow_query_log` - (Optional) When enabled, captures slow queries. When disabled, also truncates the mysql.slow_log table. Default is false.
-* `long_query_time` - (Optional) The time, in seconds, for a query to take to execute before being captured by `slow_query_logs`. Default is `10` seconds.
+* `long_query_time` - (Optional) The time, in seconds, for a query to take to execute before being captured by `slow_query_log`. `0` logs all queries. Default is `10` seconds.
 * `backup_hour` - (Optional) The hour of day (in UTC) when backup for the service starts. New backup only starts if previous backup has already completed.
 * `backup_minute` - (Optional) The minute of the backup hour when backup for the service starts. New backup only starts if previous backup has already completed.
 * `binlog_retention_period` - (Optional) The minimum amount of time, in seconds, to keep binlog entries before deletion. This may be extended for services that require binlog entries for longer than the default, for example if using the MySQL Debezium Kafka connector.
