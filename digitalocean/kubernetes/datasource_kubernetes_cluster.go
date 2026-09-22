@@ -359,24 +359,43 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 
 func dataSourceDigitalOceanKubernetesClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
+	name := d.Get("name").(string)
 
-	clusters, resp, err := client.Kubernetes.List(context.Background(), &godo.ListOptions{})
-	if err != nil {
-		if resp != nil && resp.StatusCode == 404 {
-			return diag.Errorf("No clusters found")
-		}
-
-		return diag.Errorf("Error listing Kubernetes clusters: %s", err)
+	opts := &godo.ListOptions{
+		Page:    1,
+		PerPage: 200,
 	}
 
-	// select the correct cluster
-	for _, c := range clusters {
-		if c.Name == d.Get("name").(string) {
-			d.SetId(c.ID)
+	for {
+		clusters, resp, err := client.Kubernetes.List(context.Background(), opts)
+		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				return diag.Errorf("No clusters found")
+			}
 
-			return digitaloceanKubernetesClusterRead(client, c, d)
+			return diag.Errorf("Error listing Kubernetes clusters: %s", err)
 		}
+
+		// select the correct cluster
+		for _, c := range clusters {
+			if c.Name == name {
+				d.SetId(c.ID)
+
+				return digitaloceanKubernetesClusterRead(client, c, d)
+			}
+		}
+
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return diag.Errorf("Error listing Kubernetes clusters: %s", err)
+		}
+
+		opts.Page = page + 1
 	}
 
-	return diag.Errorf("Unable to find cluster with name: %s", d.Get("name").(string))
+	return diag.Errorf("Unable to find cluster with name: %s", name)
 }
