@@ -46,19 +46,42 @@ func newReservedIPAvailableStateRefreshFunc(client *godo.Client, ipAddress strin
 	}
 }
 
-func waitForReservedIPAvailability(ctx context.Context, d *schema.ResourceData, meta interface{}) error {
+// waitForReservedIPAvailability polls the reserved IP until it is visible via
+// Get, and returns the resolved object. The Reserved IP API has been observed
+// to flap between 404 and 200 multiple times within a few seconds of a
+// create or assign/unassign action -- a single successful check is not a
+// reliable signal that a *subsequent, separate* Get will also succeed. To
+// avoid reopening that race, callers must use the *godo.ReservedIP returned
+// here directly instead of issuing another Get once this returns
+// successfully.
+func waitForReservedIPAvailability(ctx context.Context, d *schema.ResourceData, meta interface{}) (*godo.ReservedIP, error) {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	stateConf := &retry.StateChangeConf{
-		Pending:        []string{"not-found"},
-		Target:         []string{"available"},
-		Refresh:        newReservedIPAvailableStateRefreshFunc(client, d.Id()),
-		Timeout:        30 * time.Second,
-		Delay:          0,
-		MinTimeout:     3 * time.Second,
-		NotFoundChecks: 10,
+		Pending:    []string{"not-found"},
+		Target:     []string{"available"},
+		Refresh:    newReservedIPAvailableStateRefreshFunc(client, d.Id()),
+		Delay:      0,
+		MinTimeout: 3 * time.Second,
+
+		// Observed against a real account: propagation usually clears in a
+		// few seconds, but occasionally exceeds the previous 30s budget.
+		// Widened to 90s / 30 checks (at the 3s MinTimeout poll interval)
+		// to absorb that tail without masking a genuinely deleted resource
+		// for an unreasonable amount of time.
+		Timeout:        90 * time.Second,
+		NotFoundChecks: 30,
 	}
 
-	_, err := stateConf.WaitForStateContext(ctx)
-	return err
+	result, err := stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	reservedIP, ok := result.(*godo.ReservedIP)
+	if !ok {
+		return nil, fmt.Errorf("unexpected type %T for reserved IP (%s) availability result", result, d.Id())
+	}
+
+	return reservedIP, nil
 }
