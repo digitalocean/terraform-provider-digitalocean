@@ -345,7 +345,10 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-
+			"isolated_workers": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"urn": {
 				Type:     schema.TypeString,
 				Computed: true,

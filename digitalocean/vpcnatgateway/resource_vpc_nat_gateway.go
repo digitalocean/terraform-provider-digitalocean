@@ -90,14 +90,17 @@ func ResourceDigitalOceanVPCNATGateway() *schema.Resource {
 			},
 			"egresses": {
 				Type:        schema.TypeList,
+				Optional:    true,
 				Computed:    true,
-				Description: "List of egresses",
+				MaxItems:    1,
+				Description: "Optional egress configuration. Set public_gateways.ipv4 to assign a BYOIP / reserved IP on create. When omitted, a system-allocated reserved IP is provisioned.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"public_gateways": {
 							Type:        schema.TypeSet,
+							Optional:    true,
 							Computed:    true,
-							Description: "List of public gateway IPs",
+							Description: "Set of public gateway IPs",
 							Elem:        egressPublicGatewaysSchemaResource(),
 						},
 					},
@@ -149,8 +152,9 @@ func egressPublicGatewaysSchemaResource() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"ipv4": {
 				Type:        schema.TypeString,
+				Optional:    true,
 				Computed:    true,
-				Description: "IPv4 address",
+				Description: "IPv4 address. On create, set this to an unassigned BYOIP on the account in the same region. When omitted, a system-allocated reserved IP is provisioned.",
 			},
 		},
 	}
@@ -165,6 +169,9 @@ func resourceDigitalOceanVPCNATGatewayCreate(ctx context.Context, d *schema.Reso
 		Region: d.Get("region").(string),
 		Size:   uint32(d.Get("size").(int)),
 		VPCs:   expandVPCs(d.Get("vpcs").(*schema.Set).List()),
+	}
+	if v, ok := d.GetOk("egresses"); ok {
+		createReq.Egresses = expandEgresses(v.([]interface{}))
 	}
 	if v, ok := d.GetOk("udp_timeout_seconds"); ok {
 		createReq.UDPTimeoutSeconds = uint32(v.(int))
@@ -310,4 +317,41 @@ func expandVPCs(vpcs []interface{}) []*godo.IngressVPC {
 		ingressVPCs = append(ingressVPCs, ingressVPC)
 	}
 	return ingressVPCs
+}
+
+func expandEgresses(egresses []interface{}) *godo.Egresses {
+	if len(egresses) == 0 || egresses[0] == nil {
+		return nil
+	}
+
+	egress := egresses[0].(map[string]interface{})
+	publicGatewaysRaw, ok := egress["public_gateways"]
+	if !ok || publicGatewaysRaw == nil {
+		return nil
+	}
+
+	var publicGateways []interface{}
+	switch v := publicGatewaysRaw.(type) {
+	case *schema.Set:
+		publicGateways = v.List()
+	case []interface{}:
+		publicGateways = v
+	default:
+		return nil
+	}
+
+	gateways := make([]*godo.PublicGateway, 0, len(publicGateways))
+	for _, pg := range publicGateways {
+		gateway := pg.(map[string]interface{})
+		ip, _ := gateway["ipv4"].(string)
+		if ip == "" {
+			continue
+		}
+		gateways = append(gateways, &godo.PublicGateway{IP: ip})
+	}
+	if len(gateways) == 0 {
+		return nil
+	}
+
+	return &godo.Egresses{PublicGateways: gateways}
 }

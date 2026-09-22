@@ -7,6 +7,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/util"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -151,9 +152,11 @@ func ResourceDigitalOceanDatabaseMySQLConfig() *schema.Resource {
 				Computed: true,
 			},
 			"long_query_time": {
-				Type:     schema.TypeFloat,
-				Optional: true,
-				Computed: true,
+				Type:                  schema.TypeFloat,
+				Optional:              true,
+				Computed:              true,
+				DiffSuppressFunc:      util.Float32Precision,
+				DiffSuppressOnRefresh: true,
 			},
 			"backup_hour": {
 				Type:     schema.TypeInt,
@@ -294,7 +297,8 @@ func updateMySQLConfig(ctx context.Context, d *schema.ResourceData, client *godo
 		opts.SlowQueryLog = godo.PtrTo(v.(bool))
 	}
 
-	if v, ok := d.GetOk("long_query_time"); ok {
+	// GetOk treats 0 as unset; 0 is a valid MySQL value (log all queries).
+	if v, ok := d.GetOkExists("long_query_time"); ok {
 		opts.LongQueryTime = godo.PtrTo(float32(v.(float64)))
 	}
 
@@ -356,7 +360,7 @@ func resourceDigitalOceanDatabaseMySQLConfigRead(ctx context.Context, d *schema.
 	d.Set("max_heap_table_size", config.MaxHeapTableSize)
 	d.Set("tmp_table_size", config.TmpTableSize)
 	d.Set("slow_query_log", config.SlowQueryLog)
-	d.Set("long_query_time", config.LongQueryTime)
+	util.SetFloat32Attribute(d, "long_query_time", config.LongQueryTime)
 	d.Set("backup_hour", config.BackupHour)
 	d.Set("backup_minute", config.BackupMinute)
 	d.Set("binlog_retention_period", config.BinlogRetentionPeriod)

@@ -119,6 +119,15 @@ func firewallRuleSchema(prefix string) *schema.Resource {
 				Optional: true,
 			},
 			prefix + "tags": tag.TagsSchema(),
+			"action": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  string(godo.FirewallRuleActionAllow),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(godo.FirewallRuleActionAllow),
+					string(godo.FirewallRuleActionDeny),
+				}, false),
+			},
 		},
 	}
 }
@@ -162,6 +171,7 @@ func expandFirewallInboundRules(rules []interface{}) []godo.InboundRule {
 			Protocol:  rule["protocol"].(string),
 			PortRange: rule["port_range"].(string),
 			Sources:   &src,
+			Action:    godo.FirewallRuleAction(rule["action"].(string)),
 		}
 
 		expandedRules = append(expandedRules, r)
@@ -190,6 +200,7 @@ func expandFirewallOutboundRules(rules []interface{}) []godo.OutboundRule {
 			Protocol:     rule["protocol"].(string),
 			PortRange:    rule["port_range"].(string),
 			Destinations: &dest,
+			Action:       godo.FirewallRuleAction(rule["action"].(string)),
 		}
 
 		expandedRules = append(expandedRules, r)
@@ -247,6 +258,8 @@ func flattenFirewallInboundRules(rules []godo.InboundRule) []interface{} {
 			"protocol": protocol,
 		}
 
+		rawRule["action"] = string(rule.Action)
+
 		// The API returns 0 when the port range was specified as all.
 		// If protocol is `icmp` the API returns 0 for when port was
 		// not specified.
@@ -298,6 +311,8 @@ func flattenFirewallOutboundRules(rules []godo.OutboundRule) []interface{} {
 		rawRule := map[string]interface{}{
 			"protocol": protocol,
 		}
+
+		rawRule["action"] = string(rule.Action)
 
 		// The API returns 0 when the port range was specified as all.
 		// If protocol is `icmp` the API returns 0 for when port was

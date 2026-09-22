@@ -444,6 +444,13 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 					},
 				},
 			},
+
+			"isolated_workers": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -625,6 +632,10 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.CorednsAutoscaler = expandCorednsAutoscalerOpts(corednsAutoscaler.([]interface{}))
 	}
 
+	if isolatedWorkers, ok := d.GetOk("isolated_workers"); ok {
+		opts.IsolatedWorkers = isolatedWorkers.(bool)
+	}
+
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
 	if err != nil {
 		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
@@ -728,6 +739,8 @@ func digitaloceanKubernetesClusterRead(
 	if err := d.Set(corednsAutoscalerField, flattenCorednsAutoscalerOpts(cluster.CorednsAutoscaler)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", corednsAutoscalerField, err)
 	}
+
+	d.Set("isolated_workers", cluster.IsolatedWorkers)
 
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)

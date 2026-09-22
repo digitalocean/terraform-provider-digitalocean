@@ -88,6 +88,28 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 
 Note that a data source is used to supply the version. This is needed to prevent configuration diff whenever a cluster is upgraded.
 
+### Isolated Workers Example
+
+Kubernetes clusters may also be configured to use [isolated worker nodes](https://docs.digitalocean.com/products/kubernetes/concepts/isolated-workers/).
+When enabled, each worker node runs on dedicated hardware. The cluster's VPC must have a NAT gateway attached.
+For example:
+
+```hcl
+resource "digitalocean_kubernetes_cluster" "foo" {
+  name             = "foo"
+  region           = "nyc1"
+  version          = "latest"
+  isolated_workers = true
+  vpc_uuid         = digitalocean_vpc.example.id
+
+  node_pool {
+    name       = "worker-pool"
+    size       = "s-2vcpu-2gb"
+    node_count = 3
+  }
+}
+```
+
 ### Kubernetes Terraform Provider Example
 
 The cluster's kubeconfig is exported as an attribute allowing you to use it with
@@ -158,6 +180,7 @@ The following arguments are supported:
 * `auto_upgrade` - (Optional) A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: true
 * `ha` - (Optional) Enable/disable the high availability control plane for a cluster. Once enabled for a cluster, high availability cannot be disabled. Default: true (for 1.36.0 and later)
+* `isolated_workers` - (Optional) Enable/disable isolated worker nodes for the cluster. When enabled, each worker node runs on dedicated hardware. This can only be set at creation time. The cluster's VPC must have a NAT gateway attached. Default: false
 * `registry_integration` - (optional) Enables or disables the DigitalOcean container registry integration for the cluster. This requires that a container registry has first been created for the account. Default: false
 * `node_pool` - (Required) A block representing the cluster's default node pool. Additional node pools may be added to the cluster using the `digitalocean_kubernetes_node_pool` resource. The following arguments may be specified:
   - `name` - (Required) A name for the node pool.
@@ -216,6 +239,7 @@ In addition to the arguments listed above, the following additional attributes a
 * `created_at` - The date and time when the Kubernetes cluster was created.
 * `updated_at` - The date and time when the Kubernetes cluster was last updated.
 * `auto_upgrade` - A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
+* `isolated_workers` - A boolean value indicating whether the cluster has isolated worker nodes enabled.
 * `kube_config.0` - A representation of the Kubernetes cluster's kubeconfig with the following attributes:
   - `raw_config` - The full contents of the Kubernetes cluster's kubeconfig file.
   - `host` - The URL of the API server on the Kubernetes master node.
