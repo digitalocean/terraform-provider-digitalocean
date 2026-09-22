@@ -299,3 +299,46 @@ resource "digitalocean_volume_attachment" "foobar" {
   volume_id  = digitalocean_volume.%s.id
 }`, vName, vSecondName, dName, activeVolume)
 }
+
+func TestAccDigitalOceanVolumeAttachment_ImportBasic(t *testing.T) {
+	rName := acceptance.RandomTestName()
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanVolumeDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccCheckDigitalOceanVolumeAttachmentConfig_basic(rName, rName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanVolumeAttachmentExists("digitalocean_volume_attachment.foobar"),
+				),
+			},
+			{
+				ResourceName:            "digitalocean_volume_attachment.foobar",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: []string{"id"},
+				ImportStateIdFunc: testAccDigitalOceanVolumeAttachmentImportID(
+					"digitalocean_droplet.foobar",
+					"digitalocean_volume.foobar",
+				),
+			},
+		},
+	})
+}
+
+func testAccDigitalOceanVolumeAttachmentImportID(dropletResource, volumeResource string) resource.ImportStateIdFunc {
+	return func(s *terraform.State) (string, error) {
+		dropletRS, ok := s.RootModule().Resources[dropletResource]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", dropletResource)
+		}
+		volumeRS, ok := s.RootModule().Resources[volumeResource]
+		if !ok {
+			return "", fmt.Errorf("not found: %s", volumeResource)
+		}
+
+		return fmt.Sprintf("%s,%s", dropletRS.Primary.ID, volumeRS.Primary.ID), nil
+	}
+}
