@@ -1,5 +1,25 @@
 # Change Log
 
+## [1.212.0] - 2026-09-22
+
+- #1117 - @sgupta832 - MicroVM URN flip + Exec/ConsoleURL (MDROP-392, MDROP-427)
+
+## [1.211.0] - 2026-09-22
+
+- #1021 - @SSharma-10 - Add OHS endpoints
+
+## [1.210.0] - 2026-09-18
+
+- #1110 - @kwadhwa-source - Mdrop 391/create options sizes
+
+## [1.209.0] - 2026-09-17
+
+- #1107 - @rodrigoea - billing(prepayment): add public config and status client methods
+
+## [1.208.0] - 2026-09-15
+
+- #1105 - @AKatruwar - registry: expose registry UUID and add ListByUUID
+
 ## [1.207.0] - 2026-09-15
 
 - #1090 - @abhishekk-fcb10 - MNFS-794: Add NFS client methods for CSI
