@@ -330,6 +330,32 @@ func flattenP2pOciRegistryPluginOpts(opts *godo.KubernetesP2pOciRegistry) []map[
 	return result
 }
 
+func expandNfsCsiPluginOpts(raw []interface{}) *godo.KubernetesNfsCsiPlugin {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesNfsCsiPlugin{}
+	}
+
+	rawNfsCsiPluginObj := raw[0].(map[string]interface{})
+
+	return &godo.KubernetesNfsCsiPlugin{
+		Enabled: godo.PtrTo(rawNfsCsiPluginObj["enabled"].(bool)),
+	}
+}
+
+func flattenNfsCsiPluginOpts(opts *godo.KubernetesNfsCsiPlugin) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
 func expandAmdGpuDevicePluginOpts(raw []interface{}) *godo.KubernetesAmdGpuDevicePlugin {
 	if len(raw) == 0 || raw[0] == nil {
 		return &godo.KubernetesAmdGpuDevicePlugin{}
