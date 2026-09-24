@@ -202,6 +202,8 @@ The following arguments are supported:
   - `enabled` - (Required) Boolean flag whether the routing-agent should be enabled or not.
 * `p2p_oci_registry_plugin` - (Optional) Block containing options for the Peer-to-peer OCI registry plugin component. If not specified, the p2p-oci-registry-plugin component will not be installed in the cluster.
   - `enabled` - (Required) Boolean flag whether the p2p-oci-registry-plugin should be enabled or not.
+* `nfs_csi_plugin` - (Optional) Block containing options for the NFS CSI driver plugin component. If not specified, the NFS CSI plugin will not be installed in the cluster.
+  - `enabled` - (Required) Boolean flag whether the NFS CSI plugin should be enabled or not.
 * `amd_gpu_device_plugin` - (Optional) Block containing options for the AMD GPU device plugin component. If not specified, the component will be enabled by default for clusters with AMD GPU nodes. Mutually exclusive with `amd_gpu_dra_driver`.
   - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
 * `amd_gpu_device_metrics_exporter_plugin` - (Optional) Block containing options for the AMD GPU device metrics exporter component. If not specified, the component will not be installed in the cluster.
@@ -271,6 +273,8 @@ In addition to the arguments listed above, the following additional attributes a
   - `enabled` - Boolean flag whether the routing-agent is enabled or not.
 * `p2p_oci_registry_plugin` - Block containing options for the p2p_oci_registry_plugin component.
   - `enabled` - Boolean flag whether the p2p_oci_registry_plugin is enabled or not.
+* `nfs_csi_plugin` - Block containing options for the NFS CSI driver plugin component.
+  - `enabled` - Boolean flag whether the NFS CSI plugin is enabled or not.
 * `amd_gpu_device_plugin` - Block containing options for the AMD GPU device plugin component. If not specified, the component will be enabled by default for clusters with AMD GPU nodes.
   - `enabled` - Boolean flag whether the component is enabled or not.
 * `amd_gpu_device_metrics_exporter_plugin` - Block containing options for the AMD GPU device metrics exporter component.
