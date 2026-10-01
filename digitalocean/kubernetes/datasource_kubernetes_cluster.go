@@ -92,6 +92,21 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			nfsCsiPluginField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			amdGpuDevicePluginField: {
 				Type:     schema.TypeList,
 				Computed: true,

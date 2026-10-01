@@ -59,6 +59,7 @@ data "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.expanders.0", "priority"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "routing_agent.0.enabled", "true"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "p2p_oci_registry_plugin.0.enabled", "true"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "nfs_csi_plugin.0.enabled", "true"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_metrics_exporter_plugin.0.enabled", "true"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "nvidia_gpu_dra_driver.0.enabled", "true"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "amd_gpu_dra_driver.0.enabled", "true"),
@@ -109,6 +110,10 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   }
 
   p2p_oci_registry_plugin {
+    enabled = true
+  }
+
+  nfs_csi_plugin {
     enabled = true
   }
 
