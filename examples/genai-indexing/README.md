@@ -1,6 +1,6 @@
-# Gradient AI Indexing APIs Example
+# Agent Platform Indexing APIs Example
 
-This example demonstrates how to use the DigitalOcean Gradient AI Indexing APIs with Terraform.
+This example demonstrates how to use the DigitalOcean Agent Platform Indexing APIs with Terraform.
 
 ## Features
 
@@ -13,7 +13,7 @@ This example shows how to:
 
 ## Prerequisites
 
-- DigitalOcean account with Gradient AI services enabled
+- DigitalOcean account with Agent Platform services enabled
 - Knowledge base UUID
 - Terraform >= 1.0
 
