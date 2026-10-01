@@ -2,6 +2,7 @@ package reservedip
 
 import (
 	"context"
+	"errors"
 	"log"
 	"strings"
 	"time"
@@ -69,6 +70,14 @@ func resourceDigitalOceanReservedIPCreate(ctx context.Context, d *schema.Resourc
 
 	d.SetId(reservedIP.IP)
 
+	if _, err := waitForReservedIPAvailability(ctx, d, meta); err != nil {
+		return diag.Errorf(
+			"Error waiting for reserved IP (%s) to become available: %s",
+			d.Id(),
+			err,
+		)
+	}
+
 	if v, ok := d.GetOk("droplet_id"); ok {
 		if err := waitOnDroplet(ctx, client, v.(int)); err != nil {
 			return diag.Errorf("Error waiting for droplet (%d) to be ready for reserved IP assign: %s", v.(int), err)
@@ -81,7 +90,7 @@ func resourceDigitalOceanReservedIPCreate(ctx context.Context, d *schema.Resourc
 				"Error Assigning reserved IP (%s) to the Droplet: %s", d.Id(), err)
 		}
 
-		_, unassignedErr := waitForReservedIPReady(ctx, d, meta, action.ID, reservedIPActionAssign)
+		_, unassignedErr := waitForReservedIPAction(ctx, d, meta, action.ID, reservedIPActionAssign)
 		if unassignedErr != nil {
 			return diag.Errorf(
 				"Error waiting for reserved IP (%s) to be assigned: %s", d.Id(), unassignedErr)
@@ -107,7 +116,7 @@ func resourceDigitalOceanReservedIPUpdate(ctx context.Context, d *schema.Resourc
 					"Error assigning reserved IP (%s) to the Droplet: %s", d.Id(), err)
 			}
 
-			_, unassignedErr := waitForReservedIPReady(ctx, d, meta, action.ID, reservedIPActionAssign)
+			_, unassignedErr := waitForReservedIPAction(ctx, d, meta, action.ID, reservedIPActionAssign)
 			if unassignedErr != nil {
 				return diag.Errorf(
 					"Error waiting for reserved IP (%s) to be Assigned: %s", d.Id(), unassignedErr)
@@ -120,7 +129,7 @@ func resourceDigitalOceanReservedIPUpdate(ctx context.Context, d *schema.Resourc
 					"Error unassigning reserved IP (%s): %s", d.Id(), err)
 			}
 
-			_, unassignedErr := waitForReservedIPReady(ctx, d, meta, action.ID, reservedIPActionUnassign)
+			_, unassignedErr := waitForReservedIPAction(ctx, d, meta, action.ID, reservedIPActionUnassign)
 			if unassignedErr != nil {
 				return diag.Errorf(
 					"Error waiting for reserved IP (%s) to be Unassigned: %s", d.Id(), unassignedErr)
@@ -132,12 +141,21 @@ func resourceDigitalOceanReservedIPUpdate(ctx context.Context, d *schema.Resourc
 }
 
 func resourceDigitalOceanReservedIPRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*config.CombinedConfig).GodoClient()
-
 	log.Printf("[INFO] Reading the details of the reserved IP %s", d.Id())
-	reservedIP, resp, err := client.ReservedIPs.Get(context.Background(), d.Id())
+
+	// Use the retrying availability check rather than a single raw Get: the
+	// Reserved IP API has been observed to flap between 404 and 200 multiple
+	// times within a few seconds of a create or assign/unassign action, so a
+	// single Get here -- even right after a prior check succeeded elsewhere
+	// -- can still race and clear the ID, producing "Provider produced
+	// inconsistent result after apply". Consuming the object this call
+	// resolves to (instead of issuing a second, separate Get) avoids
+	// reopening that same window.
+	reservedIP, err := waitForReservedIPAvailability(ctx, d, meta)
 	if err != nil {
-		if resp != nil && resp.StatusCode == 404 {
+		var notFoundErr *retry.NotFoundError
+		var timeoutErr *retry.TimeoutError
+		if errors.As(err, &notFoundErr) || (errors.As(err, &timeoutErr) && timeoutErr.LastState == "not-found") {
 			log.Printf("[WARN] Reserved IP (%s) not found", d.Id())
 			d.SetId("")
 			return nil
@@ -171,7 +189,7 @@ func resourceDigitalOceanReservedIPDelete(ctx context.Context, d *schema.Resourc
 					"Error unassigning reserved IP (%s) from the droplet: %s", d.Id(), err)
 			}
 
-			_, unassignedErr := waitForReservedIPReady(ctx, d, meta, action.ID, reservedIPActionUnassign)
+			_, unassignedErr := waitForReservedIPAction(ctx, d, meta, action.ID, reservedIPActionUnassign)
 			if unassignedErr != nil {
 				return diag.Errorf(
 					"Error waiting for reserved IP (%s) to be unassigned: %s", d.Id(), unassignedErr)
@@ -211,7 +229,7 @@ func resourceDigitalOceanReservedIPImport(ctx context.Context, d *schema.Resourc
 	return []*schema.ResourceData{d}, nil
 }
 
-func waitForReservedIPReady(
+func waitForReservedIPAction(
 	ctx context.Context, d *schema.ResourceData, meta interface{}, actionID int, op reservedIPActionOperation) (interface{}, error) {
 	log.Printf(
 		"[INFO] Waiting for reserved IP (%s) action (%d) to complete",
