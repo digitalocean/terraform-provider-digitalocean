@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -35,6 +37,10 @@ func ResourceDigitalOceanVolumeAttachment() *schema.Resource {
 				ForceNew:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
+		},
+
+		Importer: &schema.ResourceImporter{
+			StateContext: resourceDigitalOceanVolumeAttachmentImport,
 		},
 	}
 }
@@ -147,4 +153,26 @@ func resourceDigitalOceanVolumeAttachmentDelete(ctx context.Context, d *schema.R
 	}
 
 	return nil
+}
+
+func resourceDigitalOceanVolumeAttachmentImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), ",")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("expected import ID in the format 'droplet_id,volume_id', got: %q", d.Id())
+	}
+
+	dropletID, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return nil, fmt.Errorf("invalid droplet_id %q: %s", parts[0], err)
+	}
+
+	if err := d.Set("droplet_id", dropletID); err != nil {
+		return nil, err
+	}
+	if err := d.Set("volume_id", parts[1]); err != nil {
+		return nil, err
+	}
+	d.SetId(parts[1])
+
+	return []*schema.ResourceData{d}, nil
 }
