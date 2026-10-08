@@ -93,6 +93,39 @@ func reservedIPActionComplete(reservedIP *godo.ReservedIP, op reservedIPActionOp
 	}
 }
 
+// waitForReservedIPAssignmentState polls the reserved IP until its assignment
+// matches the expected outcome of op. Reads of a reserved IP lag behind
+// completed assign/unassign actions, so a single Get is not reliable.
+func waitForReservedIPAssignmentState(ctx context.Context, client *godo.Client, ipAddress string, op reservedIPActionOperation, dropletID int, timeout time.Duration) error {
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"pending"},
+		Target:  []string{"complete"},
+		Refresh: func() (interface{}, string, error) {
+			reservedIP, resp, err := client.ReservedIPs.Get(ctx, ipAddress)
+			if IsReservedIPNotFound(resp, err) {
+				log.Printf("[DEBUG] Reserved IP (%s) not yet available", ipAddress)
+				return nil, "", nil
+			}
+			if err != nil {
+				return nil, "", fmt.Errorf("Error retrieving reserved IP (%s): %s", ipAddress, err)
+			}
+
+			if reservedIPActionComplete(reservedIP, op, dropletID) {
+				return reservedIP, "complete", nil
+			}
+
+			log.Printf("[DEBUG] Reserved IP (%s) assignment does not yet reflect the expected state", ipAddress)
+			return reservedIP, "pending", nil
+		},
+		Timeout:        timeout,
+		MinTimeout:     3 * time.Second,
+		NotFoundChecks: 30,
+	}
+
+	_, err := stateConf.WaitForStateContext(ctx)
+	return err
+}
+
 func newReservedIPActionStateRefreshFunc(client *godo.Client, ipAddress string, actionID int, op reservedIPActionOperation, dropletID int) retry.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		action, resp, err := client.ReservedIPActions.Get(context.Background(), ipAddress, actionID)
