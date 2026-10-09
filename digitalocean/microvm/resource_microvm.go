@@ -177,6 +177,22 @@ func resourceDigitalOceanMicroVMDelete(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("Error deleting MicroVM: %s", err)
 	}
 
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{
+			string(godo.MicroVMStateRunning),
+			string(godo.MicroVMStatePaused),
+			string(godo.MicroVMStateTerminating),
+		},
+		Target:     []string{string(godo.MicroVMStateTerminated)},
+		Refresh:    microVMDeleteRefreshFunc(ctx, client, d.Id()),
+		Timeout:    d.Timeout(schema.TimeoutDelete),
+		Delay:      3 * time.Second,
+		MinTimeout: 3 * time.Second,
+	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return diag.Errorf("Error waiting for MicroVM (%s) to be deleted: %s", d.Id(), err)
+	}
+
 	log.Printf("[INFO] MicroVM deleted, ID: %s", d.Id())
 	d.SetId("")
 	return nil
@@ -252,6 +268,22 @@ func microVMStateRefreshFunc(ctx context.Context, client *godo.Client, id string
 				reason = "unknown"
 			}
 			return m, string(m.State), fmt.Errorf("MicroVM %s entered failed state: %s", id, reason)
+		}
+		return m, string(m.State), nil
+	}
+}
+
+// microVMDeleteRefreshFunc reports a 404 as "terminated" so the waiter
+// finishes whether the API hides deleted MicroVMs or keeps returning them
+// with that status.
+func microVMDeleteRefreshFunc(ctx context.Context, client *godo.Client, id string) retry.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		m, resp, err := client.MicroVMs.Get(ctx, id)
+		if err != nil {
+			if resp != nil && resp.StatusCode == http.StatusNotFound {
+				return id, string(godo.MicroVMStateTerminated), nil
+			}
+			return nil, "", err
 		}
 		return m, string(m.State), nil
 	}

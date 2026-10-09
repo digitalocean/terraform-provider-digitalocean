@@ -283,6 +283,11 @@ func microVMDataSourceSchema() map[string]*schema.Schema {
 		clone.MinItems = 0
 		base[k] = &clone
 	}
+	base["id"] = &schema.Schema{
+		Type:        schema.TypeString,
+		Computed:    true,
+		Description: "MicroVM ID",
+	}
 	return base
 }
 
