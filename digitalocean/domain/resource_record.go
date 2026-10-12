@@ -249,9 +249,10 @@ func resourceDigitalOceanRecordImport(d *schema.ResourceData, meta interface{}) 
 
 		d.SetId(s[1])
 		d.Set("domain", s[0])
+		return []*schema.ResourceData{d}, nil
 	}
 
-	return []*schema.ResourceData{d}, nil
+	return nil, fmt.Errorf("invalid import block 'id = \"%s\"', required format is 'id = \"<domain>,<record_id>\"'", d.Id())
 }
 
 func resourceDigitalOceanRecordUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
