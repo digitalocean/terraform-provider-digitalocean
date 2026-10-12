@@ -17,6 +17,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+const (
+	reservedIPAssignFallbackTimeout    = 30 * time.Second
+	reservedIPAssignmentVisibleTimeout = 90 * time.Second
+)
+
 func ResourceDigitalOceanReservedIPAssignment() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceDigitalOceanReservedIPAssignmentCreate,
@@ -56,18 +61,30 @@ func resourceDigitalOceanReservedIPAssignmentCreate(ctx context.Context, d *sche
 	log.Printf("[INFO] Assigning the reserved IP (%s) to the Droplet %d", ipAddress, dropletID)
 	action, _, err := client.ReservedIPActions.Assign(context.Background(), ipAddress, dropletID)
 	if err != nil {
-		return diag.Errorf(
-			"Error Assigning reserved IP (%s) to the droplet: %s", ipAddress, err)
+		// Assign is not idempotent and the HTTP client retries 5xx responses, so
+		// a retry may be rejected after an earlier attempt already succeeded.
+		if waitErr := waitForReservedIPAssignmentState(ctx, client, ipAddress, reservedIPActionAssign, dropletID, reservedIPAssignFallbackTimeout); waitErr != nil {
+			return diag.Errorf(
+				"Error Assigning reserved IP (%s) to the droplet: %s", ipAddress, err)
+		}
+		log.Printf("[INFO] Assign request for reserved IP (%s) failed, but it is already assigned to Droplet %d: %s", ipAddress, dropletID, err)
+	} else {
+		_, unassignedErr := waitForReservedIPAssignmentReady(ctx, d, meta, action.ID, reservedIPActionAssign)
+		if unassignedErr != nil {
+			return diag.Errorf(
+				"Error waiting for reserved IP (%s) to be Assigned: %s", ipAddress, unassignedErr)
+		}
+
+		if err := waitForReservedIPAssignmentState(ctx, client, ipAddress, reservedIPActionAssign, dropletID, reservedIPAssignmentVisibleTimeout); err != nil {
+			return diag.Errorf(
+				"Error waiting for reserved IP (%s) assignment to Droplet %d to become visible: %s", ipAddress, dropletID, err)
+		}
 	}
 
-	_, unassignedErr := waitForReservedIPAssignmentReady(ctx, d, meta, action.ID, reservedIPActionAssign)
-	if unassignedErr != nil {
-		return diag.Errorf(
-			"Error waiting for reserved IP (%s) to be Assigned: %s", ipAddress, unassignedErr)
-	}
-
+	// Read is skipped because a fresh Get can still return the previous
+	// assignment and would remove the resource from state.
 	d.SetId(id.PrefixedUniqueId(fmt.Sprintf("%d-%s-", dropletID, ipAddress)))
-	return resourceDigitalOceanReservedIPAssignmentRead(ctx, d, meta)
+	return nil
 }
 
 func resourceDigitalOceanReservedIPAssignmentRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
@@ -102,17 +119,20 @@ func resourceDigitalOceanReservedIPAssignmentDelete(ctx context.Context, d *sche
 		return diag.Errorf("Error retrieving reserved IP: %s", err)
 	}
 
-	if reservedIP.Droplet.ID == dropletID {
+	if reservedIP.Droplet != nil && reservedIP.Droplet.ID == dropletID {
 		log.Printf("[INFO] Unassigning the reserved IP from the Droplet")
 		action, _, err := client.ReservedIPActions.Unassign(context.Background(), ipAddress)
 		if err != nil {
-			return diag.Errorf("Error unassigning reserved IP (%s) from the droplet: %s", ipAddress, err)
-		}
-
-		_, unassignedErr := waitForReservedIPAssignmentReady(ctx, d, meta, action.ID, reservedIPActionUnassign)
-		if unassignedErr != nil {
-			return diag.Errorf(
-				"Error waiting for reserved IP (%s) to be unassigned: %s", ipAddress, unassignedErr)
+			if waitErr := waitForReservedIPAssignmentState(ctx, client, ipAddress, reservedIPActionUnassign, 0, reservedIPAssignFallbackTimeout); waitErr != nil {
+				return diag.Errorf("Error unassigning reserved IP (%s) from the droplet: %s", ipAddress, err)
+			}
+			log.Printf("[INFO] Unassign request for reserved IP (%s) failed, but it is already unassigned: %s", ipAddress, err)
+		} else {
+			_, unassignedErr := waitForReservedIPAssignmentReady(ctx, d, meta, action.ID, reservedIPActionUnassign)
+			if unassignedErr != nil {
+				return diag.Errorf(
+					"Error waiting for reserved IP (%s) to be unassigned: %s", ipAddress, unassignedErr)
+			}
 		}
 	} else {
 		log.Printf("[INFO] reserved IP already unassigned, removing from state.")
