@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	testAppID            = "6a7c6e1e-3b5d-4a8e-9f62-1d0c7b2a9e41"
-	testSecretCiphertext = "EV[1:zqiRIeaaYK/NqctZDYzy6t0pTrtRDeq8:wqGpZRrsKN5nPhWQrS479cfBiXT0WQ==]"
+	testAppID                   = "6a7c6e1e-3b5d-4a8e-9f62-1d0c7b2a9e41"
+	testSecretCiphertext        = "EV[1:zqiRIeaaYK/NqctZDYzy6t0pTrtRDeq8:wqGpZRrsKN5nPhWQrS479cfBiXT0WQ==]"
+	testChangedSecretCiphertext = "EV[1:Y2hhbmdlZG5vbmNlZm9ydGVzdA==:Y2hhbmdlZGNpcGhlcnRleHQ=]"
 )
 
 func TestAppSecretEnvsAreNotPlannedAfterRefresh(t *testing.T) {
@@ -61,6 +62,19 @@ func TestAppRejectedUpdateKeepsSecretEnvRotationPlanned(t *testing.T) {
 	plan := planApp(t, client, refreshedApp(t, client, afterUpdate), rotatedConfig)
 	if changes := plannedChanges(plan, "spec.0.service.0.env"); len(changes) == 0 {
 		t.Errorf("plan has no changes after the rejected update, expected the rotated secret")
+	}
+}
+
+func TestAppSecretEnvChangedOutsideTerraformIsPlanned(t *testing.T) {
+	appConfig := appConfigWithSecretEnvs("v1")
+	initialClient := newFakeAppsAPI(t, appWithEncryptedSecretEnvs(testSecretCiphertext))
+	state := createdApp(t, initialClient, appConfig)
+
+	changedClient := newFakeAppsAPI(t, appWithEncryptedSecretEnvs(testChangedSecretCiphertext))
+	plan := planApp(t, changedClient, refreshedApp(t, changedClient, state), appConfig)
+
+	if changes := plannedChanges(plan, "spec.0.service.0.env"); len(changes) == 0 {
+		t.Errorf("plan has no changes, expected to restore the secret changed outside Terraform")
 	}
 }
 
