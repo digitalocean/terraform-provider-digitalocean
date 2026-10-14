@@ -375,6 +375,12 @@ func appSpecEnvSchema() *schema.Resource {
 				Description: "The value of the environment variable.",
 				Sensitive:   true,
 			},
+			"encrypted_value": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The encrypted value App Platform stores for a SECRET environment variable.",
+				Sensitive:   true,
+			},
 			"scope": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -1948,61 +1954,70 @@ func flattenAppImageSourceSpec(i *godo.ImageSourceSpec) []interface{} {
 	return result
 }
 
-func expandAppEnvs(config []interface{}) []*godo.AppVariableDefinition {
+func expandAppEnvs(config []any) []*godo.AppVariableDefinition {
 	appEnvs := make([]*godo.AppVariableDefinition, 0, len(config))
-
 	for _, rawEnv := range config {
-		env := rawEnv.(map[string]interface{})
+		appEnvs = append(appEnvs, expandAppEnv(rawEnv))
+	}
+	return appEnvs
+}
 
-		e := &godo.AppVariableDefinition{
-			Value: env["value"].(string),
-			Scope: godo.AppVariableScope(env["scope"].(string)),
-			Key:   env["key"].(string),
-			Type:  godo.AppVariableType(env["type"].(string)),
-		}
+func expandAppEnv(rawEnv any) *godo.AppVariableDefinition {
+	env := rawEnv.(map[string]any)
 
-		appEnvs = append(appEnvs, e)
+	value := env["value"].(string)
+	if encryptedValue, _ := env["encrypted_value"].(string); encryptedValue != "" {
+		value = encryptedValue
 	}
 
-	return appEnvs
+	return &godo.AppVariableDefinition{
+		Value: value,
+		Scope: godo.AppVariableScope(env["scope"].(string)),
+		Key:   env["key"].(string),
+		Type:  godo.AppVariableType(env["type"].(string)),
+	}
 }
 
 func flattenAppEnvs(appEnvs []*godo.AppVariableDefinition, tracked []any) *schema.Set {
 	result := schema.NewSet(schema.HashResource(appSpecEnvSchema()), []any{})
 
 	for _, env := range appEnvs {
+		value, encryptedValue := appEnvStateValues(env, tracked)
 		result.Add(map[string]any{
-			"key":   env.Key,
-			"value": appEnvValueForState(env, tracked),
-			"scope": string(env.Scope),
-			"type":  string(env.Type),
+			"key":             env.Key,
+			"value":           value,
+			"encrypted_value": encryptedValue,
+			"scope":           string(env.Scope),
+			"type":            string(env.Type),
 		})
 	}
 
 	return result
 }
 
-func appEnvValueForState(env *godo.AppVariableDefinition, tracked []any) string {
+func appEnvStateValues(env *godo.AppVariableDefinition, tracked []any) (string, string) {
 	if env.Type != godo.AppVariableType_Secret || !isEncryptedAppValue(env.Value) {
-		return env.Value
+		return env.Value, ""
 	}
 
-	value, ok := trackedAppEnvValue(tracked, env.Key, string(env.Scope))
-	if !ok || isEncryptedAppValue(value) {
-		return env.Value
+	trackedEnv, ok := trackedAppEnv(tracked, env.Key, string(env.Scope))
+	trackedValue, _ := trackedEnv["value"].(string)
+	trackedCiphertext, _ := trackedEnv["encrypted_value"].(string)
+	changedOutsideTerraform := trackedCiphertext != "" && trackedCiphertext != env.Value
+	if !ok || isEncryptedAppValue(trackedValue) || changedOutsideTerraform {
+		return env.Value, env.Value
 	}
-	return value
+	return trackedValue, env.Value
 }
 
-func trackedAppEnvValue(tracked []any, key, scope string) (string, bool) {
+func trackedAppEnv(tracked []any, key, scope string) (map[string]any, bool) {
 	for _, raw := range tracked {
 		env, ok := raw.(map[string]any)
 		if ok && env["key"] == key && env["scope"] == scope {
-			value, ok := env["value"].(string)
-			return value, ok
+			return env, true
 		}
 	}
-	return "", false
+	return nil, false
 }
 
 func isEncryptedAppValue(value string) bool {
