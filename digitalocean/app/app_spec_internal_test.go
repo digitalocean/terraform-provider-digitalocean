@@ -7,8 +7,6 @@ import (
 )
 
 func TestFlattenAppEnvs(t *testing.T) {
-	const otherCiphertext = "EV[1:b2xkZXJub25jZWZvcnRlc3Rpbmc=:b2xkZXJjaXBoZXJ0ZXh0]"
-
 	secret := func(value string) *godo.AppVariableDefinition {
 		return &godo.AppVariableDefinition{
 			Key:   "TOKEN",
@@ -27,10 +25,11 @@ func TestFlattenAppEnvs(t *testing.T) {
 	}
 
 	cases := []struct {
-		name    string
-		env     *godo.AppVariableDefinition
-		tracked []any
-		want    string
+		name          string
+		env           *godo.AppVariableDefinition
+		tracked       []any
+		want          string
+		wantEncrypted string
 	}{
 		{
 			name: "general value is stored as returned, even when it looks encrypted",
@@ -44,21 +43,31 @@ func TestFlattenAppEnvs(t *testing.T) {
 			want:    testSecretCiphertext,
 		},
 		{
-			name:    "encrypted secret keeps the tracked plaintext",
-			env:     secret(testSecretCiphertext),
-			tracked: []any{tracked("TOKEN", "tracked-plaintext", "RUN_TIME")},
-			want:    "tracked-plaintext",
+			name:          "encrypted secret keeps the tracked plaintext",
+			env:           secret(testSecretCiphertext),
+			tracked:       []any{tracked("TOKEN", "tracked-plaintext", "RUN_TIME")},
+			want:          "tracked-plaintext",
+			wantEncrypted: testSecretCiphertext,
 		},
 		{
-			name: "encrypted secret with nothing tracked keeps the ciphertext",
-			env:  secret(testSecretCiphertext),
-			want: testSecretCiphertext,
+			name:          "encrypted secret keeps tracked plaintext that starts with EV",
+			env:           secret(testSecretCiphertext),
+			tracked:       []any{tracked("TOKEN", "EVENTS-plaintext", "RUN_TIME")},
+			want:          "EVENTS-plaintext",
+			wantEncrypted: testSecretCiphertext,
 		},
 		{
-			name:    "encrypted secret tracked as ciphertext keeps the ciphertext returned",
-			env:     secret(testSecretCiphertext),
-			tracked: []any{tracked("TOKEN", otherCiphertext, "RUN_TIME")},
-			want:    testSecretCiphertext,
+			name:          "encrypted secret with nothing tracked keeps the ciphertext",
+			env:           secret(testSecretCiphertext),
+			want:          testSecretCiphertext,
+			wantEncrypted: testSecretCiphertext,
+		},
+		{
+			name:          "encrypted secret tracked as ciphertext keeps the ciphertext returned",
+			env:           secret(testSecretCiphertext),
+			tracked:       []any{tracked("TOKEN", testChangedSecretCiphertext, "RUN_TIME")},
+			want:          testSecretCiphertext,
+			wantEncrypted: testSecretCiphertext,
 		},
 		{
 			name: "encrypted secret keeps the plaintext tracked under its own scope",
@@ -67,13 +76,15 @@ func TestFlattenAppEnvs(t *testing.T) {
 				tracked("TOKEN", "build-plaintext", "BUILD_TIME"),
 				tracked("TOKEN", "run-plaintext", "RUN_TIME"),
 			},
-			want: "run-plaintext",
+			want:          "run-plaintext",
+			wantEncrypted: testSecretCiphertext,
 		},
 		{
-			name:    "encrypted secret tracked only under another key keeps the ciphertext",
-			env:     secret(testSecretCiphertext),
-			tracked: []any{tracked("OTHER_TOKEN", "tracked-plaintext", "RUN_TIME")},
-			want:    testSecretCiphertext,
+			name:          "encrypted secret tracked only under another key keeps the ciphertext",
+			env:           secret(testSecretCiphertext),
+			tracked:       []any{tracked("OTHER_TOKEN", "tracked-plaintext", "RUN_TIME")},
+			want:          testSecretCiphertext,
+			wantEncrypted: testSecretCiphertext,
 		},
 		{
 			name:    "secret returned unencrypted is stored as returned",
@@ -89,7 +100,44 @@ func TestFlattenAppEnvs(t *testing.T) {
 			if len(envs) != 1 {
 				t.Fatalf("flattened %d env vars, expected 1", len(envs))
 			}
-			if value := envs[0].(map[string]any)["value"]; value != tc.want {
+			env := envs[0].(map[string]any)
+			if value := env["value"]; value != tc.want {
+				t.Errorf("value = %q, expected %q", value, tc.want)
+			}
+			if encryptedValue := env["encrypted_value"]; encryptedValue != tc.wantEncrypted {
+				t.Errorf("encrypted_value = %q, expected %q", encryptedValue, tc.wantEncrypted)
+			}
+		})
+	}
+}
+
+func TestExpandAppEnvs(t *testing.T) {
+	cases := []struct {
+		name           string
+		encryptedValue string
+		want           string
+	}{
+		{
+			name:           "unchanged secret resubmits the ciphertext App Platform holds",
+			encryptedValue: testSecretCiphertext,
+			want:           testSecretCiphertext,
+		},
+		{
+			name: "new or rotated secret is sent as configured",
+			want: "configured-plaintext",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			envs := expandAppEnvs([]any{map[string]any{
+				"key":             "TOKEN",
+				"value":           "configured-plaintext",
+				"encrypted_value": tc.encryptedValue,
+				"scope":           "RUN_TIME",
+				"type":            "SECRET",
+			}})
+			if value := envs[0].Value; value != tc.want {
 				t.Errorf("value = %q, expected %q", value, tc.want)
 			}
 		})
