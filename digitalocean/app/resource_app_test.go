@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -526,43 +528,47 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 	  }
 `
 
+	secretEnv := `
+	  env {
+		key   = "COMPONENT_SECRET"
+		value = "component-secret-1"
+		scope = "RUN_TIME"
+		type  = "SECRET"
+	  }
+`
+
+	rotatedSecretEnv := `
+	  env {
+		key   = "COMPONENT_SECRET"
+		value = "component-secret-2"
+		scope = "RUN_TIME"
+		type  = "SECRET"
+	  }
+`
+
+	appSecretEnv := `
+	  env {
+		key   = "APP_SECRET"
+		value = "app-secret-1"
+		type  = "SECRET"
+	  }
+`
+
+	rotatedAppSecretEnv := `
+	  env {
+		key   = "APP_SECRET"
+		value = "app-secret-2"
+		type  = "SECRET"
+	  }
+`
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
 		Providers:    acceptance.TestAccProviders,
 		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, oneEnv, oneAppEnv),
-				Check: resource.ComposeTestCheckFunc(
-					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.name", appName),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(
-						"digitalocean_app.foobar",
-						"spec.0.service.0.env.*",
-						map[string]string{
-							"key":   "COMPONENT_FOO",
-							"value": "bar",
-							"scope": "RUN_AND_BUILD_TIME",
-						},
-					),
-					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.env.#", "1"),
-					resource.TestCheckTypeSetElemNestedAttrs(
-						"digitalocean_app.foobar",
-						"spec.0.env.*",
-						map[string]string{
-							"key":   "APP_FOO",
-							"value": "bar",
-							"scope": "RUN_AND_BUILD_TIME",
-						},
-					),
-				),
-			},
-			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, twoEnvs, twoAppEnvs),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, oneEnv+secretEnv, oneAppEnv+appSecretEnv),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
@@ -582,13 +588,76 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 						"digitalocean_app.foobar",
 						"spec.0.service.0.env.*",
 						map[string]string{
+							"key":   "COMPONENT_SECRET",
+							"value": "component-secret-1",
+							"scope": "RUN_TIME",
+							"type":  "SECRET",
+						},
+					),
+					testAccCheckDigitalOceanAppEnvEncrypted(&app, "COMPONENT_SECRET"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.env.#", "2"),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_app.foobar",
+						"spec.0.env.*",
+						map[string]string{
+							"key":   "APP_FOO",
+							"value": "bar",
+							"scope": "RUN_AND_BUILD_TIME",
+						},
+					),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_app.foobar",
+						"spec.0.env.*",
+						map[string]string{
+							"key":   "APP_SECRET",
+							"value": "app-secret-1",
+							"scope": "RUN_AND_BUILD_TIME",
+							"type":  "SECRET",
+						},
+					),
+					testAccCheckDigitalOceanAppEnvEncrypted(&app, "APP_SECRET"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, twoEnvs+secretEnv, twoAppEnvs+appSecretEnv),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.env.#", "3"),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_app.foobar",
+						"spec.0.service.0.env.*",
+						map[string]string{
+							"key":   "COMPONENT_FOO",
+							"value": "bar",
+							"scope": "RUN_AND_BUILD_TIME",
+						},
+					),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_app.foobar",
+						"spec.0.service.0.env.*",
+						map[string]string{
 							"key":   "COMPONENT_FIZZ",
 							"value": "pop",
 							"scope": "BUILD_TIME",
 						},
 					),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_app.foobar",
+						"spec.0.service.0.env.*",
+						map[string]string{
+							"key":   "COMPONENT_SECRET",
+							"value": "component-secret-1",
+							"scope": "RUN_TIME",
+							"type":  "SECRET",
+						},
+					),
+					testAccCheckDigitalOceanAppEnvEncrypted(&app, "COMPONENT_SECRET"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.env.#", "2"),
+						"digitalocean_app.foobar", "spec.0.env.#", "3"),
 					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_app.foobar",
 						"spec.0.env.*",
@@ -607,16 +676,27 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 							"scope": "BUILD_TIME",
 						},
 					),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_app.foobar",
+						"spec.0.env.*",
+						map[string]string{
+							"key":   "APP_SECRET",
+							"value": "app-secret-1",
+							"scope": "RUN_AND_BUILD_TIME",
+							"type":  "SECRET",
+						},
+					),
+					testAccCheckDigitalOceanAppEnvEncrypted(&app, "APP_SECRET"),
 				),
 			},
 			{
-				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, oneEnvUpdated, oneAppEnvUpdated),
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_Envs, appName, oneEnvUpdated+rotatedSecretEnv, oneAppEnvUpdated+rotatedAppSecretEnv),
 				Check: resource.ComposeTestCheckFunc(
 					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.name", appName),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.service.0.env.#", "1"),
+						"digitalocean_app.foobar", "spec.0.service.0.env.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_app.foobar",
 						"spec.0.service.0.env.*",
@@ -626,8 +706,19 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 							"scope": "RUN_TIME",
 						},
 					),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_app.foobar",
+						"spec.0.service.0.env.*",
+						map[string]string{
+							"key":   "COMPONENT_SECRET",
+							"value": "component-secret-2",
+							"scope": "RUN_TIME",
+							"type":  "SECRET",
+						},
+					),
+					testAccCheckDigitalOceanAppEnvEncrypted(&app, "COMPONENT_SECRET"),
 					resource.TestCheckResourceAttr(
-						"digitalocean_app.foobar", "spec.0.env.#", "1"),
+						"digitalocean_app.foobar", "spec.0.env.#", "2"),
 					resource.TestCheckTypeSetElemNestedAttrs(
 						"digitalocean_app.foobar",
 						"spec.0.env.*",
@@ -637,6 +728,17 @@ func TestAccDigitalOceanApp_Envs(t *testing.T) {
 							"scope": "RUN_TIME",
 						},
 					),
+					resource.TestCheckTypeSetElemNestedAttrs(
+						"digitalocean_app.foobar",
+						"spec.0.env.*",
+						map[string]string{
+							"key":   "APP_SECRET",
+							"value": "app-secret-2",
+							"scope": "RUN_AND_BUILD_TIME",
+							"type":  "SECRET",
+						},
+					),
+					testAccCheckDigitalOceanAppEnvEncrypted(&app, "APP_SECRET"),
 				),
 			},
 		},
@@ -1094,6 +1196,24 @@ func testAccCheckDigitalOceanAppExists(n string, app *godo.App) resource.TestChe
 
 		*app = *foundApp
 
+		return nil
+	}
+}
+
+func testAccCheckDigitalOceanAppEnvEncrypted(app *godo.App, key string) resource.TestCheckFunc {
+	return func(*terraform.State) error {
+		envs := slices.Clone(app.Spec.Envs)
+		for _, service := range app.Spec.Services {
+			envs = append(envs, service.Envs...)
+		}
+
+		i := slices.IndexFunc(envs, func(env *godo.AppVariableDefinition) bool { return env.Key == key })
+		if i < 0 {
+			return fmt.Errorf("%s not found in the app spec", key)
+		}
+		if !strings.HasPrefix(envs[i].Value, "EV[") {
+			return fmt.Errorf("App Platform holds %s unencrypted, expected an EV[...] value", key)
+		}
 		return nil
 	}
 }
