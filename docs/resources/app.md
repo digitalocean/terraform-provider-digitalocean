@@ -284,6 +284,9 @@ The following arguments are supported:
   - `value` - The value of the environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+
+~> **Note:** App Platform encrypts `SECRET` environment variable values and only returns them encrypted, so for every `env` block Terraform keeps the configured `value` in state, where it is stored in plain text (see [Sensitive Data in State](https://developer.hashicorp.com/terraform/language/state/sensitive-data)). Changes made to a `SECRET` value outside of Terraform are not detected; the next update to the app's spec sends the configured value again. The first plan after upgrading from an earlier provider version, or after importing an app, shows an update for each `SECRET` value.
+
 * `alert` - Describes an alert policy for the app.
   - `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_CANCELLED`, `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DEPLOYMENT_STARTED`, `DOMAIN_FAILED`, `DOMAIN_LIVE`, `AUTOSCALE_FAILED`, or `AUTOSCALE_SUCCEEDED`.
   - `disabled` - Determines whether the alert is disabled (default: `false`).
@@ -702,3 +705,5 @@ An app can be imported using its `id`, e.g.
 ```
 terraform import digitalocean_app.myapp fb06ad00-351f-45c8-b5eb-13523c438661
 ```
+
+`SECRET` environment variable values are imported in their encrypted form, so the first plan after an import shows an update for each of them.
