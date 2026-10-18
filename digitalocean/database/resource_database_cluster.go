@@ -183,6 +183,12 @@ func ResourceDigitalOceanDatabaseCluster() *schema.Resource {
 				Computed: true,
 			},
 
+			"export_credentials": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"uri": {
 				Type:      schema.TypeString,
 				Computed:  true,
@@ -389,7 +395,7 @@ func resourceDigitalOceanDatabaseClusterCreate(ctx context.Context, d *schema.Re
 		return diag.Errorf("Error creating database cluster: %s", err)
 	}
 
-	err = setDatabaseConnectionInfo(database, d)
+	err = setDatabaseConnectionInfo(database, d, d.Get("export_credentials").(bool))
 	if err != nil {
 		return diag.Errorf("Error setting connection info for database cluster: %s", err)
 	}
@@ -624,7 +630,7 @@ func resourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Reso
 	}
 
 	// Computed values
-	err = setDatabaseConnectionInfo(database, d)
+	err = setDatabaseConnectionInfo(database, d, d.Get("export_credentials").(bool))
 	if err != nil {
 		return diag.Errorf("Error setting connection info for database cluster: %s", err)
 	}
@@ -778,28 +784,33 @@ func flattenMaintWindowOpts(opts godo.DatabaseMaintenanceWindow) []map[string]in
 	return result
 }
 
-func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData) error {
+func setDatabaseConnectionInfo(database *godo.Database, d *schema.ResourceData, exportCredentials bool) error {
 	if database.Connection != nil {
 		d.Set("host", database.Connection.Host)
 		d.Set("port", database.Connection.Port)
+		d.Set("database", database.Connection.Database)
+		d.Set("user", database.Connection.User)
 
-		uri, err := buildDBConnectionURI(database.Connection, d)
+		if exportCredentials {
+			if database.Connection.Password != "" {
+				d.Set("password", database.Connection.Password)
+			}
+		} else {
+			d.Set("password", "")
+		}
+
+		uri, err := buildDBConnectionURIWithOptions(database.Connection, d, exportCredentials)
 		if err != nil {
 			return err
 		}
 
 		d.Set("uri", uri)
-		d.Set("database", database.Connection.Database)
-		d.Set("user", database.Connection.User)
-		if database.Connection.Password != "" {
-			d.Set("password", database.Connection.Password)
-		}
 	}
 
 	if database.PrivateConnection != nil {
 		d.Set("private_host", database.PrivateConnection.Host)
 
-		privateUri, err := buildDBPrivateURI(database.PrivateConnection, d)
+		privateUri, err := buildDBConnectionURIWithOptions(database.PrivateConnection, d, exportCredentials)
 		if err != nil {
 			return err
 		}
@@ -849,18 +860,25 @@ func setMetricsEndpoints(database *godo.Database, d *schema.ResourceData) error 
 // switches to using a read-only token. All database engines redact the password
 // in that case
 func buildDBConnectionURI(conn *godo.DatabaseConnection, d *schema.ResourceData) (string, error) {
+	return buildDBConnectionURIWithOptions(conn, d, true)
+}
+
+func buildDBConnectionURIWithOptions(conn *godo.DatabaseConnection, d *schema.ResourceData, includeCredentials bool) (string, error) {
 	if d.Get("engine") == kafkaDBEngineSlug {
 		return net.JoinHostPort(conn.Host, strconv.Itoa(conn.Port)), nil
 	}
 
-	password := d.Get("password")
 	uri, err := url.Parse(conn.URI)
 	if err != nil {
 		return "", err
 	}
 
-	userInfo := url.UserPassword(conn.User, password.(string))
-	uri.User = userInfo
+	if includeCredentials {
+		password := d.Get("password")
+		uri.User = url.UserPassword(conn.User, password.(string))
+	} else {
+		uri.User = nil
+	}
 
 	return uri.String(), nil
 }

@@ -131,6 +131,7 @@ The following arguments are supported:
 * `maintenance_window` - (Optional) Defines when the automatic maintenance should be performed for the database cluster.
 * `storage_size_mib` - (Optional) Defines the disk size, in MiB, allocated to the cluster. This can be adjusted on MySQL and PostreSQL clusters based on predefined ranges for each slug/droplet size.
 * `storage_autoscale` - (Optional) Storage autoscaling configuration for the database cluster.
+* `export_credentials` - (Optional) When `true` (the default), export `password` and credentialed `uri`/`private_uri` values into Terraform state. Set to `false` to omit `password` and strip username/password from `uri` and `private_uri`. The `digitalocean_database_cluster` data source always exports credentials. For MongoDB, keep this enabled at create time if you need the password in state; the API only returns it on the initial create response.
 
 `storage_autoscale` supports the following:
 
@@ -161,11 +162,11 @@ In addition to the above arguments, the following attributes are exported:
 * `host` - Database cluster's hostname.
 * `private_host` - Same as `host`, but only accessible from resources within the account and in the same region.
 * `port` - Network port that the database cluster is listening on.
-* `uri` - The full URI for connecting to the database cluster.
+* `uri` - The full URI for connecting to the database cluster. When `export_credentials` is `false`, username and password are omitted from the URI.
 * `private_uri` - Same as `uri`, but only accessible from resources within the account and in the same region.
 * `database` - Name of the cluster's default database.
 * `user` - Username for the cluster's default user.
-* `password` - Password for the cluster's default user.
+* `password` - Password for the cluster's default user. Not exported when `export_credentials` is `false`.
 * `metrics_endpoints` - A list of metrics endpoints for the database cluster, providing URLs to access Prometheus-compatible metrics.
 
 OpenSearch clusters will have the following additional attributes with connection
