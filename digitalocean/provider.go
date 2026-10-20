@@ -229,6 +229,7 @@ func Provider() *schema.Provider {
 			"digitalocean_loadbalancer":                                   loadbalancer.ResourceDigitalOceanLoadbalancer(),
 			"digitalocean_microvm":                                        microvm.ResourceDigitalOceanMicroVM(),
 			"digitalocean_microvm_checkpoint":                             microvm.ResourceDigitalOceanMicroVMCheckpoint(),
+			"digitalocean_microvm_ingress":                                microvm.ResourceDigitalOceanMicroVMIngress(),
 			"digitalocean_monitor_alert":                                  monitoring.ResourceDigitalOceanMonitorAlert(),
 			"digitalocean_project":                                        project.ResourceDigitalOceanProject(),
 			"digitalocean_project_resources":                              project.ResourceDigitalOceanProjectResources(),

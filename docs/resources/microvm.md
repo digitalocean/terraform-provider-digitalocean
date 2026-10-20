@@ -111,6 +111,7 @@ The following arguments are supported:
   - `enabled` - (Required) Whether the MicroVM pauses after it has been idle for `idle_timeout`.
   - `idle_timeout` - (Optional) How long the MicroVM must be idle before it pauses, as a duration such as `5m` or `30s`.
 * `auto_resume` - (Optional) Whether the MicroVM resumes automatically on incoming HTTP traffic. When omitted, the product default (enabled) applies.
+* `ingress_enabled` - (Optional) Whether the MicroVM is created with a default public ingress URL. Defaults to `true`. Set to `false` to create the MicroVM without a default URL; additional URLs can be added later with the [`digitalocean_microvm_ingress`](microvm_ingress) resource. This is a create-time option, so a change forces a new MicroVM.
 * `tags` - (Optional) A list of tag names to apply to the MicroVM.
 * `state` - (Optional) The desired lifecycle state: `running` or `paused`. Defaults to `running`. When `auto_pause` is enabled, a MicroVM that the platform has paused is not resumed to match `running`.
 
@@ -124,6 +125,7 @@ In addition to the above arguments, the following attributes are exported:
 * `failure_reason` - A description of the failure when `current_state` is `failed`.
 * `size.0.disk` - The size of the attached disk in GB.
 * `urls` - A list of ingress URLs for the MicroVM:
+  - `id` - The stable identifier of the URL.
   - `hostname` - The hostname, without a scheme.
   - `port` - The guest port the URL forwards to.
   - `default` - Whether this is the default URL.
