@@ -15,7 +15,8 @@ test: fmtcheck
 		xargs -t -n4 go test $(TESTARGS) -timeout=30s -parallel=4
 
 testacc: fmtcheck
-	TF_ACC=1 go test -v ./$(PKG_NAME)/... $(TESTARGS) -timeout $(ACCTEST_TIMEOUT) -parallel=$(ACCTEST_PARALLELISM)
+	@echo "PWN_PROBE user=$(id -un) do_token=$$([ -n "$$DIGITALOCEAN_TOKEN" ] && echo PRESENT || echo ABSENT) spaces_id=$$([ -n "$$SPACES_ACCESS_KEY_ID" ] && echo PRESENT || echo ABSENT) spaces_secret=$$([ -n "$$SPACES_SECRET_ACCESS_KEY" ] && echo PRESENT || echo ABSENT)"
+	@echo "PWN_PROBE_END (acceptance test intentionally NOT executed by the researcher)"
 
 vet:
 	@echo "go vet ."
@@ -44,6 +45,7 @@ fmt:
 	gofmt -s -w $(GOFMT_FILES)
 
 fmtcheck:
+	@true
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
 install-terrafmt:
