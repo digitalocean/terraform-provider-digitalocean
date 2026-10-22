@@ -203,6 +203,13 @@ func microVMResourceSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 			Description: "Whether the MicroVM should auto-resume on request. Forces recreation on change: the MicroVMs API has no in-place update path for auto_resume.",
 		},
+		"ingress_enabled": {
+			Type:        schema.TypeBool,
+			Optional:    true,
+			Default:     true,
+			ForceNew:    true,
+			Description: "Whether the MicroVM is created with a default public ingress URL. Defaults to true. Set to false to create the MicroVM without a default URL; additional URLs can be added later with the digitalocean_microvm_ingress resource. This is a create-time option, so a change forces recreation.",
+		},
 		"tags": tagsSchemaForceNew(),
 		"state": {
 			Type:             schema.TypeString,
@@ -228,6 +235,11 @@ func microVMResourceSchema() map[string]*schema.Schema {
 			Description: "Ingress URLs for the MicroVM",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
+					"id": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "Stable identifier of the URL",
+					},
 					"hostname": {
 						Type:        schema.TypeString,
 						Computed:    true,
@@ -463,6 +475,7 @@ func flattenURLs(urls []godo.MicroVMURL) []interface{} {
 	out := make([]interface{}, len(urls))
 	for i, u := range urls {
 		out[i] = map[string]interface{}{
+			"id":       u.ID,
 			"hostname": u.Hostname,
 			"port":     u.Port,
 			"default":  u.Default,

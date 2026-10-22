@@ -87,6 +87,10 @@ func resourceDigitalOceanMicroVMCreate(ctx context.Context, d *schema.ResourceDa
 	if v, ok := d.GetOkExists("auto_resume"); ok {
 		req.AutoResume = godo.PtrTo(v.(bool))
 	}
+	// ingress_enabled is a create-time opt-out (default true). Send it
+	// explicitly so `ingress_enabled = false` creates the MicroVM without a
+	// default URL; omitting it keeps the API default (a default URL).
+	req.Ingress = godo.PtrTo(d.Get("ingress_enabled").(bool))
 	if v, ok := d.GetOk("tags"); ok {
 		req.Tags = tag.ExpandTags(v.(*schema.Set).List())
 	}
