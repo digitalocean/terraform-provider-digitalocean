@@ -263,6 +263,13 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 
 			"kube_config": kubernetesConfigSchema(),
 
+			"skip_credentials": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Skip fetching Kubernetes credentials and leave kube_config empty.",
+			},
+
 			"auto_upgrade": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -799,6 +806,13 @@ func digitaloceanKubernetesClusterRead(
 	}
 	if !foundDefaultNodePool {
 		log.Printf("[WARN] No default node pool was found. The default node pool must have the `%s` tag if created with Terraform.", DigitaloceanKubernetesDefaultNodePoolTag)
+	}
+
+	if d.Get("skip_credentials").(bool) {
+		if err := d.Set("kube_config", []interface{}{}); err != nil {
+			return diag.FromErr(err)
+		}
+		return nil
 	}
 
 	// fetch cluster credentials and update the resource if the credentials are expired.
