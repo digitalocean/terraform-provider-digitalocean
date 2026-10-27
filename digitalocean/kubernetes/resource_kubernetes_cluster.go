@@ -469,9 +469,10 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			"gpu_operator_ready": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ConflictsWith: []string{nvidiaGpuDraDriverField, amdGpuDraDriverField, nvidiaGpuDevicePluginField, amdGpuDevicePluginField},
 			},
 		},
 
