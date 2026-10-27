@@ -1165,23 +1165,6 @@ func TestAccDigitalOceanKubernetesCluster_AmdGpuDraDriverEnabled(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanKubernetesCluster_NvidiaGpuDraConflictsWithDevicePlugin(t *testing.T) {
-	rName := acceptance.RandomTestName()
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
-		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config:      testAccDigitalOceanKubernetesConfigNvidiaGpuDraConflictsWithDevicePlugin(testClusterVersionPrevious, rName),
-				PlanOnly:    true,
-				ExpectError: regexp.MustCompile(`"nvidia_gpu_dra_driver": conflicts with nvidia_gpu_device_plugin`),
-			},
-		},
-	})
-}
-
 func TestAccDigitalOceanKubernetesCluster_AmdGpuDraConflictsWithDevicePlugin(t *testing.T) {
 	rName := acceptance.RandomTestName()
 
@@ -1194,6 +1177,40 @@ func TestAccDigitalOceanKubernetesCluster_AmdGpuDraConflictsWithDevicePlugin(t *
 				Config:      testAccDigitalOceanKubernetesConfigAmdGpuDraConflictsWithDevicePlugin(testClusterVersionPrevious, rName),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile(`"amd_gpu_dra_driver": conflicts with amd_gpu_device_plugin`),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesCluster_NvidiaGpuDraConflictsWithDevicePlugin(t *testing.T) {
+	rName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccDigitalOceanKubernetesConfigGpuOperatorReadyConflictsWithDRA(testClusterVersionPrevious, rName),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`"nvidia_gpu_dra_driver": conflicts with nvidia_gpu_device_plugin`),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanKubernetesCluster_GpuOperatorReadyConflictsWithDRADriver(t *testing.T) {
+	rName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:      testAccDigitalOceanKubernetesConfigNvidiaGpuDraConflictsWithDevicePlugin(testClusterVersionPrevious, rName),
+				PlanOnly:    true,
+				ExpectError: regexp.MustCompile(`"gpu_operator_ready": conflicts with nvidia_gpu_dra_driver`),
 			},
 		},
 	})
@@ -1788,6 +1805,27 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   nvidia_gpu_device_plugin {
     enabled = true
   }
+  nvidia_gpu_dra_driver {
+    enabled = true
+  }
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+`, testClusterVersion, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigGpuOperatorReadyConflictsWithDRA(testClusterVersion string, rName string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    = "%s"
+  region  = "nyc1"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
+  gpu_operator_ready = true
   nvidia_gpu_dra_driver {
     enabled = true
   }
