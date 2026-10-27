@@ -65,6 +65,9 @@ The following attributes are exported:
   - `idle_timeout` - How long the MicroVM must be idle before it pauses.
 * `auto_resume` - Whether the MicroVM resumes automatically on incoming HTTP traffic.
 * `tags` - The tags applied to the MicroVM.
+* `egress_policy` - The outbound allow list set at create. Empty when egress is unrestricted:
+  - `default_action` - What happens to a destination no rule matches: `deny` or `allow`.
+  - `rule` - The allowed destinations. Each has a `domain` or an `ip`.
 * `current_state` - The observed lifecycle state of the MicroVM, such as `running` or `paused`.
 * `failure_reason` - A description of the failure when `current_state` is `failed`.
 * `urls` - A list of ingress URLs for the MicroVM:
