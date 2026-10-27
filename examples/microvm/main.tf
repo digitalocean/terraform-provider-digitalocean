@@ -21,6 +21,7 @@ resource "digitalocean_microvm" "web" {
   name      = "example-microvm"
   region    = var.region
   http_port = 80
+  ports     = [80, 9090]
 
   size {
     cpu    = 2
@@ -37,6 +38,13 @@ resource "digitalocean_microvm" "web" {
   }
 
   tags = ["example"]
+}
+
+# An extra ingress URL on the MicroVM, routing to port 9090. Adding or
+# removing this resource updates the MicroVM in place; it never replaces it.
+resource "digitalocean_microvm_ingress" "web_admin" {
+  microvm_id = digitalocean_microvm.web.id
+  port       = 9090
 }
 
 # Capture the memory and disk state of the running MicroVM.
@@ -57,6 +65,10 @@ resource "digitalocean_microvm" "restored" {
 
 output "web_url" {
   value = "http://${digitalocean_microvm.web.urls[0].hostname}"
+}
+
+output "web_admin_url" {
+  value = "http://${digitalocean_microvm_ingress.web_admin.hostname}"
 }
 
 output "restored_url" {
