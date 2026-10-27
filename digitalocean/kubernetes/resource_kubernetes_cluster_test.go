@@ -1821,10 +1821,10 @@ func testAccDigitalOceanKubernetesConfigGpuOperatorReadyConflictsWithDRA(testClu
 	return fmt.Sprintf(`%s
 
 resource "digitalocean_kubernetes_cluster" "foobar" {
-  name    = "%s"
-  region  = "nyc1"
-  version = data.digitalocean_kubernetes_versions.test.latest_version
-  ha      = false
+  name               = "%s"
+  region             = "nyc1"
+  version            = data.digitalocean_kubernetes_versions.test.latest_version
+  ha                 = false
   gpu_operator_ready = true
   nvidia_gpu_dra_driver {
     enabled = true
