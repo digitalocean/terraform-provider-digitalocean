@@ -3,6 +3,7 @@ package microvm
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -24,6 +25,22 @@ var stateValues = []string{
 var networkingValues = []string{
 	string(godo.MicroVMNetworkingPublic),
 	string(godo.MicroVMNetworkingVPC),
+}
+
+// egressActionValues enumerates the accepted egress_policy.default_action values.
+var egressActionValues = []string{
+	string(godo.MicroVMEgressActionDeny),
+	string(godo.MicroVMEgressActionAllow),
+}
+
+// validateEgressDomain rejects values the platform cannot match: rules match
+// the host only, so paths, CIDR ranges and ports are not valid.
+func validateEgressDomain(v interface{}, k string) (ws []string, errs []error) {
+	s, _ := v.(string)
+	if s == "" || strings.ContainsAny(s, "/: \t") {
+		errs = append(errs, fmt.Errorf("%q must be a bare host such as api.example.com or *.example.com (no scheme, path, port or CIDR), got %q", k, s))
+	}
+	return
 }
 
 // httpProtocolValues enumerates the accepted values for the `http_protocol`
@@ -211,6 +228,51 @@ func microVMResourceSchema() map[string]*schema.Schema {
 			Description: "Whether the MicroVM is created with a default public ingress URL. Defaults to true. Set to false to create the MicroVM without a default URL; additional URLs can be added later with the digitalocean_microvm_ingress resource. This is a create-time option, so a change forces recreation.",
 		},
 		"tags": tagsSchemaForceNew(),
+		"egress_policy": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Computed:    true,
+			ForceNew:    true,
+			MaxItems:    1,
+			Description: "Outbound allow list for the MicroVM. Omit for unrestricted egress. Public networking only; fixed at create, so a change forces recreation. With a policy set, only HTTP and HTTPS through the platform proxy to allowed destinations works. A MicroVM restored from a checkpoint inherits the origin's policy.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"default_action": {
+						Type:         schema.TypeString,
+						Optional:     true,
+						Computed:     true,
+						ForceNew:     true,
+						Description:  "What to do with a destination no rule matches: 'deny' or 'allow'. Defaults to 'deny'.",
+						ValidateFunc: validation.StringInSlice(egressActionValues, false),
+					},
+					"rule": {
+						Type:        schema.TypeList,
+						Optional:    true,
+						ForceNew:    true,
+						MaxItems:    50,
+						Description: "An allowed destination. Set exactly one of domain or ip.",
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"domain": {
+									Type:         schema.TypeString,
+									Optional:     true,
+									ForceNew:     true,
+									Description:  "An exact host such as 'api.example.com', or a wildcard such as '*.example.com'.",
+									ValidateFunc: validateEgressDomain,
+								},
+								"ip": {
+									Type:         schema.TypeString,
+									Optional:     true,
+									ForceNew:     true,
+									Description:  "An exact IP address. CIDR ranges are not supported.",
+									ValidateFunc: validation.IsIPAddress,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		"state": {
 			Type:             schema.TypeString,
 			Optional:         true,
@@ -372,6 +434,49 @@ func flattenAutoPause(cfg *godo.AutoPauseConfig) []interface{} {
 	return []interface{}{entry}
 }
 
+// expandEgressPolicy turns the `egress_policy` block into a godo policy.
+// Returns nil when the block is absent, which leaves egress unrestricted.
+func expandEgressPolicy(raw interface{}) (*godo.MicroVMEgressPolicy, error) {
+	list, ok := raw.([]interface{})
+	if !ok || len(list) == 0 || list[0] == nil {
+		return nil, nil
+	}
+	entry, ok := list[0].(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("invalid egress_policy block")
+	}
+
+	policy := &godo.MicroVMEgressPolicy{}
+	if v, ok := entry["default_action"].(string); ok && v != "" {
+		policy.DefaultAction = godo.MicroVMEgressAction(v)
+	}
+	rules, _ := entry["rule"].([]interface{})
+	for i, r := range rules {
+		rule, _ := r.(map[string]interface{})
+		domain, _ := rule["domain"].(string)
+		ip, _ := rule["ip"].(string)
+		if (domain == "") == (ip == "") {
+			return nil, fmt.Errorf("egress_policy.rule.%d must set exactly one of domain or ip", i)
+		}
+		policy.Rules = append(policy.Rules, godo.MicroVMEgressRule{Domain: domain, IP: ip})
+	}
+	return policy, nil
+}
+
+func flattenEgressPolicy(policy *godo.MicroVMEgressPolicy) []interface{} {
+	if policy == nil {
+		return nil
+	}
+	rules := make([]interface{}, len(policy.Rules))
+	for i, r := range policy.Rules {
+		rules[i] = map[string]interface{}{"domain": r.Domain, "ip": r.IP}
+	}
+	return []interface{}{map[string]interface{}{
+		"default_action": string(policy.DefaultAction),
+		"rule":           rules,
+	}}
+}
+
 // expandEnvironment converts the `environment` map[string]interface{} that
 // Terraform produces into the map[string]string that godo expects.
 func expandEnvironment(raw interface{}) map[string]string {
@@ -523,6 +628,9 @@ func setMicroVMAttributes(d *schema.ResourceData, m *godo.MicroVM) error {
 	if err := d.Set("tags", tag.FlattenTags(m.Tags)); err != nil {
 		return fmt.Errorf("error setting tags: %w", err)
 	}
+	if err := d.Set("egress_policy", flattenEgressPolicy(m.EgressPolicy)); err != nil {
+		return fmt.Errorf("error setting egress_policy: %w", err)
+	}
 	return nil
 }
 
@@ -550,6 +658,7 @@ func flattenMicroVM(rawRecord, _ interface{}, _ map[string]interface{}) (map[str
 		"urn":            m.URN(),
 		"auto_pause":     flattenAutoPause(m.AutoPause),
 		"tags":           tag.FlattenTags(m.Tags),
+		"egress_policy":  flattenEgressPolicy(m.EgressPolicy),
 	}
 	if m.AutoResume != nil {
 		out["auto_resume"] = *m.AutoResume

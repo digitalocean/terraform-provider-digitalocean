@@ -89,6 +89,49 @@ resource "digitalocean_microvm" "restored" {
 }
 ```
 
+### Restrict Outbound Traffic
+
+Set `egress_policy` to limit where code in the MicroVM can connect. Only the
+listed destinations are reachable, and the policy is fixed at create, so any
+change forces a new MicroVM. It requires `networking = "public"`.
+
+With a policy set, direct connections out of the MicroVM are dropped. Only HTTP
+and HTTPS through the platform proxy to allowed destinations works, so clients
+must honor the injected `HTTP_PROXY` / `HTTPS_PROXY` environment. The registries
+needed to pull the workload image are allowed automatically.
+
+```hcl
+resource "digitalocean_microvm" "locked_down" {
+  name   = "example-locked-down"
+  region = "nyc3"
+
+  size {
+    cpu    = 1
+    memory = 2048
+  }
+
+  source {
+    oci_ref = "docker.io/library/alpine:latest"
+  }
+
+  egress_policy {
+    default_action = "deny"
+
+    rule {
+      domain = "api.example.com"
+    }
+
+    rule {
+      domain = "*.example.org"
+    }
+
+    rule {
+      ip = "203.0.113.5"
+    }
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -113,6 +156,11 @@ The following arguments are supported:
 * `auto_resume` - (Optional) Whether the MicroVM resumes automatically on incoming HTTP traffic. When omitted, the product default (enabled) applies.
 * `ingress_enabled` - (Optional) Whether the MicroVM is created with a default public ingress URL. Defaults to `true`. Set to `false` to create the MicroVM without a default URL; additional URLs can be added later with the [`digitalocean_microvm_ingress`](microvm_ingress) resource. This is a create-time option, so a change forces a new MicroVM.
 * `tags` - (Optional) A list of tag names to apply to the MicroVM.
+* `egress_policy` - (Optional) An outbound allow list. When omitted, egress is unrestricted; a MicroVM restored from a checkpoint inherits its origin's policy. Only valid with public networking, and a change forces a new MicroVM.
+  - `default_action` - (Optional) What to do with a destination no `rule` matches: `deny` or `allow`. Defaults to `deny`.
+  - `rule` - (Optional) An allowed destination. Up to 50 rules. Rules match the host only: port, path and method are not considered, and a hostname that resolves to an IP is not matched by an `ip` rule. Each rule sets exactly one of:
+    - `domain` - An exact host such as `api.example.com`, or a wildcard such as `*.example.com`.
+    - `ip` - An exact IP address. CIDR ranges are not supported.
 * `state` - (Optional) The desired lifecycle state: `running` or `paused`. Defaults to `running`. When `auto_pause` is enabled, a MicroVM that the platform has paused is not resumed to match `running`.
 
 ## Attributes Reference
