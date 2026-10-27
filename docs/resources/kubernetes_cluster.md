@@ -198,6 +198,9 @@ The following arguments are supported:
   - `start_time` (Required) The start time in UTC of the maintenance window policy in 24-hour clock format / HH:MM notation (e.g., 15:00).
 * `destroy_all_associated_resources` - (Optional) **Use with caution.** When set to true, all associated DigitalOcean resources created via the Kubernetes API (load balancers, volumes, and volume snapshots) will be destroyed along with the cluster when it is destroyed.
 * `kubeconfig_expire_seconds` - (Optional) The duration in seconds that the returned Kubernetes credentials will be valid. If not set or 0, the credentials will have a 7 day expiry.
+* `skip_credentials` - (Optional) Set to `true` when managing cluster infrastructure without consuming `kube_config`. Defaults to `false`. Cluster metadata and drift are still refreshed, but no Kubernetes credentials are requested and `kube_config` is empty. Existing issued credentials are not revoked. Do not enable this when a Kubernetes or Helm provider consumes this resource's `kube_config`.
+
+  When adopting this setting on an existing resource, the initial refresh before the setting is saved in state can still request credentials. Classic import initially uses the default behavior.
 * `routing_agent` - (Optional) Block containing options for the routing-agent component. If not specified, the routing-agent component will not be installed in the cluster.
   - `enabled` - (Required) Boolean flag whether the routing-agent should be enabled or not.
 * `p2p_oci_registry_plugin` - (Optional) Block containing options for the Peer-to-peer OCI registry plugin component. If not specified, the p2p-oci-registry-plugin component will not be installed in the cluster.
