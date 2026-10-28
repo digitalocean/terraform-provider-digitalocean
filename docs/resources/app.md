@@ -550,6 +550,10 @@ A `job` can contain:
   - `PRE_DEPLOY`: Indicates a job that runs before an app deployment.
   - `POST_DEPLOY`: Indicates a job that runs after an app deployment.
   - `FAILED_DEPLOY`: Indicates a job that runs after a component fails to deploy.
+  - `SCHEDULED`: Indicates a job that runs periodically based on a cron expression. Requires a `schedule` block.
+- `schedule` - The schedule for a job with a `kind` of `SCHEDULED`.
+  - `cron` - The cron expression that defines when the scheduled job runs.
+  - `time_zone` - The time zone in which the cron expression is evaluated, as a valid IANA time zone name (e.g. `America/New_York`). Defaults to UTC.
 - `build_command` - An optional build command to run while building this component from source.
 - `dockerfile_path` - The path to a Dockerfile relative to the root of the repo. If set, overrides usage of buildpacks.
 - `source_dir` - An optional path to the working directory to use for the build.
