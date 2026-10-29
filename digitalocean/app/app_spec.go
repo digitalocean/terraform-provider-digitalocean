@@ -2,9 +2,9 @@
 package app
 
 import (
-	"log"
 	"maps"
 	"net/http"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -373,6 +373,12 @@ func appSpecEnvSchema() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "The value of the environment variable.",
+				Sensitive:   true,
+			},
+			"encrypted_value": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "The encrypted value App Platform stores for a SECRET environment variable.",
 				Sensitive:   true,
 			},
 			"scope": {
@@ -1402,23 +1408,23 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 		}
 
 		if len((*spec).Services) > 0 {
-			r["service"] = flattenAppSpecServices((*spec).Services)
+			r["service"] = flattenAppSpecServices((*spec).Services, trackedComponents(d, "spec.0.service"))
 		}
 
 		if len((*spec).StaticSites) > 0 {
-			r["static_site"] = flattenAppSpecStaticSites((*spec).StaticSites)
+			r["static_site"] = flattenAppSpecStaticSites((*spec).StaticSites, trackedComponents(d, "spec.0.static_site"))
 		}
 
 		if len((*spec).Workers) > 0 {
-			r["worker"] = flattenAppSpecWorkers((*spec).Workers)
+			r["worker"] = flattenAppSpecWorkers((*spec).Workers, trackedComponents(d, "spec.0.worker"))
 		}
 
 		if len((*spec).Jobs) > 0 {
-			r["job"] = flattenAppSpecJobs((*spec).Jobs)
+			r["job"] = flattenAppSpecJobs((*spec).Jobs, trackedComponents(d, "spec.0.job"))
 		}
 
 		if len((*spec).Functions) > 0 {
-			r["function"] = flattenAppSpecFunctions((*spec).Functions)
+			r["function"] = flattenAppSpecFunctions((*spec).Functions, trackedComponents(d, "spec.0.function"))
 		}
 
 		if len((*spec).Databases) > 0 {
@@ -1426,7 +1432,7 @@ func flattenAppSpec(d *schema.ResourceData, spec *godo.AppSpec) []map[string]int
 		}
 
 		if len((*spec).Envs) > 0 {
-			r["env"] = flattenAppEnvs((*spec).Envs)
+			r["env"] = flattenAppEnvs((*spec).Envs, trackedEnvs(d.Get("spec.0.env")))
 		}
 
 		if len((*spec).Alerts) > 0 {
@@ -1948,42 +1954,97 @@ func flattenAppImageSourceSpec(i *godo.ImageSourceSpec) []interface{} {
 	return result
 }
 
-func expandAppEnvs(config []interface{}) []*godo.AppVariableDefinition {
+func expandAppEnvs(config []any) []*godo.AppVariableDefinition {
 	appEnvs := make([]*godo.AppVariableDefinition, 0, len(config))
-
 	for _, rawEnv := range config {
-		env := rawEnv.(map[string]interface{})
-
-		e := &godo.AppVariableDefinition{
-			Value: env["value"].(string),
-			Scope: godo.AppVariableScope(env["scope"].(string)),
-			Key:   env["key"].(string),
-			Type:  godo.AppVariableType(env["type"].(string)),
-		}
-
-		appEnvs = append(appEnvs, e)
+		appEnvs = append(appEnvs, expandAppEnv(rawEnv))
 	}
-
 	return appEnvs
 }
 
-func flattenAppEnvs(appEnvs []*godo.AppVariableDefinition) *schema.Set {
-	result := schema.NewSet(schema.HashResource(appSpecEnvSchema()), []interface{}{})
+func expandAppEnv(rawEnv any) *godo.AppVariableDefinition {
+	env := rawEnv.(map[string]any)
+
+	value := env["value"].(string)
+	if encryptedValue, _ := env["encrypted_value"].(string); encryptedValue != "" {
+		value = encryptedValue
+	}
+
+	return &godo.AppVariableDefinition{
+		Value: value,
+		Scope: godo.AppVariableScope(env["scope"].(string)),
+		Key:   env["key"].(string),
+		Type:  godo.AppVariableType(env["type"].(string)),
+	}
+}
+
+func flattenAppEnvs(appEnvs []*godo.AppVariableDefinition, tracked []any) *schema.Set {
+	result := schema.NewSet(schema.HashResource(appSpecEnvSchema()), []any{})
 
 	for _, env := range appEnvs {
-		r := make(map[string]interface{})
-		r["value"] = env.Value
-		r["scope"] = string(env.Scope)
-		r["key"] = env.Key
-		r["type"] = string(env.Type)
-
-		result.Add(r)
-
-		setFunc := schema.HashResource(appSpecEnvSchema())
-		log.Printf("[DEBUG] App env hash for %s: %d", r["key"], setFunc(r))
+		value, encryptedValue := appEnvStateValues(env, tracked)
+		result.Add(map[string]any{
+			"key":             env.Key,
+			"value":           value,
+			"encrypted_value": encryptedValue,
+			"scope":           string(env.Scope),
+			"type":            string(env.Type),
+		})
 	}
 
 	return result
+}
+
+func appEnvStateValues(env *godo.AppVariableDefinition, tracked []any) (string, string) {
+	if env.Type != godo.AppVariableType_Secret || !isEncryptedAppValue(env.Value) {
+		return env.Value, ""
+	}
+
+	trackedEnv, ok := trackedAppEnv(tracked, env.Key, string(env.Scope))
+	trackedValue, _ := trackedEnv["value"].(string)
+	trackedCiphertext, _ := trackedEnv["encrypted_value"].(string)
+	changedOutsideTerraform := trackedCiphertext != "" && trackedCiphertext != env.Value
+	if !ok || isEncryptedAppValue(trackedValue) || changedOutsideTerraform {
+		return env.Value, env.Value
+	}
+	return trackedValue, env.Value
+}
+
+func trackedAppEnv(tracked []any, key, scope string) (map[string]any, bool) {
+	for _, raw := range tracked {
+		env, ok := raw.(map[string]any)
+		if ok && env["key"] == key && env["scope"] == scope {
+			return env, true
+		}
+	}
+	return nil, false
+}
+
+func isEncryptedAppValue(value string) bool {
+	return strings.HasPrefix(value, "EV[")
+}
+
+func trackedComponents(d *schema.ResourceData, key string) []any {
+	components, _ := d.Get(key).([]any)
+	return components
+}
+
+func trackedComponentEnvs(components []any, name string) []any {
+	for _, raw := range components {
+		component, ok := raw.(map[string]any)
+		if ok && component["name"] == name {
+			return trackedEnvs(component["env"])
+		}
+	}
+	return nil
+}
+
+func trackedEnvs(raw any) []any {
+	envs, ok := raw.(*schema.Set)
+	if !ok {
+		return nil
+	}
+	return envs.List()
 }
 
 func expandAppHealthCheck(config []interface{}) *godo.AppServiceSpecHealthCheck {
@@ -2204,7 +2265,7 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 	return appServices
 }
 
-func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interface{} {
+func flattenAppSpecServices(services []*godo.AppServiceSpec, tracked []any) []map[string]any {
 	result := make([]map[string]interface{}, len(services))
 
 	for i, s := range services {
@@ -2222,7 +2283,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["http_port"] = int(s.HTTPPort)
 		r["routes"] = flattenAppRoutes(s.Routes)
 		r["dockerfile_path"] = s.DockerfilePath
-		r["env"] = flattenAppEnvs(s.Envs)
+		r["env"] = flattenAppEnvs(s.Envs, trackedComponentEnvs(tracked, s.Name))
 		r["health_check"] = flattenAppHealthCheck(s.HealthCheck)
 		r["liveness_health_check"] = flattenAppLivenessHealthCheck(s.LivenessHealthCheck)
 		r["instance_size_slug"] = s.InstanceSizeSlug
@@ -2296,7 +2357,7 @@ func expandAppSpecStaticSites(config []interface{}) []*godo.AppStaticSiteSpec {
 	return appSites
 }
 
-func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec) []map[string]interface{} {
+func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec, tracked []any) []map[string]any {
 	result := make([]map[string]interface{}, len(sites))
 
 	for i, s := range sites {
@@ -2310,7 +2371,7 @@ func flattenAppSpecStaticSites(sites []*godo.AppStaticSiteSpec) []map[string]int
 		r["git"] = flattenAppGitSourceSpec(s.Git)
 		r["routes"] = flattenAppRoutes(s.Routes)
 		r["dockerfile_path"] = s.DockerfilePath
-		r["env"] = flattenAppEnvs(s.Envs)
+		r["env"] = flattenAppEnvs(s.Envs, trackedComponentEnvs(tracked, s.Name))
 		r["source_dir"] = s.SourceDir
 		r["output_dir"] = s.OutputDir
 		r["index_document"] = s.IndexDocument
@@ -2411,7 +2472,7 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 	return appWorkers
 }
 
-func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface{} {
+func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec, tracked []any) []map[string]any {
 	result := make([]map[string]interface{}, len(workers))
 
 	for i, w := range workers {
@@ -2426,7 +2487,7 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["git"] = flattenAppGitSourceSpec(w.Git)
 		r["image"] = flattenAppImageSourceSpec(w.Image)
 		r["dockerfile_path"] = w.DockerfilePath
-		r["env"] = flattenAppEnvs(w.Envs)
+		r["env"] = flattenAppEnvs(w.Envs, trackedComponentEnvs(tracked, w.Name))
 		r["instance_size_slug"] = w.InstanceSizeSlug
 		r["instance_count"] = int(w.InstanceCount)
 		r["source_dir"] = w.SourceDir
@@ -2508,7 +2569,7 @@ func expandAppSpecJobs(config []interface{}) []*godo.AppJobSpec {
 	return appJobs
 }
 
-func flattenAppSpecJobs(jobs []*godo.AppJobSpec) []map[string]interface{} {
+func flattenAppSpecJobs(jobs []*godo.AppJobSpec, tracked []any) []map[string]any {
 	result := make([]map[string]interface{}, len(jobs))
 
 	for i, j := range jobs {
@@ -2523,7 +2584,7 @@ func flattenAppSpecJobs(jobs []*godo.AppJobSpec) []map[string]interface{} {
 		r["git"] = flattenAppGitSourceSpec(j.Git)
 		r["image"] = flattenAppImageSourceSpec(j.Image)
 		r["dockerfile_path"] = j.DockerfilePath
-		r["env"] = flattenAppEnvs(j.Envs)
+		r["env"] = flattenAppEnvs(j.Envs, trackedComponentEnvs(tracked, j.Name))
 		r["instance_size_slug"] = j.InstanceSizeSlug
 		r["instance_count"] = int(j.InstanceCount)
 		r["source_dir"] = j.SourceDir
@@ -2597,7 +2658,7 @@ func expandAppSpecFunctions(config []interface{}) []*godo.AppFunctionsSpec {
 	return appFn
 }
 
-func flattenAppSpecFunctions(functions []*godo.AppFunctionsSpec) []map[string]interface{} {
+func flattenAppSpecFunctions(functions []*godo.AppFunctionsSpec, tracked []any) []map[string]any {
 	result := make([]map[string]interface{}, len(functions))
 
 	for i, fn := range functions {
@@ -2611,7 +2672,7 @@ func flattenAppSpecFunctions(functions []*godo.AppFunctionsSpec) []map[string]in
 		r["git"] = flattenAppGitSourceSpec(fn.Git)
 		r["routes"] = flattenAppRoutes(fn.Routes)
 		r["cors"] = flattenAppCORSPolicy(fn.CORS)
-		r["env"] = flattenAppEnvs(fn.Envs)
+		r["env"] = flattenAppEnvs(fn.Envs, trackedComponentEnvs(tracked, fn.Name))
 		r["alert"] = flattenAppAlerts(fn.Alerts)
 		r["log_destination"] = flattenAppLogDestinations(fn.LogDestinations)
 
