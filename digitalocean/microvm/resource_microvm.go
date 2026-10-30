@@ -94,6 +94,11 @@ func resourceDigitalOceanMicroVMCreate(ctx context.Context, d *schema.ResourceDa
 	if v, ok := d.GetOk("tags"); ok {
 		req.Tags = tag.ExpandTags(v.(*schema.Set).List())
 	}
+	policy, err := expandEgressPolicy(d.Get("egress_policy"))
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	req.EgressPolicy = policy
 
 	log.Printf("[DEBUG] MicroVM create request: %+v", req)
 
