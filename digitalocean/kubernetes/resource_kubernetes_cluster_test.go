@@ -1191,7 +1191,7 @@ func TestAccDigitalOceanKubernetesCluster_NvidiaGpuDraConflictsWithDevicePlugin(
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccDigitalOceanKubernetesConfigGpuOperatorReadyConflictsWithDRA(testClusterVersionPrevious, rName),
+				Config:      testAccDigitalOceanKubernetesConfigNvidiaGpuDraConflictsWithDevicePlugin(testClusterVersionPrevious, rName),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile(`"nvidia_gpu_dra_driver": conflicts with nvidia_gpu_device_plugin`),
 			},
@@ -1208,7 +1208,7 @@ func TestAccDigitalOceanKubernetesCluster_GpuOperatorReadyConflictsWithDRADriver
 		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:      testAccDigitalOceanKubernetesConfigNvidiaGpuDraConflictsWithDevicePlugin(testClusterVersionPrevious, rName),
+				Config:      testAccDigitalOceanKubernetesConfigGpuOperatorReadyConflictsWithDRA(testClusterVersionPrevious, rName),
 				PlanOnly:    true,
 				ExpectError: regexp.MustCompile(`"gpu_operator_ready": conflicts with nvidia_gpu_dra_driver`),
 			},
