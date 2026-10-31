@@ -321,6 +321,12 @@ func resourceDigitalOceanDropletAutoscaleUpdate(ctx context.Context, d *schema.R
 	return resourceDigitalOceanDropletAutoscaleRead(ctx, d, meta)
 }
 
+// Polling intervals for the delete waiter; variables so tests can shorten them.
+var (
+	dropletAutoscaleDeleteDelay      = 5 * time.Second
+	dropletAutoscaleDeleteMinTimeout = 5 * time.Second
+)
+
 func resourceDigitalOceanDropletAutoscaleDelete(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
@@ -329,14 +335,16 @@ func resourceDigitalOceanDropletAutoscaleDelete(ctx context.Context, d *schema.R
 		return diag.Errorf("Error updating Droplet autoscale pool: %v", err)
 	}
 
-	// Setup to poll for autoscale pool deletion
+	// Setup to poll for autoscale pool deletion. The pool keeps answering
+	// while the deletion is processed: the pool reports "deleting" (or
+	// "active" with members that are being torn down) until it returns 404.
 	stateConf := &retry.StateChangeConf{
-		Delay:      5 * time.Second,
-		Pending:    []string{http.StatusText(http.StatusOK)},
+		Delay:      dropletAutoscaleDeleteDelay,
+		Pending:    []string{"active", "deleting"},
 		Target:     []string{http.StatusText(http.StatusNotFound)},
 		Refresh:    dropletAutoscaleRefreshFunc(client, d.Id()),
-		MinTimeout: 5 * time.Second,
-		Timeout:    1 * time.Minute,
+		MinTimeout: dropletAutoscaleDeleteMinTimeout,
+		Timeout:    5 * time.Minute,
 	}
 	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
 		return diag.Errorf("Error waiting for Droplet autoscale pool (%s) to become be deleted: %v", d.Get("name"), err)
