@@ -111,7 +111,7 @@ func flattenActionGatewayProvider(raw, _ interface{}, _ map[string]interface{}) 
 			"description":    param.Description,
 			"input_kind":     param.InputKind,
 			"required":       param.Required,
-			"allowed_values": param.AllowedValues,
+			"allowed_values": flattenStringList(param.AllowedValues),
 		})
 	}
 
@@ -119,8 +119,8 @@ func flattenActionGatewayProvider(raw, _ interface{}, _ map[string]interface{}) 
 		"name":                  p.Name,
 		"display_name":          p.DisplayName,
 		"description":           p.Description,
-		"auth_types":            authTypes,
-		"scopes":                p.Scopes,
+		"auth_types":            flattenStringList(authTypes),
+		"scopes":                flattenStringList(p.Scopes),
 		"connection_parameters": params,
 	}, nil
 }

@@ -779,3 +779,44 @@ func TestValidateMCPServerCredentialConfig(t *testing.T) {
 		})
 	}
 }
+
+func TestProvidersDataSourceFiltersListAttributes(t *testing.T) {
+	t.Parallel()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /v2/action-gateway/tools/providers", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(t, w, http.StatusOK, map[string]interface{}{"providers": []interface{}{
+			map[string]interface{}{"name": "github", "auth_types": []string{"digitalocean_oauth"}, "scopes": []string{"repo"}},
+			map[string]interface{}{"name": "jira", "auth_types": []string{"digitalocean_oauth", "team_api_key"}, "scopes": []string{"read:jira-work", "write:jira-work"}},
+			map[string]interface{}{"name": "linear", "auth_type": "team_api_key"},
+		}})
+	})
+	meta := newTestMeta(t, mux)
+
+	tests := []struct {
+		name   string
+		filter map[string]interface{}
+		want   []string
+	}{
+		{name: "auth_types", filter: map[string]interface{}{"key": "auth_types", "values": []interface{}{"team_api_key"}}, want: []string{"jira", "linear"}},
+		{name: "scopes", filter: map[string]interface{}{"key": "scopes", "values": []interface{}{"write:jira-work"}}, want: []string{"jira"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := DataSourceDigitalOceanActionGatewayProviders()
+			d := schema.TestResourceDataRaw(t, r.Schema, map[string]interface{}{
+				"filter": []interface{}{tt.filter},
+				"sort":   []interface{}{map[string]interface{}{"key": "name"}},
+			})
+			requireNoErrors(t, r.ReadContext(context.Background(), d, meta))
+
+			var got []string
+			for _, p := range d.Get("providers").([]interface{}) {
+				got = append(got, p.(map[string]interface{})["name"].(string))
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("providers = %v, expected %v", got, tt.want)
+			}
+		})
+	}
+}

@@ -56,6 +56,16 @@ func expandStringList(v interface{}) []string {
 	return out
 }
 
+// flattenStringList returns in as the []interface{} that datalist filters
+// and sorts expect for TypeList values.
+func flattenStringList(in []string) []interface{} {
+	out := make([]interface{}, 0, len(in))
+	for _, s := range in {
+		out = append(out, s)
+	}
+	return out
+}
+
 // computedOnly converts a resource schema, including nested blocks, into the
 // computed-only form a data source exposes.
 func computedOnly(in map[string]*schema.Schema) map[string]*schema.Schema {
