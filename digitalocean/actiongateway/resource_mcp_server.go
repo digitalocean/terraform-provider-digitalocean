@@ -50,13 +50,14 @@ func ResourceDigitalOceanActionGatewayMCPServer() *schema.Resource {
 		},
 		CustomizeDiff: customdiff.All(
 			validateMCPServerCredentials,
-			customdiff.ComputedIf("discovered_tools", enabledToolsChanged),
-			customdiff.ComputedIf("tool_count", enabledToolsChanged),
-			customdiff.ComputedIf("sync_status", enabledToolsChanged),
-			customdiff.ComputedIf("sync_error", enabledToolsChanged),
-			customdiff.ComputedIf("last_synced_at", enabledToolsChanged),
-			customdiff.ComputedIf("protocol_version", enabledToolsChanged),
-			customdiff.ComputedIf("updated_at", enabledToolsChanged),
+			customdiff.ComputedIf("discovered_tools", rediscoversTools),
+			customdiff.ComputedIf("tool_count", rediscoversTools),
+			customdiff.ComputedIf("sync_status", rediscoversTools),
+			customdiff.ComputedIf("sync_error", rediscoversTools),
+			customdiff.ComputedIf("last_synced_at", rediscoversTools),
+			customdiff.ComputedIf("protocol_version", rediscoversTools),
+			customdiff.ComputedIf("updated_at", rediscoversTools),
+			customdiff.ComputedIf("enabled_tools", rediscoversUnmanagedTools),
 		),
 		Schema: map[string]*schema.Schema{
 			"server_ref": {
@@ -168,7 +169,7 @@ func ResourceDigitalOceanActionGatewayMCPServer() *schema.Resource {
 			"sync_user_id": {
 				Type:         schema.TypeString,
 				Optional:     true,
-				Description:  "For credential_ref_source connection: the user whose authorization is used to discover and verify the server's tools",
+				Description:  "For credential_ref_source connection: the user whose authorization is used to discover and verify the server's tools. Adding or changing it discovers the tools again.",
 				ValidateFunc: validateUserID,
 			},
 			"sync_status": {
@@ -241,8 +242,36 @@ func ResourceDigitalOceanActionGatewayMCPServer() *schema.Resource {
 	}
 }
 
-func enabledToolsChanged(_ context.Context, d *schema.ResourceDiff, _ interface{}) bool {
-	return d.Id() != "" && d.HasChange("enabled_tools")
+// rediscoversTools reports whether an update discovers the server's tools
+// again: when enabled_tools changes, or when sync_user_id is set to another
+// user.
+func rediscoversTools(_ context.Context, d *schema.ResourceDiff, _ interface{}) bool {
+	if d.Id() == "" {
+		return false
+	}
+	syncUserSet := d.HasChange("sync_user_id") && (!d.NewValueKnown("sync_user_id") || d.Get("sync_user_id").(string) != "")
+	return d.HasChange("enabled_tools") || syncUserSet
+}
+
+// rediscoversUnmanagedTools reports whether a rediscovery may change the
+// enabled tools of a server whose configuration leaves them unmanaged.
+func rediscoversUnmanagedTools(ctx context.Context, d *schema.ResourceDiff, meta interface{}) bool {
+	managed, known := enabledToolsManaged(d.GetRawConfig())
+	return known && !managed && rediscoversTools(ctx, d, meta)
+}
+
+// enabledToolsManaged reports whether the configuration lists the tools to
+// enable. An omitted or empty enabled_tools leaves the server's enabled tools
+// as they are. known is false when no configuration is available.
+func enabledToolsManaged(raw cty.Value) (managed, known bool) {
+	if raw.IsNull() || !raw.IsKnown() {
+		return false, false
+	}
+	v := raw.GetAttr("enabled_tools")
+	if !v.IsWhollyKnown() {
+		return true, true
+	}
+	return isConfigured(v), true
 }
 
 func validateMCPServerCredentials(_ context.Context, d *schema.ResourceDiff, _ interface{}) error {
@@ -405,15 +434,22 @@ func resourceDigitalOceanActionGatewayMCPServerUpdate(ctx context.Context, d *sc
 		}
 	}
 
-	if d.HasChange("enabled_tools") {
-		syncUserID := d.Get("sync_user_id").(string)
+	syncUserID := d.Get("sync_user_id").(string)
+	if d.HasChange("enabled_tools") || (d.HasChange("sync_user_id") && syncUserID != "") {
 		discoverCtx, cancel := discoveryContext(ctx, d.Timeout(schema.TimeoutUpdate))
 		defer cancel()
 		if err := discoverMCPServerTools(discoverCtx, client, d.Id(), syncUserID); err != nil {
 			return diag.FromErr(err)
 		}
-		if err := setMCPServerEnabledTools(ctx, client, d.Id(), expandStringSet(d.Get("enabled_tools")), syncUserID); err != nil {
-			return diag.FromErr(err)
+
+		managed, known := enabledToolsManaged(d.GetRawConfig())
+		if !known {
+			managed = d.HasChange("enabled_tools")
+		}
+		if managed {
+			if err := setMCPServerEnabledTools(ctx, client, d.Id(), expandStringSet(d.Get("enabled_tools")), syncUserID); err != nil {
+				return diag.FromErr(err)
+			}
 		}
 	}
 

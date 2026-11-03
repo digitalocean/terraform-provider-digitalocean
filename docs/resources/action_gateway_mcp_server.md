@@ -64,7 +64,7 @@ the server again.
 * `oauth_authorization_ttl_seconds` - (Optional) How long, in seconds, a user's authorization may be reused before they must consent again. `0` means 30 days.
 * `description` - (Optional) The description shown on the server's catalog card, at most 1024 characters.
 * `enabled_tools` - (Optional) The slugs of the discovered tools to enable, such as `docs_search`. Every other tool of the server is disabled. When omitted, Terraform does not manage which tools are enabled. Changing this discovers the server's tools again before enabling them.
-* `sync_user_id` - (Optional) For `connection`: the actor ID of a user who has authorized the server. Discovering and verifying the tools of such a server requires it.
+* `sync_user_id` - (Optional) For `connection`: the actor ID of a user who has authorized the server. Discovering and verifying the tools of such a server requires it. Adding or changing it discovers the server's tools again.
 
 ## Attributes Reference
 
@@ -91,7 +91,8 @@ When the server is created, Terraform discovers its tools and then enables
 `enabled_tools`. If discovery cannot complete, for example because
 `sync_user_id` has not authorized the server yet, Terraform reports a warning
 instead of failing. `enabled_tools` then stays empty, and the next
-`terraform apply` discovers and enables the configured tools again.
+`terraform apply` discovers and enables the configured tools again. A server
+registered without `sync_user_id` discovers its tools once you set it.
 
 Setting `enabled_tools` to an empty list does not disable the server's tools.
 To disable every tool, disable them in the control panel or remove the server.

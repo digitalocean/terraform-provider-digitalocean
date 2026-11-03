@@ -3,6 +3,7 @@ package actiongateway
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -173,9 +174,9 @@ func describeDiff(diff *terraform.InstanceDiff) string {
 	return strings.Join(lines, "\n")
 }
 
-// connectionRawConfig builds the configuration value Terraform sends the
-// provider, which is how Create tells `scopes = []` apart from no scopes.
-func connectionRawConfig(r *schema.Resource, attrs map[string]cty.Value) cty.Value {
+// testRawConfig builds the configuration value Terraform sends the provider,
+// which is how the provider tells an empty argument apart from an omitted one.
+func testRawConfig(r *schema.Resource, attrs map[string]cty.Value) cty.Value {
 	values := map[string]cty.Value{}
 	for name, ty := range r.CoreConfigSchema().ImpliedType().AttributeTypes() {
 		values[name] = cty.NullVal(ty)
@@ -233,7 +234,7 @@ func TestConnectionPlanAfterApplyIsEmpty(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error planning create: %s", err)
 			}
-			diff.RawConfig = connectionRawConfig(r, tt.raw)
+			diff.RawConfig = testRawConfig(r, tt.raw)
 			state, diags := r.Apply(ctx, nil, diff, meta)
 			requireNoErrors(t, diags)
 
@@ -674,13 +675,15 @@ func TestToolbeltUpdateAddsAndRemovesTools(t *testing.T) {
 	}
 }
 
-// fakeMCPServerAPI serves one MCP server. Discovery completes after
-// pendingPolls reads of the server once a resync has been requested.
+// fakeMCPServerAPI serves one MCP server. A requested resync completes after
+// pendingPolls reads of the server.
 type fakeMCPServerAPI struct {
 	mu           sync.Mutex
 	server       map[string]interface{}
 	tools        []map[string]interface{}
 	resyncs      int
+	resyncUsers  []string
+	syncing      bool
 	pendingPolls int
 	authorize    bool
 	enabled      [][]string
@@ -712,9 +715,10 @@ func (api *fakeMCPServerAPI) start(t *testing.T) *config.CombinedConfig {
 	mux.HandleFunc("GET /v2/action-gateway/mcp-servers/docs", func(w http.ResponseWriter, r *http.Request) {
 		api.mu.Lock()
 		defer api.mu.Unlock()
-		if api.resyncs > 0 && api.server["lastSyncedAt"] == "" {
+		if api.syncing {
 			if api.pendingPolls == 0 {
-				api.server["lastSyncedAt"] = "2026-09-20T15:01:00Z"
+				api.syncing = false
+				api.server["lastSyncedAt"] = fmt.Sprintf("2026-09-20T15:%02d:00Z", api.resyncs)
 				api.server["syncStatus"] = "synced"
 				api.server["toolCount"] = len(api.tools)
 			} else {
@@ -726,7 +730,10 @@ func (api *fakeMCPServerAPI) start(t *testing.T) *config.CombinedConfig {
 	mux.HandleFunc("POST /v2/action-gateway/mcp-servers/docs/resync", func(w http.ResponseWriter, r *http.Request) {
 		api.mu.Lock()
 		defer api.mu.Unlock()
+		body := decodeJSON(t, r)
+		userID, _ := body["user_id"].(string)
 		api.resyncs++
+		api.resyncUsers = append(api.resyncUsers, userID)
 		if api.authorize {
 			writeJSON(t, w, http.StatusOK, map[string]interface{}{
 				"mcpServer":     api.server,
@@ -734,6 +741,7 @@ func (api *fakeMCPServerAPI) start(t *testing.T) *config.CombinedConfig {
 			})
 			return
 		}
+		api.syncing = true
 		writeJSON(t, w, http.StatusAccepted, map[string]interface{}{"mcpServer": api.server, "pending": true})
 	})
 	mux.HandleFunc("GET /v2/action-gateway/mcp-servers/docs/tools", func(w http.ResponseWriter, r *http.Request) {
@@ -878,6 +886,126 @@ func TestMCPServerCreateWarnsWhenDiscoveryOutlastsTimeout(t *testing.T) {
 	}
 	if len(api.enabled) != 0 {
 		t.Errorf("expected no enabled tool requests, got %v", api.enabled)
+	}
+}
+
+func TestMCPServerUpdateRediscoversWhenSyncUserSet(t *testing.T) {
+	t.Parallel()
+
+	base := map[string]interface{}{
+		"server_ref":            "docs",
+		"endpoint":              "https://mcp.example.com/mcp",
+		"credential_ref_source": "connection",
+		"oauth_client_id":       "client",
+		"oauth_client_secret":   "secret",
+		"oauth_authorize_url":   "https://mcp.example.com/authorize",
+		"oauth_token_url":       "https://mcp.example.com/token",
+		"oauth_scopes":          []interface{}{"docs:read"},
+	}
+	rawBase := map[string]cty.Value{
+		"server_ref":            cty.StringVal("docs"),
+		"endpoint":              cty.StringVal("https://mcp.example.com/mcp"),
+		"credential_ref_source": cty.StringVal("connection"),
+		"oauth_client_id":       cty.StringVal("client"),
+		"oauth_client_secret":   cty.StringVal("secret"),
+		"oauth_authorize_url":   cty.StringVal("https://mcp.example.com/authorize"),
+		"oauth_token_url":       cty.StringVal("https://mcp.example.com/token"),
+		"oauth_scopes":          cty.SetVal([]cty.Value{cty.StringVal("docs:read")}),
+		"sync_user_id":          cty.StringVal("alice"),
+	}
+	with := func(m map[string]interface{}, extra map[string]interface{}) map[string]interface{} {
+		out := map[string]interface{}{}
+		for k, v := range m {
+			out[k] = v
+		}
+		for k, v := range extra {
+			out[k] = v
+		}
+		return out
+	}
+
+	tests := []struct {
+		name        string
+		prior       map[string]interface{}
+		config      map[string]interface{}
+		raw         map[string]cty.Value
+		wantEnabled [][]string
+	}{
+		{
+			name:   "sync user added, enabled tools unmanaged",
+			prior:  base,
+			config: with(base, map[string]interface{}{"sync_user_id": "alice"}),
+			raw:    rawBase,
+		},
+		{
+			name:        "sync user changed, enabled tools managed",
+			prior:       with(base, map[string]interface{}{"sync_user_id": "bob", "enabled_tools": []interface{}{"docs_search"}}),
+			config:      with(base, map[string]interface{}{"sync_user_id": "alice", "enabled_tools": []interface{}{"docs_search"}}),
+			raw:         map[string]cty.Value{"enabled_tools": cty.SetVal([]cty.Value{cty.StringVal("docs_search")})},
+			wantEnabled: [][]string{{"docs_search"}},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			api := newFakeMCPServerAPI()
+			api.tools[0]["enabled"] = true
+			api.server = map[string]interface{}{
+				"serverRef":           "docs",
+				"endpoint":            "https://mcp.example.com/mcp",
+				"transport":           "streamable_http",
+				"credentialRefSource": "connection",
+				"oauth_authorize_url": "https://mcp.example.com/authorize",
+				"oauth_scopes":        []string{"docs:read"},
+				"syncStatus":          "synced",
+				"lastSyncedAt":        "2026-09-20T14:00:00Z",
+			}
+			meta := api.start(t)
+			ctx := context.Background()
+			r := ResourceDigitalOceanActionGatewayMCPServer()
+
+			prior := schema.TestResourceDataRaw(t, r.Schema, tt.prior)
+			prior.SetId("docs")
+			requireNoErrors(t, resourceDigitalOceanActionGatewayMCPServerRead(ctx, prior, meta))
+			state := prior.State()
+
+			raw := map[string]cty.Value{}
+			for k, v := range rawBase {
+				raw[k] = v
+			}
+			for k, v := range tt.raw {
+				raw[k] = v
+			}
+			state.RawConfig = testRawConfig(r, raw)
+
+			diff, err := r.Diff(ctx, state, terraform.NewResourceConfigRaw(tt.config), meta)
+			if err != nil {
+				t.Fatalf("error planning: %s", err)
+			}
+			if diff == nil || diff.RequiresNew() {
+				t.Fatalf("expected an in-place update, got:\n%s", describeDiff(diff))
+			}
+			if a := diff.Attributes["last_synced_at"]; a == nil || !a.NewComputed {
+				t.Errorf("expected last_synced_at to be unknown in the plan, got:\n%s", describeDiff(diff))
+			}
+			_, enabledComputed := diff.Attributes["enabled_tools.#"]
+			if want := tt.wantEnabled == nil; enabledComputed != want {
+				t.Errorf("enabled_tools unknown in the plan = %t, expected %t:\n%s", enabledComputed, want, describeDiff(diff))
+			}
+
+			newState, diags := r.Apply(ctx, state, diff, meta)
+			requireNoErrors(t, diags)
+			if !reflect.DeepEqual(api.resyncUsers, []string{"alice"}) {
+				t.Errorf("resync users = %v, expected [alice]", api.resyncUsers)
+			}
+			if !reflect.DeepEqual(api.enabled, tt.wantEnabled) {
+				t.Errorf("enabled tool requests = %v, expected %v", api.enabled, tt.wantEnabled)
+			}
+			if got := newState.Attributes["last_synced_at"]; got != "2026-09-20T15:01:00Z" {
+				t.Errorf("last_synced_at = %q, expected the rediscovery's time", got)
+			}
+		})
 	}
 }
 
