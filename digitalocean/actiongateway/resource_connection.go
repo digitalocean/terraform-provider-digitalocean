@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
@@ -14,6 +15,12 @@ import (
 
 const connectionStatusRevoked = "revoked"
 
+// connectionRequestArguments are the arguments Read keeps as configured: they
+// cannot change after creation, and the API may widen scopes or normalize
+// parameter values. They are filled from the API when the connection is
+// imported, and scopes also when the configuration omits them.
+var connectionRequestArguments = []string{"scopes", "connection_parameters"}
+
 // ResourceDigitalOceanActionGatewayConnection returns the
 // digitalocean_action_gateway_connection resource. The API has no update
 // operation, so every argument forces a new connection.
@@ -23,7 +30,7 @@ func ResourceDigitalOceanActionGatewayConnection() *schema.Resource {
 		ReadContext:   resourceDigitalOceanActionGatewayConnectionRead,
 		DeleteContext: resourceDigitalOceanActionGatewayConnectionDelete,
 		Importer: &schema.ResourceImporter{
-			StateContext: schema.ImportStatePassthroughContext,
+			StateContext: resourceDigitalOceanActionGatewayConnectionImport,
 		},
 		Schema: connectionResourceSchema(),
 	}
@@ -219,10 +226,44 @@ func resourceDigitalOceanActionGatewayConnectionCreate(ctx context.Context, d *s
 	d.SetId(created.Connection.ID)
 	log.Printf("[INFO] Action Gateway connection created, ID: %s", d.Id())
 
-	return resourceDigitalOceanActionGatewayConnectionRead(ctx, d, meta)
+	// Omitted scopes default to every scope the provider offers, so record
+	// the scopes the API chose.
+	var fill []string
+	if !isSetInConfig(d, "scopes") {
+		fill = append(fill, "scopes")
+	}
+	return readConnection(ctx, d, meta, fill...)
+}
+
+// isSetInConfig reports whether key is present in the configuration. Unlike
+// GetOk, it tells an explicitly empty value such as `scopes = []` apart from
+// an omitted argument.
+func isSetInConfig(d *schema.ResourceData, key string) bool {
+	raw := d.GetRawConfig()
+	if raw.IsNull() || !raw.IsKnown() {
+		_, ok := d.GetOk(key)
+		return ok
+	}
+	return !raw.GetAttr(key).IsNull()
+}
+
+func resourceDigitalOceanActionGatewayConnectionImport(ctx context.Context, d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+	if diags := readConnection(ctx, d, meta, connectionRequestArguments...); diags.HasError() {
+		return nil, fmt.Errorf("%s", diags[0].Summary)
+	}
+	if d.Id() == "" {
+		return nil, fmt.Errorf("Action Gateway connection not found or revoked")
+	}
+	return []*schema.ResourceData{d}, nil
 }
 
 func resourceDigitalOceanActionGatewayConnectionRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	return readConnection(ctx, d, meta)
+}
+
+// readConnection refreshes the connection's state. Of the
+// connectionRequestArguments, it sets only those named in fill.
+func readConnection(ctx context.Context, d *schema.ResourceData, meta interface{}, fill ...string) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	found, resp, err := client.ActionGateway.Connections.Get(ctx, d.Id())
@@ -241,16 +282,10 @@ func resourceDigitalOceanActionGatewayConnectionRead(ctx context.Context, d *sch
 	}
 
 	values := flattenConnection(found.Connection, found.Authorization)
-
-	// Scopes and connection parameters cannot change after creation, and the
-	// API may widen scopes or normalize parameter values. Keep the configured
-	// values and only fill them from the API when they are absent, such as
-	// after an import.
-	if existing := d.Get("scopes").(*schema.Set); existing.Len() > 0 {
-		delete(values, "scopes")
-	}
-	if existing := d.Get("connection_parameters").(map[string]interface{}); len(existing) > 0 {
-		delete(values, "connection_parameters")
+	for _, key := range connectionRequestArguments {
+		if !slices.Contains(fill, key) {
+			delete(values, key)
+		}
 	}
 
 	for k, v := range values {

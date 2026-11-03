@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -153,6 +154,158 @@ func TestConnectionCreatePendingOAuth(t *testing.T) {
 	}
 	if got := expandStringSet(d.Get("scopes")); !reflect.DeepEqual(got, []string{"write:jira-work"}) {
 		t.Errorf("scopes = %v, expected the configured scopes to be kept", got)
+	}
+}
+
+func describeDiff(diff *terraform.InstanceDiff) string {
+	var lines []string
+	for k, v := range diff.Attributes {
+		line := k + ": " + strconv.Quote(v.Old) + " -> " + strconv.Quote(v.New)
+		if v.NewComputed {
+			line += " (computed)"
+		}
+		if v.RequiresNew {
+			line += " (forces replacement)"
+		}
+		lines = append(lines, line)
+	}
+	sort.Strings(lines)
+	return strings.Join(lines, "\n")
+}
+
+// connectionRawConfig builds the configuration value Terraform sends the
+// provider, which is how Create tells `scopes = []` apart from no scopes.
+func connectionRawConfig(r *schema.Resource, attrs map[string]cty.Value) cty.Value {
+	values := map[string]cty.Value{}
+	for name, ty := range r.CoreConfigSchema().ImpliedType().AttributeTypes() {
+		values[name] = cty.NullVal(ty)
+	}
+	for name, v := range attrs {
+		values[name] = v
+	}
+	return cty.ObjectVal(values)
+}
+
+func TestConnectionPlanAfterApplyIsEmpty(t *testing.T) {
+	t.Parallel()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /v2/action-gateway/connections", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(t, w, http.StatusOK, map[string]interface{}{"connection": pendingJiraConnection("pending"), "authorization": pendingAuthorization()})
+	})
+	mux.HandleFunc("GET /v2/action-gateway/connections/"+testConnectionID, func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(t, w, http.StatusOK, map[string]interface{}{"connection": pendingJiraConnection("pending"), "authorization": pendingAuthorization()})
+	})
+	meta := newTestMeta(t, mux)
+
+	tests := []struct {
+		name       string
+		config     map[string]interface{}
+		raw        map[string]cty.Value
+		wantScopes []string
+	}{
+		{
+			name:       "omitted scopes",
+			config:     map[string]interface{}{"tool_provider": "jira", "user_id": "alice"},
+			raw:        map[string]cty.Value{"tool_provider": cty.StringVal("jira"), "user_id": cty.StringVal("alice")},
+			wantScopes: []string{"read:jira-work", "write:jira-work"},
+		},
+		{
+			name:       "empty scopes",
+			config:     map[string]interface{}{"tool_provider": "jira", "user_id": "alice", "scopes": []interface{}{}},
+			raw:        map[string]cty.Value{"tool_provider": cty.StringVal("jira"), "user_id": cty.StringVal("alice"), "scopes": cty.SetValEmpty(cty.String)},
+			wantScopes: []string{},
+		},
+		{
+			name:       "narrower scopes",
+			config:     map[string]interface{}{"tool_provider": "jira", "user_id": "alice", "scopes": []interface{}{"write:jira-work"}},
+			raw:        map[string]cty.Value{"tool_provider": cty.StringVal("jira"), "user_id": cty.StringVal("alice"), "scopes": cty.SetVal([]cty.Value{cty.StringVal("write:jira-work")})},
+			wantScopes: []string{"write:jira-work"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			r := ResourceDigitalOceanActionGatewayConnection()
+			cfg := terraform.NewResourceConfigRaw(tt.config)
+
+			diff, err := r.Diff(ctx, nil, cfg, meta)
+			if err != nil {
+				t.Fatalf("error planning create: %s", err)
+			}
+			diff.RawConfig = connectionRawConfig(r, tt.raw)
+			state, diags := r.Apply(ctx, nil, diff, meta)
+			requireNoErrors(t, diags)
+
+			state, diags = r.RefreshWithoutUpgrade(ctx, state, meta)
+			requireNoErrors(t, diags)
+			if got := expandStringSet(r.Data(state).Get("scopes")); !reflect.DeepEqual(got, tt.wantScopes) {
+				t.Errorf("scopes = %v, expected %v", got, tt.wantScopes)
+			}
+
+			next, err := r.Diff(ctx, state, cfg, meta)
+			if err != nil {
+				t.Fatalf("error planning after apply: %s", err)
+			}
+			if next != nil && !next.Empty() {
+				t.Errorf("expected an empty plan after apply, got:\n%s", describeDiff(next))
+			}
+		})
+	}
+}
+
+func TestConnectionImportFillsRequestArguments(t *testing.T) {
+	t.Parallel()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /v2/action-gateway/connections/"+testConnectionID, func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(t, w, http.StatusOK, map[string]interface{}{"connection": pendingJiraConnection("active")})
+	})
+	meta := newTestMeta(t, mux)
+
+	ctx := context.Background()
+	r := ResourceDigitalOceanActionGatewayConnection()
+	imported, err := r.Importer.StateContext(ctx, r.Data(&terraform.InstanceState{ID: testConnectionID}), meta)
+	if err != nil {
+		t.Fatalf("error importing: %s", err)
+	}
+	state, diags := r.RefreshWithoutUpgrade(ctx, imported[0].State(), meta)
+	requireNoErrors(t, diags)
+
+	d := r.Data(state)
+	if got := expandStringSet(d.Get("scopes")); !reflect.DeepEqual(got, []string{"read:jira-work", "write:jira-work"}) {
+		t.Errorf("scopes = %v, expected the granted scopes", got)
+	}
+	if got := d.Get("connection_parameters.site_url"); got != "https://example.atlassian.net/" {
+		t.Errorf("connection_parameters.site_url = %v", got)
+	}
+
+	cfg := terraform.NewResourceConfigRaw(map[string]interface{}{
+		"tool_provider":         "jira",
+		"user_id":               "alice",
+		"connection_parameters": map[string]interface{}{"site_url": "https://example.atlassian.net/"},
+	})
+	next, err := r.Diff(ctx, state, cfg, meta)
+	if err != nil {
+		t.Fatalf("error planning after import: %s", err)
+	}
+	if next != nil && !next.Empty() {
+		t.Errorf("expected an empty plan after import, got:\n%s", describeDiff(next))
+	}
+}
+
+func TestConnectionImportMissing(t *testing.T) {
+	t.Parallel()
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /v2/action-gateway/connections/"+testConnectionID, func(w http.ResponseWriter, r *http.Request) {
+		writeNotFound(t, w)
+	})
+	meta := newTestMeta(t, mux)
+
+	r := ResourceDigitalOceanActionGatewayConnection()
+	if _, err := r.Importer.StateContext(context.Background(), r.Data(&terraform.InstanceState{ID: testConnectionID}), meta); err == nil {
+		t.Fatal("expected an error importing a connection that does not exist")
 	}
 }
 

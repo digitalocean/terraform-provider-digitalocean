@@ -89,7 +89,7 @@ changing any argument revokes the connection and creates a new one.
 
 * `tool_provider` - (Required) The slug of the tool provider, such as `github` or `jira`. The [`digitalocean_action_gateway_providers`](../data-sources/action_gateway_providers) data source lists the available providers.
 * `user_id` - (Required) The actor ID the connection acts for: 1 to 64 characters from `[A-Za-z0-9._-]`. Use the actor ID of the sessions that need this account.
-* `scopes` - (Optional) The OAuth scopes to request. Defaults to every scope the provider offers. Ignored for API-key credentials.
+* `scopes` - (Optional) The OAuth scopes to request. When omitted or empty, every scope the provider offers is requested. Ignored for API-key credentials.
 * `connection_parameters` - (Optional) A map of values for the provider's connection parameters, such as `site_url` for Jira.
 * `credential_id` - (Optional) The ID of a team provider credential, such as your own OAuth application or an API key, to connect through. When omitted, DigitalOcean's shared OAuth application is used.
 * `vpc` - (Optional) Routes the connection's calls through a VPC. VPC networking must be enabled for your team.
