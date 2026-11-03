@@ -344,7 +344,9 @@ func resourceDigitalOceanActionGatewayMCPServerCreate(ctx context.Context, d *sc
 		return append(diags, resourceDigitalOceanActionGatewayMCPServerRead(ctx, d, meta)...)
 	}
 
-	if err := discoverMCPServerTools(ctx, client, d.Id(), syncUserID, d.Timeout(schema.TimeoutCreate)); err != nil {
+	discoverCtx, cancel := discoveryContext(ctx, d.Timeout(schema.TimeoutCreate))
+	defer cancel()
+	if err := discoverMCPServerTools(discoverCtx, client, d.Id(), syncUserID); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Warning,
 			Summary:  "Action Gateway MCP server tools were not discovered",
@@ -405,7 +407,9 @@ func resourceDigitalOceanActionGatewayMCPServerUpdate(ctx context.Context, d *sc
 
 	if d.HasChange("enabled_tools") {
 		syncUserID := d.Get("sync_user_id").(string)
-		if err := discoverMCPServerTools(ctx, client, d.Id(), syncUserID, d.Timeout(schema.TimeoutUpdate)); err != nil {
+		discoverCtx, cancel := discoveryContext(ctx, d.Timeout(schema.TimeoutUpdate))
+		defer cancel()
+		if err := discoverMCPServerTools(discoverCtx, client, d.Id(), syncUserID); err != nil {
 			return diag.FromErr(err)
 		}
 		if err := setMCPServerEnabledTools(ctx, client, d.Id(), expandStringSet(d.Get("enabled_tools")), syncUserID); err != nil {
@@ -433,10 +437,26 @@ func resourceDigitalOceanActionGatewayMCPServerDelete(ctx context.Context, d *sc
 	return nil
 }
 
-// discoverMCPServerTools refreshes the server's discovered tools. Discovery
-// that outlasts the request continues in the background; the API documents
-// polling the server until last_synced_at or sync_error changes.
-func discoverMCPServerTools(ctx context.Context, client *godo.Client, ref, userID string, timeout time.Duration) error {
+// discoveryContext returns a context for tool discovery that expires before
+// ctx does, so the requests that follow discovery, such as enabling tools and
+// reading the server, still have time to finish when discovery times out.
+func discoveryContext(ctx context.Context, timeout time.Duration) (context.Context, context.CancelFunc) {
+	reserve := timeout / 2
+	if reserve > 30*time.Second {
+		reserve = 30 * time.Second
+	}
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		deadline = time.Now().Add(timeout)
+	}
+	return context.WithDeadline(ctx, deadline.Add(-reserve))
+}
+
+// discoverMCPServerTools refreshes the server's discovered tools, waiting
+// until ctx expires. Discovery that outlasts the request continues in the
+// background; the API documents polling the server until last_synced_at or
+// sync_error changes.
+func discoverMCPServerTools(ctx context.Context, client *godo.Client, ref, userID string) error {
 	before, _, err := client.ActionGateway.MCPServers.Get(ctx, ref)
 	if err != nil {
 		return fmt.Errorf("error retrieving Action Gateway MCP server (%s): %s", ref, err)
@@ -456,6 +476,7 @@ func discoverMCPServerTools(ctx context.Context, client *godo.Client, ref, userI
 
 	synced := result.MCPServer
 	if result.Pending || synced == nil {
+		deadline, _ := ctx.Deadline()
 		stateConf := &retry.StateChangeConf{
 			Pending: []string{"discovering"},
 			Target:  []string{"done"},
@@ -470,7 +491,7 @@ func discoverMCPServerTools(ctx context.Context, client *godo.Client, ref, userI
 				}
 				return s, "done", nil
 			},
-			Timeout:    timeout,
+			Timeout:    time.Until(deadline),
 			Delay:      2 * time.Second,
 			MinTimeout: 2 * time.Second,
 		}

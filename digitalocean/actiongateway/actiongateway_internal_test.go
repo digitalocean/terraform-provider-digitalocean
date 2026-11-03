@@ -843,6 +843,44 @@ func TestMCPServerCreateWarnsWhenAuthorizationRequired(t *testing.T) {
 	}
 }
 
+func TestMCPServerCreateWarnsWhenDiscoveryOutlastsTimeout(t *testing.T) {
+	t.Parallel()
+
+	api := newFakeMCPServerAPI()
+	api.pendingPolls = 1 << 30
+	meta := api.start(t)
+
+	ctx := context.Background()
+	r := ResourceDigitalOceanActionGatewayMCPServer()
+	cfg := terraform.NewResourceConfigRaw(map[string]interface{}{
+		"server_ref":            "docs",
+		"endpoint":              "https://mcp.example.com/mcp",
+		"credential_ref_source": "secret",
+		"api_key":               "sk_live_example",
+		"enabled_tools":         []interface{}{"docs_search"},
+		"timeouts":              map[string]interface{}{"create": "4s"},
+	})
+	diff, err := r.Diff(ctx, nil, cfg, meta)
+	if err != nil {
+		t.Fatalf("error planning create: %s", err)
+	}
+
+	state, diags := r.Apply(ctx, nil, diff, meta)
+	requireNoErrors(t, diags)
+	if len(diags) != 1 || diags[0].Severity != diag.Warning {
+		t.Fatalf("diagnostics = %v, expected one warning", diags)
+	}
+	if state == nil || state.ID != "docs" || state.Tainted {
+		t.Fatalf("state = %v, expected the server to be kept and not tainted", state)
+	}
+	if got := state.Attributes["sync_status"]; got != "pending" {
+		t.Errorf("sync_status = %q, expected the server to be read after discovery timed out", got)
+	}
+	if len(api.enabled) != 0 {
+		t.Errorf("expected no enabled tool requests, got %v", api.enabled)
+	}
+}
+
 func TestValidateMCPServerCredentialConfig(t *testing.T) {
 	config := func(attrs map[string]cty.Value) cty.Value {
 		all := map[string]cty.Value{
