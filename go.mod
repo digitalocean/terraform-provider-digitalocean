@@ -73,3 +73,5 @@ require (
 )
 
 replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
+
+replace github.com/digitalocean/godo => github.com/pyadagiri-do/godo v1.173.1-0.20261103094040-01c27a106f84

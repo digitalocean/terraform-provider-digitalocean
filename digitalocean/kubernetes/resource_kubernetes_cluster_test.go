@@ -1281,6 +1281,26 @@ func TestAccDigitalOceanKubernetesCluster_IsolatedWorkersEnabled(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_MaxPodsPerNode(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfigMaxPodsPerNode(testClusterVersionLatest, rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "max_pods_per_node", "220"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanKubernetesCluster_GPUOperatorReady(t *testing.T) {
 	rName := acceptance.RandomTestName()
 	var k8s godo.KubernetesCluster
@@ -1908,6 +1928,25 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   version          = data.digitalocean_kubernetes_versions.test.latest_version
   ha               = false
   isolated_workers = true
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+`, testClusterVersion, rName)
+}
+
+func testAccDigitalOceanKubernetesConfigMaxPodsPerNode(testClusterVersion string, rName string) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name              = "%s"
+  region            = "nyc1"
+  version           = data.digitalocean_kubernetes_versions.test.latest_version
+  ha                = false
+  max_pods_per_node = 220
 
   node_pool {
     name       = "default"
