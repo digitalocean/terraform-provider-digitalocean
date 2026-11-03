@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"reflect"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
@@ -77,11 +80,45 @@ data "digitalocean_action_gateway_toolbelt" "foobar" {
 					resource.TestCheckResourceAttrPair("data.digitalocean_action_gateway_toolbelt.foobar", "reference", "digitalocean_action_gateway_toolbelt.foobar", "reference"),
 					resource.TestCheckResourceAttr("data.digitalocean_action_gateway_toolbelt.foobar", "display_name", "Search Tools"),
 					resource.TestCheckResourceAttr("data.digitalocean_action_gateway_toolbelt.foobar", "tools.#", "1"),
-					resource.TestCheckTypeSetElemAttr("data.digitalocean_action_gateway_toolbelt.foobar", "tools.*", "exa_web_search@1"),
+					testAccCheckSetAttrsEqual("data.digitalocean_action_gateway_toolbelt.foobar", "tools", "digitalocean_action_gateway_toolbelt.foobar", "pinned_tools"),
 				),
 			},
 		},
 	})
+}
+
+// testAccCheckSetAttrsEqual checks that two set attributes hold the same
+// elements, such as members pinned to whichever catalog version is current.
+func testAccCheckSetAttrsEqual(nameFirst, keyFirst, nameSecond, keySecond string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		first, err := testAccSetAttrValues(s, nameFirst, keyFirst)
+		if err != nil {
+			return err
+		}
+		second, err := testAccSetAttrValues(s, nameSecond, keySecond)
+		if err != nil {
+			return err
+		}
+		if !reflect.DeepEqual(first, second) {
+			return fmt.Errorf("%s.%s = %v, expected %s.%s = %v", nameFirst, keyFirst, first, nameSecond, keySecond, second)
+		}
+		return nil
+	}
+}
+
+func testAccSetAttrValues(s *terraform.State, name, key string) ([]string, error) {
+	rs, ok := s.RootModule().Resources[name]
+	if !ok {
+		return nil, fmt.Errorf("not found: %s", name)
+	}
+	values := []string{}
+	for k, v := range rs.Primary.Attributes {
+		if strings.HasPrefix(k, key+".") && k != key+".#" {
+			values = append(values, v)
+		}
+	}
+	sort.Strings(values)
+	return values, nil
 }
 
 func testAccCheckActionGatewayToolbeltDestroy(s *terraform.State) error {
