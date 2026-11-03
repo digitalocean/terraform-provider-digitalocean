@@ -38,7 +38,7 @@ func DataSourceDigitalOceanActionGatewayConnection() *schema.Resource {
 		Optional:     true,
 		Computed:     true,
 		Description:  "Actor ID the connection acts for",
-		ValidateFunc: validateUserID(),
+		ValidateFunc: validateUserID,
 		RequiredWith: []string{"tool_provider"},
 	}
 

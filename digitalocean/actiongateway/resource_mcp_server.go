@@ -169,7 +169,7 @@ func ResourceDigitalOceanActionGatewayMCPServer() *schema.Resource {
 				Type:         schema.TypeString,
 				Optional:     true,
 				Description:  "For credential_ref_source connection: the user whose authorization is used to discover and verify the server's tools",
-				ValidateFunc: validateUserID(),
+				ValidateFunc: validateUserID,
 			},
 			"sync_status": {
 				Type:        schema.TypeString,

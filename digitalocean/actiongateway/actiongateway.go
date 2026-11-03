@@ -17,11 +17,9 @@ var (
 	userIDRegexp      = regexp.MustCompile(`^[A-Za-z0-9._-]{1,64}$`)
 	toolbeltNameRegex = regexp.MustCompile(`^[a-z][a-z0-9_-]{0,63}$`)
 	serverRefRegexp   = regexp.MustCompile(`^[a-z][a-z0-9-]{0,63}$`)
-)
 
-func validateUserID() schema.SchemaValidateFunc {
-	return validation.StringMatch(userIDRegexp, "must be 1 to 64 characters from [A-Za-z0-9._-]")
-}
+	validateUserID = validation.StringMatch(userIDRegexp, "must be 1 to 64 characters from [A-Za-z0-9._-]")
+)
 
 func isNotFound(resp *godo.Response) bool {
 	return resp != nil && resp.StatusCode == http.StatusNotFound

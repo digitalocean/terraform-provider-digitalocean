@@ -43,7 +43,7 @@ func connectionResourceSchema() map[string]*schema.Schema {
 			Required:     true,
 			ForceNew:     true,
 			Description:  "Actor ID the connection acts for. Sessions whose actor ID matches use this connection.",
-			ValidateFunc: validateUserID(),
+			ValidateFunc: validateUserID,
 		},
 		"scopes": {
 			Type:        schema.TypeSet,
