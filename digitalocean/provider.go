@@ -16,6 +16,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/droplet"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/dropletautoscale"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/firewall"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/functions"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/image"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
@@ -127,6 +128,8 @@ func Provider() *schema.Provider {
 			"digitalocean_droplets":                                    droplet.DataSourceDigitalOceanDroplets(),
 			"digitalocean_droplet_snapshot":                            snapshot.DataSourceDigitalOceanDropletSnapshot(),
 			"digitalocean_firewall":                                    firewall.DataSourceDigitalOceanFirewall(),
+			"digitalocean_functions_namespace":                         functions.DataSourceDigitalOceanFunctionsNamespace(),
+			"digitalocean_functions_trigger":                           functions.DataSourceDigitalOceanFunctionsTrigger(),
 			"digitalocean_floating_ip":                                 reservedip.DataSourceDigitalOceanFloatingIP(),
 			"digitalocean_image":                                       image.DataSourceDigitalOceanImage(),
 			"digitalocean_images":                                      image.DataSourceDigitalOceanImages(),
@@ -222,6 +225,8 @@ func Provider() *schema.Provider {
 			"digitalocean_droplet_autoscale":                              dropletautoscale.ResourceDigitalOceanDropletAutoscale(),
 			"digitalocean_droplet_snapshot":                               snapshot.ResourceDigitalOceanDropletSnapshot(),
 			"digitalocean_firewall":                                       firewall.ResourceDigitalOceanFirewall(),
+			"digitalocean_functions_namespace":                            functions.ResourceDigitalOceanFunctionsNamespace(),
+			"digitalocean_functions_trigger":                              functions.ResourceDigitalOceanFunctionsTrigger(),
 			"digitalocean_floating_ip":                                    reservedip.ResourceDigitalOceanFloatingIP(),
 			"digitalocean_floating_ip_assignment":                         reservedip.ResourceDigitalOceanFloatingIPAssignment(),
 			"digitalocean_kubernetes_cluster":                             kubernetes.ResourceDigitalOceanKubernetesCluster(),
