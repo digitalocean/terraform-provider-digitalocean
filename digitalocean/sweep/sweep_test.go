@@ -3,6 +3,7 @@ package sweep_test
 import (
 	"testing"
 
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/actiongateway"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/app"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/cdn"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/certificate"

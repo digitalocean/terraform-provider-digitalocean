@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/account"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/actiongateway"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/agentplatform"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/app"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/byoipprefix"
@@ -107,6 +108,9 @@ func Provider() *schema.Provider {
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"digitalocean_account":                                     account.DataSourceDigitalOceanAccount(),
+			"digitalocean_action_gateway_connection":                   actiongateway.DataSourceDigitalOceanActionGatewayConnection(),
+			"digitalocean_action_gateway_providers":                    actiongateway.DataSourceDigitalOceanActionGatewayProviders(),
+			"digitalocean_action_gateway_toolbelt":                     actiongateway.DataSourceDigitalOceanActionGatewayToolbelt(),
 			"digitalocean_app":                                         app.DataSourceDigitalOceanApp(),
 			"digitalocean_byoip_prefix_resources":                      byoipprefix.DataSourceDigitalOceanBYOIPPrefixResources(),
 			"digitalocean_byoip_prefix":                                byoipprefix.DataSourceDigitalOceanBYOIPPrefix(),
@@ -189,6 +193,9 @@ func Provider() *schema.Provider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
+			"digitalocean_action_gateway_connection":                      actiongateway.ResourceDigitalOceanActionGatewayConnection(),
+			"digitalocean_action_gateway_mcp_server":                      actiongateway.ResourceDigitalOceanActionGatewayMCPServer(),
+			"digitalocean_action_gateway_toolbelt":                        actiongateway.ResourceDigitalOceanActionGatewayToolbelt(),
 			"digitalocean_app":                                            app.ResourceDigitalOceanApp(),
 			"digitalocean_byoip_prefix":                                   byoipprefix.ResourceBYOIPPrefix(),
 			"digitalocean_certificate":                                    certificate.ResourceDigitalOceanCertificate(),
