@@ -106,4 +106,25 @@ terraform import digitalocean_action_gateway_mcp_server.docs docs
 ```
 
 The write-only arguments `api_key`, `oauth_client_id`, `oauth_client_secret`,
-and `oauth_token_url` are not imported.
+and `oauth_token_url` are not imported. Changing any of them registers the
+server again, so after an import the next plan would replace a server whose
+configuration sets them. To keep the imported server, ignore the ones your
+configuration sets:
+
+```hcl
+resource "digitalocean_action_gateway_mcp_server" "docs" {
+  # ...
+
+  lifecycle {
+    ignore_changes = [api_key]
+  }
+}
+```
+
+For a server with `credential_ref_source = "connection"`, ignore
+`oauth_client_id`, `oauth_client_secret`, and `oauth_token_url` instead.
+Terraform then ignores changes to those arguments until you remove them from
+`ignore_changes`, which registers the server again with the configured values.
+
+`sync_user_id` is not imported either. The first apply after an import sets it
+and discovers the server's tools again.
