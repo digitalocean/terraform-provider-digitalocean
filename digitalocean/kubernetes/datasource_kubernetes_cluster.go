@@ -364,6 +364,10 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
+			"max_pods_per_node": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
 			"gpu_operator_ready": {
 				Type:     schema.TypeBool,
 				Computed: true,
