@@ -12,7 +12,9 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
+	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -785,18 +787,21 @@ func TestToolbeltUpdateAddsAndRemovesTools(t *testing.T) {
 }
 
 // fakeMCPServerAPI serves one MCP server. A requested resync completes after
-// pendingPolls reads of the server.
+// pendingPolls reads of the server, failing with failWith when it is set.
+// Completing a resync updates updatedAt unless keepUpdatedAt is set.
 type fakeMCPServerAPI struct {
-	mu           sync.Mutex
-	server       map[string]interface{}
-	tools        []map[string]interface{}
-	resyncs      int
-	resyncUsers  []string
-	syncing      bool
-	pendingPolls int
-	authorize    bool
-	created      bool
-	enabled      [][]string
+	mu            sync.Mutex
+	server        map[string]interface{}
+	tools         []map[string]interface{}
+	resyncs       int
+	resyncUsers   []string
+	syncing       bool
+	pendingPolls  int
+	failWith      string
+	keepUpdatedAt bool
+	authorize     bool
+	created       bool
+	enabled       [][]string
 }
 
 func (api *fakeMCPServerAPI) start(t *testing.T) *config.CombinedConfig {
@@ -829,9 +834,18 @@ func (api *fakeMCPServerAPI) start(t *testing.T) *config.CombinedConfig {
 		if api.syncing {
 			if api.pendingPolls == 0 {
 				api.syncing = false
-				api.server["lastSyncedAt"] = fmt.Sprintf("2026-09-20T15:%02d:00Z", api.resyncs)
-				api.server["syncStatus"] = "synced"
-				api.server["toolCount"] = len(api.tools)
+				if api.failWith != "" {
+					api.server["syncStatus"] = "failed"
+					api.server["syncError"] = api.failWith
+				} else {
+					api.server["lastSyncedAt"] = fmt.Sprintf("2026-09-20T15:%02d:00Z", api.resyncs)
+					api.server["syncStatus"] = "synced"
+					api.server["syncError"] = ""
+					api.server["toolCount"] = len(api.tools)
+				}
+				if !api.keepUpdatedAt {
+					api.server["updatedAt"] = fmt.Sprintf("2026-09-20T15:%02d:30Z", api.resyncs)
+				}
 			} else {
 				api.pendingPolls--
 			}
@@ -1115,6 +1129,113 @@ func TestMCPServerUpdateRediscoversWhenSyncUserSet(t *testing.T) {
 			}
 			if got := newState.Attributes["last_synced_at"]; got != "2026-09-20T15:01:00Z" {
 				t.Errorf("last_synced_at = %q, expected the rediscovery's time", got)
+			}
+		})
+	}
+}
+
+func TestDiscoveryFinished(t *testing.T) {
+	failed := godo.ActionGatewayMCPServer{SyncStatus: "failed", SyncError: "401 Unauthorized", LastSyncedAt: "2026-09-20T14:00:00Z", UpdatedAt: "2026-09-20T14:00:00Z"}
+	newServer := godo.ActionGatewayMCPServer{SyncStatus: "pending", UpdatedAt: "2026-09-20T14:00:00Z"}
+	with := func(s godo.ActionGatewayMCPServer, change func(*godo.ActionGatewayMCPServer)) godo.ActionGatewayMCPServer {
+		change(&s)
+		return s
+	}
+
+	tests := []struct {
+		name   string
+		before godo.ActionGatewayMCPServer
+		now    godo.ActionGatewayMCPServer
+		want   bool
+	}{
+		{name: "still running", before: failed, now: failed},
+		{
+			name:   "succeeded",
+			before: failed,
+			now: with(failed, func(s *godo.ActionGatewayMCPServer) {
+				s.SyncStatus, s.SyncError, s.LastSyncedAt = "synced", "", "2026-09-20T15:00:00Z"
+			}),
+			want: true,
+		},
+		{
+			name:   "failed with another error",
+			before: failed,
+			now:    with(failed, func(s *godo.ActionGatewayMCPServer) { s.SyncError = "connection refused" }),
+			want:   true,
+		},
+		{
+			name:   "failed again with the same error",
+			before: failed,
+			now:    with(failed, func(s *godo.ActionGatewayMCPServer) { s.UpdatedAt = "2026-09-20T15:00:00Z" }),
+			want:   true,
+		},
+		{
+			name:   "first discovery still running",
+			before: newServer,
+			now:    with(newServer, func(s *godo.ActionGatewayMCPServer) { s.UpdatedAt = "2026-09-20T15:00:00Z" }),
+		},
+		{
+			name:   "first discovery failed",
+			before: newServer,
+			now:    with(newServer, func(s *godo.ActionGatewayMCPServer) { s.SyncStatus, s.SyncError = "failed", "401 Unauthorized" }),
+			want:   true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := discoveryFinished(&tt.before, &tt.now); got != tt.want {
+				t.Errorf("discoveryFinished = %t, expected %t", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDiscoverMCPServerToolsReportsRepeatedFailure(t *testing.T) {
+	t.Parallel()
+
+	const syncError = "connecting to https://mcp.example.com/mcp: 401 Unauthorized"
+	tests := []struct {
+		name          string
+		keepUpdatedAt bool
+		timeout       time.Duration
+		wantErr       string
+	}{
+		{
+			name:    "discovery fails again",
+			timeout: 30 * time.Second,
+			wantErr: "tool discovery of Action Gateway MCP server (docs) failed: " + syncError,
+		},
+		{
+			name:          "discovery outlasts the wait",
+			keepUpdatedAt: true,
+			timeout:       3 * time.Second,
+			wantErr:       "its previous discovery failed: " + syncError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			api := newFakeMCPServerAPI()
+			api.server = map[string]interface{}{
+				"serverRef":           "docs",
+				"endpoint":            "https://mcp.example.com/mcp",
+				"transport":           "streamable_http",
+				"credentialRefSource": "secret",
+				"syncStatus":          "failed",
+				"syncError":           syncError,
+				"updatedAt":           "2026-09-20T14:00:00Z",
+			}
+			api.pendingPolls = 1
+			api.failWith = syncError
+			api.keepUpdatedAt = tt.keepUpdatedAt
+			meta := api.start(t)
+
+			ctx, cancel := context.WithTimeout(context.Background(), tt.timeout)
+			defer cancel()
+			err := discoverMCPServerTools(ctx, meta.GodoClient(), "docs", "")
+			if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+				t.Fatalf("expected error containing %q, got %v", tt.wantErr, err)
 			}
 		})
 	}

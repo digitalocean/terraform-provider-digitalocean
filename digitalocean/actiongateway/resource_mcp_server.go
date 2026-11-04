@@ -21,6 +21,8 @@ const (
 	mcpCredentialSourceNone       = "none"
 	mcpCredentialSourceSecret     = "secret"
 	mcpCredentialSourceConnection = "connection"
+
+	mcpSyncStatusPending = "pending"
 )
 
 var errEnabledToolsRequireSyncUser = fmt.Errorf("enabled_tools requires sync_user_id when credential_ref_source is %q: the server's tools are discovered and verified as that user", mcpCredentialSourceConnection)
@@ -509,8 +511,7 @@ func discoveryContext(ctx context.Context, timeout time.Duration) (context.Conte
 
 // discoverMCPServerTools refreshes the server's discovered tools, waiting
 // until ctx expires. Discovery that outlasts the request continues in the
-// background; the API documents polling the server until last_synced_at or
-// sync_error changes.
+// background, and discoveryFinished tells when it is done.
 func discoverMCPServerTools(ctx context.Context, client *godo.Client, ref, userID string) error {
 	before, _, err := client.ActionGateway.MCPServers.Get(ctx, ref)
 	if err != nil {
@@ -541,7 +542,7 @@ func discoverMCPServerTools(ctx context.Context, client *godo.Client, ref, userI
 					return nil, "", err
 				}
 				s := current.MCPServer
-				if s == nil || (s.LastSyncedAt == previous.LastSyncedAt && s.SyncError == previous.SyncError) {
+				if s == nil || !discoveryFinished(&previous, s) {
 					return current, "discovering", nil
 				}
 				return s, "done", nil
@@ -552,6 +553,9 @@ func discoverMCPServerTools(ctx context.Context, client *godo.Client, ref, userI
 		}
 		raw, err := stateConf.WaitForStateContext(ctx)
 		if err != nil {
+			if previous.SyncError != "" {
+				return fmt.Errorf("error waiting for tool discovery of Action Gateway MCP server (%s): %s; its previous discovery failed: %s", ref, err, previous.SyncError)
+			}
 			return fmt.Errorf("error waiting for tool discovery of Action Gateway MCP server (%s): %s", ref, err)
 		}
 		synced = raw.(*godo.ActionGatewayMCPServer)
@@ -561,6 +565,20 @@ func discoverMCPServerTools(ctx context.Context, client *godo.Client, ref, userI
 		return fmt.Errorf("tool discovery of Action Gateway MCP server (%s) failed: %s", ref, synced.SyncError)
 	}
 	return nil
+}
+
+// discoveryFinished reports whether a discovery started while the server
+// looked like before has finished. The API does not reset sync_status while
+// discovery runs, so only a change shows that it finished, and a discovery
+// that fails again with the same error may change nothing but updated_at.
+func discoveryFinished(before, now *godo.ActionGatewayMCPServer) bool {
+	if now.SyncStatus == mcpSyncStatusPending && now.SyncError == "" {
+		return false
+	}
+	return now.LastSyncedAt != before.LastSyncedAt ||
+		now.SyncError != before.SyncError ||
+		now.SyncStatus != before.SyncStatus ||
+		now.UpdatedAt != before.UpdatedAt
 }
 
 func setMCPServerEnabledTools(ctx context.Context, client *godo.Client, ref string, slugs []string, userID string) error {
