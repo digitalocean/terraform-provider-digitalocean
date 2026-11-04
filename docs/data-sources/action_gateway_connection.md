@@ -10,7 +10,7 @@ connection, such as one created in the control panel. Look a connection up by
 its `id`, or by its `tool_provider` and `user_id`.
 
 The lookup finds only connections visible to the DigitalOcean user who owns
-Terraform's API token.
+Terraform's API token. Revoked connections are never returned.
 
 ## Example Usage
 

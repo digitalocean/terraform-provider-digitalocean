@@ -215,12 +215,29 @@ func resourceDigitalOceanActionGatewayConnectionCreate(ctx context.Context, d *s
 		req.Network = expandConnectionNetwork(v.([]interface{}))
 	}
 
+	// Instead of creating a connection, the API returns or restarts an
+	// existing one for the same tool provider and user ID. Terraform must not
+	// take ownership of such a connection: destroying this resource would
+	// revoke it while another configuration, or the resource that
+	// create_before_destroy is replacing, still uses it.
+	existing, err := findConnections(ctx, client, req.Provider, req.UserID)
+	if err != nil {
+		return diag.Errorf("Error listing Action Gateway connections: %s", err)
+	}
+
 	created, _, err := client.ActionGateway.Connections.Create(ctx, req)
 	if err != nil {
 		return diag.Errorf("Error creating Action Gateway connection: %s", err)
 	}
 	if created.Connection == nil || created.Connection.ID == "" {
 		return diag.Errorf("Error creating Action Gateway connection: response contained no connection")
+	}
+	for _, conn := range existing {
+		if conn.ID == created.Connection.ID {
+			return diag.Errorf("Error creating Action Gateway connection: connection %s for tool provider %q and user ID %q already exists (status %s). "+
+				"Import it with `terraform import digitalocean_action_gateway_connection.<name> %s`, or revoke it before creating this resource.",
+				conn.ID, req.Provider, req.UserID, conn.Status, conn.ID)
+		}
 	}
 
 	d.SetId(created.Connection.ID)

@@ -91,6 +91,19 @@ func pendingJiraConnection(status string) map[string]interface{} {
 	}
 }
 
+// serveConnectionList serves conns as the only page of the connection list.
+func serveConnectionList(t *testing.T, mux *http.ServeMux, conns ...map[string]interface{}) {
+	if conns == nil {
+		conns = []map[string]interface{}{}
+	}
+	mux.HandleFunc("GET /v2/action-gateway/connections", func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(t, w, http.StatusOK, map[string]interface{}{
+			"connections": conns,
+			"pagination":  map[string]int{"page": 1, "per_page": 100, "total": len(conns)},
+		})
+	})
+}
+
 func pendingAuthorization() map[string]interface{} {
 	return map[string]interface{}{
 		"status":            "requires_authorization",
@@ -105,6 +118,7 @@ func TestConnectionCreatePendingOAuth(t *testing.T) {
 
 	var createBody map[string]interface{}
 	mux := http.NewServeMux()
+	serveConnectionList(t, mux)
 	mux.HandleFunc("POST /v2/action-gateway/connections", func(w http.ResponseWriter, r *http.Request) {
 		createBody = decodeJSON(t, r)
 		writeJSON(t, w, http.StatusOK, map[string]interface{}{
@@ -191,6 +205,7 @@ func TestConnectionPlanAfterApplyIsEmpty(t *testing.T) {
 	t.Parallel()
 
 	mux := http.NewServeMux()
+	serveConnectionList(t, mux)
 	mux.HandleFunc("POST /v2/action-gateway/connections", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(t, w, http.StatusOK, map[string]interface{}{"connection": pendingJiraConnection("pending"), "authorization": pendingAuthorization()})
 	})
@@ -333,6 +348,7 @@ func TestConnectionCreateTeamCredentialOverVPC(t *testing.T) {
 		}},
 	}
 	mux := http.NewServeMux()
+	serveConnectionList(t, mux)
 	mux.HandleFunc("POST /v2/action-gateway/connections", func(w http.ResponseWriter, r *http.Request) {
 		createBody = decodeJSON(t, r)
 		writeJSON(t, w, http.StatusOK, map[string]interface{}{"connection": connection})
@@ -438,7 +454,10 @@ func TestFindConnectionsMatchesExactUserID(t *testing.T) {
 				{"id": "b", "provider": "github", "user_id": "alice"},
 			}
 		} else {
-			conns = []map[string]interface{}{{"id": "c", "provider": "github", "user_id": "malice"}}
+			conns = []map[string]interface{}{
+				{"id": "c", "provider": "github", "user_id": "malice"},
+				{"id": "d", "provider": "github", "user_id": "alice", "status": "revoked"},
+			}
 		}
 		writeJSON(t, w, http.StatusOK, map[string]interface{}{
 			"connections": conns,
@@ -457,6 +476,96 @@ func TestFindConnectionsMatchesExactUserID(t *testing.T) {
 	if !reflect.DeepEqual(pages, []string{"1", "2"}) {
 		t.Errorf("requested pages %v, expected [1 2]", pages)
 	}
+}
+
+func TestConnectionCreateRefusesExistingConnection(t *testing.T) {
+	t.Parallel()
+
+	otherOwner := pendingJiraConnection("active")
+	otherOwner["id"] = "7c1e5a2b-4d3f-4e6a-8b9c-0d1e2f3a4b5c"
+	otherOwner["owning_user_id"] = "9a8b7c6d-5e4f-4a3b-2c1d-0e9f8a7b6c5d"
+
+	tests := []struct {
+		name     string
+		existing []map[string]interface{}
+		wantErr  bool
+	}{
+		{name: "no existing connection"},
+		{name: "another user's connection", existing: []map[string]interface{}{otherOwner}},
+		{name: "revoked connection restarted", existing: []map[string]interface{}{pendingJiraConnection("revoked")}},
+		{name: "active connection returned", existing: []map[string]interface{}{pendingJiraConnection("active")}, wantErr: true},
+		{name: "pending connection returned", existing: []map[string]interface{}{pendingJiraConnection("pending")}, wantErr: true},
+		{name: "expired connection restarted", existing: []map[string]interface{}{pendingJiraConnection("expired")}, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			mux := http.NewServeMux()
+			serveConnectionList(t, mux, tt.existing...)
+			mux.HandleFunc("POST /v2/action-gateway/connections", func(w http.ResponseWriter, r *http.Request) {
+				writeJSON(t, w, http.StatusOK, map[string]interface{}{"connection": pendingJiraConnection("pending"), "authorization": pendingAuthorization()})
+			})
+			mux.HandleFunc("GET /v2/action-gateway/connections/"+testConnectionID, func(w http.ResponseWriter, r *http.Request) {
+				writeJSON(t, w, http.StatusOK, map[string]interface{}{"connection": pendingJiraConnection("pending"), "authorization": pendingAuthorization()})
+			})
+			meta := newTestMeta(t, mux)
+
+			d := schema.TestResourceDataRaw(t, ResourceDigitalOceanActionGatewayConnection().Schema, map[string]interface{}{
+				"tool_provider": "jira",
+				"user_id":       "alice",
+			})
+			diags := resourceDigitalOceanActionGatewayConnectionCreate(context.Background(), d, meta)
+
+			if !tt.wantErr {
+				requireNoErrors(t, diags)
+				if d.Id() != testConnectionID {
+					t.Errorf("id = %q, expected %q", d.Id(), testConnectionID)
+				}
+				return
+			}
+			if !diags.HasError() || !strings.Contains(diags[0].Summary, "terraform import digitalocean_action_gateway_connection.<name> "+testConnectionID) {
+				t.Fatalf("diagnostics = %v, expected an error suggesting an import", diags)
+			}
+			if d.Id() != "" {
+				t.Errorf("id = %q, expected Terraform not to take ownership of the existing connection", d.Id())
+			}
+		})
+	}
+}
+
+func TestConnectionDataSourceSkipsRevoked(t *testing.T) {
+	t.Parallel()
+
+	const revokedID = "0b5d2c4e-8f1a-4c3b-9d7e-6a5f4e3d2c1b"
+	revoked := pendingJiraConnection("revoked")
+	revoked["id"] = revokedID
+
+	mux := http.NewServeMux()
+	serveConnectionList(t, mux, revoked, pendingJiraConnection("active"))
+	mux.HandleFunc("GET /v2/action-gateway/connections/"+testConnectionID, func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(t, w, http.StatusOK, map[string]interface{}{"connection": pendingJiraConnection("active")})
+	})
+	mux.HandleFunc("GET /v2/action-gateway/connections/"+revokedID, func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(t, w, http.StatusOK, map[string]interface{}{"connection": revoked})
+	})
+	meta := newTestMeta(t, mux)
+	r := DataSourceDigitalOceanActionGatewayConnection()
+
+	t.Run("by tool provider and user ID", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, r.Schema, map[string]interface{}{"tool_provider": "jira", "user_id": "alice"})
+		requireNoErrors(t, dataSourceDigitalOceanActionGatewayConnectionRead(context.Background(), d, meta))
+		if d.Id() != testConnectionID {
+			t.Errorf("id = %q, expected the connection that is not revoked", d.Id())
+		}
+	})
+	t.Run("by ID", func(t *testing.T) {
+		d := schema.TestResourceDataRaw(t, r.Schema, map[string]interface{}{"id": revokedID})
+		diags := dataSourceDigitalOceanActionGatewayConnectionRead(context.Background(), d, meta)
+		if !diags.HasError() || !strings.Contains(diags[0].Summary, "revoked") {
+			t.Errorf("diagnostics = %v, expected an error for a revoked connection", diags)
+		}
+	})
 }
 
 func TestReconcileToolbeltTools(t *testing.T) {

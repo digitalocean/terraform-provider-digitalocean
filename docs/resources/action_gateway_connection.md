@@ -119,8 +119,11 @@ In addition to the above arguments, the following attributes are exported:
 * `updated_at` - When the connection was last modified.
 
 Each DigitalOcean user has one connection per tool provider and `user_id`. If
-one already exists when the resource is created, Terraform adopts it, and
-destroying the resource revokes it.
+one that is not revoked already exists when the resource is created, creation
+fails with that connection's ID so you can [import](#import) it instead.
+Terraform does not take over a connection it did not create. For the same
+reason, `create_before_destroy` cannot replace a connection: the new connection
+would be the one it replaces.
 
 If an OAuth connection's authorization link lapses before the account holder
 completes it, the connection becomes `expired`. Replace the resource, for

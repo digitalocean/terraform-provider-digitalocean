@@ -76,6 +76,9 @@ func dataSourceDigitalOceanActionGatewayConnectionRead(ctx context.Context, d *s
 	if found.Connection == nil {
 		return diag.Errorf("Error retrieving Action Gateway connection (%s): response contained no connection", id)
 	}
+	if found.Connection.Status == connectionStatusRevoked {
+		return diag.Errorf("Action Gateway connection %s is revoked", id)
+	}
 
 	d.SetId(found.Connection.ID)
 	for k, v := range flattenConnection(found.Connection, found.Authorization) {
@@ -87,7 +90,8 @@ func dataSourceDigitalOceanActionGatewayConnectionRead(ctx context.Context, d *s
 }
 
 // findConnections lists the visible connections for a provider whose user ID
-// is exactly userID. The API's user_id filter matches substrings.
+// is exactly userID, leaving out revoked ones. The API's user_id filter
+// matches substrings.
 func findConnections(ctx context.Context, client *godo.Client, provider, userID string) ([]godo.ActionGatewayConnection, error) {
 	opt := &godo.ActionGatewayConnectionListOptions{
 		Provider: provider,
@@ -103,7 +107,7 @@ func findConnections(ctx context.Context, client *godo.Client, provider, userID 
 			return nil, err
 		}
 		for _, conn := range page.Connections {
-			if conn.Provider == provider && conn.UserID == userID {
+			if conn.Provider == provider && conn.UserID == userID && conn.Status != connectionStatusRevoked {
 				out = append(out, conn)
 			}
 		}

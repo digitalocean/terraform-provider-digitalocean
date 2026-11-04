@@ -43,7 +43,7 @@ func sweepActionGatewayConnections(region string) error {
 			return err
 		}
 		for _, conn := range page.Connections {
-			if strings.HasPrefix(conn.UserID, sweep.TestNamePrefix) {
+			if strings.HasPrefix(conn.UserID, sweep.TestNamePrefix) && conn.Status != connectionStatusRevoked {
 				stale = append(stale, conn.ID)
 			}
 		}
