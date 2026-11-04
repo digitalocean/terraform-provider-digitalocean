@@ -23,6 +23,8 @@ const (
 	mcpCredentialSourceConnection = "connection"
 )
 
+var errEnabledToolsRequireSyncUser = fmt.Errorf("enabled_tools requires sync_user_id when credential_ref_source is %q: the server's tools are discovered and verified as that user", mcpCredentialSourceConnection)
+
 var mcpOAuthArguments = []string{
 	"oauth_client_id",
 	"oauth_client_secret",
@@ -306,8 +308,20 @@ func validateMCPServerCredentialConfig(raw cty.Value) error {
 				return fmt.Errorf("credential_ref_source %q requires %s", sourceValue, key)
 			}
 		}
+		syncUser, tools := raw.GetAttr("sync_user_id"), raw.GetAttr("enabled_tools")
+		listsTools := tools.IsKnown() && !tools.IsNull() && (!tools.IsWhollyKnown() || isConfigured(tools))
+		if syncUser.IsWhollyKnown() && !isConfigured(syncUser) && listsTools {
+			return errEnabledToolsRequireSyncUser
+		}
 	}
 	return nil
+}
+
+// canDiscoverMCPServerTools reports whether the server's tools can be
+// discovered. Those of a server registered with credential_ref_source
+// connection can be discovered only as sync_user_id.
+func canDiscoverMCPServerTools(d *schema.ResourceData) bool {
+	return d.Get("credential_ref_source").(string) != mcpCredentialSourceConnection || d.Get("sync_user_id").(string) != ""
 }
 
 func isConfigured(v cty.Value) bool {
@@ -325,6 +339,11 @@ func isConfigured(v cty.Value) bool {
 
 func resourceDigitalOceanActionGatewayMCPServerCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
+
+	enabledTools, manageTools := d.GetOk("enabled_tools")
+	if manageTools && !canDiscoverMCPServerTools(d) {
+		return diag.FromErr(errEnabledToolsRequireSyncUser)
+	}
 
 	req := &godo.ActionGatewayMCPServerCreateRequest{
 		ServerRef:           d.Get("server_ref").(string),
@@ -355,24 +374,16 @@ func resourceDigitalOceanActionGatewayMCPServerCreate(ctx context.Context, d *sc
 	d.SetId(created.MCPServer.ServerRef)
 	log.Printf("[INFO] Action Gateway MCP server registered: %s", d.Id())
 
+	if !canDiscoverMCPServerTools(d) {
+		return resourceDigitalOceanActionGatewayMCPServerRead(ctx, d, meta)
+	}
+
 	// A discovery that cannot complete yet, such as one waiting on a user's
 	// authorization, is reported as a warning rather than an error so the
 	// server is not tainted. Read leaves enabled_tools empty, and the next
 	// apply discovers and enables the tools again.
 	var diags diag.Diagnostics
-	source := d.Get("credential_ref_source").(string)
 	syncUserID := d.Get("sync_user_id").(string)
-	if source == mcpCredentialSourceConnection && syncUserID == "" {
-		if _, ok := d.GetOk("enabled_tools"); ok {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Warning,
-				Summary:  "Action Gateway MCP server tools were not enabled",
-				Detail:   "Discovering the tools of a server registered with credential_ref_source \"connection\" requires sync_user_id.",
-			})
-		}
-		return append(diags, resourceDigitalOceanActionGatewayMCPServerRead(ctx, d, meta)...)
-	}
-
 	discoverCtx, cancel := discoveryContext(ctx, d.Timeout(schema.TimeoutCreate))
 	defer cancel()
 	if err := discoverMCPServerTools(discoverCtx, client, d.Id(), syncUserID); err != nil {
@@ -381,8 +392,8 @@ func resourceDigitalOceanActionGatewayMCPServerCreate(ctx context.Context, d *sc
 			Summary:  "Action Gateway MCP server tools were not discovered",
 			Detail:   err.Error(),
 		})
-	} else if v, ok := d.GetOk("enabled_tools"); ok {
-		if err := setMCPServerEnabledTools(ctx, client, d.Id(), expandStringSet(v), syncUserID); err != nil {
+	} else if manageTools {
+		if err := setMCPServerEnabledTools(ctx, client, d.Id(), expandStringSet(enabledTools), syncUserID); err != nil {
 			return append(diags, diag.FromErr(err)...)
 		}
 	}
@@ -427,6 +438,19 @@ func resourceDigitalOceanActionGatewayMCPServerRead(ctx context.Context, d *sche
 func resourceDigitalOceanActionGatewayMCPServerUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
+	syncUserID := d.Get("sync_user_id").(string)
+	rediscover := d.HasChange("enabled_tools") || (d.HasChange("sync_user_id") && syncUserID != "")
+	managed, known := enabledToolsManaged(d.GetRawConfig())
+	if !known {
+		managed = d.HasChange("enabled_tools")
+	}
+	if rediscover && !canDiscoverMCPServerTools(d) {
+		if managed {
+			return diag.FromErr(errEnabledToolsRequireSyncUser)
+		}
+		rediscover = false
+	}
+
 	if d.HasChange("description") {
 		req := &godo.ActionGatewayMCPServerUpdateRequest{Description: d.Get("description").(string)}
 		if _, _, err := client.ActionGateway.MCPServers.Update(ctx, d.Id(), req); err != nil {
@@ -434,18 +458,13 @@ func resourceDigitalOceanActionGatewayMCPServerUpdate(ctx context.Context, d *sc
 		}
 	}
 
-	syncUserID := d.Get("sync_user_id").(string)
-	if d.HasChange("enabled_tools") || (d.HasChange("sync_user_id") && syncUserID != "") {
+	if rediscover {
 		discoverCtx, cancel := discoveryContext(ctx, d.Timeout(schema.TimeoutUpdate))
 		defer cancel()
 		if err := discoverMCPServerTools(discoverCtx, client, d.Id(), syncUserID); err != nil {
 			return diag.FromErr(err)
 		}
 
-		managed, known := enabledToolsManaged(d.GetRawConfig())
-		if !known {
-			managed = d.HasChange("enabled_tools")
-		}
 		if managed {
 			if err := setMCPServerEnabledTools(ctx, client, d.Id(), expandStringSet(d.Get("enabled_tools")), syncUserID); err != nil {
 				return diag.FromErr(err)

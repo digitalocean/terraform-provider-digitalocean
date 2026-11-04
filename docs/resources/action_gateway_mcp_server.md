@@ -64,7 +64,7 @@ the server again.
 * `oauth_authorization_ttl_seconds` - (Optional) How long, in seconds, a user's authorization may be reused before they must consent again. `0` means 30 days.
 * `description` - (Optional) The description shown on the server's catalog card, at most 1024 characters.
 * `enabled_tools` - (Optional) The slugs of the discovered tools to enable, such as `docs_search`. Every other tool of the server is disabled. When omitted, Terraform does not manage which tools are enabled. Changing this discovers the server's tools again before enabling them.
-* `sync_user_id` - (Optional) For `connection`: the actor ID of a user who has authorized the server. Discovering and verifying the tools of such a server requires it. Adding or changing it discovers the server's tools again.
+* `sync_user_id` - (Optional) For `connection`: the actor ID of a user who has authorized the server. The tools of such a server are discovered and verified as this user, so `enabled_tools` requires it. Adding or changing it discovers the server's tools again.
 
 ## Attributes Reference
 

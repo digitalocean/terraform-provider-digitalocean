@@ -795,6 +795,7 @@ type fakeMCPServerAPI struct {
 	syncing      bool
 	pendingPolls int
 	authorize    bool
+	created      bool
 	enabled      [][]string
 }
 
@@ -807,6 +808,7 @@ func (api *fakeMCPServerAPI) start(t *testing.T) *config.CombinedConfig {
 		if _, ok := body["api_key"]; !ok {
 			t.Errorf("expected api_key in request, got %v", body)
 		}
+		api.created = true
 		api.server = map[string]interface{}{
 			"serverRef":                       body["serverRef"],
 			"endpoint":                        body["endpoint"],
@@ -1118,6 +1120,89 @@ func TestMCPServerUpdateRediscoversWhenSyncUserSet(t *testing.T) {
 	}
 }
 
+func TestMCPServerEnabledToolsRequireSyncUser(t *testing.T) {
+	t.Parallel()
+
+	connection := map[string]interface{}{
+		"server_ref":            "docs",
+		"endpoint":              "https://mcp.example.com/mcp",
+		"credential_ref_source": "connection",
+		"oauth_client_id":       "client",
+		"oauth_client_secret":   "secret",
+		"oauth_authorize_url":   "https://mcp.example.com/authorize",
+		"oauth_token_url":       "https://mcp.example.com/token",
+		"oauth_scopes":          []interface{}{"docs:read"},
+	}
+	rawConnection := map[string]cty.Value{
+		"server_ref":            cty.StringVal("docs"),
+		"endpoint":              cty.StringVal("https://mcp.example.com/mcp"),
+		"credential_ref_source": cty.StringVal("connection"),
+		"oauth_client_id":       cty.StringVal("client"),
+		"oauth_client_secret":   cty.StringVal("secret"),
+		"oauth_authorize_url":   cty.StringVal("https://mcp.example.com/authorize"),
+		"oauth_token_url":       cty.StringVal("https://mcp.example.com/token"),
+		"oauth_scopes":          cty.SetVal([]cty.Value{cty.StringVal("docs:read")}),
+		"enabled_tools":         cty.SetVal([]cty.Value{cty.StringVal("docs_search")}),
+	}
+	withTools := map[string]interface{}{"enabled_tools": []interface{}{"docs_search"}}
+	for k, v := range connection {
+		withTools[k] = v
+	}
+
+	t.Run("create", func(t *testing.T) {
+		api := newFakeMCPServerAPI()
+		meta := api.start(t)
+		d := schema.TestResourceDataRaw(t, ResourceDigitalOceanActionGatewayMCPServer().Schema, withTools)
+
+		diags := resourceDigitalOceanActionGatewayMCPServerCreate(context.Background(), d, meta)
+		if !diags.HasError() || !strings.Contains(diags[0].Summary, "requires sync_user_id") {
+			t.Fatalf("diagnostics = %v, expected an error requiring sync_user_id", diags)
+		}
+		if api.created || d.Id() != "" {
+			t.Errorf("expected the server not to be registered")
+		}
+	})
+
+	plans := []struct {
+		name  string
+		prior map[string]interface{}
+	}{
+		{name: "create plan"},
+		{name: "update plan", prior: connection},
+	}
+	for _, tt := range plans {
+		t.Run(tt.name, func(t *testing.T) {
+			api := newFakeMCPServerAPI()
+			api.server = map[string]interface{}{
+				"serverRef":           "docs",
+				"endpoint":            "https://mcp.example.com/mcp",
+				"transport":           "streamable_http",
+				"credentialRefSource": "connection",
+				"oauth_authorize_url": "https://mcp.example.com/authorize",
+				"oauth_scopes":        []string{"docs:read"},
+				"syncStatus":          "pending",
+			}
+			meta := api.start(t)
+			ctx := context.Background()
+			r := ResourceDigitalOceanActionGatewayMCPServer()
+
+			state := &terraform.InstanceState{}
+			if tt.prior != nil {
+				prior := schema.TestResourceDataRaw(t, r.Schema, tt.prior)
+				prior.SetId("docs")
+				requireNoErrors(t, resourceDigitalOceanActionGatewayMCPServerRead(ctx, prior, meta))
+				state = prior.State()
+			}
+			state.RawConfig = testRawConfig(r, rawConnection)
+
+			_, err := r.Diff(ctx, state, terraform.NewResourceConfigRaw(withTools), meta)
+			if err == nil || !strings.Contains(err.Error(), "requires sync_user_id") {
+				t.Fatalf("expected the plan to fail requiring sync_user_id, got %v", err)
+			}
+		})
+	}
+}
+
 func TestValidateMCPServerCredentialConfig(t *testing.T) {
 	config := func(attrs map[string]cty.Value) cty.Value {
 		all := map[string]cty.Value{
@@ -1129,6 +1214,8 @@ func TestValidateMCPServerCredentialConfig(t *testing.T) {
 			"oauth_authorize_url":   cty.NullVal(cty.String),
 			"oauth_token_url":       cty.NullVal(cty.String),
 			"oauth_scopes":          cty.NullVal(cty.Set(cty.String)),
+			"sync_user_id":          cty.NullVal(cty.String),
+			"enabled_tools":         cty.NullVal(cty.Set(cty.String)),
 		}
 		for k, v := range attrs {
 			all[k] = v
@@ -1190,6 +1277,40 @@ func TestValidateMCPServerCredentialConfig(t *testing.T) {
 		{
 			name: "unknown credential source",
 			raw:  config(map[string]cty.Value{"credential_ref_source": cty.UnknownVal(cty.String)}),
+		},
+		{
+			name:    "connection enabling tools without a sync user",
+			raw:     config(with(oauth, "enabled_tools", cty.SetVal([]cty.Value{cty.StringVal("docs_search")}))),
+			wantErr: "enabled_tools requires sync_user_id",
+		},
+		{
+			name:    "connection enabling partly unknown tools without a sync user",
+			raw:     config(with(oauth, "enabled_tools", cty.SetVal([]cty.Value{cty.UnknownVal(cty.String)}))),
+			wantErr: "enabled_tools requires sync_user_id",
+		},
+		{
+			name: "connection enabling tools with a sync user",
+			raw:  config(with(with(oauth, "enabled_tools", cty.SetVal([]cty.Value{cty.StringVal("docs_search")})), "sync_user_id", cty.StringVal("alice"))),
+		},
+		{
+			name: "connection enabling tools with an unknown sync user",
+			raw:  config(with(with(oauth, "enabled_tools", cty.SetVal([]cty.Value{cty.StringVal("docs_search")})), "sync_user_id", cty.UnknownVal(cty.String))),
+		},
+		{
+			name: "connection with empty enabled tools and no sync user",
+			raw:  config(with(oauth, "enabled_tools", cty.SetValEmpty(cty.String))),
+		},
+		{
+			name: "connection with unknown enabled tools and no sync user",
+			raw:  config(with(oauth, "enabled_tools", cty.UnknownVal(cty.Set(cty.String)))),
+		},
+		{
+			name: "secret enabling tools without a sync user",
+			raw: config(map[string]cty.Value{
+				"credential_ref_source": cty.StringVal("secret"),
+				"api_key":               cty.StringVal("sk"),
+				"enabled_tools":         cty.SetVal([]cty.Value{cty.StringVal("docs_search")}),
+			}),
 		},
 	}
 	for _, tt := range tests {
