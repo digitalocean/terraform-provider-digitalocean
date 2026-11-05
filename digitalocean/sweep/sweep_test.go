@@ -3,6 +3,7 @@ package sweep_test
 import (
 	"testing"
 
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/actiongateway"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/app"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/cdn"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/certificate"
@@ -13,6 +14,7 @@ import (
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/image"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/kubernetes"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/loadbalancer"
+	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/microvm"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/monitoring"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/project"
 	_ "github.com/digitalocean/terraform-provider-digitalocean/digitalocean/reservedip"

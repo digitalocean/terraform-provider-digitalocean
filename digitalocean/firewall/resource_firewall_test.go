@@ -156,6 +156,47 @@ func TestAccDigitalOceanFirewall_icmp(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanFirewall_WithAction(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var firewall godo.Firewall
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanFirewallConfig_WithAction(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanFirewallExists("digitalocean_firewall.foobar", &firewall),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.#", "2"),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "outbound_rule.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanFirewall_WithDefaultAction(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var firewall godo.Firewall
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanFirewallDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanFirewallConfig_OnlyInbound(rName),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanFirewallExists("digitalocean_firewall.foobar", &firewall),
+					resource.TestCheckResourceAttr("digitalocean_firewall.foobar", "inbound_rule.#", "1"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanFirewall_ImportMultipleRules(t *testing.T) {
 	resourceName := "digitalocean_firewall.foobar"
 	rName := acceptance.RandomTestName()
@@ -312,6 +353,32 @@ resource "digitalocean_firewall" "foobar" {
   }
 }
 `, rName)
+}
+
+func testAccDigitalOceanFirewallConfig_WithAction(rName string) string {
+	return fmt.Sprintf(`
+resource "digitalocean_firewall" "foobar" {
+  name = "%s"
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "22"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+    action           = "allow"
+  }
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "80"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+    action           = "deny"
+  }
+  outbound_rule {
+    protocol              = "tcp"
+    port_range            = "443"
+    destination_addresses = ["0.0.0.0/0", "::/0"]
+    action                = "allow"
+  }
+}
+	`, rName)
 }
 
 func testAccCheckDigitalOceanFirewallDestroy(s *terraform.State) error {

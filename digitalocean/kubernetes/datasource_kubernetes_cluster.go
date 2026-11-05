@@ -4,11 +4,12 @@ import (
 	"context"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 )
 
 func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
@@ -76,6 +77,36 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			p2pOciRegistryPluginField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			nfsCsiPluginField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			amdGpuDevicePluginField: {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -121,7 +152,52 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			nvidiaGpuDraDriverField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			amdGpuDraDriverField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			rdmaSharedDevicePluginField: {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+					},
+				},
+			},
+
+			corednsAutoscalerField: {
 				Type:     schema.TypeList,
 				Computed: true,
 				Optional: true,
@@ -152,6 +228,11 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			"vpc_uuid": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
+			"worker_subnet_uuid": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -223,6 +304,33 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"sso": {
+				Type:     schema.TypeList,
+				Computed: true,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"required": {
+							Type:     schema.TypeBool,
+							Computed: true,
+						},
+						"issuer_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+						"client_id": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"node_pool": {
 				Type:     schema.TypeList,
 				Computed: true,
@@ -252,7 +360,14 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Type:     schema.TypeBool,
 				Computed: true,
 			},
-
+			"isolated_workers": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
+			"gpu_operator_ready": {
+				Type:     schema.TypeBool,
+				Computed: true,
+			},
 			"urn": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -263,24 +378,43 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 
 func dataSourceDigitalOceanKubernetesClusterRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
+	name := d.Get("name").(string)
 
-	clusters, resp, err := client.Kubernetes.List(context.Background(), &godo.ListOptions{})
-	if err != nil {
-		if resp != nil && resp.StatusCode == 404 {
-			return diag.Errorf("No clusters found")
-		}
-
-		return diag.Errorf("Error listing Kubernetes clusters: %s", err)
+	opts := &godo.ListOptions{
+		Page:    1,
+		PerPage: 200,
 	}
 
-	// select the correct cluster
-	for _, c := range clusters {
-		if c.Name == d.Get("name").(string) {
-			d.SetId(c.ID)
+	for {
+		clusters, resp, err := client.Kubernetes.List(context.Background(), opts)
+		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				return diag.Errorf("No clusters found")
+			}
 
-			return digitaloceanKubernetesClusterRead(client, c, d)
+			return diag.Errorf("Error listing Kubernetes clusters: %s", err)
 		}
+
+		// select the correct cluster
+		for _, c := range clusters {
+			if c.Name == name {
+				d.SetId(c.ID)
+
+				return digitaloceanKubernetesClusterRead(client, c, d)
+			}
+		}
+
+		if resp.Links == nil || resp.Links.IsLastPage() {
+			break
+		}
+
+		page, err := resp.Links.CurrentPage()
+		if err != nil {
+			return diag.Errorf("Error listing Kubernetes clusters: %s", err)
+		}
+
+		opts.Page = page + 1
 	}
 
-	return diag.Errorf("Unable to find cluster with name: %s", d.Get("name").(string))
+	return diag.Errorf("Unable to find cluster with name: %s", name)
 }

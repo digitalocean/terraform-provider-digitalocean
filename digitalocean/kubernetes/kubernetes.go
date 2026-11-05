@@ -4,9 +4,10 @@ import (
 	"strings"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 )
 
 func nodePoolSchema(isResource bool) map[string]*schema.Schema {
@@ -95,6 +96,16 @@ func nodePoolSchema(isResource bool) map[string]*schema.Schema {
 			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     nodePoolTaintSchema(),
+		},
+
+		"gpu_partition_mode": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				godo.KubernetesAMDPartitionModeSPXNPS1,
+				godo.KubernetesAMDPartitionModeDPXNPS2,
+			}, false),
 		},
 	}
 
@@ -199,18 +210,20 @@ func expandNodePools(nodePools []interface{}) []*godo.KubernetesNodePool {
 	expandedNodePools := make([]*godo.KubernetesNodePool, 0, len(nodePools))
 	for _, rawPool := range nodePools {
 		pool := rawPool.(map[string]interface{})
+		gpuPartitionMode, _ := pool["gpu_partition_mode"].(string)
 		cr := &godo.KubernetesNodePool{
-			ID:        pool["id"].(string),
-			Name:      pool["name"].(string),
-			Size:      pool["size"].(string),
-			Count:     pool["node_count"].(int),
-			AutoScale: pool["auto_scale"].(bool),
-			MinNodes:  pool["min_nodes"].(int),
-			MaxNodes:  pool["max_nodes"].(int),
-			Tags:      tag.ExpandTags(pool["tags"].(*schema.Set).List()),
-			Labels:    expandLabels(pool["labels"].(map[string]interface{})),
-			Nodes:     expandNodes(pool["nodes"].([]interface{})),
-			Taints:    expandNodePoolTaints(pool["taint"].(*schema.Set).List()),
+			ID:               pool["id"].(string),
+			Name:             pool["name"].(string),
+			Size:             pool["size"].(string),
+			Count:            pool["node_count"].(int),
+			AutoScale:        pool["auto_scale"].(bool),
+			MinNodes:         pool["min_nodes"].(int),
+			MaxNodes:         pool["max_nodes"].(int),
+			Tags:             tag.ExpandTags(pool["tags"].(*schema.Set).List()),
+			Labels:           expandLabels(pool["labels"].(map[string]interface{})),
+			Nodes:            expandNodes(pool["nodes"].([]interface{})),
+			Taints:           expandNodePoolTaints(pool["taint"].(*schema.Set).List()),
+			GPUPartitionMode: gpuPartitionMode,
 		}
 
 		expandedNodePools = append(expandedNodePools, cr)
@@ -276,6 +289,60 @@ func expandRoutingAgentOpts(raw []interface{}) *godo.KubernetesRoutingAgent {
 }
 
 func flattenRoutingAgentOpts(opts *godo.KubernetesRoutingAgent) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
+func expandP2pOciRegistryPluginOpts(raw []interface{}) *godo.KubernetesP2pOciRegistry {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesP2pOciRegistry{}
+	}
+
+	rawP2pOciRegistryPluginObj := raw[0].(map[string]interface{})
+
+	p2pOciRegistryPlugin := &godo.KubernetesP2pOciRegistry{
+		Enabled: godo.PtrTo(rawP2pOciRegistryPluginObj["enabled"].(bool)),
+	}
+
+	return p2pOciRegistryPlugin
+}
+
+func flattenP2pOciRegistryPluginOpts(opts *godo.KubernetesP2pOciRegistry) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
+func expandNfsCsiPluginOpts(raw []interface{}) *godo.KubernetesNfsCsiPlugin {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesNfsCsiPlugin{}
+	}
+
+	rawNfsCsiPluginObj := raw[0].(map[string]interface{})
+
+	return &godo.KubernetesNfsCsiPlugin{
+		Enabled: godo.PtrTo(rawNfsCsiPluginObj["enabled"].(bool)),
+	}
+}
+
+func flattenNfsCsiPluginOpts(opts *godo.KubernetesNfsCsiPlugin) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 	if opts == nil {
 		return result
@@ -373,6 +440,58 @@ func flattenNvidiaGpuDevicePluginOpts(opts *godo.KubernetesNvidiaGpuDevicePlugin
 	return result
 }
 
+func expandNvidiaGpuDraDriverOpts(raw []interface{}) *godo.KubernetesNvidiaGpuDraDriver {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesNvidiaGpuDraDriver{}
+	}
+
+	nvidiaGpuDraDriverObj := raw[0].(map[string]interface{})
+
+	return &godo.KubernetesNvidiaGpuDraDriver{
+		Enabled: godo.PtrTo(nvidiaGpuDraDriverObj["enabled"].(bool)),
+	}
+}
+
+func flattenNvidiaGpuDraDriverOpts(opts *godo.KubernetesNvidiaGpuDraDriver) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
+func expandAmdGpuDraDriverOpts(raw []interface{}) *godo.KubernetesAmdGpuDraDriver {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesAmdGpuDraDriver{}
+	}
+
+	amdGpuDraDriverObj := raw[0].(map[string]interface{})
+
+	return &godo.KubernetesAmdGpuDraDriver{
+		Enabled: godo.PtrTo(amdGpuDraDriverObj["enabled"].(bool)),
+	}
+}
+
+func flattenAmdGpuDraDriverOpts(opts *godo.KubernetesAmdGpuDraDriver) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
 func expandRdmaSharedDevicePluginOpts(raw []interface{}) *godo.KubernetesRdmaSharedDevicePlugin {
 	if len(raw) == 0 || raw[0] == nil {
 		return &godo.KubernetesRdmaSharedDevicePlugin{}
@@ -388,6 +507,34 @@ func expandRdmaSharedDevicePluginOpts(raw []interface{}) *godo.KubernetesRdmaSha
 }
 
 func flattenRdmaSharedDevicePluginOpts(opts *godo.KubernetesRdmaSharedDevicePlugin) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+
+	result = append(result, item)
+
+	return result
+}
+
+func expandCorednsAutoscalerOpts(raw []interface{}) *godo.KubernetesCorednsAutoscaler {
+	if len(raw) == 0 || raw[0] == nil {
+		return &godo.KubernetesCorednsAutoscaler{}
+	}
+
+	corednsAutoscalerObj := raw[0].(map[string]interface{})
+
+	corednsAutoscaler := &godo.KubernetesCorednsAutoscaler{
+		Enabled: godo.PtrTo(corednsAutoscalerObj["enabled"].(bool)),
+	}
+
+	return corednsAutoscaler
+}
+
+func flattenCorednsAutoscalerOpts(opts *godo.KubernetesCorednsAutoscaler) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
 	if opts == nil {
 		return result
@@ -430,14 +577,15 @@ func flattenControlPlaneFirewallOpts(opts *godo.KubernetesControlPlaneFirewall) 
 
 func flattenNodePool(d *schema.ResourceData, keyPrefix string, pool *godo.KubernetesNodePool, parentTags ...string) []interface{} {
 	rawPool := map[string]interface{}{
-		"id":                pool.ID,
-		"name":              pool.Name,
-		"size":              pool.Size,
-		"actual_node_count": pool.Count,
-		"auto_scale":        pool.AutoScale,
-		"min_nodes":         pool.MinNodes,
-		"max_nodes":         pool.MaxNodes,
-		"taint":             pool.Taints,
+		"id":                 pool.ID,
+		"name":               pool.Name,
+		"size":               pool.Size,
+		"actual_node_count":  pool.Count,
+		"auto_scale":         pool.AutoScale,
+		"min_nodes":          pool.MinNodes,
+		"max_nodes":          pool.MaxNodes,
+		"taint":              pool.Taints,
+		"gpu_partition_mode": pool.GPUPartitionMode,
 	}
 
 	if pool.Tags != nil {
@@ -634,6 +782,39 @@ func flattenCAConfigOpts(opts *godo.KubernetesClusterAutoscalerConfiguration) []
 	item["scale_down_utilization_threshold"] = opts.ScaleDownUtilizationThreshold
 	item["scale_down_unneeded_time"] = opts.ScaleDownUnneededTime
 	item["expanders"] = opts.Expanders
+	result = append(result, item)
+
+	return result
+}
+
+func expandSSOOpts(sso []interface{}) *godo.KubernetesClusterSSO {
+	if len(sso) == 0 || sso[0] == nil {
+		return nil
+	}
+
+	ssoConfig := &godo.KubernetesClusterSSO{}
+
+	ssoMap := sso[0].(map[string]interface{})
+
+	ssoConfig.Enabled = ssoMap["enabled"].(bool)
+	ssoConfig.Required = ssoMap["required"].(bool)
+	ssoConfig.IssuerURL = ssoMap["issuer_url"].(string)
+	ssoConfig.ClientID = ssoMap["client_id"].(string)
+
+	return ssoConfig
+}
+
+func flattenSSOOpts(opts *godo.KubernetesClusterSSO) []map[string]interface{} {
+	result := make([]map[string]interface{}, 0)
+	if opts == nil {
+		return result
+	}
+
+	item := make(map[string]interface{})
+	item["enabled"] = opts.Enabled
+	item["required"] = opts.Required
+	item["issuer_url"] = opts.IssuerURL
+	item["client_id"] = opts.ClientID
 	result = append(result, item)
 
 	return result

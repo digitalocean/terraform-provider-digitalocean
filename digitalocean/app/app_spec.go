@@ -683,7 +683,6 @@ func appSpecServicesSchema() *schema.Resource {
 		"run_command": {
 			Type:        schema.TypeString,
 			Optional:    true,
-			Computed:    true,
 			Description: "An optional run command to override the component's default.",
 		},
 		"http_port": {
@@ -703,6 +702,14 @@ func appSpecServicesSchema() *schema.Resource {
 			Description: "The amount of instances that this component should be scaled to.",
 		},
 		"health_check": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecHealthCheckSchema(),
+			},
+		},
+		"liveness_health_check": {
 			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
@@ -840,6 +847,14 @@ func appSpecWorkerSchema() *schema.Resource {
 			Type:        schema.TypeInt,
 			Optional:    true,
 			Description: "The amount of instances that this component should be scaled to.",
+		},
+		"liveness_health_check": {
+			Type:     schema.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &schema.Resource{
+				Schema: appSpecHealthCheckSchema(),
+			},
 		},
 		"autoscaling": {
 			Type:     schema.TypeList,
@@ -1207,21 +1222,18 @@ func appSpecIngressSchema() *schema.Resource {
 						"match": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"path": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Computed: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"prefix": {
 													Type:     schema.TypeString,
 													Optional: true,
-													Computed: true,
 												},
 											},
 										},
@@ -1229,14 +1241,12 @@ func appSpecIngressSchema() *schema.Resource {
 									"authority": {
 										Type:     schema.TypeList,
 										Optional: true,
-										Computed: true,
 										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"exact": {
 													Type:     schema.TypeString,
 													Optional: true,
-													Computed: true,
 												},
 											},
 										},
@@ -1247,7 +1257,6 @@ func appSpecIngressSchema() *schema.Resource {
 						"cors": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: appSpecCORSSchema(),
@@ -1256,24 +1265,20 @@ func appSpecIngressSchema() *schema.Resource {
 						"component": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Computed: true,
 							MaxItems: 1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Computed: true,
 									},
 									"preserve_path_prefix": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Computed: true,
 									},
 									"rewrite": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Computed: true,
 									},
 								},
 							},
@@ -1307,6 +1312,23 @@ func appSpecIngressSchema() *schema.Resource {
 									},
 								},
 							},
+						},
+					},
+				},
+			},
+			"secure_header": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"key": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"value": {
+							Type:     schema.TypeString,
+							Optional: true,
 						},
 					},
 				},
@@ -2000,6 +2022,42 @@ func flattenAppHealthCheck(check *godo.AppServiceSpecHealthCheck) []interface{} 
 	return result
 }
 
+func expandAppLivenessHealthCheck(config []interface{}) *godo.HealthCheckSpec {
+	healthCheckConfig := config[0].(map[string]interface{})
+
+	healthCheck := &godo.HealthCheckSpec{
+		HTTPPath:            healthCheckConfig["http_path"].(string),
+		InitialDelaySeconds: int32(healthCheckConfig["initial_delay_seconds"].(int)),
+		PeriodSeconds:       int32(healthCheckConfig["period_seconds"].(int)),
+		TimeoutSeconds:      int32(healthCheckConfig["timeout_seconds"].(int)),
+		SuccessThreshold:    int32(healthCheckConfig["success_threshold"].(int)),
+		FailureThreshold:    int32(healthCheckConfig["failure_threshold"].(int)),
+		Port:                int64(healthCheckConfig["port"].(int)),
+	}
+
+	return healthCheck
+}
+
+func flattenAppLivenessHealthCheck(check *godo.HealthCheckSpec) []interface{} {
+	result := make([]interface{}, 0)
+
+	if check != nil {
+
+		r := make(map[string]interface{})
+		r["http_path"] = check.HTTPPath
+		r["initial_delay_seconds"] = check.InitialDelaySeconds
+		r["period_seconds"] = check.PeriodSeconds
+		r["timeout_seconds"] = check.TimeoutSeconds
+		r["success_threshold"] = check.SuccessThreshold
+		r["failure_threshold"] = check.FailureThreshold
+		r["port"] = check.Port
+
+		result = append(result, r)
+	}
+
+	return result
+}
+
 func expandAppInternalPorts(config []interface{}) []int64 {
 	appInternalPorts := make([]int64, len(config))
 
@@ -2105,6 +2163,11 @@ func expandAppSpecServices(config []interface{}) []*godo.AppServiceSpec {
 			s.HealthCheck = expandAppHealthCheck(checks)
 		}
 
+		livenessHealthChecks := service["liveness_health_check"].([]interface{})
+		if len(livenessHealthChecks) > 0 {
+			s.LivenessHealthCheck = expandAppLivenessHealthCheck(livenessHealthChecks)
+		}
+
 		internalPorts := service["internal_ports"].(*schema.Set).List()
 		if len(internalPorts) > 0 {
 			s.InternalPorts = expandAppInternalPorts(internalPorts)
@@ -2161,6 +2224,7 @@ func flattenAppSpecServices(services []*godo.AppServiceSpec) []map[string]interf
 		r["dockerfile_path"] = s.DockerfilePath
 		r["env"] = flattenAppEnvs(s.Envs)
 		r["health_check"] = flattenAppHealthCheck(s.HealthCheck)
+		r["liveness_health_check"] = flattenAppLivenessHealthCheck(s.LivenessHealthCheck)
 		r["instance_size_slug"] = s.InstanceSizeSlug
 		r["instance_count"] = int(s.InstanceCount)
 		r["source_dir"] = s.SourceDir
@@ -2316,6 +2380,11 @@ func expandAppSpecWorkers(config []interface{}) []*godo.AppWorkerSpec {
 			s.Image = expandAppImageSourceSpec(image)
 		}
 
+		livenessHealthChecks := worker["liveness_health_check"].([]interface{})
+		if len(livenessHealthChecks) > 0 {
+			s.LivenessHealthCheck = expandAppLivenessHealthCheck(livenessHealthChecks)
+		}
+
 		alerts := worker["alert"].([]interface{})
 		if len(alerts) > 0 {
 			s.Alerts = expandAppAlerts(alerts)
@@ -2362,6 +2431,7 @@ func flattenAppSpecWorkers(workers []*godo.AppWorkerSpec) []map[string]interface
 		r["instance_count"] = int(w.InstanceCount)
 		r["source_dir"] = w.SourceDir
 		r["environment_slug"] = w.EnvironmentSlug
+		r["liveness_health_check"] = flattenAppLivenessHealthCheck(w.LivenessHealthCheck)
 		r["alert"] = flattenAppAlerts(w.Alerts)
 		r["log_destination"] = flattenAppLogDestinations(w.LogDestinations)
 		r["autoscaling"] = flattenAppAutoscaling(w.Autoscaling)
@@ -2551,6 +2621,19 @@ func flattenAppSpecFunctions(functions []*godo.AppFunctionsSpec) []map[string]in
 	return result
 }
 
+func flattenAppSecureHeader(header *godo.AppSecureHeaderSpec) []map[string]interface{} {
+	if header == nil {
+		return nil
+	}
+
+	return []map[string]interface{}{
+		{
+			"key":   header.Key,
+			"value": header.Value,
+		},
+	}
+}
+
 func expandAppSpecDatabases(config []interface{}) []*godo.AppDatabaseSpec {
 	appDatabases := make([]*godo.AppDatabaseSpec, 0, len(config))
 
@@ -2703,6 +2786,8 @@ func expandAppIngress(config []interface{}) *godo.AppIngressSpec {
 		ingress.Rules = append(ingress.Rules, result)
 	}
 
+	ingress.SecureHeader = expandAppSecureHeader(ingressConfig["secure_header"].([]interface{}))
+
 	return ingress
 }
 
@@ -2757,17 +2842,30 @@ func expandAppIngressMatch(config []interface{}) *godo.AppIngressSpecRuleMatch {
 	path := match["path"].([]interface{})
 	if len(path) > 0 {
 		ruleMatch.Path = &godo.AppIngressSpecRuleStringMatch{
-			Prefix: path[0].(map[string]interface{})["prefix"].(string),
+			Prefix: godo.PtrTo(path[0].(map[string]interface{})["prefix"].(string)),
 		}
 	}
 	authority := match["authority"].([]interface{})
 	if len(authority) > 0 {
 		ruleMatch.Authority = &godo.AppIngressSpecRuleStringMatch{
-			Exact: authority[0].(map[string]interface{})["exact"].(string),
+			Exact: godo.PtrTo(authority[0].(map[string]interface{})["exact"].(string)),
 		}
 	}
 
 	return ruleMatch
+}
+
+func expandAppSecureHeader(config []interface{}) *godo.AppSecureHeaderSpec {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+
+	headerConfig := config[0].(map[string]interface{})
+
+	return &godo.AppSecureHeaderSpec{
+		Key:   headerConfig["key"].(string),
+		Value: headerConfig["value"].(string),
+	}
 }
 
 func expandAppTermination[T AppSpecTermination](config []interface{}) *T {
@@ -2837,7 +2935,8 @@ func flattenAppIngress(ingress *godo.AppIngressSpec) []map[string]interface{} {
 
 		return []map[string]interface{}{
 			{
-				"rule": rules,
+				"rule":          rules,
+				"secure_header": flattenAppSecureHeader(ingress.SecureHeader),
 			},
 		}
 	}
@@ -2887,14 +2986,14 @@ func flattenAppIngressRuleMatch(match *godo.AppIngressSpecRuleMatch) []map[strin
 		if match.Path != nil {
 			r["path"] = []map[string]interface{}{
 				{
-					"prefix": match.Path.Prefix,
+					"prefix": match.Path.GetPrefix(),
 				},
 			}
 		}
 		if match.Authority != nil {
 			r["authority"] = []map[string]interface{}{
 				{
-					"exact": match.Authority.Exact,
+					"exact": match.Authority.GetExact(),
 				},
 			}
 		}

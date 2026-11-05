@@ -40,6 +40,7 @@ resource "digitalocean_droplet_autoscale" "my-autoscale-pool" {
     with_droplet_agent = true
     ipv6               = true
     user_data          = "\n#cloud-config\nruncmd:\n- apt-get update\n- apt-get install -y stress-ng\n"
+    public_networking  = false
   }
 }
 ```
@@ -80,6 +81,7 @@ metric agent enables collecting resource utilization metrics, which allows makin
 * `ipv6` - Boolean flag to enable IPv6 networking on the Droplet Autoscale pool underlying resource(s).
 * `user_data` - Custom user data that can be added to the Droplet Autoscale pool underlying resource(s). This can be a 
 cloud init script that user may configure to setup their application workload.
+* `public_networking` (Optional) - A boolean indicating whether to enables public networking for the Droplet or not. By default, this is always enabled on new droplets. But, by explicitly setting it to false, you can create a droplet with public networking entirely disabled.
 
 ## Attributes Reference
 

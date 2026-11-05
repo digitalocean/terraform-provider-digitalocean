@@ -147,6 +147,12 @@ func TestAccDigitalOceanApp_Basic(t *testing.T) {
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.health_check.0.port", "1234"),
 					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.liveness_health_check.0.http_path", "/live"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.liveness_health_check.0.failure_threshold", "6"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.service.0.liveness_health_check.0.port", "1234"),
+					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.value", "75"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.service.0.alert.0.operator", "GREATER_THAN"),
@@ -670,6 +676,12 @@ func TestAccDigitalOceanApp_Worker(t *testing.T) {
 						"digitalocean_app.foobar", "spec.0.worker.0.log_destination.0.name", "WorkerLogs"),
 					resource.TestCheckResourceAttr(
 						"digitalocean_app.foobar", "spec.0.worker.0.log_destination.0.logtail.0.token", "test-api-token"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.liveness_health_check.0.http_path", "/live"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.liveness_health_check.0.failure_threshold", "6"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.worker.0.liveness_health_check.0.port", "8080"),
 				),
 			},
 			{
@@ -1266,6 +1278,31 @@ func TestAccDigitalOceanApp_VPC(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanApp_SecureHeader(t *testing.T) {
+	var app godo.App
+	appName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:     func() { acceptance.TestAccPreCheck(t) },
+		Providers:    acceptance.TestAccProviders,
+		CheckDestroy: testAccCheckDigitalOceanAppDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanAppConfig_withSecureHeader, appName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanAppExists("digitalocean_app.foobar", &app),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.name", appName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.secure_header.0.key", "X-Secret-Header"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_app.foobar", "spec.0.ingress.0.secure_header.0.value", "secret"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanApp_Maintenance(t *testing.T) {
 	var app godo.App
 	appName := acceptance.RandomTestName()
@@ -1337,6 +1374,12 @@ resource "digitalocean_app" "foobar" {
         http_path       = "/"
         timeout_seconds = 10
         port            = 1234
+      }
+
+      liveness_health_check {
+        http_path         = "/live"
+        failure_threshold = 6
+        port              = 1234
       }
 
       alert {
@@ -1845,6 +1888,12 @@ resource "digitalocean_app" "foobar" {
         branch         = "main"
       }
 
+      liveness_health_check {
+        http_path         = "/live"
+        failure_threshold = 6
+        port              = 8080
+      }
+
       log_destination {
         name = "WorkerLogs"
         logtail {
@@ -2204,6 +2253,42 @@ resource "digitalocean_app" "foobar" {
   }
 }`
 
+var testAccCheckDigitalOceanAppConfig_withSecureHeader = `
+resource "digitalocean_app" "foobar" {
+  spec {
+    name   = "%s"
+    region = "nyc"
+
+    service {
+      name = "go-service"
+      git {
+        repo_clone_url = "https://github.com/digitalocean/sample-golang.git"
+        branch         = "main"
+      }
+      instance_size_slug = "basic-xxs"
+      instance_count     = 1
+    }
+
+    ingress {
+      secure_header {
+        key   = "X-Secret-Header"
+        value = "secret"
+      }
+
+      rule {
+        component {
+          name = "go-service"
+        }
+        match {
+          path {
+            prefix = "/"
+          }
+        }
+      }
+    }
+  }
+}`
+
 // Helper to expose waitForAppDeployment for unit testing from package app_test
 func CallWaitForAppDeployment(client *godo.Client, id string, timeout time.Duration, perPage int, pendingDeploymentID string) error {
 	return apppkg.WaitForAppDeployment(client, id, timeout, perPage, pendingDeploymentID)
@@ -2311,6 +2396,21 @@ func (m *mockAppsServiceForWaiter) GetJobInvocation(ctx context.Context, appID s
 	return nil, nil, nil
 }
 func (m *mockAppsServiceForWaiter) GetJobInvocationLogs(ctx context.Context, appID, jobInvocationId string, opts *godo.GetJobInvocationLogsOptions) (*godo.AppLogs, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) CancelJobInvocation(ctx context.Context, appID, jobInvocationID string, opts *godo.CancelJobInvocationOptions) (*godo.JobInvocation, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) ListEvents(ctx context.Context, appID string, opts *godo.ListEventsOptions) ([]*godo.Event, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetEvent(ctx context.Context, appID, eventID string) (*godo.Event, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) CancelEvent(ctx context.Context, appID, eventID string) (*godo.Event, *godo.Response, error) {
+	return nil, nil, nil
+}
+func (m *mockAppsServiceForWaiter) GetEventLogs(ctx context.Context, appID, eventID string, opts *godo.GetEventLogsOptions) (*godo.AppLogs, *godo.Response, error) {
 	return nil, nil, nil
 }
 

@@ -386,9 +386,21 @@ func resourceDigitalOceanLoadBalancerV0() *schema.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"subnet_uuid": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Computed:     true,
+				RequiredWith: []string{"vpc_uuid"},
+				ValidateFunc: validation.NoZeroValues,
+			},
+
 			"ip": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				ForceNew:    true,
+				Description: "Optional BYOIP address to assign on create. Must be an unassigned BYOIP on the account in the same region. When omitted, a system-allocated floating IP is provisioned.",
 			},
 
 			"ipv6": {
@@ -671,6 +683,10 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 		opts.VPCUUID = v.(string)
 	}
 
+	if v, ok := d.GetOk("subnet_uuid"); ok {
+		opts.VPCSubnetUUID = v.(string)
+	}
+
 	if v, ok := d.GetOk("type"); ok {
 		opts.Type = v.(string)
 	}
@@ -709,6 +725,14 @@ func buildLoadBalancerRequest(client *godo.Client, d *schema.ResourceData) (*god
 		opts.TLSCipherPolicy = v.(string)
 	}
 
+	// IP is create-only. State always has a computed IP after create, so only
+	// include it on new resources to avoid sending it on every update.
+	if d.IsNewResource() {
+		if v, ok := d.GetOk("ip"); ok {
+			opts.IP = v.(string)
+		}
+	}
+
 	return opts, nil
 }
 
@@ -742,6 +766,10 @@ func resourceDigitalOceanLoadbalancerCreate(ctx context.Context, d *schema.Resou
 		return diag.Errorf("Error waiting for Load Balancer (%s) to become active: %s", d.Get("name"), err)
 	}
 
+	if err := waitForGLBDomainCertificatesIfNeeded(ctx, d, client, loadbalancer.ID); err != nil {
+		return diag.Errorf("Error waiting for Global Load Balancer domain certificate bindings: %s", err)
+	}
+
 	return resourceDigitalOceanLoadbalancerRead(ctx, d, meta)
 }
 
@@ -769,6 +797,7 @@ func resourceDigitalOceanLoadbalancerRead(ctx context.Context, d *schema.Resourc
 	d.Set("enable_backend_keepalive", loadbalancer.EnableBackendKeepalive)
 	d.Set("droplet_tag", loadbalancer.Tag)
 	d.Set("vpc_uuid", loadbalancer.VPCUUID)
+	d.Set("subnet_uuid", loadbalancer.VPCSubnetUUID)
 	d.Set("http_idle_timeout_seconds", loadbalancer.HTTPIdleTimeoutSeconds)
 	d.Set("project_id", loadbalancer.ProjectID)
 	d.Set("type", loadbalancer.Type)
@@ -846,6 +875,12 @@ func resourceDigitalOceanLoadbalancerUpdate(ctx context.Context, d *schema.Resou
 	_, _, err = client.LoadBalancers.Update(context.Background(), d.Id(), lbOpts)
 	if err != nil {
 		return diag.Errorf("Error updating Load Balancer: %s", err)
+	}
+
+	if d.HasChange("domains") {
+		if err := waitForGLBDomainCertificatesIfNeeded(ctx, d, client, d.Id()); err != nil {
+			return diag.Errorf("Error waiting for Global Load Balancer domain certificate bindings after update: %s", err)
+		}
 	}
 
 	return resourceDigitalOceanLoadbalancerRead(ctx, d, meta)

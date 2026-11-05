@@ -49,6 +49,9 @@ func TestAccResourceDigitalOceanVPCNATGateway(t *testing.T) {
 						"digitalocean_vpc_nat_gateway.foobar", "vpcs.#", "1"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpc_nat_gateway.foobar", "vpcs.0.vpc_uuid"),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_vpc_nat_gateway.foobar", "vpcs.0.subnet_uuid",
+						"digitalocean_vpc.foo", "id"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpc_nat_gateway.foobar", "vpcs.0.gateway_ip"),
 					resource.TestCheckResourceAttr(
@@ -93,6 +96,9 @@ func TestAccResourceDigitalOceanVPCNATGateway(t *testing.T) {
 						"digitalocean_vpc_nat_gateway.foobar", "vpcs.#", "1"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpc_nat_gateway.foobar", "vpcs.0.vpc_uuid"),
+					resource.TestCheckResourceAttrPair(
+						"digitalocean_vpc_nat_gateway.foobar", "vpcs.0.subnet_uuid",
+						"digitalocean_vpc.foo", "id"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_vpc_nat_gateway.foobar", "vpcs.0.gateway_ip"),
 					resource.TestCheckResourceAttr(
@@ -134,7 +140,8 @@ resource "digitalocean_vpc_nat_gateway" "foobar" {
   region = "nyc3"
   size   = "%d"
   vpcs {
-    vpc_uuid = digitalocean_vpc.foo.id
+    vpc_uuid    = digitalocean_vpc.foo.id
+    subnet_uuid = digitalocean_vpc.foo.id
   }
   udp_timeout_seconds  = 30
   icmp_timeout_seconds = 30

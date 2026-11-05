@@ -37,6 +37,8 @@ The following attributes are exported:
 * `region` - DigitalOcean region where the cluster will reside.
 * `node_count` - Number of nodes that will be included in the cluster.
 * `maintenance_window` - Defines when the automatic maintenance should be performed for the database cluster.
+* `storage_size_mib` - The disk size, in MiB, allocated to the cluster.
+* `storage_autoscale` - Storage autoscaling configuration for the database cluster.
 * `private_network_uuid` - The ID of the VPC where the database cluster is located.
 * `host` - Database cluster's hostname.
 * `private_host` - Same as `host`, but only accessible from resources within the account and in the same region.
@@ -53,6 +55,12 @@ The following attributes are exported:
 
 * `day` - The day of the week on which to apply maintenance updates.
 * `hour` - The hour in UTC at which maintenance updates will be applied in 24 hour format.
+
+`storage_autoscale` supports the following:
+
+* `enabled` - Whether storage autoscaling is enabled for the cluster.
+* `threshold_percent` - The storage utilization percentage at which autoscaling is triggered.
+* `increment_gib` - The amount of storage, in GiB, to add when autoscaling is triggered.
 
 OpenSearch clusters will have the following additional attributes with connection
 details for their dashboard:

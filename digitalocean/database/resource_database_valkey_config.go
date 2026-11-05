@@ -138,6 +138,24 @@ func ResourceDigitalOceanDatabaseValkeyConfig() *schema.Resource {
 				Description:  "Active expire effort. Valkey reclaims expired keys both when accessed and in the background. The background process scans for expired keys to free memory. Increasing the active-expire-effort setting (default 1, max 10) uses more CPU to reclaim expired keys faster, reducing memory usage but potentially increasing latency.",
 				ValidateFunc: validation.IntBetween(1, 10),
 			},
+
+			"valkey_maxmemory_policy": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				Description: "A string specifying the desired eviction policy for a Caching or Valkey cluster.",
+				ValidateFunc: validation.StringInSlice(
+					[]string{
+						"noeviction",
+						"allkeys-lru",
+						"allkeys-random",
+						"volatile-lru",
+						"volatile-random",
+						"volatile-ttl",
+					},
+					false,
+				),
+			},
 		},
 	}
 }
@@ -221,6 +239,10 @@ func updateValkeyConfig(ctx context.Context, d *schema.ResourceData, client *god
 		opts.ValkeyACLChannelsDefault = godo.PtrTo(v.(string))
 	}
 
+	if v, ok := d.GetOk("valkey_maxmemory_policy"); ok {
+		opts.ValkeyMaxmemoryPolicy = godo.PtrTo(v.(string))
+	}
+
 	log.Printf("[DEBUG] Valkey configuration: %s", godo.Stringify(opts))
 	_, err = client.Databases.UpdateValkeyConfig(ctx, clusterID, opts)
 	if err != nil {
@@ -244,7 +266,7 @@ func resourceDigitalOceanDatabaseValkeyConfigRead(ctx context.Context, d *schema
 		return diag.Errorf("Error retrieving Valkey configuration: %s", err)
 	}
 
-	d.Set("maxmemory_policy", config.ValkeyMaxmemoryPolicy)
+	d.Set("valkey_maxmemory_policy", config.ValkeyMaxmemoryPolicy)
 	d.Set("pubsub_client_output_buffer_limit", config.ValkeyPubSubClientOutputBufferLimit)
 	d.Set("number_of_databases", config.ValkeyNumberOfDatabases)
 	d.Set("io_threads", config.ValkeyIOThreads)

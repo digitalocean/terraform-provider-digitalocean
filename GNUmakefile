@@ -83,6 +83,7 @@ vendor:
 
 
 
+
 changes:
 	@if ! command -v github-changelog-generator &> /dev/null; then \
 		echo "github-changelog-generator not found. Installing..."; \

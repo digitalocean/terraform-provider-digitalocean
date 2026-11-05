@@ -236,6 +236,57 @@ func TestAccDigitalOceanDatabaseCluster_WithMaintWindow(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanDatabaseCluster_WithStorageAutoscale(t *testing.T) {
+	var database godo.Database
+	databaseName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithStorageAutoscale, databaseName, 80, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "storage_autoscale.#", "1"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "storage_autoscale.0.enabled", "true"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "storage_autoscale.0.threshold_percent", "80"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "storage_autoscale.0.increment_gib", "10"),
+					testAccCheckDigitalOceanDatabaseClusterStorageAutoscale("digitalocean_database_cluster.foobar", true, 80, 10),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithStorageAutoscale, databaseName, 90, 20),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "storage_autoscale.0.threshold_percent", "90"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "storage_autoscale.0.increment_gib", "20"),
+					testAccCheckDigitalOceanDatabaseClusterStorageAutoscale("digitalocean_database_cluster.foobar", true, 90, 20),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigWithStorageAutoscaleDisabled, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					testAccCheckDigitalOceanDatabaseClusterAttributes(&database, databaseName),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "storage_autoscale.0.enabled", "false"),
+					testAccCheckDigitalOceanDatabaseClusterStorageAutoscale("digitalocean_database_cluster.foobar", false, 0, 0),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanDatabaseCluster_WithSQLMode(t *testing.T) {
 	var database godo.Database
 	databaseName := acceptance.RandomTestName()
@@ -706,6 +757,41 @@ func testAccCheckDigitalOceanDatabaseClusterMetricsEndpoints(resourceName string
 	}
 }
 
+func testAccCheckDigitalOceanDatabaseClusterStorageAutoscale(name string, enabled bool, thresholdPercent, incrementGib int) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("not found: %s", name)
+		}
+
+		client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
+
+		autoscale, _, err := client.Databases.GetStorageAutoscale(context.Background(), rs.Primary.ID)
+		if err != nil {
+			return fmt.Errorf("error retrieving storage autoscale: %s", err)
+		}
+
+		if autoscale.Enabled != enabled {
+			return fmt.Errorf("expected storage autoscale enabled %v, got %v", enabled, autoscale.Enabled)
+		}
+
+		if !enabled {
+			return nil
+		}
+
+		if autoscale.ThresholdPercent == nil || *autoscale.ThresholdPercent != thresholdPercent {
+			return fmt.Errorf("expected threshold_percent %d, got %#v", thresholdPercent, autoscale.ThresholdPercent)
+		}
+
+		expectedIncrement := uint64(incrementGib)
+		if autoscale.IncrementGib == nil || *autoscale.IncrementGib != expectedIncrement {
+			return fmt.Errorf("expected increment_gib %d, got %#v", incrementGib, autoscale.IncrementGib)
+		}
+
+		return nil
+	}
+}
+
 func testAccCheckDigitalOceanDatabaseClusterExists(n string, database *godo.Database) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -893,6 +979,38 @@ resource "digitalocean_database_cluster" "foobar" {
   maintenance_window {
     day  = "friday"
     hour = "13:00"
+  }
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithStorageAutoscale = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "pg"
+  version    = "15"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+
+  storage_autoscale {
+    enabled           = true
+    threshold_percent = %d
+    increment_gib     = %d
+  }
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigWithStorageAutoscaleDisabled = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "pg"
+  version    = "15"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+
+  storage_autoscale {
+    enabled = false
   }
 }`
 

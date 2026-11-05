@@ -23,13 +23,14 @@ resource "digitalocean_vpc" "test" {
 }
 
 resource "digitalocean_nfs" "test" {
-  name   = "nfs-test"
-  region = "atl1"
-  size   = 50
-  vpc_id = digitalocean_vpc.test.id
+  name             = "nfs-test"
+  region           = "atl1"
+  size             = 500
+  vpc_id           = digitalocean_vpc.test.id
+  performance_tier = "high" # Options: "standard" or "high". Can be changed to switch tiers after creation.
 
   lifecycle {
-    ignore_changes = [vpc_id]
+    ignore_changes = [vpc_id, performance_tier]
   }
 }
 
@@ -58,6 +59,11 @@ output "nfs_mount_command" {
   description = "Example mount command"
 }
 
+output "nfs_performance_tier" {
+  value       = digitalocean_nfs.test.performance_tier
+  description = "Performance tier of the NFS share"
+}
+
 output "vpc1_id" {
   value = digitalocean_vpc.test.id
 }
@@ -73,6 +79,22 @@ output "vpc2_id" {
 
 output "current_attachment" {
   value = digitalocean_nfs_attachment.test.vpc_id
+}
+
+# MULTI-VPC ATTACHMENT
+# Attach the share to a second VPC without removing the first attachment.
+
+resource "digitalocean_nfs_attachment" "test2" {
+  vpc_id   = digitalocean_vpc.test2.id
+  share_id = digitalocean_nfs.test.id
+  region   = "atl1"
+
+  depends_on = [digitalocean_nfs_attachment.test]
+}
+
+output "second_attachment_vpc_id" {
+  value       = digitalocean_nfs_attachment.test2.vpc_id
+  description = "Second VPC attached to the NFS share"
 }
 
 
@@ -96,4 +118,42 @@ output "snapshot_name" {
 
 output "snapshot_status" {
   value = digitalocean_nfs_snapshot.test.status
+}
+
+
+# ACCESS POINT
+
+resource "digitalocean_nfs_access_point" "test" {
+  name     = "nfs-test-access-point"
+  share_id = digitalocean_nfs.test.id
+  path     = "/data"
+  vpc_id   = digitalocean_vpc.test.id
+
+  access_policy {
+    anonuid                      = 65534
+    anongid                      = 65534
+    protocols                    = ["NFS4"]
+    squash_config                = "ROOT_SQUASH"
+    identity_enforcement_enabled = false
+  }
+}
+
+data "digitalocean_nfs_access_point" "test" {
+  id = digitalocean_nfs_access_point.test.id
+}
+
+output "access_point_id" {
+  value = digitalocean_nfs_access_point.test.id
+}
+
+output "access_point_path" {
+  value = digitalocean_nfs_access_point.test.path
+}
+
+output "access_point_status" {
+  value = digitalocean_nfs_access_point.test.status
+}
+
+output "access_point_data_source_name" {
+  value = data.digitalocean_nfs_access_point.test.name
 }

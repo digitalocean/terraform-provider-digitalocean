@@ -7,10 +7,11 @@ import (
 	"testing"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 )
 
 func TestAccDataSourceDigitalOceanKubernetesCluster_Basic(t *testing.T) {
@@ -46,7 +47,10 @@ data "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttrPair("data.digitalocean_kubernetes_cluster.foobar", "version", "data.digitalocean_kubernetes_versions.test", "latest_version"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "node_pool.0.labels.priority", "high"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "vpc_uuid"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "worker_subnet_uuid"),
 					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "auto_upgrade"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "isolated_workers"),
+					resource.TestCheckResourceAttrSet("data.digitalocean_kubernetes_cluster.foobar", "gpu_operator_ready"),
 					resource.TestMatchResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "urn", expectedURNRegEx),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.day", "monday"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "maintenance_policy.0.start_time", "00:00"),
@@ -55,9 +59,11 @@ data "digitalocean_kubernetes_cluster" "foobar" {
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.scale_down_unneeded_time", "1m30s"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "cluster_autoscaler_configuration.0.expanders.0", "priority"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "routing_agent.0.enabled", "true"),
-					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_plugin.0.enabled", "true"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "p2p_oci_registry_plugin.0.enabled", "true"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "nfs_csi_plugin.0.enabled", "true"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "amd_gpu_device_metrics_exporter_plugin.0.enabled", "true"),
-					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "nvidia_gpu_device_plugin.0.enabled", "true"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "nvidia_gpu_dra_driver.0.enabled", "true"),
+					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "amd_gpu_dra_driver.0.enabled", "true"),
 					resource.TestCheckResourceAttr("data.digitalocean_kubernetes_cluster.foobar", "rdma_shared_device_plugin.0.enabled", "true"),
 				),
 			},
@@ -72,6 +78,7 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   name         = "%s"
   region       = "lon1"
   version      = data.digitalocean_kubernetes_versions.test.latest_version
+  ha           = false
   tags         = ["foo", "bar"]
   auto_upgrade = true
 
@@ -95,11 +102,19 @@ resource "digitalocean_kubernetes_cluster" "foo" {
     expanders                        = ["priority"]
   }
 
+  sso {
+    enabled = true
+  }
+
   routing_agent {
     enabled = true
   }
 
-  amd_gpu_device_plugin {
+  p2p_oci_registry_plugin {
+    enabled = true
+  }
+
+  nfs_csi_plugin {
     enabled = true
   }
 
@@ -107,7 +122,11 @@ resource "digitalocean_kubernetes_cluster" "foo" {
     enabled = true
   }
 
-  nvidia_gpu_device_plugin {
+  nvidia_gpu_dra_driver {
+    enabled = true
+  }
+
+  amd_gpu_dra_driver {
     enabled = true
   }
 
@@ -156,6 +175,7 @@ resource "digitalocean_kubernetes_cluster" "foobar" {
   name    = "%s"
   region  = "lon1"
   version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
   tags    = ["foo", "bar"]
 
   node_pool {

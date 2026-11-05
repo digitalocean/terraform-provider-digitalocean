@@ -12,6 +12,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -310,13 +311,34 @@ func resourceDigitalOceanDatabaseKafkaTopicCreate(ctx context.Context, d *schema
 	}
 
 	log.Printf("[DEBUG] Database kafka topic create configuration: %#v", opts)
-	topic, _, err := client.Databases.CreateTopic(context.Background(), clusterID, opts)
+	_, _, err := client.Databases.CreateTopic(context.Background(), clusterID, opts)
 	if err != nil {
 		return diag.Errorf("Error creating database kafka topic: %s", err)
 	}
 
-	d.SetId(makeKafkaTopicID(clusterID, topic.Name))
-	log.Printf("[INFO] Database kafka topic name: %s", topic.Name)
+	// Topic creation is asynchronous: the API may respond before the topic
+	// is provisioned, without returning it in the response body. Derive the
+	// ID from the request rather than the response, and wait for the topic
+	// to become readable.
+	d.SetId(makeKafkaTopicID(clusterID, opts.Name))
+	log.Printf("[INFO] Database kafka topic name: %s", opts.Name)
+
+	err = retry.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *retry.RetryError {
+		topic, resp, err := client.Databases.GetTopic(ctx, clusterID, opts.Name)
+		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				return retry.RetryableError(err)
+			}
+			return retry.NonRetryableError(fmt.Errorf("Error retrieving kafka topic: %s", err))
+		}
+		if topic == nil {
+			return retry.RetryableError(fmt.Errorf("kafka topic %s is not available yet", opts.Name))
+		}
+		return nil
+	})
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return resourceDigitalOceanDatabaseKafkaTopicRead(ctx, d, meta)
 }
@@ -362,6 +384,10 @@ func resourceDigitalOceanDatabaseKafkaTopicRead(ctx context.Context, d *schema.R
 		return diag.Errorf("Error retrieving kafka topic: %s", err)
 	}
 
+	if topic == nil {
+		return diag.Errorf("Error retrieving kafka topic: no topic returned for %s", topicName)
+	}
+
 	d.Set("state", topic.State)
 	d.Set("replication_factor", topic.ReplicationFactor)
 	// updating 'partition_count' is async, the number of partitions returned in the API will not be updated immediately in the response
@@ -391,30 +417,73 @@ func resourceDigitalOceanDatabaseKafkaTopicDelete(ctx context.Context, d *schema
 }
 func flattenTopicConfig(config *godo.TopicConfig) []map[string]interface{} {
 	result := make([]map[string]interface{}, 0)
+	if config == nil {
+		return result
+	}
+
 	item := make(map[string]interface{})
 
 	item["cleanup_policy"] = config.CleanupPolicy
 	item["compression_type"] = config.CompressionType
-	item["delete_retention_ms"] = strconv.FormatUint(*config.DeleteRetentionMS, 10)
-	item["file_delete_delay_ms"] = strconv.FormatUint(*config.FileDeleteDelayMS, 10)
-	item["flush_messages"] = strconv.FormatUint(*config.FlushMessages, 10)
-	item["flush_ms"] = strconv.FormatUint(*config.FlushMS, 10)
-	item["index_interval_bytes"] = strconv.FormatUint(*config.IndexIntervalBytes, 10)
-	item["max_compaction_lag_ms"] = strconv.FormatUint(*config.MaxCompactionLagMS, 10)
-	item["max_message_bytes"] = strconv.FormatUint(*config.MaxMessageBytes, 10)
-	item["message_down_conversion_enable"] = *config.MessageDownConversionEnable
+	if config.DeleteRetentionMS != nil {
+		item["delete_retention_ms"] = strconv.FormatUint(*config.DeleteRetentionMS, 10)
+	}
+	if config.FileDeleteDelayMS != nil {
+		item["file_delete_delay_ms"] = strconv.FormatUint(*config.FileDeleteDelayMS, 10)
+	}
+	if config.FlushMessages != nil {
+		item["flush_messages"] = strconv.FormatUint(*config.FlushMessages, 10)
+	}
+	if config.FlushMS != nil {
+		item["flush_ms"] = strconv.FormatUint(*config.FlushMS, 10)
+	}
+	if config.IndexIntervalBytes != nil {
+		item["index_interval_bytes"] = strconv.FormatUint(*config.IndexIntervalBytes, 10)
+	}
+	if config.MaxCompactionLagMS != nil {
+		item["max_compaction_lag_ms"] = strconv.FormatUint(*config.MaxCompactionLagMS, 10)
+	}
+	if config.MaxMessageBytes != nil {
+		item["max_message_bytes"] = strconv.FormatUint(*config.MaxMessageBytes, 10)
+	}
+	if config.MessageDownConversionEnable != nil {
+		item["message_down_conversion_enable"] = *config.MessageDownConversionEnable
+	}
 	item["message_format_version"] = config.MessageFormatVersion
-	item["message_timestamp_difference_max_ms"] = strconv.FormatUint(*config.MessageTimestampDifferenceMaxMS, 10)
+	if config.MessageTimestampDifferenceMaxMS != nil {
+		item["message_timestamp_difference_max_ms"] = strconv.FormatUint(*config.MessageTimestampDifferenceMaxMS, 10)
+	}
 	item["message_timestamp_type"] = config.MessageTimestampType
-	item["min_cleanable_dirty_ratio"] = *config.MinCleanableDirtyRatio
-	item["min_compaction_lag_ms"] = strconv.FormatUint(*config.MinCompactionLagMS, 10)
-	item["min_insync_replicas"] = int(*config.MinInsyncReplicas)
-	item["retention_bytes"] = strconv.FormatInt(*config.RetentionBytes, 10)
-	item["retention_ms"] = strconv.FormatInt(*config.RetentionMS, 10)
-	item["segment_bytes"] = strconv.FormatUint(*config.SegmentBytes, 10)
-	item["segment_index_bytes"] = strconv.FormatUint(*config.SegmentIndexBytes, 10)
-	item["segment_jitter_ms"] = strconv.FormatUint(*config.SegmentJitterMS, 10)
-	item["segment_ms"] = strconv.FormatUint(*config.SegmentMS, 10)
+	if config.MinCleanableDirtyRatio != nil {
+		item["min_cleanable_dirty_ratio"] = *config.MinCleanableDirtyRatio
+	}
+	if config.MinCompactionLagMS != nil {
+		item["min_compaction_lag_ms"] = strconv.FormatUint(*config.MinCompactionLagMS, 10)
+	}
+	if config.MinInsyncReplicas != nil {
+		item["min_insync_replicas"] = int(*config.MinInsyncReplicas)
+	}
+	if config.Preallocate != nil {
+		item["preallocate"] = *config.Preallocate
+	}
+	if config.RetentionBytes != nil {
+		item["retention_bytes"] = strconv.FormatInt(*config.RetentionBytes, 10)
+	}
+	if config.RetentionMS != nil {
+		item["retention_ms"] = strconv.FormatInt(*config.RetentionMS, 10)
+	}
+	if config.SegmentBytes != nil {
+		item["segment_bytes"] = strconv.FormatUint(*config.SegmentBytes, 10)
+	}
+	if config.SegmentIndexBytes != nil {
+		item["segment_index_bytes"] = strconv.FormatUint(*config.SegmentIndexBytes, 10)
+	}
+	if config.SegmentJitterMS != nil {
+		item["segment_jitter_ms"] = strconv.FormatUint(*config.SegmentJitterMS, 10)
+	}
+	if config.SegmentMS != nil {
+		item["segment_ms"] = strconv.FormatUint(*config.SegmentMS, 10)
+	}
 	result = append(result, item)
 
 	return result

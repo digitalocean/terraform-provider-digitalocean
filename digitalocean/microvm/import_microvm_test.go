@@ -1,0 +1,40 @@
+package microvm_test
+
+import (
+	"fmt"
+	"regexp"
+	"testing"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+)
+
+func TestAccDigitalOceanMicroVM_importBasic(t *testing.T) {
+	resourceName := "digitalocean_microvm.foobar"
+	name := acceptance.RandomTestName()
+	config := fmt.Sprintf(testAccMicroVMConfig_Basic, name, testMicroVMOCIRef)
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckMicroVMDestroy,
+		Steps: []resource.TestStep{
+			{Config: config},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: true,
+				// `state` is settable-with-default; the API does not persist
+				// user intent so we can't verify it round-trips exactly.
+				ImportStateVerifyIgnore: []string{"state"},
+			},
+			{
+				ResourceName:      resourceName,
+				ImportState:       true,
+				ImportStateVerify: false,
+				ImportStateId:     "not-a-real-uuid",
+				ExpectError:       regexp.MustCompile(`(not found|Cannot import non-existent remote object)`),
+			},
+		},
+	})
+}

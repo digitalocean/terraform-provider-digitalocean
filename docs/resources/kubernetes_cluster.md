@@ -88,6 +88,28 @@ resource "digitalocean_kubernetes_cluster" "foo" {
 
 Note that a data source is used to supply the version. This is needed to prevent configuration diff whenever a cluster is upgraded.
 
+### Isolated Workers Example
+
+Kubernetes clusters may also be configured to use [isolated worker nodes](https://docs.digitalocean.com/products/kubernetes/concepts/isolated-workers/).
+When enabled, each worker node runs on dedicated hardware. The cluster's VPC must have a NAT gateway attached.
+For example:
+
+```hcl
+resource "digitalocean_kubernetes_cluster" "foo" {
+  name             = "foo"
+  region           = "nyc1"
+  version          = "latest"
+  isolated_workers = true
+  vpc_uuid         = digitalocean_vpc.example.id
+
+  node_pool {
+    name       = "worker-pool"
+    size       = "s-2vcpu-2gb"
+    node_count = 3
+  }
+}
+```
+
 ### Kubernetes Terraform Provider Example
 
 The cluster's kubeconfig is exported as an attribute allowing you to use it with
@@ -154,9 +176,12 @@ The following arguments are supported:
   - `enabled` - (Required) Boolean flag whether the firewall should be enabled or not.
   - `allowed_addresses` - (Required) A list of addresses allowed (CIDR notation).
 * `vpc_uuid` - (Optional) The ID of the VPC where the Kubernetes cluster will be located.
+* `worker_subnet_uuid` - (Optional) The ID of the VPC subnet for placing worker nodes. Must be a valid subnet in the cluster VPC. Requires that `vpc_uuid` is also set.
 * `auto_upgrade` - (Optional) A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: true
-* `ha` - (Optional) Enable/disable the high availability control plane for a cluster. Once enabled for a cluster, high availability cannot be disabled. Default: false
+* `ha` - (Optional) Enable/disable the high availability control plane for a cluster. Once enabled for a cluster, high availability cannot be disabled. Default: true (for 1.36.0 and later)
+* `isolated_workers` - (Optional) Enable/disable isolated worker nodes for the cluster. When enabled, each worker node runs on dedicated hardware. This can only be set at creation time. The cluster's VPC must have a NAT gateway attached. Default: false
+* `gpu_operator_ready` - (Optional) Enable/disable launching GPU nodes in the cluster with images without GPU drivers, allowing GPU operators to manage drivers. Mutually exclusive with other GPU-related cluster options, such as `nvidia_gpu_dra_driver` and `amd_gpu_dra_driver`. Default: false
 * `registry_integration` - (optional) Enables or disables the DigitalOcean container registry integration for the cluster. This requires that a container registry has first been created for the account. Default: false
 * `node_pool` - (Required) A block representing the cluster's default node pool. Additional node pools may be added to the cluster using the `digitalocean_kubernetes_node_pool` resource. The following arguments may be specified:
   - `name` - (Required) A name for the node pool.
@@ -167,6 +192,7 @@ The following arguments are supported:
   - `max_nodes` - (Optional) If auto-scaling is enabled, this represents the maximum number of nodes that the node pool can be scaled up to.
   - `tags` - (Optional) A list of tag names applied to the node pool.
   - `labels` - (Optional) A map of key/value pairs to apply to nodes in the pool. The labels are exposed in the Kubernetes API as labels in the metadata of the corresponding [Node resources](https://kubernetes.io/docs/concepts/architecture/nodes/).
+  - `gpu_partition_mode` - (Optional) The AMD GPU partition mode to use for nodes in this pool. Valid values are `AMD_PARTITION_MODE_SPX_NPS1` and `AMD_PARTITION_MODE_DPX_NPS2`. This can only be set when the pool is created.
 * `tags` - (Optional) A list of tag names to be applied to the Kubernetes cluster.
 * `maintenance_policy` - (Optional) A block representing the cluster's maintenance window. Updates will be applied within this window. If not specified, a default maintenance window will be chosen. `auto_upgrade` must be set to `true` for this to have an effect.
   - `day` - (Required) The day of the maintenance window policy. May be one of "monday" through "sunday", or "any" to indicate an arbitrary week day.
@@ -175,17 +201,33 @@ The following arguments are supported:
 * `kubeconfig_expire_seconds` - (Optional) The duration in seconds that the returned Kubernetes credentials will be valid. If not set or 0, the credentials will have a 7 day expiry.
 * `routing_agent` - (Optional) Block containing options for the routing-agent component. If not specified, the routing-agent component will not be installed in the cluster.
   - `enabled` - (Required) Boolean flag whether the routing-agent should be enabled or not.
-* `amd_gpu_device_plugin` - (Optional) Block containing options for the AMD GPU device plugin component. If not specified, the component will be enabled by default for clusters with AMD GPU nodes.
+* `p2p_oci_registry_plugin` - (Optional) Block containing options for the Peer-to-peer OCI registry plugin component. If not specified, the p2p-oci-registry-plugin component will not be installed in the cluster.
+  - `enabled` - (Required) Boolean flag whether the p2p-oci-registry-plugin should be enabled or not.
+* `nfs_csi_plugin` - (Optional) Block containing options for the NFS CSI driver plugin component. If not specified, the NFS CSI plugin will not be installed in the cluster.
+  - `enabled` - (Required) Boolean flag whether the NFS CSI plugin should be enabled or not.
+* `amd_gpu_device_plugin` - (Optional) Block containing options for the AMD GPU device plugin component. If not specified, the component will be enabled by default for clusters with AMD GPU nodes. Mutually exclusive with `amd_gpu_dra_driver`.
   - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
-`amd_gpu_device_metrics_exporter_plugin` - (Optional) Block containing options for the AMD GPU device metrics exporter component. If not specified, the component will not be installed in the cluster.
-    - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
-* `nvidia_gpu_device_plugin` - (Optional) Block containing options for the NVIDIA GPU device plugin component. If not specified, the component will be enabled by default for clusters with NVIDIA GPU nodes.
+* `amd_gpu_device_metrics_exporter_plugin` - (Optional) Block containing options for the AMD GPU device metrics exporter component. If not specified, the component will not be installed in the cluster.
   - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
-`rdma_shared_device_plugin` - (Optional) Block containing options for the RDMA Shared Device Plugin (k8s-rdma-shared-dev-plugin) component. If not specified, the component will be enabled by default for clusters with GPU nodes connected to a dedicated high-speed networking fabric.
-    - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
-* `cluster_autoscaler_configuration` - (Optional) Block containing options for cluster auto-scaling.
+* `nvidia_gpu_device_plugin` - (Optional) Block containing options for the NVIDIA GPU device plugin component. If not specified, the component will be enabled by default for clusters with NVIDIA GPU nodes. Mutually exclusive with `nvidia_gpu_dra_driver`.
+  - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
+* `nvidia_gpu_dra_driver` - (Optional) Block containing options for the NVIDIA GPU DRA driver component. Mutually exclusive with `nvidia_gpu_device_plugin`.
+  - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
+* `amd_gpu_dra_driver` - (Optional) Block containing options for the AMD GPU DRA driver component. Mutually exclusive with `amd_gpu_device_plugin`.
+  - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
+* `rdma_shared_device_plugin` - (Optional) Block containing options for the RDMA Shared Device Plugin (k8s-rdma-shared-dev-plugin) component. If not specified, the component will be enabled by default for clusters with GPU nodes connected to a dedicated high-speed networking fabric.
+  - `enabled` - (Required) Boolean flag whether the component should be enabled or not.
+* `coredns_autoscaler` - (Optional) Block containing options for the CoreDNS Autoscaler component, which scales CoreDNS replicas in proportion to the cluster's size. Default: true (for 1.36.0 and later)
+  - `enabled` - (Required) Boolean flag whether the CoreDNS Autoscaler should be enabled or not.
+* `cluster_autoscaler_configuration` - (Optional) Block containing options for cluster auto-scaling. For more information.
   - `scale_down_utilization_threshold` - (Optional) Float setting the Node utilization level, defined as sum of requested resources divided by capacity, in which a node can be considered for scale down.
   - `scale_down_unneeded_time` - (Optional) String setting how long a node should be unneeded before it's eligible for scale down.
+  - `expanders` - (Optional) A list of cluster autoscaler expander strategies to apply in order when selecting which node pool to scale up. Valid values are `random`, `priority`, and `least-waste`. The autoscaler uses each expander from the list to narrow the selection until a single node pool remains. If multiple node pools remain after all expanders are applied, one is chosen at random. When using the `priority` expander, configure priorities in the `cluster-autoscaler-priority-expander` ConfigMap in the `kube-system` namespace (see [Configuring Priority Expander](https://docs.digitalocean.com/products/kubernetes/how-to/autoscale/#configuring-priority-expander)).
+* `sso` - (Optional) Block containing Single Sign-On (SSO) configuration for the cluster using OpenID Connect (OIDC).
+  - `enabled` - (Required) Boolean flag indicating whether SSO is enabled as an authentication method for the cluster.
+  - `required` - (Optional) Boolean flag indicating whether SSO is required as the only authentication method for the cluster. Default: `false`
+  - `issuer_url` - (Optional) The OIDC issuer URL for the cluster SSO configuration.
+  - `client_id` - (Optional) The OIDC client ID for the cluster SSO configuration.
 
 This resource supports [customized create timeouts](https://www.terraform.io/docs/language/resources/syntax.html#operation-timeouts). The default timeout is 30 minutes.
 
@@ -200,6 +242,8 @@ In addition to the arguments listed above, the following additional attributes a
 * `created_at` - The date and time when the Kubernetes cluster was created.
 * `updated_at` - The date and time when the Kubernetes cluster was last updated.
 * `auto_upgrade` - A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
+* `isolated_workers` - A boolean value indicating whether the cluster has isolated worker nodes enabled.
+* `gpu_operator_ready` - A boolean value indicating whether GPU nodes in the cluster are launched with images without GPU drivers, allowing GPU operators to manage drivers.
 * `kube_config.0` - A representation of the Kubernetes cluster's kubeconfig with the following attributes:
   - `raw_config` - The full contents of the Kubernetes cluster's kubeconfig file.
   - `host` - The URL of the API server on the Kubernetes master node.
@@ -229,10 +273,16 @@ In addition to the arguments listed above, the following additional attributes a
   - `start_time` The hour in UTC when maintenance updates will be applied, in 24 hour format (e.g. “16:00”).
 * `routing_agent` - Block containing options for the routing-agent component.
   - `enabled` - Boolean flag whether the routing-agent is enabled or not.
+* `p2p_oci_registry_plugin` - Block containing options for the p2p_oci_registry_plugin component.
+  - `enabled` - Boolean flag whether the p2p_oci_registry_plugin is enabled or not.
+* `nfs_csi_plugin` - Block containing options for the NFS CSI driver plugin component.
+  - `enabled` - Boolean flag whether the NFS CSI plugin is enabled or not.
 * `amd_gpu_device_plugin` - Block containing options for the AMD GPU device plugin component. If not specified, the component will be enabled by default for clusters with AMD GPU nodes.
   - `enabled` - Boolean flag whether the component is enabled or not.
 * `amd_gpu_device_metrics_exporter_plugin` - Block containing options for the AMD GPU device metrics exporter component.
   - `enabled` - Boolean flag whether the component is enabled or not.
+* `coredns_autoscaler` - Block containing options for the CoreDNS Autoscaler component, which scales CoreDNS replicas in proportion to the cluster's size. Default: true (for 1.36.0 and later)
+  - `enabled` - Boolean flag whether the CoreDNS Autoscaler is enabled or not.
 
 ## Import
 

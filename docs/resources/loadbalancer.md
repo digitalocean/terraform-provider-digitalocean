@@ -113,6 +113,7 @@ the backend service. Default value is `false`.
 * `disable_lets_encrypt_dns_records` - (Optional) A boolean value indicating whether to disable automatic DNS record creation for Let's Encrypt certificates that are added to the load balancer. Default value is `false`.
 * `project_id` - (Optional) The ID of the project that the load balancer is associated with. If no ID is provided at creation, the load balancer associates with the user's default project.
 * `vpc_uuid` - (Optional) The ID of the VPC where the load balancer will be located.
+* `subnet_uuid` - (Optional) The ID of the VPC subnet where the load balancer will be located. Must be a valid subnet in the specified VPC. Requires that `vpc_uuid` is also set.
 * `droplet_ids` (Optional) - A list of the IDs of each droplet to be attached to the Load Balancer.
 * `droplet_tag` (Optional) - The name of a Droplet tag corresponding to Droplets to be assigned to the Load Balancer.
 * `firewall` (Optional) - A block containing rules for allowing/denying traffic to the Load Balancer. The `firewall` block is documented below. Only 1 firewall is allowed.
@@ -163,6 +164,8 @@ the backend service. Default value is `false`.
 * `is_managed` - (Optional) Control flag to specify whether the domain is managed by DigitalOcean.
 * `certificate_id` - (Optional) **Deprecated** The certificate ID to be used for TLS handshaking.
 * `certificate_name` - (Optional) The certificate name to be used for TLS handshaking.
+
+After create and after update when `domains` changes, the provider polls the load balancer (for up to 15 minutes) until each non-managed domain’s `certificate_name` reported by the API matches the configuration. That reduces race conditions when replacing `digitalocean_certificate` resources that use `create_before_destroy`.
 
 `glb_settings` supports the following:
 

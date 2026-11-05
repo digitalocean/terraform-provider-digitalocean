@@ -59,6 +59,51 @@ func TestAccDataSourceDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceDigitalOceanDatabaseCluster_StorageAutoscale(t *testing.T) {
+	var database godo.Database
+	databaseName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanDatabaseClusterConfigStorageAutoscaleEnabled, databaseName, 80, 10),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanDatabaseClusterConfigStorageAutoscaleEnabledWithDatasource, databaseName, 80, 10),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceDigitalOceanDatabaseClusterExists("data.digitalocean_database_cluster.foobar", &database),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_database_cluster.foobar", "name", databaseName),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_database_cluster.foobar", "storage_autoscale.#", "1"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_database_cluster.foobar", "storage_autoscale.0.enabled", "true"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_database_cluster.foobar", "storage_autoscale.0.threshold_percent", "80"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_database_cluster.foobar", "storage_autoscale.0.increment_gib", "10"),
+					testAccCheckDigitalOceanDatabaseClusterStorageAutoscale("data.digitalocean_database_cluster.foobar", true, 80, 10),
+				),
+			},
+			{
+				Config: fmt.Sprintf(testAccCheckDataSourceDigitalOceanDatabaseClusterConfigStorageAutoscaleDisabledWithDatasource, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDataSourceDigitalOceanDatabaseClusterExists("data.digitalocean_database_cluster.foobar", &database),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_database_cluster.foobar", "name", databaseName),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_database_cluster.foobar", "storage_autoscale.#", "1"),
+					resource.TestCheckResourceAttr(
+						"data.digitalocean_database_cluster.foobar", "storage_autoscale.0.enabled", "false"),
+					testAccCheckDigitalOceanDatabaseClusterStorageAutoscale("data.digitalocean_database_cluster.foobar", false, 0, 0),
+				),
+			},
+		},
+	})
+}
+
 func testAccCheckDataSourceDigitalOceanDatabaseClusterExists(n string, databaseCluster *godo.Database) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[n]
@@ -138,6 +183,66 @@ resource "digitalocean_database_cluster" "foobar" {
   node_count       = 1
   tags             = ["production"]
   storage_size_mib = 10240
+}
+
+data "digitalocean_database_cluster" "foobar" {
+  name = digitalocean_database_cluster.foobar.name
+}
+`
+
+const testAccCheckDataSourceDigitalOceanDatabaseClusterConfigStorageAutoscaleEnabled = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "pg"
+  version    = "15"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+
+  storage_autoscale {
+    enabled           = true
+    threshold_percent = %d
+    increment_gib     = %d
+  }
+}
+`
+
+const testAccCheckDataSourceDigitalOceanDatabaseClusterConfigStorageAutoscaleEnabledWithDatasource = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "pg"
+  version    = "15"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+
+  storage_autoscale {
+    enabled           = true
+    threshold_percent = %d
+    increment_gib     = %d
+  }
+}
+
+data "digitalocean_database_cluster" "foobar" {
+  name = digitalocean_database_cluster.foobar.name
+}
+`
+
+const testAccCheckDataSourceDigitalOceanDatabaseClusterConfigStorageAutoscaleDisabledWithDatasource = `
+resource "digitalocean_database_cluster" "foobar" {
+  name       = "%s"
+  engine     = "pg"
+  version    = "15"
+  size       = "db-s-1vcpu-1gb"
+  region     = "nyc1"
+  node_count = 1
+  tags       = ["production"]
+
+  storage_autoscale {
+    enabled = false
+  }
 }
 
 data "digitalocean_database_cluster" "foobar" {

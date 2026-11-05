@@ -259,16 +259,22 @@ func resourceDigitalOceanDatabaseKafkaConfigRead(ctx context.Context, d *schema.
 	d.Set("group_max_session_timeout_ms", config.GroupMaxSessionTimeoutMs)
 	d.Set("message_max_bytes", config.MessageMaxBytes)
 	d.Set("log_cleaner_delete_retention_ms", config.LogCleanerDeleteRetentionMs)
-	d.Set("log_cleaner_min_compaction_lag_ms", config.LogCleanerMinCompactionLagMs)
-	d.Set("log_flush_interval_ms", config.LogFlushIntervalMs)
+	// The six fields below are schema.TypeString (they exceed int on 32-bit and are
+	// parsed from strings on create), but godo returns them as *uint64 / *big.Int.
+	// Passing those to d.Set panics the provider whenever the API returns the field:
+	//   log_cleaner_min_compaction_lag_ms: '' expected type 'string',
+	//   got unconvertible type 'uint64', value: '0'
+	// Convert to string, and skip nil so an absent field does not write "0"/"".
+	setStringFromUint64(d, "log_cleaner_min_compaction_lag_ms", config.LogCleanerMinCompactionLagMs)
+	setStringFromUint64(d, "log_flush_interval_ms", config.LogFlushIntervalMs)
 	d.Set("log_index_interval_bytes", config.LogIndexIntervalBytes)
 	d.Set("log_message_downconversion_enable", config.LogMessageDownconversionEnable)
-	d.Set("log_message_timestamp_difference_max_ms", config.LogMessageTimestampDifferenceMaxMs)
+	setStringFromUint64(d, "log_message_timestamp_difference_max_ms", config.LogMessageTimestampDifferenceMaxMs)
 	d.Set("log_preallocate", config.LogPreallocate)
-	d.Set("log_retention_bytes", config.LogRetentionBytes)
+	setStringFromBigInt(d, "log_retention_bytes", config.LogRetentionBytes)
 	d.Set("log_retention_hours", config.LogRetentionHours)
-	d.Set("log_retention_ms", config.LogRetentionMs)
-	d.Set("log_roll_jitter_ms", config.LogRollJitterMs)
+	setStringFromBigInt(d, "log_retention_ms", config.LogRetentionMs)
+	setStringFromUint64(d, "log_roll_jitter_ms", config.LogRollJitterMs)
 	d.Set("log_segment_delete_delay_ms", config.LogSegmentDeleteDelayMs)
 	d.Set("auto_create_topics_enable", config.AutoCreateTopicsEnable)
 
@@ -300,4 +306,23 @@ func resourceDigitalOceanDatabaseKafkaConfigImport(d *schema.ResourceData, meta 
 
 func makeDatabaseKafkaConfigID(clusterID string) string {
 	return fmt.Sprintf("%s/kafka-config", clusterID)
+}
+
+// setStringFromUint64 writes a *uint64 into a schema.TypeString attribute. d.Set panics
+// when handed a uint64 for a string-typed field, so the value is formatted first; a nil
+// pointer (field absent from the API response) is left untouched rather than written as "0".
+func setStringFromUint64(d *schema.ResourceData, key string, v *uint64) {
+	if v == nil {
+		return
+	}
+	d.Set(key, strconv.FormatUint(*v, 10))
+}
+
+// setStringFromBigInt writes a *big.Int into a schema.TypeString attribute, for the
+// retention fields that can exceed int64. Same nil handling as setStringFromUint64.
+func setStringFromBigInt(d *schema.ResourceData, key string, v *big.Int) {
+	if v == nil {
+		return
+	}
+	d.Set(key, v.String())
 }

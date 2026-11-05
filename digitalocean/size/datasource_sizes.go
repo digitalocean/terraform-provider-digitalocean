@@ -50,6 +50,49 @@ func DataSourceDigitalOceanSizes() *schema.Resource {
 				Elem:        &schema.Schema{Type: schema.TypeString},
 				Description: "List of region slugs where Droplets can be created in this size.",
 			},
+			"gpu_info": {
+				Type:        schema.TypeList,
+				Description: "Information about the GPU available to Droplets created with this size. Only present on GPU sizes.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"count": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "The number of GPUs allocated to Droplets of this size.",
+						},
+						"model": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: "The model of the GPU.",
+						},
+						"vram": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Description: "Information about the VRAM available to the GPU.",
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"amount": {
+										Type:        schema.TypeInt,
+										Computed:    true,
+										Description: "The amount of VRAM available to the GPU.",
+									},
+									"unit": {
+										Type:        schema.TypeString,
+										Computed:    true,
+										Description: "The unit of measurement for the VRAM amount.",
+									},
+								},
+							},
+						},
+						"supported_partition_modes": {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+							Description: "The GPU partition modes available for this size. Only returned to callers with access to the feature; an empty list means partition-mode selection is unavailable.",
+						},
+					},
+				},
+			},
 		},
 		ResultAttributeName: "sizes",
 		FlattenRecord:       flattenDigitalOceanSize,
@@ -113,5 +156,37 @@ func flattenDigitalOceanSize(size, meta interface{}, extra map[string]interface{
 	}
 	flattenedSize["regions"] = flattenedRegions
 
+	flattenedSize["gpu_info"] = flattenGPUInfo(s.GPUInfo)
+
 	return flattenedSize, nil
+}
+
+func flattenGPUInfo(info *godo.GPUInfo) []interface{} {
+	if info == nil {
+		return []interface{}{}
+	}
+
+	gpuInfo := map[string]interface{}{
+		"count": info.Count,
+		"model": info.Model,
+	}
+
+	if info.VRAM != nil {
+		gpuInfo["vram"] = []interface{}{
+			map[string]interface{}{
+				"amount": info.VRAM.Amount,
+				"unit":   info.VRAM.Unit,
+			},
+		}
+	} else {
+		gpuInfo["vram"] = []interface{}{}
+	}
+
+	supportedModes := make([]interface{}, len(info.SupportedPartitionModes))
+	for i, m := range info.SupportedPartitionModes {
+		supportedModes[i] = m
+	}
+	gpuInfo["supported_partition_modes"] = supportedModes
+
+	return []interface{}{gpuInfo}
 }

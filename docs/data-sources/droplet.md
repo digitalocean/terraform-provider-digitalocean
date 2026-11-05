@@ -82,3 +82,4 @@ The following attributes are exported:
 * `volume_ids` - List of the IDs of each volumes attached to the Droplet.
 * `tags` - A list of the tags associated to the Droplet.
 * `vpc_uuid` - The ID of the VPC where the Droplet is located.
+* `gpu_partition_mode` - The GPU partition mode the Droplet was created with. Note that read-back of this value from the DigitalOcean API is not yet available, so it is currently empty.

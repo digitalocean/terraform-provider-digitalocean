@@ -3,20 +3,22 @@ package kubernetes
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
-	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	yaml "gopkg.in/yaml.v2"
+
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/tag"
 )
 
 var (
@@ -26,11 +28,26 @@ var (
 const (
 	controlPlaneFirewallField              = "control_plane_firewall"
 	routingAgentField                      = "routing_agent"
+	p2pOciRegistryPluginField              = "p2p_oci_registry_plugin"
 	amdGpuDevicePluginField                = "amd_gpu_device_plugin"
 	amdGpuDeviceMetricsExporterPluginField = "amd_gpu_device_metrics_exporter_plugin"
 	nvidiaGpuDevicePluginField             = "nvidia_gpu_device_plugin"
+	nvidiaGpuDraDriverField                = "nvidia_gpu_dra_driver"
+	amdGpuDraDriverField                   = "amd_gpu_dra_driver"
 	rdmaSharedDevicePluginField            = "rdma_shared_device_plugin"
+	corednsAutoscalerField                 = "coredns_autoscaler"
+	nfsCsiPluginField                      = "nfs_csi_plugin"
 )
+
+// ExpandHAFromConfig returns the HA value for the create request. When ha is not
+// specified in config (ok from GetOkExists is false), returns nil so the API applies
+// its version-dependent default. When ok is true, value may be false (explicit HA off).
+func ExpandHAFromConfig(value interface{}, ok bool) *bool {
+	if !ok {
+		return nil
+	}
+	return godo.PtrTo(value.(bool))
+}
 
 func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 	return &schema.Resource{
@@ -70,7 +87,10 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			"ha": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Computed: true,
+				// When omitted from config, create sends nil HA so the API applies its version-dependent
+				// default; read stores the actual value. Computed avoids perpetual diff (config zero false
+				// vs state true on newer DOKS). Explicit ha = true/false is still honored (GetOkExists).
 			},
 
 			"registry_integration": {
@@ -87,6 +107,13 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			"vpc_uuid": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+			},
+
+			"worker_subnet_uuid": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Computed: true,
@@ -192,6 +219,33 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
+			"sso": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+						"required": {
+							Type:     schema.TypeBool,
+							Optional: true,
+						},
+						"issuer_url": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+						"client_id": {
+							Type:     schema.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"status": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -268,11 +322,27 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				},
 			},
 
-			amdGpuDevicePluginField: {
+			p2pOciRegistryPluginField: {
 				Type:     schema.TypeList,
 				Optional: true,
 				Computed: true,
 				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			amdGpuDevicePluginField: {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{amdGpuDraDriverField},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -299,10 +369,43 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			nvidiaGpuDevicePluginField: {
-				Type:     schema.TypeList,
-				Optional: true,
-				Computed: true,
-				MaxItems: 1,
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{nvidiaGpuDraDriverField},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			nvidiaGpuDraDriverField: {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{nvidiaGpuDevicePluginField},
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			amdGpuDraDriverField: {
+				Type:          schema.TypeList,
+				Optional:      true,
+				Computed:      true,
+				MaxItems:      1,
+				ConflictsWith: []string{amdGpuDevicePluginField},
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"enabled": {
@@ -326,6 +429,50 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			corednsAutoscalerField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			nfsCsiPluginField: {
+				Type:     schema.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enabled": {
+							Type:     schema.TypeBool,
+							Required: true,
+						},
+					},
+				},
+			},
+
+			"isolated_workers": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
+			"gpu_operator_ready": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ConflictsWith: []string{nvidiaGpuDraDriverField, amdGpuDraDriverField, nvidiaGpuDevicePluginField, amdGpuDevicePluginField},
 			},
 		},
 
@@ -410,15 +557,16 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 	for i, pool := range pools {
 		tags := append(pool.Tags, DigitaloceanKubernetesDefaultNodePoolTag)
 		poolCreateRequests[i] = &godo.KubernetesNodePoolCreateRequest{
-			Name:      pool.Name,
-			Size:      pool.Size,
-			Tags:      tags,
-			Labels:    pool.Labels,
-			Count:     pool.Count,
-			AutoScale: pool.AutoScale,
-			MinNodes:  pool.MinNodes,
-			MaxNodes:  pool.MaxNodes,
-			Taints:    pool.Taints,
+			Name:             pool.Name,
+			Size:             pool.Size,
+			Tags:             tags,
+			Labels:           pool.Labels,
+			Count:            pool.Count,
+			AutoScale:        pool.AutoScale,
+			MinNodes:         pool.MinNodes,
+			MaxNodes:         pool.MaxNodes,
+			Taints:           pool.Taints,
+			GPUPartitionMode: pool.GPUPartitionMode,
 		}
 	}
 
@@ -427,10 +575,13 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		RegionSlug:   d.Get("region").(string),
 		VersionSlug:  d.Get("version").(string),
 		SurgeUpgrade: d.Get("surge_upgrade").(bool),
-		HA:           d.Get("ha").(bool),
 		Tags:         tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
 		NodePools:    poolCreateRequests,
+		SSO:          expandSSOOpts(d.Get("sso").([]interface{})),
 	}
+	// GetOkExists: optional bool without Default — GetOk would treat ha = false as unset.
+	ha, haOk := d.GetOkExists("ha")
+	opts.HA = ExpandHAFromConfig(ha, haOk)
 
 	if maint, ok := d.GetOk("maintenance_policy"); ok {
 		maintPolicy, err := expandMaintPolicyOpts(maint.([]interface{}))
@@ -442,6 +593,10 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 
 	if vpc, ok := d.GetOk("vpc_uuid"); ok {
 		opts.VPCUUID = vpc.(string)
+	}
+
+	if workerSubnet, ok := d.GetOk("worker_subnet_uuid"); ok {
+		opts.WorkerSubnetUUID = workerSubnet.(string)
 	}
 
 	if clusterSubnet, ok := d.GetOk("cluster_subnet"); ok {
@@ -468,6 +623,10 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.RoutingAgent = expandRoutingAgentOpts(routingAgent.([]interface{}))
 	}
 
+	if p2pOciRegistryPlugin, ok := d.GetOk(p2pOciRegistryPluginField); ok {
+		opts.P2pOciRegistryPlugin = expandP2pOciRegistryPluginOpts(p2pOciRegistryPlugin.([]interface{}))
+	}
+
 	if amdGpuDevicePlugin, ok := d.GetOk(amdGpuDevicePluginField); ok {
 		opts.AmdGpuDevicePlugin = expandAmdGpuDevicePluginOpts(amdGpuDevicePlugin.([]interface{}))
 	}
@@ -480,8 +639,32 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.NvidiaGpuDevicePlugin = expandNvidiaGpuDevicePluginOpts(nvidiaGpuDevicePlugin.([]interface{}))
 	}
 
+	if nvidiaGpuDraDriver, ok := d.GetOk(nvidiaGpuDraDriverField); ok {
+		opts.NvidiaGpuDraDriver = expandNvidiaGpuDraDriverOpts(nvidiaGpuDraDriver.([]interface{}))
+	}
+
+	if amdGpuDraDriver, ok := d.GetOk(amdGpuDraDriverField); ok {
+		opts.AmdGpuDraDriver = expandAmdGpuDraDriverOpts(amdGpuDraDriver.([]interface{}))
+	}
+
 	if rdmaSharedDevicePlugin, ok := d.GetOk(rdmaSharedDevicePluginField); ok {
 		opts.RdmaSharedDevicePlugin = expandRdmaSharedDevicePluginOpts(rdmaSharedDevicePlugin.([]interface{}))
+	}
+
+	if corednsAutoscaler, ok := d.GetOk(corednsAutoscalerField); ok {
+		opts.CorednsAutoscaler = expandCorednsAutoscalerOpts(corednsAutoscaler.([]interface{}))
+	}
+
+	if nfsCsiPlugin, ok := d.GetOk(nfsCsiPluginField); ok {
+		opts.NfsCsiPlugin = expandNfsCsiPluginOpts(nfsCsiPlugin.([]interface{}))
+	}
+
+	if isolatedWorkers, ok := d.GetOk("isolated_workers"); ok {
+		opts.IsolatedWorkers = isolatedWorkers.(bool)
+	}
+
+	if gpuOperatorReady, ok := d.GetOk("gpu_operator_ready"); ok {
+		opts.GPUOperatorReady = gpuOperatorReady.(bool)
 	}
 
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
@@ -544,6 +727,7 @@ func digitaloceanKubernetesClusterRead(
 	d.Set("created_at", cluster.CreatedAt.UTC().String())
 	d.Set("updated_at", cluster.UpdatedAt.UTC().String())
 	d.Set("vpc_uuid", cluster.VPCUUID)
+	d.Set("worker_subnet_uuid", cluster.WorkerSubnetUUID)
 	d.Set("auto_upgrade", cluster.AutoUpgrade)
 	d.Set("urn", cluster.URN())
 
@@ -553,6 +737,10 @@ func digitaloceanKubernetesClusterRead(
 
 	if err := d.Set(routingAgentField, flattenRoutingAgentOpts(cluster.RoutingAgent)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", routingAgentField, err)
+	}
+
+	if err := d.Set(p2pOciRegistryPluginField, flattenP2pOciRegistryPluginOpts(cluster.P2pOciRegistryPlugin)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", p2pOciRegistryPluginField, err)
 	}
 
 	if err := d.Set(amdGpuDevicePluginField, flattenAmdGpuDevicePluginOpts(cluster.AmdGpuDevicePlugin)); err != nil {
@@ -567,9 +755,28 @@ func digitaloceanKubernetesClusterRead(
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", nvidiaGpuDevicePluginField, err)
 	}
 
+	if err := d.Set(nvidiaGpuDraDriverField, flattenNvidiaGpuDraDriverOpts(cluster.NvidiaGpuDraDriver)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", nvidiaGpuDraDriverField, err)
+	}
+
+	if err := d.Set(amdGpuDraDriverField, flattenAmdGpuDraDriverOpts(cluster.AmdGpuDraDriver)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", amdGpuDraDriverField, err)
+	}
+
 	if err := d.Set(rdmaSharedDevicePluginField, flattenRdmaSharedDevicePluginOpts(cluster.RdmaSharedDevicePlugin)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", rdmaSharedDevicePluginField, err)
 	}
+
+	if err := d.Set(corednsAutoscalerField, flattenCorednsAutoscalerOpts(cluster.CorednsAutoscaler)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", corednsAutoscalerField, err)
+	}
+
+	if err := d.Set(nfsCsiPluginField, flattenNfsCsiPluginOpts(cluster.NfsCsiPlugin)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting %s - error: %#v", nfsCsiPluginField, err)
+	}
+
+	d.Set("isolated_workers", cluster.IsolatedWorkers)
+	d.Set("gpu_operator_ready", cluster.GPUOperatorReady)
 
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
@@ -577,6 +784,10 @@ func digitaloceanKubernetesClusterRead(
 
 	if err := d.Set("cluster_autoscaler_configuration", flattenCAConfigOpts(cluster.ClusterAutoscalerConfiguration)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting cluster_autoscaler_configuration - error: %#v", err)
+	}
+
+	if err := d.Set("sso", flattenSSOOpts(cluster.SSO)); err != nil {
+		return diag.Errorf("[DEBUG] Error setting sso - error: %#v", err)
 	}
 
 	// find the default node pool from all the pools in the cluster
@@ -634,8 +845,9 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 
 	// Figure out the changes and then call the appropriate API methods
 	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha",
-		controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField, amdGpuDevicePluginField,
-		amdGpuDeviceMetricsExporterPluginField, nvidiaGpuDevicePluginField, rdmaSharedDevicePluginField) {
+		controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField, p2pOciRegistryPluginField, amdGpuDevicePluginField,
+		amdGpuDeviceMetricsExporterPluginField, nvidiaGpuDevicePluginField, nvidiaGpuDraDriverField, amdGpuDraDriverField, rdmaSharedDevicePluginField,
+		corednsAutoscalerField, nfsCsiPluginField, "sso", "gpu_operator_ready") {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
 			Name:                              d.Get("name").(string),
@@ -645,11 +857,17 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 			HA:                                godo.PtrTo(d.Get("ha").(bool)),
 			ControlPlaneFirewall:              expandControlPlaneFirewallOpts(d.Get(controlPlaneFirewallField).([]interface{})),
 			RoutingAgent:                      expandRoutingAgentOpts(d.Get(routingAgentField).([]interface{})),
+			P2pOciRegistryPlugin:              expandP2pOciRegistryPluginOpts(d.Get(p2pOciRegistryPluginField).([]interface{})),
 			AmdGpuDevicePlugin:                expandAmdGpuDevicePluginOpts(d.Get(amdGpuDevicePluginField).([]interface{})),
 			AmdGpuDeviceMetricsExporterPlugin: expandAmdGpuDeviceMetricsExporterPluginOpts(d.Get(amdGpuDeviceMetricsExporterPluginField).([]interface{})),
 			NvidiaGpuDevicePlugin:             expandNvidiaGpuDevicePluginOpts(d.Get(nvidiaGpuDevicePluginField).([]interface{})),
+			NvidiaGpuDraDriver:                expandNvidiaGpuDraDriverOpts(d.Get(nvidiaGpuDraDriverField).([]interface{})),
+			AmdGpuDraDriver:                   expandAmdGpuDraDriverOpts(d.Get(amdGpuDraDriverField).([]interface{})),
 			RdmaSharedDevicePlugin:            expandRdmaSharedDevicePluginOpts(d.Get(rdmaSharedDevicePluginField).([]interface{})),
+			CorednsAutoscaler:                 expandCorednsAutoscalerOpts(d.Get(corednsAutoscalerField).([]interface{})),
+			NfsCsiPlugin:                      expandNfsCsiPluginOpts(d.Get(nfsCsiPluginField).([]interface{})),
 			ClusterAutoscalerConfiguration:    expandCAConfigOptsForUpdate(d.GetChange("cluster_autoscaler_configuration")),
+			SSO:                               expandSSOOpts(d.Get("sso").([]interface{})),
 		}
 
 		if maint, ok := d.GetOk("maintenance_policy"); ok {
@@ -658,6 +876,10 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 				return diag.Errorf("Error setting Kubernetes maintenance policy : %s", err)
 			}
 			opts.MaintenancePolicy = maintPolicy
+		}
+
+		if d.HasChange("gpu_operator_ready") {
+			opts.GPUOperatorReady = godo.PtrTo(d.Get("gpu_operator_ready").(bool))
 		}
 
 		_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)
@@ -850,7 +1072,7 @@ func waitForKubernetesClusterCreate(client *godo.Client, d *schema.ResourceData)
 
 		if cluster.Status.State == "error" {
 			ticker.Stop()
-			return nil, fmt.Errorf(cluster.Status.Message)
+			return nil, errors.New(cluster.Status.Message)
 		}
 
 		if n > timeout {

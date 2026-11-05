@@ -84,6 +84,12 @@ certificate. Only valid when type is `custom`.
 which the certificate will be issued. The domains must be managed using
 DigitalOcean's DNS. Only valid when type is `lets_encrypt`.
 
+## Timeouts
+
+`timeouts` block allows you to configure [operation timeouts](https://developer.hashicorp.com/terraform/language/resources/syntax#operation-timeouts):
+
+* `create` - (Default `10 minutes`) Used when waiting for the certificate to reach the `verified` state.
+* `delete` - (Default `15 minutes`) Used when deleting a certificate that may still be referenced by a load balancer. The provider retries delete while the API reports the certificate is in use, so a longer timeout reduces failures during certificate rotation on Global Load Balancers.
 
 ## Attributes Reference
 

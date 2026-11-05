@@ -14,7 +14,18 @@ type NfsActionsService interface {
 	Snapshot(ctx context.Context, nfsShareId string, nfsSnapshotName string, region string) (*NfsAction, *Response, error)
 	Attach(ctx context.Context, nfsShareId string, vpcID string, region string) (*NfsAction, *Response, error)
 	Detach(ctx context.Context, nfsShareId string, vpcID string, region string) (*NfsAction, *Response, error)
+	Reassign(ctx context.Context, nfsShareId, oldVpcID, newVpcID string) (*NfsAction, *Response, error)
+	SwitchPerformanceTier(ctx context.Context, nfsShareId string, tier string) (*NfsAction, *Response, error)
+	// Get retrieves an NFS action by ID, e.g. to poll an action to completion.
+	Get(ctx context.Context, actionID string) (*NfsAction, *Response, error)
 }
+
+// NfsActionStatus values as returned by the NFS API.
+const (
+	NfsActionStatusInProgress = "IN_PROGRESS"
+	NfsActionStatusCompleted  = "COMPLETED"
+	NfsActionStatusFailed     = "ACTION_FAILED"
+)
 
 // NfsActionsServiceOp handles communication with the NFS action related
 // methods of the DigitalOcean API.
@@ -26,7 +37,7 @@ var _ NfsActionsService = &NfsActionsServiceOp{}
 
 // NfsAction represents an NFS action
 type NfsAction struct {
-	ID           int        `json:"id"`
+	ID           string     `json:"id"`
 	Status       string     `json:"status"`
 	Type         string     `json:"type"`
 	StartedAt    *Timestamp `json:"started_at"`
@@ -69,11 +80,21 @@ type NfsDetachParams struct {
 	VpcID string `json:"vpc_id"`
 }
 
+// NfsReassignParams represents parameters for reassigning an NFS share from one VPC to another.
+type NfsReassignParams struct {
+	OldVpcID string `json:"old_vpc_id"`
+	NewVpcID string `json:"new_vpc_id"`
+}
+
+// NfsSwitchPerformanceTierParams represents parameters to switch the performance tier of an NFS share.
+type NfsSwitchPerformanceTierParams struct {
+	PerformanceTier string `json:"performance_tier"`
+}
+
 // Resize an NFS share
 func (s *NfsActionsServiceOp) Resize(ctx context.Context, nfsShareId string, size uint64, region string) (*NfsAction, *Response, error) {
 	request := &NfsActionRequest{
-		Type:   "resize",
-		Region: region,
+		Type: "resize",
 		Params: &NfsResizeParams{
 			SizeGib: size,
 		},
@@ -85,8 +106,7 @@ func (s *NfsActionsServiceOp) Resize(ctx context.Context, nfsShareId string, siz
 // Snapshot an NFS share
 func (s *NfsActionsServiceOp) Snapshot(ctx context.Context, nfsShareId, nfsSnapshotName, region string) (*NfsAction, *Response, error) {
 	request := &NfsActionRequest{
-		Type:   "snapshot",
-		Region: region,
+		Type: "snapshot",
 		Params: &NfsSnapshotParams{
 			Name: nfsSnapshotName,
 		},
@@ -98,8 +118,7 @@ func (s *NfsActionsServiceOp) Snapshot(ctx context.Context, nfsShareId, nfsSnaps
 // Attach an NFS share
 func (s *NfsActionsServiceOp) Attach(ctx context.Context, nfsShareId, vpcID, region string) (*NfsAction, *Response, error) {
 	request := &NfsActionRequest{
-		Type:   "attach",
-		Region: region,
+		Type: "attach",
 		Params: &NfsAttachParams{
 			VpcID: vpcID,
 		},
@@ -111,14 +130,60 @@ func (s *NfsActionsServiceOp) Attach(ctx context.Context, nfsShareId, vpcID, reg
 // Detach an NFS share
 func (s *NfsActionsServiceOp) Detach(ctx context.Context, nfsShareId, vpcID, region string) (*NfsAction, *Response, error) {
 	request := &NfsActionRequest{
-		Type:   "detach",
-		Region: region,
+		Type: "detach",
 		Params: &NfsAttachParams{
 			VpcID: vpcID,
 		},
 	}
 
 	return s.doAction(ctx, nfsShareId, request)
+}
+
+// Reassign an NFS share from one VPC to another.
+func (s *NfsActionsServiceOp) Reassign(ctx context.Context, nfsShareId, oldVpcID, newVpcID string) (*NfsAction, *Response, error) {
+	request := &NfsActionRequest{
+		Type: "reassign",
+		Params: &NfsReassignParams{
+			OldVpcID: oldVpcID,
+			NewVpcID: newVpcID,
+		},
+	}
+
+	return s.doAction(ctx, nfsShareId, request)
+}
+
+// Switch performance tier of an NFS share
+func (s *NfsActionsServiceOp) SwitchPerformanceTier(ctx context.Context, nfsShareId string, tier string) (*NfsAction, *Response, error) {
+	request := &NfsActionRequest{
+		Type: "switch_performance_tier",
+		Params: &NfsSwitchPerformanceTierParams{
+			PerformanceTier: tier,
+		},
+	}
+
+	return s.doAction(ctx, nfsShareId, request)
+}
+
+// Get retrieves an NFS action by ID.
+func (s *NfsActionsServiceOp) Get(ctx context.Context, actionID string) (*NfsAction, *Response, error) {
+	if actionID == "" {
+		return nil, nil, NewArgError("actionID", "cannot be empty")
+	}
+
+	path := fmt.Sprintf("%s/actions/%s", nfsBasePath, actionID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(nfsActionRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root.Event, resp, nil
 }
 
 func (s *NfsActionsServiceOp) doAction(ctx context.Context, nfsShareId string, request *NfsActionRequest) (*NfsAction, *Response, error) {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/http"
 	"slices"
 	"strconv"
 	"strings"
@@ -24,6 +25,19 @@ import (
 
 var (
 	errDropletBackupPolicy = errors.New("backup_policy can only be set when backups are enabled")
+)
+
+// dropletOperation indicates the context in which droplet state is being checked.
+// HTTP 404 has different meanings depending on the operation:
+// - CREATE: 404 means resource not yet available (retry for reserved hypervisors)
+// - DELETE: 404 means resource was successfully deleted (success)
+// - UPDATE: 404 means resource unexpectedly disappeared (error)
+type dropletOperation int
+
+const (
+	dropletOpCreate dropletOperation = iota
+	dropletOpDelete
+	dropletOpUpdate
 )
 
 func ResourceDigitalOceanDroplet() *schema.Resource {
@@ -197,6 +211,14 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 				Deprecated: "This parameter has been deprecated. Use `vpc_uuid` instead to specify a VPC network for the Droplet. If no `vpc_uuid` is provided, the Droplet will be placed in your account's default VPC for the region.",
 			},
 
+			"public_networking": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				ForceNew:    true,
+				Computed:    true,
+				Description: "Enables public networking for the Droplet. By default, this is always enabled on new droplets, but by explicitly setting it to false, you can create a droplet with public networking entirely disabled.",
+			},
+
 			"ipv4_address": {
 				Type:     schema.TypeString,
 				Computed: true,
@@ -258,6 +280,19 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 				Computed:     true,
 				ValidateFunc: validation.NoZeroValues,
 			},
+
+			"gpu_partition_mode": {
+				Type:     schema.TypeString,
+				Optional: true,
+				ForceNew: true,
+				Description: "The partition mode for a GPU Droplet. Omit to create a full GPU " +
+					"(equivalent to PARTITION_MODE_SPX_NPS1). Only supported on GPU sizes that " +
+					"advertise the mode in their supported_partition_modes.",
+				ValidateFunc: validation.StringInSlice([]string{
+					godo.GPUPartitionModeSPXNPS1,
+					godo.GPUPartitionModeDPXNPS2,
+				}, false),
+			},
 		},
 
 		CustomizeDiff: customdiff.All(
@@ -285,9 +320,10 @@ func ResourceDigitalOceanDroplet() *schema.Resource {
 	}
 }
 
-func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*config.CombinedConfig).GodoClient()
-
+// expandDropletCreateRequest builds the API create request from the resource
+// data. It is separated from the create handler so the request construction can
+// be unit tested without performing any API calls.
+func expandDropletCreateRequest(d *schema.ResourceData) (*godo.DropletCreateRequest, error) {
 	image := d.Get("image").(string)
 
 	// Build up our creation options
@@ -299,8 +335,7 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		Tags:   tag.ExpandTags(d.Get("tags").(*schema.Set).List()),
 	}
 
-	imageId, err := strconv.Atoi(image)
-	if err == nil {
+	if imageId, err := strconv.Atoi(image); err == nil {
 		// The image field is provided as an ID (number).
 		opts.Image.ID = imageId
 	} else {
@@ -310,7 +345,7 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 	if attr, ok := d.GetOk("backups"); ok {
 		_, exist := d.GetOk("backup_policy")
 		if exist && !attr.(bool) { // Check there is no backup_policy specified when backups are disabled.
-			return diag.FromErr(errDropletBackupPolicy)
+			return nil, errDropletBackupPolicy
 		}
 		opts.Backups = attr.(bool)
 	}
@@ -321,6 +356,12 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 
 	if attr, ok := d.GetOk("private_networking"); ok {
 		opts.PrivateNetworking = attr.(bool)
+	}
+
+	if attr, ok := d.GetOkExists("public_networking"); ok {
+		if !attr.(bool) {
+			opts.PublicNetworking = godo.PtrTo(false)
+		}
 	}
 
 	if attr, ok := d.GetOk("user_data"); ok {
@@ -355,11 +396,15 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 		opts.VPCUUID = attr.(string)
 	}
 
+	if attr, ok := d.GetOk("gpu_partition_mode"); ok {
+		opts.GPUPartitionMode = attr.(string)
+	}
+
 	// Get configured ssh_keys
 	if v, ok := d.GetOk("ssh_keys"); ok {
 		expandedSshKeys, err := expandSshKeys(v.(*schema.Set).List())
 		if err != nil {
-			return diag.FromErr(err)
+			return nil, err
 		}
 		opts.SSHKeys = expandedSshKeys
 	}
@@ -367,15 +412,30 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 	// Get configured backup_policy
 	if policy, ok := d.GetOk("backup_policy"); ok {
 		if !d.Get("backups").(bool) {
-			return diag.FromErr(errDropletBackupPolicy)
+			return nil, errDropletBackupPolicy
 		}
 
 		backupPolicy, err := expandBackupPolicy(policy)
 		if err != nil {
-			return diag.FromErr(err)
+			return nil, err
 		}
 		opts.BackupPolicy = backupPolicy
 	}
+
+	return opts, nil
+}
+
+func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	opts, err := expandDropletCreateRequest(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Derive from create opts (not state): expand sets PublicNetworking only when
+	// explicitly false. Default/unset means public IPv4 is expected.
+	expectPublicIPv4 := opts.PublicNetworking == nil || *opts.PublicNetworking
 
 	log.Printf("[DEBUG] Droplet create configuration: %#v", opts)
 
@@ -389,12 +449,31 @@ func resourceDigitalOceanDropletCreate(ctx context.Context, d *schema.ResourceDa
 	log.Printf("[INFO] Droplet ID: %s", d.Id())
 
 	// Ensure Droplet status has moved to "active."
-	_, err = waitForDropletAttribute(ctx, d, "active", []string{"new"}, "status", schema.TimeoutCreate, meta)
+	_, err = waitForDropletAttribute(ctx, d, "active", []string{"new"}, "status", schema.TimeoutCreate, meta, dropletOpCreate)
 	if err != nil {
 		return diag.Errorf("Error waiting for droplet (%s) to become ready: %s", d.Id(), err)
 	}
 
-	// waitForDropletAttribute updates the Droplet's state and calls setDropletAttributes.
+	// Status can become active before networking is populated. Wait for IPv4 so
+	// dependents (e.g. digitalocean_domain / digitalocean_record using
+	// ipv4_address) do not call the DNS API with an empty address. Skip when the
+	// status wait already observed the expected address.
+	if !dropletHasExpectedIPv4(d, expectPublicIPv4) {
+		if err := waitForDropletIPv4(ctx, d, meta, expectPublicIPv4); err != nil {
+			// Restore intended value so a timed-out create does not leave
+			// ForceNew public_networking=false in state for a public Droplet.
+			d.Set("public_networking", expectPublicIPv4)
+			return diag.Errorf("Error waiting for droplet (%s) networking: %s", d.Id(), err)
+		}
+	}
+
+	// Finalize public_networking for private Droplets (skipped during create
+	// while IsNewResource to avoid the empty-public-IP race above).
+	if !expectPublicIPv4 {
+		d.Set("public_networking", false)
+	}
+
+	// waitForDropletAttribute / waitForDropletIPv4 update state via setDropletAttributes.
 	// So there is no need to call resourceDigitalOceanDropletRead and add additional API calls.
 	return nil
 }
@@ -448,9 +527,28 @@ func setDropletAttributes(d *schema.ResourceData, droplet *godo.Droplet) error {
 	d.Set("created_at", droplet.Created)
 	d.Set("vpc_uuid", droplet.VPCUUID)
 
-	d.Set("ipv4_address", FindIPv4AddrByType(droplet, "public"))
+	// The API only returns gpu_partition_mode on the create response; it is not
+	// currently returned when reading a Droplet. Only set it when populated so the
+	// configured value is preserved rather than being cleared on a refresh.
+	if droplet.GPUPartitionMode != "" {
+		d.Set("gpu_partition_mode", droplet.GPUPartitionMode)
+	}
+
+	publicIPv4 := FindIPv4AddrByType(droplet, "public")
+	d.Set("ipv4_address", publicIPv4)
 	d.Set("ipv4_address_private", FindIPv4AddrByType(droplet, "private"))
 	d.Set("ipv6_address", strings.ToLower(FindIPv6AddrByType(droplet, "public")))
+
+	// Avoid writing public_networking=false while a new Droplet is still
+	// provisioning networking. Status can be active before NetworkInfo has a
+	// public IP; persisting false (ForceNew) would recreate on the next apply
+	// if create fails mid-wait. On refresh of an existing resource, empty
+	// public IP means public networking is disabled.
+	if publicIPv4 != "" {
+		d.Set("public_networking", true)
+	} else if !d.IsNewResource() {
+		d.Set("public_networking", false)
+	}
 
 	if features := droplet.Features; features != nil {
 		d.Set("backups", slices.Contains(features, "backups"))
@@ -502,6 +600,9 @@ func resourceDigitalOceanDropletImport(d *schema.ResourceData, meta interface{})
 }
 
 func FindIPv6AddrByType(d *godo.Droplet, addrType string) string {
+	if d == nil || d.Networks == nil {
+		return ""
+	}
 	for _, addr := range d.Networks.V6 {
 		if addr.Type == addrType {
 			if ip := net.ParseIP(addr.IPAddress); ip != nil {
@@ -513,6 +614,9 @@ func FindIPv6AddrByType(d *godo.Droplet, addrType string) string {
 }
 
 func FindIPv4AddrByType(d *godo.Droplet, addrType string) string {
+	if d == nil || d.Networks == nil {
+		return ""
+	}
 	for _, addr := range d.Networks.V4 {
 		if addr.Type == addrType {
 			if ip := net.ParseIP(addr.IPAddress); ip != nil {
@@ -543,7 +647,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		// Wait for power off
-		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", schema.TimeoutUpdate, meta)
+		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", schema.TimeoutUpdate, meta, dropletOpUpdate)
 		if err != nil {
 			return diag.Errorf(
 				"Error waiting for droplet (%s) to become powered off: %s", d.Id(), err)
@@ -581,7 +685,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		// Wait for power on
-		_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", schema.TimeoutUpdate, meta)
+		_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", schema.TimeoutUpdate, meta, dropletOpUpdate)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -600,7 +704,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for the name to change
 		_, err = waitForDropletAttribute(
-			ctx, d, newName.(string), []string{"", oldName.(string)}, "name", schema.TimeoutUpdate, meta)
+			ctx, d, newName.(string), []string{"", oldName.(string)}, "name", schema.TimeoutUpdate, meta, dropletOpUpdate)
 
 		if err != nil {
 			return diag.Errorf(
@@ -690,7 +794,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for the private_networking to turn on
 		_, err = waitForDropletAttribute(
-			ctx, d, "true", []string{"", "false"}, "private_networking", schema.TimeoutUpdate, meta)
+			ctx, d, "true", []string{"", "false"}, "private_networking", schema.TimeoutUpdate, meta, dropletOpUpdate)
 
 		if err != nil {
 			return diag.Errorf(
@@ -708,7 +812,7 @@ func resourceDigitalOceanDropletUpdate(ctx context.Context, d *schema.ResourceDa
 
 		// Wait for ipv6 to turn on
 		_, err = waitForDropletAttribute(
-			ctx, d, "true", []string{"", "false"}, "ipv6", schema.TimeoutUpdate, meta)
+			ctx, d, "true", []string{"", "false"}, "ipv6", schema.TimeoutUpdate, meta, dropletOpUpdate)
 
 		if err != nil {
 			return diag.Errorf(
@@ -786,7 +890,7 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 	}
 
 	_, err = waitForDropletAttribute(
-		ctx, d, "false", []string{"", "true"}, "locked", schema.TimeoutDelete, meta)
+		ctx, d, "false", []string{"", "true"}, "locked", schema.TimeoutDelete, meta, dropletOpDelete)
 
 	if err != nil {
 		return diag.Errorf(
@@ -806,7 +910,7 @@ func resourceDigitalOceanDropletDelete(ctx context.Context, d *schema.ResourceDa
 		}
 
 		// Wait for shutdown
-		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", schema.TimeoutDelete, meta)
+		_, err = waitForDropletAttribute(ctx, d, "off", []string{"active"}, "status", schema.TimeoutDelete, meta, dropletOpDelete)
 		if err != nil {
 			return diag.Errorf("Error waiting for droplet (%s) to become off: %s", d.Id(), err)
 		}
@@ -844,8 +948,8 @@ func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta int
 
 	stateConf := &retry.StateChangeConf{
 		Pending:    []string{"active", "off"},
-		Target:     []string{"archive"},
-		Refresh:    dropletStateRefreshFunc(ctx, d, "status", meta),
+		Target:     []string{http.StatusText(http.StatusNotFound)},
+		Refresh:    dropletStateRefreshFunc(ctx, d, "status", meta, dropletOpDelete),
 		Timeout:    60 * time.Second,
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
@@ -854,8 +958,73 @@ func waitForDropletDestroy(ctx context.Context, d *schema.ResourceData, meta int
 	return stateConf.WaitForStateContext(ctx)
 }
 
+// dropletHasExpectedIPv4 reports whether state already has the IPv4 address we
+// expect after create (public by default, private when public networking is off).
+func dropletHasExpectedIPv4(d *schema.ResourceData, expectPublicIPv4 bool) bool {
+	if expectPublicIPv4 {
+		v, _ := d.Get("ipv4_address").(string)
+		return v != ""
+	}
+	v, _ := d.Get("ipv4_address_private").(string)
+	return v != ""
+}
+
+// waitForDropletIPv4 waits until the Droplet has a usable IPv4 address.
+// When expectPublicIPv4 is true (default), it waits for a public address; otherwise
+// it waits for a private address (public_networking = false).
+func waitForDropletIPv4(ctx context.Context, d *schema.ResourceData, meta interface{}, expectPublicIPv4 bool) error {
+	addrType := "public"
+	if !expectPublicIPv4 {
+		addrType = "private"
+	}
+
+	log.Printf("[INFO] Waiting for droplet (%s) %s IPv4 to become available", d.Id(), addrType)
+
+	client := meta.(*config.CombinedConfig).GodoClient()
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"waiting"},
+		Target:  []string{"ready"},
+		Refresh: func() (interface{}, string, error) {
+			id, err := strconv.Atoi(d.Id())
+			if err != nil {
+				return nil, "", err
+			}
+
+			droplet, resp, err := client.Droplets.Get(context.Background(), id)
+			if err != nil {
+				if resp != nil && resp.StatusCode == http.StatusNotFound {
+					// Still provisioning; keep retrying under NotFoundChecks.
+					return nil, "", nil
+				}
+				return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
+			}
+
+			if FindIPv4AddrByType(droplet, addrType) == "" {
+				// Do not call setDropletAttributes while the IP is still empty:
+				// that would persist public_networking=false during the race.
+				return droplet, "waiting", nil
+			}
+
+			if err := setDropletAttributes(d, droplet); err != nil {
+				return nil, "", err
+			}
+
+			return droplet, "ready", nil
+		},
+		// Replica lag after status=active is typically seconds, not the full
+		// create timeout. Check immediately (no Delay) and fail in a few minutes.
+		Timeout:        5 * time.Minute,
+		Delay:          0,
+		MinTimeout:     3 * time.Second,
+		NotFoundChecks: 120,
+	}
+
+	_, err := stateConf.WaitForStateContext(ctx)
+	return err
+}
+
 func waitForDropletAttribute(
-	ctx context.Context, d *schema.ResourceData, target string, pending []string, attribute string, timeoutKey string, meta interface{}) (interface{}, error) {
+	ctx context.Context, d *schema.ResourceData, target string, pending []string, attribute string, timeoutKey string, meta interface{}, op dropletOperation) (interface{}, error) {
 	// Wait for the droplet so we can get the networking attributes
 	// that show up after a while
 	log.Printf(
@@ -865,15 +1034,17 @@ func waitForDropletAttribute(
 	stateConf := &retry.StateChangeConf{
 		Pending:    pending,
 		Target:     []string{target},
-		Refresh:    dropletStateRefreshFunc(ctx, d, attribute, meta),
+		Refresh:    dropletStateRefreshFunc(ctx, d, attribute, meta, op),
 		Timeout:    d.Timeout(timeoutKey),
 		Delay:      10 * time.Second,
 		MinTimeout: 3 * time.Second,
 
 		// This is a hack around DO API strangeness.
 		// https://github.com/hashicorp/terraform/issues/481
-		//
-		NotFoundChecks: 60,
+		// Increased from 60 to 120 for reserved/contracted hypervisors where
+		// capacity may take longer to become available after a destroy.
+		// See: https://github.com/digitalocean/terraform-provider-digitalocean/issues/1486
+		NotFoundChecks: 120,
 	}
 
 	return stateConf.WaitForStateContext(ctx)
@@ -882,7 +1053,7 @@ func waitForDropletAttribute(
 // TODO This function still needs a little more refactoring to make it
 // cleaner and more efficient
 func dropletStateRefreshFunc(
-	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}) retry.StateRefreshFunc {
+	ctx context.Context, d *schema.ResourceData, attribute string, meta interface{}, op dropletOperation) retry.StateRefreshFunc {
 	client := meta.(*config.CombinedConfig).GodoClient()
 	return func() (interface{}, string, error) {
 		id, err := strconv.Atoi(d.Id())
@@ -891,8 +1062,27 @@ func dropletStateRefreshFunc(
 		}
 
 		// Retrieve the droplet properties
-		droplet, _, err := client.Droplets.Get(context.Background(), id)
+		droplet, resp, err := client.Droplets.Get(context.Background(), id)
 		if err != nil {
+			if resp != nil && resp.StatusCode == 404 {
+				// Handle 404 based on operation context:
+				switch op {
+				case dropletOpDelete:
+					// DELETE: 404 means the droplet was successfully deleted
+					// Return a non-nil result to signal completion (nil would trigger NotFoundChecks retry)
+					log.Printf("[DEBUG] Droplet (%d) not found (404), deletion successful", id)
+					return &godo.Droplet{}, http.StatusText(http.StatusNotFound), nil
+				case dropletOpCreate:
+					// CREATE: 404 means resource not yet available (retry for reserved hypervisors)
+					// Returning nil triggers NotFoundChecks retry logic in StateChangeConf.
+					// See: https://github.com/digitalocean/terraform-provider-digitalocean/issues/1486
+					log.Printf("[DEBUG] Droplet (%d) not found (404), will retry", id)
+					return nil, "", nil
+				case dropletOpUpdate:
+					// UPDATE: 404 means resource unexpectedly disappeared (error)
+					return nil, "", fmt.Errorf("droplet (%d) not found during update", id)
+				}
+			}
 			return nil, "", fmt.Errorf("Error retrieving droplet: %s", err)
 		}
 
@@ -937,7 +1127,7 @@ func powerOnAndWait(ctx context.Context, d *schema.ResourceData, meta interface{
 	}
 	// this method is only used for droplet updates so use that as the timeout parameter
 	// Wait for power on
-	_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", schema.TimeoutUpdate, meta)
+	_, err = waitForDropletAttribute(ctx, d, "active", []string{"off"}, "status", schema.TimeoutUpdate, meta, dropletOpUpdate)
 	if err != nil {
 		return err
 	}
