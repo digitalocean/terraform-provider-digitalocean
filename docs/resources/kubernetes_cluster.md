@@ -181,6 +181,7 @@ The following arguments are supported:
 * `surge_upgrade` - (Optional) Enable/disable surge upgrades for a cluster. Default: true
 * `ha` - (Optional) Enable/disable the high availability control plane for a cluster. Once enabled for a cluster, high availability cannot be disabled. Default: true (for 1.36.0 and later)
 * `isolated_workers` - (Optional) Enable/disable isolated worker nodes for the cluster. When enabled, each worker node runs on dedicated hardware. This can only be set at creation time. The cluster's VPC must have a NAT gateway attached. Default: false
+* `gpu_operator_ready` - (Optional) Enable/disable launching GPU nodes in the cluster with images without GPU drivers, allowing GPU operators to manage drivers. Mutually exclusive with other GPU-related cluster options, such as `nvidia_gpu_dra_driver` and `amd_gpu_dra_driver`. Default: false
 * `registry_integration` - (optional) Enables or disables the DigitalOcean container registry integration for the cluster. This requires that a container registry has first been created for the account. Default: false
 * `node_pool` - (Required) A block representing the cluster's default node pool. Additional node pools may be added to the cluster using the `digitalocean_kubernetes_node_pool` resource. The following arguments may be specified:
   - `name` - (Required) A name for the node pool.
@@ -242,6 +243,7 @@ In addition to the arguments listed above, the following additional attributes a
 * `updated_at` - The date and time when the Kubernetes cluster was last updated.
 * `auto_upgrade` - A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `isolated_workers` - A boolean value indicating whether the cluster has isolated worker nodes enabled.
+* `gpu_operator_ready` - A boolean value indicating whether GPU nodes in the cluster are launched with images without GPU drivers, allowing GPU operators to manage drivers.
 * `kube_config.0` - A representation of the Kubernetes cluster's kubeconfig with the following attributes:
   - `raw_config` - The full contents of the Kubernetes cluster's kubeconfig file.
   - `host` - The URL of the API server on the Kubernetes master node.

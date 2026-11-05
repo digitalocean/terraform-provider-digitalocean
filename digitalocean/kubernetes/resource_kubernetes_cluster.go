@@ -467,6 +467,13 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Default:  false,
 				ForceNew: true,
 			},
+
+			"gpu_operator_ready": {
+				Type:          schema.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ConflictsWith: []string{nvidiaGpuDraDriverField, amdGpuDraDriverField, nvidiaGpuDevicePluginField, amdGpuDevicePluginField},
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -656,6 +663,10 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.IsolatedWorkers = isolatedWorkers.(bool)
 	}
 
+	if gpuOperatorReady, ok := d.GetOk("gpu_operator_ready"); ok {
+		opts.GPUOperatorReady = gpuOperatorReady.(bool)
+	}
+
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
 	if err != nil {
 		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
@@ -765,6 +776,7 @@ func digitaloceanKubernetesClusterRead(
 	}
 
 	d.Set("isolated_workers", cluster.IsolatedWorkers)
+	d.Set("gpu_operator_ready", cluster.GPUOperatorReady)
 
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
 		return diag.Errorf("[DEBUG] Error setting maintenance_policy - error: %#v", err)
@@ -835,7 +847,7 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 	if d.HasChanges("name", "tags", "auto_upgrade", "surge_upgrade", "maintenance_policy", "ha",
 		controlPlaneFirewallField, "cluster_autoscaler_configuration", routingAgentField, p2pOciRegistryPluginField, amdGpuDevicePluginField,
 		amdGpuDeviceMetricsExporterPluginField, nvidiaGpuDevicePluginField, nvidiaGpuDraDriverField, amdGpuDraDriverField, rdmaSharedDevicePluginField,
-		corednsAutoscalerField, nfsCsiPluginField, "sso") {
+		corednsAutoscalerField, nfsCsiPluginField, "sso", "gpu_operator_ready") {
 
 		opts := &godo.KubernetesClusterUpdateRequest{
 			Name:                              d.Get("name").(string),
@@ -864,6 +876,10 @@ func resourceDigitalOceanKubernetesClusterUpdate(ctx context.Context, d *schema.
 				return diag.Errorf("Error setting Kubernetes maintenance policy : %s", err)
 			}
 			opts.MaintenancePolicy = maintPolicy
+		}
+
+		if d.HasChange("gpu_operator_ready") {
+			opts.GPUOperatorReady = godo.PtrTo(d.Get("gpu_operator_ready").(bool))
 		}
 
 		_, resp, err := client.Kubernetes.Update(context.Background(), d.Id(), opts)
