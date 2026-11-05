@@ -282,8 +282,12 @@ The following arguments are supported:
 * `env` - Describes an app-wide environment variable made available to all components.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
+  - `encrypted_value` - The encrypted value App Platform stores for a `SECRET` environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
+
+~> **Note:** App Platform encrypts `SECRET` environment variable values and only returns them encrypted, so for every `env` block Terraform keeps the configured `value` in state, where it is stored in plain text (see [Sensitive Data in State](https://developer.hashicorp.com/terraform/language/state/sensitive-data)). The first plan after upgrading from an earlier provider version, or after importing an app, shows an update for each `SECRET` value.
+
 * `alert` - Describes an alert policy for the app.
   - `rule` - The type of the alert to configure. Top-level app alert policies can be: `DEPLOYMENT_CANCELLED`, `DEPLOYMENT_FAILED`, `DEPLOYMENT_LIVE`, `DEPLOYMENT_STARTED`, `DOMAIN_FAILED`, `DOMAIN_LIVE`, `AUTOSCALE_FAILED`, or `AUTOSCALE_SUCCEEDED`.
   - `disabled` - Determines whether the alert is disabled (default: `false`).
@@ -368,6 +372,7 @@ A `service` can contain:
 - `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
+  - `encrypted_value` - The encrypted value App Platform stores for a `SECRET` environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 - `routes` - (Deprecated - use `ingress`) An HTTP paths that should be routed to this component.
@@ -454,6 +459,7 @@ A `static_site` can contain:
 - `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
+  - `encrypted_value` - The encrypted value App Platform stores for a `SECRET` environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 - `routes` - (Deprecated - use `ingress`) An HTTP paths that should be routed to this component.
@@ -506,6 +512,7 @@ A `worker` can contain:
 - `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
+  - `encrypted_value` - The encrypted value App Platform stores for a `SECRET` environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 - `alert` - Describes an alert policy for the component.
@@ -584,6 +591,7 @@ A `job` can contain:
 - `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
+  - `encrypted_value` - The encrypted value App Platform stores for a `SECRET` environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 - `alert` - Describes an alert policy for the component.
@@ -636,6 +644,7 @@ A `function` component can contain:
 - `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
+  - `encrypted_value` - The encrypted value App Platform stores for a `SECRET` environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 - `routes` - (Deprecated - use `ingress`) An HTTP paths that should be routed to this component.
@@ -702,3 +711,5 @@ An app can be imported using its `id`, e.g.
 ```
 terraform import digitalocean_app.myapp fb06ad00-351f-45c8-b5eb-13523c438661
 ```
+
+`SECRET` environment variable values are imported in their encrypted form, so the first plan after an import shows an update for each of them.
