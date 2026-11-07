@@ -122,13 +122,21 @@ func resourceDigitalOceanBucketPolicyRead(ctx context.Context, d *schema.Resourc
 		Bucket: aws.String(d.Id()),
 	})
 
-	policy := ""
-	if err == nil && response.Policy != nil {
-		policy = aws.StringValue(response.Policy)
+	if IsAWSErr(err, s3.ErrCodeNoSuchBucket, "") || IsAWSErr(err, "NoSuchBucketPolicy", "") {
+		if d.IsNewResource() {
+			return nil
+		}
+		log.Printf("[WARN] Spaces bucket policy (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
+	if err != nil {
+		return diag.Errorf("Error occurred while fetching Spaces bucket policy: %s", err)
 	}
 
 	d.Set("bucket", d.Id())
-	d.Set("policy", policy)
+	d.Set("policy", aws.StringValue(response.Policy))
 
 	return nil
 }
@@ -149,6 +157,10 @@ func resourceDigitalOceanBucketPolicyDelete(ctx context.Context, d *schema.Resou
 	_, err = conn.DeleteBucketPolicy(&s3.DeleteBucketPolicyInput{
 		Bucket: aws.String(bucket),
 	})
+
+	if IsAWSErr(err, s3.ErrCodeNoSuchBucket, "") || IsAWSErr(err, "NoSuchBucketPolicy", "") {
+		return nil
+	}
 
 	if err != nil {
 		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "BucketDeleted" {
