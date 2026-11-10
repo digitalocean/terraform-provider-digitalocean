@@ -21,8 +21,8 @@ import (
 func requireEndpoints(t *testing.T, name string) {
 	t.Helper()
 
-	if os.Getenv(resource.TestEnvVar) == "" {
-		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.TestEnvVar)
+	if os.Getenv(resource.EnvTfAcc) == "" {
+		t.Skipf("Acceptance tests skipped unless env '%s' set", resource.EnvTfAcc)
 	}
 	if os.Getenv("DIGITALOCEAN_TOKEN") == "" {
 		t.Fatal("DIGITALOCEAN_TOKEN must be set for acceptance tests")
@@ -133,11 +133,11 @@ func TestAccDataSourceDigitalOceanActionGatewayEndpoint_Basic(t *testing.T) {
 		CheckDestroy:      testAccCheckActionGatewayEndpointDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: resourceConfig + fmt.Sprintf(`
+				Config: resourceConfig + `
 data "digitalocean_action_gateway_endpoint" "foobar" {
   name = digitalocean_action_gateway_endpoint.foobar.name
 }
-`),
+`,
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttrPair(dataName, "id", "digitalocean_action_gateway_endpoint.foobar", "id"),
 					resource.TestCheckResourceAttrPair(dataName, "mcp_url", "digitalocean_action_gateway_endpoint.foobar", "mcp_url"),
