@@ -109,6 +109,7 @@ func Provider() *schema.Provider {
 		DataSourcesMap: map[string]*schema.Resource{
 			"digitalocean_account":                                     account.DataSourceDigitalOceanAccount(),
 			"digitalocean_action_gateway_connection":                   actiongateway.DataSourceDigitalOceanActionGatewayConnection(),
+			"digitalocean_action_gateway_endpoint":                     actiongateway.DataSourceDigitalOceanActionGatewayEndpoint(),
 			"digitalocean_action_gateway_providers":                    actiongateway.DataSourceDigitalOceanActionGatewayProviders(),
 			"digitalocean_action_gateway_toolbelt":                     actiongateway.DataSourceDigitalOceanActionGatewayToolbelt(),
 			"digitalocean_app":                                         app.DataSourceDigitalOceanApp(),
@@ -194,6 +195,7 @@ func Provider() *schema.Provider {
 
 		ResourcesMap: map[string]*schema.Resource{
 			"digitalocean_action_gateway_connection":                      actiongateway.ResourceDigitalOceanActionGatewayConnection(),
+			"digitalocean_action_gateway_endpoint":                        actiongateway.ResourceDigitalOceanActionGatewayEndpoint(),
 			"digitalocean_action_gateway_mcp_server":                      actiongateway.ResourceDigitalOceanActionGatewayMCPServer(),
 			"digitalocean_action_gateway_toolbelt":                        actiongateway.ResourceDigitalOceanActionGatewayToolbelt(),
 			"digitalocean_app":                                            app.ResourceDigitalOceanApp(),

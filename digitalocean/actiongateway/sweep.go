@@ -26,6 +26,11 @@ func init() {
 		Name: "digitalocean_action_gateway_mcp_server",
 		F:    sweepActionGatewayMCPServers,
 	})
+
+	resource.AddTestSweepers("digitalocean_action_gateway_endpoint", &resource.Sweeper{
+		Name: "digitalocean_action_gateway_endpoint",
+		F:    sweepActionGatewayEndpoints,
+	})
 }
 
 func sweepActionGatewayConnections(region string) error {
@@ -90,6 +95,43 @@ func sweepActionGatewayToolbelts(region string) error {
 	for _, name := range stale {
 		log.Printf("[DEBUG] Deleting Action Gateway toolbelt %s", name)
 		if _, _, err := client.ActionGateway.Toolbelts.Delete(context.Background(), name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// sweepActionGatewayEndpoints deletes the acceptance suite's endpoints. A
+// version has no independent lifetime, so deleting an endpoint deletes every
+// live version under it.
+func sweepActionGatewayEndpoints(region string) error {
+	meta, err := sweep.SharedConfigForRegion(region)
+	if err != nil {
+		return err
+	}
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	opt := &godo.ActionGatewayEndpointListOptions{PageSize: 100}
+	var stale []string
+	for {
+		page, _, err := client.ActionGateway.Endpoints.List(context.Background(), opt)
+		if err != nil {
+			return err
+		}
+		for _, endpoint := range page.Endpoints {
+			if strings.HasPrefix(endpoint.Name, sweep.TestNamePrefix) {
+				stale = append(stale, endpoint.ID)
+			}
+		}
+		if page.NextPageToken == "" || len(page.Endpoints) == 0 {
+			break
+		}
+		opt.PageToken = page.NextPageToken
+	}
+
+	for _, id := range stale {
+		log.Printf("[DEBUG] Deleting Action Gateway endpoint %s", id)
+		if _, err := client.ActionGateway.Endpoints.Delete(context.Background(), id); err != nil {
 			return err
 		}
 	}
