@@ -133,7 +133,7 @@ func TestAccDigitalOceanMicroVM_ResumeAfterPause(t *testing.T) {
 	})
 }
 
-func TestAccDigitalOceanMicroVM_RecreateOnAutoPauseChange(t *testing.T) {
+func TestAccDigitalOceanMicroVM_AutoPauseChange(t *testing.T) {
 	name := acceptance.RandomTestName()
 	resourceName := "digitalocean_microvm.foobar"
 
@@ -163,7 +163,7 @@ func TestAccDigitalOceanMicroVM_RecreateOnAutoPauseChange(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "auto_pause.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "auto_pause.0.idle_timeout", "5m"),
 					captureMicroVMID(resourceName, &secondID),
-					assertIDChanged(&firstID, &secondID),
+					assertIDUnchanged(&firstID, &secondID),
 				),
 			},
 			{
@@ -173,7 +173,7 @@ func TestAccDigitalOceanMicroVM_RecreateOnAutoPauseChange(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "auto_pause.0.enabled", "true"),
 					resource.TestCheckResourceAttr(resourceName, "auto_pause.0.idle_timeout", "10m"),
 					captureMicroVMID(resourceName, &thirdID),
-					assertIDChanged(&secondID, &thirdID),
+					assertIDUnchanged(&secondID, &thirdID),
 				),
 			},
 			{
@@ -210,6 +210,62 @@ func assertIDChanged(before, after *string) resource.TestCheckFunc {
 		}
 		return nil
 	}
+}
+
+func assertIDUnchanged(before, after *string) resource.TestCheckFunc {
+	return func(_ *terraform.State) error {
+		if *before == "" || *after == "" {
+			return fmt.Errorf("captured IDs not populated (before=%q after=%q)", *before, *after)
+		}
+		if *before != *after {
+			return fmt.Errorf("expected MicroVM to be updated in place, but ID changed from %q to %q", *before, *after)
+		}
+		return nil
+	}
+}
+
+func TestAccDigitalOceanMicroVM_UpdateNameAndTags(t *testing.T) {
+	name := acceptance.RandomTestName()
+	renamed := name + "-renamed"
+	resourceName := "digitalocean_microvm.foobar"
+
+	basic := fmt.Sprintf(testAccMicroVMConfig_Basic, name, testMicroVMOCIRef)
+	tagged := fmt.Sprintf(testAccMicroVMConfig_Tags, renamed, testMicroVMOCIRef)
+	untagged := fmt.Sprintf(testAccMicroVMConfig_Basic, renamed, testMicroVMOCIRef)
+
+	var firstID, secondID, thirdID string
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckMicroVMDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: basic,
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckMicroVMExists(resourceName),
+					captureMicroVMID(resourceName, &firstID),
+				),
+			},
+			{
+				Config: tagged,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "name", renamed),
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "2"),
+					captureMicroVMID(resourceName, &secondID),
+					assertIDUnchanged(&firstID, &secondID),
+				),
+			},
+			{
+				Config: untagged,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "tags.#", "0"),
+					captureMicroVMID(resourceName, &thirdID),
+					assertIDUnchanged(&secondID, &thirdID),
+				),
+			},
+		},
+	})
 }
 
 func TestAccDigitalOceanMicroVM_ImmutableFields(t *testing.T) {
@@ -295,6 +351,24 @@ resource "digitalocean_microvm" "foobar" {
   source {
     oci_ref = "%s"
   }
+}
+`
+
+const testAccMicroVMConfig_Tags = `
+resource "digitalocean_microvm" "foobar" {
+  name   = "%s"
+  region = "nyc3"
+
+  size {
+    cpu    = 2
+    memory = 4096
+  }
+
+  source {
+    oci_ref = "%s"
+  }
+
+  tags = ["tf-acc-test-microvm", "tf-acc-test-renamed"]
 }
 `
 
