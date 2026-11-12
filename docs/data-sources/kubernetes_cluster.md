@@ -25,6 +25,8 @@ provider "kubernetes" {
 
 ## Argument Reference
 
+* `skip_credentials` - (Optional) Set to `true` for metadata-only lookups. Defaults to `false`. No Kubernetes credentials are requested and `kube_config` is empty. Do not enable this when a consumer requires this data source's `kube_config`.
+
 The following arguments are supported:
 
 * `name` - (Required) The name of Kubernetes cluster.
