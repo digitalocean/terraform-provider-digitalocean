@@ -47,5 +47,8 @@ func DataSourceDigitalOceanContainerRegistries() *schema.Resource {
 }
 
 func dataSourceDigitalOceanContainerRegistriesRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	// Resource read uses d.Id() as the registry name. Data sources do not have an
+	// ID until we set one, so pass the required name through first.
+	d.SetId(d.Get("name").(string))
 	return resourceDigitalOceanContainerRegistriesRead(ctx, d, meta)
 }
