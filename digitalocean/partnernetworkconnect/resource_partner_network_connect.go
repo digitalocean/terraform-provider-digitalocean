@@ -198,10 +198,6 @@ func resourceDigitalOceanPartnerAttachmentCreate(ctx context.Context, d *schema.
 		return diag.FromErr(fmt.Errorf("error waiting for Partner Attachment (%s) to become active: %s", d.Get("name"), err))
 	}
 
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
 	log.Printf("[INFO] Partner Attachment created, ID: %s", d.Id())
 
 	return resourceDigitalOceanPartnerAttachmentRead(ctx, d, meta)
