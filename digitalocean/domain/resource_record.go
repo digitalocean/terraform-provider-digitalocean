@@ -242,13 +242,22 @@ func resourceDigitalOceanRecordImport(d *schema.ResourceData, meta interface{}) 
 	if strings.Contains(d.Id(), ",") {
 		s := strings.Split(d.Id(), ",")
 		// Validate that this is an ID by making sure it can be converted into an int
-		_, err := strconv.Atoi(s[1])
+		id, err := strconv.Atoi(s[1])
 		if err != nil {
 			return nil, fmt.Errorf("invalid record ID: %v", err)
 		}
 
 		d.SetId(s[1])
 		d.Set("domain", s[0])
+
+		client := meta.(*config.CombinedConfig).GodoClient()
+		rec, _, err := client.Domains.Record(context.Background(), s[0], id)
+		if err != nil {
+			return nil, fmt.Errorf("error reading record 'id = \"%s,%d\"': %v", s[0], id, err)
+		}
+		d.Set("ttl", rec.TTL)
+		log.Printf("[DEBUG] Set TTL of record ID %d to %d", id, rec.TTL)
+
 	}
 
 	return []*schema.ResourceData{d}, nil
