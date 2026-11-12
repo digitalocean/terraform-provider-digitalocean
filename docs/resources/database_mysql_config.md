@@ -63,6 +63,36 @@ for additional details on each option.
 * `backup_hour` - (Optional) The hour of day (in UTC) when backup for the service starts. New backup only starts if previous backup has already completed.
 * `backup_minute` - (Optional) The minute of the backup hour when backup for the service starts. New backup only starts if previous backup has already completed.
 * `binlog_retention_period` - (Optional) The minimum amount of time, in seconds, to keep binlog entries before deletion. This may be extended for services that require binlog entries for longer than the default, for example if using the MySQL Debezium Kafka connector.
+* `innodb_change_buffer_max_size` - (Optional) The maximum size of the InnoDB change buffer, as a percentage of the total size of the buffer pool. Default is `25`.
+* `innodb_flush_neighbors` - (Optional) Specifies whether flushing a page from the InnoDB buffer pool also flushes other dirty pages in the same extent. `0` disables, `1` flushes contiguous dirty pages, `2` flushes dirty pages in the same extent.
+* `innodb_read_io_threads` - (Optional) The number of I/O threads for read operations in InnoDB. Default is `4`. Changing this parameter will lead to a restart of the MySQL service.
+* `innodb_thread_concurrency` - (Optional) The number of threads that can enter InnoDB concurrently. `0` disables the limit.
+* `innodb_write_io_threads` - (Optional) The number of I/O threads for write operations in InnoDB. Default is `4`. Changing this parameter will lead to a restart of the MySQL service.
+* `net_buffer_length` - (Optional) The initial size of the network buffer, in bytes, for each client connection. Must be a multiple of `1024`. Default is `16384`. Changing this parameter will lead to a restart of the MySQL service.
+* `log_output` - (Optional) The destination for the general and slow query logs. One of `INSIGHTS`, `TABLE`, `INSIGHTS,TABLE`, or `NONE`. Default is `NONE`.
+* `automatic_sp_privileges` - (Optional) When enabled, grants the `EXECUTE` and `ALTER ROUTINE` privileges to the creator of a stored routine.
+* `div_precision_increment` - (Optional) The number of digits added to the scale of the result of `/` division operations.
+* `end_markers_in_json` - (Optional) Whether to add end markers to the output of `EXPLAIN FORMAT=JSON`.
+* `eq_range_index_dive_limit` - (Optional) The number of equality ranges in an equality comparison condition up to which the optimizer uses index dives instead of index statistics.
+* `innodb_adaptive_hash_index` - (Optional) Whether the InnoDB adaptive hash index is enabled. Default is true.
+* `innodb_ft_enable_stopword` - (Optional) Whether the InnoDB full-text search default stopword list is used for `FULLTEXT` indexes.
+* `innodb_ft_max_token_size` - (Optional) The maximum length, in characters, of words stored in an InnoDB `FULLTEXT` index. Changing this parameter will lead to a restart of the MySQL service.
+* `innodb_ft_num_word_optimize` - (Optional) The number of words processed by each `OPTIMIZE TABLE` operation on an InnoDB `FULLTEXT` index.
+* `innodb_ft_result_cache_limit` - (Optional) The InnoDB full-text search query result cache limit, in bytes, per query.
+* `innodb_ft_user_stopword_table` - (Optional) The name of a table, in `db_name/table_name` format, containing a user-defined list of stopwords for InnoDB full-text search.
+* `innodb_optimize_fulltext_only` - (Optional) When enabled, `OPTIMIZE TABLE` only processes the InnoDB `FULLTEXT` index.
+* `max_execution_time` - (Optional) The maximum execution time, in milliseconds, for read-only `SELECT` statements. `0` means no limit.
+* `max_seeks_for_key` - (Optional) The limit on the assumed maximum number of seeks when looking up rows based on a key.
+* `optimizer_prune_level` - (Optional) Controls the heuristics applied during query optimization to prune less-promising partial plans. `0` disables, `1` enables.
+* `optimizer_search_depth` - (Optional) The maximum depth of the search performed by the query optimizer. `0` lets the server choose automatically.
+* `optimizer_switch` - (Optional) A comma-separated list of `option=value` pairs controlling optimizer behavior, or `default`.
+* `windowing_use_high_precision` - (Optional) Whether window functions use high-precision (double) computation.
+* `mysql_incremental_backup` - (Optional) Incremental backup settings. See [below](#mysql_incremental_backup).
+
+### mysql_incremental_backup
+
+* `enabled` - (Optional) Whether incremental backups are enabled.
+* `full_backup_week_schedule` - (Optional) The days of the week on which full backups are taken, as a comma-separated list (for example `mon,thu`).
 
 ## Attributes Reference
 
