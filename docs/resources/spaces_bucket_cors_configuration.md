@@ -3,7 +3,7 @@ page_title: "DigitalOcean: digitalocean_spaces_bucket_cors_configuration"
 subcategory: "Spaces Object Storage"
 ---
 
-# digitalocean\_spaces\_cors_configuration
+# digitalocean\_spaces\_bucket\_cors\_configuration
 
 Provides a CORS configuration resource for Spaces, DigitalOcean's object storage product.
 The `digitalocean_spaces_bucket_cors_configuration` resource allows Terraform to to attach CORS configuration to Spaces.
