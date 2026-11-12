@@ -49,8 +49,8 @@ output "url" {
 ### Pause and Resume
 
 Set `state` to `paused` to pause a running MicroVM, and back to `running` to
-resume it. This is the only change that is applied in place; every other
-argument forces a new MicroVM.
+resume it. `state`, `name`, `tags`, and `auto_pause.idle_timeout` are applied
+in place; every other argument forces a new MicroVM.
 
 ```hcl
 resource "digitalocean_microvm" "worker" {
@@ -136,7 +136,7 @@ resource "digitalocean_microvm" "locked_down" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the MicroVM.
+* `name` - (Required) The name of the MicroVM. A change renames the MicroVM in place.
 * `source` - (Required) What the MicroVM runs. Exactly one of the following must be set:
   - `oci_ref` - (Optional) The OCI reference of the workload container image, such as `docker.io/library/nginx:latest`.
   - `checkpoint_id` - (Optional) The ID of a checkpoint to restore.
@@ -151,11 +151,11 @@ The following arguments are supported:
 * `ports` - (Optional) A list of guest ports to open for ingress. Defaults to `http_port` only.
 * `environment` - (Optional) A map of environment variables to pass to the workload.
 * `auto_pause` - (Optional) Auto-pause configuration. When omitted, the product default (enabled) applies.
-  - `enabled` - (Required) Whether the MicroVM pauses after it has been idle for `idle_timeout`.
-  - `idle_timeout` - (Optional) How long the MicroVM must be idle before it pauses, as a duration such as `5m` or `30s`.
+  - `enabled` - (Required) Whether the MicroVM pauses after it has been idle for `idle_timeout`. A change forces a new MicroVM.
+  - `idle_timeout` - (Optional) How long the MicroVM must be idle before it pauses, as a duration such as `5m` or `30s`. A change is applied in place.
 * `auto_resume` - (Optional) Whether the MicroVM resumes automatically on incoming HTTP traffic. When omitted, the product default (enabled) applies.
 * `ingress_enabled` - (Optional) Whether the MicroVM is created with a default public ingress URL. Defaults to `true`. Set to `false` to create the MicroVM without a default URL; additional URLs can be added later with the [`digitalocean_microvm_ingress`](microvm_ingress) resource. This is a create-time option, so a change forces a new MicroVM.
-* `tags` - (Optional) A list of tag names to apply to the MicroVM.
+* `tags` - (Optional) A list of tag names to apply to the MicroVM. A change replaces the tag set in place.
 * `egress_policy` - (Optional) An outbound allow list. When omitted, egress is unrestricted; a MicroVM restored from a checkpoint inherits its origin's policy. Only valid with public networking, and a change forces a new MicroVM.
   - `default_action` - (Optional) What to do with a destination no `rule` matches: `deny` or `allow`. Defaults to `deny`.
   - `rule` - (Optional) An allowed destination. Up to 50 rules. Rules match the host only: port, path and method are not considered, and a hostname that resolves to an IP is not matched by an `ip` rule. Each rule sets exactly one of:

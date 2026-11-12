@@ -151,19 +151,23 @@ func resourceDigitalOceanMicroVMRead(ctx context.Context, d *schema.ResourceData
 	return nil
 }
 
-// resourceDigitalOceanMicroVMUpdate handles the only in-place mutation
-// the MicroVMs API supports: the desired lifecycle `state` (running /
-// paused) via the Pause and Resume action endpoints.
+// resourceDigitalOceanMicroVMUpdate handles the in-place mutations the
+// MicroVMs API supports: name, tags, and auto_pause.idle_timeout via
+// MicroVMs.Update, and the desired lifecycle `state` (running / paused) via
+// the Pause and Resume action endpoints.
 //
-// Every other user-configurable attribute on the resource — auto_pause,
-// auto_resume, tags, environment, http_port, http_protocol, networking, etc.
-// — is marked ForceNew because godo's MicroVMsService exposes no update
-// endpoint for them. Without ForceNew, plan changes would silently no-op on
-// apply (clean plan, "1 changed", no API call, then Read overwrites state)
-// causing invisible drift like a user lowering auto_pause.idle_timeout to
-// cut cost but the platform keeping the old timeout.
+// Every other user-configurable attribute must stay ForceNew. Without it,
+// a plan change would silently no-op on apply (clean plan, "1 changed", no
+// API call, then Read overwrites state).
 func resourceDigitalOceanMicroVMUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
+
+	if req := expandMicroVMUpdateRequest(d); req != nil {
+		log.Printf("[DEBUG] MicroVM update request: %+v", req)
+		if _, _, err := client.MicroVMs.Update(ctx, d.Id(), req); err != nil {
+			return diag.Errorf("Error updating MicroVM (%s): %s", d.Id(), err)
+		}
+	}
 
 	if d.HasChange("state") {
 		target := godo.MicroVMState(d.Get("state").(string))
