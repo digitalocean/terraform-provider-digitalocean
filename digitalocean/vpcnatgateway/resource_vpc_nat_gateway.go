@@ -235,7 +235,13 @@ func resourceDigitalOceanVPCNATGatewayRead(ctx context.Context, d *schema.Resour
 func resourceDigitalOceanVPCNATGatewayUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	updateReq := &godo.VPCNATGatewayRequest{Name: d.Get("name").(string)}
+	// The update request must carry the VPC attachments: godo serializes a nil
+	// VPCs slice as "vpcs": null, which the API treats as clearing
+	// default_gateway on the attached VPCs.
+	updateReq := &godo.VPCNATGatewayRequest{
+		Name: d.Get("name").(string),
+		VPCs: expandUpdateVPCs(d.Get("vpcs").(*schema.Set).List()),
+	}
 	if v, ok := d.GetOk("type"); ok {
 		updateReq.Type = v.(string)
 	}
@@ -315,6 +321,17 @@ func expandVPCs(vpcs []interface{}) []*godo.IngressVPC {
 			ingressVPC.SubnetUUID = subnetUUID
 		}
 		ingressVPCs = append(ingressVPCs, ingressVPC)
+	}
+	return ingressVPCs
+}
+
+// expandUpdateVPCs builds the VPC attachments for an update request. The
+// update API only accepts vpc_uuid, subnet_uuid and default_gateway, so the
+// computed gateway_ip is left out.
+func expandUpdateVPCs(vpcs []interface{}) []*godo.IngressVPC {
+	ingressVPCs := expandVPCs(vpcs)
+	for _, vpc := range ingressVPCs {
+		vpc.GatewayIP = ""
 	}
 	return ingressVPCs
 }
