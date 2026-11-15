@@ -9,7 +9,10 @@ Get information on the [Action Gateway](https://docs.digitalocean.com/products/m
 tool providers, with the ability to filter and sort the results. Use it to
 find a provider's slug, the scopes it offers, and the connection parameters a
 [`digitalocean_action_gateway_connection`](../resources/action_gateway_connection)
-needs. If no filters are specified, all providers are returned.
+needs. Its `auth_types` tell which kind of
+[`digitalocean_action_gateway_provider_credential`](../resources/action_gateway_provider_credential)
+a provider accepts: `user_oauth_app` for an OAuth client and `user_token` for
+an API key. If no filters are specified, all providers are returned.
 
 ## Example Usage
 
