@@ -45,6 +45,11 @@ output "jira_connect_url" {
 
 ### Team provider credential
 
+The credential in this example is private to the DigitalOcean user who owns
+Terraform's API token, which is enough for connections created with the same
+token. Set `reusable_by_team = true` on it to let other team members connect
+through it. Sharing cannot be undone.
+
 ```hcl
 resource "digitalocean_action_gateway_provider_credential" "linear" {
   tool_provider = "linear"
