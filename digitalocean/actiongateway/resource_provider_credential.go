@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -287,7 +288,7 @@ func updatesProviderCredential(_ context.Context, d *schema.ResourceDiff, _ inte
 func resourceDigitalOceanActionGatewayProviderCredentialCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	req := &providerCredentialCreateRequest{
+	req := &godo.ActionGatewayProviderCredentialCreateRequest{
 		Provider:       d.Get("tool_provider").(string),
 		Kind:           expandProviderCredentialKind(d.Get("kind").(string)),
 		DisplayName:    d.Get("display_name").(string),
@@ -305,7 +306,7 @@ func resourceDigitalOceanActionGatewayProviderCredentialCreate(ctx context.Conte
 		req.BaseURL = d.Get("base_url").(string)
 	}
 
-	created, _, err := createProviderCredential(ctx, client, req)
+	created, _, err := client.ActionGateway.ProviderCredentials.Create(ctx, req)
 	if err != nil {
 		return diag.Errorf("Error creating Action Gateway provider credential: %s", err)
 	}
@@ -338,7 +339,7 @@ func resourceDigitalOceanActionGatewayProviderCredentialRead(ctx context.Context
 func readProviderCredential(ctx context.Context, d *schema.ResourceData, meta interface{}, fill ...string) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	found, resp, err := getProviderCredential(ctx, client, d.Id())
+	found, resp, err := client.ActionGateway.ProviderCredentials.Get(ctx, d.Id())
 	if err != nil {
 		if isNotFound(resp) {
 			log.Printf("[WARN] Action Gateway provider credential (%s) not found - removing from state", d.Id())
@@ -376,8 +377,8 @@ func resourceDigitalOceanActionGatewayProviderCredentialUpdate(ctx context.Conte
 	client := meta.(*config.CombinedConfig).GodoClient()
 
 	req := expandProviderCredentialUpdate(d)
-	if !req.isEmpty() {
-		if _, _, err := updateProviderCredential(ctx, client, d.Id(), req); err != nil {
+	if !isEmptyProviderCredentialUpdate(req) {
+		if _, _, err := client.ActionGateway.ProviderCredentials.Update(ctx, d.Id(), req); err != nil {
 			// Without this the SDK records the configuration as applied, and
 			// a secret that was never rotated would stop showing as a change.
 			d.Partial(true)
@@ -390,8 +391,8 @@ func resourceDigitalOceanActionGatewayProviderCredentialUpdate(ctx context.Conte
 }
 
 // expandProviderCredentialUpdate builds a request carrying only what changed.
-func expandProviderCredentialUpdate(d *schema.ResourceData) *providerCredentialUpdateRequest {
-	req := &providerCredentialUpdateRequest{}
+func expandProviderCredentialUpdate(d *schema.ResourceData) *godo.ActionGatewayProviderCredentialUpdateRequest {
+	req := &godo.ActionGatewayProviderCredentialUpdateRequest{}
 	oauthClient := d.Get("kind").(string) == providerCredentialKindOAuthClient
 
 	if d.HasChange("display_name") {
@@ -409,9 +410,9 @@ func expandProviderCredentialUpdate(d *schema.ResourceData) *providerCredentialU
 	}
 	if params := expandCredentialParameters(d.Get("credential_parameters")); d.HasChange("credential_parameters") && len(params) > 0 {
 		req.CredentialParameters = params
-	} else if d.HasChange("base_url") {
-		req.BaseURL = d.Get("base_url").(string)
-		if oauthClient && req.BaseURL != "" {
+	} else if baseURL := d.Get("base_url").(string); d.HasChange("base_url") && baseURL != "" {
+		req.BaseURL = godo.PtrTo(baseURL)
+		if oauthClient {
 			req.ClientID = d.Get("client_id").(string)
 		}
 	}
@@ -423,10 +424,17 @@ func expandProviderCredentialUpdate(d *schema.ResourceData) *providerCredentialU
 	return req
 }
 
+// isEmptyProviderCredentialUpdate reports whether the request changes
+// nothing. The API rejects such a request.
+func isEmptyProviderCredentialUpdate(req *godo.ActionGatewayProviderCredentialUpdateRequest) bool {
+	return req.DisplayName == "" && req.APIKey == "" && req.ClientID == "" && req.ClientSecret == "" &&
+		req.BaseURL == nil && len(req.CredentialParameters) == 0 && !req.ReusableByTeam
+}
+
 func resourceDigitalOceanActionGatewayProviderCredentialDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	deleted, resp, err := deleteProviderCredential(ctx, client, d.Id())
+	deleted, resp, err := client.ActionGateway.ProviderCredentials.Delete(ctx, d.Id())
 	if err != nil {
 		if isNotFound(resp) {
 			d.SetId("")
@@ -449,7 +457,7 @@ func resourceDigitalOceanActionGatewayProviderCredentialDelete(ctx context.Conte
 	return nil
 }
 
-func flattenProviderCredential(cred *providerCredential) map[string]interface{} {
+func flattenProviderCredential(cred *godo.ActionGatewayProviderCredential) map[string]interface{} {
 	return map[string]interface{}{
 		"tool_provider":    cred.Provider,
 		"kind":             normalizeProviderCredentialKind(cred.Kind),

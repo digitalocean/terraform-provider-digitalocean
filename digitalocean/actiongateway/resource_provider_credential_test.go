@@ -124,12 +124,7 @@ func testAccCheckActionGatewayProviderCredentialDestroy(s *terraform.State) erro
 		if rs.Type != "digitalocean_action_gateway_provider_credential" {
 			continue
 		}
-		// godo has no provider-credentials service yet.
-		req, err := client.NewRequest(context.Background(), http.MethodGet, "/v2/action-gateway/provider-credentials/"+rs.Primary.ID, nil)
-		if err != nil {
-			return err
-		}
-		resp, err := client.Do(context.Background(), req, nil)
+		_, resp, err := client.ActionGateway.ProviderCredentials.Get(context.Background(), rs.Primary.ID)
 		if err == nil {
 			return fmt.Errorf("Action Gateway provider credential %s still exists", rs.Primary.ID)
 		}

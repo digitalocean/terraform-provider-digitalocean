@@ -61,9 +61,9 @@ func DataSourceDigitalOceanActionGatewayProviderCredential() *schema.Resource {
 func dataSourceDigitalOceanActionGatewayProviderCredentialRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	var cred *providerCredential
+	var cred *godo.ActionGatewayProviderCredential
 	if id := d.Get("id").(string); id != "" {
-		found, _, err := getProviderCredential(ctx, client, id)
+		found, _, err := client.ActionGateway.ProviderCredentials.Get(ctx, id)
 		if err != nil {
 			return diag.Errorf("Error retrieving Action Gateway provider credential (%s): %s", id, err)
 		}
@@ -91,14 +91,14 @@ func dataSourceDigitalOceanActionGatewayProviderCredentialRead(ctx context.Conte
 // findProviderCredential resolves a tool provider and a display name to
 // exactly one credential visible to the caller. Display names are unique for a
 // provider ignoring case, which is how they are matched here.
-func findProviderCredential(ctx context.Context, client *godo.Client, provider, displayName string) (*providerCredential, error) {
-	creds, _, err := listProviderCredentials(ctx, client, provider)
+func findProviderCredential(ctx context.Context, client *godo.Client, provider, displayName string) (*godo.ActionGatewayProviderCredential, error) {
+	listed, _, err := client.ActionGateway.ProviderCredentials.List(ctx, &godo.ActionGatewayProviderCredentialListOptions{Provider: provider})
 	if err != nil {
 		return nil, fmt.Errorf("Error listing Action Gateway provider credentials: %s", err)
 	}
 
-	var matches []providerCredential
-	for _, cred := range creds {
+	var matches []godo.ActionGatewayProviderCredential
+	for _, cred := range listed.Credentials {
 		if strings.EqualFold(cred.Provider, provider) && strings.EqualFold(cred.DisplayName, displayName) {
 			matches = append(matches, cred)
 		}

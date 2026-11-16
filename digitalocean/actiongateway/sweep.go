@@ -175,16 +175,16 @@ func sweepActionGatewayProviderCredentials(region string) error {
 	}
 	client := meta.(*config.CombinedConfig).GodoClient()
 
-	creds, _, err := listProviderCredentials(context.Background(), client, "")
+	listed, _, err := client.ActionGateway.ProviderCredentials.List(context.Background(), nil)
 	if err != nil {
 		return err
 	}
-	for _, cred := range creds {
+	for _, cred := range listed.Credentials {
 		if !strings.HasPrefix(cred.DisplayName, sweep.TestNamePrefix) {
 			continue
 		}
 		log.Printf("[DEBUG] Deleting Action Gateway provider credential %s", cred.ID)
-		if _, _, err := deleteProviderCredential(context.Background(), client, cred.ID); err != nil {
+		if _, _, err := client.ActionGateway.ProviderCredentials.Delete(context.Background(), cred.ID); err != nil {
 			return err
 		}
 	}
