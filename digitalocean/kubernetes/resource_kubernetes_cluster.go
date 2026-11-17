@@ -468,6 +468,14 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				ForceNew: true,
 			},
 
+			"max_pods_per_node": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IntInSlice([]int{110, 220, 450}),
+			},
+
 			"gpu_operator_ready": {
 				Type:          schema.TypeBool,
 				Optional:      true,
@@ -663,6 +671,10 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.IsolatedWorkers = isolatedWorkers.(bool)
 	}
 
+	if maxPodsPerNode, ok := d.GetOk("max_pods_per_node"); ok {
+		opts.MaxPodsPerNode = maxPodsPerNode.(int)
+	}
+
 	if gpuOperatorReady, ok := d.GetOk("gpu_operator_ready"); ok {
 		opts.GPUOperatorReady = gpuOperatorReady.(bool)
 	}
@@ -776,6 +788,7 @@ func digitaloceanKubernetesClusterRead(
 	}
 
 	d.Set("isolated_workers", cluster.IsolatedWorkers)
+	d.Set("max_pods_per_node", cluster.MaxPodsPerNode)
 	d.Set("gpu_operator_ready", cluster.GPUOperatorReady)
 
 	if err := d.Set("maintenance_policy", flattenMaintPolicyOpts(cluster.MaintenancePolicy)); err != nil {
