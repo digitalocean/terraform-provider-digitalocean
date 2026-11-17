@@ -2101,3 +2101,18 @@ users:
 		t.Errorf("renderKubeconfig returned %+v\n, expected %+v\n", got, expected)
 	}
 }
+
+func TestResourceDigitalOceanKubernetesCluster_MaxPodsPerNodeValidation(t *testing.T) {
+	validate := kubernetes.ResourceDigitalOceanKubernetesCluster().Schema["max_pods_per_node"].ValidateFunc
+
+	for _, v := range []int{110, 220, 450} {
+		if _, errs := validate(v, "max_pods_per_node"); len(errs) != 0 {
+			t.Errorf("max_pods_per_node = %d: got errors %v, want none", v, errs)
+		}
+	}
+	for _, v := range []int{0, 100, 111, 500} {
+		if _, errs := validate(v, "max_pods_per_node"); len(errs) == 0 {
+			t.Errorf("max_pods_per_node = %d: got no errors, want an error", v)
+		}
+	}
+}

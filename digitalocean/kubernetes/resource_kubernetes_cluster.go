@@ -469,10 +469,11 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 			},
 
 			"max_pods_per_node": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IntInSlice([]int{110, 220, 450}),
 			},
 
 			"gpu_operator_ready": {
