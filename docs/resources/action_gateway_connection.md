@@ -13,9 +13,9 @@ matches the connection's `user_id` use it for that provider's tools.
 -> **Note:** A connection belongs to the DigitalOcean user who owns the API
 token Terraform uses, within that token's team. Other team members cannot use
 it, even with the same `user_id`. To let team members create their own
-connections from a shared credential, register the provider credential in the
-control panel, make it reusable by the team, and pass its ID as
-`credential_id`.
+connections from a shared credential, register a
+[`digitalocean_action_gateway_provider_credential`](action_gateway_provider_credential)
+with `reusable_by_team` set, and pass its ID as `credential_id`.
 
 An OAuth connection starts `pending`. The account holder completes it by
 opening `authorization.0.connect_url`, which is exported as a sensitive value
@@ -45,11 +45,25 @@ output "jira_connect_url" {
 
 ### Team provider credential
 
+The credential in this example sets `reusable_by_team`, so everyone on the
+team can connect through it. Sharing may require the team owner role and
+cannot be undone. Leave `reusable_by_team` out to keep the credential private
+to the DigitalOcean user who owns Terraform's API token, which is enough for
+connections created with the same token.
+
 ```hcl
+resource "digitalocean_action_gateway_provider_credential" "linear" {
+  tool_provider    = "linear"
+  kind             = "api_key"
+  display_name     = "Production key"
+  api_key          = var.linear_api_key
+  reusable_by_team = true
+}
+
 resource "digitalocean_action_gateway_connection" "linear" {
   tool_provider = "linear"
   user_id       = "support-bot"
-  credential_id = "8d6f2b1a-3c4e-4d5f-9a8b-7c6d5e4f3a2b"
+  credential_id = digitalocean_action_gateway_provider_credential.linear.id
 }
 ```
 
@@ -91,7 +105,7 @@ changing any argument revokes the connection and creates a new one.
 * `user_id` - (Required) The actor ID the connection acts for: 1 to 64 characters from `[A-Za-z0-9._-]`. Use the actor ID of the sessions that need this account.
 * `scopes` - (Optional) The OAuth scopes to request. When omitted or empty, every scope the provider offers is requested. Ignored for API-key credentials.
 * `connection_parameters` - (Optional) A map of values for the provider's connection parameters, such as `site_url` for Jira.
-* `credential_id` - (Optional) The ID of a team provider credential, such as your own OAuth application or an API key, to connect through. When omitted, DigitalOcean's shared OAuth application is used.
+* `credential_id` - (Optional) The ID of a [`digitalocean_action_gateway_provider_credential`](action_gateway_provider_credential), such as your own OAuth application or an API key, to connect through. When omitted, DigitalOcean's shared OAuth application is used.
 * `vpc` - (Optional) Routes the connection's calls through a VPC. VPC networking must be enabled for your team.
   - `vpc_uuid` - (Required) The UUID of a VPC owned by your team.
   - `destination` - (Required) One or more private hosts the connection's calls may reach.
