@@ -813,6 +813,10 @@ func digitaloceanKubernetesClusterRead(
 		log.Printf("[WARN] No default node pool was found. The default node pool must have the `%s` tag if created with Terraform.", DigitaloceanKubernetesDefaultNodePoolTag)
 	}
 
+	return setKubeConfig(client, cluster, d)
+}
+
+func setKubeConfig(client *godo.Client, cluster *godo.KubernetesCluster, d *schema.ResourceData) diag.Diagnostics {
 	// The API refuses token credentials when SSO is required.
 	if cluster.SSO != nil && cluster.SSO.Required {
 		d.Set("kube_config", []interface{}{})
