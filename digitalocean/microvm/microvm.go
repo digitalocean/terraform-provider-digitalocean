@@ -51,17 +51,6 @@ var httpProtocolValues = []string{
 	string(godo.MicroVMHTTPProtocolHTTP2),
 }
 
-// tagsSchemaForceNew returns tag.TagsSchema() with ForceNew set. Tags are
-// accepted by MicroVMCreateRequest but the MicroVMs API exposes no
-// endpoint to mutate them afterwards, so any change has to recreate the
-// resource. Marking ForceNew keeps Terraform's plan honest — without it,
-// changes would silently no-op on apply.
-func tagsSchemaForceNew() *schema.Schema {
-	s := tag.TagsSchema()
-	s.ForceNew = true
-	return s
-}
-
 // microVMResourceSchema returns the resource-side schema used by
 // ResourceDigitalOceanMicroVM. The data source schemas reuse this via
 // microVMDataSourceSchema which recasts everything to Computed.
@@ -70,7 +59,6 @@ func microVMResourceSchema() map[string]*schema.Schema {
 		"name": {
 			Type:         schema.TypeString,
 			Required:     true,
-			ForceNew:     true,
 			Description:  "Name of the MicroVM",
 			ValidateFunc: validation.NoZeroValues,
 		},
@@ -191,9 +179,8 @@ func microVMResourceSchema() map[string]*schema.Schema {
 			Type:        schema.TypeList,
 			Optional:    true,
 			Computed:    true,
-			ForceNew:    true,
 			MaxItems:    1,
-			Description: "Auto-pause configuration. Forces recreation on change: the MicroVMs API has no in-place update path for auto_pause.",
+			Description: "Auto-pause configuration. idle_timeout updates in place; changing enabled forces recreation.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"enabled": {
@@ -206,8 +193,7 @@ func microVMResourceSchema() map[string]*schema.Schema {
 						Type:         schema.TypeString,
 						Optional:     true,
 						Computed:     true,
-						ForceNew:     true,
-						Description:  "Idle timeout as a Go duration string (e.g. '5m', '30s'). Forces recreation on change (no in-place API path).",
+						Description:  "Idle timeout as a Go duration string (e.g. '5m', '30s'). Updates in place.",
 						ValidateFunc: validation.NoZeroValues,
 					},
 				},
@@ -227,7 +213,7 @@ func microVMResourceSchema() map[string]*schema.Schema {
 			ForceNew:    true,
 			Description: "Whether the MicroVM is created with a default public ingress URL. Defaults to true. Set to false to create the MicroVM without a default URL; additional URLs can be added later with the digitalocean_microvm_ingress resource. This is a create-time option, so a change forces recreation.",
 		},
-		"tags": tagsSchemaForceNew(),
+		"tags": tag.TagsSchema(),
 		"egress_policy": {
 			Type:        schema.TypeList,
 			Optional:    true,
@@ -416,6 +402,36 @@ func expandAutoPause(raw interface{}) *godo.AutoPauseConfig {
 		cfg.IdleTimeout = v
 	}
 	return cfg
+}
+
+// expandMicroVMUpdateRequest builds a PATCH body from the changed name, tags,
+// and auto_pause.idle_timeout. Returns nil when none of them changed. The API
+// accepts only idle_timeout inside auto_pause, so enabled is never sent.
+func expandMicroVMUpdateRequest(d *schema.ResourceData) *godo.MicroVMUpdateRequest {
+	req := &godo.MicroVMUpdateRequest{}
+	changed := false
+	if d.HasChange("name") {
+		req.Name = d.Get("name").(string)
+		changed = true
+	}
+	if d.HasChange("tags") {
+		tags := tag.ExpandTags(d.Get("tags").(*schema.Set).List())
+		if tags == nil {
+			tags = []string{}
+		}
+		req.Tags = &tags
+		changed = true
+	}
+	if d.HasChange("auto_pause.0.idle_timeout") {
+		if v, ok := d.Get("auto_pause.0.idle_timeout").(string); ok && v != "" {
+			req.AutoPause = &godo.AutoPauseConfig{IdleTimeout: v}
+			changed = true
+		}
+	}
+	if !changed {
+		return nil
+	}
+	return req
 }
 
 // flattenAutoPause converts a godo AutoPauseConfig back into the list-of-map
