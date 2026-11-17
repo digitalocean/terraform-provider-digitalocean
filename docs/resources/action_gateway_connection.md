@@ -52,10 +52,11 @@ through it. Sharing cannot be undone.
 
 ```hcl
 resource "digitalocean_action_gateway_provider_credential" "linear" {
-  tool_provider = "linear"
-  kind          = "api_key"
-  display_name  = "Production key"
-  api_key       = var.linear_api_key
+  tool_provider    = "linear"
+  kind             = "api_key"
+  display_name     = "Production key"
+  api_key          = var.linear_api_key
+  reusable_by_team = true
 }
 
 resource "digitalocean_action_gateway_connection" "linear" {
