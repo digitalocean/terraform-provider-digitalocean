@@ -6,7 +6,7 @@ toolchain go1.23.1
 
 require (
 	github.com/aws/aws-sdk-go v1.42.18
-	github.com/digitalocean/godo v1.233.0
+	github.com/digitalocean/godo v1.238.0
 	github.com/hashicorp/awspolicyequivalence v1.5.0
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/go-uuid v1.0.3
@@ -74,4 +74,4 @@ require (
 
 replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
 
-replace github.com/digitalocean/godo => github.com/pyadagiri-do/godo v1.173.1-0.20261103094040-01c27a106f84
+replace github.com/digitalocean/godo => github.com/pyadagiri-do/godo v1.173.1-0.20261117104144-86f0c8757af7
