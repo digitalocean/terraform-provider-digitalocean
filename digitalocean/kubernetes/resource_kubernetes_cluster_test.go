@@ -529,6 +529,13 @@ func TestAccDigitalOceanKubernetesCluster_SSO(t *testing.T) {
 		}
 	`
 
+	ssoEnabledTrueRequiredTrue := `
+		sso {
+			enabled  = true
+			required = true
+		}
+	`
+
 	resource.ParallelTest(t, resource.TestCase{
 		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
 		ProviderFactories: acceptance.TestAccProviderFactories,
@@ -569,40 +576,6 @@ func TestAccDigitalOceanKubernetesCluster_SSO(t *testing.T) {
 		},
 	})
 }
-
-func TestAccDigitalOceanKubernetesCluster_SSORequired(t *testing.T) {
-	rName := acceptance.RandomTestName()
-	var k8s godo.KubernetesCluster
-
-	resource.ParallelTest(t, resource.TestCase{
-		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
-		ProviderFactories: acceptance.TestAccProviderFactories,
-		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
-		Steps: []resource.TestStep{
-			{
-				Config: testAccDigitalOceanKubernetesConfigSSO(testClusterVersionLatest, rName, ssoEnabledTrueRequiredTrue),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "sso.0.required", "true"),
-					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "kube_config.#", "0"),
-				),
-			},
-			{
-				ResourceName:            "digitalocean_kubernetes_cluster.foobar",
-				ImportState:             true,
-				ImportStateVerify:       true,
-				ImportStateVerifyIgnore: clusterStateIgnore,
-			},
-		},
-	})
-}
-
-const ssoEnabledTrueRequiredTrue = `
-		sso {
-			enabled  = true
-			required = true
-		}
-	`
 
 func TestAccDigitalOceanKubernetesCluster_UpdatePoolDetails(t *testing.T) {
 	rName := acceptance.RandomTestName()
