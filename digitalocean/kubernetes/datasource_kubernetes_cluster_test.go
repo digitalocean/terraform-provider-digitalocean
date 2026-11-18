@@ -103,7 +103,9 @@ resource "digitalocean_kubernetes_cluster" "foo" {
   }
 
   sso {
-    enabled = true
+    enabled    = true
+    issuer_url = "https://accounts.google.com"
+    client_id  = "doks-acc-test"
   }
 
   routing_agent {
