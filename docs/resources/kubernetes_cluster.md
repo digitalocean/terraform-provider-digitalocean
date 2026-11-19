@@ -227,7 +227,7 @@ The following arguments are supported:
   - `expanders` - (Optional) A list of cluster autoscaler expander strategies to apply in order when selecting which node pool to scale up. Valid values are `random`, `priority`, and `least-waste`. The autoscaler uses each expander from the list to narrow the selection until a single node pool remains. If multiple node pools remain after all expanders are applied, one is chosen at random. When using the `priority` expander, configure priorities in the `cluster-autoscaler-priority-expander` ConfigMap in the `kube-system` namespace (see [Configuring Priority Expander](https://docs.digitalocean.com/products/kubernetes/how-to/autoscale/#configuring-priority-expander)).
 * `sso` - (Optional) Block containing Single Sign-On (SSO) configuration for the cluster using OpenID Connect (OIDC).
   - `enabled` - (Required) Boolean flag indicating whether SSO is enabled as an authentication method for the cluster.
-  - `required` - (Optional) Boolean flag indicating whether SSO is required as the only authentication method for the cluster. Default: `false`
+  - `required` - (Optional) Boolean flag indicating whether SSO is required as the only authentication method for the cluster. When `true`, `kube_config` is empty because token credentials cannot be issued for the cluster. Default: `false`
   - `issuer_url` - (Optional) The OIDC issuer URL for the cluster SSO configuration.
   - `client_id` - (Optional) The OIDC client ID for the cluster SSO configuration.
 
@@ -246,7 +246,7 @@ In addition to the arguments listed above, the following additional attributes a
 * `auto_upgrade` - A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `isolated_workers` - A boolean value indicating whether the cluster has isolated worker nodes enabled.
 * `gpu_operator_ready` - A boolean value indicating whether GPU nodes in the cluster are launched with images without GPU drivers, allowing GPU operators to manage drivers.
-* `kube_config.0` - A representation of the Kubernetes cluster's kubeconfig with the following attributes:
+* `kube_config.0` - A representation of the Kubernetes cluster's kubeconfig with the following attributes. Empty when `sso.required` is `true`:
   - `raw_config` - The full contents of the Kubernetes cluster's kubeconfig file.
   - `host` - The URL of the API server on the Kubernetes master node.
   - `cluster_ca_certificate` - The base64 encoded public certificate for the cluster's certificate authority.

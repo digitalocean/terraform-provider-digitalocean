@@ -524,8 +524,19 @@ func TestAccDigitalOceanKubernetesCluster_SSO(t *testing.T) {
 
 	ssoEnabledTrueRequiredFalse := `
 		sso {
-			enabled  = true
-			required = false
+			enabled    = true
+			required   = false
+			issuer_url = "https://accounts.google.com"
+			client_id  = "doks-acc-test"
+		}
+	`
+
+	ssoEnabledTrueRequiredTrue := `
+		sso {
+			enabled    = true
+			required   = true
+			issuer_url = "https://accounts.google.com"
+			client_id  = "doks-acc-test"
 		}
 	`
 
@@ -555,6 +566,15 @@ func TestAccDigitalOceanKubernetesCluster_SSO(t *testing.T) {
 					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "sso.0.enabled", "true"),
 					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "sso.0.required", "false"),
+				),
+			},
+			{
+				Config: testAccDigitalOceanKubernetesConfigSSO(testClusterVersionLatest, rName, ssoEnabledTrueRequiredTrue),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "sso.0.enabled", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "sso.0.required", "true"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "kube_config.#", "0"),
 				),
 			},
 		},
