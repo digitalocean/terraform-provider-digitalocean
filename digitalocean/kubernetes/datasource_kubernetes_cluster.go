@@ -42,6 +42,13 @@ func DataSourceDigitalOceanKubernetesCluster() *schema.Resource {
 				ValidateFunc: validation.IntAtLeast(0),
 			},
 
+			"skip_credentials": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Skip fetching Kubernetes credentials and leave kube_config empty.",
+			},
+
 			controlPlaneFirewallField: {
 				Type:     schema.TypeList,
 				Computed: true,
