@@ -182,6 +182,8 @@ The following arguments are supported:
 * `ha` - (Optional) Enable/disable the high availability control plane for a cluster. Once enabled for a cluster, high availability cannot be disabled. Default: true (for 1.36.0 and later)
 * `isolated_workers` - (Optional) Enable/disable isolated worker nodes for the cluster. When enabled, each worker node runs on dedicated hardware. This can only be set at creation time. The cluster's VPC must have a NAT gateway attached. Default: false
 * `gpu_operator_ready` - (Optional) Enable/disable launching GPU nodes in the cluster with images without GPU drivers, allowing GPU operators to manage drivers. Mutually exclusive with other GPU-related cluster options, such as `nvidia_gpu_dra_driver` and `amd_gpu_dra_driver`. Default: false
+* `insights` - (Optional) Block containing the Insights telemetry the cluster opts in to. This can only be set when the cluster is created and is not returned by the API, so changes made after creation (or after importing the cluster) are ignored.
+  - `logs` - (Optional) Boolean flag indicating whether the cluster's logs are sent to Insights. Setting this to `false` records an explicit opt-out. If not specified, the API does not record an opt-in and defaults to `false`.
 * `registry_integration` - (optional) Enables or disables the DigitalOcean container registry integration for the cluster. This requires that a container registry has first been created for the account. Default: false
 * `node_pool` - (Required) A block representing the cluster's default node pool. Additional node pools may be added to the cluster using the `digitalocean_kubernetes_node_pool` resource. The following arguments may be specified:
   - `name` - (Required) A name for the node pool.

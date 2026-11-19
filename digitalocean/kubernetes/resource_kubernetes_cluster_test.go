@@ -1328,6 +1328,62 @@ func TestAccDigitalOceanKubernetesCluster_GPUOperatorReady(t *testing.T) {
 	})
 }
 
+func TestAccDigitalOceanKubernetesCluster_InsightsOptIn(t *testing.T) {
+	rName := acceptance.RandomTestName()
+	var k8s godo.KubernetesCluster
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanKubernetesClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccDigitalOceanKubernetesConfigInsightsOptIn(testClusterVersionLatest, rName, true),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccCheckDigitalOceanKubernetesClusterExists("digitalocean_kubernetes_cluster.foobar", &k8s),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "insights.#", "1"),
+					resource.TestCheckResourceAttr("digitalocean_kubernetes_cluster.foobar", "insights.0.logs", "true"),
+				),
+			},
+			{
+				// insights is create-only: changing it after creation must not plan a diff
+				// or replace the cluster.
+				Config:   testAccDigitalOceanKubernetesConfigInsightsOptIn(testClusterVersionLatest, rName, false),
+				PlanOnly: true,
+			},
+			{
+				// insights is never returned by the API, so it can not be verified after import.
+				ResourceName:            "digitalocean_kubernetes_cluster.foobar",
+				ImportState:             true,
+				ImportStateVerify:       true,
+				ImportStateVerifyIgnore: append([]string{"insights"}, clusterStateIgnore...),
+			},
+		},
+	})
+}
+
+func testAccDigitalOceanKubernetesConfigInsightsOptIn(testClusterVersion string, rName string, logs bool) string {
+	return fmt.Sprintf(`%s
+
+resource "digitalocean_kubernetes_cluster" "foobar" {
+  name    = "%s"
+  region  = "nyc1"
+  version = data.digitalocean_kubernetes_versions.test.latest_version
+  ha      = false
+
+  insights {
+    logs = %t
+  }
+
+  node_pool {
+    name       = "default"
+    size       = "s-1vcpu-2gb"
+    node_count = 1
+  }
+}
+`, testClusterVersion, rName, logs)
+}
+
 func testAccDigitalOceanKubernetesConfigBasic(testClusterVersion string, rName string) string {
 	return fmt.Sprintf(`%s
 
@@ -2006,6 +2062,27 @@ func Test_expandHAFromConfig(t *testing.T) {
 			}
 			if got != nil && tt.want != nil && *got != *tt.want {
 				t.Errorf("expandHAFromConfig() = %v, want %v", *got, *tt.want)
+			}
+		})
+	}
+}
+
+func Test_expandInsightsFromConfig(t *testing.T) {
+	tests := []struct {
+		name  string
+		value interface{}
+		ok    bool
+		want  *godo.KubernetesInsightsTelemetryOptIn
+	}{
+		{"insights logs not provided", nil, false, nil},
+		{"insights logs true", true, true, &godo.KubernetesInsightsTelemetryOptIn{Logs: ptrTo(true)}},
+		{"insights logs false", false, true, &godo.KubernetesInsightsTelemetryOptIn{Logs: ptrTo(false)}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := kubernetes.ExpandInsightsFromConfig(tt.value, tt.ok)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ExpandInsightsFromConfig() = %+v, want %+v", got, tt.want)
 			}
 		})
 	}

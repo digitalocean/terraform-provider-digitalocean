@@ -31,6 +31,11 @@ func init() {
 		Name: "digitalocean_action_gateway_endpoint",
 		F:    sweepActionGatewayEndpoints,
 	})
+
+	resource.AddTestSweepers("digitalocean_action_gateway_provider_credential", &resource.Sweeper{
+		Name: "digitalocean_action_gateway_provider_credential",
+		F:    sweepActionGatewayProviderCredentials,
+	})
 }
 
 func sweepActionGatewayConnections(region string) error {
@@ -155,6 +160,31 @@ func sweepActionGatewayMCPServers(region string) error {
 		}
 		log.Printf("[DEBUG] Deleting Action Gateway MCP server %s", s.ServerRef)
 		if _, _, err := client.ActionGateway.MCPServers.Delete(context.Background(), s.ServerRef); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// sweepActionGatewayProviderCredentials deletes the acceptance suite's
+// provider credentials, and with each the connections that use it.
+func sweepActionGatewayProviderCredentials(region string) error {
+	meta, err := sweep.SharedConfigForRegion(region)
+	if err != nil {
+		return err
+	}
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	listed, _, err := client.ActionGateway.ProviderCredentials.List(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+	for _, cred := range listed.Credentials {
+		if !strings.HasPrefix(cred.DisplayName, sweep.TestNamePrefix) {
+			continue
+		}
+		log.Printf("[DEBUG] Deleting Action Gateway provider credential %s", cred.ID)
+		if _, _, err := client.ActionGateway.ProviderCredentials.Delete(context.Background(), cred.ID); err != nil {
 			return err
 		}
 	}
