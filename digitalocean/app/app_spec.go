@@ -915,8 +915,18 @@ func appSpecJobSchema() *schema.Resource {
 				"PRE_DEPLOY",
 				"POST_DEPLOY",
 				"FAILED_DEPLOY",
+				"SCHEDULED",
 			}, false),
 			Description: "The type of job and when it will be run during the deployment process.",
+		},
+		"schedule": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "The schedule for a job with a kind of `SCHEDULED`.",
+			Elem: &schema.Resource{
+				Schema: appSpecJobScheduleSchema(),
+			},
 		},
 		"termination": {
 			Type:     schema.TypeList,
@@ -932,6 +942,21 @@ func appSpecJobSchema() *schema.Resource {
 
 	return &schema.Resource{
 		Schema: jobSchema,
+	}
+}
+
+func appSpecJobScheduleSchema() map[string]*schema.Schema {
+	return map[string]*schema.Schema{
+		"cron": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "The cron expression that defines when the scheduled job runs.",
+		},
+		"time_zone": {
+			Type:        schema.TypeString,
+			Optional:    true,
+			Description: "The time zone in which the cron expression is evaluated, as a valid IANA time zone name (e.g. `America/New_York`). Defaults to UTC.",
+		},
 	}
 }
 
@@ -2502,6 +2527,11 @@ func expandAppSpecJobs(config []interface{}) []*godo.AppJobSpec {
 			s.Termination = expandAppTermination[godo.AppJobSpecTermination](termination)
 		}
 
+		schedule := job["schedule"].([]interface{})
+		if len(schedule) > 0 {
+			s.Schedule = expandAppSpecJobSchedule(schedule)
+		}
+
 		appJobs = append(appJobs, s)
 	}
 
@@ -2532,11 +2562,38 @@ func flattenAppSpecJobs(jobs []*godo.AppJobSpec) []map[string]interface{} {
 		r["alert"] = flattenAppAlerts(j.Alerts)
 		r["log_destination"] = flattenAppLogDestinations(j.LogDestinations)
 		r["termination"] = flattenAppTermination(j.Termination)
+		r["schedule"] = flattenAppSpecJobSchedule(j.Schedule)
 
 		result[i] = r
 	}
 
 	return result
+}
+
+func expandAppSpecJobSchedule(config []interface{}) *godo.AppJobSpecSchedule {
+	if len(config) == 0 || config[0] == nil {
+		return nil
+	}
+
+	schedule := config[0].(map[string]interface{})
+
+	return &godo.AppJobSpecSchedule{
+		Cron:     schedule["cron"].(string),
+		TimeZone: schedule["time_zone"].(string),
+	}
+}
+
+func flattenAppSpecJobSchedule(schedule *godo.AppJobSpecSchedule) []map[string]interface{} {
+	if schedule == nil {
+		return nil
+	}
+
+	return []map[string]interface{}{
+		{
+			"cron":      schedule.Cron,
+			"time_zone": schedule.TimeZone,
+		},
+	}
 }
 
 func expandAppSpecFunctions(config []interface{}) []*godo.AppFunctionsSpec {
