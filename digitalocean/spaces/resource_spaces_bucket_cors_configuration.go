@@ -117,6 +117,12 @@ func resourceDigitalOceanBucketCorsConfigurationRead(ctx context.Context, d *sch
 		Bucket: aws.String(d.Id()),
 	})
 
+	if !d.IsNewResource() && (IsAWSErr(err, s3.ErrCodeNoSuchBucket, "") || IsAWSErr(err, "NoSuchCORSConfiguration", "")) {
+		log.Printf("[WARN] Spaces bucket CORS configuration (%s) not found, removing from state", d.Id())
+		d.SetId("")
+		return nil
+	}
+
 	if err != nil {
 		return diag.Errorf("Error occurred while fetching Spaces bucket CORS configuration: %s", err)
 	}
