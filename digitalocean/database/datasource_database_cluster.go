@@ -261,7 +261,7 @@ func dataSourceDigitalOceanDatabaseClusterRead(ctx context.Context, d *schema.Re
 				}
 			}
 
-			err := setDatabaseConnectionInfo(&db, d)
+			err := setDatabaseConnectionInfo(&db, d, true)
 			if err != nil {
 				return diag.Errorf("Error setting connection info for database cluster: %s", err)
 			}
