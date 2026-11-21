@@ -158,7 +158,7 @@ func resourceDigitalOceanUptimeCheckRead(ctx context.Context, d *schema.Resource
 	if err != nil {
 		// If the check is somehow already destroyed, mark as
 		// successfully gone
-		if resp != nil && resp.StatusCode == 404 {
+		if isUptimeResourceGone(resp, err) {
 			d.SetId("")
 			return nil
 		}
