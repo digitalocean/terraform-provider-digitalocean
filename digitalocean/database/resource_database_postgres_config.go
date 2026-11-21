@@ -747,7 +747,7 @@ func expandPgBouncer(config []interface{}) *godo.PostgreSQLBouncerConfig {
 
 	pgBouncerConfig := &godo.PostgreSQLBouncerConfig{
 		ServerResetQueryAlways:  godo.PtrTo(configMap["server_reset_query_always"].(bool)),
-		IgnoreStartupParameters: godo.PtrTo(configMap["ignore_startup_parameters"].([]string)),
+		IgnoreStartupParameters: godo.PtrTo(expandStringSet(configMap["ignore_startup_parameters"])),
 		MinPoolSize:             godo.PtrTo(configMap["min_pool_size"].(int)),
 		ServerLifetime:          godo.PtrTo(configMap["server_lifetime"].(int)),
 		ServerIdleTimeout:       godo.PtrTo(configMap["server_idle_timeout"].(int)),
@@ -758,6 +758,32 @@ func expandPgBouncer(config []interface{}) *godo.PostgreSQLBouncerConfig {
 	}
 
 	return pgBouncerConfig
+}
+
+func expandStringSet(raw interface{}) []string {
+	if raw == nil {
+		return []string{}
+	}
+
+	var values []interface{}
+	switch v := raw.(type) {
+	case *schema.Set:
+		if v != nil {
+			values = v.List()
+		}
+	case []interface{}:
+		values = v
+	default:
+		return []string{}
+	}
+
+	expanded := make([]string, 0, len(values))
+	for _, item := range values {
+		if s, ok := item.(string); ok {
+			expanded = append(expanded, s)
+		}
+	}
+	return expanded
 }
 
 func expandTimeScaleDB(config []interface{}) *godo.PostgreSQLTimeScaleDBConfig {
@@ -775,7 +801,9 @@ func flattenPGBouncerOpts(opts godo.PostgreSQLBouncerConfig) []map[string]interf
 	item := make(map[string]interface{})
 
 	item["server_reset_query_always"] = opts.ServerResetQueryAlways
-	item["ignore_startup_parameters"] = opts.IgnoreStartupParameters
+	if opts.IgnoreStartupParameters != nil {
+		item["ignore_startup_parameters"] = flattenStringSet(*opts.IgnoreStartupParameters)
+	}
 	item["min_pool_size"] = opts.MinPoolSize
 	item["server_lifetime"] = opts.ServerLifetime
 	item["server_idle_timeout"] = opts.ServerIdleTimeout
@@ -798,4 +826,12 @@ func flattenTimeScaleDBOpts(opts godo.PostgreSQLTimeScaleDBConfig) []map[string]
 	result = append(result, item)
 
 	return result
+}
+
+func flattenStringSet(values []string) *schema.Set {
+	flatSet := schema.NewSet(schema.HashString, []interface{}{})
+	for _, v := range values {
+		flatSet.Add(v)
+	}
+	return flatSet
 }
