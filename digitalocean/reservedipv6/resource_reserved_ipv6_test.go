@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/acceptance"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/reservedipv6"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/retry"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
@@ -38,6 +41,32 @@ func TestAccDigitalOceanReservedIPV6_RegionSlug(t *testing.T) {
 	})
 }
 
+func waitForReservedIPV6Deletion(ctx context.Context, client *godo.Client, ipAddress string) error {
+	stateConf := &retry.StateChangeConf{
+		Pending: []string{"exists"},
+		Target:  []string{"deleted"},
+		Refresh: func() (interface{}, string, error) {
+			reservedIP, resp, err := client.ReservedIPV6s.Get(ctx, ipAddress)
+
+			if reservedipv6.IsReservedIPV6NotFound(resp, err) {
+				return struct{}{}, "deleted", nil
+			}
+
+			if err != nil {
+				return nil, "", err
+			}
+
+			return reservedIP, "exists", nil
+		},
+		Timeout:    30 * time.Second,
+		Delay:      1 * time.Second,
+		MinTimeout: 1 * time.Second,
+	}
+
+	_, err := stateConf.WaitForStateContext(ctx)
+	return err
+}
+
 func testAccCheckDigitalOceanReservedIPV6Destroy(s *terraform.State) error {
 	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
@@ -46,11 +75,8 @@ func testAccCheckDigitalOceanReservedIPV6Destroy(s *terraform.State) error {
 			continue
 		}
 
-		// Try to find the key
-		_, _, err := client.ReservedIPV6s.Get(context.Background(), rs.Primary.ID)
-
-		if err == nil {
-			return fmt.Errorf("Reserved IPv6 still exists")
+		if err := waitForReservedIPV6Deletion(context.Background(), client, rs.Primary.ID); err != nil {
+			return fmt.Errorf("Reserved IPv6 (%s) still exists: %w", rs.Primary.ID, err)
 		}
 	}
 
