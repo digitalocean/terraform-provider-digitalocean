@@ -8,6 +8,7 @@ import (
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
 
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -21,6 +22,25 @@ func TestProvider(t *testing.T) {
 
 func TestProvider_impl(t *testing.T) {
 	var _ *schema.Provider = Provider()
+}
+
+func TestProviderServer_schemasMatch(t *testing.T) {
+	ctx := context.Background()
+
+	providerServer, err := ProviderServer(ctx)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	resp, err := providerServer().GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	for _, d := range resp.Diagnostics {
+		if d.Severity == tfprotov5.DiagnosticSeverityError {
+			t.Errorf("%s: %s", d.Summary, d.Detail)
+		}
+	}
 }
 
 func TestURLOverride(t *testing.T) {
