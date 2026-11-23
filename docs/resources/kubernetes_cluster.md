@@ -246,13 +246,13 @@ In addition to the arguments listed above, the following additional attributes a
 * `auto_upgrade` - A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `isolated_workers` - A boolean value indicating whether the cluster has isolated worker nodes enabled.
 * `gpu_operator_ready` - A boolean value indicating whether GPU nodes in the cluster are launched with images without GPU drivers, allowing GPU operators to manage drivers.
-* `kube_config.0` - A representation of the Kubernetes cluster's kubeconfig with the following attributes. Empty when `sso.required` is `true`:
+* `kube_config.0` - A representation of the Kubernetes cluster's kubeconfig with the following attributes. Empty when `sso.required` is `true`. These values are stored in the Terraform state; use the [`digitalocean_kubernetes_cluster_credentials`](/providers/digitalocean/digitalocean/latest/docs/ephemeral-resources/kubernetes_cluster_credentials) ephemeral resource to avoid that:
   - `raw_config` - The full contents of the Kubernetes cluster's kubeconfig file.
   - `host` - The URL of the API server on the Kubernetes master node.
   - `cluster_ca_certificate` - The base64 encoded public certificate for the cluster's certificate authority.
   - `token` - The DigitalOcean API access token used by clients to access the cluster.
-  - `client_key` - The base64 encoded private key used by clients to access the cluster. Only available if token authentication is not supported on your cluster.
-  - `client_certificate` - The base64 encoded public certificate used by clients to access the cluster. Only available if token authentication is not supported on your cluster.
+  - `client_key` - The PEM-encoded private key used by clients to access the cluster. Only available if token authentication is not supported on your cluster.
+  - `client_certificate` - The PEM-encoded public certificate used by clients to access the cluster. Only available if token authentication is not supported on your cluster.
   - `expires_at` - The date and time when the credentials will expire and need to be regenerated.
 * `node_pool` - In addition to the arguments provided, these additional attributes about the cluster's default node pool are exported:
   - `id` -  A unique ID that can be used to identify and reference the node pool.
