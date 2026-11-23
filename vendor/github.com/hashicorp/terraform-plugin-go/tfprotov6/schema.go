@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package tfprotov6
 
 import "github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -250,6 +253,12 @@ type SchemaAttribute struct {
 	// experiences. Providers should set it when deprecating attributes in
 	// preparation for these tools.
 	Deprecated bool
+
+	// WriteOnly, when set to true, indicates that the attribute value will
+	// be provided via configuration and must be omitted from plan and state response objects. WriteOnly
+	// must be combined with Optional or Required, and is only valid for managed
+	// resource schemas.
+	WriteOnly bool
 }
 
 // ValueType returns the tftypes.Type for a SchemaAttribute.
