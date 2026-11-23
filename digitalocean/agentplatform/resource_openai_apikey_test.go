@@ -70,6 +70,39 @@ resource "digitalocean_agent_platform_openai_api_key" "test" {
 	})
 }
 
+func TestAccDigitalOceanOpenAIApiKey_WriteOnly(t *testing.T) {
+	keyName := acceptance.RandomTestName() + "-openai-key"
+	resourceConfig := `
+resource "digitalocean_agent_platform_openai_api_key" "test" {
+  api_key_wo         = "sk-proj-testkey"
+  api_key_wo_version = %d
+  name               = "%s"
+}
+`
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(resourceConfig, 1, keyName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("digitalocean_agent_platform_openai_api_key.test", "name", keyName),
+					resource.TestCheckResourceAttr("digitalocean_agent_platform_openai_api_key.test", "api_key_wo_version", "1"),
+					resource.TestCheckNoResourceAttr("digitalocean_agent_platform_openai_api_key.test", "api_key_wo"),
+				),
+			},
+			{
+				Config: fmt.Sprintf(resourceConfig, 2, keyName),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr("digitalocean_agent_platform_openai_api_key.test", "api_key_wo_version", "2"),
+					resource.TestCheckNoResourceAttr("digitalocean_agent_platform_openai_api_key.test", "api_key_wo"),
+				),
+			},
+		},
+	})
+}
+
 func TestAccDigitalOceanOpenAIApiKey_Delete(t *testing.T) {
 	keyName := acceptance.RandomTestName() + "-openai-key"
 	resourceConfig := fmt.Sprintf(`

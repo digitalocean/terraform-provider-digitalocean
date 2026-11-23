@@ -370,8 +370,20 @@ output "openai_api_key_info" {
 
 The following arguments are supported:
 
-- **api_key** (Required) - The OpenAI API key string.
+- **api_key** (Optional) - The OpenAI API key string. This value is stored in the Terraform state. Exactly one of `api_key` or `api_key_wo` must be set.
+- **api_key_wo** (Optional) - The OpenAI API key string as a [write-only argument](https://developer.hashicorp.com/terraform/language/manage-sensitive-data/write-only). It is never stored in the Terraform state or plan. Requires Terraform 1.11 or later.
+- **api_key_wo_version** (Optional) - An integer version of `api_key_wo`. Terraform cannot detect changes to write-only values, so change this value to update the key.
 - **name** (Required) - The name assigned to the API key.
+
+To keep the key out of state, use `api_key_wo` and increment `api_key_wo_version` whenever the key changes:
+
+```hcl
+resource "digitalocean_agent_platform_openai_api_key" "example" {
+  api_key_wo         = var.openai_api_key
+  api_key_wo_version = 1
+  name               = "Production Key"
+}
+```
 
 ## Attributes Reference
 
@@ -422,7 +434,7 @@ output "agents_by_openai_key" {
 
 ## Update Behavior
 
-When the **name** attribute is changed, the provider invokes the update API endpoint to adjust the OpenAI API key's configuration.
+When the **name**, **api_key**, or **api_key_wo_version** attribute is changed, the provider invokes the update API endpoint to adjust the OpenAI API key's configuration.
 
 ## Import
 
