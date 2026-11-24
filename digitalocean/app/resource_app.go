@@ -258,6 +258,7 @@ func resourceDigitalOceanAppUpdate(ctx context.Context, d *schema.ResourceData, 
 
 		app, _, err := client.Apps.Update(context.Background(), d.Id(), appUpdateRequest)
 		if err != nil {
+			d.Partial(true)
 			return diag.Errorf("Error updating app (%s): %s", d.Id(), err)
 		}
 

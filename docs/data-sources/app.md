@@ -83,6 +83,7 @@ A `service` can contain:
 * `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
+  - `encrypted_value` - The encrypted value App Platform stores for a `SECRET` environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `route` - An HTTP paths that should be routed to this component.
@@ -150,6 +151,7 @@ A `static_site` can contain:
 * `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
+  - `encrypted_value` - The encrypted value App Platform stores for a `SECRET` environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `route` - An HTTP paths that should be routed to this component.
@@ -192,6 +194,7 @@ A `worker` can contain:
 * `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
+  - `encrypted_value` - The encrypted value App Platform stores for a `SECRET` environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `log_destination` - Describes a log forwarding destination.
@@ -260,6 +263,7 @@ A `job` can contain:
 * `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
+  - `encrypted_value` - The encrypted value App Platform stores for a `SECRET` environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `log_destination` - Describes a log forwarding destination.
@@ -303,6 +307,7 @@ A `function` component can contain:
 * `env` - Describes an environment variable made available to an app competent.
   - `key` - The name of the environment variable.
   - `value` - The value of the environment variable.
+  - `encrypted_value` - The encrypted value App Platform stores for a `SECRET` environment variable.
   - `scope` - The visibility scope of the environment variable. One of `RUN_TIME`, `BUILD_TIME`, or `RUN_AND_BUILD_TIME` (default).
   - `type` - The type of the environment variable, `GENERAL` or `SECRET`.
 * `route` - An HTTP paths that should be routed to this component.
