@@ -36,6 +36,7 @@ func ResourceDigitalOceanOpenAIApiKey() *schema.Resource {
 				Sensitive:    true,
 				WriteOnly:    true,
 				ExactlyOneOf: []string{"api_key", "api_key_wo"},
+				RequiredWith: []string{"api_key_wo_version"},
 				Description:  "The OpenAI API key as a write-only argument that is never stored in state. Requires Terraform 1.11 or later.",
 			},
 			"api_key_wo_version": {

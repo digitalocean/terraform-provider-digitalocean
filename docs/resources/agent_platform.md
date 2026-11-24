@@ -371,8 +371,8 @@ output "openai_api_key_info" {
 The following arguments are supported:
 
 - **api_key** (Optional) - The OpenAI API key string. This value is stored in the Terraform state. Exactly one of `api_key` or `api_key_wo` must be set.
-- **api_key_wo** (Optional) - The OpenAI API key string as a [write-only argument](https://developer.hashicorp.com/terraform/language/manage-sensitive-data/write-only). It is never stored in the Terraform state or plan. Requires Terraform 1.11 or later.
-- **api_key_wo_version** (Optional) - An integer version of `api_key_wo`. Terraform cannot detect changes to write-only values, so change this value to update the key.
+- **api_key_wo** (Optional) - The OpenAI API key string as a [write-only argument](https://developer.hashicorp.com/terraform/language/manage-sensitive-data/write-only). It is never stored in the Terraform state. It is still recorded in plan files as part of the configuration snapshot, so treat plan files as sensitive. Requires Terraform 1.11 or later and must be used with `api_key_wo_version`.
+- **api_key_wo_version** (Required with `api_key_wo`) - An integer version of `api_key_wo`. Terraform cannot detect changes to write-only values, so change this value to update the key.
 - **name** (Required) - The name assigned to the API key.
 
 To keep the key out of state, use `api_key_wo` and increment `api_key_wo_version` whenever the key changes:
