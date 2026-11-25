@@ -96,9 +96,10 @@ github.com/cloudflare/circl/sign/ed448
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/digitalocean/godo v1.243.0
+# github.com/digitalocean/godo v1.246.0
 ## explicit; go 1.23.0
 github.com/digitalocean/godo
+github.com/digitalocean/godo/internal/agents
 github.com/digitalocean/godo/metrics
 # github.com/fatih/color v1.16.0
 ## explicit; go 1.17
