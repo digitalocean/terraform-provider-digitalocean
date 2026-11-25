@@ -246,7 +246,7 @@ In addition to the arguments listed above, the following additional attributes a
 * `auto_upgrade` - A boolean value indicating whether the cluster will be automatically upgraded to new patch releases during its maintenance window.
 * `isolated_workers` - A boolean value indicating whether the cluster has isolated worker nodes enabled.
 * `gpu_operator_ready` - A boolean value indicating whether GPU nodes in the cluster are launched with images without GPU drivers, allowing GPU operators to manage drivers.
-* `kube_config.0` - A representation of the Kubernetes cluster's kubeconfig with the following attributes. Empty when `sso.required` is `true`. These values are stored in the Terraform state; use the [`digitalocean_kubernetes_cluster_credentials`](/providers/digitalocean/digitalocean/latest/docs/ephemeral-resources/kubernetes_cluster_credentials) ephemeral resource to avoid that:
+* `kube_config.0` - A representation of the Kubernetes cluster's kubeconfig with the following attributes. Empty when `sso.required` is `true`. These values are stored in the Terraform state. The [`digitalocean_kubernetes_cluster_credentials`](/providers/digitalocean/digitalocean/latest/docs/ephemeral-resources/kubernetes_cluster_credentials) ephemeral resource can be used to consume credentials without storing them, but this resource still stores `kube_config` in state:
   - `raw_config` - The full contents of the Kubernetes cluster's kubeconfig file.
   - `host` - The URL of the API server on the Kubernetes master node.
   - `cluster_ca_certificate` - The base64 encoded public certificate for the cluster's certificate authority.
