@@ -9,6 +9,7 @@ import (
 
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -20,6 +21,18 @@ var (
 	TestAccProvider          *schema.Provider
 	TestAccProviders         map[string]*schema.Provider
 	TestAccProviderFactories map[string]func() (*schema.Provider, error)
+
+	// TestAccProtoV5ProviderFactories serves the muxed provider, which is
+	// required to test framework features such as ephemeral resources.
+	TestAccProtoV5ProviderFactories = map[string]func() (tfprotov5.ProviderServer, error){
+		"digitalocean": func() (tfprotov5.ProviderServer, error) {
+			providerServer, err := digitalocean.ProviderServer(context.Background())
+			if err != nil {
+				return nil, err
+			}
+			return providerServer(), nil
+		},
+	}
 )
 
 func init() {
