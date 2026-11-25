@@ -2,6 +2,7 @@ package reservedipv6
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -70,16 +71,25 @@ func resourceDigitalOceanReservedIPV6Create(ctx context.Context, d *schema.Resou
 
 	d.SetId(reservedIP.IP)
 
+	if _, err := waitForReservedIPV6Availability(ctx, d, meta); err != nil {
+		return diag.Errorf(
+			"Error waiting for reserved IPv6 (%s) to become available: %s",
+			d.Id(),
+			err,
+		)
+	}
+
 	return resourceDigitalOceanReservedIPV6Read(ctx, d, meta)
 }
 
 func resourceDigitalOceanReservedIPV6Read(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	client := meta.(*config.CombinedConfig).GodoClient()
-
 	log.Printf("[INFO] Reading the details of the reserved IPv6 %s", d.Id())
-	reservedIP, resp, err := client.ReservedIPV6s.Get(context.Background(), d.Id())
+
+	reservedIP, err := waitForReservedIPV6Availability(ctx, d, meta)
 	if err != nil {
-		if resp != nil && resp.StatusCode == 404 {
+		var notFoundErr *retry.NotFoundError
+		var timeoutErr *retry.TimeoutError
+		if errors.As(err, &notFoundErr) || (errors.As(err, &timeoutErr) && timeoutErr.LastState == "not-found") {
 			log.Printf("[WARN] Reserved IPv6 (%s) not found", d.Id())
 			d.SetId("")
 			return nil
