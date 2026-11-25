@@ -849,18 +849,20 @@ func setMetricsEndpoints(database *godo.Database, d *schema.ResourceData) error 
 // switches to using a read-only token. All database engines redact the password
 // in that case
 func buildDBConnectionURI(conn *godo.DatabaseConnection, d *schema.ResourceData) (string, error) {
-	if d.Get("engine") == kafkaDBEngineSlug {
+	return buildDBConnectionURIWithPassword(conn, d.Get("engine").(string), d.Get("password").(string))
+}
+
+func buildDBConnectionURIWithPassword(conn *godo.DatabaseConnection, engineSlug, password string) (string, error) {
+	if engineSlug == kafkaDBEngineSlug {
 		return net.JoinHostPort(conn.Host, strconv.Itoa(conn.Port)), nil
 	}
 
-	password := d.Get("password")
 	uri, err := url.Parse(conn.URI)
 	if err != nil {
 		return "", err
 	}
 
-	userInfo := url.UserPassword(conn.User, password.(string))
-	uri.User = userInfo
+	uri.User = url.UserPassword(conn.User, password)
 
 	return uri.String(), nil
 }

@@ -168,6 +168,8 @@ In addition to the above arguments, the following attributes are exported:
 * `password` - Password for the cluster's default user.
 * `metrics_endpoints` - A list of metrics endpoints for the database cluster, providing URLs to access Prometheus-compatible metrics.
 
+~> **Note:** The `uri`, `private_uri`, `password`, `ui_uri`, and `ui_password` attributes are stored in Terraform state. The [`digitalocean_database_cluster` ephemeral resource](/providers/digitalocean/digitalocean/latest/docs/ephemeral-resources/database_cluster) can read credentials without storing the values it returns, but this resource still stores its own copy of the cluster credentials.
+
 OpenSearch clusters will have the following additional attributes with connection
 details for their dashboard:
 

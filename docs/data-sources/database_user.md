@@ -41,3 +41,5 @@ The following attributes are exported:
 * `access_cert` - Access certificate for TLS client authentication. (Kafka only)
 * `access_key` - Access key for TLS client authentication. (Kafka only)
 * `mysql_auth_plugin` - The authentication method of the MySQL user. The value will be `mysql_native_password` or `caching_sha2_password`.
+
+~> **Note:** These values are stored in the Terraform state. To read credentials without storing them, use the [`digitalocean_database_user`](/providers/digitalocean/digitalocean/latest/docs/ephemeral-resources/database_user) ephemeral resource instead of this data source.

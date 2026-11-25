@@ -51,6 +51,8 @@ The following attributes are exported:
 * `project_id` - The ID of the project that the database cluster is assigned to.
 * `metrics_endpoints` - A list of metrics endpoints for the database cluster, providing URLs to access Prometheus-compatible metrics.
 
+~> **Note:** The `uri`, `private_uri`, `password`, `ui_uri`, and `ui_password` attributes are stored in Terraform state. The [`digitalocean_database_cluster` ephemeral resource](/providers/digitalocean/digitalocean/latest/docs/ephemeral-resources/database_cluster) can read credentials without storing the values it returns, but this data source still stores its own copy of the cluster credentials.
+
 `maintenance_window` supports the following:
 
 * `day` - The day of the week on which to apply maintenance updates.
