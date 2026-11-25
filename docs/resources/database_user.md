@@ -9,6 +9,8 @@ Provides a DigitalOcean database user resource. When creating a new database clu
 
 ~> **NOTE:** Any new users created will always have `normal` role, only the default user that comes with database cluster creation has `primary` role. Additional permissions must be managed manually.
 
+~> **NOTE:** This resource stores the generated database user `password` in the Terraform state. The [`digitalocean_database_user`](/providers/digitalocean/digitalocean/latest/docs/ephemeral-resources/database_user) ephemeral resource can read credentials without storing them, but creating a user with this resource still stores the generated password.
+
 ## Example Usage
 
 ### Create a new PostgreSQL database user

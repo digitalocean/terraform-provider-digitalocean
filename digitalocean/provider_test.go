@@ -43,6 +43,31 @@ func TestProviderServer_schemasMatch(t *testing.T) {
 	}
 }
 
+func TestProviderServer_databaseEphemeralResources(t *testing.T) {
+	ctx := context.Background()
+
+	providerServer, err := ProviderServer(ctx)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+
+	resp, err := providerServer().GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	for _, d := range resp.Diagnostics {
+		if d.Severity == tfprotov5.DiagnosticSeverityError {
+			t.Fatalf("%s: %s", d.Summary, d.Detail)
+		}
+	}
+
+	for _, name := range []string{"digitalocean_database_user", "digitalocean_database_cluster"} {
+		if _, ok := resp.EphemeralResourceSchemas[name]; !ok {
+			t.Fatalf("%s ephemeral resource is not registered", name)
+		}
+	}
+}
+
 func TestURLOverride(t *testing.T) {
 	customEndpoint := "https://mock-api.internal.example.com/"
 
