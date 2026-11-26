@@ -42,6 +42,8 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 						"digitalocean_database_cluster.foobar", "port"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "user"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "export_credentials", "true"),
 					resource.TestCheckResourceAttrSet(
 						"digitalocean_database_cluster.foobar", "password"),
 					resource.TestCheckResourceAttrSet(
@@ -62,6 +64,33 @@ func TestAccDigitalOceanDatabaseCluster_Basic(t *testing.T) {
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
 						"digitalocean_database_cluster.foobar", "uri"),
 					testAccCheckDigitalOceanDatabaseClusterURIPassword(
+						"digitalocean_database_cluster.foobar", "private_uri"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccDigitalOceanDatabaseCluster_DisableExportCredentials(t *testing.T) {
+	var database godo.Database
+	databaseName := acceptance.RandomTestName()
+
+	resource.ParallelTest(t, resource.TestCase{
+		PreCheck:          func() { acceptance.TestAccPreCheck(t) },
+		ProviderFactories: acceptance.TestAccProviderFactories,
+		CheckDestroy:      testAccCheckDigitalOceanDatabaseClusterDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: fmt.Sprintf(testAccCheckDigitalOceanDatabaseClusterConfigDisableExportCredentials, databaseName),
+				Check: resource.ComposeTestCheckFunc(
+					testAccCheckDigitalOceanDatabaseClusterExists("digitalocean_database_cluster.foobar", &database),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "export_credentials", "false"),
+					resource.TestCheckResourceAttr(
+						"digitalocean_database_cluster.foobar", "password", ""),
+					testAccCheckDigitalOceanDatabaseClusterURINoCredentials(
+						"digitalocean_database_cluster.foobar", "uri"),
+					testAccCheckDigitalOceanDatabaseClusterURINoCredentials(
 						"digitalocean_database_cluster.foobar", "private_uri"),
 				),
 			},
@@ -851,6 +880,33 @@ func testAccCheckDigitalOceanDatabaseClusterURIPassword(name string, attributeNa
 	}
 }
 
+// testAccCheckDigitalOceanDatabaseClusterURINoCredentials checks that a URI
+// attribute does not include username or password userinfo.
+func testAccCheckDigitalOceanDatabaseClusterURINoCredentials(name string, attributeName string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return fmt.Errorf("not found: %s", name)
+		}
+
+		uri, ok := rs.Primary.Attributes[attributeName]
+		if !ok {
+			return fmt.Errorf("%s not set", attributeName)
+		}
+
+		u, err := url.Parse(uri)
+		if err != nil {
+			return err
+		}
+
+		if u.User != nil {
+			return fmt.Errorf("expected no userinfo in %s, got: %s", attributeName, uri)
+		}
+
+		return nil
+	}
+}
+
 func waitForDatabaseBackups(originalDatabaseName string) error {
 	client := acceptance.TestAccProvider.Meta().(*config.CombinedConfig).GodoClient()
 
@@ -915,6 +971,18 @@ resource "digitalocean_database_cluster" "foobar" {
   region     = "nyc1"
   node_count = 1
   tags       = ["production"]
+}`
+
+const testAccCheckDigitalOceanDatabaseClusterConfigDisableExportCredentials = `
+resource "digitalocean_database_cluster" "foobar" {
+  name               = "%s"
+  engine             = "pg"
+  version            = "15"
+  size               = "db-s-1vcpu-2gb"
+  region             = "nyc1"
+  node_count         = 1
+  tags               = ["production"]
+  export_credentials = false
 }`
 
 const testAccCheckDigitalOceanDatabaseClusterConfigWithBackupRestore = `
