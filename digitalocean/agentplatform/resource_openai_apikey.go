@@ -6,6 +6,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/digitalocean/terraform-provider-digitalocean/digitalocean/config"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -23,9 +24,26 @@ func ResourceDigitalOceanOpenAIApiKey() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"api_key": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The OpenAI API key.",
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ExactlyOneOf: []string{"api_key", "api_key_wo"},
+				Description:  "The OpenAI API key. This value is stored in state; use `api_key_wo` to avoid that.",
+			},
+			"api_key_wo": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				WriteOnly:    true,
+				ExactlyOneOf: []string{"api_key", "api_key_wo"},
+				RequiredWith: []string{"api_key_wo_version"},
+				Description:  "The OpenAI API key as a write-only argument that is never stored in state. Requires Terraform 1.11 or later.",
+			},
+			"api_key_wo_version": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"api_key_wo"},
+				Description:  "Version of `api_key_wo`. Change this value to update the key.",
 			},
 			"name": {
 				Type:        schema.TypeString,
@@ -71,8 +89,13 @@ func ResourceDigitalOceanOpenAIApiKey() *schema.Resource {
 func resourceDigitalOceanOpenAIApiKeyCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
+	key, diags := openAIApiKeyValue(d)
+	if diags.HasError() {
+		return diags
+	}
+
 	openAIRequest := &godo.OpenAIAPIKeyCreateRequest{
-		ApiKey: d.Get("api_key").(string),
+		ApiKey: key,
 		Name:   d.Get("name").(string),
 	}
 
@@ -132,9 +155,14 @@ func resourceDigitalOceanOpenAIApiKeyRead(ctx context.Context, d *schema.Resourc
 func resourceDigitalOceanOpenAIApiKeyUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	client := meta.(*config.CombinedConfig).GodoClient()
 
+	key, diags := openAIApiKeyValue(d)
+	if diags.HasError() {
+		return diags
+	}
+
 	openAIRequest := &godo.OpenAIAPIKeyUpdateRequest{
 		Name:       d.Get("name").(string),
-		ApiKey:     d.Get("api_key").(string),
+		ApiKey:     key,
 		ApiKeyUuid: d.Get("uuid").(string),
 	}
 	hasChanges := false
@@ -143,8 +171,7 @@ func resourceDigitalOceanOpenAIApiKeyUpdate(ctx context.Context, d *schema.Resou
 		openAIRequest.Name = d.Get("name").(string)
 		hasChanges = true
 	}
-	if d.HasChange("api_key") {
-		openAIRequest.ApiKey = d.Get("api_key").(string)
+	if d.HasChanges("api_key", "api_key_wo_version") {
 		hasChanges = true
 	}
 	if !hasChanges {
@@ -158,6 +185,24 @@ func resourceDigitalOceanOpenAIApiKeyUpdate(ctx context.Context, d *schema.Resou
 
 	return resourceDigitalOceanOpenAIApiKeyRead(ctx, d, meta)
 
+}
+
+// openAIApiKeyValue returns the key from api_key, or from the raw config for
+// api_key_wo since write-only values are never persisted to state.
+func openAIApiKeyValue(d *schema.ResourceData) (string, diag.Diagnostics) {
+	if v, ok := d.GetOk("api_key"); ok {
+		return v.(string), nil
+	}
+
+	wo, diags := d.GetRawConfigAt(cty.GetAttrPath("api_key_wo"))
+	if diags.HasError() {
+		return "", diags
+	}
+	if wo.IsNull() || !wo.IsKnown() {
+		return "", nil
+	}
+
+	return wo.AsString(), nil
 }
 
 func resourceDigitalOceanOpenAIApiKeyDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

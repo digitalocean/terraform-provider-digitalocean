@@ -78,6 +78,7 @@ func computedOnly(in map[string]*schema.Schema) map[string]*schema.Schema {
 		clone.Default = nil
 		clone.ValidateFunc = nil
 		clone.DiffSuppressFunc = nil
+		clone.StateFunc = nil
 		clone.ConflictsWith = nil
 		clone.MaxItems = 0
 		clone.MinItems = 0
@@ -91,6 +92,28 @@ func computedOnly(in map[string]*schema.Schema) map[string]*schema.Schema {
 		}
 		out[k] = &clone
 	}
+	return out
+}
+
+// reconcilePinnedTools reports pinned references in the form the configuration
+// used, so an unpinned tool does not show a diff against the version the API
+// pinned it to.
+func reconcilePinnedTools(configured, pinned []string) []string {
+	exact := make(map[string]bool, len(configured))
+	for _, ref := range configured {
+		exact[ref] = true
+	}
+
+	out := make([]string, 0, len(pinned))
+	for _, ref := range pinned {
+		slug, _ := splitToolPin(ref)
+		if !exact[ref] && exact[slug] {
+			out = append(out, slug)
+		} else {
+			out = append(out, ref)
+		}
+	}
+	sort.Strings(out)
 	return out
 }
 

@@ -89,12 +89,17 @@ type MicroVMsService interface {
 	ListFiltered(ctx context.Context, opt *ListMicroVMsOptions) ([]MicroVM, *Response, error)
 	Get(ctx context.Context, id string) (*MicroVM, *Response, error)
 	Create(ctx context.Context, createRequest *MicroVMCreateRequest) (*MicroVM, *Response, error)
+	Update(ctx context.Context, id string, updateRequest *MicroVMUpdateRequest) (*MicroVM, *Response, error)
 	Pause(ctx context.Context, id string) (*MicroVM, *Response, error)
 	Resume(ctx context.Context, id string) (*MicroVM, *Response, error)
 	Delete(ctx context.Context, id string) (*Response, error)
 
 	AddURL(ctx context.Context, microVMID string, createRequest *MicroVMURLCreateRequest) (*MicroVMURL, *Response, error)
 	RemoveURL(ctx context.Context, microVMID, urlID string) (*Response, error)
+
+	CreateAccessToken(ctx context.Context, microVMID string, createRequest *MicroVMAccessTokenCreateRequest) (*MicroVMAccessTokenCreated, *Response, error)
+	ListAccessTokens(ctx context.Context, microVMID string) ([]MicroVMAccessToken, *Response, error)
+	RevokeAccessToken(ctx context.Context, microVMID, tokenID string) (*Response, error)
 
 	ListCheckpoints(ctx context.Context, opt *ListMicroVMCheckpointsOptions) ([]MicroVMCheckpoint, *Response, error)
 	CreateCheckpoint(ctx context.Context, microVMID string, createRequest *MicroVMCheckpointCreateRequest) (*MicroVMCheckpoint, *Response, error)
@@ -105,6 +110,7 @@ type MicroVMsService interface {
 
 	Exec(ctx context.Context, id string, execRequest *MicroVMExecRequest) (*MicroVMExecResult, *Response, error)
 	ConsoleURL(id string, opt *MicroVMConsoleOptions) (string, error)
+	PortForwardURL(id string, port int) (string, error)
 
 	UploadFile(ctx context.Context, id string, uploadRequest *MicroVMFileUploadRequest) (*MicroVMFileInfo, *Response, error)
 	DownloadFile(ctx context.Context, id, path string) (*MicroVMFileDownload, *Response, error)
@@ -156,6 +162,41 @@ type MicroVMURLCreateRequest struct {
 	// MicroVM's Ports. When zero, the API defaults it to the MicroVM's
 	// HTTPPort.
 	Port int `json:"port,omitempty"`
+}
+
+// MicroVMAccessToken is the metadata of one access token of a MicroVM.
+// The token value is never on this object: it exists only in the create
+// response.
+type MicroVMAccessToken struct {
+	// ID is the unique identifier of the access token. Use it to revoke
+	// the token with MicroVMsService.RevokeAccessToken.
+	ID        string `json:"id"`
+	MicroVMID string `json:"micro_vm_id"`
+	Name      string `json:"name"`
+	Created   string `json:"created_at,omitempty"`
+	// ExpiresAt is the timestamp when the token expires. Empty when the
+	// token does not expire.
+	ExpiresAt string `json:"expires_at,omitempty"`
+}
+
+// MicroVMAccessTokenCreated is an access token as returned by
+// MicroVMsService.CreateAccessToken, including the token value.
+type MicroVMAccessTokenCreated struct {
+	MicroVMAccessToken
+	// Token is the token value. Use it as a bearer token against the
+	// MicroVM's public endpoint. Shown once, in the create response only.
+	Token string `json:"token"`
+}
+
+// MicroVMAccessTokenCreateRequest is the payload for creating an access
+// token for a MicroVM.
+type MicroVMAccessTokenCreateRequest struct {
+	// Name is a name for the token, unique among the live access tokens
+	// of the MicroVM. Between 1 and 64 characters.
+	Name string `json:"name"`
+	// ExpiresInSeconds is the lifetime of the token in seconds. Omit for
+	// a token that does not expire.
+	ExpiresInSeconds int `json:"expires_in_seconds,omitempty"`
 }
 
 // MicroVM represents a DigitalOcean MicroVM.
@@ -256,6 +297,18 @@ type MicroVMCreateRequest struct {
 	// egress unrestricted, or inherits the origin's policy on a checkpoint
 	// restore. Only valid with public networking and fixed at create.
 	EgressPolicy *MicroVMEgressPolicy `json:"egress_policy,omitempty"`
+}
+
+// MicroVMUpdateRequest represents a request to update a MicroVM. Set at
+// least one field; omitted fields keep their current value. Every other
+// MicroVM field is fixed at create, and changing one means a new MicroVM.
+type MicroVMUpdateRequest struct {
+	Name string `json:"name,omitempty"`
+	// Tags replaces the whole tag set. Nil leaves the tags unchanged; a
+	// pointer to an empty slice removes every tag.
+	Tags *[]string `json:"tags,omitempty"`
+	// AutoPause changes the idle timeout. IdleTimeout must be set.
+	AutoPause *AutoPauseConfig `json:"auto_pause,omitempty"`
 }
 
 // MicroVMCheckpointCreateRequest represents a request to create a checkpoint.
@@ -368,6 +421,10 @@ type MicroVMConsoleStatus struct {
 	State string `json:"state"`
 }
 
+// MicroVMPortForwardConnected is the status.state the server sends on a
+// port-forward WebSocket once the connection to the guest port is open.
+const MicroVMPortForwardConnected = "connected"
+
 // MicroVMFileUploadRequest is the input for UploadFile.
 type MicroVMFileUploadRequest struct {
 	// Path is the absolute destination inside the workload container. Its
@@ -449,12 +506,30 @@ func (r MicroVMCreateRequest) String() string {
 	return Stringify(r)
 }
 
+// String returns a human-readable description of a MicroVMAccessToken.
+func (t MicroVMAccessToken) String() string {
+	return Stringify(t)
+}
+
+// String returns a human-readable description of a MicroVMAccessTokenCreateRequest.
+func (r MicroVMAccessTokenCreateRequest) String() string {
+	return Stringify(r)
+}
+
 type microVMRoot struct {
 	MicroVM *MicroVM `json:"microvm"`
 }
 
 type microVMURLRoot struct {
 	URL *MicroVMURL `json:"url"`
+}
+
+type microVMAccessTokenRoot struct {
+	AccessToken *MicroVMAccessTokenCreated `json:"access_token"`
+}
+
+type microVMAccessTokensRoot struct {
+	AccessTokens []MicroVMAccessToken `json:"access_tokens"`
 }
 
 type microVMsRoot struct {
@@ -599,6 +674,32 @@ func (s *MicroVMsServiceOp) Create(ctx context.Context, createRequest *MicroVMCr
 	return root.MicroVM, resp, nil
 }
 
+// Update changes the name, tags or auto-pause idle timeout of a running or
+// paused MicroVM and returns the updated MicroVM.
+func (s *MicroVMsServiceOp) Update(ctx context.Context, id string, updateRequest *MicroVMUpdateRequest) (*MicroVM, *Response, error) {
+	if id == "" {
+		return nil, nil, NewArgError("id", "cannot be empty")
+	}
+	if updateRequest == nil {
+		return nil, nil, NewArgError("updateRequest", "cannot be nil")
+	}
+
+	path := fmt.Sprintf("%s/%s", microVMBasePath, id)
+
+	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, updateRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(microVMRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root.MicroVM, resp, nil
+}
+
 // Pause synchronously transitions a RUNNING MicroVM to PAUSED. It blocks
 // until the platform has durably paused the MicroVM and returns the
 // updated resource. The call is idempotent: pausing a MicroVM that is
@@ -698,6 +799,81 @@ func (s *MicroVMsServiceOp) RemoveURL(ctx context.Context, microVMID, urlID stri
 	}
 
 	path := fmt.Sprintf("%s/%s/urls/%s", microVMBasePath, microVMID, urlID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.client.Do(ctx, req, nil)
+}
+
+// CreateAccessToken creates an API token that grants access to the public
+// endpoint of one MicroVM only. The token value is returned once, in this
+// response; save it, because ListAccessTokens never returns it. The token
+// works on the default URL of the MicroVM; extra URLs added with AddURL
+// accept team tokens only for now. A MicroVM can have at most 10 live
+// access tokens, and deleting the MicroVM revokes them.
+func (s *MicroVMsServiceOp) CreateAccessToken(ctx context.Context, microVMID string, createRequest *MicroVMAccessTokenCreateRequest) (*MicroVMAccessTokenCreated, *Response, error) {
+	if microVMID == "" {
+		return nil, nil, NewArgError("microVMID", "cannot be empty")
+	}
+	if createRequest == nil {
+		return nil, nil, NewArgError("createRequest", "cannot be nil")
+	}
+
+	path := fmt.Sprintf("%s/%s/access_tokens", microVMBasePath, microVMID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, createRequest)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(microVMAccessTokenRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root.AccessToken, resp, nil
+}
+
+// ListAccessTokens lists the live access tokens of a MicroVM, oldest first.
+// Token values are never returned.
+func (s *MicroVMsServiceOp) ListAccessTokens(ctx context.Context, microVMID string) ([]MicroVMAccessToken, *Response, error) {
+	if microVMID == "" {
+		return nil, nil, NewArgError("microVMID", "cannot be empty")
+	}
+
+	path := fmt.Sprintf("%s/%s/access_tokens", microVMBasePath, microVMID)
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	root := new(microVMAccessTokensRoot)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return root.AccessTokens, resp, nil
+}
+
+// RevokeAccessToken revokes an access token of a MicroVM. The token stops
+// working right away and drops out of the list. Revoke is permanent; a
+// revoked token cannot be restored. The DigitalOcean API returns a 204 on
+// success with no response body.
+func (s *MicroVMsServiceOp) RevokeAccessToken(ctx context.Context, microVMID, tokenID string) (*Response, error) {
+	if microVMID == "" {
+		return nil, NewArgError("microVMID", "cannot be empty")
+	}
+	if tokenID == "" {
+		return nil, NewArgError("tokenID", "cannot be empty")
+	}
+
+	path := fmt.Sprintf("%s/%s/access_tokens/%s", microVMBasePath, microVMID, tokenID)
 
 	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
 	if err != nil {
@@ -858,6 +1034,36 @@ func (s *MicroVMsServiceOp) Exec(ctx context.Context, id string, execRequest *Mi
 // status control (server→client) — see MarshalMicroVMConsoleResize and
 // ParseMicroVMConsoleControl.
 func (s *MicroVMsServiceOp) ConsoleURL(id string, opt *MicroVMConsoleOptions) (string, error) {
+	q := url.Values{}
+	if opt != nil {
+		if opt.Rows > 0 {
+			q.Set("rows", strconv.FormatUint(uint64(opt.Rows), 10))
+		}
+		if opt.Cols > 0 {
+			q.Set("cols", strconv.FormatUint(uint64(opt.Cols), 10))
+		}
+	}
+	return s.webSocketURL(id, "console", q)
+}
+
+// PortForwardURL builds the WebSocket URL that tunnels one TCP connection to
+// 127.0.0.1:port inside the MicroVM (GET /v2/microvms/{id}/port_forward).
+// As with ConsoleURL, godo does not dial WebSockets: the caller sets
+// Authorization: Bearer <token> on the handshake. Open one WebSocket for each
+// TCP connection. Binary frames in both directions are raw TCP bytes. The
+// server sends a {"status":{"state":"connected"}} text frame when the guest
+// port is open, or an {"error":...} text frame and then closes; decode both
+// with ParseMicroVMConsoleControl. Requires the port_forward feature gate (see
+// GetCreateOptions Features). The server rejects the reserved agent port.
+func (s *MicroVMsServiceOp) PortForwardURL(id string, port int) (string, error) {
+	if port < 1 || port > 65535 {
+		return "", NewArgError("port", "must be in 1..65535")
+	}
+	return s.webSocketURL(id, "port_forward", url.Values{"port": {strconv.Itoa(port)}})
+}
+
+// webSocketURL builds ws(s)://<base>/v2/microvms/{id}/{verb}?<q>.
+func (s *MicroVMsServiceOp) webSocketURL(id, verb string, q url.Values) (string, error) {
 	if id == "" {
 		return "", NewArgError("id", "cannot be empty")
 	}
@@ -865,7 +1071,7 @@ func (s *MicroVMsServiceOp) ConsoleURL(id string, opt *MicroVMConsoleOptions) (s
 		return "", NewArgError("client.BaseURL", "cannot be nil")
 	}
 
-	u, err := s.client.BaseURL.Parse(fmt.Sprintf("%s/%s/console", microVMBasePath, id))
+	u, err := s.client.BaseURL.Parse(fmt.Sprintf("%s/%s/%s", microVMBasePath, id, verb))
 	if err != nil {
 		return "", err
 	}
@@ -876,17 +1082,7 @@ func (s *MicroVMsServiceOp) ConsoleURL(id string, opt *MicroVMConsoleOptions) (s
 	case "http":
 		u.Scheme = "ws"
 	}
-
-	if opt != nil {
-		q := url.Values{}
-		if opt.Rows > 0 {
-			q.Set("rows", strconv.FormatUint(uint64(opt.Rows), 10))
-		}
-		if opt.Cols > 0 {
-			q.Set("cols", strconv.FormatUint(uint64(opt.Cols), 10))
-		}
-		u.RawQuery = q.Encode()
-	}
+	u.RawQuery = q.Encode()
 
 	return u.String(), nil
 }

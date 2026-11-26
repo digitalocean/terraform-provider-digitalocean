@@ -157,7 +157,7 @@ func resourceDigitalOceanActionGatewayToolbeltRead(ctx context.Context, d *schem
 
 	values := flattenToolbelt(found.Toolbelt)
 	values["pinned_tools"] = values["tools"]
-	values["tools"] = reconcileToolbeltTools(expandStringSet(d.Get("tools")), found.Toolbelt.Tools)
+	values["tools"] = reconcilePinnedTools(expandStringSet(d.Get("tools")), found.Toolbelt.Tools)
 
 	for k, v := range values {
 		if err := d.Set(k, v); err != nil {
@@ -221,28 +221,6 @@ func flattenToolbelt(tb *godo.ActionGatewayToolbelt) map[string]interface{} {
 		"created_at":       formatTimestamp(tb.CreatedAt),
 		"updated_at":       formatTimestamp(tb.UpdatedAt),
 	}
-}
-
-// reconcileToolbeltTools reports the toolbelt's pinned members in the form
-// they were configured, so an unpinned tool in the configuration does not
-// show a diff against the version the API pinned it to.
-func reconcileToolbeltTools(configured, pinned []string) []string {
-	exact := make(map[string]bool, len(configured))
-	for _, ref := range configured {
-		exact[ref] = true
-	}
-
-	out := make([]string, 0, len(pinned))
-	for _, ref := range pinned {
-		slug, _ := splitToolPin(ref)
-		if !exact[ref] && exact[slug] {
-			out = append(out, slug)
-		} else {
-			out = append(out, ref)
-		}
-	}
-	sort.Strings(out)
-	return out
 }
 
 // toolbeltMembershipChanges compares the toolbelt's current pinned members

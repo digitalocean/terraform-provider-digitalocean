@@ -37,7 +37,20 @@ const (
 	rdmaSharedDevicePluginField            = "rdma_shared_device_plugin"
 	corednsAutoscalerField                 = "coredns_autoscaler"
 	nfsCsiPluginField                      = "nfs_csi_plugin"
+	insightsField                          = "insights"
 )
+
+// ExpandInsightsFromConfig returns the Insights telemetry opt-in for the create request.
+// When insights.logs is not specified in config (ok from GetOkExists is false), returns nil
+// so that no choice is sent to the API. When ok is true, value may be false (explicit opt-out).
+func ExpandInsightsFromConfig(logs interface{}, ok bool) *godo.KubernetesInsightsTelemetryOptIn {
+	if !ok {
+		return nil
+	}
+	return &godo.KubernetesInsightsTelemetryOptIn{
+		Logs: godo.PtrTo(logs.(bool)),
+	}
+}
 
 // ExpandHAFromConfig returns the HA value for the create request. When ha is not
 // specified in config (ok from GetOkExists is false), returns nil so the API applies
@@ -47,6 +60,12 @@ func ExpandHAFromConfig(value interface{}, ok bool) *bool {
 		return nil
 	}
 	return godo.PtrTo(value.(bool))
+}
+
+// suppressInsightsDiffAfterCreate suppresses any diff on the insights block once the cluster
+// exists, since the opt-in is create-only and the API does not return it.
+func suppressInsightsDiffAfterCreate(_, _, _ string, d *schema.ResourceData) bool {
+	return d.Id() != ""
 }
 
 func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
@@ -474,6 +493,27 @@ func ResourceDigitalOceanKubernetesCluster() *schema.Resource {
 				Default:       false,
 				ConflictsWith: []string{nvidiaGpuDraDriverField, amdGpuDraDriverField, nvidiaGpuDevicePluginField, amdGpuDevicePluginField},
 			},
+
+			// insights is create-only and write-only: the API accepts it when creating a cluster
+			// and never returns it. Changes after creation (including after an import, where the
+			// value can not be read back) are suppressed instead of forcing a new cluster.
+			insightsField: {
+				Type:             schema.TypeList,
+				Optional:         true,
+				MaxItems:         1,
+				DiffSuppressFunc: suppressInsightsDiffAfterCreate,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"logs": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							// DiffSuppressFunc on the parent list only covers the list count
+							// ("insights.#"), so nested attributes need their own.
+							DiffSuppressFunc: suppressInsightsDiffAfterCreate,
+						},
+					},
+				},
+			},
 		},
 
 		Timeouts: &schema.ResourceTimeout{
@@ -667,6 +707,10 @@ func resourceDigitalOceanKubernetesClusterCreate(ctx context.Context, d *schema.
 		opts.GPUOperatorReady = gpuOperatorReady.(bool)
 	}
 
+	// GetOkExists: optional bool without Default — GetOk would treat logs = false as unset,
+	// and an explicit opt-out must be sent to the API.
+	opts.Insights = ExpandInsightsFromConfig(d.GetOkExists("insights.0.logs"))
+
 	cluster, _, err := client.Kubernetes.Create(context.Background(), opts)
 	if err != nil {
 		return diag.Errorf("Error creating Kubernetes cluster: %s", err)
@@ -811,6 +855,16 @@ func digitaloceanKubernetesClusterRead(
 	}
 	if !foundDefaultNodePool {
 		log.Printf("[WARN] No default node pool was found. The default node pool must have the `%s` tag if created with Terraform.", DigitaloceanKubernetesDefaultNodePoolTag)
+	}
+
+	return setKubeConfig(client, cluster, d)
+}
+
+func setKubeConfig(client *godo.Client, cluster *godo.KubernetesCluster, d *schema.ResourceData) diag.Diagnostics {
+	// The API refuses token credentials when SSO is required.
+	if cluster.SSO != nil && cluster.SSO.Required {
+		d.Set("kube_config", []interface{}{})
+		return nil
 	}
 
 	// fetch cluster credentials and update the resource if the credentials are expired.

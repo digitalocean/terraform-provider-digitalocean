@@ -26,6 +26,16 @@ func init() {
 		Name: "digitalocean_action_gateway_mcp_server",
 		F:    sweepActionGatewayMCPServers,
 	})
+
+	resource.AddTestSweepers("digitalocean_action_gateway_endpoint", &resource.Sweeper{
+		Name: "digitalocean_action_gateway_endpoint",
+		F:    sweepActionGatewayEndpoints,
+	})
+
+	resource.AddTestSweepers("digitalocean_action_gateway_provider_credential", &resource.Sweeper{
+		Name: "digitalocean_action_gateway_provider_credential",
+		F:    sweepActionGatewayProviderCredentials,
+	})
 }
 
 func sweepActionGatewayConnections(region string) error {
@@ -96,6 +106,43 @@ func sweepActionGatewayToolbelts(region string) error {
 	return nil
 }
 
+// sweepActionGatewayEndpoints deletes the acceptance suite's endpoints. A
+// version has no independent lifetime, so deleting an endpoint deletes every
+// live version under it.
+func sweepActionGatewayEndpoints(region string) error {
+	meta, err := sweep.SharedConfigForRegion(region)
+	if err != nil {
+		return err
+	}
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	opt := &godo.ActionGatewayEndpointListOptions{PageSize: 100}
+	var stale []string
+	for {
+		page, _, err := client.ActionGateway.Endpoints.List(context.Background(), opt)
+		if err != nil {
+			return err
+		}
+		for _, endpoint := range page.Endpoints {
+			if strings.HasPrefix(endpoint.Name, sweep.TestNamePrefix) {
+				stale = append(stale, endpoint.ID)
+			}
+		}
+		if page.NextPageToken == "" || len(page.Endpoints) == 0 {
+			break
+		}
+		opt.PageToken = page.NextPageToken
+	}
+
+	for _, id := range stale {
+		log.Printf("[DEBUG] Deleting Action Gateway endpoint %s", id)
+		if _, err := client.ActionGateway.Endpoints.Delete(context.Background(), id); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func sweepActionGatewayMCPServers(region string) error {
 	meta, err := sweep.SharedConfigForRegion(region)
 	if err != nil {
@@ -113,6 +160,31 @@ func sweepActionGatewayMCPServers(region string) error {
 		}
 		log.Printf("[DEBUG] Deleting Action Gateway MCP server %s", s.ServerRef)
 		if _, _, err := client.ActionGateway.MCPServers.Delete(context.Background(), s.ServerRef); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// sweepActionGatewayProviderCredentials deletes the acceptance suite's
+// provider credentials, and with each the connections that use it.
+func sweepActionGatewayProviderCredentials(region string) error {
+	meta, err := sweep.SharedConfigForRegion(region)
+	if err != nil {
+		return err
+	}
+	client := meta.(*config.CombinedConfig).GodoClient()
+
+	listed, _, err := client.ActionGateway.ProviderCredentials.List(context.Background(), nil)
+	if err != nil {
+		return err
+	}
+	for _, cred := range listed.Credentials {
+		if !strings.HasPrefix(cred.DisplayName, sweep.TestNamePrefix) {
+			continue
+		}
+		log.Printf("[DEBUG] Deleting Action Gateway provider credential %s", cred.ID)
+		if _, _, err := client.ActionGateway.ProviderCredentials.Delete(context.Background(), cred.ID); err != nil {
 			return err
 		}
 	}

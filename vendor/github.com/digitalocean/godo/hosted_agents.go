@@ -34,6 +34,7 @@ const (
 	hostedAgentSessionHITLPath                      = hostedAgentSessionByIDPath + "/hitl/%s"
 	hostedAgentSessionSandboxExecPath               = hostedAgentSessionByIDPath + "/sandbox/exec"
 	hostedAgentSandboxSizesPath                     = hostedAgentsSessionsBasePath + "/sandbox/sizes"
+	hostedAgentRegionsPath                          = hostedAgentsAPIPrefix + "/regions"
 	hostedAgentSessionPausePath                     = hostedAgentSessionByIDPath + "/pause"
 	hostedAgentSessionResumePath                    = hostedAgentSessionByIDPath + "/resume"
 	hostedAgentSessionWorkspaceUploadPath           = hostedAgentSessionByIDPath + "/workspace/upload"
@@ -51,8 +52,9 @@ const (
 	// Team-scoped external-provider connection management (harness-api's proxy
 	// of Action Gateway / tool-registry). Shares the /v2/harness-runtime/auth/{provider}
 	// prefix with the connect flow above. The by-id path takes provider then id.
-	hostedAgentProviderConnectionsPath    = hostedAgentProviderAuthPath + "/connections"
-	hostedAgentProviderConnectionByIDPath = hostedAgentProviderConnectionsPath + "/%s"
+	hostedAgentProviderConnectionsPath         = hostedAgentProviderAuthPath + "/connections"
+	hostedAgentProviderConnectionByIDPath      = hostedAgentProviderConnectionsPath + "/%s"
+	hostedAgentProviderConnectionReconnectPath = hostedAgentProviderConnectionByIDPath + "/reconnect"
 
 	hostedAgentSessionCheckpointsPath        = hostedAgentSessionByIDPath + "/checkpoints"
 	hostedAgentSessionCheckpointByIDPath     = hostedAgentSessionCheckpointsPath + "/%s"
@@ -121,8 +123,16 @@ type HostedAgentsService interface {
 	ListSessions(context.Context, *HostedAgentSessionListOptions) (*HostedAgentSessionsListResponse, *Response, error)
 	GetSession(context.Context, string) (*HostedAgentSession, *Response, error)
 	// UpdateSession patches session-scoped settings on an existing session and
-	// returns the updated snapshot. Never touches the agent manifest or config.
+	// returns the updated snapshot. Never touches the agent manifest or config;
+	// use UpdateSessionConfig to change tools, env, secrets or permissions.
 	UpdateSession(context.Context, string, *HostedAgentSessionUpdateRequest) (*HostedAgentSession, *Response, error)
+	// UpdateSessionConfig patches the live configuration of a session (tools,
+	// env, secrets, permissions) from a partial manifest YAML. The server
+	// answers 202 with outcome ACCEPTED and the session in
+	// SESSION_STATUS_UPDATING; callers poll GetSession until the status leaves
+	// UPDATING and then read Session.Update. An unchanged manifest answers 200
+	// with outcome UNCHANGED.
+	UpdateSessionConfig(context.Context, string, *HostedAgentSessionConfigUpdateRequest) (*HostedAgentSessionConfigUpdateResponse, *Response, error)
 	DestroySession(context.Context, string) (*Response, error)
 	PauseSession(context.Context, string) (*Response, error)
 	ResumeSession(context.Context, string) (*Response, error)
@@ -143,21 +153,42 @@ type HostedAgentsService interface {
 	// (e.g. "github"), scoped server-side to the caller's team. Paginated with
 	// page/per_page (tool-registry defaults to 20 per page and caps at 100).
 	ListConnections(context.Context, string, *HostedAgentConnectionListOptions) (*HostedAgentConnectionsListResponse, *Response, error)
-	// CreateConnection creates (or resumes) a connection binding an actor to the
-	// provider. A still-pending connection comes back with an Authorization the
-	// user must complete in a browser; an already-active one has none.
+	// CreateConnection creates a connection binding an actor to the provider.
+	// A new connection comes back pending, with an Authorization the user must
+	// complete in a browser. The API refuses (409 Conflict) when a non-revoked
+	// connection already exists for the provider and actor; use
+	// ReconnectConnection to resume or restart that one.
 	CreateConnection(context.Context, string, *HostedAgentConnectionCreateRequest) (*HostedAgentConnectionEnvelope, *Response, error)
 	// GetConnection reads one connection by id, used to poll a pending
 	// authorization to completion.
 	GetConnection(context.Context, string, string) (*HostedAgentConnectionEnvelope, *Response, error)
 	// DeleteConnection revokes one connection by id and returns its final state.
 	DeleteConnection(context.Context, string, string) (*HostedAgentConnectionEnvelope, *Response, error)
+	// ReconnectConnection resumes a pending connection's authorization, or
+	// restarts an expired or revoked one, keeping its actor, scopes, and the
+	// agent configs that depend on it. A connection that needs authorizing comes
+	// back with an Authorization, as from CreateConnection; an active one is
+	// returned unchanged. Only the connection's owner can reconnect it.
+	ReconnectConnection(context.Context, string, string) (*HostedAgentConnectionEnvelope, *Response, error)
 	ExecInSandbox(context.Context, string, *HostedAgentSandboxExecRequest) (*HostedAgentSandboxExecResponse, *Response, error)
 	// ListSandboxSizes returns the customer-selectable sandbox (microVM) size
 	// catalog (GET /v2/harness-runtime/sessions/sandbox/sizes). Every slug is accepted by
 	// CreateSession as spec.sandbox.sizeSlug. Ordered smallest-to-largest; no
 	// pagination.
 	ListSandboxSizes(context.Context) (*HostedAgentSandboxSizesResponse, *Response, error)
+	// ListRegions returns the regions the caller's team may create sessions and
+	// environments in (GET /v2/harness-runtime/regions). A region is chosen by
+	// the API host called, so each returned Slug names the host to point a
+	// client at; see HostedAgentsRegionalBaseURL. The default region is always
+	// listed and is marked IsDefault; every other open region is listed only
+	// when the team holds its grant, so a create on a listed region's host is
+	// admitted and a region missing from the list is refused. Sorted by slug;
+	// no pagination.
+	//
+	// The catalog is team-scoped, not host-scoped: it is the same on every
+	// regional host, so one call enumerates the regions rather than one call
+	// per HostedAgentsRegionalBaseURL.
+	ListRegions(context.Context) (*HostedAgentRegionsResponse, *Response, error)
 	UploadWorkspace(context.Context, string, *HostedAgentWorkspaceUploadRequest) (*HostedAgentWorkspaceUploadResponse, *Response, error)
 	DownloadWorkspace(context.Context, string, *HostedAgentWorkspaceDownloadRequest) (*HostedAgentWorkspaceDownload, *Response, error)
 
@@ -247,6 +278,9 @@ const (
 	HostedAgentSessionStatusDestroyed    HostedAgentSessionStatus = "SESSION_STATUS_DESTROYED"
 	HostedAgentSessionStatusFailed       HostedAgentSessionStatus = "SESSION_STATUS_FAILED"
 	HostedAgentSessionStatusPaused       HostedAgentSessionStatus = "SESSION_STATUS_PAUSED"
+	// HostedAgentSessionStatusUpdating is reported while a config update
+	// (UpdateSessionConfig) is being applied.
+	HostedAgentSessionStatusUpdating HostedAgentSessionStatus = "SESSION_STATUS_UPDATING"
 )
 
 // HostedAgentSessionPauseReason is why a paused session was paused. The API
@@ -267,6 +301,9 @@ const (
 	// Deprecated: Use HostedAgentSessionPauseReasonZeroBalance. Servers now return
 	// "zero_balance"; this constant is kept for backward compatibility with older API responses.
 	HostedAgentSessionPauseReasonLowBalance HostedAgentSessionPauseReason = "low_balance"
+	// HostedAgentSessionPauseReasonTrigger is a pause recorded after a reuse
+	// trigger firing, rather than one the customer requested.
+	HostedAgentSessionPauseReasonTrigger HostedAgentSessionPauseReason = "trigger"
 )
 
 // HostedAgentProviderAuthState tracks OAuth authorization for an external provider.
@@ -380,6 +417,15 @@ const (
 type HostedAgentStreamState struct {
 	State  HostedAgentStreamStateValue `json:"state"`
 	Cursor string                      `json:"cursor,omitempty"`
+	// Truncated marks a catching_up window that is the session's HEAD rather
+	// than the caller's resume point: a cursor was supplied or stored, could
+	// not be reached inside the replay window, and the events between it and
+	// head-N are not being sent. It is also set when the cursor was reached but
+	// a hole remains behind it. Absent or false means nothing was skipped, so a
+	// client that ignores the field reads a window it cannot tell apart from a
+	// complete one; renderers should say so rather than present the replayed
+	// events as continuous. Only catching_up carries it.
+	Truncated bool `json:"truncated,omitempty"`
 }
 
 // HostedAgentStreamStateValue enumerates the stream health states.
@@ -452,8 +498,20 @@ type HostedAgentSession struct {
 	// prepayment balance is restored. Set at create (manifest query param or
 	// config JSON body), toggled afterwards with UpdateSession, and returned on
 	// get/list so clients can confirm enrollment. Never inherited by forks.
-	// Omitted when false.
-	ResumeOnTopoff bool `json:"resume_on_topoff,omitempty"`
+	// Always encoded, so a revoked consent reads as false rather than absent.
+	// The server omits it when false, which decodes to the same value.
+	ResumeOnTopoff bool `json:"resume_on_topoff"`
+	// Update is the latest config update (see UpdateSessionConfig), present
+	// once any update has been requested.
+	Update *HostedAgentSessionConfigUpdate `json:"update,omitempty"`
+	// ConfigDrifted is true when the running config differs from the manifest
+	// the session was created from. Omitted by the server when false.
+	ConfigDrifted bool `json:"config_drifted,omitempty"`
+	// ConfigDiff summarises the drift, per section.
+	ConfigDiff *HostedAgentSessionConfigChanges `json:"config_diff,omitempty"`
+	// Manifest is the effective manifest; only present when ConfigDrifted.
+	// Never contains secret values.
+	Manifest json.RawMessage `json:"manifest,omitempty"`
 	// WorkspaceID is the persistent workspace this session attaches (see
 	// HostedAgentWorkspace). Set at create and returned on get/list; omitted
 	// when the session has no persistent workspace.
@@ -660,7 +718,8 @@ type HostedAgentSessionFromEnvironmentRequest = HostedAgentSessionFromConfigRequ
 
 // HostedAgentSessionUpdateRequest is the body for PATCH
 // /v2/harness-runtime/sessions/{session_id}: an allowlisted subset of session-scoped
-// settings, never an agents.yaml or Agent Config mutation. The server rejects
+// settings (see HostedAgentsService.UpdateSessionConfig for live config
+// changes such as tools, env, secrets and permissions). The server rejects
 // unknown top-level keys, and rejects an empty object, so every field is a
 // pointer: nil omits it and leaves the server-side value untouched.
 type HostedAgentSessionUpdateRequest struct {
@@ -1079,6 +1138,117 @@ type HostedAgentWorkspaceTransferCancelResponse struct {
 	Status     HostedAgentWorkspaceTransferStatus `json:"status"`
 }
 
+// HostedAgentSessionConfigUpdateRequest is the body for PATCH
+// /v2/harness-runtime/sessions/{session_id} when changing live configuration.
+// ManifestYAML holds only the sections to change (tools, env, secrets,
+// permissions); absent sections are untouched. It cannot be combined with
+// resume_on_topoff.
+type HostedAgentSessionConfigUpdateRequest struct {
+	ManifestYAML string `json:"manifest_yaml"`
+}
+
+// HostedAgentSessionConfigUpdateOutcome is the outcome of a config update request.
+type HostedAgentSessionConfigUpdateOutcome string
+
+const (
+	// HostedAgentSessionConfigUpdateOutcomeAccepted: HTTP 202, update is applying.
+	HostedAgentSessionConfigUpdateOutcomeAccepted HostedAgentSessionConfigUpdateOutcome = "ACCEPTED"
+	// HostedAgentSessionConfigUpdateOutcomeUnchanged: HTTP 200, nothing to change.
+	HostedAgentSessionConfigUpdateOutcomeUnchanged HostedAgentSessionConfigUpdateOutcome = "UNCHANGED"
+)
+
+// HostedAgentSessionConfigUpdateState is the state of a config update.
+type HostedAgentSessionConfigUpdateState string
+
+const (
+	HostedAgentSessionConfigUpdateStateApplying         HostedAgentSessionConfigUpdateState = "APPLYING"
+	HostedAgentSessionConfigUpdateStateApplied          HostedAgentSessionConfigUpdateState = "APPLIED"
+	HostedAgentSessionConfigUpdateStateAppliedRestarted HostedAgentSessionConfigUpdateState = "APPLIED_RESTARTED"
+	HostedAgentSessionConfigUpdateStateFailed           HostedAgentSessionConfigUpdateState = "FAILED"
+)
+
+// HostedAgentSessionConfigUpdateKind distinguishes a requested update from an
+// automatic rollback.
+type HostedAgentSessionConfigUpdateKind string
+
+const (
+	HostedAgentSessionConfigUpdateKindUpdate   HostedAgentSessionConfigUpdateKind = "update"
+	HostedAgentSessionConfigUpdateKindRollback HostedAgentSessionConfigUpdateKind = "rollback"
+)
+
+// HostedAgentSessionConfigUpdateError is the failure class of a FAILED update.
+type HostedAgentSessionConfigUpdateError string
+
+const (
+	HostedAgentSessionConfigUpdateErrorUpdateFailed       HostedAgentSessionConfigUpdateError = "update_failed"
+	HostedAgentSessionConfigUpdateErrorRequiresNewSession HostedAgentSessionConfigUpdateError = "requires_new_session"
+	HostedAgentSessionConfigUpdateErrorInterrupted        HostedAgentSessionConfigUpdateError = "interrupted"
+)
+
+// HostedAgentSessionConfigSectionChanges lists the keys touched in one section.
+type HostedAgentSessionConfigSectionChanges struct {
+	Added   []string `json:"added,omitempty"`
+	Removed []string `json:"removed,omitempty"`
+	Changed []string `json:"changed,omitempty"`
+}
+
+// HostedAgentSessionConfigEgressChanges lists the hosts and IP addresses an
+// egress change added or removed. Mode is the new egress mode (allowlist,
+// unrestricted or deny_all), set only when the mode changed.
+type HostedAgentSessionConfigEgressChanges struct {
+	Mode    string   `json:"mode,omitempty"`
+	Added   []string `json:"added,omitempty"`
+	Removed []string `json:"removed,omitempty"`
+}
+
+// HostedAgentSessionConfigPermissionsChanges lists a permissions change.
+// Default is the new default action when it changed, and an empty string when
+// the default was removed. Rules names the rules added, removed or changed by
+// tool and match (bash "git *", do.actions/web_search); a rule kept with
+// another action or at another position is changed, since the last matching
+// rule wins.
+type HostedAgentSessionConfigPermissionsChanges struct {
+	Default *string                                 `json:"default,omitempty"`
+	Rules   *HostedAgentSessionConfigSectionChanges `json:"rules,omitempty"`
+}
+
+// HostedAgentSessionConfigChanges summarises changes per manifest section.
+// Secrets.Changed names the secrets that got a new value or were bound to
+// another URL or scheme; it never carries values.
+type HostedAgentSessionConfigChanges struct {
+	Tools       *HostedAgentSessionConfigSectionChanges     `json:"tools,omitempty"`
+	Env         *HostedAgentSessionConfigSectionChanges     `json:"env,omitempty"`
+	Secrets     *HostedAgentSessionConfigSectionChanges     `json:"secrets,omitempty"`
+	Egress      *HostedAgentSessionConfigEgressChanges      `json:"egress,omitempty"`
+	Permissions *HostedAgentSessionConfigPermissionsChanges `json:"permissions,omitempty"`
+}
+
+// HostedAgentSessionConfigUpdate describes one config update (or rollback) of a session.
+type HostedAgentSessionConfigUpdate struct {
+	UpdateID     string                              `json:"update_id"`
+	SessionID    string                              `json:"session_id,omitempty"`
+	Kind         HostedAgentSessionConfigUpdateKind  `json:"kind,omitempty"`
+	State        HostedAgentSessionConfigUpdateState `json:"state"`
+	Sections     []string                            `json:"sections,omitempty"`
+	Changes      *HostedAgentSessionConfigChanges    `json:"changes,omitempty"`
+	Error        HostedAgentSessionConfigUpdateError `json:"error,omitempty"`
+	Reverted     bool                                `json:"reverted,omitempty"`
+	Detail       string                              `json:"detail,omitempty"`
+	ManifestHash string                              `json:"manifest_hash,omitempty"`
+	PreviousHash string                              `json:"previous_hash,omitempty"`
+	UserUUID     string                              `json:"user_uuid,omitempty"`
+	UserEmail    string                              `json:"user_email,omitempty"`
+	StartedAt    Timestamp                           `json:"started_at"`
+	FinishedAt   Timestamp                           `json:"finished_at"`
+}
+
+// HostedAgentSessionConfigUpdateResponse is returned by UpdateSessionConfig.
+type HostedAgentSessionConfigUpdateResponse struct {
+	Session  *HostedAgentSession                   `json:"session"`
+	Outcome  HostedAgentSessionConfigUpdateOutcome `json:"outcome,omitempty"`
+	Warnings []string                              `json:"warnings,omitempty"`
+}
+
 type hostedAgentSessionRoot struct {
 	Session *HostedAgentSession `json:"session"`
 }
@@ -1248,6 +1418,117 @@ func (s *HostedAgentsServiceOp) UpdateSession(ctx context.Context, sessionID str
 		return nil, resp, errors.New("hosted agents: update session returned no session")
 	}
 	return root.Session, resp, nil
+}
+
+// UpdateSessionConfig patches the live configuration of a session from a
+// partial manifest YAML (tools, env, secrets, egress, permissions). In tools,
+// only Action Gateway (do.actions) entries can change; the session's custom MCP
+// servers must be sent back exactly as they are. The response carries the
+// session, the outcome (ACCEPTED on HTTP 202, UNCHANGED on HTTP 200) and any
+// warnings. godo does not wait: on ACCEPTED the session is
+// SESSION_STATUS_UPDATING and the caller polls GetSession until the status
+// leaves UPDATING, then reads Session.Update. See the API error statuses: 400
+// (invalid patch, including a top-level model section, permissions: null or a
+// malformed model name; change the model through env), 403 (feature not
+// enabled, including permission updates for a manifest with a permissions
+// section, even one that matches the session's policy), 409
+// (session status does not allow an update, a turn or approval is in
+// progress, the session's mutability does not allow the change, or the agent
+// can't apply a permissions change), 422 (requires a new session, including
+// adding, removing or changing a custom MCP server, or changing
+// egress.vpc_uuid or egress.subnet_uuid).
+//
+// permissions is the full policy, in the same form as at create: the default
+// action and every rule, so a rule left out is removed. Rules are checked in
+// order and the last match wins, so moving a rule is a change. "permissions:
+// {}" removes the policy (the agent's built-in default applies);
+// "permissions: null" is a 400. It applies from the agent's next tool call,
+// with no restart, except on langgraph, where a change to do.actions rules or
+// the default restarts the agent. What can change depends on the agent:
+// claude-code and opencode take the default and bash, file.read, file.write,
+// mcp and do.actions rules; openhands takes the default and bash, file.read,
+// file.write and web.fetch rules; codex takes the default and bash and
+// do.actions rules, with allow, ask or deny; hermes and langgraph take only
+// do.actions rules and a default of allow or deny; other agents take none. On
+// openhands, while the session uses do.actions tools, the default can't
+// change. permissions.filesystem and
+// permissions.network never change live: leave them out to keep the
+// session's, and setting them to something else is a 409. Only what differs
+// from the current policy is checked, and a removed rule counts: a rule of a
+// type the agent can't change must be kept in every permissions section you
+// send, so "permissions: {}" is a 409 while the policy has one (a file.read
+// rule on codex, a bash rule on hermes). If any of it can't apply, the whole
+// PATCH is a 409 and nothing is applied, tools, env and secrets included; the
+// error message names the changes to drop. A session created before live
+// permission updates were released also gets a 409: create a new session.
+// Session.Update.Changes.Permissions lists the default and rules that changed.
+//
+// A URL-bound secret can be rotated (a new value as a string), moved
+// ({value, url, scheme}), added ({value, url}; scheme defaults to bearer) or
+// removed (left out of secrets). Moving one to a new host or path, or to
+// scheme raw, requires value (400 otherwise). {url} with no value binds an
+// existing plain secret to a URL and keeps its value. A URL-bound secret
+// cannot be changed back to a plain secret. The url must be https:// with an
+// exact hostname, an optional path, and no port, query or fragment.
+//
+// egress replaces the session's allowlist. Send it as an object with
+// allow_hosts (hostnames) and allow_ips (exact IP addresses, not CIDR ranges);
+// only this form is supported in an update. Hosts and IPs left out are
+// removed. The VPC cannot change: omit vpc_uuid and subnet_uuid, or send their
+// current values.
+//
+// URL-bound secret and egress changes do not restart the agent: an update
+// that changes only those ends APPLIED, and the proxy applies the change on
+// the session's next outbound connection. Open connections are not closed.
+// Both need URL-bound secret and egress updates enabled for the team (403
+// otherwise). A session created with unrestricted egress and no URL-bound
+// secrets cannot gain either one: the update ends FAILED with
+// requires_new_session.
+//
+// The model changes through env, in the key that matches the endpoint the
+// session was created with:
+//   - DigitalOcean Serverless Inference (HARNESS_INFERENCE_MODEL, no endpoint
+//     of its own): HARNESS_INFERENCE_MODEL, set to a model id or router:<name>.
+//   - Its own OpenAI-compatible endpoint (OPENAI_BASE_URL): MODEL, which is
+//     read before OPENAI_MODEL.
+//   - Its own Anthropic endpoint (ANTHROPIC_BASE_URL) or the Anthropic API (an
+//     ANTHROPIC_API_KEY secret): ANTHROPIC_MODEL, which is read before MODEL.
+//
+// A session keeps its model endpoint: changing the provider or the base URL,
+// or adding or removing HARNESS_INFERENCE_MODEL, is a 422. On a session with
+// its own endpoint, removing the model key selects the agent's default model,
+// and the provider key (OPENAI_API_KEY or ANTHROPIC_API_KEY) can only be
+// rotated: removing it, adding it, or changing its url or scheme is a 422.
+// Rotating a URL-bound provider key follows the URL-bound secret rules above.
+// A model name must be one line of at most 256 bytes, with no leading or
+// trailing whitespace and no " #" or ": " (400).
+//
+// The session status must be SESSION_STATUS_READY, SESSION_STATUS_DETACHED or
+// SESSION_STATUS_PAUSED (a paused session is resumed for the update and paused
+// again, unless it was paused for zero balance), with no turn running and no
+// approval pending. Any other status, including PROVISIONING and UPDATING, is a
+// 409; a locked session is a 423.
+func (s *HostedAgentsServiceOp) UpdateSessionConfig(ctx context.Context, sessionID string, update *HostedAgentSessionConfigUpdateRequest) (*HostedAgentSessionConfigUpdateResponse, *Response, error) {
+	if sessionID == "" {
+		return nil, nil, errors.New("hosted agents: session id is required")
+	}
+	if update == nil || update.ManifestYAML == "" {
+		return nil, nil, errors.New("hosted agents: manifest yaml is required")
+	}
+	path := fmt.Sprintf(hostedAgentSessionByIDPath, sessionID)
+	req, err := s.client.NewRequest(ctx, http.MethodPatch, path, update)
+	if err != nil {
+		return nil, nil, err
+	}
+	root := new(HostedAgentSessionConfigUpdateResponse)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	if root.Session == nil {
+		return nil, resp, errors.New("hosted agents: update session config returned no session")
+	}
+	return root, resp, nil
 }
 
 // DestroySession tears down a session. The API returns HTTP 204 on success.
@@ -1509,8 +1790,7 @@ func (s *HostedAgentsServiceOp) ListConnections(ctx context.Context, provider st
 	return root, resp, nil
 }
 
-// CreateConnection creates (or resumes) a connection binding an actor to the
-// provider.
+// CreateConnection creates a connection binding an actor to the provider.
 func (s *HostedAgentsServiceOp) CreateConnection(ctx context.Context, provider string, body *HostedAgentConnectionCreateRequest) (*HostedAgentConnectionEnvelope, *Response, error) {
 	if provider == "" {
 		return nil, nil, errors.New("hosted agents: provider is required")
@@ -1562,6 +1842,27 @@ func (s *HostedAgentsServiceOp) DeleteConnection(ctx context.Context, provider, 
 	}
 	path := fmt.Sprintf(hostedAgentProviderConnectionByIDPath, provider, id)
 	req, err := s.client.NewRequest(ctx, http.MethodDelete, path, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	root := new(HostedAgentConnectionEnvelope)
+	resp, err := s.client.Do(ctx, req, root)
+	if err != nil {
+		return nil, resp, err
+	}
+	return root, resp, nil
+}
+
+// ReconnectConnection resumes or restarts one connection by id.
+func (s *HostedAgentsServiceOp) ReconnectConnection(ctx context.Context, provider, id string) (*HostedAgentConnectionEnvelope, *Response, error) {
+	if provider == "" {
+		return nil, nil, errors.New("hosted agents: provider is required")
+	}
+	if id == "" {
+		return nil, nil, errors.New("hosted agents: connection id is required")
+	}
+	path := fmt.Sprintf(hostedAgentProviderConnectionReconnectPath, provider, id)
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, struct{}{})
 	if err != nil {
 		return nil, nil, err
 	}

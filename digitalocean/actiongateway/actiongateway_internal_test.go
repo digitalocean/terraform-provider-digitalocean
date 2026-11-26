@@ -570,7 +570,7 @@ func TestConnectionDataSourceSkipsRevoked(t *testing.T) {
 	})
 }
 
-func TestReconcileToolbeltTools(t *testing.T) {
+func TestReconcilePinnedTools(t *testing.T) {
 	tests := []struct {
 		name       string
 		configured []string
@@ -603,7 +603,7 @@ func TestReconcileToolbeltTools(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := reconcileToolbeltTools(tt.configured, tt.pinned); !reflect.DeepEqual(got, tt.want) {
+			if got := reconcilePinnedTools(tt.configured, tt.pinned); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("got %v, want %v", got, tt.want)
 			}
 		})

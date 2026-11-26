@@ -55,3 +55,46 @@ output "github_connect_url" {
 output "search_toolbelt" {
   value = "toolbelt:${digitalocean_action_gateway_toolbelt.search.reference}"
 }
+
+# An endpoint points at its current head version. Changing the version block
+# publishes a new head in place and leaves the previous version live.
+resource "digitalocean_action_gateway_endpoint" "support" {
+  name = "support-agent"
+
+  insights {
+    logs   = true
+    traces = false
+  }
+
+  version {
+    actor_id = var.actor_id
+    tools    = ["exa_web_search", "toolbelt:${digitalocean_action_gateway_toolbelt.search.reference}"]
+
+    policy {
+      default_action = "ask"
+
+      rules {
+        tool   = "exa_web_search"
+        action = "allow"
+      }
+    }
+  }
+}
+
+# An endpoint another configuration owns, read by name.
+data "digitalocean_action_gateway_endpoint" "support" {
+  name     = digitalocean_action_gateway_endpoint.support.name
+  actor_id = var.actor_id
+}
+
+output "mcp_url" {
+  value = digitalocean_action_gateway_endpoint.support.mcp_url
+}
+
+output "pinned_mcp_url" {
+  value = digitalocean_action_gateway_endpoint.support.version_mcp_url
+}
+
+output "head_version" {
+  value = data.digitalocean_action_gateway_endpoint.support.version[0].version_number
+}
